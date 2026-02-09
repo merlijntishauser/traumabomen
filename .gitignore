@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / tools
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+htmlcov/
+.pytest_cache/
+.vitest/
+
+# Build artifacts
+frontend/dist/
+*.tsbuildinfo
+
+# Python virtual environments
+.venv/
+venv/
+
+# uv
+.python-version
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
