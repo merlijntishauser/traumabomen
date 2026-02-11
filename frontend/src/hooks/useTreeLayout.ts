@@ -53,20 +53,37 @@ export function useTreeLayout(
       g.setNode(person.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     }
 
+    const partnerPairs: [string, string][] = [];
+
     for (const rel of relationships.values()) {
       if (PARENT_TYPES.has(rel.type)) {
         g.setEdge(rel.source_person_id, rel.target_person_id);
       } else if (SIBLING_TYPES.has(rel.type)) {
         g.setEdge(rel.source_person_id, rel.target_person_id, { minlen: 0 });
       } else if (rel.type === RelationshipType.Partner) {
-        g.setEdge(rel.source_person_id, rel.target_person_id, {
-          minlen: 0,
-          weight: 2,
-        });
+        // Don't add partner edges to dagre -- they create unwanted rank
+        // separation. Instead, post-process partner pairs to sit side-by-side.
+        partnerPairs.push([rel.source_person_id, rel.target_person_id]);
       }
     }
 
     dagre.layout(g);
+
+    // Post-process: place partners side-by-side at the same Y level
+    for (const [aId, bId] of partnerPairs) {
+      const a = g.node(aId);
+      const b = g.node(bId);
+      if (!a || !b) continue;
+      const avgY = (a.y + b.y) / 2;
+      a.y = avgY;
+      b.y = avgY;
+      // If they overlap horizontally, nudge them apart
+      if (Math.abs(a.x - b.x) < NODE_WIDTH + 20) {
+        const mid = (a.x + b.x) / 2;
+        a.x = mid - (NODE_WIDTH / 2 + 10);
+        b.x = mid + (NODE_WIDTH / 2 + 10);
+      }
+    }
 
     const eventsByPerson = new Map<string, DecryptedEvent[]>();
     for (const event of events.values()) {
