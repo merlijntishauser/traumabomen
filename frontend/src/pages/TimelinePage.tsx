@@ -1,0 +1,52 @@
+import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useLogout } from "../hooks/useLogout";
+import { useTreeData } from "../hooks/useTreeData";
+import { TimelineView } from "../components/timeline/TimelineView";
+import "../components/tree/TreeCanvas.css";
+
+export default function TimelinePage() {
+  const { id: treeId } = useParams<{ id: string }>();
+  const { t } = useTranslation();
+  const logout = useLogout();
+  const { persons, relationships, events, isLoading, error } = useTreeData(
+    treeId!,
+  );
+
+  if (error) {
+    return (
+      <div className="tree-workspace">
+        <div className="tree-toolbar">
+          <Link to={`/trees/${treeId}`} className="tree-toolbar__back">
+            {t("nav.trees")}
+          </Link>
+        </div>
+        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tree-workspace">
+      <div className="tree-toolbar">
+        <Link to={`/trees/${treeId}`} className="tree-toolbar__back">
+          {t("nav.trees")}
+        </Link>
+        <div className="tree-toolbar__spacer" />
+        <button className="tree-toolbar__btn" onClick={logout}>
+          {t("nav.logout")}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div style={{ padding: 20 }}>{t("common.loading")}</div>
+      ) : (
+        <TimelineView
+          persons={persons}
+          relationships={relationships}
+          events={events}
+        />
+      )}
+    </div>
+  );
+}
