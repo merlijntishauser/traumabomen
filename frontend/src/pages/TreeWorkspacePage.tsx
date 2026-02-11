@@ -4,7 +4,9 @@ import {
   ReactFlowProvider,
   ReactFlow,
   useReactFlow,
+  applyNodeChanges,
   type OnConnect,
+  type OnNodesChange,
   type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -39,21 +41,34 @@ function TreeWorkspaceInner() {
     treeId!,
   );
   const mutations = useTreeMutations(treeId!);
-  const { nodes, edges } = useTreeLayout(
+  const { nodes: layoutNodes, edges } = useTreeLayout(
     persons,
     relationships,
     events,
     selectedPersonId,
   );
 
-  // Fit view when nodes change
+  // Local node state that accepts both layout updates and drag changes
+  const [nodes, setNodes] = useState<PersonNodeType[]>([]);
+
   useEffect(() => {
-    if (nodes.length > 0) {
-      // Slight delay to allow React Flow to render nodes
+    setNodes(layoutNodes);
+  }, [layoutNodes]);
+
+  const onNodesChange: OnNodesChange<PersonNodeType> = useCallback(
+    (changes) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+    },
+    [],
+  );
+
+  // Fit view when node count changes
+  useEffect(() => {
+    if (layoutNodes.length > 0) {
       const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
       return () => clearTimeout(timer);
     }
-  }, [nodes.length, fitView]);
+  }, [layoutNodes.length, fitView]);
 
   // Escape key handler
   useEffect(() => {
@@ -220,10 +235,10 @@ function TreeWorkspaceInner() {
             edges={edges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
+            onNodesChange={onNodesChange}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             onConnect={onConnect}
-            nodesDraggable={false}
             fitView
             deleteKeyCode={null}
           />
