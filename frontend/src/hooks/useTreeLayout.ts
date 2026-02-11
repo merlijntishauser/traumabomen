@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import dagre from "dagre";
+import * as dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
 import { RelationshipType } from "../types/domain";
 import type {
