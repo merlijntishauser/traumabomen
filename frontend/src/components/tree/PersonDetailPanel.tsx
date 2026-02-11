@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { TraumaCategory, RelationshipType } from "../../types/domain";
+import { TraumaCategory, RelationshipType, PartnerStatus } from "../../types/domain";
 import { TRAUMA_COLORS } from "../../lib/traumaColors";
-import type { Person, TraumaEvent } from "../../types/domain";
+import type { Person, TraumaEvent, RelationshipData, RelationshipPeriod } from "../../types/domain";
 import type {
   DecryptedPerson,
   DecryptedRelationship,
@@ -17,6 +17,7 @@ interface PersonDetailPanelProps {
   allPersons: Map<string, DecryptedPerson>;
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
+  onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
   onSaveEvent: (
     eventId: string | null,
     data: TraumaEvent,
@@ -33,6 +34,7 @@ export function PersonDetailPanel({
   allPersons,
   onSavePerson,
   onDeletePerson,
+  onSaveRelationship,
   onSaveEvent,
   onDeleteEvent,
   onClose,
@@ -63,6 +65,7 @@ export function PersonDetailPanel({
     setIsAdopted(person.is_adopted);
     setNotes(person.notes ?? "");
     setConfirmDelete(false);
+    setEditingRelId(null);
     setEditingEventId(null);
     setShowNewEvent(false);
   }, [person.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -85,6 +88,9 @@ export function PersonDetailPanel({
       setConfirmDelete(true);
     }
   }
+
+  // Relationship editing state
+  const [editingRelId, setEditingRelId] = useState<string | null>(null);
 
   // Event editing state
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -211,18 +217,39 @@ export function PersonDetailPanel({
                         <span className="detail-panel__rel-name">
                           {otherPerson?.name ?? "?"}
                         </span>
-                        {rel.type === RelationshipType.Partner &&
-                          rel.periods.length > 0 && (
-                            <div className="detail-panel__rel-periods">
-                              {rel.periods.map((p, i) => (
-                                <span key={i} className="detail-panel__period">
-                                  {t(`relationship.status.${p.status}`)}:{" "}
-                                  {p.start_year}
-                                  {p.end_year ? ` - ${p.end_year}` : " -"}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                        {rel.type === RelationshipType.Partner && (
+                          editingRelId === rel.id ? (
+                            <PartnerPeriodEditor
+                              relationship={rel}
+                              onSave={(data) => {
+                                onSaveRelationship(rel.id, data);
+                                setEditingRelId(null);
+                              }}
+                              onCancel={() => setEditingRelId(null)}
+                            />
+                          ) : (
+                            <>
+                              {rel.periods.length > 0 && (
+                                <div className="detail-panel__rel-periods">
+                                  {rel.periods.map((p, i) => (
+                                    <span key={i} className="detail-panel__period">
+                                      {t(`relationship.status.${p.status}`)}:{" "}
+                                      {p.start_year}
+                                      {p.end_year ? ` - ${p.end_year}` : " -"}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              <button
+                                className="detail-panel__btn--small"
+                                style={{ marginTop: 4 }}
+                                onClick={() => setEditingRelId(rel.id)}
+                              >
+                                {t("common.edit")}
+                              </button>
+                            </>
+                          )
+                        )}
                       </li>
                     );
                   })}
@@ -471,6 +498,118 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDe
             {confirmDelete ? t("trauma.confirmDelete") : t("common.delete")}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+interface PartnerPeriodEditorProps {
+  relationship: DecryptedRelationship;
+  onSave: (data: RelationshipData) => void;
+  onCancel: () => void;
+}
+
+function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEditorProps) {
+  const { t } = useTranslation();
+  const [periods, setPeriods] = useState<RelationshipPeriod[]>(
+    () => relationship.periods.length > 0
+      ? relationship.periods
+      : [{ start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together }],
+  );
+
+  function addPeriod() {
+    setPeriods((prev) => [
+      ...prev,
+      { start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together },
+    ]);
+  }
+
+  function removePeriod(index: number) {
+    setPeriods((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updatePeriod(index: number, field: keyof RelationshipPeriod, value: string) {
+    setPeriods((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        if (field === "status") return { ...p, status: value as PartnerStatus };
+        if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
+        return { ...p, [field]: parseInt(value, 10) || 0 };
+      }),
+    );
+  }
+
+  function handleSave() {
+    onSave({
+      type: relationship.type,
+      periods,
+      active_period: relationship.active_period,
+    });
+  }
+
+  return (
+    <div className="detail-panel__period-editor">
+      {periods.map((period, i) => (
+        <div key={i} className="detail-panel__period-row">
+          <label className="detail-panel__field">
+            <span>{t("relationship.status")}</span>
+            <select
+              value={period.status}
+              onChange={(e) => updatePeriod(i, "status", e.target.value)}
+            >
+              {Object.values(PartnerStatus).map((s) => (
+                <option key={s} value={s}>
+                  {t(`relationship.status.${s}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="detail-panel__period-years">
+            <label className="detail-panel__field">
+              <span>{t("common.startYear")}</span>
+              <input
+                type="number"
+                value={period.start_year}
+                onChange={(e) => updatePeriod(i, "start_year", e.target.value)}
+              />
+            </label>
+            <label className="detail-panel__field">
+              <span>{t("common.endYear")}</span>
+              <input
+                type="number"
+                value={period.end_year ?? ""}
+                onChange={(e) => updatePeriod(i, "end_year", e.target.value)}
+                placeholder="---"
+              />
+            </label>
+          </div>
+          {periods.length > 1 && (
+            <button
+              className="detail-panel__btn--small detail-panel__btn--danger"
+              onClick={() => removePeriod(i)}
+            >
+              {t("relationship.removePeriod")}
+            </button>
+          )}
+        </div>
+      ))}
+      <button
+        className="detail-panel__btn--small"
+        style={{ marginTop: 4 }}
+        onClick={addPeriod}
+      >
+        {t("relationship.addPeriod")}
+      </button>
+      <div className="detail-panel__actions">
+        <button
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
+          {t("common.save")}
+        </button>
+        <button className="detail-panel__btn" onClick={onCancel}>
+          {t("common.cancel")}
+        </button>
       </div>
     </div>
   );

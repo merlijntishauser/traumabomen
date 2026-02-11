@@ -58,8 +58,10 @@
   "relationship.type.partner": "Partner",
   "relationship.source": "Van",
   "relationship.target": "Naar",
+  "relationship.status": "Status",
   "relationship.periods": "Relatieperiodes",
   "relationship.addPeriod": "Periode toevoegen",
+  "relationship.removePeriod": "Verwijderen",
 
   "relationship.status.together": "Samen",
   "relationship.status.married": "Getrouwd",

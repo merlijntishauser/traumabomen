@@ -20,7 +20,7 @@ import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { RelationshipType } from "../types/domain";
-import type { Person, TraumaEvent } from "../types/domain";
+import type { Person, TraumaEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode };
@@ -157,6 +157,10 @@ function TreeWorkspaceInner() {
     });
   }
 
+  function handleSaveRelationship(relationshipId: string, data: RelationshipData) {
+    mutations.updateRelationship.mutate({ relationshipId, data });
+  }
+
   function handleSaveEvent(
     eventId: string | null,
     data: TraumaEvent,
@@ -252,6 +256,7 @@ function TreeWorkspaceInner() {
             allPersons={persons}
             onSavePerson={handleSavePerson}
             onDeletePerson={handleDeletePerson}
+            onSaveRelationship={handleSaveRelationship}
             onSaveEvent={handleSaveEvent}
             onDeleteEvent={handleDeleteEvent}
             onClose={() => setSelectedPersonId(null)}

@@ -272,3 +272,32 @@
   flex-direction: column;
   gap: 6px;
 }
+
+.detail-panel__period-editor {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.detail-panel__period-row {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-panel__period-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-panel__period-years {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-panel__period-years .detail-panel__field {
+  flex: 1;
+}

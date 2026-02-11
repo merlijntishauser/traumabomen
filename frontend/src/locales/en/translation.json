@@ -58,8 +58,10 @@
   "relationship.type.partner": "Partner",
   "relationship.source": "From",
   "relationship.target": "To",
+  "relationship.status": "Status",
   "relationship.periods": "Relationship periods",
   "relationship.addPeriod": "Add period",
+  "relationship.removePeriod": "Remove",
 
   "relationship.status.together": "Together",
   "relationship.status.married": "Married",
