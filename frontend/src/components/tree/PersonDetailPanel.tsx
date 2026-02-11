@@ -8,11 +8,13 @@ import type {
   DecryptedRelationship,
   DecryptedEvent,
 } from "../../hooks/useTreeData";
+import type { InferredSibling } from "../../lib/inferSiblings";
 import "./PersonDetailPanel.css";
 
 interface PersonDetailPanelProps {
   person: DecryptedPerson;
   relationships: DecryptedRelationship[];
+  inferredSiblings: InferredSibling[];
   events: DecryptedEvent[];
   allPersons: Map<string, DecryptedPerson>;
   onSavePerson: (data: Person) => void;
@@ -30,6 +32,7 @@ interface PersonDetailPanelProps {
 export function PersonDetailPanel({
   person,
   relationships,
+  inferredSiblings,
   events,
   allPersons,
   onSavePerson,
@@ -195,11 +198,11 @@ export function PersonDetailPanel({
             onClick={() => setRelsOpen(!relsOpen)}
           >
             {relsOpen ? "\u25BC" : "\u25B6"} {t("relationship.relationships")} (
-            {relationships.length})
+            {relationships.length + inferredSiblings.length})
           </button>
           {relsOpen && (
             <div className="detail-panel__section-body">
-              {relationships.length === 0 ? (
+              {relationships.length === 0 && inferredSiblings.length === 0 ? (
                 <p className="detail-panel__empty">---</p>
               ) : (
                 <ul className="detail-panel__rel-list">
@@ -250,6 +253,30 @@ export function PersonDetailPanel({
                             </>
                           )
                         )}
+                      </li>
+                    );
+                  })}
+                  {inferredSiblings.map((sib) => {
+                    const otherId =
+                      sib.personAId === person.id ? sib.personBId : sib.personAId;
+                    const otherPerson = allPersons.get(otherId);
+                    const sharedParentNames = sib.sharedParentIds
+                      .map((id) => allPersons.get(id)?.name ?? "?")
+                      .join(", ");
+                    return (
+                      <li
+                        key={`inferred-${otherId}`}
+                        className="detail-panel__rel-item"
+                      >
+                        <span className="detail-panel__rel-type">
+                          {t(`relationship.type.${sib.type}`)}
+                        </span>
+                        <span className="detail-panel__rel-name">
+                          {otherPerson?.name ?? "?"}
+                        </span>
+                        <span className="detail-panel__rel-via">
+                          {t("relationship.viaParent", { name: sharedParentNames })}
+                        </span>
                       </li>
                     );
                   })}

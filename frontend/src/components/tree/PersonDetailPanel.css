@@ -211,6 +211,13 @@
   font-weight: 500;
 }
 
+.detail-panel__rel-via {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
 .detail-panel__rel-periods {
   margin-top: 4px;
 }

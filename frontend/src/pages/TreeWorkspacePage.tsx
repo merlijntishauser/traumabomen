@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ReactFlowProvider,
@@ -19,6 +19,8 @@ import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayou
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
+import { inferSiblings } from "../lib/inferSiblings";
+import type { InferredSibling } from "../lib/inferSiblings";
 import { RelationshipType } from "../types/domain";
 import type { Person, TraumaEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
@@ -195,6 +197,17 @@ function TreeWorkspaceInner() {
       )
     : [];
 
+  const inferredSiblings = useMemo(
+    () => inferSiblings(relationships),
+    [relationships],
+  );
+
+  const selectedInferredSiblings = selectedPersonId
+    ? inferredSiblings.filter(
+        (s) => s.personAId === selectedPersonId || s.personBId === selectedPersonId,
+      )
+    : [];
+
   if (error) {
     return (
       <div className="tree-workspace">
@@ -252,6 +265,7 @@ function TreeWorkspaceInner() {
           <PersonDetailPanel
             person={selectedPerson}
             relationships={selectedRelationships}
+            inferredSiblings={selectedInferredSiblings}
             events={selectedEvents}
             allPersons={persons}
             onSavePerson={handleSavePerson}

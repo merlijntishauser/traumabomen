@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import * as dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
 import { RelationshipType } from "../types/domain";
+import { inferSiblings } from "../lib/inferSiblings";
 import type {
   DecryptedPerson,
   DecryptedRelationship,
@@ -14,7 +15,8 @@ export interface PersonNodeData extends Record<string, unknown> {
 }
 
 export interface RelationshipEdgeData extends Record<string, unknown> {
-  relationship: DecryptedRelationship;
+  relationship?: DecryptedRelationship;
+  inferredType?: "full_sibling" | "half_sibling";
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
@@ -123,6 +125,20 @@ export function useTreeLayout(
         sourceHandle: isPartner ? "right" : "bottom",
         targetHandle: isPartner ? "left" : "top",
         data: { relationship: rel },
+      });
+    }
+
+    // Add inferred sibling edges
+    const inferred = inferSiblings(relationships);
+    for (const sib of inferred) {
+      edges.push({
+        id: `inferred-${sib.personAId}-${sib.personBId}`,
+        type: "relationship",
+        source: sib.personAId,
+        target: sib.personBId,
+        sourceHandle: "bottom",
+        targetHandle: "top",
+        data: { inferredType: sib.type },
       });
     }
 

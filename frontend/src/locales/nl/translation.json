@@ -100,6 +100,9 @@
   "person.confirmDelete": "Weet je zeker dat je deze persoon wilt verwijderen? Dit verwijdert ook hun relaties.",
 
   "relationship.relationships": "Relaties",
+  "relationship.type.full_sibling": "Volle broer/zus",
+  "relationship.type.half_sibling": "Halfbroer/-zus",
+  "relationship.viaParent": "via {{name}}",
   "relationship.selectType": "Selecteer relatietype",
 
   "trauma.events": "Traumagebeurtenissen",
