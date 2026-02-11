@@ -1,0 +1,59 @@
+.person-node {
+  width: 180px;
+  min-height: 60px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.person-node--selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.person-node__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-node__years {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.person-node__adopted {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.person-node__badges {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.person-node__badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.person-node .react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #9ca3af;
+  border: 2px solid #fff;
+}
+
+.person-node .react-flow__handle:hover {
+  background: #3b82f6;
+}

@@ -80,6 +80,7 @@
   "trauma.category.illness": "Illness",
   "trauma.category.poverty": "Poverty",
 
+  "common.close": "Close",
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
@@ -87,5 +88,19 @@
   "common.loading": "Loading...",
   "common.error": "An error occurred",
   "common.startYear": "Start year",
-  "common.endYear": "End year"
+  "common.endYear": "End year",
+
+  "tree.untitled": "Untitled tree",
+  "tree.decryptionError": "Could not decrypt tree data. Please log in again.",
+
+  "person.details": "Person details",
+  "person.newPerson": "New person",
+  "person.confirmDelete": "Are you sure you want to delete this person? This will also remove their relationships.",
+
+  "relationship.relationships": "Relationships",
+  "relationship.selectType": "Select relationship type",
+
+  "trauma.events": "Trauma events",
+  "trauma.newEvent": "New event",
+  "trauma.confirmDelete": "Are you sure you want to delete this event?"
 }

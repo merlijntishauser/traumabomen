@@ -1,0 +1,435 @@
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { TraumaCategory, RelationshipType } from "../../types/domain";
+import { TRAUMA_COLORS } from "../../lib/traumaColors";
+import type { Person, TraumaEvent } from "../../types/domain";
+import type {
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedEvent,
+} from "../../hooks/useTreeData";
+import "./PersonDetailPanel.css";
+
+interface PersonDetailPanelProps {
+  person: DecryptedPerson;
+  relationships: DecryptedRelationship[];
+  events: DecryptedEvent[];
+  allPersons: Map<string, DecryptedPerson>;
+  onSavePerson: (data: Person) => void;
+  onDeletePerson: (personId: string) => void;
+  onSaveEvent: (
+    eventId: string | null,
+    data: TraumaEvent,
+    personIds: string[],
+  ) => void;
+  onDeleteEvent: (eventId: string) => void;
+  onClose: () => void;
+}
+
+export function PersonDetailPanel({
+  person,
+  relationships,
+  events,
+  allPersons,
+  onSavePerson,
+  onDeletePerson,
+  onSaveEvent,
+  onDeleteEvent,
+  onClose,
+}: PersonDetailPanelProps) {
+  const { t } = useTranslation();
+
+  const [personOpen, setPersonOpen] = useState(true);
+  const [relsOpen, setRelsOpen] = useState(false);
+  const [eventsOpen, setEventsOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Person form state
+  const [name, setName] = useState(person.name);
+  const [birthYear, setBirthYear] = useState(String(person.birth_year));
+  const [deathYear, setDeathYear] = useState(
+    person.death_year != null ? String(person.death_year) : "",
+  );
+  const [gender, setGender] = useState(person.gender);
+  const [isAdopted, setIsAdopted] = useState(person.is_adopted);
+  const [notes, setNotes] = useState(person.notes ?? "");
+
+  // Reset form when person changes
+  useEffect(() => {
+    setName(person.name);
+    setBirthYear(String(person.birth_year));
+    setDeathYear(person.death_year != null ? String(person.death_year) : "");
+    setGender(person.gender);
+    setIsAdopted(person.is_adopted);
+    setNotes(person.notes ?? "");
+    setConfirmDelete(false);
+    setEditingEventId(null);
+    setShowNewEvent(false);
+  }, [person.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSavePerson() {
+    onSavePerson({
+      name,
+      birth_year: parseInt(birthYear, 10) || 0,
+      death_year: deathYear ? parseInt(deathYear, 10) : null,
+      gender,
+      is_adopted: isAdopted,
+      notes: notes || null,
+    });
+  }
+
+  function handleDeletePerson() {
+    if (confirmDelete) {
+      onDeletePerson(person.id);
+    } else {
+      setConfirmDelete(true);
+    }
+  }
+
+  // Event editing state
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [showNewEvent, setShowNewEvent] = useState(false);
+
+  return (
+    <div className="detail-panel">
+      <div className="detail-panel__header">
+        <h2>{person.name}</h2>
+        <button className="detail-panel__close" onClick={onClose}>
+          {t("common.close")}
+        </button>
+      </div>
+
+      <div className="detail-panel__content">
+        {/* Person details section */}
+        <section className="detail-panel__section">
+          <button
+            className="detail-panel__section-toggle"
+            onClick={() => setPersonOpen(!personOpen)}
+          >
+            {personOpen ? "\u25BC" : "\u25B6"} {t("person.details")}
+          </button>
+          {personOpen && (
+            <div className="detail-panel__section-body">
+              <label className="detail-panel__field">
+                <span>{t("person.name")}</span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+              <label className="detail-panel__field">
+                <span>{t("person.birthYear")}</span>
+                <input
+                  type="number"
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value)}
+                />
+              </label>
+              <label className="detail-panel__field">
+                <span>{t("person.deathYear")}</span>
+                <input
+                  type="number"
+                  value={deathYear}
+                  onChange={(e) => setDeathYear(e.target.value)}
+                  placeholder="---"
+                />
+              </label>
+              <label className="detail-panel__field">
+                <span>{t("person.gender")}</span>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                >
+                  <option value="male">{t("person.male")}</option>
+                  <option value="female">{t("person.female")}</option>
+                  <option value="other">{t("person.other")}</option>
+                </select>
+              </label>
+              <label className="detail-panel__field detail-panel__field--checkbox">
+                <input
+                  type="checkbox"
+                  checked={isAdopted}
+                  onChange={(e) => setIsAdopted(e.target.checked)}
+                />
+                <span>{t("person.isAdopted")}</span>
+              </label>
+              <label className="detail-panel__field">
+                <span>{t("person.notes")}</span>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                />
+              </label>
+              <div className="detail-panel__actions">
+                <button
+                  className="detail-panel__btn detail-panel__btn--primary"
+                  onClick={handleSavePerson}
+                >
+                  {t("person.save")}
+                </button>
+                <button
+                  className="detail-panel__btn detail-panel__btn--danger"
+                  onClick={handleDeletePerson}
+                >
+                  {confirmDelete
+                    ? t("person.confirmDelete")
+                    : t("person.delete")}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Relationships section */}
+        <section className="detail-panel__section">
+          <button
+            className="detail-panel__section-toggle"
+            onClick={() => setRelsOpen(!relsOpen)}
+          >
+            {relsOpen ? "\u25BC" : "\u25B6"} {t("relationship.relationships")} (
+            {relationships.length})
+          </button>
+          {relsOpen && (
+            <div className="detail-panel__section-body">
+              {relationships.length === 0 ? (
+                <p className="detail-panel__empty">---</p>
+              ) : (
+                <ul className="detail-panel__rel-list">
+                  {relationships.map((rel) => {
+                    const otherId =
+                      rel.source_person_id === person.id
+                        ? rel.target_person_id
+                        : rel.source_person_id;
+                    const otherPerson = allPersons.get(otherId);
+                    return (
+                      <li key={rel.id} className="detail-panel__rel-item">
+                        <span className="detail-panel__rel-type">
+                          {t(`relationship.type.${rel.type}`)}
+                        </span>
+                        <span className="detail-panel__rel-name">
+                          {otherPerson?.name ?? "?"}
+                        </span>
+                        {rel.type === RelationshipType.Partner &&
+                          rel.periods.length > 0 && (
+                            <div className="detail-panel__rel-periods">
+                              {rel.periods.map((p, i) => (
+                                <span key={i} className="detail-panel__period">
+                                  {t(`relationship.status.${p.status}`)}:{" "}
+                                  {p.start_year}
+                                  {p.end_year ? ` - ${p.end_year}` : " -"}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Trauma events section */}
+        <section className="detail-panel__section">
+          <button
+            className="detail-panel__section-toggle"
+            onClick={() => setEventsOpen(!eventsOpen)}
+          >
+            {eventsOpen ? "\u25BC" : "\u25B6"} {t("trauma.events")} (
+            {events.length})
+          </button>
+          {eventsOpen && (
+            <div className="detail-panel__section-body">
+              {events.map((event) =>
+                editingEventId === event.id ? (
+                  <EventForm
+                    key={event.id}
+                    event={event}
+                    onSave={(data) => {
+                      onSaveEvent(event.id, data, event.person_ids);
+                      setEditingEventId(null);
+                    }}
+                    onCancel={() => setEditingEventId(null)}
+                    onDelete={() => {
+                      onDeleteEvent(event.id);
+                      setEditingEventId(null);
+                    }}
+                  />
+                ) : (
+                  <div key={event.id} className="detail-panel__event-item">
+                    <div className="detail-panel__event-header">
+                      <span
+                        className="detail-panel__event-dot"
+                        style={{
+                          backgroundColor: TRAUMA_COLORS[event.category],
+                        }}
+                      />
+                      <span className="detail-panel__event-title">
+                        {event.title}
+                      </span>
+                      <button
+                        className="detail-panel__btn--small"
+                        onClick={() => setEditingEventId(event.id)}
+                      >
+                        {t("common.edit")}
+                      </button>
+                    </div>
+                    {event.approximate_date && (
+                      <div className="detail-panel__event-date">
+                        {event.approximate_date}
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+
+              {showNewEvent ? (
+                <EventForm
+                  event={null}
+                  onSave={(data) => {
+                    onSaveEvent(null, data, [person.id]);
+                    setShowNewEvent(false);
+                  }}
+                  onCancel={() => setShowNewEvent(false)}
+                />
+              ) : (
+                <button
+                  className="detail-panel__btn detail-panel__btn--secondary"
+                  onClick={() => setShowNewEvent(true)}
+                >
+                  {t("trauma.newEvent")}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+interface EventFormProps {
+  event: DecryptedEvent | null;
+  onSave: (data: TraumaEvent) => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}
+
+function EventForm({ event, onSave, onCancel, onDelete }: EventFormProps) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(event?.title ?? "");
+  const [description, setDescription] = useState(event?.description ?? "");
+  const [category, setCategory] = useState<TraumaCategory>(
+    event?.category ?? TraumaCategory.Loss,
+  );
+  const [approximateDate, setApproximateDate] = useState(
+    event?.approximate_date ?? "",
+  );
+  const [severity, setSeverity] = useState(String(event?.severity ?? 5));
+  const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  function handleSave() {
+    onSave({
+      title,
+      description,
+      category,
+      approximate_date: approximateDate,
+      severity: parseInt(severity, 10) || 1,
+      tags: tags
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    });
+  }
+
+  return (
+    <div className="detail-panel__event-form">
+      <label className="detail-panel__field">
+        <span>{t("trauma.title")}</span>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("trauma.description")}</span>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("trauma.category")}</span>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as TraumaCategory)}
+        >
+          {Object.values(TraumaCategory).map((cat) => (
+            <option key={cat} value={cat}>
+              {t(`trauma.category.${cat}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("trauma.approximateDate")}</span>
+        <input
+          type="text"
+          value={approximateDate}
+          onChange={(e) => setApproximateDate(e.target.value)}
+          placeholder="e.g. 1985"
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("trauma.severity")} (1-10)</span>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={severity}
+          onChange={(e) => setSeverity(e.target.value)}
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("trauma.tags")}</span>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="tag1, tag2"
+        />
+      </label>
+      <div className="detail-panel__actions">
+        <button
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
+          {t("common.save")}
+        </button>
+        <button className="detail-panel__btn" onClick={onCancel}>
+          {t("common.cancel")}
+        </button>
+        {onDelete && (
+          <button
+            className="detail-panel__btn detail-panel__btn--danger"
+            onClick={() => {
+              if (confirmDelete) {
+                onDelete();
+              } else {
+                setConfirmDelete(true);
+              }
+            }}
+          >
+            {confirmDelete ? t("trauma.confirmDelete") : t("common.delete")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

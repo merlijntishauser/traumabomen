@@ -7,6 +7,7 @@ import {
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TreeListPage from "./pages/TreeListPage";
+import TreeWorkspacePage from "./pages/TreeWorkspacePage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
@@ -27,6 +28,14 @@ export default function App() {
           element={
             <AuthGuard>
               <TreeListPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/trees/:id"
+          element={
+            <AuthGuard>
+              <TreeWorkspacePage />
             </AuthGuard>
           }
         />

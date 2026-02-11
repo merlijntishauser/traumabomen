@@ -80,6 +80,7 @@
   "trauma.category.illness": "Ziekte",
   "trauma.category.poverty": "Armoede",
 
+  "common.close": "Sluiten",
   "common.save": "Opslaan",
   "common.cancel": "Annuleren",
   "common.delete": "Verwijderen",
@@ -87,5 +88,19 @@
   "common.loading": "Laden...",
   "common.error": "Er is een fout opgetreden",
   "common.startYear": "Startjaar",
-  "common.endYear": "Eindjaar"
+  "common.endYear": "Eindjaar",
+
+  "tree.untitled": "Naamloze boom",
+  "tree.decryptionError": "Kon boomgegevens niet ontsleutelen. Log opnieuw in.",
+
+  "person.details": "Persoonsgegevens",
+  "person.newPerson": "Nieuwe persoon",
+  "person.confirmDelete": "Weet je zeker dat je deze persoon wilt verwijderen? Dit verwijdert ook hun relaties.",
+
+  "relationship.relationships": "Relaties",
+  "relationship.selectType": "Selecteer relatietype",
+
+  "trauma.events": "Traumagebeurtenissen",
+  "trauma.newEvent": "Nieuwe gebeurtenis",
+  "trauma.confirmDelete": "Weet je zeker dat je deze gebeurtenis wilt verwijderen?"
 }
