@@ -248,8 +248,10 @@ export function PersonDetailPanel({
                   <EventForm
                     key={event.id}
                     event={event}
-                    onSave={(data) => {
-                      onSaveEvent(event.id, data, event.person_ids);
+                    allPersons={allPersons}
+                    initialPersonIds={event.person_ids}
+                    onSave={(data, personIds) => {
+                      onSaveEvent(event.id, data, personIds);
                       setEditingEventId(null);
                     }}
                     onCancel={() => setEditingEventId(null)}
@@ -289,8 +291,10 @@ export function PersonDetailPanel({
               {showNewEvent ? (
                 <EventForm
                   event={null}
-                  onSave={(data) => {
-                    onSaveEvent(null, data, [person.id]);
+                  allPersons={allPersons}
+                  initialPersonIds={[person.id]}
+                  onSave={(data, personIds) => {
+                    onSaveEvent(null, data, personIds);
                     setShowNewEvent(false);
                   }}
                   onCancel={() => setShowNewEvent(false)}
@@ -313,12 +317,14 @@ export function PersonDetailPanel({
 
 interface EventFormProps {
   event: DecryptedEvent | null;
-  onSave: (data: TraumaEvent) => void;
+  allPersons: Map<string, DecryptedPerson>;
+  initialPersonIds: string[];
+  onSave: (data: TraumaEvent, personIds: string[]) => void;
   onCancel: () => void;
   onDelete?: () => void;
 }
 
-function EventForm({ event, onSave, onCancel, onDelete }: EventFormProps) {
+function EventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDelete }: EventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(event?.title ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
@@ -331,19 +337,42 @@ function EventForm({ event, onSave, onCancel, onDelete }: EventFormProps) {
   const [severity, setSeverity] = useState(String(event?.severity ?? 5));
   const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
+    () => new Set(initialPersonIds),
+  );
+
+  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  function togglePerson(personId: string) {
+    setSelectedPersonIds((prev) => {
+      if (prev.has(personId) && prev.size <= 1) return prev;
+      const next = new Set(prev);
+      if (next.has(personId)) {
+        next.delete(personId);
+      } else {
+        next.add(personId);
+      }
+      return next;
+    });
+  }
 
   function handleSave() {
-    onSave({
-      title,
-      description,
-      category,
-      approximate_date: approximateDate,
-      severity: parseInt(severity, 10) || 1,
-      tags: tags
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    });
+    onSave(
+      {
+        title,
+        description,
+        category,
+        approximate_date: approximateDate,
+        severity: parseInt(severity, 10) || 1,
+        tags: tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      },
+      Array.from(selectedPersonIds),
+    );
   }
 
   return (
@@ -405,6 +434,19 @@ function EventForm({ event, onSave, onCancel, onDelete }: EventFormProps) {
           placeholder="tag1, tag2"
         />
       </label>
+      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
+        <span>{t("trauma.linkedPersons")}</span>
+        {sortedPersons.map((p) => (
+          <label key={p.id} className="detail-panel__field--checkbox">
+            <input
+              type="checkbox"
+              checked={selectedPersonIds.has(p.id)}
+              onChange={() => togglePerson(p.id)}
+            />
+            <span>{p.name}</span>
+          </label>
+        ))}
+      </fieldset>
       <div className="detail-panel__actions">
         <button
           className="detail-panel__btn detail-panel__btn--primary"

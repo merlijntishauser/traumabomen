@@ -263,3 +263,12 @@
   border-radius: 6px;
   border: 1px solid #e5e7eb;
 }
+
+.detail-panel__person-checkboxes {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

@@ -102,5 +102,6 @@
 
   "trauma.events": "Traumagebeurtenissen",
   "trauma.newEvent": "Nieuwe gebeurtenis",
-  "trauma.confirmDelete": "Weet je zeker dat je deze gebeurtenis wilt verwijderen?"
+  "trauma.confirmDelete": "Weet je zeker dat je deze gebeurtenis wilt verwijderen?",
+  "trauma.linkedPersons": "Gekoppelde personen"
 }

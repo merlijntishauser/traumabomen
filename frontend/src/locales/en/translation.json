@@ -102,5 +102,6 @@
 
   "trauma.events": "Trauma events",
   "trauma.newEvent": "New event",
-  "trauma.confirmDelete": "Are you sure you want to delete this event?"
+  "trauma.confirmDelete": "Are you sure you want to delete this event?",
+  "trauma.linkedPersons": "Linked persons"
 }
