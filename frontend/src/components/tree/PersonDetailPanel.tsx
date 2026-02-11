@@ -91,7 +91,7 @@ export function PersonDetailPanel({
   const [showNewEvent, setShowNewEvent] = useState(false);
 
   return (
-    <div className="detail-panel">
+    <div className="detail-panel" data-1p-ignore>
       <div className="detail-panel__header">
         <h2>{person.name}</h2>
         <button className="detail-panel__close" onClick={onClose}>
