@@ -1,11 +1,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { getAccessToken } from "./lib/api";
+import {
+  EncryptionProvider,
+  useEncryption,
+} from "./contexts/EncryptionContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TreeListPage from "./pages/TreeListPage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  if (!getAccessToken()) {
+  const { key } = useEncryption();
+  if (!getAccessToken() || !key) {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
@@ -13,18 +18,20 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route
-        path="/trees"
-        element={
-          <AuthGuard>
-            <TreeListPage />
-          </AuthGuard>
-        }
-      />
-      <Route path="*" element={<Navigate to="/trees" replace />} />
-    </Routes>
+    <EncryptionProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/trees"
+          element={
+            <AuthGuard>
+              <TreeListPage />
+            </AuthGuard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/trees" replace />} />
+      </Routes>
+    </EncryptionProvider>
   );
 }
