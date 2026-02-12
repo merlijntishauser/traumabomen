@@ -49,6 +49,14 @@
   --color-trauma-illness: #4ade80;
   --color-trauma-poverty: #a78bfa;
 
+  /* Life event categories */
+  --color-life-family: #60a5fa;
+  --color-life-education: #a78bfa;
+  --color-life-career: #f59e0b;
+  --color-life-relocation: #34d399;
+  --color-life-health: #f472b6;
+  --color-life-other: #94a3b8;
+
   /* Nodes */
   --color-node-bg: #0f261a;
   --color-node-border: #1f4d35;
@@ -120,6 +128,13 @@
   --color-trauma-displacement: #ca8a04;
   --color-trauma-illness: #16a34a;
   --color-trauma-poverty: #7c3aed;
+
+  --color-life-family: #3b82f6;
+  --color-life-education: #7c3aed;
+  --color-life-career: #d97706;
+  --color-life-relocation: #059669;
+  --color-life-health: #db2777;
+  --color-life-other: #64748b;
 
   --color-node-bg: #ffffff;
   --color-node-border: #c8cdc3;

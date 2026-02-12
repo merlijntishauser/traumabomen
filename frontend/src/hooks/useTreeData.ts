@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPersons, getRelationships, getEvents } from "../lib/api";
+import { getPersons, getRelationships, getEvents, getLifeEvents } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
-import type { Person, RelationshipData, TraumaEvent } from "../types/domain";
+import type { Person, RelationshipData, TraumaEvent, LifeEvent } from "../types/domain";
 
 export interface DecryptedPerson extends Person {
   id: string;
@@ -18,11 +18,17 @@ export interface DecryptedEvent extends TraumaEvent {
   person_ids: string[];
 }
 
+export interface DecryptedLifeEvent extends LifeEvent {
+  id: string;
+  person_ids: string[];
+}
+
 export const treeQueryKeys = {
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
   relationships: (treeId: string) =>
     ["trees", treeId, "relationships"] as const,
   events: (treeId: string) => ["trees", treeId, "events"] as const,
+  lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
 };
 
 export function useTreeData(treeId: string) {
@@ -81,16 +87,39 @@ export function useTreeData(treeId: string) {
     },
   });
 
+  const lifeEventsQuery = useQuery({
+    queryKey: treeQueryKeys.lifeEvents(treeId),
+    queryFn: async () => {
+      const responses = await getLifeEvents(treeId);
+      const entries = await Promise.all(
+        responses.map(async (r) => {
+          const data = await decrypt<LifeEvent>(r.encrypted_data);
+          return [
+            r.id,
+            { ...data, id: r.id, person_ids: r.person_ids } as DecryptedLifeEvent,
+          ] as const;
+        }),
+      );
+      return new Map(entries);
+    },
+  });
+
   return {
     persons: personsQuery.data ?? new Map<string, DecryptedPerson>(),
     relationships:
       relationshipsQuery.data ?? new Map<string, DecryptedRelationship>(),
     events: eventsQuery.data ?? new Map<string, DecryptedEvent>(),
+    lifeEvents:
+      lifeEventsQuery.data ?? new Map<string, DecryptedLifeEvent>(),
     isLoading:
       personsQuery.isLoading ||
       relationshipsQuery.isLoading ||
-      eventsQuery.isLoading,
+      eventsQuery.isLoading ||
+      lifeEventsQuery.isLoading,
     error:
-      personsQuery.error || relationshipsQuery.error || eventsQuery.error,
+      personsQuery.error ||
+      relationshipsQuery.error ||
+      eventsQuery.error ||
+      lifeEventsQuery.error,
   };
 }

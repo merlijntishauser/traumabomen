@@ -83,3 +83,24 @@ class EventResponse(BaseModel):
     encrypted_data: str
     created_at: datetime
     updated_at: datetime
+
+
+# --- LifeEvent ---
+
+
+class LifeEventCreate(BaseModel):
+    person_ids: list[uuid.UUID]
+    encrypted_data: str
+
+
+class LifeEventUpdate(BaseModel):
+    person_ids: list[uuid.UUID] | None = None
+    encrypted_data: str | None = None
+
+
+class LifeEventResponse(BaseModel):
+    id: uuid.UUID
+    person_ids: list[uuid.UUID]
+    encrypted_data: str
+    created_at: datetime
+    updated_at: datetime

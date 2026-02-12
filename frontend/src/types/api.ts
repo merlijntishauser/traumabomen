@@ -115,6 +115,25 @@ export interface EventResponse {
   updated_at: string;
 }
 
+// Life Events
+export interface LifeEventCreate {
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface LifeEventUpdate {
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
+export interface LifeEventResponse {
+  id: string;
+  person_ids: string[];
+  encrypted_data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Sync
 export interface SyncPersonCreate {
   id?: string;

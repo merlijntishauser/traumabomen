@@ -2,12 +2,13 @@ import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import { getTraumaColor } from "../../lib/traumaColors";
+import { getLifeEventColor } from "../../lib/lifeEventColors";
 import type { PersonNodeData } from "../../hooks/useTreeLayout";
 import "./PersonNode.css";
 
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
-  const { person, events } = data;
+  const { person, events, lifeEvents } = data;
 
   const yearRange = person.death_year
     ? `${person.birth_year} - ${person.death_year}`
@@ -36,6 +37,18 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               key={event.id}
               className="person-node__badge"
               style={{ backgroundColor: getTraumaColor(event.category) }}
+              title={event.title}
+            />
+          ))}
+        </div>
+      )}
+      {lifeEvents.length > 0 && (
+        <div className="person-node__badges">
+          {lifeEvents.map((event) => (
+            <span
+              key={event.id}
+              className="person-node__badge person-node__badge--life"
+              style={{ backgroundColor: getLifeEventColor(event.category) }}
               title={event.title}
             />
           ))}

@@ -19,6 +19,9 @@ import type {
   EventCreate,
   EventUpdate,
   EventResponse,
+  LifeEventCreate,
+  LifeEventUpdate,
+  LifeEventResponse,
   SyncRequest,
   SyncResponse,
 } from "../types/api";
@@ -348,6 +351,49 @@ export function deleteEvent(
   eventId: string,
 ): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`, {
+    method: "DELETE",
+  });
+}
+
+// Life Events
+
+export function getLifeEvents(treeId: string): Promise<LifeEventResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/life-events`);
+}
+
+export function getLifeEvent(
+  treeId: string,
+  lifeEventId: string,
+): Promise<LifeEventResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`);
+}
+
+export function createLifeEvent(
+  treeId: string,
+  data: LifeEventCreate,
+): Promise<LifeEventResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/life-events`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export function updateLifeEvent(
+  treeId: string,
+  lifeEventId: string,
+  data: LifeEventUpdate,
+): Promise<LifeEventResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+export function deleteLifeEvent(
+  treeId: string,
+  lifeEventId: string,
+): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
     method: "DELETE",
   });
 }

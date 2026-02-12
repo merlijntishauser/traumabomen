@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { TraumaCategory, RelationshipType, PartnerStatus } from "../../types/domain";
+import { TraumaCategory, LifeEventCategory, RelationshipType, PartnerStatus } from "../../types/domain";
 import { getTraumaColor } from "../../lib/traumaColors";
-import type { Person, TraumaEvent, RelationshipData, RelationshipPeriod } from "../../types/domain";
+import { getLifeEventColor } from "../../lib/lifeEventColors";
+import type { Person, TraumaEvent, LifeEvent, RelationshipData, RelationshipPeriod } from "../../types/domain";
 import type {
   DecryptedPerson,
   DecryptedRelationship,
   DecryptedEvent,
+  DecryptedLifeEvent,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
 import "./PersonDetailPanel.css";
@@ -16,6 +18,7 @@ interface PersonDetailPanelProps {
   relationships: DecryptedRelationship[];
   inferredSiblings: InferredSibling[];
   events: DecryptedEvent[];
+  lifeEvents: DecryptedLifeEvent[];
   allPersons: Map<string, DecryptedPerson>;
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
@@ -26,6 +29,12 @@ interface PersonDetailPanelProps {
     personIds: string[],
   ) => void;
   onDeleteEvent: (eventId: string) => void;
+  onSaveLifeEvent: (
+    lifeEventId: string | null,
+    data: LifeEvent,
+    personIds: string[],
+  ) => void;
+  onDeleteLifeEvent: (lifeEventId: string) => void;
   onClose: () => void;
 }
 
@@ -34,12 +43,15 @@ export function PersonDetailPanel({
   relationships,
   inferredSiblings,
   events,
+  lifeEvents,
   allPersons,
   onSavePerson,
   onDeletePerson,
   onSaveRelationship,
   onSaveEvent,
   onDeleteEvent,
+  onSaveLifeEvent,
+  onDeleteLifeEvent,
   onClose,
 }: PersonDetailPanelProps) {
   const { t } = useTranslation();
@@ -47,6 +59,7 @@ export function PersonDetailPanel({
   const [personOpen, setPersonOpen] = useState(true);
   const [relsOpen, setRelsOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
+  const [lifeEventsOpen, setLifeEventsOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Person form state
@@ -71,6 +84,8 @@ export function PersonDetailPanel({
     setEditingRelId(null);
     setEditingEventId(null);
     setShowNewEvent(false);
+    setEditingLifeEventId(null);
+    setShowNewLifeEvent(false);
   }, [person.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSavePerson() {
@@ -98,6 +113,10 @@ export function PersonDetailPanel({
   // Event editing state
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+
+  // Life event editing state
+  const [editingLifeEventId, setEditingLifeEventId] = useState<string | null>(null);
+  const [showNewLifeEvent, setShowNewLifeEvent] = useState(false);
 
   return (
     <div className="detail-panel">
@@ -364,6 +383,249 @@ export function PersonDetailPanel({
             </div>
           )}
         </section>
+        {/* Life events section */}
+        <section className="detail-panel__section">
+          <button
+            className="detail-panel__section-toggle"
+            onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
+          >
+            {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("lifeEvent.events")} (
+            {lifeEvents.length})
+          </button>
+          {lifeEventsOpen && (
+            <div className="detail-panel__section-body">
+              {lifeEvents.map((event) =>
+                editingLifeEventId === event.id ? (
+                  <LifeEventForm
+                    key={event.id}
+                    event={event}
+                    allPersons={allPersons}
+                    initialPersonIds={event.person_ids}
+                    onSave={(data, personIds) => {
+                      onSaveLifeEvent(event.id, data, personIds);
+                      setEditingLifeEventId(null);
+                    }}
+                    onCancel={() => setEditingLifeEventId(null)}
+                    onDelete={() => {
+                      onDeleteLifeEvent(event.id);
+                      setEditingLifeEventId(null);
+                    }}
+                  />
+                ) : (
+                  <div key={event.id} className="detail-panel__event-item">
+                    <div className="detail-panel__event-header">
+                      <span
+                        className="detail-panel__event-dot"
+                        style={{
+                          backgroundColor: getLifeEventColor(event.category),
+                          borderRadius: 2,
+                        }}
+                      />
+                      <span className="detail-panel__event-title">
+                        {event.title}
+                      </span>
+                      <button
+                        className="detail-panel__btn--small"
+                        onClick={() => setEditingLifeEventId(event.id)}
+                      >
+                        {t("common.edit")}
+                      </button>
+                    </div>
+                    {event.approximate_date && (
+                      <div className="detail-panel__event-date">
+                        {event.approximate_date}
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+
+              {showNewLifeEvent ? (
+                <LifeEventForm
+                  event={null}
+                  allPersons={allPersons}
+                  initialPersonIds={[person.id]}
+                  onSave={(data, personIds) => {
+                    onSaveLifeEvent(null, data, personIds);
+                    setShowNewLifeEvent(false);
+                  }}
+                  onCancel={() => setShowNewLifeEvent(false)}
+                />
+              ) : (
+                <button
+                  className="detail-panel__btn detail-panel__btn--secondary"
+                  onClick={() => setShowNewLifeEvent(true)}
+                >
+                  {t("lifeEvent.newEvent")}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+interface LifeEventFormProps {
+  event: DecryptedLifeEvent | null;
+  allPersons: Map<string, DecryptedPerson>;
+  initialPersonIds: string[];
+  onSave: (data: LifeEvent, personIds: string[]) => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}
+
+function LifeEventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDelete }: LifeEventFormProps) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(event?.title ?? "");
+  const [description, setDescription] = useState(event?.description ?? "");
+  const [category, setCategory] = useState<LifeEventCategory>(
+    event?.category ?? LifeEventCategory.Family,
+  );
+  const [approximateDate, setApproximateDate] = useState(
+    event?.approximate_date ?? "",
+  );
+  const [impact, setImpact] = useState(
+    event?.impact != null ? String(event.impact) : "",
+  );
+  const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
+    () => new Set(initialPersonIds),
+  );
+
+  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  function togglePerson(personId: string) {
+    setSelectedPersonIds((prev) => {
+      if (prev.has(personId) && prev.size <= 1) return prev;
+      const next = new Set(prev);
+      if (next.has(personId)) {
+        next.delete(personId);
+      } else {
+        next.add(personId);
+      }
+      return next;
+    });
+  }
+
+  function handleSave() {
+    onSave(
+      {
+        title,
+        description,
+        category,
+        approximate_date: approximateDate,
+        impact: impact ? parseInt(impact, 10) || null : null,
+        tags: tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      },
+      Array.from(selectedPersonIds),
+    );
+  }
+
+  return (
+    <div className="detail-panel__event-form">
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.title")}</span>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.description")}</span>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.category")}</span>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as LifeEventCategory)}
+        >
+          {Object.values(LifeEventCategory).map((cat) => (
+            <option key={cat} value={cat}>
+              {t(`lifeEvent.category.${cat}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.approximateDate")}</span>
+        <input
+          type="text"
+          value={approximateDate}
+          onChange={(e) => setApproximateDate(e.target.value)}
+          placeholder="e.g. 1985"
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.impact")} (1-10)</span>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={impact}
+          onChange={(e) => setImpact(e.target.value)}
+          placeholder="---"
+        />
+      </label>
+      <label className="detail-panel__field">
+        <span>{t("lifeEvent.tags")}</span>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="tag1, tag2"
+        />
+      </label>
+      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
+        <span>{t("lifeEvent.linkedPersons")}</span>
+        {sortedPersons.map((p) => (
+          <label key={p.id} className="detail-panel__field--checkbox">
+            <input
+              type="checkbox"
+              checked={selectedPersonIds.has(p.id)}
+              onChange={() => togglePerson(p.id)}
+            />
+            <span>{p.name}</span>
+          </label>
+        ))}
+      </fieldset>
+      <div className="detail-panel__actions">
+        <button
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
+          {t("common.save")}
+        </button>
+        <button className="detail-panel__btn" onClick={onCancel}>
+          {t("common.cancel")}
+        </button>
+        {onDelete && (
+          <button
+            className="detail-panel__btn detail-panel__btn--danger"
+            onClick={() => {
+              if (confirmDelete) {
+                onDelete();
+              } else {
+                setConfirmDelete(true);
+              }
+            }}
+          >
+            {confirmDelete ? t("lifeEvent.confirmDelete") : t("common.delete")}
+          </button>
+        )}
       </div>
     </div>
   );

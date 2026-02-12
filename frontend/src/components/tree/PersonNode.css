@@ -49,6 +49,10 @@
   border-radius: 50%;
 }
 
+.person-node__badge--life {
+  border-radius: 2px;
+}
+
 .person-node .react-flow__handle {
   width: 8px;
   height: 8px;

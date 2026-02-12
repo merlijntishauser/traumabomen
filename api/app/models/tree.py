@@ -33,3 +33,6 @@ class Tree(Base):
     events: Mapped[list[TraumaEvent]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    life_events: Mapped[list[LifeEvent]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )

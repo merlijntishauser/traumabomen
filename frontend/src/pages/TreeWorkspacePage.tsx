@@ -25,7 +25,7 @@ import { inferSiblings } from "../lib/inferSiblings";
 import type { InferredSibling } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { RelationshipType } from "../types/domain";
-import type { Person, TraumaEvent, RelationshipData } from "../types/domain";
+import type { Person, TraumaEvent, LifeEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode };
@@ -43,7 +43,7 @@ function TreeWorkspaceInner() {
     null,
   );
 
-  const { persons, relationships, events, isLoading, error } = useTreeData(
+  const { persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
     treeId!,
   );
   const mutations = useTreeMutations(treeId!);
@@ -52,6 +52,7 @@ function TreeWorkspaceInner() {
     relationships,
     events,
     selectedPersonId,
+    lifeEvents,
   );
 
   // Local node state that accepts both layout updates and drag changes
@@ -214,6 +215,22 @@ function TreeWorkspaceInner() {
     mutations.deleteEvent.mutate(eventId);
   }
 
+  function handleSaveLifeEvent(
+    lifeEventId: string | null,
+    data: LifeEvent,
+    personIds: string[],
+  ) {
+    if (lifeEventId) {
+      mutations.updateLifeEvent.mutate({ lifeEventId, personIds, data });
+    } else {
+      mutations.createLifeEvent.mutate({ personIds, data });
+    }
+  }
+
+  function handleDeleteLifeEvent(lifeEventId: string) {
+    mutations.deleteLifeEvent.mutate(lifeEventId);
+  }
+
   const hasPinnedNodes = Array.from(persons.values()).some((p) => p.position);
 
   function handleAutoLayout() {
@@ -255,6 +272,12 @@ function TreeWorkspaceInner() {
 
   const selectedEvents = selectedPersonId
     ? Array.from(events.values()).filter((e) =>
+        e.person_ids.includes(selectedPersonId),
+      )
+    : [];
+
+  const selectedLifeEvents = selectedPersonId
+    ? Array.from(lifeEvents.values()).filter((e) =>
         e.person_ids.includes(selectedPersonId),
       )
     : [];
@@ -344,12 +367,15 @@ function TreeWorkspaceInner() {
             relationships={selectedRelationships}
             inferredSiblings={selectedInferredSiblings}
             events={selectedEvents}
+            lifeEvents={selectedLifeEvents}
             allPersons={persons}
             onSavePerson={handleSavePerson}
             onDeletePerson={handleDeletePerson}
             onSaveRelationship={handleSaveRelationship}
             onSaveEvent={handleSaveEvent}
             onDeleteEvent={handleDeleteEvent}
+            onSaveLifeEvent={handleSaveLifeEvent}
+            onDeleteLifeEvent={handleDeleteLifeEvent}
             onClose={() => setSelectedPersonId(null)}
           />
         )}

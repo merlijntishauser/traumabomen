@@ -10,7 +10,7 @@ export default function TimelinePage() {
   const { id: treeId } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const logout = useLogout();
-  const { persons, relationships, events, isLoading, error } = useTreeData(
+  const { persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
     treeId!,
   );
 
@@ -53,6 +53,7 @@ export default function TimelinePage() {
           persons={persons}
           relationships={relationships}
           events={events}
+          lifeEvents={lifeEvents}
         />
       )}
     </div>

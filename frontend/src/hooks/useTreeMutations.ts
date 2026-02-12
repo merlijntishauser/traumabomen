@@ -9,10 +9,13 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  createLifeEvent,
+  updateLifeEvent,
+  deleteLifeEvent,
 } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { treeQueryKeys } from "./useTreeData";
-import type { Person, RelationshipData, TraumaEvent } from "../types/domain";
+import type { Person, RelationshipData, TraumaEvent, LifeEvent } from "../types/domain";
 
 export function useTreeMutations(treeId: string) {
   const queryClient = useQueryClient();
@@ -55,6 +58,9 @@ export function useTreeMutations(treeId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.events(treeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.lifeEvents(treeId),
       });
     },
   });
@@ -164,6 +170,58 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const createLifeEventMutation = useMutation({
+    mutationFn: async ({
+      personIds,
+      data,
+    }: {
+      personIds: string[];
+      data: LifeEvent;
+    }) => {
+      const encrypted_data = await encrypt(data);
+      return createLifeEvent(treeId, { person_ids: personIds, encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.lifeEvents(treeId),
+      });
+    },
+  });
+
+  const updateLifeEventMutation = useMutation({
+    mutationFn: async ({
+      lifeEventId,
+      personIds,
+      data,
+    }: {
+      lifeEventId: string;
+      personIds: string[];
+      data: LifeEvent;
+    }) => {
+      const encrypted_data = await encrypt(data);
+      return updateLifeEvent(treeId, lifeEventId, {
+        person_ids: personIds,
+        encrypted_data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.lifeEvents(treeId),
+      });
+    },
+  });
+
+  const deleteLifeEventMutation = useMutation({
+    mutationFn: async (lifeEventId: string) => {
+      return deleteLifeEvent(treeId, lifeEventId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.lifeEvents(treeId),
+      });
+    },
+  });
+
   return {
     createPerson: createPersonMutation,
     updatePerson: updatePersonMutation,
@@ -174,5 +232,8 @@ export function useTreeMutations(treeId: string) {
     createEvent: createEventMutation,
     updateEvent: updateEventMutation,
     deleteEvent: deleteEventMutation,
+    createLifeEvent: createLifeEventMutation,
+    updateLifeEvent: updateLifeEventMutation,
+    deleteLifeEvent: deleteLifeEventMutation,
   };
 }

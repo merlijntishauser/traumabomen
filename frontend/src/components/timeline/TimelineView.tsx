@@ -3,10 +3,12 @@ import * as d3 from "d3";
 import { useTranslation } from "react-i18next";
 import { RelationshipType, PartnerStatus } from "../../types/domain";
 import { getTraumaColors } from "../../lib/traumaColors";
+import { getLifeEventColors } from "../../lib/lifeEventColors";
 import type {
   DecryptedPerson,
   DecryptedRelationship,
   DecryptedEvent,
+  DecryptedLifeEvent,
 } from "../../hooks/useTreeData";
 import "./TimelineView.css";
 
@@ -14,6 +16,7 @@ interface TimelineViewProps {
   persons: Map<string, DecryptedPerson>;
   relationships: Map<string, DecryptedRelationship>;
   events: Map<string, DecryptedEvent>;
+  lifeEvents: Map<string, DecryptedLifeEvent>;
 }
 
 interface PersonRow {
@@ -81,6 +84,7 @@ export function TimelineView({
   persons,
   relationships,
   events,
+  lifeEvents,
 }: TimelineViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -102,6 +106,7 @@ export function TimelineView({
     const rootStyle = getComputedStyle(document.documentElement);
     const cssVar = (name: string) => rootStyle.getPropertyValue(name).trim();
     const traumaColors = getTraumaColors();
+    const lifeEventColors = getLifeEventColors();
 
     // Compute generations and build row layout
     const generations = computeGenerations(persons, relationships);
@@ -145,6 +150,13 @@ export function TimelineView({
     }
     for (const event of events.values()) {
       const year = parseInt(event.approximate_date, 10);
+      if (!isNaN(year)) {
+        minYear = Math.min(minYear, year);
+        maxYear = Math.max(maxYear, year);
+      }
+    }
+    for (const le of lifeEvents.values()) {
+      const year = parseInt(le.approximate_date, 10);
       if (!isNaN(year)) {
         minYear = Math.min(minYear, year);
         maxYear = Math.max(maxYear, year);
@@ -339,6 +351,57 @@ export function TimelineView({
             });
         }
       }
+
+      // Life event markers (diamonds)
+      const diamondSize = MARKER_RADIUS * 0.9;
+      for (const le of lifeEvents.values()) {
+        const year = parseInt(le.approximate_date, 10);
+        if (isNaN(year)) continue;
+
+        for (const personId of le.person_ids) {
+          const row = rowByPersonId.get(personId);
+          if (!row) continue;
+
+          const cx = scale(year);
+          const cy = row.y + ROW_HEIGHT / 2;
+
+          timeGroup
+            .append("rect")
+            .attr("x", cx - diamondSize)
+            .attr("y", cy - diamondSize)
+            .attr("width", diamondSize * 2)
+            .attr("height", diamondSize * 2)
+            .attr("transform", `rotate(45, ${cx}, ${cy})`)
+            .attr("fill", lifeEventColors[le.category])
+            .attr("stroke", cssVar("--color-bg-canvas"))
+            .attr("stroke-width", 1.5)
+            .attr("class", "tl-marker")
+            .on("mouseenter", (mouseEvent: MouseEvent) => {
+              const linkedNames = le.person_ids
+                .map((pid) => persons.get(pid)?.name)
+                .filter(Boolean)
+                .join(", ");
+
+              const lines = [
+                `<strong>${le.title}</strong>`,
+                tRef.current(`lifeEvent.category.${le.category}`),
+                le.approximate_date,
+              ];
+              if (le.impact != null) {
+                lines.push(tRef.current("timeline.impact", { value: le.impact }));
+              }
+              lines.push(linkedNames);
+
+              tooltip.innerHTML = lines.join("<br>");
+              tooltip.style.display = "block";
+              tooltip.style.left = `${mouseEvent.clientX + 12}px`;
+              tooltip.style.top = `${mouseEvent.clientY - 10}px`;
+            })
+            .on("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
+        }
+      }
     }
 
     renderAxis(xScale);
@@ -363,7 +426,7 @@ export function TimelineView({
       });
 
     svgSel.call(zoom);
-  }, [persons, relationships, events]);
+  }, [persons, relationships, events, lifeEvents]);
 
   // Render on data change and resize
   useEffect(() => {

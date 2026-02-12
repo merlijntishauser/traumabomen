@@ -55,6 +55,24 @@ export interface TraumaEvent {
   tags: string[];
 }
 
+export enum LifeEventCategory {
+  Family = "family",
+  Education = "education",
+  Career = "career",
+  Relocation = "relocation",
+  Health = "health",
+  Other = "other",
+}
+
+export interface LifeEvent {
+  title: string;
+  description: string;
+  category: LifeEventCategory;
+  approximate_date: string;
+  impact: number | null;
+  tags: string[];
+}
+
 export interface EncryptedBlob {
   iv: string;
   ciphertext: string;

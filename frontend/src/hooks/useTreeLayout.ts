@@ -7,11 +7,13 @@ import type {
   DecryptedPerson,
   DecryptedRelationship,
   DecryptedEvent,
+  DecryptedLifeEvent,
 } from "./useTreeData";
 
 export interface PersonNodeData extends Record<string, unknown> {
   person: DecryptedPerson;
   events: DecryptedEvent[];
+  lifeEvents: DecryptedLifeEvent[];
 }
 
 export interface RelationshipEdgeData extends Record<string, unknown> {
@@ -41,6 +43,7 @@ export function useTreeLayout(
   relationships: Map<string, DecryptedRelationship>,
   events: Map<string, DecryptedEvent>,
   selectedPersonId: string | null,
+  lifeEvents?: Map<string, DecryptedLifeEvent>,
 ): { nodes: PersonNodeType[]; edges: RelationshipEdgeType[] } {
   return useMemo(() => {
     if (persons.size === 0) {
@@ -96,6 +99,17 @@ export function useTreeLayout(
       }
     }
 
+    const lifeEventsByPerson = new Map<string, DecryptedLifeEvent[]>();
+    if (lifeEvents) {
+      for (const le of lifeEvents.values()) {
+        for (const personId of le.person_ids) {
+          const existing = lifeEventsByPerson.get(personId) ?? [];
+          existing.push(le);
+          lifeEventsByPerson.set(personId, existing);
+        }
+      }
+    }
+
     const nodes: PersonNodeType[] = [];
     for (const person of persons.values()) {
       const nodeWithPosition = g.node(person.id);
@@ -112,6 +126,7 @@ export function useTreeLayout(
         data: {
           person,
           events: eventsByPerson.get(person.id) ?? [],
+          lifeEvents: lifeEventsByPerson.get(person.id) ?? [],
         },
         selected: person.id === selectedPersonId,
         width: NODE_WIDTH,
@@ -148,5 +163,5 @@ export function useTreeLayout(
     }
 
     return { nodes, edges };
-  }, [persons, relationships, events, selectedPersonId]);
+  }, [persons, relationships, events, selectedPersonId, lifeEvents]);
 }
