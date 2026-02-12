@@ -81,7 +81,7 @@ export default function TreeListPage() {
   }
 
   return (
-    <div className="tree-list-page" data-1p-ignore>
+    <div className="tree-list-page">
       <div className="tree-toolbar">
         <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
         <div className="tree-toolbar__spacer" />

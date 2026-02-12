@@ -73,7 +73,7 @@ export default function UnlockPage() {
   }
 
   return (
-    <div className="auth-page" data-1p-ignore>
+    <div className="auth-page">
       <AuthHero />
       <div className="auth-content">
         <div className="auth-card">
