@@ -36,6 +36,7 @@ const PARENT_TYPES = new Set([
 const SIBLING_TYPES = new Set([
   RelationshipType.BiologicalSibling,
   RelationshipType.StepSibling,
+  RelationshipType.HalfSibling,
 ]);
 
 export function useTreeLayout(

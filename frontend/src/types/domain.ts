@@ -4,6 +4,7 @@ export enum RelationshipType {
   AdoptiveParent = "adoptive_parent",
   BiologicalSibling = "biological_sibling",
   StepSibling = "step_sibling",
+  HalfSibling = "half_sibling",
   Partner = "partner",
 }
 

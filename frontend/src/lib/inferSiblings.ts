@@ -27,7 +27,8 @@ export function inferSiblings(
   for (const rel of relationships.values()) {
     if (
       rel.type === RelationshipType.BiologicalSibling ||
-      rel.type === RelationshipType.StepSibling
+      rel.type === RelationshipType.StepSibling ||
+      rel.type === RelationshipType.HalfSibling
     ) {
       const key = [rel.source_person_id, rel.target_person_id].sort().join(":");
       explicitSiblings.add(key);
