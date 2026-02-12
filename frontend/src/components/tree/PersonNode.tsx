@@ -37,18 +37,58 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
           {events.slice(0, MAX_VISIBLE_BADGES).map((event) => (
             <span
               key={event.id}
-              className="person-node__badge"
-              style={{ backgroundColor: getTraumaColor(event.category) }}
-              title={event.title}
-            />
+              className="person-node__badge-wrap"
+            >
+              <span
+                className="person-node__badge"
+                style={{ backgroundColor: getTraumaColor(event.category) }}
+              />
+              <span className="person-node__tooltip">
+                <span className="person-node__tooltip-title">
+                  <span
+                    className="person-node__tooltip-dot"
+                    style={{ backgroundColor: getTraumaColor(event.category) }}
+                  />
+                  {event.title}
+                </span>
+                {(event.approximate_date || event.severity) && (
+                  <span className="person-node__tooltip-meta">
+                    {event.approximate_date && <span>{event.approximate_date}</span>}
+                    {event.severity && (
+                      <span>{t("trauma.severity")}: {event.severity}/10</span>
+                    )}
+                  </span>
+                )}
+              </span>
+            </span>
           ))}
           {lifeEvents.slice(0, Math.max(0, MAX_VISIBLE_BADGES - events.length)).map((event) => (
             <span
               key={event.id}
-              className="person-node__badge person-node__badge--life"
-              style={{ backgroundColor: getLifeEventColor(event.category) }}
-              title={event.title}
-            />
+              className="person-node__badge-wrap"
+            >
+              <span
+                className="person-node__badge person-node__badge--life"
+                style={{ backgroundColor: getLifeEventColor(event.category) }}
+              />
+              <span className="person-node__tooltip">
+                <span className="person-node__tooltip-title">
+                  <span
+                    className="person-node__tooltip-dot person-node__tooltip-dot--life"
+                    style={{ backgroundColor: getLifeEventColor(event.category) }}
+                  />
+                  {event.title}
+                </span>
+                {(event.approximate_date || event.impact) && (
+                  <span className="person-node__tooltip-meta">
+                    {event.approximate_date && <span>{event.approximate_date}</span>}
+                    {event.impact && (
+                      <span>{t("lifeEvent.impact")}: {event.impact}/10</span>
+                    )}
+                  </span>
+                )}
+              </span>
+            </span>
           ))}
           {events.length + lifeEvents.length > MAX_VISIBLE_BADGES && (
             <span className="person-node__badge-overflow">
