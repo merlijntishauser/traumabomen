@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getEncryptionSalt, clearTokens, ApiError } from "../lib/api";
 import { deriveKey } from "../lib/crypto";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { AuthHero } from "../components/AuthHero";
 import "../styles/auth.css";
 
 export default function UnlockPage() {
@@ -60,9 +61,12 @@ export default function UnlockPage() {
   if (!salt) {
     return (
       <div className="auth-page">
-        <div className="auth-card">
-          <h1>{t("app.title")}</h1>
-          <p>{t("common.loading")}</p>
+        <AuthHero />
+        <div className="auth-content">
+          <div className="auth-card">
+            <h1>{t("app.title")}</h1>
+            <p>{t("common.loading")}</p>
+          </div>
         </div>
       </div>
     );
@@ -70,7 +74,9 @@ export default function UnlockPage() {
 
   return (
     <div className="auth-page" data-1p-ignore>
-      <div className="auth-card">
+      <AuthHero />
+      <div className="auth-content">
+        <div className="auth-card">
         <h1>{t("app.title")}</h1>
         <h2>{t("auth.passphrase")}</h2>
         <p className="auth-prompt">{t("auth.passphrasePrompt")}</p>
@@ -100,6 +106,7 @@ export default function UnlockPage() {
             {t("auth.switchAccount")}
           </button>
         </p>
+        </div>
       </div>
     </div>
   );

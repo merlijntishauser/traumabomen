@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { register, ApiError } from "../lib/api";
 import { generateSalt, deriveKey } from "../lib/crypto";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { AuthHero } from "../components/AuthHero";
 import "../styles/auth.css";
 
 export default function RegisterPage() {
@@ -58,7 +59,9 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page" data-1p-ignore>
-      <div className="auth-card">
+      <AuthHero />
+      <div className="auth-content">
+        <div className="auth-card">
         <h1>{t("app.title")}</h1>
         <h2>{t("auth.register")}</h2>
 
@@ -142,6 +145,7 @@ export default function RegisterPage() {
         <p className="auth-footer">
           {t("auth.hasAccount")} <Link to="/login">{t("auth.login")}</Link>
         </p>
+        </div>
       </div>
     </div>
   );

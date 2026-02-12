@@ -115,5 +115,10 @@
   "timeline.severity": "Ernst: {{value}}",
   "timeline.noData": "Geen gegevens om weer te geven. Voeg personen en gebeurtenissen toe in de boomweergave.",
 
-  "theme.toggle": "Wissel donker/licht thema"
+  "theme.toggle": "Wissel donker/licht thema",
+
+  "landing.tagline": "Breng intergenerationeel trauma in kaart op visuele stambomen.",
+  "landing.about": "Traumabomen is een persoonlijk reflectie-instrument om patronen van trauma door generaties heen te verkennen. Bouw je stamboom, leg gebeurtenissen vast en visualiseer hoe ervaringen door de tijd heen doorwerken.",
+  "landing.privacyHeading": "Jouw gegevens blijven van jou",
+  "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling -- dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou."
 }

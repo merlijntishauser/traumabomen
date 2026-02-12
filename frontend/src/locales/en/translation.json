@@ -115,5 +115,10 @@
   "timeline.severity": "Severity: {{value}}",
   "timeline.noData": "No data to display. Add persons and events in the tree view.",
 
-  "theme.toggle": "Toggle dark/light mode"
+  "theme.toggle": "Toggle dark/light mode",
+
+  "landing.tagline": "Map intergenerational trauma onto visual family trees.",
+  "landing.about": "Traumabomen is a personal reflection tool for exploring patterns of trauma across generations. Build your family tree, record events, and visualize how experiences ripple through time.",
+  "landing.privacyHeading": "Your data stays yours",
+  "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption -- meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you."
 }
