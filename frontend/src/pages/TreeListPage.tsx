@@ -11,7 +11,7 @@ interface DecryptedTree {
 }
 
 export default function TreeListPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const logout = useLogout();
   const { encrypt, decrypt } = useEncryption();
@@ -43,7 +43,7 @@ export default function TreeListPage() {
   });
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }}>
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }} data-1p-ignore>
       <header
         style={{
           display: "flex",
@@ -53,7 +53,14 @@ export default function TreeListPage() {
         }}
       >
         <h1 style={{ margin: 0 }}>{t("tree.myTrees")}</h1>
-        <button onClick={logout}>{t("nav.logout")}</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+          >
+            {i18n.language === "nl" ? "EN" : "NL"}
+          </button>
+          <button onClick={logout}>{t("nav.logout")}</button>
+        </div>
       </header>
 
       <button

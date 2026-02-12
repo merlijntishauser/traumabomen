@@ -7,7 +7,7 @@ import "../components/tree/TreeCanvas.css";
 
 export default function TimelinePage() {
   const { id: treeId } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const logout = useLogout();
   const { persons, relationships, events, isLoading, error } = useTreeData(
     treeId!,
@@ -33,6 +33,12 @@ export default function TimelinePage() {
           {t("nav.trees")}
         </Link>
         <div className="tree-toolbar__spacer" />
+        <button
+          className="tree-toolbar__btn"
+          onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+        >
+          {i18n.language === "nl" ? "EN" : "NL"}
+        </button>
         <button className="tree-toolbar__btn" onClick={logout}>
           {t("nav.logout")}
         </button>

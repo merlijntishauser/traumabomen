@@ -30,7 +30,7 @@ const edgeTypes = { relationship: RelationshipEdge };
 
 function TreeWorkspaceInner() {
   const { id: treeId } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const logout = useLogout();
   const { fitView } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
 
@@ -238,6 +238,12 @@ function TreeWorkspaceInner() {
         <Link to={`/trees/${treeId}/timeline`} className="tree-toolbar__btn">
           {t("tree.timeline")}
         </Link>
+        <button
+          className="tree-toolbar__btn"
+          onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+        >
+          {i18n.language === "nl" ? "EN" : "NL"}
+        </button>
         <button className="tree-toolbar__btn" onClick={logout}>
           {t("nav.logout")}
         </button>
