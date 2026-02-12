@@ -54,10 +54,12 @@ function makeRelationship(overrides: Partial<DecryptedRelationship> = {}): Decry
 const defaultProps = () => ({
   person: makePerson(),
   relationships: [] as DecryptedRelationship[],
+  inferredSiblings: [] as { personAId: string; personBId: string; sharedParentIds: string[]; type: "half_sibling" | "full_sibling" }[],
   events: [] as DecryptedEvent[],
   allPersons: new Map([["p1", makePerson()]]),
   onSavePerson: vi.fn(),
   onDeletePerson: vi.fn(),
+  onSaveRelationship: vi.fn(),
   onSaveEvent: vi.fn(),
   onDeleteEvent: vi.fn(),
   onClose: vi.fn(),

@@ -113,5 +113,7 @@
 
   "timeline.generation": "Generatie {{number}}",
   "timeline.severity": "Ernst: {{value}}",
-  "timeline.noData": "Geen gegevens om weer te geven. Voeg personen en gebeurtenissen toe in de boomweergave."
+  "timeline.noData": "Geen gegevens om weer te geven. Voeg personen en gebeurtenissen toe in de boomweergave.",
+
+  "theme.toggle": "Wissel donker/licht thema"
 }

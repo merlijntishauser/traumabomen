@@ -8,6 +8,12 @@ import {
 import { RelationshipType } from "../../types/domain";
 import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
 
+function getCssVar(name: string): string {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+}
+
 function RelationshipEdgeComponent({
   sourceX,
   sourceY,
@@ -39,21 +45,21 @@ function RelationshipEdgeComponent({
     ? getBezierPath(pathParams)
     : getSmoothStepPath(pathParams);
 
-  let stroke = "#374151";
+  let stroke = getCssVar("--color-edge-default");
   let strokeWidth = 1.5;
   let strokeDasharray: string | undefined;
 
   if (inferredType === "half_sibling") {
-    stroke = "#a855f7";
+    stroke = getCssVar("--color-edge-half-sibling");
     strokeDasharray = "4 4";
   } else if (inferredType === "full_sibling") {
-    stroke = "#374151";
+    stroke = getCssVar("--color-edge-default");
     strokeDasharray = "4 4";
   } else if (isPartner) {
-    stroke = "#ec4899";
+    stroke = getCssVar("--color-edge-partner");
     strokeWidth = 2.5;
   } else if (isDashed) {
-    stroke = "#9ca3af";
+    stroke = getCssVar("--color-edge-step");
     strokeDasharray = "6 3";
   }
 

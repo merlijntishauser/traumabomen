@@ -4,9 +4,9 @@
   right: 0;
   width: 400px;
   height: 100%;
-  background: #fff;
-  border-left: 1px solid #e5e7eb;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.08);
+  background: var(--color-bg-secondary);
+  border-left: 1px solid var(--color-border-primary);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   z-index: 10;
@@ -18,7 +18,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .detail-panel__header h2 {
@@ -32,16 +32,17 @@
 
 .detail-panel__close {
   background: none;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
   padding: 4px 12px;
   cursor: pointer;
   font-size: 13px;
-  color: #374151;
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
 }
 
 .detail-panel__close:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__content {
@@ -51,7 +52,7 @@
 }
 
 .detail-panel__section {
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .detail-panel__section-toggle {
@@ -62,12 +63,13 @@
   text-align: left;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text-primary);
   cursor: pointer;
+  transition: var(--transition-colors);
 }
 
 .detail-panel__section-toggle:hover {
-  background: #f9fafb;
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__section-body {
@@ -84,7 +86,7 @@
 .detail-panel__field > span {
   font-size: 12px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .detail-panel__field input[type="text"],
@@ -92,18 +94,21 @@
 .detail-panel__field select,
 .detail-panel__field textarea {
   padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-family: inherit;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
 }
 
 .detail-panel__field input:focus,
 .detail-panel__field select:focus,
 .detail-panel__field textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
 }
 
 .detail-panel__field--checkbox {
@@ -126,59 +131,61 @@
 
 .detail-panel__btn {
   padding: 6px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   cursor: pointer;
-  background: #fff;
-  color: #374151;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
 }
 
 .detail-panel__btn:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__btn--primary {
-  background: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
 }
 
 .detail-panel__btn--primary:hover {
-  background: #2563eb;
+  background: var(--color-accent-hover);
 }
 
 .detail-panel__btn--secondary {
-  background: #f9fafb;
+  background: var(--color-bg-tertiary);
   width: 100%;
   margin-top: 8px;
 }
 
 .detail-panel__btn--danger {
-  color: #ef4444;
-  border-color: #fca5a5;
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
 }
 
 .detail-panel__btn--danger:hover {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 }
 
 .detail-panel__btn--small {
   padding: 2px 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-primary);
   border-radius: 3px;
   font-size: 11px;
   cursor: pointer;
-  background: #fff;
-  color: #6b7280;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors);
 }
 
 .detail-panel__btn--small:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__empty {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 13px;
   margin: 0;
 }
@@ -191,7 +198,7 @@
 
 .detail-panel__rel-item {
   padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-secondary);
   font-size: 13px;
 }
 
@@ -202,7 +209,7 @@
 .detail-panel__rel-type {
   display: block;
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -214,7 +221,7 @@
 .detail-panel__rel-via {
   display: block;
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
@@ -225,12 +232,12 @@
 .detail-panel__period {
   display: block;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .detail-panel__event-item {
   padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .detail-panel__event-item:last-child {
@@ -258,7 +265,7 @@
 
 .detail-panel__event-date {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   margin-top: 2px;
   margin-left: 18px;
 }
@@ -266,9 +273,9 @@
 .detail-panel__event-form {
   padding: 12px;
   margin-bottom: 12px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
 }
 
 .detail-panel__person-checkboxes {
@@ -283,15 +290,15 @@
 .detail-panel__period-editor {
   margin-top: 8px;
   padding: 10px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
 }
 
 .detail-panel__period-row {
   padding-bottom: 8px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .detail-panel__period-row:last-of-type {

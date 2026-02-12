@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import * as d3 from "d3";
 import { useTranslation } from "react-i18next";
 import { RelationshipType, PartnerStatus } from "../../types/domain";
-import { TRAUMA_COLORS } from "../../lib/traumaColors";
+import { getTraumaColors } from "../../lib/traumaColors";
 import type {
   DecryptedPerson,
   DecryptedRelationship,
@@ -98,6 +98,11 @@ export function TimelineView({
     const width = container.clientWidth;
     const totalAvailableHeight = container.clientHeight;
 
+    // Read theme colors from CSS variables
+    const rootStyle = getComputedStyle(document.documentElement);
+    const cssVar = (name: string) => rootStyle.getPropertyValue(name).trim();
+    const traumaColors = getTraumaColors();
+
     // Compute generations and build row layout
     const generations = computeGenerations(persons, relationships);
     const personsByGen = new Map<number, DecryptedPerson[]>();
@@ -185,7 +190,7 @@ export function TimelineView({
         .attr("y", bandY)
         .attr("width", width)
         .attr("height", bandHeight)
-        .attr("fill", i % 2 === 0 ? "#f9fafb" : "#ffffff");
+        .attr("fill", cssVar(i % 2 === 0 ? "--color-band-even" : "--color-band-odd"));
 
       bgGroup
         .append("text")
@@ -229,6 +234,9 @@ export function TimelineView({
       axisGroup
         .selectAll(".tick text")
         .attr("class", "tl-axis-text");
+      axisGroup
+        .selectAll(".tick line")
+        .attr("stroke", cssVar("--color-border-secondary"));
       axisGroup.select(".domain").remove();
     }
 
@@ -248,8 +256,8 @@ export function TimelineView({
           .attr("width", Math.max(0, x2 - x1))
           .attr("height", BAR_HEIGHT)
           .attr("rx", 3)
-          .attr("fill", "#dbeafe")
-          .attr("stroke", "#93c5fd")
+          .attr("fill", cssVar("--color-lifebar-fill"))
+          .attr("stroke", cssVar("--color-lifebar-stroke"))
           .attr("stroke-width", 1);
       }
 
@@ -281,7 +289,7 @@ export function TimelineView({
             .attr("x2", px2)
             .attr("y1", midY)
             .attr("y2", midY)
-            .attr("stroke", "#ec4899")
+            .attr("stroke", cssVar("--color-edge-partner"))
             .attr("stroke-width", 2)
             .attr("stroke-dasharray", isDashed ? "6 3" : null);
         }
@@ -304,8 +312,8 @@ export function TimelineView({
             .attr("cx", cx)
             .attr("cy", cy)
             .attr("r", MARKER_RADIUS)
-            .attr("fill", TRAUMA_COLORS[event.category])
-            .attr("stroke", "#fff")
+            .attr("fill", traumaColors[event.category])
+            .attr("stroke", cssVar("--color-bg-canvas"))
             .attr("stroke-width", 1.5)
             .attr("class", "tl-marker")
             .on("mouseenter", (mouseEvent: MouseEvent) => {

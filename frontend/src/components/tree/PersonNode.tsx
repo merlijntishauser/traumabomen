@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
-import { TRAUMA_COLORS } from "../../lib/traumaColors";
+import { getTraumaColor } from "../../lib/traumaColors";
 import type { PersonNodeData } from "../../hooks/useTreeLayout";
 import "./PersonNode.css";
 
@@ -35,7 +35,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
             <span
               key={event.id}
               className="person-node__badge"
-              style={{ backgroundColor: TRAUMA_COLORS[event.category] }}
+              style={{ backgroundColor: getTraumaColor(event.category) }}
               title={event.title}
             />
           ))}

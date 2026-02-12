@@ -2,17 +2,18 @@
   width: 180px;
   min-height: 60px;
   padding: 10px 12px;
-  background: #fff;
-  border: 2px solid #d1d5db;
-  border-radius: 8px;
+  background: var(--color-node-bg);
+  border: 2px solid var(--color-node-border);
+  border-radius: var(--radius-lg);
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
+  color: var(--color-text-primary);
 }
 
 .person-node--selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  border-color: var(--color-node-selected);
+  box-shadow: 0 0 0 3px var(--color-accent-focus-ring);
 }
 
 .person-node__name {
@@ -23,13 +24,13 @@
 }
 
 .person-node__years {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 12px;
   margin-top: 2px;
 }
 
 .person-node__adopted {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
@@ -50,10 +51,10 @@
 .person-node .react-flow__handle {
   width: 8px;
   height: 8px;
-  background: #9ca3af;
-  border: 2px solid #fff;
+  background: var(--color-node-handle);
+  border: 2px solid var(--color-node-bg);
 }
 
 .person-node .react-flow__handle:hover {
-  background: #3b82f6;
+  background: var(--color-accent);
 }

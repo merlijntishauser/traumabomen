@@ -1,0 +1,240 @@
+/* =============================================
+   Traumabomen -- Design Tokens & Base Styles
+   Dark forest default, misty light alternative
+   ============================================= */
+
+/* --- Surfaces --- */
+:root {
+  --color-bg-primary: #0a1a0f;
+  --color-bg-secondary: #0f261a;
+  --color-bg-tertiary: #163027;
+  --color-bg-canvas: #0d1f14;
+  --color-bg-hover: #1a3d2a;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+
+  /* Borders */
+  --color-border-primary: #1f4d35;
+  --color-border-secondary: #163027;
+  --color-border-focus: #2d8a5e;
+
+  /* Text */
+  --color-text-primary: #e0e8e3;
+  --color-text-secondary: #8faa97;
+  --color-text-muted: #5a7a64;
+  --color-text-inverse: #0a1a0f;
+
+  /* Accent */
+  --color-accent: #2d8a5e;
+  --color-accent-hover: #24704c;
+  --color-accent-subtle: rgba(45, 138, 94, 0.12);
+  --color-accent-focus-ring: rgba(45, 138, 94, 0.35);
+
+  /* Danger */
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-border: rgba(239, 68, 68, 0.3);
+
+  /* Edges */
+  --color-edge-default: #8faa97;
+  --color-edge-partner: #ec4899;
+  --color-edge-half-sibling: #a855f7;
+  --color-edge-step: #5a7a64;
+
+  /* Trauma categories */
+  --color-trauma-loss: #818cf8;
+  --color-trauma-abuse: #f87171;
+  --color-trauma-addiction: #fb923c;
+  --color-trauma-war: #a8a29e;
+  --color-trauma-displacement: #facc15;
+  --color-trauma-illness: #4ade80;
+  --color-trauma-poverty: #a78bfa;
+
+  /* Nodes */
+  --color-node-bg: #0f261a;
+  --color-node-border: #1f4d35;
+  --color-node-selected: #2d8a5e;
+  --color-node-handle: #5a7a64;
+
+  /* Life bar (timeline) */
+  --color-lifebar-fill: rgba(45, 138, 94, 0.2);
+  --color-lifebar-stroke: #2d8a5e;
+
+  /* Generation band alternation */
+  --color-band-even: rgba(255, 255, 255, 0.02);
+  --color-band-odd: transparent;
+
+  /* Typography */
+  --font-heading: "Playfair Display", Georgia, serif;
+  --font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Transitions */
+  --transition-colors: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* --- Light theme --- */
+[data-theme="light"] {
+  --color-bg-primary: #e8ebe5;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f5f6f3;
+  --color-bg-canvas: #e8ebe5;
+  --color-bg-hover: #e0e3dc;
+  --color-bg-overlay: rgba(0, 0, 0, 0.3);
+
+  --color-border-primary: #c8cdc3;
+  --color-border-secondary: #e0e3dc;
+  --color-border-focus: #2d8a5e;
+
+  --color-text-primary: #1a2e1f;
+  --color-text-secondary: #5a6e5f;
+  --color-text-muted: #8a9a8e;
+  --color-text-inverse: #ffffff;
+
+  --color-accent: #2d8a5e;
+  --color-accent-hover: #24704c;
+  --color-accent-subtle: rgba(45, 138, 94, 0.08);
+  --color-accent-focus-ring: rgba(45, 138, 94, 0.25);
+
+  --color-danger: #dc2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.06);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+
+  --color-edge-default: #5a6e5f;
+  --color-edge-partner: #db2777;
+  --color-edge-half-sibling: #9333ea;
+  --color-edge-step: #8a9a8e;
+
+  --color-trauma-loss: #6366f1;
+  --color-trauma-abuse: #ef4444;
+  --color-trauma-addiction: #f97316;
+  --color-trauma-war: #78716c;
+  --color-trauma-displacement: #ca8a04;
+  --color-trauma-illness: #16a34a;
+  --color-trauma-poverty: #7c3aed;
+
+  --color-node-bg: #ffffff;
+  --color-node-border: #c8cdc3;
+  --color-node-selected: #2d8a5e;
+  --color-node-handle: #8a9a8e;
+
+  --color-lifebar-fill: rgba(45, 138, 94, 0.12);
+  --color-lifebar-stroke: #2d8a5e;
+
+  --color-band-even: rgba(0, 0, 0, 0.02);
+  --color-band-odd: transparent;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  transition: var(--transition-colors);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.1rem; }
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* --- Form defaults --- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 12px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+/* Scrollbar styling (dark theme) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}

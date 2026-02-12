@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { TraumaCategory, RelationshipType, PartnerStatus } from "../../types/domain";
-import { TRAUMA_COLORS } from "../../lib/traumaColors";
+import { getTraumaColor } from "../../lib/traumaColors";
 import type { Person, TraumaEvent, RelationshipData, RelationshipPeriod } from "../../types/domain";
 import type {
   DecryptedPerson,
@@ -320,7 +320,7 @@ export function PersonDetailPanel({
                       <span
                         className="detail-panel__event-dot"
                         style={{
-                          backgroundColor: TRAUMA_COLORS[event.category],
+                          backgroundColor: getTraumaColor(event.category),
                         }}
                       />
                       <span className="detail-panel__event-title">

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLogout } from "../hooks/useLogout";
 import { useTreeData } from "../hooks/useTreeData";
 import { TimelineView } from "../components/timeline/TimelineView";
+import { ThemeToggle } from "../components/ThemeToggle";
 import "../components/tree/TreeCanvas.css";
 
 export default function TimelinePage() {
@@ -33,6 +34,7 @@ export default function TimelinePage() {
           {t("nav.trees")}
         </Link>
         <div className="tree-toolbar__spacer" />
+        <ThemeToggle className="tree-toolbar__btn" />
         <button
           className="tree-toolbar__btn"
           onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getEncryptionSalt, clearTokens, ApiError } from "../lib/api";
 import { deriveKey } from "../lib/crypto";
 import { useEncryption } from "../contexts/EncryptionContext";
+import "../styles/auth.css";
 
 export default function UnlockPage() {
   const { t } = useTranslation();
@@ -58,55 +59,48 @@ export default function UnlockPage() {
 
   if (!salt) {
     return (
-      <div>
-        <h1>{t("app.title")}</h1>
-        <p>{t("common.loading")}</p>
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1>{t("app.title")}</h1>
+          <p>{t("common.loading")}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div data-1p-ignore>
-      <h1>{t("app.title")}</h1>
-      <h2>{t("auth.passphrase")}</h2>
-      <p>{t("auth.passphrasePrompt")}</p>
+    <div className="auth-page" data-1p-ignore>
+      <div className="auth-card">
+        <h1>{t("app.title")}</h1>
+        <h2>{t("auth.passphrase")}</h2>
+        <p className="auth-prompt">{t("auth.passphrasePrompt")}</p>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-          <input
-            id="passphrase"
-            type="password"
-            required
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
-            autoFocus
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="auth-field">
+            <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+            <input
+              id="passphrase"
+              type="password"
+              required
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              autoFocus
+            />
+          </div>
 
-        {error && <p role="alert">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? t("auth.derivingKey") : t("auth.unlock")}
-        </button>
-      </form>
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? t("auth.derivingKey") : t("auth.unlock")}
+          </button>
+        </form>
 
-      <p>
-        <button
-          onClick={handleLogout}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#3b82f6",
-            cursor: "pointer",
-            textDecoration: "underline",
-            padding: 0,
-            font: "inherit",
-          }}
-        >
-          {t("auth.switchAccount")}
-        </button>
-      </p>
+        <p className="auth-footer">
+          <button className="auth-link-btn" onClick={handleLogout}>
+            {t("auth.switchAccount")}
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

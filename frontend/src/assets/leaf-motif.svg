@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" opacity="0.06">
+  <path d="M100 20 C60 50, 30 90, 40 140 C50 170, 80 180, 100 180 C120 180, 150 170, 160 140 C170 90, 140 50, 100 20Z" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M100 30 L100 170" stroke="currentColor" stroke-width="1"/>
+  <path d="M100 60 C80 50, 60 65, 55 85" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 60 C120 50, 140 65, 145 85" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 90 C75 80, 50 100, 48 120" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 90 C125 80, 150 100, 152 120" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 120 C82 112, 62 125, 58 145" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 120 C118 112, 138 125, 142 145" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 145 C90 140, 78 148, 75 160" stroke="currentColor" stroke-width="0.8"/>
+  <path d="M100 145 C110 140, 122 148, 125 160" stroke="currentColor" stroke-width="0.8"/>
+</svg>

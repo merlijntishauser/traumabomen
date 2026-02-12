@@ -2,6 +2,7 @@
   flex: 1;
   position: relative;
   overflow: auto;
+  background: var(--color-bg-canvas);
 }
 
 .timeline-container svg {
@@ -11,26 +12,26 @@
 .timeline-empty {
   padding: 40px 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .tl-gen-label {
   font-size: 11px;
   font-weight: 600;
-  fill: #9ca3af;
+  fill: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .tl-person-label {
   font-size: 12px;
-  fill: #374151;
+  fill: var(--color-text-primary);
 }
 
 .tl-axis-text {
   font-size: 11px;
-  fill: #6b7280;
+  fill: var(--color-text-secondary);
 }
 
 .tl-marker {
@@ -38,20 +39,21 @@
 }
 
 .tl-marker:hover {
-  stroke: #374151;
+  stroke: var(--color-text-primary);
 }
 
 .timeline-tooltip {
   display: none;
   position: fixed;
-  background: #1f2937;
-  color: #fff;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
   padding: 8px 12px;
-  border-radius: 6px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
   font-size: 12px;
   line-height: 1.5;
   pointer-events: none;
   z-index: 50;
   max-width: 280px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }

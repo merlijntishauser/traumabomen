@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
+  background: var(--color-bg-primary);
 }
 
 .tree-toolbar {
@@ -10,19 +11,19 @@
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
+  border-bottom: 1px solid var(--color-border-primary);
+  background: var(--color-bg-secondary);
   z-index: 5;
 }
 
 .tree-toolbar__back {
   text-decoration: none;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .tree-toolbar__back:hover {
-  color: #374151;
+  color: var(--color-text-primary);
 }
 
 .tree-toolbar__spacer {
@@ -31,32 +32,57 @@
 
 .tree-toolbar__btn {
   padding: 6px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   cursor: pointer;
-  background: #fff;
-  color: #374151;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
   text-decoration: none;
+  transition: var(--transition-colors);
 }
 
 .tree-toolbar__btn:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-hover);
 }
 
 .tree-toolbar__btn--primary {
-  background: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
 }
 
 .tree-toolbar__btn--primary:hover {
-  background: #2563eb;
+  background: var(--color-accent-hover);
 }
 
 .tree-canvas-wrapper {
   flex: 1;
   position: relative;
+}
+
+/* React Flow canvas background */
+.tree-canvas-wrapper .react-flow__pane {
+  background: var(--color-bg-canvas);
+}
+
+.tree-canvas-wrapper .react-flow__controls {
+  box-shadow: var(--shadow-md);
+}
+
+.tree-canvas-wrapper .react-flow__controls-button {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+  fill: var(--color-text-secondary);
+  color: var(--color-text-secondary);
+}
+
+.tree-canvas-wrapper .react-flow__controls-button:hover {
+  background: var(--color-bg-hover);
+}
+
+.tree-canvas-wrapper .react-flow__minimap {
+  background: var(--color-bg-secondary);
 }
 
 .relationship-popover {
@@ -68,15 +94,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-bg-overlay);
   z-index: 20;
 }
 
 .relationship-popover__card {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   min-width: 240px;
 }
 
@@ -84,6 +111,7 @@
   margin: 0 0 12px;
   font-size: 15px;
   font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .relationship-popover__options {
@@ -94,31 +122,34 @@
 
 .relationship-popover__option {
   padding: 8px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
   cursor: pointer;
   font-size: 14px;
   text-align: left;
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
 }
 
 .relationship-popover__option:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: var(--color-bg-hover);
+  border-color: var(--color-accent);
 }
 
 .relationship-popover__cancel {
   margin-top: 12px;
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
   cursor: pointer;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   width: 100%;
+  transition: var(--transition-colors);
 }
 
 .relationship-popover__cancel:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-hover);
 }

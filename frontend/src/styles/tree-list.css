@@ -1,0 +1,100 @@
+/* Tree list page */
+
+.tree-list-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.tree-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.tree-list-header h1 {
+  margin: 0;
+}
+
+.tree-list-header__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tree-list-header__btn {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
+}
+
+.tree-list-header__btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.tree-list-create {
+  padding: 10px 20px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  transition: var(--transition-colors);
+}
+
+.tree-list-create:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.tree-list-create:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tree-list-empty {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.tree-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tree-list li {
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.tree-list li:last-child {
+  border-bottom: none;
+}
+
+.tree-list li a {
+  display: block;
+  padding: 14px 18px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  transition: var(--transition-colors);
+}
+
+.tree-list li a:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-accent);
+}
+
+.tree-list-loading {
+  color: var(--color-text-secondary);
+}

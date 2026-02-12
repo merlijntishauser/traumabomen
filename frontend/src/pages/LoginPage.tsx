@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { login, ApiError } from "../lib/api";
+import "../styles/auth.css";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -32,44 +33,46 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
-      <h1>{t("app.title")}</h1>
-      <h2>{t("auth.login")}</h2>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1>{t("app.title")}</h1>
+        <h2>{t("auth.login")}</h2>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">{t("auth.email")}</label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="auth-field">
+            <label htmlFor="email">{t("auth.email")}</label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <div>
-          <label htmlFor="password">{t("auth.password")}</label>
-          <input
-            id="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+          <div className="auth-field">
+            <label htmlFor="password">{t("auth.password")}</label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        {error && <p role="alert">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? t("common.loading") : t("auth.login")}
-        </button>
-      </form>
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? t("common.loading") : t("auth.login")}
+          </button>
+        </form>
 
-      <p>
-        {t("auth.noAccount")}{" "}
-        <Link to="/register">{t("auth.register")}</Link>
-      </p>
+        <p className="auth-footer">
+          {t("auth.noAccount")}{" "}
+          <Link to="/register">{t("auth.register")}</Link>
+        </p>
+      </div>
     </div>
   );
 }

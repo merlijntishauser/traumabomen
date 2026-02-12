@@ -21,6 +21,7 @@ import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { inferSiblings } from "../lib/inferSiblings";
 import type { InferredSibling } from "../lib/inferSiblings";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { RelationshipType } from "../types/domain";
 import type { Person, TraumaEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
@@ -238,6 +239,7 @@ function TreeWorkspaceInner() {
         <Link to={`/trees/${treeId}/timeline`} className="tree-toolbar__btn">
           {t("tree.timeline")}
         </Link>
+        <ThemeToggle className="tree-toolbar__btn" />
         <button
           className="tree-toolbar__btn"
           onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}

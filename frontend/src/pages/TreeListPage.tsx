@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTrees, createTree } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
+import { ThemeToggle } from "../components/ThemeToggle";
+import "../styles/tree-list.css";
 
 interface DecryptedTree {
   id: string;
@@ -43,58 +45,42 @@ export default function TreeListPage() {
   });
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }} data-1p-ignore>
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 24,
-        }}
-      >
-        <h1 style={{ margin: 0 }}>{t("tree.myTrees")}</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+    <div className="tree-list-page" data-1p-ignore>
+      <header className="tree-list-header">
+        <h1>{t("tree.myTrees")}</h1>
+        <div className="tree-list-header__actions">
+          <ThemeToggle className="tree-list-header__btn" />
           <button
+            className="tree-list-header__btn"
             onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
           >
             {i18n.language === "nl" ? "EN" : "NL"}
           </button>
-          <button onClick={logout}>{t("nav.logout")}</button>
+          <button className="tree-list-header__btn" onClick={logout}>
+            {t("nav.logout")}
+          </button>
         </div>
       </header>
 
       <button
+        className="tree-list-create"
         onClick={() => createMutation.mutate()}
         disabled={createMutation.isPending}
-        style={{
-          padding: "8px 16px",
-          marginBottom: 24,
-          cursor: "pointer",
-        }}
       >
         {t("tree.create")}
       </button>
 
-      {treesQuery.isLoading && <p>{t("common.loading")}</p>}
+      {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
 
       {treesQuery.data && treesQuery.data.length === 0 && (
-        <p>{t("tree.empty")}</p>
+        <p className="tree-list-empty">{t("tree.empty")}</p>
       )}
 
       {treesQuery.data && treesQuery.data.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul className="tree-list">
           {treesQuery.data.map((tree) => (
-            <li
-              key={tree.id}
-              style={{
-                padding: "12px 16px",
-                borderBottom: "1px solid #e5e7eb",
-              }}
-            >
-              <Link
-                to={`/trees/${tree.id}`}
-                style={{ textDecoration: "none", color: "#3b82f6" }}
-              >
+            <li key={tree.id}>
+              <Link to={`/trees/${tree.id}`}>
                 {tree.name}
               </Link>
             </li>
