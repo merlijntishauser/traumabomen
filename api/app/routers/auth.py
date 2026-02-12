@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import create_token, decode_token, hash_password, verify_password
+from app.auth import create_token, decode_token, get_current_user, hash_password, verify_password
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.models.user import User
@@ -11,6 +11,7 @@ from app.schemas.auth import (
     RefreshRequest,
     RefreshResponse,
     RegisterRequest,
+    SaltResponse,
     TokenResponse,
 )
 
@@ -88,3 +89,10 @@ async def refresh(
     return RefreshResponse(
         access_token=create_token(user_id, "access", settings),
     )
+
+
+@router.get("/salt", response_model=SaltResponse)
+async def get_salt(
+    user: User = Depends(get_current_user),
+) -> SaltResponse:
+    return SaltResponse(encryption_salt=user.encryption_salt)

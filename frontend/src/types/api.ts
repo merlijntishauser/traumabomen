@@ -26,6 +26,10 @@ export interface RefreshResponse {
   token_type: string;
 }
 
+export interface SaltResponse {
+  encryption_salt: string;
+}
+
 // Trees
 export interface TreeCreate {
   encrypted_data: string;

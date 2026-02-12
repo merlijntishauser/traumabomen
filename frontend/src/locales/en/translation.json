@@ -27,6 +27,7 @@
   "auth.acknowledgeWarning": "I understand that if I lose my passphrase, my data cannot be recovered",
   "auth.emailTaken": "An account with this email already exists",
   "auth.passphraseError": "Failed to derive encryption key",
+  "auth.switchAccount": "Log in with a different account",
 
   "tree.myTrees": "My Trees",
   "tree.create": "Create tree",

@@ -3,6 +3,7 @@ import type {
   LoginRequest,
   TokenResponse,
   RefreshResponse,
+  SaltResponse,
   TreeCreate,
   TreeUpdate,
   TreeResponse,
@@ -162,6 +163,10 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
 
 export function logout(): void {
   clearTokens();
+}
+
+export function getEncryptionSalt(): Promise<SaltResponse> {
+  return apiFetchWithRetry("/auth/salt");
 }
 
 // Trees

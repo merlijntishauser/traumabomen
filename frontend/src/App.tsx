@@ -6,14 +6,18 @@ import {
 } from "./contexts/EncryptionContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import UnlockPage from "./pages/UnlockPage";
 import TreeListPage from "./pages/TreeListPage";
 import TreeWorkspacePage from "./pages/TreeWorkspacePage";
 import TimelinePage from "./pages/TimelinePage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
-  if (!getAccessToken() || !key) {
+  if (!getAccessToken()) {
     return <Navigate to="/login" replace />;
+  }
+  if (!key) {
+    return <Navigate to="/unlock" replace />;
   }
   return <>{children}</>;
 }
@@ -24,6 +28,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/unlock" element={<UnlockPage />} />
         <Route
           path="/trees"
           element={

@@ -27,6 +27,7 @@
   "auth.acknowledgeWarning": "Ik begrijp dat als ik mijn versleutelingswachtwoord verlies, mijn gegevens niet kunnen worden hersteld",
   "auth.emailTaken": "Er bestaat al een account met dit e-mailadres",
   "auth.passphraseError": "Kon versleutelingssleutel niet afleiden",
+  "auth.switchAccount": "Inloggen met een ander account",
 
   "tree.myTrees": "Mijn bomen",
   "tree.create": "Boom aanmaken",
