@@ -5,6 +5,7 @@ import {
   useEncryption,
 } from "./contexts/EncryptionContext";
 import { AppFooter } from "./components/AppFooter";
+import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <EncryptionProvider>
       <div className="app-layout">
+        <MentalHealthBanner />
         <main className="app-main">
           <Routes>
             <Route path="/login" element={<LoginPage />} />

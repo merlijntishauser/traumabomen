@@ -19,6 +19,12 @@
   text-overflow: ellipsis;
 }
 
+.app-footer__mh {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .app-footer__actions {
   display: flex;
   align-items: center;

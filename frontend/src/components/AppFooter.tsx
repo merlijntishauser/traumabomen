@@ -1,14 +1,36 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
+const resources: Record<string, { name: string; url: string }> = {
+  nl: { name: "Wij zijn Mind", url: "https://wijzijnmind.nl" },
+  en: { name: "Crisis Text Line", url: "https://www.crisistextline.org" },
+};
+
 export function AppFooter() {
   const { i18n } = useTranslation();
+  const resource = resources[i18n.language] ?? resources.en;
 
   return (
     <footer className="app-footer">
       <span className="app-footer__copy">
         &copy; {new Date().getFullYear()} Merlijn Tishauser &mdash; AGPL-3.0
+      </span>
+      <span className="app-footer__mh">
+        <Trans
+          i18nKey="mentalHealth.footer"
+          components={{
+            a: (
+              <a
+                href={resource.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="app-footer__link"
+              />
+            ),
+          }}
+          values={{ resource: resource.name }}
+        />
       </span>
       <div className="app-footer__actions">
         <a
