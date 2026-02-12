@@ -130,8 +130,8 @@
 
   "theme.toggle": "Wissel donker/licht thema",
 
-  "mentalHealth.banner": "Deze tool behandelt gevoelige onderwerpen die confronterend kunnen zijn. Heb je behoefte aan ondersteuning? Neem bijvoorbeeld contact op met <a>{{resource}}</a>. Wij zijn niet verbonden aan deze organisatie.",
-  "mentalHealth.footer": "Hulp nodig? Bijvoorbeeld <a>{{resource}}</a>",
+  "mentalHealth.banner": "Deze tool behandelt mogelijk gevoelige onderwerpen die een trigger kunnen zijn. Heb je behoefte aan ondersteuning? Neem bijvoorbeeld contact op met <a>{{resource}}</a>. Wij zijn niet verbonden aan deze organisatie.",
+  "mentalHealth.footer": "Neem mentale gezondheid serieus. Hulp nodig? Neem bijv. contact op met <a>{{resource}}</a>",
 
   "landing.tagline": "Breng intergenerationeel trauma in kaart op visuele stambomen.",
   "landing.about": "Traumabomen is een persoonlijk reflectie-instrument om patronen van trauma door generaties heen te verkennen. Bouw je stamboom, leg gebeurtenissen vast en visualiseer hoe ervaringen door de tijd heen doorwerken.",
