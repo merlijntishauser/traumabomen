@@ -17,6 +17,12 @@
   z-index: 5;
 }
 
+.tree-toolbar__title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
 .tree-toolbar__back {
   text-decoration: none;
   color: var(--color-text-secondary);

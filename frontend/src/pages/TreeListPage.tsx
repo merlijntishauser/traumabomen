@@ -5,6 +5,7 @@ import { getTrees, createTree } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
 import { ThemeToggle } from "../components/ThemeToggle";
+import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
 interface DecryptedTree {
@@ -46,47 +47,47 @@ export default function TreeListPage() {
 
   return (
     <div className="tree-list-page" data-1p-ignore>
-      <header className="tree-list-header">
-        <h1>{t("tree.myTrees")}</h1>
-        <div className="tree-list-header__actions">
-          <ThemeToggle className="tree-list-header__btn" />
-          <button
-            className="tree-list-header__btn"
-            onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
-          >
-            {i18n.language === "nl" ? "EN" : "NL"}
-          </button>
-          <button className="tree-list-header__btn" onClick={logout}>
-            {t("nav.logout")}
-          </button>
-        </div>
-      </header>
+      <div className="tree-toolbar">
+        <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
+        <div className="tree-toolbar__spacer" />
+        <button
+          className="tree-toolbar__btn tree-toolbar__btn--primary"
+          onClick={() => createMutation.mutate()}
+          disabled={createMutation.isPending}
+        >
+          {t("tree.create")}
+        </button>
+        <ThemeToggle className="tree-toolbar__btn" />
+        <button
+          className="tree-toolbar__btn"
+          onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+        >
+          {i18n.language === "nl" ? "EN" : "NL"}
+        </button>
+        <button className="tree-toolbar__btn" onClick={logout}>
+          {t("nav.logout")}
+        </button>
+      </div>
 
-      <button
-        className="tree-list-create"
-        onClick={() => createMutation.mutate()}
-        disabled={createMutation.isPending}
-      >
-        {t("tree.create")}
-      </button>
+      <div className="tree-list-content">
+        {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
 
-      {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
+        {treesQuery.data && treesQuery.data.length === 0 && (
+          <p className="tree-list-empty">{t("tree.empty")}</p>
+        )}
 
-      {treesQuery.data && treesQuery.data.length === 0 && (
-        <p className="tree-list-empty">{t("tree.empty")}</p>
-      )}
-
-      {treesQuery.data && treesQuery.data.length > 0 && (
-        <ul className="tree-list">
-          {treesQuery.data.map((tree) => (
-            <li key={tree.id}>
-              <Link to={`/trees/${tree.id}`}>
-                {tree.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+        {treesQuery.data && treesQuery.data.length > 0 && (
+          <ul className="tree-list">
+            {treesQuery.data.map((tree) => (
+              <li key={tree.id}>
+                <Link to={`/trees/${tree.id}`}>
+                  {tree.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
