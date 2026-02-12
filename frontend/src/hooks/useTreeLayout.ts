@@ -42,6 +42,36 @@ const SIBLING_TYPES = new Set([
   RelationshipType.HalfSibling,
 ]);
 
+// Handle IDs: source handles connect outward, target handles receive inward
+const SOURCE_HANDLES = { top: "top-source", bottom: "bottom", left: "left-source", right: "right" };
+const TARGET_HANDLES = { top: "top", bottom: "bottom-target", left: "left", right: "right-target" };
+
+function pickHandles(
+  sourcePos: { x: number; y: number },
+  targetPos: { x: number; y: number },
+  preferVertical: boolean,
+): { sourceHandle: string; targetHandle: string } {
+  const dx = targetPos.x - sourcePos.x;
+  const dy = targetPos.y - sourcePos.y;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  // Bias: reduce the non-preferred axis by 30% so the preferred direction wins when close
+  const biasedDx = preferVertical ? absDx * 0.7 : absDx;
+  const biasedDy = preferVertical ? absDy : absDy * 0.7;
+
+  if (biasedDy >= biasedDx) {
+    if (dy >= 0) {
+      return { sourceHandle: SOURCE_HANDLES.bottom, targetHandle: TARGET_HANDLES.top };
+    }
+    return { sourceHandle: SOURCE_HANDLES.top, targetHandle: TARGET_HANDLES.bottom };
+  }
+  if (dx >= 0) {
+    return { sourceHandle: SOURCE_HANDLES.right, targetHandle: TARGET_HANDLES.left };
+  }
+  return { sourceHandle: SOURCE_HANDLES.left, targetHandle: TARGET_HANDLES.right };
+}
+
 const COUPLE_PALETTE = [
   "hsl(210, 60%, 55%)",
   "hsl(28, 70%, 52%)",
@@ -149,6 +179,15 @@ export function useTreeLayout(
       });
     }
 
+    // Build node center positions for handle selection
+    const nodeCenter = new Map<string, { x: number; y: number }>();
+    for (const node of nodes) {
+      nodeCenter.set(node.id, {
+        x: node.position.x + NODE_WIDTH / 2,
+        y: node.position.y + NODE_HEIGHT / 2,
+      });
+    }
+
     // Compute couple colors: group children by their biological parent pair
     const bioParentsOf = new Map<string, Set<string>>();
     for (const rel of relationships.values()) {
@@ -173,9 +212,13 @@ export function useTreeLayout(
 
     const edges: RelationshipEdgeType[] = [];
     for (const rel of relationships.values()) {
-      const isPartner = rel.type === RelationshipType.Partner;
-      const isSibling = SIBLING_TYPES.has(rel.type);
-      const useSideHandles = isPartner || isSibling;
+      const preferVertical = PARENT_TYPES.has(rel.type);
+      const srcPos = nodeCenter.get(rel.source_person_id);
+      const tgtPos = nodeCenter.get(rel.target_person_id);
+      const handles = srcPos && tgtPos
+        ? pickHandles(srcPos, tgtPos, preferVertical)
+        : { sourceHandle: preferVertical ? SOURCE_HANDLES.bottom : SOURCE_HANDLES.right,
+            targetHandle: preferVertical ? TARGET_HANDLES.top : TARGET_HANDLES.left };
       const coupleColor = useCoupleColors && rel.type === RelationshipType.BiologicalParent
         ? childCoupleColor.get(rel.target_person_id)
         : undefined;
@@ -184,8 +227,7 @@ export function useTreeLayout(
         type: "relationship",
         source: rel.source_person_id,
         target: rel.target_person_id,
-        sourceHandle: useSideHandles ? "right" : "bottom",
-        targetHandle: useSideHandles ? "left" : "top",
+        ...handles,
         data: {
           relationship: rel,
           coupleColor,
@@ -198,13 +240,17 @@ export function useTreeLayout(
     // Add inferred sibling edges
     const inferred = inferSiblings(relationships);
     for (const sib of inferred) {
+      const srcPos = nodeCenter.get(sib.personAId);
+      const tgtPos = nodeCenter.get(sib.personBId);
+      const handles = srcPos && tgtPos
+        ? pickHandles(srcPos, tgtPos, false)
+        : { sourceHandle: SOURCE_HANDLES.right, targetHandle: TARGET_HANDLES.left };
       edges.push({
         id: `inferred-${sib.personAId}-${sib.personBId}`,
         type: "relationship",
         source: sib.personAId,
         target: sib.personBId,
-        sourceHandle: "right",
-        targetHandle: "left",
+        ...handles,
         data: {
           inferredType: sib.type,
           sourceName: persons.get(sib.personAId)?.name,

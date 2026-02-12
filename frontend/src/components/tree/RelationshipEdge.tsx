@@ -2,6 +2,7 @@ import { memo, useState } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
+  Position,
   getBezierPath,
   getSmoothStepPath,
   type EdgeProps,
@@ -44,10 +45,6 @@ function RelationshipEdgeComponent({
     && rel != null
     && rel.periods.length > 0
     && rel.periods.every((p) => p.end_year != null);
-  const isSibling =
-    relType === RelationshipType.BiologicalSibling ||
-    relType === RelationshipType.StepSibling ||
-    relType === RelationshipType.HalfSibling;
   const isHalfSibling = relType === RelationshipType.HalfSibling;
   const isDashed =
     relType === RelationshipType.StepParent ||
@@ -63,10 +60,12 @@ function RelationshipEdgeComponent({
     targetPosition,
   };
 
-  const useBezier = isPartner || isSibling || inferredType != null;
-  const [edgePath, labelX, labelY] = useBezier
-    ? getBezierPath(pathParams)
-    : getSmoothStepPath(pathParams);
+  const isVertical =
+    (sourcePosition === Position.Top || sourcePosition === Position.Bottom) &&
+    (targetPosition === Position.Top || targetPosition === Position.Bottom);
+  const [edgePath, labelX, labelY] = isVertical
+    ? getSmoothStepPath(pathParams)
+    : getBezierPath(pathParams);
 
   let stroke = getCssVar("--color-edge-default");
   let strokeWidth = 1.5;

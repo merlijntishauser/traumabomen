@@ -18,10 +18,16 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
 
   return (
     <div className={`person-node ${selected ? "person-node--selected" : ""}`}>
+      {/* Interactive handles */}
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Bottom} id="bottom" />
       <Handle type="target" position={Position.Left} id="left" />
       <Handle type="source" position={Position.Right} id="right" />
+      {/* Auxiliary handles for reverse edge attachment */}
+      <Handle type="source" position={Position.Top} id="top-source" className="person-node__handle--aux" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="person-node__handle--aux" />
+      <Handle type="source" position={Position.Left} id="left-source" className="person-node__handle--aux" />
+      <Handle type="target" position={Position.Right} id="right-target" className="person-node__handle--aux" />
 
       <div className="person-node__name">{person.name}</div>
       <div className="person-node__years">

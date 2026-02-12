@@ -129,3 +129,8 @@
 .person-node .react-flow__handle:hover {
   background: var(--color-accent);
 }
+
+.person-node .react-flow__handle.person-node__handle--aux {
+  opacity: 0;
+  pointer-events: none;
+}
