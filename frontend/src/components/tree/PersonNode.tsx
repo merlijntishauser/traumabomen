@@ -6,6 +6,8 @@ import { getLifeEventColor } from "../../lib/lifeEventColors";
 import type { PersonNodeData } from "../../hooks/useTreeLayout";
 import "./PersonNode.css";
 
+const MAX_VISIBLE_BADGES = 8;
+
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
   const { person, events, lifeEvents } = data;
@@ -30,9 +32,9 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
           </span>
         )}
       </div>
-      {events.length > 0 && (
+      {(events.length > 0 || lifeEvents.length > 0) && (
         <div className="person-node__badges">
-          {events.map((event) => (
+          {events.slice(0, MAX_VISIBLE_BADGES).map((event) => (
             <span
               key={event.id}
               className="person-node__badge"
@@ -40,11 +42,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               title={event.title}
             />
           ))}
-        </div>
-      )}
-      {lifeEvents.length > 0 && (
-        <div className="person-node__badges">
-          {lifeEvents.map((event) => (
+          {lifeEvents.slice(0, Math.max(0, MAX_VISIBLE_BADGES - events.length)).map((event) => (
             <span
               key={event.id}
               className="person-node__badge person-node__badge--life"
@@ -52,6 +50,11 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               title={event.title}
             />
           ))}
+          {events.length + lifeEvents.length > MAX_VISIBLE_BADGES && (
+            <span className="person-node__badge-overflow">
+              +{events.length + lifeEvents.length - MAX_VISIBLE_BADGES}
+            </span>
+          )}
         </div>
       )}
     </div>

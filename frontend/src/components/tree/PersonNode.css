@@ -1,7 +1,7 @@
 .person-node {
   position: relative;
   width: 180px;
-  min-height: 60px;
+  height: 80px;
   padding: 10px 12px;
   background: var(--color-node-bg);
   border: 2px solid var(--color-node-border);
@@ -10,6 +10,9 @@
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
   color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .person-node--selected {
@@ -37,9 +40,10 @@
 
 .person-node__badges {
   display: flex;
+  align-items: center;
   gap: 4px;
-  margin-top: 6px;
-  flex-wrap: wrap;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .person-node__badge {
@@ -51,6 +55,12 @@
 
 .person-node__badge--life {
   border-radius: 2px;
+}
+
+.person-node__badge-overflow {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  line-height: 10px;
 }
 
 .person-node .react-flow__handle {
