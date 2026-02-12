@@ -23,7 +23,9 @@ export default function LoginPage() {
       await login({ email, password });
       navigate("/unlock", { replace: true });
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof ApiError && err.detail === "email_not_verified") {
+        setError(t("auth.emailNotVerified"));
+      } else if (err instanceof ApiError) {
         setError(t("auth.loginError"));
       } else {
         setError(t("common.error"));

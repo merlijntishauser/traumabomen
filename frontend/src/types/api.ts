@@ -17,6 +17,18 @@ export interface TokenResponse {
   encryption_salt: string;
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
+export interface VerifyResponse {
+  message: string;
+}
+
 export interface RefreshRequest {
   refresh_token: string;
 }

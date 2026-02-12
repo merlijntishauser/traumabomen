@@ -1,5 +1,8 @@
 import type {
   RegisterRequest,
+  RegisterResponse,
+  ResendVerificationRequest,
+  VerifyResponse,
   LoginRequest,
   TokenResponse,
   RefreshResponse,
@@ -141,14 +144,35 @@ async function apiFetchWithRetry<T>(
 
 export async function register(
   request: RegisterRequest,
-): Promise<TokenResponse> {
-  const data = await apiFetch<TokenResponse>("/auth/register", {
+): Promise<TokenResponse | RegisterResponse> {
+  const data = await apiFetch<TokenResponse | RegisterResponse>(
+    "/auth/register",
+    {
+      method: "POST",
+      body: request,
+      requiresAuth: false,
+    },
+  );
+  if ("access_token" in data) {
+    setTokens(data.access_token, data.refresh_token);
+  }
+  return data;
+}
+
+export async function verifyEmail(token: string): Promise<VerifyResponse> {
+  return apiFetch<VerifyResponse>(`/auth/verify?token=${encodeURIComponent(token)}`, {
+    requiresAuth: false,
+  });
+}
+
+export async function resendVerification(
+  request: ResendVerificationRequest,
+): Promise<RegisterResponse> {
+  return apiFetch<RegisterResponse>("/auth/resend-verification", {
     method: "POST",
     body: request,
     requiresAuth: false,
   });
-  setTokens(data.access_token, data.refresh_token);
-  return data;
 }
 
 export async function login(request: LoginRequest): Promise<TokenResponse> {

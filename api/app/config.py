@@ -10,6 +10,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    REQUIRE_EMAIL_VERIFICATION: bool = False
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    APP_BASE_URL: str = "http://localhost:5173"
+
     model_config = {"extra": "ignore"}
 
 

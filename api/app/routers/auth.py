@@ -1,3 +1,6 @@
+import secrets
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,17 +8,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import create_token, decode_token, get_current_user, hash_password, verify_password
 from app.config import Settings, get_settings
 from app.database import get_db
+from app.email import send_verification_email
 from app.models.user import User
 from app.schemas.auth import (
     LoginRequest,
     RefreshRequest,
     RefreshResponse,
     RegisterRequest,
+    RegisterResponse,
+    ResendVerificationRequest,
     SaltResponse,
     TokenResponse,
+    VerifyResponse,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+VERIFICATION_TOKEN_EXPIRY_HOURS = 24
+RESEND_RATE_LIMIT_PER_HOUR = 3
 
 
 def _build_token_response(user: User, settings: Settings) -> TokenResponse:
@@ -26,22 +36,47 @@ def _build_token_response(user: User, settings: Settings) -> TokenResponse:
     )
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+def _generate_verification_token() -> tuple[str, str]:
+    """Return (plaintext_token, hashed_token)."""
+    token = secrets.token_urlsafe(32)
+    hashed = hash_password(token)
+    return token, hashed
+
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     body: RegisterRequest,
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
-) -> TokenResponse:
+) -> TokenResponse | RegisterResponse:
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
         )
 
+    if settings.REQUIRE_EMAIL_VERIFICATION:
+        token, hashed = _generate_verification_token()
+        user = User(
+            email=body.email,
+            hashed_password=hash_password(body.password),
+            encryption_salt=body.encryption_salt,
+            email_verified=False,
+            email_verification_token=hashed,
+            email_verification_expires_at=datetime.now(timezone.utc)
+            + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS),
+        )
+        db.add(user)
+        await db.commit()
+
+        send_verification_email(body.email, token, settings)
+        return RegisterResponse(message="verification_email_sent")
+
     user = User(
         email=body.email,
         hashed_password=hash_password(body.password),
         encryption_salt=body.encryption_salt,
+        email_verified=True,
     )
     db.add(user)
     await db.commit()
@@ -63,7 +98,92 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
         )
 
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified"
+        )
+
     return _build_token_response(user, settings)
+
+
+@router.get("/verify", response_model=VerifyResponse)
+async def verify_email(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+) -> VerifyResponse:
+    result = await db.execute(
+        select(User).where(
+            User.email_verified == False,  # noqa: E712
+            User.email_verification_token.isnot(None),
+        )
+    )
+    users = result.scalars().all()
+
+    verified_user = None
+    for user in users:
+        if verify_password(token, user.email_verification_token):
+            if (
+                user.email_verification_expires_at
+                and user.email_verification_expires_at > datetime.now(timezone.utc)
+            ):
+                verified_user = user
+            break
+
+    if verified_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_token",
+        )
+
+    verified_user.email_verified = True
+    verified_user.email_verification_token = None
+    verified_user.email_verification_expires_at = None
+    await db.commit()
+
+    return VerifyResponse(message="email_verified")
+
+
+@router.post("/resend-verification", response_model=RegisterResponse)
+async def resend_verification(
+    body: ResendVerificationRequest,
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> RegisterResponse:
+    if not settings.REQUIRE_EMAIL_VERIFICATION:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email verification is not enabled",
+        )
+
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+
+    # Always return success to avoid email enumeration
+    if user is None or user.email_verified:
+        return RegisterResponse(message="verification_email_sent")
+
+    # Rate limit: check if token was generated recently
+    if (
+        user.email_verification_expires_at
+        and user.email_verification_expires_at
+        > datetime.now(timezone.utc)
+        + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS - 1)
+    ):
+        # Token was generated less than 1 hour ago -- too soon
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="resend_too_soon",
+        )
+
+    token, hashed = _generate_verification_token()
+    user.email_verification_token = hashed
+    user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
+        hours=VERIFICATION_TOKEN_EXPIRY_HOURS
+    )
+    await db.commit()
+
+    send_verification_email(user.email, token, settings)
+    return RegisterResponse(message="verification_email_sent")
 
 
 @router.post("/refresh", response_model=RefreshResponse)

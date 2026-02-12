@@ -7,6 +7,8 @@ import {
 import { AppFooter } from "./components/AppFooter";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import VerificationPendingPage from "./pages/VerificationPendingPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import UnlockPage from "./pages/UnlockPage";
 import TreeListPage from "./pages/TreeListPage";
 import TreeWorkspacePage from "./pages/TreeWorkspacePage";
@@ -31,6 +33,8 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify-pending" element={<VerificationPendingPage />} />
+            <Route path="/verify" element={<VerifyEmailPage />} />
             <Route path="/unlock" element={<UnlockPage />} />
             <Route
               path="/trees"

@@ -42,7 +42,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const salt = generateSalt();
-      await register({ email, password, encryption_salt: salt });
+      const result = await register({ email, password, encryption_salt: salt });
+
+      if ("message" in result && result.message === "verification_email_sent") {
+        navigate("/verify-pending", { state: { email } });
+        return;
+      }
+
       const derivedKey = await deriveKey(passphrase, salt);
       setKey(derivedKey);
       navigate("/trees");

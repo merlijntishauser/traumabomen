@@ -26,6 +26,12 @@ services:
         condition: service_healthy
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
   frontend:
     build:
       context: ./frontend

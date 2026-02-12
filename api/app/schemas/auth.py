@@ -19,6 +19,10 @@ class TokenResponse(BaseModel):
     encryption_salt: str
 
 
+class RegisterResponse(BaseModel):
+    message: str
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 
@@ -30,3 +34,11 @@ class RefreshResponse(BaseModel):
 
 class SaltResponse(BaseModel):
     encryption_salt: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class VerifyResponse(BaseModel):
+    message: str
