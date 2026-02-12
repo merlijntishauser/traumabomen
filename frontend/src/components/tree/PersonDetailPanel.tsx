@@ -226,15 +226,22 @@ export function PersonDetailPanel({
               ) : (
                 <ul className="detail-panel__rel-list">
                   {relationships.map((rel) => {
-                    const otherId =
-                      rel.source_person_id === person.id
-                        ? rel.target_person_id
-                        : rel.source_person_id;
+                    const isSource = rel.source_person_id === person.id;
+                    const otherId = isSource
+                      ? rel.target_person_id
+                      : rel.source_person_id;
                     const otherPerson = allPersons.get(otherId);
+                    const isParentType =
+                      rel.type === RelationshipType.BiologicalParent ||
+                      rel.type === RelationshipType.StepParent ||
+                      rel.type === RelationshipType.AdoptiveParent;
+                    const typeLabel = isParentType && isSource
+                      ? t(`relationship.childOf.${rel.type}`)
+                      : t(`relationship.type.${rel.type}`);
                     return (
                       <li key={rel.id} className="detail-panel__rel-item">
                         <span className="detail-panel__rel-type">
-                          {t(`relationship.type.${rel.type}`)}
+                          {typeLabel}
                         </span>
                         <span className="detail-panel__rel-name">
                           {otherPerson?.name ?? "?"}
