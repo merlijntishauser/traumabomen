@@ -16,6 +16,9 @@ export interface PersonNodeData extends Record<string, unknown> {
   lifeEvents: DecryptedLifeEvent[];
 }
 
+export type MarkerShape = "circle" | "square" | "diamond" | "triangle";
+export const MARKER_SHAPES: MarkerShape[] = ["circle", "square", "diamond", "triangle"];
+
 export interface RelationshipEdgeData extends Record<string, unknown> {
   relationship?: DecryptedRelationship;
   inferredType?: "full_sibling" | "half_sibling";
@@ -24,6 +27,7 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   targetName?: string;
   sourceOffset?: { x: number; y: number };
   targetOffset?: { x: number; y: number };
+  markerShape?: MarkerShape;
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
@@ -309,6 +313,30 @@ export function useTreeLayout(
           const prev = data.targetOffset ?? { x: 0, y: 0 };
           data.targetOffset = horizontal ? { x: prev.x + px, y: prev.y } : { x: prev.x, y: prev.y + px };
         }
+      }
+    }
+
+    // Assign distinct marker shapes to edges that share a side, so users can
+    // trace which line connects which nodes. Uses greedy graph coloring: each
+    // edge gets the lowest shape index not already used by a neighbour in any
+    // shared side group.
+    const edgeMarker = new Array<number | null>(edges.length).fill(null);
+    for (const entries of sideGroups.values()) {
+      if (entries.length <= 1) continue;
+      for (const { edgeIdx } of entries) {
+        if (edgeMarker[edgeIdx] !== null) continue;
+        const usedInGroup = new Set<number>();
+        for (const { edgeIdx: otherIdx } of entries) {
+          if (edgeMarker[otherIdx] !== null) usedInGroup.add(edgeMarker[otherIdx]!);
+        }
+        let m = 0;
+        while (usedInGroup.has(m)) m++;
+        edgeMarker[edgeIdx] = m;
+      }
+    }
+    for (let i = 0; i < edges.length; i++) {
+      if (edgeMarker[i] !== null) {
+        edges[i].data!.markerShape = MARKER_SHAPES[edgeMarker[i]! % MARKER_SHAPES.length];
       }
     }
 

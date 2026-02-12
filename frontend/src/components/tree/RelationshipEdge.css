@@ -1,3 +1,26 @@
+/* Shape markers at edge endpoints */
+.edge-marker {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  outline: 1.5px solid var(--color-node-bg);
+}
+
+.edge-marker--circle {
+  border-radius: 50%;
+}
+
+.edge-marker--square {
+  border-radius: 1px;
+}
+
+.edge-marker--diamond,
+.edge-marker--triangle {
+  border-radius: 0;
+  outline: none;
+}
+
 .edge-tooltip {
   position: absolute;
   background: var(--color-bg-secondary);

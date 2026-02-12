@@ -9,8 +9,15 @@ import {
 } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import { RelationshipType } from "../../types/domain";
-import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
+import type { RelationshipEdgeData, MarkerShape } from "../../hooks/useTreeLayout";
 import "./RelationshipEdge.css";
+
+const MARKER_CLIP: Record<MarkerShape, string> = {
+  circle: "",
+  square: "",
+  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+  triangle: "polygon(50% 0%, 100% 100%, 0% 100%)",
+};
 
 function getCssVar(name: string): string {
   return getComputedStyle(document.documentElement)
@@ -120,6 +127,8 @@ function RelationshipEdgeComponent({
     periodLine = `${t(`relationship.status.${latest.status}`)} ${latest.start_year}${latest.end_year ? ` - ${latest.end_year}` : " -"}`;
   }
 
+  const markerShape = data.markerShape;
+
   return (
     <>
       <BaseEdge
@@ -137,22 +146,45 @@ function RelationshipEdgeComponent({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       />
-      {hovered && typeLabel && (
+      {/* Shape markers + tooltip rendered via EdgeLabelRenderer (above nodes) */}
+      {(markerShape || (hovered && typeLabel)) && (
         <EdgeLabelRenderer>
-          <div
-            className="edge-tooltip"
-            style={{
-              transform: `translate(-50%, -100%) translate(${labelX}px, ${labelY - 10}px)`,
-            }}
-          >
-            <span className="edge-tooltip__type">{typeLabel}</span>
-            <span className="edge-tooltip__names">
-              {data.sourceName ?? "?"} &mdash; {data.targetName ?? "?"}
-            </span>
-            {periodLine && (
-              <span className="edge-tooltip__period">{periodLine}</span>
-            )}
-          </div>
+          {markerShape && (
+            <>
+              <div
+                className={`edge-marker edge-marker--${markerShape}`}
+                style={{
+                  transform: `translate(-50%, -50%) translate(${pathParams.sourceX}px, ${pathParams.sourceY}px)`,
+                  backgroundColor: stroke,
+                  clipPath: MARKER_CLIP[markerShape] || undefined,
+                }}
+              />
+              <div
+                className={`edge-marker edge-marker--${markerShape}`}
+                style={{
+                  transform: `translate(-50%, -50%) translate(${pathParams.targetX}px, ${pathParams.targetY}px)`,
+                  backgroundColor: stroke,
+                  clipPath: MARKER_CLIP[markerShape] || undefined,
+                }}
+              />
+            </>
+          )}
+          {hovered && typeLabel && (
+            <div
+              className="edge-tooltip"
+              style={{
+                transform: `translate(-50%, -100%) translate(${labelX}px, ${labelY - 10}px)`,
+              }}
+            >
+              <span className="edge-tooltip__type">{typeLabel}</span>
+              <span className="edge-tooltip__names">
+                {data.sourceName ?? "?"} &mdash; {data.targetName ?? "?"}
+              </span>
+              {periodLine && (
+                <span className="edge-tooltip__period">{periodLine}</span>
+              )}
+            </div>
+          )}
         </EdgeLabelRenderer>
       )}
     </>
