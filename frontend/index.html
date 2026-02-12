@@ -14,6 +14,29 @@
   </head>
   <body data-1p-ignore>
     <div id="root"></div>
+    <script>
+      // Suppress 1Password on every input — the ancestor attribute alone is not enough.
+      // Stamps data-1p-ignore on every input/textarea/select as soon as it appears.
+      (function () {
+        function stamp(el) {
+          if (!el.hasAttribute("data-1p-ignore")) el.setAttribute("data-1p-ignore", "");
+        }
+        new MutationObserver(function (mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var nodes = mutations[i].addedNodes;
+            for (var j = 0; j < nodes.length; j++) {
+              var n = nodes[j];
+              if (n.nodeType !== 1) continue;
+              if (n.matches && n.matches("input,textarea,select")) stamp(n);
+              if (n.querySelectorAll) {
+                var inputs = n.querySelectorAll("input,textarea,select");
+                for (var k = 0; k < inputs.length; k++) stamp(inputs[k]);
+              }
+            }
+          }
+        }).observe(document, { childList: true, subtree: true });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
