@@ -70,6 +70,7 @@
   "relationship.type.biological_sibling": "Biologische broer/zus",
   "relationship.type.step_sibling": "Stiefbroer/-zus",
   "relationship.type.partner": "Partner",
+  "relationship.type.exPartner": "Ex-partner",
   "relationship.childOf.biological_parent": "Biologisch kind",
   "relationship.childOf.step_parent": "Stiefkind",
   "relationship.childOf.adoptive_parent": "Adoptiekind",

@@ -44,6 +44,12 @@ export function RelationshipDetailPanel({
   const targetPerson = allPersons.get(relationship.target_person_id);
 
   const isParentType = PARENT_TYPES.has(relationship.type);
+  const isExPartner = relationship.type === RelationshipType.Partner
+    && relationship.periods.length > 0
+    && relationship.periods.every((p) => p.end_year != null);
+  const headerLabel = isExPartner
+    ? t("relationship.type.exPartner")
+    : t("relationship.editRelationship");
   const sourceLabel = isParentType
     ? t(`relationship.type.${relationship.type}`)
     : null;
@@ -102,7 +108,7 @@ export function RelationshipDetailPanel({
   return (
     <div className="detail-panel">
       <div className="detail-panel__header">
-        <h2>{t("relationship.editRelationship")}</h2>
+        <h2>{headerLabel}</h2>
         <button className="detail-panel__close" onClick={onClose}>
           {t("common.close")}
         </button>

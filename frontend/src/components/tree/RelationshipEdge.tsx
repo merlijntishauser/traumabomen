@@ -24,9 +24,14 @@ function RelationshipEdgeComponent({
   data,
   ...rest
 }: EdgeProps & { data: RelationshipEdgeData }) {
-  const relType = data.relationship?.type;
+  const rel = data.relationship;
+  const relType = rel?.type;
   const inferredType = data.inferredType;
   const isPartner = relType === RelationshipType.Partner;
+  const isExPartner = isPartner
+    && rel != null
+    && rel.periods.length > 0
+    && rel.periods.every((p) => p.end_year != null);
   const isHalfSibling = relType === RelationshipType.HalfSibling;
   const isDashed =
     relType === RelationshipType.StepParent ||
@@ -59,6 +64,10 @@ function RelationshipEdgeComponent({
   } else if (inferredType === "full_sibling") {
     stroke = getCssVar("--color-edge-default");
     strokeDasharray = "4 4";
+  } else if (isExPartner) {
+    stroke = getCssVar("--color-edge-partner");
+    strokeWidth = 1.5;
+    strokeDasharray = "6 3";
   } else if (isPartner) {
     stroke = getCssVar("--color-edge-partner");
     strokeWidth = 2.5;

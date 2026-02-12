@@ -70,6 +70,7 @@
   "relationship.type.biological_sibling": "Biological sibling",
   "relationship.type.step_sibling": "Step-sibling",
   "relationship.type.partner": "Partner",
+  "relationship.type.exPartner": "Ex-partner",
   "relationship.childOf.biological_parent": "Biological child",
   "relationship.childOf.step_parent": "Step-child",
   "relationship.childOf.adoptive_parent": "Adoptive child",
