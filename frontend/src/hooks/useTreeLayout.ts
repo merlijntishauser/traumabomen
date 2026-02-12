@@ -111,6 +111,8 @@ export function useTreeLayout(
           events: eventsByPerson.get(person.id) ?? [],
         },
         selected: person.id === selectedPersonId,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
       });
     }
 

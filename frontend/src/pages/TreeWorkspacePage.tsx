@@ -55,7 +55,13 @@ function TreeWorkspaceInner() {
   const [nodes, setNodes] = useState<PersonNodeType[]>([]);
 
   useEffect(() => {
-    setNodes(layoutNodes);
+    setNodes((prev) => {
+      const prevMap = new Map(prev.map((n) => [n.id, n]));
+      return layoutNodes.map((n) => {
+        const existing = prevMap.get(n.id);
+        return existing ? { ...n, measured: existing.measured } : n;
+      });
+    });
   }, [layoutNodes]);
 
   const onNodesChange: OnNodesChange<PersonNodeType> = useCallback(
