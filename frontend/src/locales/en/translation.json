@@ -118,6 +118,8 @@
   "relationship.type.half_sibling": "Half-sibling",
   "relationship.viaParent": "via {{name}}",
   "relationship.selectType": "Select relationship type",
+  "relationship.swap": "Swap direction",
+  "relationship.directionLabel": "{{source}} is {{type}} of {{target}}",
 
   "trauma.events": "Trauma events",
   "trauma.newEvent": "New event",

@@ -122,6 +122,37 @@
   color: var(--color-text-primary);
 }
 
+.relationship-popover__direction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.relationship-popover__swap {
+  padding: 3px 8px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-colors);
+}
+
+.relationship-popover__swap:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
 .relationship-popover__options {
   display: flex;
   flex-direction: column;

@@ -118,6 +118,8 @@
   "relationship.type.half_sibling": "Halfbroer/-zus",
   "relationship.viaParent": "via {{name}}",
   "relationship.selectType": "Selecteer relatietype",
+  "relationship.swap": "Richting omdraaien",
+  "relationship.directionLabel": "{{source}} is {{type}} van {{target}}",
 
   "trauma.events": "Traumagebeurtenissen",
   "trauma.newEvent": "Nieuwe gebeurtenis",

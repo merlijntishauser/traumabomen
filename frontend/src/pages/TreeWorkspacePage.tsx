@@ -31,6 +31,75 @@ import "../components/tree/TreeCanvas.css";
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { relationship: RelationshipEdge };
 
+const DIRECTIONAL_TYPES = new Set([
+  RelationshipType.BiologicalParent,
+  RelationshipType.StepParent,
+  RelationshipType.AdoptiveParent,
+]);
+
+function RelationshipPopover({
+  connection,
+  persons,
+  onSelect,
+  onSwap,
+  onClose,
+}: {
+  connection: Connection;
+  persons: Map<string, DecryptedPerson>;
+  onSelect: (type: RelationshipType) => void;
+  onSwap: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const sourceName = persons.get(connection.source!)?.name ?? "?";
+  const targetName = persons.get(connection.target!)?.name ?? "?";
+
+  return (
+    <div className="relationship-popover" onClick={onClose}>
+      <div
+        className="relationship-popover__card"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3>{t("relationship.selectType")}</h3>
+        <div className="relationship-popover__direction">
+          <span>
+            {sourceName} &rarr; {targetName}
+          </span>
+          <button
+            className="relationship-popover__swap"
+            onClick={onSwap}
+          >
+            {t("relationship.swap")}
+          </button>
+        </div>
+        <div className="relationship-popover__options">
+          {Object.values(RelationshipType).map((type) => (
+            <button
+              key={type}
+              className="relationship-popover__option"
+              onClick={() => onSelect(type)}
+            >
+              {DIRECTIONAL_TYPES.has(type)
+                ? t("relationship.directionLabel", {
+                    source: sourceName,
+                    type: t(`relationship.type.${type}`).toLowerCase(),
+                    target: targetName,
+                  })
+                : t(`relationship.type.${type}`)}
+            </button>
+          ))}
+        </div>
+        <button
+          className="relationship-popover__cancel"
+          onClick={onClose}
+        >
+          {t("common.cancel")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TreeWorkspaceInner() {
   const { id: treeId } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
@@ -382,34 +451,19 @@ function TreeWorkspaceInner() {
       </div>
 
       {pendingConnection && (
-        <div
-          className="relationship-popover"
-          onClick={() => setPendingConnection(null)}
-        >
-          <div
-            className="relationship-popover__card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>{t("relationship.selectType")}</h3>
-            <div className="relationship-popover__options">
-              {Object.values(RelationshipType).map((type) => (
-                <button
-                  key={type}
-                  className="relationship-popover__option"
-                  onClick={() => handleCreateRelationship(type)}
-                >
-                  {t(`relationship.type.${type}`)}
-                </button>
-              ))}
-            </div>
-            <button
-              className="relationship-popover__cancel"
-              onClick={() => setPendingConnection(null)}
-            >
-              {t("common.cancel")}
-            </button>
-          </div>
-        </div>
+        <RelationshipPopover
+          connection={pendingConnection}
+          persons={persons}
+          onSelect={handleCreateRelationship}
+          onSwap={() =>
+            setPendingConnection({
+              ...pendingConnection,
+              source: pendingConnection.target,
+              target: pendingConnection.source,
+            })
+          }
+          onClose={() => setPendingConnection(null)}
+        />
       )}
     </div>
   );
