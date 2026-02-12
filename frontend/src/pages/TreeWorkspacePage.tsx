@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ReactFlowProvider,
   ReactFlow,
@@ -12,7 +13,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLogout } from "../hooks/useLogout";
-import { useTreeData } from "../hooks/useTreeData";
+import { useTreeData, treeQueryKeys } from "../hooks/useTreeData";
+import type { DecryptedPerson } from "../hooks/useTreeData";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { useTreeLayout } from "../hooks/useTreeLayout";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
@@ -34,6 +36,7 @@ function TreeWorkspaceInner() {
   const { t, i18n } = useTranslation();
   const logout = useLogout();
   const { fitView } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
+  const queryClient = useQueryClient();
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(
@@ -121,6 +124,31 @@ function TreeWorkspaceInner() {
     [relationships],
   );
 
+  const handleNodeDragStop = useCallback(
+    (_: React.MouseEvent, node: PersonNodeType) => {
+      const person = persons.get(node.id);
+      if (!person) return;
+
+      const position = { x: node.position.x, y: node.position.y };
+
+      // Optimistic cache update -- layout recomputes immediately with pinned position
+      queryClient.setQueryData(
+        treeQueryKeys.persons(treeId!),
+        (old: Map<string, DecryptedPerson> | undefined) => {
+          if (!old) return old;
+          const next = new Map(old);
+          next.set(node.id, { ...person, position });
+          return next;
+        },
+      );
+
+      // Persist
+      const { id, ...data } = person;
+      mutations.updatePerson.mutate({ personId: id, data: { ...data, position } });
+    },
+    [persons, queryClient, treeId, mutations.updatePerson],
+  );
+
   function handleAddPerson() {
     const newPerson: Person = {
       name: t("person.newPerson"),
@@ -186,6 +214,33 @@ function TreeWorkspaceInner() {
     mutations.deleteEvent.mutate(eventId);
   }
 
+  const hasPinnedNodes = Array.from(persons.values()).some((p) => p.position);
+
+  function handleAutoLayout() {
+    const pinnedPersons = Array.from(persons.values()).filter((p) => p.position);
+    if (pinnedPersons.length === 0) return;
+
+    // Optimistic: clear all positions in cache
+    queryClient.setQueryData(
+      treeQueryKeys.persons(treeId!),
+      (old: Map<string, DecryptedPerson> | undefined) => {
+        if (!old) return old;
+        const next = new Map(old);
+        for (const p of pinnedPersons) {
+          const { position, ...rest } = p;
+          next.set(p.id, rest as DecryptedPerson);
+        }
+        return next;
+      },
+    );
+
+    // Persist each
+    for (const p of pinnedPersons) {
+      const { id, position, ...data } = p;
+      mutations.updatePerson.mutate({ personId: id, data });
+    }
+  }
+
   const selectedPerson = selectedPersonId
     ? persons.get(selectedPersonId)
     : null;
@@ -242,6 +297,13 @@ function TreeWorkspaceInner() {
         >
           {t("tree.addPerson")}
         </button>
+        <button
+          className="tree-toolbar__btn"
+          onClick={handleAutoLayout}
+          disabled={!hasPinnedNodes}
+        >
+          {t("tree.autoLayout")}
+        </button>
         <Link to={`/trees/${treeId}/timeline`} className="tree-toolbar__btn">
           {t("tree.timeline")}
         </Link>
@@ -268,6 +330,7 @@ function TreeWorkspaceInner() {
             edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
             onNodeClick={onNodeClick}
+            onNodeDragStop={handleNodeDragStop}
             onPaneClick={onPaneClick}
             onConnect={onConnect}
             fitView

@@ -37,6 +37,7 @@ export interface Person {
   gender: string;
   is_adopted: boolean;
   notes: string | null;
+  position?: { x: number; y: number };
 }
 
 export interface RelationshipData {

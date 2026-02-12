@@ -49,6 +49,7 @@
   "tree.addRelationship": "Add relationship",
   "tree.addEvent": "Add event",
   "tree.timeline": "Timeline",
+  "tree.autoLayout": "Auto-layout",
 
   "person.name": "Name",
   "person.birthYear": "Birth year",

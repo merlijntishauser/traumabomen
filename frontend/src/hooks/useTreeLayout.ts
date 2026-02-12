@@ -99,13 +99,16 @@ export function useTreeLayout(
     const nodes: PersonNodeType[] = [];
     for (const person of persons.values()) {
       const nodeWithPosition = g.node(person.id);
+      const pinned = person.position;
       nodes.push({
         id: person.id,
         type: "person",
-        position: {
-          x: nodeWithPosition.x - NODE_WIDTH / 2,
-          y: nodeWithPosition.y - NODE_HEIGHT / 2,
-        },
+        position: pinned
+          ? { x: pinned.x, y: pinned.y }
+          : {
+              x: nodeWithPosition.x - NODE_WIDTH / 2,
+              y: nodeWithPosition.y - NODE_HEIGHT / 2,
+            },
         data: {
           person,
           events: eventsByPerson.get(person.id) ?? [],

@@ -49,6 +49,7 @@
   "tree.addRelationship": "Relatie toevoegen",
   "tree.addEvent": "Gebeurtenis toevoegen",
   "tree.timeline": "Tijdlijn",
+  "tree.autoLayout": "Automatische indeling",
 
   "person.name": "Naam",
   "person.birthYear": "Geboortejaar",
