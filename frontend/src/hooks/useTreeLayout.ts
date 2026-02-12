@@ -19,6 +19,7 @@ export interface PersonNodeData extends Record<string, unknown> {
 export interface RelationshipEdgeData extends Record<string, unknown> {
   relationship?: DecryptedRelationship;
   inferredType?: "full_sibling" | "half_sibling";
+  coupleColor?: string;
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
@@ -38,6 +39,17 @@ const SIBLING_TYPES = new Set([
   RelationshipType.StepSibling,
   RelationshipType.HalfSibling,
 ]);
+
+const COUPLE_PALETTE = [
+  "hsl(210, 60%, 55%)",
+  "hsl(28, 70%, 52%)",
+  "hsl(280, 45%, 55%)",
+  "hsl(145, 55%, 42%)",
+  "hsl(340, 60%, 55%)",
+  "hsl(170, 55%, 42%)",
+  "hsl(45, 65%, 48%)",
+  "hsl(230, 50%, 58%)",
+];
 
 export function useTreeLayout(
   persons: Map<string, DecryptedPerson>,
@@ -135,17 +147,44 @@ export function useTreeLayout(
       });
     }
 
+    // Compute couple colors: group children by their biological parent pair
+    const bioParentsOf = new Map<string, Set<string>>();
+    for (const rel of relationships.values()) {
+      if (rel.type === RelationshipType.BiologicalParent) {
+        const parents = bioParentsOf.get(rel.target_person_id) ?? new Set();
+        parents.add(rel.source_person_id);
+        bioParentsOf.set(rel.target_person_id, parents);
+      }
+    }
+    const coupleKeyToColor = new Map<string, string>();
+    const childCoupleColor = new Map<string, string>();
+    let coupleIdx = 0;
+    for (const [childId, parentIds] of bioParentsOf) {
+      const key = Array.from(parentIds).sort().join("-");
+      if (!coupleKeyToColor.has(key)) {
+        coupleKeyToColor.set(key, COUPLE_PALETTE[coupleIdx % COUPLE_PALETTE.length]);
+        coupleIdx++;
+      }
+      childCoupleColor.set(childId, coupleKeyToColor.get(key)!);
+    }
+    const useCoupleColors = coupleKeyToColor.size >= 2;
+
     const edges: RelationshipEdgeType[] = [];
     for (const rel of relationships.values()) {
       const isPartner = rel.type === RelationshipType.Partner;
+      const isSibling = SIBLING_TYPES.has(rel.type);
+      const useSideHandles = isPartner || isSibling;
+      const coupleColor = useCoupleColors && rel.type === RelationshipType.BiologicalParent
+        ? childCoupleColor.get(rel.target_person_id)
+        : undefined;
       edges.push({
         id: rel.id,
         type: "relationship",
         source: rel.source_person_id,
         target: rel.target_person_id,
-        sourceHandle: isPartner ? "right" : "bottom",
-        targetHandle: isPartner ? "left" : "top",
-        data: { relationship: rel },
+        sourceHandle: useSideHandles ? "right" : "bottom",
+        targetHandle: useSideHandles ? "left" : "top",
+        data: { relationship: rel, coupleColor },
       });
     }
 
@@ -157,8 +196,8 @@ export function useTreeLayout(
         type: "relationship",
         source: sib.personAId,
         target: sib.personBId,
-        sourceHandle: "bottom",
-        targetHandle: "top",
+        sourceHandle: "right",
+        targetHandle: "left",
         data: { inferredType: sib.type },
       });
     }

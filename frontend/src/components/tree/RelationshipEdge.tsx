@@ -32,6 +32,10 @@ function RelationshipEdgeComponent({
     && rel != null
     && rel.periods.length > 0
     && rel.periods.every((p) => p.end_year != null);
+  const isSibling =
+    relType === RelationshipType.BiologicalSibling ||
+    relType === RelationshipType.StepSibling ||
+    relType === RelationshipType.HalfSibling;
   const isHalfSibling = relType === RelationshipType.HalfSibling;
   const isDashed =
     relType === RelationshipType.StepParent ||
@@ -47,7 +51,8 @@ function RelationshipEdgeComponent({
     targetPosition,
   };
 
-  const [edgePath] = isPartner
+  const useBezier = isPartner || isSibling || inferredType != null;
+  const [edgePath] = useBezier
     ? getBezierPath(pathParams)
     : getSmoothStepPath(pathParams);
 
@@ -74,6 +79,11 @@ function RelationshipEdgeComponent({
   } else if (isDashed) {
     stroke = getCssVar("--color-edge-step");
     strokeDasharray = "6 3";
+  }
+
+  // Couple color overrides stroke for biological parent edges
+  if (data.coupleColor) {
+    stroke = data.coupleColor;
   }
 
   return (
