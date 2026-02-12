@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPersons, getRelationships, getEvents, getLifeEvents } from "../lib/api";
+import { getTree, getPersons, getRelationships, getEvents, getLifeEvents } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
 import type { Person, RelationshipData, TraumaEvent, LifeEvent } from "../types/domain";
 
@@ -24,6 +24,7 @@ export interface DecryptedLifeEvent extends LifeEvent {
 }
 
 export const treeQueryKeys = {
+  tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
   relationships: (treeId: string) =>
     ["trees", treeId, "relationships"] as const,
@@ -33,6 +34,15 @@ export const treeQueryKeys = {
 
 export function useTreeData(treeId: string) {
   const { decrypt } = useEncryption();
+
+  const treeQuery = useQuery({
+    queryKey: treeQueryKeys.tree(treeId),
+    queryFn: async () => {
+      const response = await getTree(treeId);
+      const data = await decrypt<{ name: string }>(response.encrypted_data);
+      return data.name;
+    },
+  });
 
   const personsQuery = useQuery({
     queryKey: treeQueryKeys.persons(treeId),
@@ -105,6 +115,7 @@ export function useTreeData(treeId: string) {
   });
 
   return {
+    treeName: treeQuery.data ?? null,
     persons: personsQuery.data ?? new Map<string, DecryptedPerson>(),
     relationships:
       relationshipsQuery.data ?? new Map<string, DecryptedRelationship>(),

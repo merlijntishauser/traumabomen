@@ -114,7 +114,7 @@ function TreeWorkspaceInner() {
     null,
   );
 
-  const { persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
+  const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
     treeId!,
   );
   const mutations = useTreeMutations(treeId!);
@@ -389,7 +389,9 @@ function TreeWorkspaceInner() {
     return (
       <div className="tree-workspace">
         <div className="tree-toolbar">
-          <Link to="/trees" className="tree-toolbar__back">
+          <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
+          <div className="tree-toolbar__spacer" />
+          <Link to="/trees" className="tree-toolbar__btn">
             {t("nav.trees")}
           </Link>
         </div>
@@ -401,9 +403,7 @@ function TreeWorkspaceInner() {
   return (
     <div className="tree-workspace">
       <div className="tree-toolbar">
-        <Link to="/trees" className="tree-toolbar__back">
-          {t("nav.trees")}
-        </Link>
+        <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
         <div className="tree-toolbar__spacer" />
         <button
           className="tree-toolbar__btn tree-toolbar__btn--primary"
@@ -421,6 +421,9 @@ function TreeWorkspaceInner() {
         </button>
         <Link to={`/trees/${treeId}/timeline`} className="tree-toolbar__btn">
           {t("tree.timeline")}
+        </Link>
+        <Link to="/trees" className="tree-toolbar__btn">
+          {t("nav.trees")}
         </Link>
         <ThemeToggle className="tree-toolbar__btn" />
         <button
