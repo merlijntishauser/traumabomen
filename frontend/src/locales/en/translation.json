@@ -44,6 +44,7 @@
   "tree.create": "Create tree",
   "tree.name": "Tree name",
   "tree.empty": "You have no trees yet.",
+  "tree.confirmDelete": "Delete this tree and all its data?",
   "tree.addPerson": "Add person",
   "tree.addRelationship": "Add relationship",
   "tree.addEvent": "Add event",

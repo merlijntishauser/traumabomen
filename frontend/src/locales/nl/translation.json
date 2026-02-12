@@ -44,6 +44,7 @@
   "tree.create": "Boom aanmaken",
   "tree.name": "Boomnaam",
   "tree.empty": "Je hebt nog geen bomen.",
+  "tree.confirmDelete": "Deze boom en alle gegevens verwijderen?",
   "tree.addPerson": "Persoon toevoegen",
   "tree.addRelationship": "Relatie toevoegen",
   "tree.addEvent": "Gebeurtenis toevoegen",
