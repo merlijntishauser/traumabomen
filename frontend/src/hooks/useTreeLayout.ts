@@ -28,13 +28,20 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   sourceOffset?: { x: number; y: number };
   targetOffset?: { x: number; y: number };
   markerShape?: MarkerShape;
+  junctionFork?: {
+    parentIds: [string, string];
+    childIds: string[];
+    parentNames: [string, string];
+    childNames: string[];
+  };
+  junctionHidden?: boolean;
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
 export type RelationshipEdgeType = Edge<RelationshipEdgeData>;
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 80;
+export const NODE_WIDTH = 180;
+export const NODE_HEIGHT = 80;
 
 const PARENT_TYPES = new Set([
   RelationshipType.BiologicalParent,
@@ -109,6 +116,28 @@ export function useTreeLayout(
       g.setNode(person.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     }
 
+    // ---- Detect biological parent couples for junction routing ----
+    const bioParentsOf = new Map<string, Set<string>>();
+    for (const rel of relationships.values()) {
+      if (rel.type === RelationshipType.BiologicalParent) {
+        const parents = bioParentsOf.get(rel.target_person_id) ?? new Set();
+        parents.add(rel.source_person_id);
+        bioParentsOf.set(rel.target_person_id, parents);
+      }
+    }
+
+    // Group children by their biological parent pair
+    const coupleChildren = new Map<string, string[]>();
+    for (const [childId, parentIds] of bioParentsOf) {
+      if (parentIds.size === 2) {
+        const key = Array.from(parentIds).sort().join("|");
+        const existing = coupleChildren.get(key) ?? [];
+        existing.push(childId);
+        coupleChildren.set(key, existing);
+      }
+    }
+
+    // ---- Add all edges to dagre ----
     const partnerPairs: [string, string][] = [];
 
     for (const rel of relationships.values()) {
@@ -117,8 +146,6 @@ export function useTreeLayout(
       } else if (SIBLING_TYPES.has(rel.type)) {
         g.setEdge(rel.source_person_id, rel.target_person_id, { minlen: 0 });
       } else if (rel.type === RelationshipType.Partner) {
-        // Don't add partner edges to dagre -- they create unwanted rank
-        // separation. Instead, post-process partner pairs to sit side-by-side.
         partnerPairs.push([rel.source_person_id, rel.target_person_id]);
       }
     }
@@ -133,7 +160,6 @@ export function useTreeLayout(
       const avgY = (a.y + b.y) / 2;
       a.y = avgY;
       b.y = avgY;
-      // If they overlap horizontally, nudge them apart
       if (Math.abs(a.x - b.x) < NODE_WIDTH + 20) {
         const mid = (a.x + b.x) / 2;
         a.x = mid - (NODE_WIDTH / 2 + 10);
@@ -141,6 +167,7 @@ export function useTreeLayout(
       }
     }
 
+    // ---- Build event lookups ----
     const eventsByPerson = new Map<string, DecryptedEvent[]>();
     for (const event of events.values()) {
       for (const personId of event.person_ids) {
@@ -161,7 +188,9 @@ export function useTreeLayout(
       }
     }
 
+    // ---- Build React Flow nodes (person nodes only, no junction nodes) ----
     const nodes: PersonNodeType[] = [];
+
     for (const person of persons.values()) {
       const nodeWithPosition = g.node(person.id);
       const pinned = person.position;
@@ -194,20 +223,48 @@ export function useTreeLayout(
       });
     }
 
-    // Compute couple colors: group children by their biological parent pair
-    const bioParentsOf = new Map<string, Set<string>>();
-    for (const rel of relationships.values()) {
-      if (rel.type === RelationshipType.BiologicalParent) {
-        const parents = bioParentsOf.get(rel.target_person_id) ?? new Set();
-        parents.add(rel.source_person_id);
-        bioParentsOf.set(rel.target_person_id, parents);
+    // ---- Build junction fork assignments for biological parent couples ----
+    const forkPrimaryIds = new Set<string>();
+    const forkHiddenIds = new Set<string>();
+    const forkDataByEdge = new Map<string, { parentIds: [string, string]; childIds: string[] }>();
+
+    for (const [coupleKey, childIds] of coupleChildren) {
+      const [parentAId, parentBId] = coupleKey.split("|");
+      if (!nodeCenter.has(parentAId) || !nodeCenter.has(parentBId)) continue;
+      if (childIds.every(id => !nodeCenter.has(id))) continue;
+
+      const forkData = {
+        parentIds: [parentAId, parentBId] as [string, string],
+        childIds,
+        parentNames: [
+          persons.get(parentAId)?.name ?? "?",
+          persons.get(parentBId)?.name ?? "?",
+        ] as [string, string],
+        childNames: childIds.map(id => persons.get(id)?.name ?? "?"),
+      };
+      let primaryId: string | null = null;
+
+      for (const rel of relationships.values()) {
+        if (rel.type !== RelationshipType.BiologicalParent) continue;
+        if (rel.source_person_id !== parentAId && rel.source_person_id !== parentBId) continue;
+        if (!childIds.includes(rel.target_person_id)) continue;
+
+        if (primaryId === null) {
+          primaryId = rel.id;
+          forkPrimaryIds.add(rel.id);
+          forkDataByEdge.set(rel.id, forkData);
+        } else {
+          forkHiddenIds.add(rel.id);
+        }
       }
     }
+
+    // ---- Compute couple colors ----
     const coupleKeyToColor = new Map<string, string>();
     const childCoupleColor = new Map<string, string>();
     let coupleIdx = 0;
     for (const [childId, parentIds] of bioParentsOf) {
-      const key = Array.from(parentIds).sort().join("-");
+      const key = Array.from(parentIds).sort().join("|");
       if (!coupleKeyToColor.has(key)) {
         coupleKeyToColor.set(key, COUPLE_PALETTE[coupleIdx % COUPLE_PALETTE.length]);
         coupleIdx++;
@@ -216,7 +273,9 @@ export function useTreeLayout(
     }
     const useCoupleColors = coupleKeyToColor.size >= 2;
 
+    // ---- Build React Flow edges ----
     const edges: RelationshipEdgeType[] = [];
+
     for (const rel of relationships.values()) {
       const preferVertical = PARENT_TYPES.has(rel.type);
       const srcPos = nodeCenter.get(rel.source_person_id);
@@ -228,6 +287,7 @@ export function useTreeLayout(
       const coupleColor = useCoupleColors && rel.type === RelationshipType.BiologicalParent
         ? childCoupleColor.get(rel.target_person_id)
         : undefined;
+
       edges.push({
         id: rel.id,
         type: "relationship",
@@ -239,11 +299,13 @@ export function useTreeLayout(
           coupleColor,
           sourceName: persons.get(rel.source_person_id)?.name,
           targetName: persons.get(rel.target_person_id)?.name,
+          junctionFork: forkDataByEdge.get(rel.id),
+          junctionHidden: forkHiddenIds.has(rel.id) || undefined,
         },
       });
     }
 
-    // Add inferred sibling edges
+    // Inferred sibling edges
     const inferred = inferSiblings(relationships);
     for (const sib of inferred) {
       const srcPos = nodeCenter.get(sib.personAId);
@@ -265,11 +327,7 @@ export function useTreeLayout(
       });
     }
 
-    // Spread edges that share the same side of a node so they don't overlap.
-    // Group by node + side (not exact handle ID) so that source handles and
-    // target handles on the same side are treated together.
-    // Sort each group by the position of the opposite node so the order is
-    // consistent on both ends and lines don't cross.
+    // ---- Spread overlapping edges ----
     const HANDLE_SPREAD = 14;
     function handleSide(handleId: string): string {
       if (handleId.startsWith("top")) return "top";
@@ -280,6 +338,7 @@ export function useTreeLayout(
     const sideGroups = new Map<string, { edgeIdx: number; end: "source" | "target" }[]>();
     for (let i = 0; i < edges.length; i++) {
       const e = edges[i];
+      if (e.data?.junctionFork || e.data?.junctionHidden) continue; // fork edges have their own routing
       const srcKey = `${e.source}:${handleSide(e.sourceHandle!)}`;
       const tgtKey = `${e.target}:${handleSide(e.targetHandle!)}`;
       if (!sideGroups.has(srcKey)) sideGroups.set(srcKey, []);
@@ -292,7 +351,6 @@ export function useTreeLayout(
       const side = key.split(":")[1];
       const horizontal = side === "top" || side === "bottom";
 
-      // Sort by the position of the opposite node so ordering is consistent
       entries.sort((a, b) => {
         const eA = edges[a.edgeIdx];
         const eB = edges[b.edgeIdx];
@@ -316,10 +374,7 @@ export function useTreeLayout(
       }
     }
 
-    // Assign distinct marker shapes to edges that share a side, so users can
-    // trace which line connects which nodes. Uses greedy graph coloring: each
-    // edge gets the lowest shape index not already used by a neighbour in any
-    // shared side group.
+    // ---- Assign marker shapes ----
     const edgeMarker = new Array<number | null>(edges.length).fill(null);
     for (const entries of sideGroups.values()) {
       if (entries.length <= 1) continue;

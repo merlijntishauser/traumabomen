@@ -32,6 +32,11 @@ export const treeQueryKeys = {
   lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
 };
 
+const EMPTY_PERSONS = new Map<string, DecryptedPerson>();
+const EMPTY_RELATIONSHIPS = new Map<string, DecryptedRelationship>();
+const EMPTY_EVENTS = new Map<string, DecryptedEvent>();
+const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
+
 export function useTreeData(treeId: string) {
   const { decrypt } = useEncryption();
 
@@ -116,12 +121,10 @@ export function useTreeData(treeId: string) {
 
   return {
     treeName: treeQuery.data ?? null,
-    persons: personsQuery.data ?? new Map<string, DecryptedPerson>(),
-    relationships:
-      relationshipsQuery.data ?? new Map<string, DecryptedRelationship>(),
-    events: eventsQuery.data ?? new Map<string, DecryptedEvent>(),
-    lifeEvents:
-      lifeEventsQuery.data ?? new Map<string, DecryptedLifeEvent>(),
+    persons: personsQuery.data ?? EMPTY_PERSONS,
+    relationships: relationshipsQuery.data ?? EMPTY_RELATIONSHIPS,
+    events: eventsQuery.data ?? EMPTY_EVENTS,
+    lifeEvents: lifeEventsQuery.data ?? EMPTY_LIFE_EVENTS,
     isLoading:
       personsQuery.isLoading ||
       relationshipsQuery.isLoading ||

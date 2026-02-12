@@ -1,15 +1,17 @@
-import { memo, useState } from "react";
+import { memo, useState, useCallback } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
   Position,
   getBezierPath,
   getSmoothStepPath,
+  useStore,
   type EdgeProps,
 } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
 import { RelationshipType } from "../../types/domain";
 import type { RelationshipEdgeData, MarkerShape } from "../../hooks/useTreeLayout";
+import { NODE_WIDTH, NODE_HEIGHT } from "../../hooks/useTreeLayout";
 import "./RelationshipEdge.css";
 
 const MARKER_CLIP: Record<MarkerShape, string> = {
@@ -30,6 +32,30 @@ const PARENT_TYPES = new Set([
   RelationshipType.StepParent,
   RelationshipType.AdoptiveParent,
 ]);
+
+const BAR_Y_OFFSET = 50;
+
+interface ForkPositions {
+  parents: { cx: number; bottom: number }[];
+  children: { cx: number; top: number }[];
+  barY: number;
+}
+
+function buildForkPath(fp: ForkPositions): string {
+  const allX = [...fp.parents.map(p => p.cx), ...fp.children.map(c => c.cx)];
+  const minX = Math.min(...allX);
+  const maxX = Math.max(...allX);
+
+  let path = "";
+  for (const p of fp.parents) {
+    path += `M ${p.cx},${p.bottom} L ${p.cx},${fp.barY} `;
+  }
+  path += `M ${minX},${fp.barY} L ${maxX},${fp.barY} `;
+  for (const c of fp.children) {
+    path += `M ${c.cx},${fp.barY} L ${c.cx},${c.top} `;
+  }
+  return path;
+}
 
 function RelationshipEdgeComponent({
   sourceX,
@@ -60,21 +86,85 @@ function RelationshipEdgeComponent({
 
   const sOff = data.sourceOffset ?? { x: 0, y: 0 };
   const tOff = data.targetOffset ?? { x: 0, y: 0 };
-  const pathParams = {
-    sourceX: sourceX + sOff.x,
-    sourceY: sourceY + sOff.y,
-    targetX: targetX + tOff.x,
-    targetY: targetY + tOff.y,
-    sourcePosition,
-    targetPosition,
-  };
+  const sx = sourceX + sOff.x;
+  const sy = sourceY + sOff.y;
+  const tx = targetX + tOff.x;
+  const ty = targetY + tOff.y;
 
-  const isVertical =
-    (sourcePosition === Position.Top || sourcePosition === Position.Bottom) &&
-    (targetPosition === Position.Top || targetPosition === Position.Bottom);
-  const [edgePath, labelX, labelY] = isVertical
-    ? getSmoothStepPath(pathParams)
-    : getBezierPath(pathParams);
+  // Fork primary: get reactive positions from store
+  const forkParentIds = data.junctionFork?.parentIds;
+  const forkChildIds = data.junctionFork?.childIds;
+  const forkSelector = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any): ForkPositions | null => {
+      if (!forkParentIds || !forkChildIds) return null;
+      const lookup = state.nodeLookup as Map<string, any>;
+      const parents: { cx: number; bottom: number }[] = [];
+      const children: { cx: number; top: number }[] = [];
+      for (const id of forkParentIds) {
+        const n = lookup.get(id);
+        if (!n) return null;
+        const px = n.internals?.positionAbsolute?.x ?? n.position.x;
+        const py = n.internals?.positionAbsolute?.y ?? n.position.y;
+        const w = n.measured?.width ?? NODE_WIDTH;
+        const h = n.measured?.height ?? NODE_HEIGHT;
+        parents.push({ cx: px + w / 2, bottom: py + h });
+      }
+      for (const id of forkChildIds) {
+        const n = lookup.get(id);
+        if (!n) continue;
+        const px = n.internals?.positionAbsolute?.x ?? n.position.x;
+        const py = n.internals?.positionAbsolute?.y ?? n.position.y;
+        const w = n.measured?.width ?? NODE_WIDTH;
+        children.push({ cx: px + w / 2, top: py });
+      }
+      if (parents.length < 2 || children.length === 0) return null;
+      const barY = Math.max(...parents.map(p => p.bottom)) + BAR_Y_OFFSET;
+      return { parents, children, barY };
+    },
+    [forkParentIds, forkChildIds],
+  );
+  const forkPositions = useStore(forkSelector);
+
+  const isForkPrimary = !!data.junctionFork;
+  const isForkHidden = !!data.junctionHidden;
+
+  let edgePath: string;
+  let hitPath: string;
+  let labelX: number;
+  let labelY: number;
+
+  if (isForkPrimary && forkPositions) {
+    edgePath = buildForkPath(forkPositions);
+    // Hit path covers entire fork for combined tooltip
+    hitPath = edgePath;
+    labelX = (forkPositions.parents[0].cx + forkPositions.parents[1].cx) / 2;
+    labelY = forkPositions.barY;
+  } else if (isForkHidden) {
+    // Hidden fork edge: compute hit path from reactive handle positions
+    const barY = sy + BAR_Y_OFFSET;
+    hitPath = `M ${sx},${sy} L ${sx},${barY} L ${tx},${barY} L ${tx},${ty}`;
+    edgePath = hitPath;
+    labelX = (sx + tx) / 2;
+    labelY = barY;
+  } else {
+    const pathParams = {
+      sourceX: sx,
+      sourceY: sy,
+      targetX: tx,
+      targetY: ty,
+      sourcePosition,
+      targetPosition,
+    };
+
+    const isVertical =
+      (sourcePosition === Position.Top || sourcePosition === Position.Bottom) &&
+      (targetPosition === Position.Top || targetPosition === Position.Bottom);
+    [edgePath, labelX, labelY] = isVertical
+      ? getSmoothStepPath(pathParams)
+      : getBezierPath(pathParams);
+    hitPath = edgePath;
+  }
 
   let stroke = getCssVar("--color-edge-default");
   let strokeWidth = 1.5;
@@ -129,17 +219,33 @@ function RelationshipEdgeComponent({
 
   const markerShape = data.markerShape;
 
+  // Hidden fork edges: primary edge handles all visual + interaction
+  if (isForkHidden) {
+    return <path d="M 0,0" fill="none" stroke="none" />;
+  }
+
   return (
     <>
-      <BaseEdge
-        {...rest}
-        path={edgePath}
-        style={{ stroke, strokeWidth, strokeDasharray }}
-        interactionWidth={20}
-      />
+      {/* Visible edge */}
+      {isForkPrimary ? (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+        />
+      ) : (
+        <BaseEdge
+          {...rest}
+          path={edgePath}
+          style={{ stroke, strokeWidth, strokeDasharray }}
+          interactionWidth={20}
+        />
+      )}
       {/* Invisible wider hit area for hover */}
       <path
-        d={edgePath}
+        d={hitPath}
         fill="none"
         stroke="transparent"
         strokeWidth={20}
@@ -147,14 +253,14 @@ function RelationshipEdgeComponent({
         onMouseLeave={() => setHovered(false)}
       />
       {/* Shape markers + tooltip rendered via EdgeLabelRenderer (above nodes) */}
-      {(markerShape || (hovered && typeLabel)) && (
+      {((!isForkPrimary && markerShape) || (hovered && typeLabel)) && (
         <EdgeLabelRenderer>
-          {markerShape && (
+          {!isForkPrimary && markerShape && (
             <>
               <div
                 className={`edge-marker edge-marker--${markerShape}`}
                 style={{
-                  transform: `translate(-50%, -50%) translate(${pathParams.sourceX}px, ${pathParams.sourceY}px)`,
+                  transform: `translate(-50%, -50%) translate(${sx}px, ${sy}px)`,
                   backgroundColor: stroke,
                   clipPath: MARKER_CLIP[markerShape] || undefined,
                 }}
@@ -162,7 +268,7 @@ function RelationshipEdgeComponent({
               <div
                 className={`edge-marker edge-marker--${markerShape}`}
                 style={{
-                  transform: `translate(-50%, -50%) translate(${pathParams.targetX}px, ${pathParams.targetY}px)`,
+                  transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px)`,
                   backgroundColor: stroke,
                   clipPath: MARKER_CLIP[markerShape] || undefined,
                 }}
@@ -177,9 +283,15 @@ function RelationshipEdgeComponent({
               }}
             >
               <span className="edge-tooltip__type">{typeLabel}</span>
-              <span className="edge-tooltip__names">
-                {data.sourceName ?? "?"} &mdash; {data.targetName ?? "?"}
-              </span>
+              {isForkPrimary && data.junctionFork ? (
+                <span className="edge-tooltip__names">
+                  {data.junctionFork.parentNames.join(" & ")} &rarr; {data.junctionFork.childNames.join(", ")}
+                </span>
+              ) : (
+                <span className="edge-tooltip__names">
+                  {data.sourceName ?? "?"} &mdash; {data.targetName ?? "?"}
+                </span>
+              )}
               {periodLine && (
                 <span className="edge-tooltip__period">{periodLine}</span>
               )}
