@@ -15,10 +15,11 @@
   <body data-1p-ignore>
     <div id="root"></div>
     <script>
-      // Suppress 1Password on every input — the ancestor attribute alone is not enough.
-      // Stamps data-1p-ignore on every input/textarea/select as soon as it appears.
+      // Suppress 1Password on all inputs except login/register email+password fields.
+      // Fields opt in by having data-1p-allow attribute.
       (function () {
         function stamp(el) {
+          if (el.hasAttribute("data-1p-allow")) return;
           if (!el.hasAttribute("data-1p-ignore")) el.setAttribute("data-1p-ignore", "");
         }
         new MutationObserver(function (mutations) {

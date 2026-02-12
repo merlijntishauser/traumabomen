@@ -80,6 +80,7 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              data-1p-allow
             />
           </div>
 
@@ -91,6 +92,7 @@ export default function RegisterPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              data-1p-allow
             />
           </div>
 
@@ -102,6 +104,7 @@ export default function RegisterPage() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              data-1p-allow
             />
           </div>
 

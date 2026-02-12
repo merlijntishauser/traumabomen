@@ -52,6 +52,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                data-1p-allow
               />
             </div>
 
@@ -63,6 +64,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                data-1p-allow
               />
             </div>
 
