@@ -22,6 +22,8 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   coupleColor?: string;
   sourceName?: string;
   targetName?: string;
+  sourceOffset?: { x: number; y: number };
+  targetOffset?: { x: number; y: number };
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
@@ -257,6 +259,57 @@ export function useTreeLayout(
           targetName: persons.get(sib.personBId)?.name,
         },
       });
+    }
+
+    // Spread edges that share the same side of a node so they don't overlap.
+    // Group by node + side (not exact handle ID) so that source handles and
+    // target handles on the same side are treated together.
+    // Sort each group by the position of the opposite node so the order is
+    // consistent on both ends and lines don't cross.
+    const HANDLE_SPREAD = 14;
+    function handleSide(handleId: string): string {
+      if (handleId.startsWith("top")) return "top";
+      if (handleId.startsWith("bottom")) return "bottom";
+      if (handleId.startsWith("left")) return "left";
+      return "right";
+    }
+    const sideGroups = new Map<string, { edgeIdx: number; end: "source" | "target" }[]>();
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      const srcKey = `${e.source}:${handleSide(e.sourceHandle!)}`;
+      const tgtKey = `${e.target}:${handleSide(e.targetHandle!)}`;
+      if (!sideGroups.has(srcKey)) sideGroups.set(srcKey, []);
+      sideGroups.get(srcKey)!.push({ edgeIdx: i, end: "source" });
+      if (!sideGroups.has(tgtKey)) sideGroups.set(tgtKey, []);
+      sideGroups.get(tgtKey)!.push({ edgeIdx: i, end: "target" });
+    }
+    for (const [key, entries] of sideGroups) {
+      if (entries.length <= 1) continue;
+      const side = key.split(":")[1];
+      const horizontal = side === "top" || side === "bottom";
+
+      // Sort by the position of the opposite node so ordering is consistent
+      entries.sort((a, b) => {
+        const eA = edges[a.edgeIdx];
+        const eB = edges[b.edgeIdx];
+        const otherA = nodeCenter.get(a.end === "source" ? eA.target : eA.source);
+        const otherB = nodeCenter.get(b.end === "source" ? eB.target : eB.source);
+        if (!otherA || !otherB) return 0;
+        return horizontal ? otherA.x - otherB.x : otherA.y - otherB.y;
+      });
+
+      for (let j = 0; j < entries.length; j++) {
+        const px = (j - (entries.length - 1) / 2) * HANDLE_SPREAD;
+        const { edgeIdx, end } = entries[j];
+        const data = edges[edgeIdx].data!;
+        if (end === "source") {
+          const prev = data.sourceOffset ?? { x: 0, y: 0 };
+          data.sourceOffset = horizontal ? { x: prev.x + px, y: prev.y } : { x: prev.x, y: prev.y + px };
+        } else {
+          const prev = data.targetOffset ?? { x: 0, y: 0 };
+          data.targetOffset = horizontal ? { x: prev.x + px, y: prev.y } : { x: prev.x, y: prev.y + px };
+        }
+      }
     }
 
     return { nodes, edges };

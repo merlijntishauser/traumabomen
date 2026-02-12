@@ -51,11 +51,13 @@ function RelationshipEdgeComponent({
     relType === RelationshipType.AdoptiveParent ||
     relType === RelationshipType.StepSibling;
 
+  const sOff = data.sourceOffset ?? { x: 0, y: 0 };
+  const tOff = data.targetOffset ?? { x: 0, y: 0 };
   const pathParams = {
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
+    sourceX: sourceX + sOff.x,
+    sourceY: sourceY + sOff.y,
+    targetX: targetX + tOff.x,
+    targetY: targetY + tOff.y,
     sourcePosition,
     targetPosition,
   };
