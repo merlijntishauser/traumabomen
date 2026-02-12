@@ -8,7 +8,7 @@ export function AppFooter() {
   return (
     <footer className="app-footer">
       <span className="app-footer__copy">
-        {new Date().getFullYear()} Merlijn Tishauser &mdash; AGPL-3.0
+        &copy; {new Date().getFullYear()} Merlijn Tishauser &mdash; AGPL-3.0
       </span>
       <div className="app-footer__actions">
         <a
