@@ -123,6 +123,9 @@
   "relationship.selectType": "Selecteer relatietype",
   "relationship.swap": "Richting omdraaien",
   "relationship.directionLabel": "{{source}} is {{type}} van {{target}}",
+  "relationship.editRelationship": "Relatie bewerken",
+  "relationship.confirmDelete": "Weet je zeker dat je deze relatie wilt verwijderen?",
+  "relationship.between": "Tussen",
 
   "trauma.events": "Traumagebeurtenissen",
   "trauma.newEvent": "Nieuwe gebeurtenis",

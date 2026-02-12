@@ -21,6 +21,7 @@ import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayou
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
+import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { inferSiblings } from "../lib/inferSiblings";
 import type { InferredSibling } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -108,6 +109,7 @@ function TreeWorkspaceInner() {
   const queryClient = useQueryClient();
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(
     null,
   );
@@ -157,6 +159,7 @@ function TreeWorkspaceInner() {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setSelectedPersonId(null);
+        setSelectedEdgeId(null);
         setPendingConnection(null);
       }
     }
@@ -167,13 +170,23 @@ function TreeWorkspaceInner() {
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: PersonNodeType) => {
       setSelectedPersonId(node.id);
+      setSelectedEdgeId(null);
     },
     [],
   );
 
   const onPaneClick = useCallback(() => {
     setSelectedPersonId(null);
+    setSelectedEdgeId(null);
   }, []);
+
+  const onEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: RelationshipEdgeType) => {
+      setSelectedEdgeId(edge.id);
+      setSelectedPersonId(null);
+    },
+    [],
+  );
 
   const onConnect: OnConnect = useCallback(
     (connection) => {
@@ -268,6 +281,12 @@ function TreeWorkspaceInner() {
     mutations.updateRelationship.mutate({ relationshipId, data });
   }
 
+  function handleDeleteRelationship(relationshipId: string) {
+    mutations.deleteRelationship.mutate(relationshipId, {
+      onSuccess: () => setSelectedEdgeId(null),
+    });
+  }
+
   function handleSaveEvent(
     eventId: string | null,
     data: TraumaEvent,
@@ -329,6 +348,10 @@ function TreeWorkspaceInner() {
 
   const selectedPerson = selectedPersonId
     ? persons.get(selectedPersonId)
+    : null;
+
+  const selectedRelationship = selectedEdgeId
+    ? relationships.get(selectedEdgeId) ?? null
     : null;
 
   const selectedRelationships = selectedPersonId
@@ -424,6 +447,7 @@ function TreeWorkspaceInner() {
             onNodeClick={onNodeClick}
             onNodeDragStop={handleNodeDragStop}
             onPaneClick={onPaneClick}
+            onEdgeClick={onEdgeClick}
             onConnect={onConnect}
             fitView
             deleteKeyCode={null}
@@ -446,6 +470,16 @@ function TreeWorkspaceInner() {
             onSaveLifeEvent={handleSaveLifeEvent}
             onDeleteLifeEvent={handleDeleteLifeEvent}
             onClose={() => setSelectedPersonId(null)}
+          />
+        )}
+
+        {selectedRelationship && (
+          <RelationshipDetailPanel
+            relationship={selectedRelationship}
+            allPersons={persons}
+            onSaveRelationship={handleSaveRelationship}
+            onDeleteRelationship={handleDeleteRelationship}
+            onClose={() => setSelectedEdgeId(null)}
           />
         )}
       </div>
