@@ -4,6 +4,7 @@ import {
   EncryptionProvider,
   useEncryption,
 } from "./contexts/EncryptionContext";
+import { AppFooter } from "./components/AppFooter";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UnlockPage from "./pages/UnlockPage";
@@ -25,36 +26,41 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <EncryptionProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/unlock" element={<UnlockPage />} />
-        <Route
-          path="/trees"
-          element={
-            <AuthGuard>
-              <TreeListPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/trees/:id"
-          element={
-            <AuthGuard>
-              <TreeWorkspacePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/trees/:id/timeline"
-          element={
-            <AuthGuard>
-              <TimelinePage />
-            </AuthGuard>
-          }
-        />
-        <Route path="*" element={<Navigate to="/trees" replace />} />
-      </Routes>
+      <div className="app-layout">
+        <main className="app-main">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/unlock" element={<UnlockPage />} />
+            <Route
+              path="/trees"
+              element={
+                <AuthGuard>
+                  <TreeListPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/trees/:id"
+              element={
+                <AuthGuard>
+                  <TreeWorkspacePage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/trees/:id/timeline"
+              element={
+                <AuthGuard>
+                  <TimelinePage />
+                </AuthGuard>
+              }
+            />
+            <Route path="*" element={<Navigate to="/trees" replace />} />
+          </Routes>
+        </main>
+        <AppFooter />
+      </div>
     </EncryptionProvider>
   );
 }

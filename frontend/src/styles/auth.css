@@ -2,7 +2,7 @@
 
 /* --- Split layout: hero left, form right --- */
 .auth-page {
-  min-height: 100vh;
+  flex: 1;
   display: flex;
   background: var(--color-bg-primary);
   overflow: hidden;

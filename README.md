@@ -99,4 +99,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-All rights reserved. This is a personal project and not currently open for redistribution.
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
