@@ -20,6 +20,8 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   relationship?: DecryptedRelationship;
   inferredType?: "full_sibling" | "half_sibling";
   coupleColor?: string;
+  sourceName?: string;
+  targetName?: string;
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
@@ -184,7 +186,12 @@ export function useTreeLayout(
         target: rel.target_person_id,
         sourceHandle: useSideHandles ? "right" : "bottom",
         targetHandle: useSideHandles ? "left" : "top",
-        data: { relationship: rel, coupleColor },
+        data: {
+          relationship: rel,
+          coupleColor,
+          sourceName: persons.get(rel.source_person_id)?.name,
+          targetName: persons.get(rel.target_person_id)?.name,
+        },
       });
     }
 
@@ -198,7 +205,11 @@ export function useTreeLayout(
         target: sib.personBId,
         sourceHandle: "right",
         targetHandle: "left",
-        data: { inferredType: sib.type },
+        data: {
+          inferredType: sib.type,
+          sourceName: persons.get(sib.personAId)?.name,
+          targetName: persons.get(sib.personBId)?.name,
+        },
       });
     }
 
