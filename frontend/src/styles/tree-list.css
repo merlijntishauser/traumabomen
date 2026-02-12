@@ -39,6 +39,11 @@
 .tree-list-item {
   display: flex;
   align-items: center;
+  transition: var(--transition-colors);
+}
+
+.tree-list-item:hover {
+  background: var(--color-bg-hover);
 }
 
 .tree-list-item__link {
@@ -51,8 +56,7 @@
   transition: var(--transition-colors);
 }
 
-.tree-list-item__link:hover {
-  background: var(--color-bg-hover);
+.tree-list-item:hover .tree-list-item__link {
   color: var(--color-accent);
 }
 
