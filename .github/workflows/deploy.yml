@@ -86,7 +86,7 @@ jobs:
             --region=${{ vars.GCP_REGION }} \
             --set-cloudsql-instances=${{ vars.CLOUD_SQL_INSTANCE }} \
             --set-secrets=DATABASE_URL=db-url:latest \
-            --command=uv,run,alembic,upgrade,head \
+            --command=python3,-m,alembic,upgrade,head \
             --wait
 
       - name: Deploy API
