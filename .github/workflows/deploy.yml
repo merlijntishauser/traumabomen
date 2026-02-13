@@ -96,6 +96,7 @@ jobs:
             --region=${{ vars.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated \
+            --port=8000 \
             --add-cloudsql-instances=${{ vars.CLOUD_SQL_INSTANCE }} \
             --set-secrets="\
               DATABASE_URL=db-url:latest,\
