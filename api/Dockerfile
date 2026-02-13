@@ -8,7 +8,7 @@ RUN uv sync
 
 COPY . .
 
-FROM ghcr.io/dhi/python:3.13 AS production
+FROM dhi.io/python:3.13 AS production
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/

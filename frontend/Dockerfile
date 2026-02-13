@@ -7,7 +7,7 @@ COPY . .
 FROM dev AS build
 RUN npm run build
 
-FROM ghcr.io/dhi/nginx:stable AS production
+FROM dhi.io/nginx:stable AS production
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080
