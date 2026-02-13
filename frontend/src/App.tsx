@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { getAccessToken } from "./lib/api";
 import {
   EncryptionProvider,
@@ -17,11 +17,12 @@ import TimelinePage from "./pages/TimelinePage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
+  const location = useLocation();
   if (!getAccessToken()) {
     return <Navigate to="/login" replace />;
   }
   if (!key) {
-    return <Navigate to="/unlock" replace />;
+    return <Navigate to="/unlock" replace state={{ from: location.pathname }} />;
   }
   return <>{children}</>;
 }

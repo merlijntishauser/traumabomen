@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getEncryptionSalt, clearTokens, ApiError } from "../lib/api";
 import { deriveKey } from "../lib/crypto";
 import { useEncryption } from "../contexts/EncryptionContext";
@@ -10,7 +10,9 @@ import "../styles/auth.css";
 export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setKey } = useEncryption();
+  const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [passphrase, setPassphrase] = useState("");
   const [salt, setSalt] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export default function UnlockPage() {
     try {
       const derivedKey = await deriveKey(passphrase, salt);
       setKey(derivedKey);
-      navigate("/trees", { replace: true });
+      navigate(returnTo, { replace: true });
     } catch {
       setError(t("auth.passphraseError"));
     } finally {
