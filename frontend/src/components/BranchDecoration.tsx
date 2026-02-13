@@ -11,13 +11,13 @@ interface Node {
   r: number;
 }
 
-function generate(): { branches: Branch[]; nodes: Node[] } {
+function rand(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function generateTree(startX: number, scale: number): { branches: Branch[]; nodes: Node[] } {
   const branches: Branch[] = [];
   const nodes: Node[] = [];
-
-  function rand(min: number, max: number) {
-    return min + Math.random() * (max - min);
-  }
 
   function grow(
     x: number,
@@ -43,34 +43,49 @@ function generate(): { branches: Branch[]; nodes: Node[] } {
     });
 
     if (depth >= maxDepth) {
-      nodes.push({ cx: endX, cy: endY, r: rand(2.5, 5) });
+      nodes.push({ cx: endX, cy: endY, r: rand(2, 4.5) * scale });
       return;
     }
 
     // Spawn sub-branches
     const count = Math.floor(rand(1.5, 3.5));
     for (let i = 0; i < count; i++) {
-      // Spread branches across a range
       const spread = rand(0.4, 0.9);
       const side = i % 2 === 0 ? 1 : -1;
       const branchAngle = angle + side * spread + rand(-0.2, 0.2);
       const branchLen = length * rand(0.5, 0.75);
-      const branchWidth = Math.max(1, width * 0.7);
+      const branchWidth = Math.max(0.8, width * 0.7);
 
       grow(endX, endY, branchAngle, branchLen, branchWidth, depth + 1, maxDepth);
     }
   }
 
-  // Main trunk starting from bottom-left, growing up-right
-  const startX = rand(10, 30);
-  const startY = 420;
-  const trunkAngle = rand(-1.2, -1.0); // roughly upward (-PI/2 = straight up)
-  const trunkLen = rand(100, 140);
-  const maxDepth = Math.floor(rand(3, 5));
+  const startY = 630;
+  const trunkAngle = rand(-1.3, -0.9);
+  const trunkLen = rand(80, 130) * scale;
+  const maxDepth = Math.floor(rand(2, 5));
 
-  grow(startX, startY, trunkAngle, trunkLen, 2.5, 0, maxDepth);
+  grow(startX, startY, trunkAngle, trunkLen, 2.2 * scale, 0, maxDepth);
 
   return { branches, nodes };
+}
+
+function generate(): { branches: Branch[]; nodes: Node[] } {
+  const allBranches: Branch[] = [];
+  const allNodes: Node[] = [];
+
+  const treeCount = Math.floor(rand(2, 5.5));
+
+  for (let i = 0; i < treeCount; i++) {
+    // Spread trees across the bottom-left area
+    const startX = rand(5, 270);
+    const scale = rand(0.6, 1.2);
+    const tree = generateTree(startX, scale);
+    allBranches.push(...tree.branches);
+    allNodes.push(...tree.nodes);
+  }
+
+  return { branches: allBranches, nodes: allNodes };
 }
 
 export function BranchDecoration() {
@@ -79,7 +94,7 @@ export function BranchDecoration() {
   return (
     <svg
       className="branch-decoration"
-      viewBox="0 0 420 420"
+      viewBox="0 0 630 630"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >

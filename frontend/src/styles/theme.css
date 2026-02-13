@@ -278,8 +278,8 @@ button {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 420px;
-  height: 420px;
+  width: 630px;
+  height: 630px;
   z-index: 1;
   pointer-events: none;
   opacity: 0.12;
