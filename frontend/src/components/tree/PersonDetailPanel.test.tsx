@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PersonDetailPanel } from "./PersonDetailPanel";
-import { TraumaCategory, RelationshipType, PartnerStatus } from "../../types/domain";
-import type { DecryptedPerson, DecryptedRelationship, DecryptedEvent } from "../../hooks/useTreeData";
+import { TraumaCategory, RelationshipType } from "../../types/domain";
+import type { DecryptedPerson, DecryptedRelationship, DecryptedEvent, DecryptedLifeEvent } from "../../hooks/useTreeData";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -56,12 +56,15 @@ const defaultProps = () => ({
   relationships: [] as DecryptedRelationship[],
   inferredSiblings: [] as { personAId: string; personBId: string; sharedParentIds: string[]; type: "half_sibling" | "full_sibling" }[],
   events: [] as DecryptedEvent[],
+  lifeEvents: [] as DecryptedLifeEvent[],
   allPersons: new Map([["p1", makePerson()]]),
   onSavePerson: vi.fn(),
   onDeletePerson: vi.fn(),
   onSaveRelationship: vi.fn(),
   onSaveEvent: vi.fn(),
   onDeleteEvent: vi.fn(),
+  onSaveLifeEvent: vi.fn(),
+  onDeleteLifeEvent: vi.fn(),
   onClose: vi.fn(),
 });
 

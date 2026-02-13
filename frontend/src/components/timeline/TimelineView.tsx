@@ -28,7 +28,6 @@ interface PersonRow {
 
 const LABEL_WIDTH = 180;
 const ROW_HEIGHT = 36;
-const ROW_PADDING = 4;
 const BAR_HEIGHT = 12;
 const GEN_HEADER_HEIGHT = 20;
 const MARKER_RADIUS = 7;
@@ -127,7 +126,7 @@ export function TimelineView({
 
   const render = useCallback(() => {
     const svg = svgRef.current;
-    const tooltip = tooltipRef.current;
+    const tooltip = tooltipRef.current!;
     if (!svg || !tooltip || persons.size === 0) return;
 
     const container = svg.parentElement!;

@@ -25,7 +25,6 @@ import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { inferSiblings } from "../lib/inferSiblings";
-import type { InferredSibling } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { CanvasSettingsPanel } from "../components/tree/CanvasSettingsPanel";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";

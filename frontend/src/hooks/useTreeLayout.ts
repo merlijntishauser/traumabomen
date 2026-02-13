@@ -229,7 +229,7 @@ export function useTreeLayout(
     // ---- Build junction fork assignments for biological parent couples ----
     const forkPrimaryIds = new Set<string>();
     const forkHiddenIds = new Set<string>();
-    const forkDataByEdge = new Map<string, { parentIds: [string, string]; childIds: string[] }>();
+    const forkDataByEdge = new Map<string, { parentIds: [string, string]; childIds: string[]; parentNames: [string, string]; childNames: string[] }>();
 
     for (const [coupleKey, childIds] of coupleChildren) {
       const [parentAId, parentBId] = coupleKey.split("|");
