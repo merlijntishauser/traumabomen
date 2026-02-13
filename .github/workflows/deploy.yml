@@ -81,28 +81,13 @@ jobs:
 
       - name: Run migrations
         run: |
-          gcloud run jobs replace - --region=${{ vars.GCP_REGION }} <<EOF
-          apiVersion: run.googleapis.com/v1
-          kind: Job
-          metadata:
-            name: traumabomen-migrate
-            annotations:
-              run.googleapis.com/cloudsql-instances: ${{ vars.CLOUD_SQL_INSTANCE }}
-          spec:
-            template:
-              spec:
-                containers:
-                  - image: ${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }}
-                    command: ["uv", "run", "alembic", "upgrade", "head"]
-                    env:
-                      - name: DATABASE_URL
-                        valueFrom:
-                          secretKeyRef:
-                            name: db-url
-                            key: latest
-          EOF
-          gcloud run jobs execute traumabomen-migrate \
-            --region=${{ vars.GCP_REGION }} --wait
+          gcloud run jobs deploy traumabomen-migrate \
+            --image=${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }} \
+            --region=${{ vars.GCP_REGION }} \
+            --set-cloudsql-instances=${{ vars.CLOUD_SQL_INSTANCE }} \
+            --set-secrets=DATABASE_URL=db-url:latest \
+            --command=uv,run,alembic,upgrade,head \
+            --wait
 
       - name: Deploy API
         run: |
