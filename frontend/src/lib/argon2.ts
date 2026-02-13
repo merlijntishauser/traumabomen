@@ -5,7 +5,7 @@
 // (it requires Node.js built-ins: fs, path). We provide global overrides so
 // the library loads both the glue and the WASM binary from our public/ copies.
 
-const _self = self as Record<string, unknown>;
+const _self = self as unknown as Record<string, unknown>;
 
 // Tell the library where to fetch the WASM binary from.
 _self.argon2WasmPath = "/argon2.wasm";
