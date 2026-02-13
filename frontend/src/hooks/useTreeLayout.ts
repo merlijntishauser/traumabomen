@@ -296,6 +296,7 @@ export function useTreeLayout(
         type: "relationship",
         source: rel.source_person_id,
         target: rel.target_person_id,
+        className: `edge-${canvasSettings?.edgeStyle ?? "curved"}`,
         ...handles,
         data: {
           relationship: rel,
@@ -322,6 +323,7 @@ export function useTreeLayout(
         type: "relationship",
         source: sib.personAId,
         target: sib.personBId,
+        className: `edge-${canvasSettings?.edgeStyle ?? "curved"}`,
         ...handles,
         data: {
           inferredType: sib.type,
