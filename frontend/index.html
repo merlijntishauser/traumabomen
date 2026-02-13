@@ -38,21 +38,7 @@
         }).observe(document, { childList: true, subtree: true });
       })();
     </script>
-    <script>
-      // argon2-browser overrides: must be set before any module code runs.
-      // The UMD's loadWasmModule() checks these globals to avoid a dynamic
-      // import('../dist/argon2.js') that can't resolve in the browser.
-      self.argon2WasmPath = "/argon2.wasm";
-      self.loadArgon2WasmModule = function () {
-        return new Promise(function (resolve, reject) {
-          var s = document.createElement("script");
-          s.src = "/argon2-glue.js";
-          s.onload = function () { resolve(); };
-          s.onerror = function () { reject(new Error("Failed to load argon2 glue")); };
-          document.head.appendChild(s);
-        });
-      };
-    </script>
+    <script src="/argon2-bundled.min.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

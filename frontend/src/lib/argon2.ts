@@ -1,10 +1,6 @@
-// ESM wrapper for argon2-browser's UMD module.
-//
-// argon2-browser has no ESM build. The UMD at lib/argon2.js sets self.argon2
-// as a side effect. The Emscripten glue (dist/argon2.js) and WASM binary are
-// loaded at runtime via global overrides set in index.html (before any module
-// code runs) to avoid a dynamic import() that can't resolve in the browser.
-import "argon2-browser";
+// argon2-browser is loaded via <script> tag in index.html (the self-contained
+// bundled build with WASM inlined). It sets self.argon2 as a global.
+// This module re-exports it with types for use in the rest of the app.
 
 interface Argon2 {
   ArgonType: { Argon2d: 0; Argon2i: 1; Argon2id: 2 };
