@@ -10,7 +10,7 @@ export default function TimelinePage() {
   const { id: treeId } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const logout = useLogout();
-  const { persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
+  const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
     treeId!,
   );
 
@@ -18,7 +18,9 @@ export default function TimelinePage() {
     return (
       <div className="tree-workspace">
         <div className="tree-toolbar">
-          <Link to={`/trees/${treeId}`} className="tree-toolbar__back">
+          <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
+          <div className="tree-toolbar__spacer" />
+          <Link to="/trees" className="tree-toolbar__btn">
             {t("nav.trees")}
           </Link>
         </div>
@@ -30,10 +32,14 @@ export default function TimelinePage() {
   return (
     <div className="tree-workspace">
       <div className="tree-toolbar">
-        <Link to={`/trees/${treeId}`} className="tree-toolbar__back">
+        <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
+        <div className="tree-toolbar__spacer" />
+        <Link to={`/trees/${treeId}`} className="tree-toolbar__btn">
+          {t("tree.canvas")}
+        </Link>
+        <Link to="/trees" className="tree-toolbar__btn">
           {t("nav.trees")}
         </Link>
-        <div className="tree-toolbar__spacer" />
         <ThemeToggle className="tree-toolbar__btn" />
         <button
           className="tree-toolbar__btn"

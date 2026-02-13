@@ -50,6 +50,7 @@
   "tree.addEvent": "Add event",
   "tree.timeline": "Timeline",
   "tree.autoLayout": "Auto-layout",
+  "tree.canvas": "Canvas",
 
   "person.name": "Name",
   "person.birthYear": "Birth year",

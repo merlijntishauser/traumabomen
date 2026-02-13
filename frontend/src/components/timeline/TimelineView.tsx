@@ -77,6 +77,37 @@ function computeGenerations(
     getGeneration(personId, new Set());
   }
 
+  // Partner equalization: partners belong to the same generation.
+  // Fixed-point iteration: equalize partners, then propagate to children.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const rel of relationships.values()) {
+      if (rel.type !== RelationshipType.Partner) continue;
+      const genA = generations.get(rel.source_person_id);
+      const genB = generations.get(rel.target_person_id);
+      if (genA == null || genB == null) continue;
+      if (genA !== genB) {
+        const maxGen = Math.max(genA, genB);
+        generations.set(rel.source_person_id, maxGen);
+        generations.set(rel.target_person_id, maxGen);
+        changed = true;
+      }
+    }
+    for (const [childId, parentIds] of childToParents) {
+      const parentGens = parentIds
+        .filter((pid) => generations.has(pid))
+        .map((pid) => generations.get(pid)!);
+      if (parentGens.length === 0) continue;
+      const expectedGen = Math.max(...parentGens) + 1;
+      const currentGen = generations.get(childId) ?? 0;
+      if (expectedGen > currentGen) {
+        generations.set(childId, expectedGen);
+        changed = true;
+      }
+    }
+  }
+
   return generations;
 }
 
@@ -285,6 +316,8 @@ export function TimelineView({
         const row2 = rowByPersonId.get(rel.target_person_id);
         if (!row1 || !row2) continue;
 
+        const sourceName = persons.get(rel.source_person_id)?.name ?? "?";
+        const targetName = persons.get(rel.target_person_id)?.name ?? "?";
         const midY =
           (row1.y + ROW_HEIGHT / 2 + row2.y + ROW_HEIGHT / 2) / 2;
 
@@ -304,6 +337,31 @@ export function TimelineView({
             .attr("stroke", cssVar("--color-edge-partner"))
             .attr("stroke-width", 2)
             .attr("stroke-dasharray", isDashed ? "6 3" : null);
+
+          // Invisible wider hit area for hover
+          const statusLabel = tRef.current(`relationship.status.${period.status}`);
+          const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
+          timeGroup
+            .append("line")
+            .attr("x1", px1)
+            .attr("x2", px2)
+            .attr("y1", midY)
+            .attr("y2", midY)
+            .attr("stroke", "transparent")
+            .attr("stroke-width", 12)
+            .style("cursor", "pointer")
+            .on("mouseenter", (mouseEvent: MouseEvent) => {
+              tooltip.innerHTML = [
+                `<strong>${sourceName} &mdash; ${targetName}</strong>`,
+                `${statusLabel} ${yearRange}`,
+              ].join("<br>");
+              tooltip.style.display = "block";
+              tooltip.style.left = `${mouseEvent.clientX + 12}px`;
+              tooltip.style.top = `${mouseEvent.clientY - 10}px`;
+            })
+            .on("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
         }
       }
 
@@ -426,7 +484,7 @@ export function TimelineView({
       });
 
     svgSel.call(zoom);
-  }, [persons, relationships, events, lifeEvents]);
+  }, [persons, relationships, events, lifeEvents, t]);
 
   // Render on data change and resize
   useEffect(() => {
