@@ -1,0 +1,143 @@
+name: Deploy to production
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  REGISTRY: europe-west4-docker.pkg.dev
+  IMAGE_PREFIX: europe-west4-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/traumabomen
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and push API image
+        run: |
+          docker build --target production \
+            -t ${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }} \
+            -t ${{ env.IMAGE_PREFIX }}/api:latest \
+            ./api
+          docker push ${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }}
+          docker push ${{ env.IMAGE_PREFIX }}/api:latest
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and push frontend image
+        run: |
+          docker build --target production \
+            -t ${{ env.IMAGE_PREFIX }}/frontend:${{ github.ref_name }} \
+            -t ${{ env.IMAGE_PREFIX }}/frontend:latest \
+            ./frontend
+          docker push ${{ env.IMAGE_PREFIX }}/frontend:${{ github.ref_name }}
+          docker push ${{ env.IMAGE_PREFIX }}/frontend:latest
+
+  deploy:
+    needs: [build-api, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run migrations
+        run: |
+          gcloud run jobs replace - --region=${{ vars.GCP_REGION }} <<EOF
+          apiVersion: run.googleapis.com/v1
+          kind: Job
+          metadata:
+            name: traumabomen-migrate
+            annotations:
+              run.googleapis.com/cloudsql-instances: ${{ vars.CLOUD_SQL_INSTANCE }}
+          spec:
+            template:
+              spec:
+                containers:
+                  - image: ${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }}
+                    command: ["uv", "run", "alembic", "upgrade", "head"]
+                    env:
+                      - name: DATABASE_URL
+                        valueFrom:
+                          secretKeyRef:
+                            name: db-url
+                            key: latest
+          EOF
+          gcloud run jobs execute traumabomen-migrate \
+            --region=${{ vars.GCP_REGION }} --wait
+
+      - name: Deploy API
+        run: |
+          gcloud run deploy traumabomen-api \
+            --image=${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }} \
+            --region=${{ vars.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --add-cloudsql-instances=${{ vars.CLOUD_SQL_INSTANCE }} \
+            --set-secrets="\
+              DATABASE_URL=db-url:latest,\
+              JWT_SECRET_KEY=jwt-secret:latest,\
+              SMTP_HOST=smtp-host:latest,\
+              SMTP_PORT=smtp-port:latest,\
+              SMTP_USER=smtp-user:latest,\
+              SMTP_PASSWORD=smtp-password:latest" \
+            --set-env-vars="\
+              JWT_ALGORITHM=HS256,\
+              REQUIRE_EMAIL_VERIFICATION=true,\
+              SMTP_FROM=merlijn@traumatrees.org,\
+              APP_BASE_URL=https://traumatrees.org" \
+            --min-instances=0 \
+            --max-instances=4 \
+            --memory=256Mi \
+            --cpu=1 \
+            --timeout=60
+
+      - name: Deploy frontend
+        run: |
+          API_URL=$(gcloud run services describe traumabomen-api \
+            --region=${{ vars.GCP_REGION }} \
+            --format="value(status.url)")
+
+          gcloud run deploy traumabomen-frontend \
+            --image=${{ env.IMAGE_PREFIX }}/frontend:${{ github.ref_name }} \
+            --region=${{ vars.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="API_URL=${API_URL}" \
+            --min-instances=0 \
+            --max-instances=4 \
+            --memory=128Mi \
+            --cpu=1 \
+            --timeout=60

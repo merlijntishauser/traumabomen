@@ -4,8 +4,21 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./locales/en/translation.json";
 import nl from "./locales/nl/translation.json";
 
+const hostnameDetector = {
+  name: "hostname",
+  lookup() {
+    const host = window.location.hostname;
+    if (host.endsWith("traumabomen.nl")) return "nl";
+    if (host.endsWith("traumatrees.org")) return "en";
+    return undefined;
+  },
+};
+
+const languageDetector = new LanguageDetector();
+languageDetector.addDetector(hostnameDetector);
+
 i18n
-  .use(LanguageDetector)
+  .use(languageDetector)
   .use(initReactI18next)
   .init({
     resources: {
@@ -13,6 +26,10 @@ i18n
       nl: { translation: nl },
     },
     fallbackLng: "en",
+    detection: {
+      order: ["hostname", "localStorage", "navigator"],
+      caches: ["localStorage"],
+    },
     interpolation: {
       escapeValue: false,
     },
