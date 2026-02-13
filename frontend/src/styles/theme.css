@@ -272,3 +272,15 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
 }
+
+/* Decorative branch motif */
+.branch-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 420px;
+  height: 420px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.12;
+}

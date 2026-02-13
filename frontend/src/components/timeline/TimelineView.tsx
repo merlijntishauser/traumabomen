@@ -10,6 +10,7 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
 } from "../../hooks/useTreeData";
+import { BranchDecoration } from "../BranchDecoration";
 import "./TimelineView.css";
 
 interface TimelineViewProps {
@@ -497,6 +498,7 @@ export function TimelineView({
 
   return (
     <div className="timeline-container">
+      <BranchDecoration />
       {persons.size === 0 ? (
         <div className="timeline-empty">{t("timeline.noData")}</div>
       ) : (

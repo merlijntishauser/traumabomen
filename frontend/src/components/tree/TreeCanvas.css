@@ -12,9 +12,25 @@
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  border-bottom: 1px solid var(--color-border-primary);
+  border-bottom: none;
   background: var(--color-bg-secondary);
   z-index: 5;
+  position: relative;
+}
+
+.tree-toolbar::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-accent-subtle),
+    transparent 80%
+  );
 }
 
 .tree-toolbar__title {
@@ -67,11 +83,14 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  background:
+    radial-gradient(ellipse at 0% 100%, var(--color-accent-subtle) 0%, transparent 50%),
+    var(--color-bg-canvas);
 }
 
-/* React Flow canvas background */
+/* React Flow canvas -- transparent so wrapper gradient + decoration show through */
 .tree-canvas-wrapper .react-flow__pane {
-  background: var(--color-bg-canvas);
+  background: transparent;
 }
 
 .tree-canvas-wrapper .react-flow__controls {

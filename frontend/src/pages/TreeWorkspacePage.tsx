@@ -25,6 +25,7 @@ import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPa
 import { inferSiblings } from "../lib/inferSiblings";
 import type { InferredSibling } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { BranchDecoration } from "../components/BranchDecoration";
 import { RelationshipType } from "../types/domain";
 import type { Person, TraumaEvent, LifeEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
@@ -438,6 +439,7 @@ function TreeWorkspaceInner() {
       </div>
 
       <div className="tree-canvas-wrapper">
+        <BranchDecoration />
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>
         ) : (
