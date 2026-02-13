@@ -46,9 +46,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to ghcr.io
-        run: echo "${{ secrets.DHI_TOKEN }}" | docker login dhi.io -u ${{ secrets.DHI_USERNAME }} --password-stdin
-
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}

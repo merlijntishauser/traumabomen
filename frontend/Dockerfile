@@ -7,7 +7,8 @@ COPY . .
 FROM dev AS build
 RUN npm run build
 
-FROM dhi.io/nginx:1 AS production
+FROM nginx:1-alpine AS production
+ENV NGINX_ENVSUBST_FILTER=API_URL
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080
