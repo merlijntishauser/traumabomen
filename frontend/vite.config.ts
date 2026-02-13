@@ -19,9 +19,8 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // argon2-browser loads its WASM via fetch() at runtime in browsers.
-      // The dist/argon2.js (Emscripten glue) is only used in the Node.js
-      // code path and should not be bundled.
+      // argon2-browser's dist/ contains Node.js-only Emscripten glue (fs, path).
+      // We load it at runtime via a <script> tag from public/ instead.
       external: [/argon2-browser\/dist/],
     },
   },
