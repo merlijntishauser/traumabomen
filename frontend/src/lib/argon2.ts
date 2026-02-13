@@ -1,26 +1,9 @@
 // ESM wrapper for argon2-browser's UMD module.
 //
-// argon2-browser's lib/argon2.js (UMD) uses dynamic import('../dist/argon2.js')
-// to load the Emscripten glue code, which Rollup cannot bundle for browsers
-// (it requires Node.js built-ins: fs, path). We provide global overrides so
-// the library loads both the glue and the WASM binary from our public/ copies.
-
-const _self = self as unknown as Record<string, unknown>;
-
-// Tell the library where to fetch the WASM binary from.
-_self.argon2WasmPath = "/argon2.wasm";
-
-// Provide the Emscripten glue loader so it never hits `import('../dist/argon2.js')`.
-// We inject a <script> tag pointing at our public copy.
-_self.loadArgon2WasmModule = () =>
-  new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "/argon2-glue.js";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load argon2 glue script"));
-    document.head.appendChild(script);
-  });
-
+// argon2-browser has no ESM build. The UMD at lib/argon2.js sets self.argon2
+// as a side effect. The Emscripten glue (dist/argon2.js) and WASM binary are
+// loaded at runtime via global overrides set in index.html (before any module
+// code runs) to avoid a dynamic import() that can't resolve in the browser.
 import "argon2-browser";
 
 interface Argon2 {
