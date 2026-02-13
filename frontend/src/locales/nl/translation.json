@@ -156,6 +156,16 @@
   "timeline.impact": "Impact: {{value}}",
   "timeline.noData": "Geen gegevens om weer te geven. Voeg personen en gebeurtenissen toe in de boomweergave.",
 
+  "canvas.settings": "Canvas-instellingen",
+  "canvas.showGrid": "Raster tonen",
+  "canvas.snapToGrid": "Uitlijnen op raster",
+  "canvas.edgeStyle": "Lijnstijl",
+  "canvas.edgeStyle.curved": "Gebogen",
+  "canvas.edgeStyle.elbows": "Haaks",
+  "canvas.edgeStyle.straight": "Recht",
+  "canvas.showMarkers": "Markeerders tonen",
+  "canvas.showMinimap": "Minimap tonen",
+
   "theme.toggle": "Wissel donker/licht thema",
 
   "mentalHealth.banner": "Deze tool behandelt mogelijk gevoelige onderwerpen die een trigger kunnen zijn. Heb je behoefte aan ondersteuning? Neem bijvoorbeeld contact op met <a>{{resource}}</a>. Wij zijn niet verbonden aan deze organisatie.",

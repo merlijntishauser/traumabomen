@@ -5,6 +5,7 @@ import {
   Position,
   getBezierPath,
   getSmoothStepPath,
+  getStraightPath,
   useStore,
   type EdgeProps,
 } from "@xyflow/react";
@@ -157,12 +158,14 @@ function RelationshipEdgeComponent({
       targetPosition,
     };
 
-    const isVertical =
-      (sourcePosition === Position.Top || sourcePosition === Position.Bottom) &&
-      (targetPosition === Position.Top || targetPosition === Position.Bottom);
-    [edgePath, labelX, labelY] = isVertical
-      ? getSmoothStepPath(pathParams)
-      : getBezierPath(pathParams);
+    const edgeStyle = data.edgeStyle ?? "curved";
+    if (edgeStyle === "straight") {
+      [edgePath, labelX, labelY] = getStraightPath(pathParams);
+    } else if (edgeStyle === "elbows") {
+      [edgePath, labelX, labelY] = getSmoothStepPath(pathParams);
+    } else {
+      [edgePath, labelX, labelY] = getBezierPath(pathParams);
+    }
     hitPath = edgePath;
   }
 

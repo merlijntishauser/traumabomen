@@ -9,6 +9,7 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
 } from "./useTreeData";
+import type { EdgeStyle } from "./useCanvasSettings";
 
 export interface PersonNodeData extends Record<string, unknown> {
   person: DecryptedPerson;
@@ -28,6 +29,7 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
   sourceOffset?: { x: number; y: number };
   targetOffset?: { x: number; y: number };
   markerShape?: MarkerShape;
+  edgeStyle?: EdgeStyle;
   junctionFork?: {
     parentIds: [string, string];
     childIds: string[];
@@ -102,6 +104,7 @@ export function useTreeLayout(
   events: Map<string, DecryptedEvent>,
   selectedPersonId: string | null,
   lifeEvents?: Map<string, DecryptedLifeEvent>,
+  canvasSettings?: { edgeStyle: EdgeStyle; showMarkers: boolean },
 ): { nodes: PersonNodeType[]; edges: RelationshipEdgeType[] } {
   return useMemo(() => {
     if (persons.size === 0) {
@@ -299,6 +302,7 @@ export function useTreeLayout(
           coupleColor,
           sourceName: persons.get(rel.source_person_id)?.name,
           targetName: persons.get(rel.target_person_id)?.name,
+          edgeStyle: canvasSettings?.edgeStyle,
           junctionFork: forkDataByEdge.get(rel.id),
           junctionHidden: forkHiddenIds.has(rel.id) || undefined,
         },
@@ -323,6 +327,7 @@ export function useTreeLayout(
           inferredType: sib.type,
           sourceName: persons.get(sib.personAId)?.name,
           targetName: persons.get(sib.personBId)?.name,
+          edgeStyle: canvasSettings?.edgeStyle,
         },
       });
     }
@@ -375,26 +380,28 @@ export function useTreeLayout(
     }
 
     // ---- Assign marker shapes ----
-    const edgeMarker = new Array<number | null>(edges.length).fill(null);
-    for (const entries of sideGroups.values()) {
-      if (entries.length <= 1) continue;
-      for (const { edgeIdx } of entries) {
-        if (edgeMarker[edgeIdx] !== null) continue;
-        const usedInGroup = new Set<number>();
-        for (const { edgeIdx: otherIdx } of entries) {
-          if (edgeMarker[otherIdx] !== null) usedInGroup.add(edgeMarker[otherIdx]!);
+    if (canvasSettings?.showMarkers !== false) {
+      const edgeMarker = new Array<number | null>(edges.length).fill(null);
+      for (const entries of sideGroups.values()) {
+        if (entries.length <= 1) continue;
+        for (const { edgeIdx } of entries) {
+          if (edgeMarker[edgeIdx] !== null) continue;
+          const usedInGroup = new Set<number>();
+          for (const { edgeIdx: otherIdx } of entries) {
+            if (edgeMarker[otherIdx] !== null) usedInGroup.add(edgeMarker[otherIdx]!);
+          }
+          let m = 0;
+          while (usedInGroup.has(m)) m++;
+          edgeMarker[edgeIdx] = m;
         }
-        let m = 0;
-        while (usedInGroup.has(m)) m++;
-        edgeMarker[edgeIdx] = m;
       }
-    }
-    for (let i = 0; i < edges.length; i++) {
-      if (edgeMarker[i] !== null) {
-        edges[i].data!.markerShape = MARKER_SHAPES[edgeMarker[i]! % MARKER_SHAPES.length];
+      for (let i = 0; i < edges.length; i++) {
+        if (edgeMarker[i] !== null) {
+          edges[i].data!.markerShape = MARKER_SHAPES[edgeMarker[i]! % MARKER_SHAPES.length];
+        }
       }
     }
 
     return { nodes, edges };
-  }, [persons, relationships, events, selectedPersonId, lifeEvents]);
+  }, [persons, relationships, events, selectedPersonId, lifeEvents, canvasSettings]);
 }

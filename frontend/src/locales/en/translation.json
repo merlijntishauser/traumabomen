@@ -156,6 +156,16 @@
   "timeline.impact": "Impact: {{value}}",
   "timeline.noData": "No data to display. Add persons and events in the tree view.",
 
+  "canvas.settings": "Canvas settings",
+  "canvas.showGrid": "Show grid",
+  "canvas.snapToGrid": "Snap to grid",
+  "canvas.edgeStyle": "Edge style",
+  "canvas.edgeStyle.curved": "Curved",
+  "canvas.edgeStyle.elbows": "Elbows",
+  "canvas.edgeStyle.straight": "Straight",
+  "canvas.showMarkers": "Show markers",
+  "canvas.showMinimap": "Show minimap",
+
   "theme.toggle": "Toggle dark/light mode",
 
   "mentalHealth.banner": "This tool deals with sensitive topics that may be triggering. If you need support, consider reaching out to for example <a>{{resource}}</a>. We are not affiliated with this organisation.",

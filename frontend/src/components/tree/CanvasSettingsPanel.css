@@ -1,0 +1,83 @@
+.canvas-settings {
+  position: relative;
+}
+
+.canvas-settings__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas-settings__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px 0;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 15;
+}
+
+.canvas-settings__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.canvas-settings__toggle:hover {
+  background: var(--color-bg-hover);
+}
+
+.canvas-settings__toggle input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.canvas-settings__divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border-primary);
+}
+
+.canvas-settings__group {
+  padding: 4px 14px;
+}
+
+.canvas-settings__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.canvas-settings__radios {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.canvas-settings__radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.canvas-settings__radio input[type="radio"] {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}

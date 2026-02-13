@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ReactFlowProvider,
   ReactFlow,
+  Background,
+  MiniMap,
   useReactFlow,
   applyNodeChanges,
   type OnConnect,
@@ -25,6 +27,8 @@ import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPa
 import { inferSiblings } from "../lib/inferSiblings";
 import type { InferredSibling } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { CanvasSettingsPanel } from "../components/tree/CanvasSettingsPanel";
+import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { BranchDecoration } from "../components/BranchDecoration";
 import { RelationshipType } from "../types/domain";
 import type { Person, TraumaEvent, LifeEvent, RelationshipData } from "../types/domain";
@@ -119,12 +123,20 @@ function TreeWorkspaceInner() {
     treeId!,
   );
   const mutations = useTreeMutations(treeId!);
+  const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
+
+  const layoutSettings = useMemo(
+    () => ({ edgeStyle: canvasSettings.edgeStyle, showMarkers: canvasSettings.showMarkers }),
+    [canvasSettings.edgeStyle, canvasSettings.showMarkers],
+  );
+
   const { nodes: layoutNodes, edges } = useTreeLayout(
     persons,
     relationships,
     events,
     selectedPersonId,
     lifeEvents,
+    layoutSettings,
   );
 
   // Local node state that accepts both layout updates and drag changes
@@ -426,6 +438,11 @@ function TreeWorkspaceInner() {
         <Link to="/trees" className="tree-toolbar__btn">
           {t("nav.trees")}
         </Link>
+        <CanvasSettingsPanel
+          settings={canvasSettings}
+          onUpdate={updateCanvasSettings}
+          className="tree-toolbar__btn"
+        />
         <ThemeToggle className="tree-toolbar__btn" />
         <button
           className="tree-toolbar__btn"
@@ -454,9 +471,14 @@ function TreeWorkspaceInner() {
             onPaneClick={onPaneClick}
             onEdgeClick={onEdgeClick}
             onConnect={onConnect}
+            snapToGrid={canvasSettings.snapToGrid}
+            snapGrid={[20, 20]}
             fitView
             deleteKeyCode={null}
-          />
+          >
+            {canvasSettings.showGrid && <Background gap={20} />}
+            {canvasSettings.showMinimap && <MiniMap />}
+          </ReactFlow>
         )}
 
         {selectedPerson && (
