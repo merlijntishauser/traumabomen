@@ -25,7 +25,7 @@ interface PersonRow {
   y: number;
 }
 
-const LABEL_WIDTH = 160;
+const LABEL_WIDTH = 180;
 const ROW_HEIGHT = 36;
 const ROW_PADDING = 4;
 const BAR_HEIGHT = 12;
@@ -237,7 +237,7 @@ export function TimelineView({
 
       bgGroup
         .append("text")
-        .attr("x", 12)
+        .attr("x", 20)
         .attr("y", bandY + GEN_HEADER_HEIGHT - 5)
         .attr("class", "tl-gen-label")
         .text(tRef.current("timeline.generation", { number: gen + 1 }));
@@ -249,7 +249,7 @@ export function TimelineView({
     for (const row of rows) {
       bgGroup
         .append("text")
-        .attr("x", 16)
+        .attr("x", 24)
         .attr("y", row.y + ROW_HEIGHT / 2 + 4)
         .attr("class", "tl-person-label")
         .text(row.person.name);
