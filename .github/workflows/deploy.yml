@@ -85,7 +85,7 @@ jobs:
             --image=${{ env.IMAGE_PREFIX }}/api:${{ github.ref_name }} \
             --region=${{ vars.GCP_REGION }} \
             --set-cloudsql-instances=${{ vars.CLOUD_SQL_INSTANCE }} \
-            --set-secrets=DATABASE_URL=db-url:latest \
+            --set-secrets=DATABASE_URL=db-url:latest,JWT_SECRET_KEY=jwt-secret:latest \
             --command=python3,-m,alembic,upgrade,head \
             --wait
 
