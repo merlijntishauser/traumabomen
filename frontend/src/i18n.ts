@@ -8,8 +8,8 @@ const hostnameDetector = {
   name: "hostname",
   lookup() {
     const host = window.location.hostname;
-    if (host.endsWith("traumabomen.nl")) return "nl";
-    if (host.endsWith("traumatrees.org")) return "en";
+    if (host === "traumabomen.nl" || host.endsWith(".traumabomen.nl")) return "nl";
+    if (host === "traumatrees.org" || host.endsWith(".traumatrees.org")) return "en";
     return undefined;
   },
 };
