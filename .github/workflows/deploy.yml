@@ -106,7 +106,7 @@ jobs:
               JWT_ALGORITHM=HS256,\
               REQUIRE_EMAIL_VERIFICATION=true,\
               SMTP_FROM=merlijn@traumatrees.org,\
-              APP_BASE_URL=https://traumatrees.org" \
+              APP_BASE_URL=https://www.traumatrees.org" \
             --min-instances=0 \
             --max-instances=4 \
             --memory=256Mi \
@@ -161,15 +161,15 @@ jobs:
           }
 
           retry "Frontend (traumatrees.org)" \
-            "https://traumatrees.org/" GET "" "<html"
+            "https://www.traumatrees.org/" GET "" "<html"
 
           retry "Frontend (traumabomen.nl)" \
             "https://www.traumabomen.nl/" GET "" "<html"
 
           retry "API health" \
-            "https://traumatrees.org/api/health" GET "" '"ok"'
+            "https://www.traumatrees.org/api/health" GET "" '"ok"'
 
           retry "Auth login" \
-            "https://traumatrees.org/api/auth/login" POST \
+            "https://www.traumatrees.org/api/auth/login" POST \
             "{\"email\":\"${SMOKETEST_EMAIL}\",\"password\":\"${SMOKETEST_PASSWORD}\"}" \
             "access_token"
