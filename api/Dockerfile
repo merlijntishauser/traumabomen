@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS dev
+FROM python:3.14-slim AS dev
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
@@ -11,7 +11,7 @@ COPY . .
 FROM dev AS build
 RUN uv sync --no-dev
 
-FROM dhi.io/python:3.13 AS production
+FROM dhi.io/python:3.14 AS production
 WORKDIR /app
 
 ENV PYTHONPATH=/app/site-packages
