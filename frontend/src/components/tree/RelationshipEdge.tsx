@@ -71,7 +71,10 @@ function buildForkPath(fp: ForkPositions, edgeStyle: EdgeStyle = "curved"): stri
     const barMid = (lp.cx + rp.cx) / 2;
     for (const c of fp.children) {
       const cr = Math.min(R, Math.abs(c.top - fp.barY) / 2);
-      const dir = c.cx < barMid ? -1 : c.cx > barMid ? 1 : 0;
+      // If child is near a parent's x position, go straight down to avoid
+      // the curve starting outside the drawn bar (creating a visual gap)
+      const nearParent = fp.parents.some((p) => Math.abs(c.cx - p.cx) <= R);
+      const dir = nearParent ? 0 : c.cx < barMid ? -1 : c.cx > barMid ? 1 : 0;
       if (dir !== 0) {
         path += `M ${c.cx + dir * cr},${fp.barY} `;
         path += `Q ${c.cx},${fp.barY} ${c.cx},${fp.barY + cr} `;
