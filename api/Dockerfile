@@ -2,6 +2,7 @@ FROM python:3.14-slim AS dev
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+ENV UV_LINK_MODE=copy
 
 COPY pyproject.toml uv.lock* ./
 RUN uv sync
