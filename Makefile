@@ -15,17 +15,17 @@ logs:
 # --- Code Quality ---
 
 lint:
-	cd frontend && npx @biomejs/biome check src/
-	cd api && uv run ruff check app/
+	cd frontend && npx @biomejs/biome check --diagnostic-level=error src/
+	docker compose exec api uv run ruff check app/
 
 format:
 	cd frontend && npx @biomejs/biome check --write src/
-	cd api && uv run ruff format app/
-	cd api && uv run ruff check --fix app/
+	docker compose exec api uv run ruff format app/
+	docker compose exec api uv run ruff check --fix app/
 
 typecheck:
 	cd frontend && npx tsc --noEmit
-	cd api && uv run mypy app
+	docker compose exec api uv run mypy app
 
 ci: lint typecheck test privacy-scan
 
