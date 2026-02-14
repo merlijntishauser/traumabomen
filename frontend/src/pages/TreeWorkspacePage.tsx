@@ -469,7 +469,7 @@ function TreeWorkspaceInner() {
         </div>
       </div>
 
-      <div className="tree-canvas-wrapper">
+      <div className="tree-canvas-wrapper bg-gradient">
         <BranchDecoration />
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>

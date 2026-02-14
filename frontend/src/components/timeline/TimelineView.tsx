@@ -519,7 +519,7 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
   }, [render]);
 
   return (
-    <div className="timeline-container">
+    <div className="timeline-container bg-gradient">
       <BranchDecoration />
       {persons.size === 0 ? (
         <div className="timeline-empty">{t("timeline.noData")}</div>

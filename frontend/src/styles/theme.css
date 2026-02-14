@@ -295,6 +295,31 @@ button {
   background: var(--color-accent);
 }
 
+/* Shared gradient background with dither to prevent banding */
+.bg-gradient {
+  position: relative;
+  background:
+    radial-gradient(
+      ellipse at 0% 100%,
+      var(--color-accent-subtle) 0%,
+      color-mix(in srgb, var(--color-accent-subtle) 60%, transparent) 20%,
+      color-mix(in srgb, var(--color-accent-subtle) 30%, transparent) 35%,
+      transparent 55%
+    ),
+    var(--color-bg-canvas);
+}
+
+.bg-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
 /* Decorative branch motif */
 .branch-decoration {
   position: absolute;

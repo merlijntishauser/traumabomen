@@ -97,7 +97,7 @@ export default function TreeListPage() {
   }
 
   return (
-    <div className="tree-list-page">
+    <div className="tree-list-page bg-gradient">
       <div className="tree-toolbar">
         <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
         <div className="tree-toolbar__spacer" />

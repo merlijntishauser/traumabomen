@@ -2,9 +2,6 @@
   flex: 1;
   position: relative;
   overflow: auto;
-  background:
-    radial-gradient(ellipse at 0% 100%, var(--color-accent-subtle) 0%, transparent 50%),
-    var(--color-bg-canvas);
 }
 
 .timeline-container svg {
