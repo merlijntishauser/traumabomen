@@ -111,6 +111,7 @@ jobs:
             --max-instances=4 \
             --memory=256Mi \
             --cpu=1 \
+            --cpu-boost \
             --timeout=60
 
       - name: Deploy frontend
