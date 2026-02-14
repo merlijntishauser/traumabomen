@@ -60,9 +60,7 @@ async def get_person(
     )
     person = result.scalar_one_or_none()
     if person is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
     return PersonResponse(
         id=person.id,
         encrypted_data=person.encrypted_data,
@@ -83,9 +81,7 @@ async def update_person(
     )
     person = result.scalar_one_or_none()
     if person is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
     person.encrypted_data = body.encrypted_data
     await db.commit()
     await db.refresh(person)
@@ -108,8 +104,6 @@ async def delete_person(
     )
     person = result.scalar_one_or_none()
     if person is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
     await db.delete(person)
     await db.commit()

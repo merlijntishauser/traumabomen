@@ -1,10 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { PersonNode } from "./PersonNode";
-import { TraumaCategory } from "../../types/domain";
+import { describe, expect, it, vi } from "vitest";
+import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { TRAUMA_COLORS } from "../../lib/traumaColors";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
-import type { DecryptedEvent } from "../../hooks/useTreeData";
+import { TraumaCategory } from "../../types/domain";
+import { PersonNode } from "./PersonNode";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -45,11 +44,7 @@ function makeEvent(overrides: Partial<DecryptedEvent> = {}): DecryptedEvent {
   };
 }
 
-function renderNode(
-  person: DecryptedPerson,
-  events: DecryptedEvent[] = [],
-  selected = false,
-) {
+function renderNode(person: DecryptedPerson, events: DecryptedEvent[] = [], selected = false) {
   // PersonNode expects NodeProps shape but we only use data and selected
   const props = {
     id: person.id,

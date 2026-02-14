@@ -1,18 +1,18 @@
-import { memo, useState, useCallback } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
+  type EdgeProps,
   getBezierPath,
   getSmoothStepPath,
   getStraightPath,
   useStore,
-  type EdgeProps,
 } from "@xyflow/react";
+import { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RelationshipType } from "../../types/domain";
-import type { RelationshipEdgeData, MarkerShape } from "../../hooks/useTreeLayout";
-import { NODE_WIDTH, NODE_HEIGHT } from "../../hooks/useTreeLayout";
 import type { EdgeStyle } from "../../hooks/useCanvasSettings";
+import type { MarkerShape, RelationshipEdgeData } from "../../hooks/useTreeLayout";
+import { NODE_HEIGHT, NODE_WIDTH } from "../../hooks/useTreeLayout";
+import { RelationshipType } from "../../types/domain";
 import "./RelationshipEdge.css";
 
 const MARKER_CLIP: Record<MarkerShape, string> = {
@@ -23,9 +23,7 @@ const MARKER_CLIP: Record<MarkerShape, string> = {
 };
 
 function getCssVar(name: string): string {
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 const PARENT_TYPES = new Set([
@@ -43,7 +41,7 @@ interface ForkPositions {
 }
 
 function buildForkPath(fp: ForkPositions, edgeStyle: EdgeStyle = "curved"): string {
-  const allX = [...fp.parents.map(p => p.cx), ...fp.children.map(c => c.cx)];
+  const allX = [...fp.parents.map((p) => p.cx), ...fp.children.map((c) => c.cx)];
   const minX = Math.min(...allX);
   const maxX = Math.max(...allX);
 
@@ -113,10 +111,11 @@ function RelationshipEdgeComponent({
   const relType = rel?.type;
   const inferredType = data.inferredType;
   const isPartner = relType === RelationshipType.Partner;
-  const isExPartner = isPartner
-    && rel != null
-    && rel.periods.length > 0
-    && rel.periods.every((p) => p.end_year != null);
+  const isExPartner =
+    isPartner &&
+    rel != null &&
+    rel.periods.length > 0 &&
+    rel.periods.every((p) => p.end_year != null);
   const isHalfSibling = relType === RelationshipType.HalfSibling;
   const isDashed =
     relType === RelationshipType.StepParent ||
@@ -158,7 +157,7 @@ function RelationshipEdgeComponent({
         children.push({ cx: px + w / 2, top: py });
       }
       if (parents.length < 2 || children.length === 0) return null;
-      const barY = Math.max(...parents.map(p => p.bottom)) + BAR_Y_OFFSET;
+      const barY = Math.max(...parents.map((p) => p.bottom)) + BAR_Y_OFFSET;
       return { parents, children, barY };
     },
     [forkParentIds, forkChildIds],
@@ -328,16 +327,15 @@ function RelationshipEdgeComponent({
               <span className="edge-tooltip__type">{typeLabel}</span>
               {isForkPrimary && data.junctionFork ? (
                 <span className="edge-tooltip__names">
-                  {data.junctionFork.parentNames.join(" & ")} &rarr; {data.junctionFork.childNames.join(", ")}
+                  {data.junctionFork.parentNames.join(" & ")} &rarr;{" "}
+                  {data.junctionFork.childNames.join(", ")}
                 </span>
               ) : (
                 <span className="edge-tooltip__names">
                   {data.sourceName ?? "?"} &mdash; {data.targetName ?? "?"}
                 </span>
               )}
-              {periodLine && (
-                <span className="edge-tooltip__period">{periodLine}</span>
-              )}
+              {periodLine && <span className="edge-tooltip__period">{periodLine}</span>}
             </div>
           )}
         </EdgeLabelRenderer>

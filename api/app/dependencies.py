@@ -15,9 +15,7 @@ async def get_owned_tree(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Tree:
-    result = await db.execute(
-        select(Tree).where(Tree.id == tree_id, Tree.user_id == user.id)
-    )
+    result = await db.execute(select(Tree).where(Tree.id == tree_id, Tree.user_id == user.id))
     tree = result.scalar_one_or_none()
     if tree is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tree not found")

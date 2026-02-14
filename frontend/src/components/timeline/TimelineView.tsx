@@ -1,15 +1,15 @@
-import { useRef, useEffect, useCallback } from "react";
 import * as d3 from "d3";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { RelationshipType, PartnerStatus } from "../../types/domain";
-import { getTraumaColors } from "../../lib/traumaColors";
-import { getLifeEventColors } from "../../lib/lifeEventColors";
 import type {
-  DecryptedPerson,
-  DecryptedRelationship,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
 } from "../../hooks/useTreeData";
+import { getLifeEventColors } from "../../lib/lifeEventColors";
+import { getTraumaColors } from "../../lib/traumaColors";
+import { PartnerStatus, RelationshipType } from "../../types/domain";
 import { BranchDecoration } from "../BranchDecoration";
 import "./TimelineView.css";
 
@@ -64,9 +64,7 @@ function computeGenerations(
     }
 
     const maxParentGen = Math.max(
-      ...parents
-        .filter((pid) => persons.has(pid))
-        .map((pid) => getGeneration(pid, visited)),
+      ...parents.filter((pid) => persons.has(pid)).map((pid) => getGeneration(pid, visited)),
     );
     const gen = maxParentGen + 1;
     generations.set(personId, gen);
@@ -111,12 +109,7 @@ function computeGenerations(
   return generations;
 }
 
-export function TimelineView({
-  persons,
-  relationships,
-  events,
-  lifeEvents,
-}: TimelineViewProps) {
+export function TimelineView({ persons, relationships, events, lifeEvents }: TimelineViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -181,14 +174,14 @@ export function TimelineView({
     }
     for (const event of events.values()) {
       const year = parseInt(event.approximate_date, 10);
-      if (!isNaN(year)) {
+      if (!Number.isNaN(year)) {
         minYear = Math.min(minYear, year);
         maxYear = Math.max(maxYear, year);
       }
     }
     for (const le of lifeEvents.values()) {
       const year = parseInt(le.approximate_date, 10);
-      if (!isNaN(year)) {
+      if (!Number.isNaN(year)) {
         minYear = Math.min(minYear, year);
         maxYear = Math.max(maxYear, year);
       }
@@ -196,10 +189,7 @@ export function TimelineView({
     minYear -= 5;
     maxYear += 5;
 
-    const xScale = d3
-      .scaleLinear()
-      .domain([minYear, maxYear])
-      .range([LABEL_WIDTH, width]);
+    const xScale = d3.scaleLinear().domain([minYear, maxYear]).range([LABEL_WIDTH, width]);
 
     // Clear and set up SVG
     const svgSel = d3.select(svg);
@@ -256,9 +246,7 @@ export function TimelineView({
     }
 
     // Clipped content group (time-dependent elements)
-    const contentGroup = svgSel
-      .append("g")
-      .attr("clip-path", "url(#timeline-clip)");
+    const contentGroup = svgSel.append("g").attr("clip-path", "url(#timeline-clip)");
 
     const timeGroup = contentGroup.append("g").attr("class", "tl-time");
 
@@ -274,12 +262,8 @@ export function TimelineView({
         .tickFormat((d) => String(d))
         .ticks(Math.max(2, Math.floor((width - LABEL_WIDTH) / 80)));
       axisGroup.call(axis);
-      axisGroup
-        .selectAll(".tick text")
-        .attr("class", "tl-axis-text");
-      axisGroup
-        .selectAll(".tick line")
-        .attr("stroke", cssVar("--color-border-secondary"));
+      axisGroup.selectAll(".tick text").attr("class", "tl-axis-text");
+      axisGroup.selectAll(".tick line").attr("stroke", cssVar("--color-border-secondary"));
       axisGroup.select(".domain").remove();
     }
 
@@ -318,15 +302,13 @@ export function TimelineView({
 
         const sourceName = persons.get(rel.source_person_id)?.name ?? "?";
         const targetName = persons.get(rel.target_person_id)?.name ?? "?";
-        const midY =
-          (row1.y + ROW_HEIGHT / 2 + row2.y + ROW_HEIGHT / 2) / 2;
+        const midY = (row1.y + ROW_HEIGHT / 2 + row2.y + ROW_HEIGHT / 2) / 2;
 
         for (const period of rel.periods) {
           const px1 = scale(period.start_year);
           const px2 = scale(period.end_year ?? currentYear);
           const isDashed =
-            period.status === PartnerStatus.Separated ||
-            period.status === PartnerStatus.Divorced;
+            period.status === PartnerStatus.Separated || period.status === PartnerStatus.Divorced;
 
           timeGroup
             .append("line")
@@ -368,7 +350,7 @@ export function TimelineView({
       // Event markers
       for (const event of events.values()) {
         const year = parseInt(event.approximate_date, 10);
-        if (isNaN(year)) continue;
+        if (Number.isNaN(year)) continue;
 
         for (const personId of event.person_ids) {
           const row = rowByPersonId.get(personId);
@@ -414,7 +396,7 @@ export function TimelineView({
       const diamondSize = MARKER_RADIUS * 0.9;
       for (const le of lifeEvents.values()) {
         const year = parseInt(le.approximate_date, 10);
-        if (isNaN(year)) continue;
+        if (Number.isNaN(year)) continue;
 
         for (const personId of le.person_ids) {
           const row = rowByPersonId.get(personId);
@@ -484,7 +466,7 @@ export function TimelineView({
       });
 
     svgSel.call(zoom);
-  }, [persons, relationships, events, lifeEvents, t]);
+  }, [persons, relationships, events, lifeEvents]);
 
   // Render on data change and resize
   useEffect(() => {

@@ -7,7 +7,7 @@ const BASE = BigInt(CHARS.length);
 
 export function uuidToCompact(uuid: string): string {
   const hex = uuid.replace(/-/g, "");
-  let num = BigInt("0x" + hex);
+  let num = BigInt(`0x${hex}`);
   if (num === 0n) return "0";
   const chars: string[] = [];
   while (num > 0n) {

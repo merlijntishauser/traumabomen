@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -51,9 +51,7 @@ async def register(
 ) -> TokenResponse | RegisterResponse:
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     if settings.REQUIRE_EMAIL_VERIFICATION:
         token, hashed = _generate_verification_token()
@@ -63,7 +61,7 @@ async def register(
             encryption_salt=body.encryption_salt,
             email_verified=False,
             email_verification_token=hashed,
-            email_verification_expires_at=datetime.now(timezone.utc)
+            email_verification_expires_at=datetime.now(UTC)
             + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS),
         )
         db.add(user)
@@ -99,9 +97,7 @@ async def login(
         )
 
     if not user.email_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified")
 
     return _build_token_response(user, settings)
 
@@ -121,10 +117,10 @@ async def verify_email(
 
     verified_user = None
     for user in users:
-        if verify_password(token, user.email_verification_token):
+        if user.email_verification_token and verify_password(token, user.email_verification_token):
             if (
                 user.email_verification_expires_at
-                and user.email_verification_expires_at > datetime.now(timezone.utc)
+                and user.email_verification_expires_at > datetime.now(UTC)
             ):
                 verified_user = user
             break
@@ -163,12 +159,9 @@ async def resend_verification(
         return RegisterResponse(message="verification_email_sent")
 
     # Rate limit: check if token was generated recently
-    if (
-        user.email_verification_expires_at
-        and user.email_verification_expires_at
-        > datetime.now(timezone.utc)
-        + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS - 1)
-    ):
+    if user.email_verification_expires_at and user.email_verification_expires_at > datetime.now(
+        UTC
+    ) + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS - 1):
         # Token was generated less than 1 hour ago -- too soon
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -177,7 +170,7 @@ async def resend_verification(
 
     token, hashed = _generate_verification_token()
     user.email_verification_token = hashed
-    user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
+    user.email_verification_expires_at = datetime.now(UTC) + timedelta(
         hours=VERIFICATION_TOKEN_EXPIRY_HOURS
     )
     await db.commit()
@@ -199,9 +192,7 @@ async def refresh(
         ) from exc
 
     if payload.get("type") != "refresh":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
 
     from uuid import UUID
 

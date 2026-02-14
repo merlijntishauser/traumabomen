@@ -1,38 +1,38 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ReactFlowProvider,
-  ReactFlow,
-  Background,
-  MiniMap,
-  useReactFlow,
   applyNodeChanges,
+  Background,
+  type Connection,
+  MiniMap,
   type OnConnect,
   type OnNodesChange,
-  type Connection,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
 } from "@xyflow/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
-import { useLogout } from "../hooks/useLogout";
-import { useTreeData, treeQueryKeys } from "../hooks/useTreeData";
-import type { DecryptedPerson } from "../hooks/useTreeData";
-import { useTreeMutations } from "../hooks/useTreeMutations";
-import { useTreeLayout } from "../hooks/useTreeLayout";
-import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
-import { PersonNode } from "../components/tree/PersonNode";
-import { RelationshipEdge } from "../components/tree/RelationshipEdge";
-import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
-import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
-import { inferSiblings } from "../lib/inferSiblings";
+import { BranchDecoration } from "../components/BranchDecoration";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { CanvasSettingsPanel } from "../components/tree/CanvasSettingsPanel";
+import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
+import { PersonNode } from "../components/tree/PersonNode";
+import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
+import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
+import { useLogout } from "../hooks/useLogout";
+import type { DecryptedPerson } from "../hooks/useTreeData";
+import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
+import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
+import { useTreeLayout } from "../hooks/useTreeLayout";
+import { useTreeMutations } from "../hooks/useTreeMutations";
 import { uuidToCompact } from "../lib/compactId";
-import { BranchDecoration } from "../components/BranchDecoration";
+import { inferSiblings } from "../lib/inferSiblings";
+import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
 import { RelationshipType } from "../types/domain";
-import type { Person, TraumaEvent, LifeEvent, RelationshipData } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode };
@@ -63,19 +63,13 @@ function RelationshipPopover({
 
   return (
     <div className="relationship-popover" onClick={onClose}>
-      <div
-        className="relationship-popover__card"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relationship-popover__card" onClick={(e) => e.stopPropagation()}>
         <h3>{t("relationship.selectType")}</h3>
         <div className="relationship-popover__direction">
           <span>
             {sourceName} &rarr; {targetName}
           </span>
-          <button
-            className="relationship-popover__swap"
-            onClick={onSwap}
-          >
+          <button className="relationship-popover__swap" onClick={onSwap}>
             {t("relationship.swap")}
           </button>
         </div>
@@ -96,10 +90,7 @@ function RelationshipPopover({
             </button>
           ))}
         </div>
-        <button
-          className="relationship-popover__cancel"
-          onClick={onClose}
-        >
+        <button className="relationship-popover__cancel" onClick={onClose}>
           {t("common.cancel")}
         </button>
       </div>
@@ -116,9 +107,7 @@ function TreeWorkspaceInner() {
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  const [pendingConnection, setPendingConnection] = useState<Connection | null>(
-    null,
-  );
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
 
   const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
     treeId!,
@@ -153,12 +142,9 @@ function TreeWorkspaceInner() {
     });
   }, [layoutNodes]);
 
-  const onNodesChange: OnNodesChange<PersonNodeType> = useCallback(
-    (changes) => {
-      setNodes((nds) => applyNodeChanges(changes, nds));
-    },
-    [],
-  );
+  const onNodesChange: OnNodesChange<PersonNodeType> = useCallback((changes) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
 
   // Fit view when node count changes
   useEffect(() => {
@@ -181,26 +167,20 @@ function TreeWorkspaceInner() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: PersonNodeType) => {
-      setSelectedPersonId(node.id);
-      setSelectedEdgeId(null);
-    },
-    [],
-  );
+  const onNodeClick = useCallback((_: React.MouseEvent, node: PersonNodeType) => {
+    setSelectedPersonId(node.id);
+    setSelectedEdgeId(null);
+  }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedPersonId(null);
     setSelectedEdgeId(null);
   }, []);
 
-  const onEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: RelationshipEdgeType) => {
-      setSelectedEdgeId(edge.id);
-      setSelectedPersonId(null);
-    },
-    [],
-  );
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: RelationshipEdgeType) => {
+    setSelectedEdgeId(edge.id);
+    setSelectedPersonId(null);
+  }, []);
 
   const onConnect: OnConnect = useCallback(
     (connection) => {
@@ -210,8 +190,7 @@ function TreeWorkspaceInner() {
         if (
           (rel.source_person_id === connection.source &&
             rel.target_person_id === connection.target) ||
-          (rel.source_person_id === connection.target &&
-            rel.target_person_id === connection.source)
+          (rel.source_person_id === connection.target && rel.target_person_id === connection.source)
         ) {
           return;
         }
@@ -301,11 +280,7 @@ function TreeWorkspaceInner() {
     });
   }
 
-  function handleSaveEvent(
-    eventId: string | null,
-    data: TraumaEvent,
-    personIds: string[],
-  ) {
+  function handleSaveEvent(eventId: string | null, data: TraumaEvent, personIds: string[]) {
     if (eventId) {
       mutations.updateEvent.mutate({ eventId, personIds, data });
     } else {
@@ -317,11 +292,7 @@ function TreeWorkspaceInner() {
     mutations.deleteEvent.mutate(eventId);
   }
 
-  function handleSaveLifeEvent(
-    lifeEventId: string | null,
-    data: LifeEvent,
-    personIds: string[],
-  ) {
+  function handleSaveLifeEvent(lifeEventId: string | null, data: LifeEvent, personIds: string[]) {
     if (lifeEventId) {
       mutations.updateLifeEvent.mutate({ lifeEventId, personIds, data });
     } else {
@@ -360,38 +331,25 @@ function TreeWorkspaceInner() {
     }
   }
 
-  const selectedPerson = selectedPersonId
-    ? persons.get(selectedPersonId)
-    : null;
+  const selectedPerson = selectedPersonId ? persons.get(selectedPersonId) : null;
 
-  const selectedRelationship = selectedEdgeId
-    ? relationships.get(selectedEdgeId) ?? null
-    : null;
+  const selectedRelationship = selectedEdgeId ? (relationships.get(selectedEdgeId) ?? null) : null;
 
   const selectedRelationships = selectedPersonId
     ? Array.from(relationships.values()).filter(
-        (r) =>
-          r.source_person_id === selectedPersonId ||
-          r.target_person_id === selectedPersonId,
+        (r) => r.source_person_id === selectedPersonId || r.target_person_id === selectedPersonId,
       )
     : [];
 
   const selectedEvents = selectedPersonId
-    ? Array.from(events.values()).filter((e) =>
-        e.person_ids.includes(selectedPersonId),
-      )
+    ? Array.from(events.values()).filter((e) => e.person_ids.includes(selectedPersonId))
     : [];
 
   const selectedLifeEvents = selectedPersonId
-    ? Array.from(lifeEvents.values()).filter((e) =>
-        e.person_ids.includes(selectedPersonId),
-      )
+    ? Array.from(lifeEvents.values()).filter((e) => e.person_ids.includes(selectedPersonId))
     : [];
 
-  const inferredSiblings = useMemo(
-    () => inferSiblings(relationships),
-    [relationships],
-  );
+  const inferredSiblings = useMemo(() => inferSiblings(relationships), [relationships]);
 
   const selectedInferredSiblings = selectedPersonId
     ? inferredSiblings.filter(
@@ -440,15 +398,37 @@ function TreeWorkspaceInner() {
         <div className="tree-toolbar__separator" />
 
         <div className="tree-toolbar__group">
-          <Link to={`/trees/${uuidToCompact(treeId!)}/timeline`} className="tree-toolbar__icon-btn" aria-label={t("tree.timeline")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <Link
+            to={`/trees/${uuidToCompact(treeId!)}/timeline`}
+            className="tree-toolbar__icon-btn"
+            aria-label={t("tree.timeline")}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="12" cy="12" r="7" />
               <polyline points="12 9 12 12 13.5 13.5" />
               <path d="M16.51 17.35l-.35 3.83a2 2 0 01-2 1.82H9.83a2 2 0 01-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 019.83 1h4.35a2 2 0 012 1.82l.35 3.83" />
             </svg>
           </Link>
           <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
@@ -472,7 +452,16 @@ function TreeWorkspaceInner() {
             {i18n.language === "nl" ? "EN" : "NL"}
           </button>
           <button className="tree-toolbar__icon-btn" onClick={logout} aria-label={t("nav.logout")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />

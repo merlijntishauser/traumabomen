@@ -9,9 +9,7 @@ function isMobile(): boolean {
 
 export function MobileBanner() {
   const { t } = useTranslation();
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === "1",
-  );
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(STORAGE_KEY) === "1");
 
   if (dismissed || !isMobile()) return null;
 
@@ -23,9 +21,23 @@ export function MobileBanner() {
   return (
     <div className="mobile-banner">
       <span>{t("common.mobileWarning")}</span>
-      <button className="mobile-banner__close" onClick={handleDismiss} aria-label={t("common.close")}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+      <button
+        className="mobile-banner__close"
+        onClick={handleDismiss}
+        aria-label={t("common.close")}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </div>

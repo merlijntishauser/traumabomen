@@ -1,9 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import type {
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
+} from "../../hooks/useTreeData";
+import { RelationshipType, TraumaCategory } from "../../types/domain";
 import { PersonDetailPanel } from "./PersonDetailPanel";
-import { TraumaCategory, RelationshipType } from "../../types/domain";
-import type { DecryptedPerson, DecryptedRelationship, DecryptedEvent, DecryptedLifeEvent } from "../../hooks/useTreeData";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -54,7 +59,12 @@ function makeRelationship(overrides: Partial<DecryptedRelationship> = {}): Decry
 const defaultProps = () => ({
   person: makePerson(),
   relationships: [] as DecryptedRelationship[],
-  inferredSiblings: [] as { personAId: string; personBId: string; sharedParentIds: string[]; type: "half_sibling" | "full_sibling" }[],
+  inferredSiblings: [] as {
+    personAId: string;
+    personBId: string;
+    sharedParentIds: string[];
+    type: "half_sibling" | "full_sibling";
+  }[],
   events: [] as DecryptedEvent[],
   lifeEvents: [] as DecryptedLifeEvent[],
   allPersons: new Map([["p1", makePerson()]]),
@@ -137,9 +147,7 @@ describe("PersonDetailPanel", () => {
     await user.type(nameInput, "Carol");
     await user.click(screen.getByText("person.save"));
 
-    expect(props.onSavePerson).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Carol" }),
-    );
+    expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ name: "Carol" }));
   });
 
   it("requires two clicks to delete a person", async () => {
@@ -208,9 +216,7 @@ describe("PersonDetailPanel", () => {
 
     // Check Bob's checkbox
     const checkboxes = screen.getAllByRole("checkbox");
-    const bobCheckbox = checkboxes.find(
-      (cb) => cb.closest("label")?.textContent?.includes("Bob"),
-    );
+    const bobCheckbox = checkboxes.find((cb) => cb.closest("label")?.textContent?.includes("Bob"));
     expect(bobCheckbox).toBeDefined();
     await user.click(bobCheckbox!);
 
@@ -236,8 +242,8 @@ describe("PersonDetailPanel", () => {
 
     // Try to uncheck Alice (the only checked person)
     const checkboxes = screen.getAllByRole("checkbox");
-    const aliceCheckbox = checkboxes.find(
-      (cb) => cb.closest("label")?.textContent?.includes("Alice"),
+    const aliceCheckbox = checkboxes.find((cb) =>
+      cb.closest("label")?.textContent?.includes("Alice"),
     );
     expect(aliceCheckbox).toBeDefined();
     expect(aliceCheckbox).toBeChecked();

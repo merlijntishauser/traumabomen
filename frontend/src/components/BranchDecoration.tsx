@@ -109,13 +109,7 @@ export function BranchDecoration() {
         />
       ))}
       {nodes.map((n, i) => (
-        <circle
-          key={i}
-          cx={n.cx}
-          cy={n.cy}
-          r={n.r}
-          fill="var(--color-accent)"
-        />
+        <circle key={i} cx={n.cx} cy={n.cy} r={n.r} fill="var(--color-accent)" />
       ))}
     </svg>
   );

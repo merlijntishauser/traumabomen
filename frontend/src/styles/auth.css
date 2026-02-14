@@ -51,11 +51,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      to right,
-      transparent 50%,
-      var(--color-bg-primary) 100%
-    );
+    background: linear-gradient(to right, transparent 50%, var(--color-bg-primary) 100%);
     pointer-events: none;
   }
 }

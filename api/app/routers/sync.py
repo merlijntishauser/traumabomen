@@ -55,9 +55,7 @@ async def sync_tree(
 
         for item in body.events_delete:
             result = await db.execute(
-                select(TraumaEvent).where(
-                    TraumaEvent.id == item.id, TraumaEvent.tree_id == tree.id
-                )
+                select(TraumaEvent).where(TraumaEvent.id == item.id, TraumaEvent.tree_id == tree.id)
             )
             event = result.scalar_one_or_none()
             if event is not None:
@@ -66,9 +64,7 @@ async def sync_tree(
 
         for item in body.persons_delete:
             result = await db.execute(
-                select(Person).where(
-                    Person.id == item.id, Person.tree_id == tree.id
-                )
+                select(Person).where(Person.id == item.id, Person.tree_id == tree.id)
             )
             person = result.scalar_one_or_none()
             if person is not None:
@@ -131,9 +127,7 @@ async def sync_tree(
         # Phase 3: Updates
         for item in body.persons_update:
             result = await db.execute(
-                select(Person).where(
-                    Person.id == item.id, Person.tree_id == tree.id
-                )
+                select(Person).where(Person.id == item.id, Person.tree_id == tree.id)
             )
             person = result.scalar_one_or_none()
             if person is None:
@@ -157,14 +151,10 @@ async def sync_tree(
                     detail=f"Relationship {item.id} not found",
                 )
             if item.source_person_id is not None:
-                await _validate_person_ids_in_tree(
-                    [item.source_person_id], tree.id, db
-                )
+                await _validate_person_ids_in_tree([item.source_person_id], tree.id, db)
                 rel.source_person_id = item.source_person_id
             if item.target_person_id is not None:
-                await _validate_person_ids_in_tree(
-                    [item.target_person_id], tree.id, db
-                )
+                await _validate_person_ids_in_tree([item.target_person_id], tree.id, db)
                 rel.target_person_id = item.target_person_id
             if item.encrypted_data is not None:
                 rel.encrypted_data = item.encrypted_data
@@ -172,9 +162,7 @@ async def sync_tree(
 
         for item in body.events_update:
             result = await db.execute(
-                select(TraumaEvent).where(
-                    TraumaEvent.id == item.id, TraumaEvent.tree_id == tree.id
-                )
+                select(TraumaEvent).where(TraumaEvent.id == item.id, TraumaEvent.tree_id == tree.id)
             )
             event = result.scalar_one_or_none()
             if event is None:

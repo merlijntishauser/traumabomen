@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import "./MentalHealthBanner.css";
 
 const STORAGE_KEY = "mentalHealthBannerDismissed";
@@ -10,9 +10,7 @@ const resources: Record<string, { name: string; url: string }> = {
 };
 
 export function MentalHealthBanner() {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === "1",
-  );
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(STORAGE_KEY) === "1");
   const { t, i18n } = useTranslation();
 
   if (dismissed) return null;
@@ -42,11 +40,7 @@ export function MentalHealthBanner() {
           values={{ resource: resource.name }}
         />
       </p>
-      <button
-        className="mh-banner__close"
-        onClick={handleDismiss}
-        aria-label={t("common.close")}
-      >
+      <button className="mh-banner__close" onClick={handleDismiss} aria-label={t("common.close")}>
         &times;
       </button>
     </div>

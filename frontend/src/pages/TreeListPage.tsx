@@ -1,12 +1,12 @@
-import { useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTrees, createTree, updateTree, deleteTree } from "../lib/api";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
+import { createTree, deleteTree, getTrees, updateTree } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
-import { ThemeToggle } from "../components/ThemeToggle";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
@@ -188,10 +188,7 @@ export default function TreeListPage() {
                     >
                       {t("common.delete")}
                     </button>
-                    <button
-                      className="tree-list-item__btn"
-                      onClick={() => setDeletingId(null)}
-                    >
+                    <button className="tree-list-item__btn" onClick={() => setDeletingId(null)}>
                       {t("common.cancel")}
                     </button>
                   </div>

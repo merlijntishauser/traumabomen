@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { CanvasSettings, EdgeStyle } from "../../hooks/useCanvasSettings";
@@ -22,8 +22,10 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
   const handleClickOutside = useCallback((e: MouseEvent) => {
     const target = e.target as Node;
     if (
-      triggerRef.current && !triggerRef.current.contains(target) &&
-      dropdownRef.current && !dropdownRef.current.contains(target)
+      triggerRef.current &&
+      !triggerRef.current.contains(target) &&
+      dropdownRef.current &&
+      !dropdownRef.current.contains(target)
     ) {
       setOpen(false);
     }
@@ -60,72 +62,73 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
         </svg>
       </button>
 
-      {open && createPortal(
-        <div
-          ref={dropdownRef}
-          className="canvas-settings__dropdown"
-          style={{ top: pos.top, right: pos.right }}
-        >
-          <label className="canvas-settings__toggle">
-            <input
-              type="checkbox"
-              checked={settings.showGrid}
-              onChange={(e) => onUpdate({ showGrid: e.target.checked })}
-            />
-            <span>{t("canvas.showGrid")}</span>
-          </label>
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="canvas-settings__dropdown"
+            style={{ top: pos.top, right: pos.right }}
+          >
+            <label className="canvas-settings__toggle">
+              <input
+                type="checkbox"
+                checked={settings.showGrid}
+                onChange={(e) => onUpdate({ showGrid: e.target.checked })}
+              />
+              <span>{t("canvas.showGrid")}</span>
+            </label>
 
-          <label className="canvas-settings__toggle">
-            <input
-              type="checkbox"
-              checked={settings.snapToGrid}
-              onChange={(e) => onUpdate({ snapToGrid: e.target.checked })}
-            />
-            <span>{t("canvas.snapToGrid")}</span>
-          </label>
+            <label className="canvas-settings__toggle">
+              <input
+                type="checkbox"
+                checked={settings.snapToGrid}
+                onChange={(e) => onUpdate({ snapToGrid: e.target.checked })}
+              />
+              <span>{t("canvas.snapToGrid")}</span>
+            </label>
 
-          <div className="canvas-settings__divider" />
+            <div className="canvas-settings__divider" />
 
-          <div className="canvas-settings__group">
-            <span className="canvas-settings__label">{t("canvas.edgeStyle")}</span>
-            <div className="canvas-settings__radios">
-              {EDGE_STYLES.map((style) => (
-                <label key={style} className="canvas-settings__radio">
-                  <input
-                    type="radio"
-                    name="edgeStyle"
-                    value={style}
-                    checked={settings.edgeStyle === style}
-                    onChange={() => onUpdate({ edgeStyle: style })}
-                  />
-                  <span>{t(`canvas.edgeStyle.${style}`)}</span>
-                </label>
-              ))}
+            <div className="canvas-settings__group">
+              <span className="canvas-settings__label">{t("canvas.edgeStyle")}</span>
+              <div className="canvas-settings__radios">
+                {EDGE_STYLES.map((style) => (
+                  <label key={style} className="canvas-settings__radio">
+                    <input
+                      type="radio"
+                      name="edgeStyle"
+                      value={style}
+                      checked={settings.edgeStyle === style}
+                      onChange={() => onUpdate({ edgeStyle: style })}
+                    />
+                    <span>{t(`canvas.edgeStyle.${style}`)}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="canvas-settings__divider" />
+            <div className="canvas-settings__divider" />
 
-          <label className="canvas-settings__toggle">
-            <input
-              type="checkbox"
-              checked={settings.showMarkers}
-              onChange={(e) => onUpdate({ showMarkers: e.target.checked })}
-            />
-            <span>{t("canvas.showMarkers")}</span>
-          </label>
+            <label className="canvas-settings__toggle">
+              <input
+                type="checkbox"
+                checked={settings.showMarkers}
+                onChange={(e) => onUpdate({ showMarkers: e.target.checked })}
+              />
+              <span>{t("canvas.showMarkers")}</span>
+            </label>
 
-          <label className="canvas-settings__toggle">
-            <input
-              type="checkbox"
-              checked={settings.showMinimap}
-              onChange={(e) => onUpdate({ showMinimap: e.target.checked })}
-            />
-            <span>{t("canvas.showMinimap")}</span>
-          </label>
-        </div>,
-        document.body,
-      )}
+            <label className="canvas-settings__toggle">
+              <input
+                type="checkbox"
+                checked={settings.showMinimap}
+                onChange={(e) => onUpdate({ showMinimap: e.target.checked })}
+              />
+              <span>{t("canvas.showMinimap")}</span>
+            </label>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

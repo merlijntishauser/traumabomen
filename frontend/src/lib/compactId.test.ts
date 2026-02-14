@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { uuidToCompact, compactToUuid, isUuid } from "./compactId";
+import { describe, expect, it } from "vitest";
+import { compactToUuid, isUuid, uuidToCompact } from "./compactId";
 
 describe("compactId", () => {
   const uuid = "03f28958-029f-4663-82e3-4de766986d28";

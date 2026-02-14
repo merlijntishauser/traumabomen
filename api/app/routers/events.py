@@ -64,9 +64,7 @@ async def list_events(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[EventResponse]:
-    result = await db.execute(
-        select(TraumaEvent).where(TraumaEvent.tree_id == tree.id)
-    )
+    result = await db.execute(select(TraumaEvent).where(TraumaEvent.tree_id == tree.id))
     events = result.scalars().all()
     # Eagerly load person_links for each event
     for event in events:
@@ -81,15 +79,11 @@ async def get_event(
     db: AsyncSession = Depends(get_db),
 ) -> EventResponse:
     result = await db.execute(
-        select(TraumaEvent).where(
-            TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id
-        )
+        select(TraumaEvent).where(TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     await db.refresh(event, ["person_links"])
     return _event_response(event)
 
@@ -102,15 +96,11 @@ async def update_event(
     db: AsyncSession = Depends(get_db),
 ) -> EventResponse:
     result = await db.execute(
-        select(TraumaEvent).where(
-            TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id
-        )
+        select(TraumaEvent).where(TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
     if body.encrypted_data is not None:
         event.encrypted_data = body.encrypted_data
@@ -135,14 +125,10 @@ async def delete_event(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     result = await db.execute(
-        select(TraumaEvent).where(
-            TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id
-        )
+        select(TraumaEvent).where(TraumaEvent.id == event_id, TraumaEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     await db.delete(event)
     await db.commit()

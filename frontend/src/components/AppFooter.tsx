@@ -1,4 +1,4 @@
-import { useTranslation, Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 

@@ -21,10 +21,45 @@ dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
     "httpx>=0.28.0",
+    "mypy>=1.13.0",
+    "ruff>=0.15.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "S", "A"]
+ignore = [
+    "S105", "S106",  # hardcoded password false positives (JWT config keys)
+    "B008",          # Depends() in function defaults is idiomatic FastAPI
+    "B905",          # zip() strict= not needed for internal iteration
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # assert is fine in tests
+"app/models/**" = ["F821"]  # SQLAlchemy forward refs with __future__ annotations
+"app/email.py" = ["E501"]  # HTML email template has long style lines
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # tighten to true over time
+
+[[tool.mypy.overrides]]
+module = "app.routers.sync"
+ignore_errors = true  # complex union types need refactoring
+
+[[tool.mypy.overrides]]
+module = "app.models.*"
+ignore_errors = true  # SQLAlchemy forward refs
 
 [build-system]
 requires = ["hatchling"]

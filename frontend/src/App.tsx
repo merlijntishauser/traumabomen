@@ -1,21 +1,18 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { getAccessToken } from "./lib/api";
-import {
-  EncryptionProvider,
-  useEncryption,
-} from "./contexts/EncryptionContext";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
 import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import { MobileBanner } from "./components/MobileBanner";
+import { EncryptionProvider, useEncryption } from "./contexts/EncryptionContext";
+import { getAccessToken } from "./lib/api";
 import "./components/MobileBanner.css";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import VerificationPendingPage from "./pages/VerificationPendingPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
-import UnlockPage from "./pages/UnlockPage";
+import TimelinePage from "./pages/TimelinePage";
 import TreeListPage from "./pages/TreeListPage";
 import TreeWorkspacePage from "./pages/TreeWorkspacePage";
-import TimelinePage from "./pages/TimelinePage";
+import UnlockPage from "./pages/UnlockPage";
+import VerificationPendingPage from "./pages/VerificationPendingPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();

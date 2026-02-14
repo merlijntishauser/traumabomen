@@ -1,16 +1,27 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TraumaCategory, LifeEventCategory, RelationshipType, PartnerStatus } from "../../types/domain";
-import { getTraumaColor } from "../../lib/traumaColors";
-import { getLifeEventColor } from "../../lib/lifeEventColors";
-import type { Person, TraumaEvent, LifeEvent, RelationshipData, RelationshipPeriod } from "../../types/domain";
 import type {
-  DecryptedPerson,
-  DecryptedRelationship,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
+import { getLifeEventColor } from "../../lib/lifeEventColors";
+import { getTraumaColor } from "../../lib/traumaColors";
+import type {
+  LifeEvent,
+  Person,
+  RelationshipData,
+  RelationshipPeriod,
+  TraumaEvent,
+} from "../../types/domain";
+import {
+  LifeEventCategory,
+  PartnerStatus,
+  RelationshipType,
+  TraumaCategory,
+} from "../../types/domain";
 import "./PersonDetailPanel.css";
 
 interface PersonDetailPanelProps {
@@ -23,17 +34,9 @@ interface PersonDetailPanelProps {
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
-  onSaveEvent: (
-    eventId: string | null,
-    data: TraumaEvent,
-    personIds: string[],
-  ) => void;
+  onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
   onDeleteEvent: (eventId: string) => void;
-  onSaveLifeEvent: (
-    lifeEventId: string | null,
-    data: LifeEvent,
-    personIds: string[],
-  ) => void;
+  onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
   onDeleteLifeEvent: (lifeEventId: string) => void;
   onClose: () => void;
 }
@@ -86,7 +89,14 @@ export function PersonDetailPanel({
     setShowNewEvent(false);
     setEditingLifeEventId(null);
     setShowNewLifeEvent(false);
-  }, [person.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    person.birth_year,
+    person.death_year,
+    person.gender,
+    person.is_adopted,
+    person.name,
+    person.notes,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSavePerson() {
     onSavePerson({
@@ -140,11 +150,7 @@ export function PersonDetailPanel({
             <div className="detail-panel__section-body">
               <label className="detail-panel__field">
                 <span>{t("person.name")}</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
               </label>
               <label className="detail-panel__field">
                 <span>{t("person.birthYear")}</span>
@@ -165,10 +171,7 @@ export function PersonDetailPanel({
               </label>
               <label className="detail-panel__field">
                 <span>{t("person.gender")}</span>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                >
+                <select value={gender} onChange={(e) => setGender(e.target.value)}>
                   <option value="male">{t("person.male")}</option>
                   <option value="female">{t("person.female")}</option>
                   <option value="other">{t("person.other")}</option>
@@ -184,11 +187,7 @@ export function PersonDetailPanel({
               </label>
               <label className="detail-panel__field">
                 <span>{t("person.notes")}</span>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                />
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
               </label>
               <div className="detail-panel__actions">
                 <button
@@ -201,9 +200,7 @@ export function PersonDetailPanel({
                   className="detail-panel__btn detail-panel__btn--danger"
                   onClick={handleDeletePerson}
                 >
-                  {confirmDelete
-                    ? t("person.confirmDelete")
-                    : t("person.delete")}
+                  {confirmDelete ? t("person.confirmDelete") : t("person.delete")}
                 </button>
               </div>
             </div>
@@ -212,10 +209,7 @@ export function PersonDetailPanel({
 
         {/* Relationships section */}
         <section className="detail-panel__section">
-          <button
-            className="detail-panel__section-toggle"
-            onClick={() => setRelsOpen(!relsOpen)}
-          >
+          <button className="detail-panel__section-toggle" onClick={() => setRelsOpen(!relsOpen)}>
             {relsOpen ? "\u25BC" : "\u25B6"} {t("relationship.relationships")} (
             {relationships.length + inferredSiblings.length})
           </button>
@@ -227,17 +221,16 @@ export function PersonDetailPanel({
                 <ul className="detail-panel__rel-list">
                   {relationships.map((rel) => {
                     const isSource = rel.source_person_id === person.id;
-                    const otherId = isSource
-                      ? rel.target_person_id
-                      : rel.source_person_id;
+                    const otherId = isSource ? rel.target_person_id : rel.source_person_id;
                     const otherPerson = allPersons.get(otherId);
                     const isParentType =
                       rel.type === RelationshipType.BiologicalParent ||
                       rel.type === RelationshipType.StepParent ||
                       rel.type === RelationshipType.AdoptiveParent;
-                    const isExPartner = rel.type === RelationshipType.Partner
-                      && rel.periods.length > 0
-                      && rel.periods.every((p) => p.end_year != null);
+                    const isExPartner =
+                      rel.type === RelationshipType.Partner &&
+                      rel.periods.length > 0 &&
+                      rel.periods.every((p) => p.end_year != null);
                     const typeLabel = isExPartner
                       ? t("relationship.type.exPartner")
                       : isParentType && isSource
@@ -245,14 +238,10 @@ export function PersonDetailPanel({
                         : t(`relationship.type.${rel.type}`);
                     return (
                       <li key={rel.id} className="detail-panel__rel-item">
-                        <span className="detail-panel__rel-type">
-                          {typeLabel}
-                        </span>
-                        <span className="detail-panel__rel-name">
-                          {otherPerson?.name ?? "?"}
-                        </span>
-                        {rel.type === RelationshipType.Partner && (
-                          editingRelId === rel.id ? (
+                        <span className="detail-panel__rel-type">{typeLabel}</span>
+                        <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
+                        {rel.type === RelationshipType.Partner &&
+                          (editingRelId === rel.id ? (
                             <PartnerPeriodEditor
                               relationship={rel}
                               onSave={(data) => {
@@ -267,8 +256,7 @@ export function PersonDetailPanel({
                                 <div className="detail-panel__rel-periods">
                                   {rel.periods.map((p, i) => (
                                     <span key={i} className="detail-panel__period">
-                                      {t(`relationship.status.${p.status}`)}:{" "}
-                                      {p.start_year}
+                                      {t(`relationship.status.${p.status}`)}: {p.start_year}
                                       {p.end_year ? ` - ${p.end_year}` : " -"}
                                     </span>
                                   ))}
@@ -282,29 +270,22 @@ export function PersonDetailPanel({
                                 {t("common.edit")}
                               </button>
                             </>
-                          )
-                        )}
+                          ))}
                       </li>
                     );
                   })}
                   {inferredSiblings.map((sib) => {
-                    const otherId =
-                      sib.personAId === person.id ? sib.personBId : sib.personAId;
+                    const otherId = sib.personAId === person.id ? sib.personBId : sib.personAId;
                     const otherPerson = allPersons.get(otherId);
                     const sharedParentNames = sib.sharedParentIds
                       .map((id) => allPersons.get(id)?.name ?? "?")
                       .join(", ");
                     return (
-                      <li
-                        key={`inferred-${otherId}`}
-                        className="detail-panel__rel-item"
-                      >
+                      <li key={`inferred-${otherId}`} className="detail-panel__rel-item">
                         <span className="detail-panel__rel-type">
                           {t(`relationship.type.${sib.type}`)}
                         </span>
-                        <span className="detail-panel__rel-name">
-                          {otherPerson?.name ?? "?"}
-                        </span>
+                        <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
                         <span className="detail-panel__rel-via">
                           {t("relationship.viaParent", { name: sharedParentNames })}
                         </span>
@@ -323,8 +304,7 @@ export function PersonDetailPanel({
             className="detail-panel__section-toggle"
             onClick={() => setEventsOpen(!eventsOpen)}
           >
-            {eventsOpen ? "\u25BC" : "\u25B6"} {t("trauma.events")} (
-            {events.length})
+            {eventsOpen ? "\u25BC" : "\u25B6"} {t("trauma.events")} ({events.length})
           </button>
           {eventsOpen && (
             <div className="detail-panel__section-body">
@@ -354,9 +334,7 @@ export function PersonDetailPanel({
                           backgroundColor: getTraumaColor(event.category),
                         }}
                       />
-                      <span className="detail-panel__event-title">
-                        {event.title}
-                      </span>
+                      <span className="detail-panel__event-title">{event.title}</span>
                       <button
                         className="detail-panel__btn--small"
                         onClick={() => setEditingEventId(event.id)}
@@ -365,9 +343,7 @@ export function PersonDetailPanel({
                       </button>
                     </div>
                     {event.approximate_date && (
-                      <div className="detail-panel__event-date">
-                        {event.approximate_date}
-                      </div>
+                      <div className="detail-panel__event-date">{event.approximate_date}</div>
                     )}
                   </div>
                 ),
@@ -401,8 +377,7 @@ export function PersonDetailPanel({
             className="detail-panel__section-toggle"
             onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
           >
-            {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("lifeEvent.events")} (
-            {lifeEvents.length})
+            {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("lifeEvent.events")} ({lifeEvents.length})
           </button>
           {lifeEventsOpen && (
             <div className="detail-panel__section-body">
@@ -433,9 +408,7 @@ export function PersonDetailPanel({
                           borderRadius: 2,
                         }}
                       />
-                      <span className="detail-panel__event-title">
-                        {event.title}
-                      </span>
+                      <span className="detail-panel__event-title">{event.title}</span>
                       <button
                         className="detail-panel__btn--small"
                         onClick={() => setEditingLifeEventId(event.id)}
@@ -444,9 +417,7 @@ export function PersonDetailPanel({
                       </button>
                     </div>
                     {event.approximate_date && (
-                      <div className="detail-panel__event-date">
-                        {event.approximate_date}
-                      </div>
+                      <div className="detail-panel__event-date">{event.approximate_date}</div>
                     )}
                   </div>
                 ),
@@ -488,19 +459,22 @@ interface LifeEventFormProps {
   onDelete?: () => void;
 }
 
-function LifeEventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDelete }: LifeEventFormProps) {
+function LifeEventForm({
+  event,
+  allPersons,
+  initialPersonIds,
+  onSave,
+  onCancel,
+  onDelete,
+}: LifeEventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(event?.title ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
   const [category, setCategory] = useState<LifeEventCategory>(
     event?.category ?? LifeEventCategory.Family,
   );
-  const [approximateDate, setApproximateDate] = useState(
-    event?.approximate_date ?? "",
-  );
-  const [impact, setImpact] = useState(
-    event?.impact != null ? String(event.impact) : "",
-  );
+  const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
+  const [impact, setImpact] = useState(event?.impact != null ? String(event.impact) : "");
   const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
@@ -545,26 +519,15 @@ function LifeEventForm({ event, allPersons, initialPersonIds, onSave, onCancel, 
     <div className="detail-panel__event-form">
       <label className="detail-panel__field">
         <span>{t("lifeEvent.title")}</span>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
       </label>
       <label className="detail-panel__field">
         <span>{t("lifeEvent.description")}</span>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-        />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
       </label>
       <label className="detail-panel__field">
         <span>{t("lifeEvent.category")}</span>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as LifeEventCategory)}
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value as LifeEventCategory)}>
           {Object.values(LifeEventCategory).map((cat) => (
             <option key={cat} value={cat}>
               {t(`lifeEvent.category.${cat}`)}
@@ -615,10 +578,7 @@ function LifeEventForm({ event, allPersons, initialPersonIds, onSave, onCancel, 
         ))}
       </fieldset>
       <div className="detail-panel__actions">
-        <button
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
           {t("common.save")}
         </button>
         <button className="detail-panel__btn" onClick={onCancel}>
@@ -652,16 +612,19 @@ interface EventFormProps {
   onDelete?: () => void;
 }
 
-function EventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDelete }: EventFormProps) {
+function EventForm({
+  event,
+  allPersons,
+  initialPersonIds,
+  onSave,
+  onCancel,
+  onDelete,
+}: EventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(event?.title ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
-  const [category, setCategory] = useState<TraumaCategory>(
-    event?.category ?? TraumaCategory.Loss,
-  );
-  const [approximateDate, setApproximateDate] = useState(
-    event?.approximate_date ?? "",
-  );
+  const [category, setCategory] = useState<TraumaCategory>(event?.category ?? TraumaCategory.Loss);
+  const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
   const [severity, setSeverity] = useState(String(event?.severity ?? 5));
   const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -707,26 +670,15 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDe
     <div className="detail-panel__event-form">
       <label className="detail-panel__field">
         <span>{t("trauma.title")}</span>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
       </label>
       <label className="detail-panel__field">
         <span>{t("trauma.description")}</span>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-        />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
       </label>
       <label className="detail-panel__field">
         <span>{t("trauma.category")}</span>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as TraumaCategory)}
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value as TraumaCategory)}>
           {Object.values(TraumaCategory).map((cat) => (
             <option key={cat} value={cat}>
               {t(`trauma.category.${cat}`)}
@@ -776,10 +728,7 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onCancel, onDe
         ))}
       </fieldset>
       <div className="detail-panel__actions">
-        <button
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
           {t("common.save")}
         </button>
         <button className="detail-panel__btn" onClick={onCancel}>
@@ -812,8 +761,8 @@ interface PartnerPeriodEditorProps {
 
 function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEditorProps) {
   const { t } = useTranslation();
-  const [periods, setPeriods] = useState<RelationshipPeriod[]>(
-    () => relationship.periods.length > 0
+  const [periods, setPeriods] = useState<RelationshipPeriod[]>(() =>
+    relationship.periods.length > 0
       ? relationship.periods
       : [{ start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together }],
   );
@@ -894,18 +843,11 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
           )}
         </div>
       ))}
-      <button
-        className="detail-panel__btn--small"
-        style={{ marginTop: 4 }}
-        onClick={addPeriod}
-      >
+      <button className="detail-panel__btn--small" style={{ marginTop: 4 }} onClick={addPeriod}>
         {t("relationship.addPeriod")}
       </button>
       <div className="detail-panel__actions">
-        <button
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
           {t("common.save")}
         </button>
         <button className="detail-panel__btn" onClick={onCancel}>

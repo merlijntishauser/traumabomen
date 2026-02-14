@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_owned_tree
-from app.models.life_event import LifeEventPerson, LifeEvent
+from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.person import Person
 from app.models.tree import Tree
 from app.schemas.tree import LifeEventCreate, LifeEventResponse, LifeEventUpdate
@@ -64,9 +64,7 @@ async def list_life_events(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[LifeEventResponse]:
-    result = await db.execute(
-        select(LifeEvent).where(LifeEvent.tree_id == tree.id)
-    )
+    result = await db.execute(select(LifeEvent).where(LifeEvent.tree_id == tree.id))
     events = result.scalars().all()
     for event in events:
         await db.refresh(event, ["person_links"])
@@ -80,15 +78,11 @@ async def get_life_event(
     db: AsyncSession = Depends(get_db),
 ) -> LifeEventResponse:
     result = await db.execute(
-        select(LifeEvent).where(
-            LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id
-        )
+        select(LifeEvent).where(LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found")
     await db.refresh(event, ["person_links"])
     return _life_event_response(event)
 
@@ -101,15 +95,11 @@ async def update_life_event(
     db: AsyncSession = Depends(get_db),
 ) -> LifeEventResponse:
     result = await db.execute(
-        select(LifeEvent).where(
-            LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id
-        )
+        select(LifeEvent).where(LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found")
 
     if body.encrypted_data is not None:
         event.encrypted_data = body.encrypted_data
@@ -134,14 +124,10 @@ async def delete_life_event(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     result = await db.execute(
-        select(LifeEvent).where(
-            LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id
-        )
+        select(LifeEvent).where(LifeEvent.id == life_event_id, LifeEvent.tree_id == tree.id)
     )
     event = result.scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Life event not found")
     await db.delete(event)
     await db.commit()

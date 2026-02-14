@@ -1,10 +1,10 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useLocation } from "react-router-dom";
-import { getEncryptionSalt, clearTokens, ApiError } from "../lib/api";
-import { deriveKey } from "../lib/crypto";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { useEncryption } from "../contexts/EncryptionContext";
+import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
+import { deriveKey } from "../lib/crypto";
 import "../styles/auth.css";
 
 export default function UnlockPage() {
@@ -79,35 +79,39 @@ export default function UnlockPage() {
       <AuthHero variant="unlock" />
       <div className="auth-content">
         <div className="auth-card">
-        <h1>{t("app.title")}</h1>
-        <h2>{t("auth.passphrase")}</h2>
-        <p className="auth-prompt">{t("auth.passphrasePrompt")}</p>
+          <h1>{t("app.title")}</h1>
+          <h2>{t("auth.passphrase")}</h2>
+          <p className="auth-prompt">{t("auth.passphrasePrompt")}</p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-            <input
-              id="passphrase"
-              type="password"
-              required
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              autoFocus
-            />
-          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+              <input
+                id="passphrase"
+                type="password"
+                required
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                autoFocus
+              />
+            </div>
 
-          {error && <p className="auth-error" role="alert">{error}</p>}
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
 
-          <button className="auth-submit" type="submit" disabled={loading}>
-            {loading ? t("auth.derivingKey") : t("auth.unlock")}
-          </button>
-        </form>
+            <button className="auth-submit" type="submit" disabled={loading}>
+              {loading ? t("auth.derivingKey") : t("auth.unlock")}
+            </button>
+          </form>
 
-        <p className="auth-footer">
-          <button className="auth-link-btn" onClick={handleLogout}>
-            {t("auth.switchAccount")}
-          </button>
-        </p>
+          <p className="auth-footer">
+            <button className="auth-link-btn" onClick={handleLogout}>
+              {t("auth.switchAccount")}
+            </button>
+          </p>
         </div>
       </div>
     </div>

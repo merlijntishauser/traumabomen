@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { logout } from "../lib/api";
 
 export function useLogout() {
   const navigate = useNavigate();

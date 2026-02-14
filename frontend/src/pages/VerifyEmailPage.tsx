@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
-import { verifyEmail } from "../lib/api";
 import { AuthHero } from "../components/AuthHero";
+import { verifyEmail } from "../lib/api";
 import "../styles/auth.css";
 
 export default function VerifyEmailPage() {
@@ -10,9 +10,7 @@ export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
     if (!token) {

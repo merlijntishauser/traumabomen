@@ -1,12 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  useCallback,
-  type ReactNode,
-} from "react";
-import { encryptForApi, decryptFromApi } from "../lib/crypto";
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+import { decryptFromApi, encryptForApi } from "../lib/crypto";
 
 interface EncryptionContextValue {
   key: CryptoKey | null;
@@ -50,11 +43,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
     [key, setKey, clearKey, encrypt, decrypt],
   );
 
-  return (
-    <EncryptionContext.Provider value={value}>
-      {children}
-    </EncryptionContext.Provider>
-  );
+  return <EncryptionContext.Provider value={value}>{children}</EncryptionContext.Provider>;
 }
 
 export function useEncryption(): EncryptionContextValue {

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getTree, getPersons, getRelationships, getEvents, getLifeEvents } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
-import type { Person, RelationshipData, TraumaEvent, LifeEvent } from "../types/domain";
+import { getEvents, getLifeEvents, getPersons, getRelationships, getTree } from "../lib/api";
+import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
 
 export interface DecryptedPerson extends Person {
   id: string;
@@ -26,8 +26,7 @@ export interface DecryptedLifeEvent extends LifeEvent {
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
-  relationships: (treeId: string) =>
-    ["trees", treeId, "relationships"] as const,
+  relationships: (treeId: string) => ["trees", treeId, "relationships"] as const,
   events: (treeId: string) => ["trees", treeId, "events"] as const,
   lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
 };
@@ -92,10 +91,7 @@ export function useTreeData(treeId: string) {
       const entries = await Promise.all(
         responses.map(async (r) => {
           const data = await decrypt<TraumaEvent>(r.encrypted_data);
-          return [
-            r.id,
-            { ...data, id: r.id, person_ids: r.person_ids } as DecryptedEvent,
-          ] as const;
+          return [r.id, { ...data, id: r.id, person_ids: r.person_ids } as DecryptedEvent] as const;
         }),
       );
       return new Map(entries);
@@ -131,9 +127,6 @@ export function useTreeData(treeId: string) {
       eventsQuery.isLoading ||
       lifeEventsQuery.isLoading,
     error:
-      personsQuery.error ||
-      relationshipsQuery.error ||
-      eventsQuery.error ||
-      lifeEventsQuery.error,
+      personsQuery.error || relationshipsQuery.error || eventsQuery.error || lifeEventsQuery.error,
   };
 }

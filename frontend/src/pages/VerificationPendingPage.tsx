@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
-import { resendVerification, ApiError } from "../lib/api";
 import { AuthHero } from "../components/AuthHero";
+import { ApiError, resendVerification } from "../lib/api";
 import "../styles/auth.css";
 
 export default function VerificationPendingPage() {
@@ -54,13 +54,13 @@ export default function VerificationPendingPage() {
           </p>
 
           {message && <p className="auth-success">{message}</p>}
-          {error && <p className="auth-error" role="alert">{error}</p>}
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <button
-            className="auth-submit"
-            onClick={handleResend}
-            disabled={cooldown > 0 || !email}
-          >
+          <button className="auth-submit" onClick={handleResend} disabled={cooldown > 0 || !email}>
             {cooldown > 0
               ? t("auth.resendCooldown", { seconds: cooldown })
               : t("auth.resendVerification")}

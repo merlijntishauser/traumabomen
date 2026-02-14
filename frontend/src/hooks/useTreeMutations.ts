@@ -1,21 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createPerson,
-  updatePerson,
-  deletePerson,
-  createRelationship,
-  updateRelationship,
-  deleteRelationship,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  createLifeEvent,
-  updateLifeEvent,
-  deleteLifeEvent,
-} from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
+import {
+  createEvent,
+  createLifeEvent,
+  createPerson,
+  createRelationship,
+  deleteEvent,
+  deleteLifeEvent,
+  deletePerson,
+  deleteRelationship,
+  updateEvent,
+  updateLifeEvent,
+  updatePerson,
+  updateRelationship,
+} from "../lib/api";
+import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
 import { treeQueryKeys } from "./useTreeData";
-import type { Person, RelationshipData, TraumaEvent, LifeEvent } from "../types/domain";
 
 export function useTreeMutations(treeId: string) {
   const queryClient = useQueryClient();
@@ -119,13 +119,7 @@ export function useTreeMutations(treeId: string) {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: async ({
-      personIds,
-      data,
-    }: {
-      personIds: string[];
-      data: TraumaEvent;
-    }) => {
+    mutationFn: async ({ personIds, data }: { personIds: string[]; data: TraumaEvent }) => {
       const encrypted_data = await encrypt(data);
       return createEvent(treeId, { person_ids: personIds, encrypted_data });
     },
@@ -171,13 +165,7 @@ export function useTreeMutations(treeId: string) {
   });
 
   const createLifeEventMutation = useMutation({
-    mutationFn: async ({
-      personIds,
-      data,
-    }: {
-      personIds: string[];
-      data: LifeEvent;
-    }) => {
+    mutationFn: async ({ personIds, data }: { personIds: string[]; data: LifeEvent }) => {
       const encrypted_data = await encrypt(data);
       return createLifeEvent(treeId, { person_ids: personIds, encrypted_data });
     },

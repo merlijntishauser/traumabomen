@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RelationshipType, PartnerStatus } from "../../types/domain";
+import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
 import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
-import type { DecryptedRelationship, DecryptedPerson } from "../../hooks/useTreeData";
+import { PartnerStatus, RelationshipType } from "../../types/domain";
 import "./PersonDetailPanel.css";
 
 interface RelationshipDetailPanelProps {
@@ -38,24 +38,21 @@ export function RelationshipDetailPanel({
     setPeriods(relationship.periods);
     setConfirmDelete(false);
     setEditingPeriods(false);
-  }, [relationship.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [relationship.periods, relationship.type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sourcePerson = allPersons.get(relationship.source_person_id);
   const targetPerson = allPersons.get(relationship.target_person_id);
 
   const isParentType = PARENT_TYPES.has(relationship.type);
-  const isExPartner = relationship.type === RelationshipType.Partner
-    && relationship.periods.length > 0
-    && relationship.periods.every((p) => p.end_year != null);
+  const isExPartner =
+    relationship.type === RelationshipType.Partner &&
+    relationship.periods.length > 0 &&
+    relationship.periods.every((p) => p.end_year != null);
   const headerLabel = isExPartner
     ? t("relationship.type.exPartner")
     : t("relationship.editRelationship");
-  const sourceLabel = isParentType
-    ? t(`relationship.type.${relationship.type}`)
-    : null;
-  const targetLabel = isParentType
-    ? t(`relationship.childOf.${relationship.type}`)
-    : null;
+  const sourceLabel = isParentType ? t(`relationship.type.${relationship.type}`) : null;
+  const targetLabel = isParentType ? t(`relationship.childOf.${relationship.type}`) : null;
 
   function handleSaveType(newType: RelationshipType) {
     setType(newType);
@@ -119,23 +116,15 @@ export function RelationshipDetailPanel({
         <section className="detail-panel__section">
           <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
             <div className="detail-panel__rel-item">
-              {sourceLabel && (
-                <span className="detail-panel__rel-type">{sourceLabel}</span>
-              )}
-              <span className="detail-panel__rel-name">
-                {sourcePerson?.name ?? "?"}
-              </span>
+              {sourceLabel && <span className="detail-panel__rel-type">{sourceLabel}</span>}
+              <span className="detail-panel__rel-name">{sourcePerson?.name ?? "?"}</span>
             </div>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)", padding: "4px 0" }}>
               {t("relationship.between")}
             </div>
             <div className="detail-panel__rel-item">
-              {targetLabel && (
-                <span className="detail-panel__rel-type">{targetLabel}</span>
-              )}
-              <span className="detail-panel__rel-name">
-                {targetPerson?.name ?? "?"}
-              </span>
+              {targetLabel && <span className="detail-panel__rel-type">{targetLabel}</span>}
+              <span className="detail-panel__rel-name">{targetPerson?.name ?? "?"}</span>
             </div>
           </div>
         </section>
@@ -171,9 +160,7 @@ export function RelationshipDetailPanel({
             {editingPeriods && (
               <div className="detail-panel__section-body">
                 <div className="detail-panel__period-editor">
-                  {periods.length === 0 && (
-                    <p className="detail-panel__empty">---</p>
-                  )}
+                  {periods.length === 0 && <p className="detail-panel__empty">---</p>}
                   {periods.map((period, i) => (
                     <div key={i} className="detail-panel__period-row">
                       <label className="detail-panel__field">
@@ -261,9 +248,7 @@ export function RelationshipDetailPanel({
                 className="detail-panel__btn detail-panel__btn--danger"
                 onClick={handleDelete}
               >
-                {confirmDelete
-                  ? t("relationship.confirmDelete")
-                  : t("common.delete")}
+                {confirmDelete ? t("relationship.confirmDelete") : t("common.delete")}
               </button>
             </div>
           </div>

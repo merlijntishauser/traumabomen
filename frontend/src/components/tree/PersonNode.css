@@ -8,7 +8,9 @@
   border-radius: var(--radius-lg);
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   color: var(--color-text-primary);
   display: flex;
   flex-direction: column;

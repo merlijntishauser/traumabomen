@@ -1,5 +1,5 @@
-import { RelationshipType } from "../types/domain";
 import type { DecryptedRelationship } from "../hooks/useTreeData";
+import { RelationshipType } from "../types/domain";
 
 export interface InferredSibling {
   personAId: string;

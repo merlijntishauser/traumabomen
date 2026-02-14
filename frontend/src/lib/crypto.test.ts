@@ -1,26 +1,14 @@
-import { describe, it, expect } from "vitest";
-import {
-  generateSalt,
-  encrypt,
-  decrypt,
-  encryptForApi,
-  decryptFromApi,
-} from "./crypto";
+import { describe, expect, it } from "vitest";
+import { decrypt, decryptFromApi, encrypt, encryptForApi, generateSalt } from "./crypto";
 
 async function createTestKey(): Promise<CryptoKey> {
   const rawKey = crypto.getRandomValues(new Uint8Array(32));
-  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
 async function createDifferentKey(): Promise<CryptoKey> {
   const rawKey = crypto.getRandomValues(new Uint8Array(32));
-  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
 describe("generateSalt", () => {

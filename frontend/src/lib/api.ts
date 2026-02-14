@@ -1,29 +1,29 @@
 import type {
+  EventCreate,
+  EventResponse,
+  EventUpdate,
+  LifeEventCreate,
+  LifeEventResponse,
+  LifeEventUpdate,
+  LoginRequest,
+  PersonCreate,
+  PersonResponse,
+  PersonUpdate,
+  RefreshResponse,
   RegisterRequest,
   RegisterResponse,
-  ResendVerificationRequest,
-  VerifyResponse,
-  LoginRequest,
-  TokenResponse,
-  RefreshResponse,
-  SaltResponse,
-  TreeCreate,
-  TreeUpdate,
-  TreeResponse,
-  PersonCreate,
-  PersonUpdate,
-  PersonResponse,
   RelationshipCreate,
-  RelationshipUpdate,
   RelationshipResponse,
-  EventCreate,
-  EventUpdate,
-  EventResponse,
-  LifeEventCreate,
-  LifeEventUpdate,
-  LifeEventResponse,
+  RelationshipUpdate,
+  ResendVerificationRequest,
+  SaltResponse,
   SyncRequest,
   SyncResponse,
+  TokenResponse,
+  TreeCreate,
+  TreeResponse,
+  TreeUpdate,
+  VerifyResponse,
 } from "../types/api";
 
 const TOKEN_KEY = "traumabomen_access_token";
@@ -67,10 +67,7 @@ interface FetchOptions {
   requiresAuth?: boolean;
 }
 
-async function apiFetch<T>(
-  endpoint: string,
-  options: FetchOptions = {},
-): Promise<T> {
+async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { method = "GET", body, requiresAuth = true } = options;
 
   const headers: Record<string, string> = {
@@ -80,7 +77,7 @@ async function apiFetch<T>(
   if (requiresAuth) {
     const token = getAccessToken();
     if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
   }
 
@@ -126,10 +123,7 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
-async function apiFetchWithRetry<T>(
-  endpoint: string,
-  options: FetchOptions = {},
-): Promise<T> {
+async function apiFetchWithRetry<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   try {
     return await apiFetch<T>(endpoint, options);
   } catch (error) {
@@ -148,14 +142,11 @@ async function apiFetchWithRetry<T>(
 export async function register(
   request: RegisterRequest,
 ): Promise<TokenResponse | RegisterResponse> {
-  const data = await apiFetch<TokenResponse | RegisterResponse>(
-    "/auth/register",
-    {
-      method: "POST",
-      body: request,
-      requiresAuth: false,
-    },
-  );
+  const data = await apiFetch<TokenResponse | RegisterResponse>("/auth/register", {
+    method: "POST",
+    body: request,
+    requiresAuth: false,
+  });
   if ("access_token" in data) {
     setTokens(data.access_token, data.refresh_token);
   }
@@ -210,10 +201,7 @@ export function createTree(data: TreeCreate): Promise<TreeResponse> {
   return apiFetchWithRetry("/trees", { method: "POST", body: data });
 }
 
-export function updateTree(
-  id: string,
-  data: TreeUpdate,
-): Promise<TreeResponse> {
+export function updateTree(id: string, data: TreeUpdate): Promise<TreeResponse> {
   return apiFetchWithRetry(`/trees/${id}`, { method: "PUT", body: data });
 }
 
@@ -227,17 +215,11 @@ export function getPersons(treeId: string): Promise<PersonResponse[]> {
   return apiFetchWithRetry(`/trees/${treeId}/persons`);
 }
 
-export function getPerson(
-  treeId: string,
-  personId: string,
-): Promise<PersonResponse> {
+export function getPerson(treeId: string, personId: string): Promise<PersonResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/persons/${personId}`);
 }
 
-export function createPerson(
-  treeId: string,
-  data: PersonCreate,
-): Promise<PersonResponse> {
+export function createPerson(treeId: string, data: PersonCreate): Promise<PersonResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/persons`, {
     method: "POST",
     body: data,
@@ -255,10 +237,7 @@ export function updatePerson(
   });
 }
 
-export function deletePerson(
-  treeId: string,
-  personId: string,
-): Promise<void> {
+export function deletePerson(treeId: string, personId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/persons/${personId}`, {
     method: "DELETE",
   });
@@ -266,9 +245,7 @@ export function deletePerson(
 
 // Relationships
 
-export function getRelationships(
-  treeId: string,
-): Promise<RelationshipResponse[]> {
+export function getRelationships(treeId: string): Promise<RelationshipResponse[]> {
   return apiFetchWithRetry(`/trees/${treeId}/relationships`);
 }
 
@@ -276,9 +253,7 @@ export function getRelationship(
   treeId: string,
   relationshipId: string,
 ): Promise<RelationshipResponse> {
-  return apiFetchWithRetry(
-    `/trees/${treeId}/relationships/${relationshipId}`,
-  );
+  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`);
 }
 
 export function createRelationship(
@@ -296,20 +271,16 @@ export function updateRelationship(
   relationshipId: string,
   data: RelationshipUpdate,
 ): Promise<RelationshipResponse> {
-  return apiFetchWithRetry(
-    `/trees/${treeId}/relationships/${relationshipId}`,
-    { method: "PUT", body: data },
-  );
+  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`, {
+    method: "PUT",
+    body: data,
+  });
 }
 
-export function deleteRelationship(
-  treeId: string,
-  relationshipId: string,
-): Promise<void> {
-  return apiFetchWithRetry(
-    `/trees/${treeId}/relationships/${relationshipId}`,
-    { method: "DELETE" },
-  );
+export function deleteRelationship(treeId: string, relationshipId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`, {
+    method: "DELETE",
+  });
 }
 
 // Events
@@ -318,17 +289,11 @@ export function getEvents(treeId: string): Promise<EventResponse[]> {
   return apiFetchWithRetry(`/trees/${treeId}/events`);
 }
 
-export function getEvent(
-  treeId: string,
-  eventId: string,
-): Promise<EventResponse> {
+export function getEvent(treeId: string, eventId: string): Promise<EventResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`);
 }
 
-export function createEvent(
-  treeId: string,
-  data: EventCreate,
-): Promise<EventResponse> {
+export function createEvent(treeId: string, data: EventCreate): Promise<EventResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/events`, {
     method: "POST",
     body: data,
@@ -346,10 +311,7 @@ export function updateEvent(
   });
 }
 
-export function deleteEvent(
-  treeId: string,
-  eventId: string,
-): Promise<void> {
+export function deleteEvent(treeId: string, eventId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`, {
     method: "DELETE",
   });
@@ -361,17 +323,11 @@ export function getLifeEvents(treeId: string): Promise<LifeEventResponse[]> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events`);
 }
 
-export function getLifeEvent(
-  treeId: string,
-  lifeEventId: string,
-): Promise<LifeEventResponse> {
+export function getLifeEvent(treeId: string, lifeEventId: string): Promise<LifeEventResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`);
 }
 
-export function createLifeEvent(
-  treeId: string,
-  data: LifeEventCreate,
-): Promise<LifeEventResponse> {
+export function createLifeEvent(treeId: string, data: LifeEventCreate): Promise<LifeEventResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events`, {
     method: "POST",
     body: data,
@@ -389,10 +345,7 @@ export function updateLifeEvent(
   });
 }
 
-export function deleteLifeEvent(
-  treeId: string,
-  lifeEventId: string,
-): Promise<void> {
+export function deleteLifeEvent(treeId: string, lifeEventId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
     method: "DELETE",
   });
@@ -400,10 +353,7 @@ export function deleteLifeEvent(
 
 // Sync
 
-export function syncTree(
-  treeId: string,
-  data: SyncRequest,
-): Promise<SyncResponse> {
+export function syncTree(treeId: string, data: SyncRequest): Promise<SyncResponse> {
   return apiFetchWithRetry(`/trees/${treeId}/sync`, {
     method: "POST",
     body: data,

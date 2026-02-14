@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { TimelineView } from "../components/timeline/TimelineView";
 import { useLogout } from "../hooks/useLogout";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { uuidToCompact } from "../lib/compactId";
-import { TimelineView } from "../components/timeline/TimelineView";
-import { ThemeToggle } from "../components/ThemeToggle";
 import "../components/tree/TreeCanvas.css";
 
 export default function TimelinePage() {

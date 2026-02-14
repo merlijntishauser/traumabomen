@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from fastapi import Depends, HTTPException, status
@@ -23,10 +23,8 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def create_token(
-    user_id: uuid.UUID, token_type: str, settings: Settings
-) -> str:
-    now = datetime.now(timezone.utc)
+def create_token(user_id: uuid.UUID, token_type: str, settings: Settings) -> str:
+    now = datetime.now(UTC)
     if token_type == "access":
         expires = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     else:
@@ -38,11 +36,13 @@ def create_token(
         "exp": expires,
         "iat": now,
     }
-    return jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    result: str = jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return result
 
 
-def decode_token(token: str, settings: Settings) -> dict:
-    return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+def decode_token(token: str, settings: Settings) -> dict:  # type: ignore[type-arg]
+    result: dict = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])  # type: ignore[assignment]
+    return result
 
 
 async def get_current_user(
@@ -65,7 +65,5 @@ async def get_current_user(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user

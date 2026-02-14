@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { login, ApiError } from "../lib/api";
 import { AuthHero } from "../components/AuthHero";
+import { ApiError, login } from "../lib/api";
 import "../styles/auth.css";
 
 export default function LoginPage() {
@@ -68,7 +68,11 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && <p className="auth-error" role="alert">{error}</p>}
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
 
             <button className="auth-submit" type="submit" disabled={loading}>
               {loading ? t("common.loading") : t("auth.login")}
@@ -76,8 +80,7 @@ export default function LoginPage() {
           </form>
 
           <p className="auth-footer">
-            {t("auth.noAccount")}{" "}
-            <Link to="/register">{t("auth.register")}</Link>
+            {t("auth.noAccount")} <Link to="/register">{t("auth.register")}</Link>
           </p>
 
           <div className="auth-explainer">

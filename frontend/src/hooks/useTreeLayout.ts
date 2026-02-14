@@ -1,15 +1,15 @@
-import { useMemo } from "react";
+import type { Edge, Node } from "@xyflow/react";
 import * as dagre from "dagre";
-import type { Node, Edge } from "@xyflow/react";
-import { RelationshipType } from "../types/domain";
+import { useMemo } from "react";
 import { inferSiblings } from "../lib/inferSiblings";
+import { RelationshipType } from "../types/domain";
+import type { EdgeStyle } from "./useCanvasSettings";
 import type {
-  DecryptedPerson,
-  DecryptedRelationship,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
 } from "./useTreeData";
-import type { EdgeStyle } from "./useCanvasSettings";
 
 export interface PersonNodeData extends Record<string, unknown> {
   person: DecryptedPerson;
@@ -229,21 +229,29 @@ export function useTreeLayout(
     // ---- Build junction fork assignments for biological parent couples ----
     const forkPrimaryIds = new Set<string>();
     const forkHiddenIds = new Set<string>();
-    const forkDataByEdge = new Map<string, { parentIds: [string, string]; childIds: string[]; parentNames: [string, string]; childNames: string[] }>();
+    const forkDataByEdge = new Map<
+      string,
+      {
+        parentIds: [string, string];
+        childIds: string[];
+        parentNames: [string, string];
+        childNames: string[];
+      }
+    >();
 
     for (const [coupleKey, childIds] of coupleChildren) {
       const [parentAId, parentBId] = coupleKey.split("|");
       if (!nodeCenter.has(parentAId) || !nodeCenter.has(parentBId)) continue;
-      if (childIds.every(id => !nodeCenter.has(id))) continue;
+      if (childIds.every((id) => !nodeCenter.has(id))) continue;
 
       const forkData = {
         parentIds: [parentAId, parentBId] as [string, string],
         childIds,
-        parentNames: [
-          persons.get(parentAId)?.name ?? "?",
-          persons.get(parentBId)?.name ?? "?",
-        ] as [string, string],
-        childNames: childIds.map(id => persons.get(id)?.name ?? "?"),
+        parentNames: [persons.get(parentAId)?.name ?? "?", persons.get(parentBId)?.name ?? "?"] as [
+          string,
+          string,
+        ],
+        childNames: childIds.map((id) => persons.get(id)?.name ?? "?"),
       };
       let primaryId: string | null = null;
 
@@ -283,13 +291,17 @@ export function useTreeLayout(
       const preferVertical = PARENT_TYPES.has(rel.type);
       const srcPos = nodeCenter.get(rel.source_person_id);
       const tgtPos = nodeCenter.get(rel.target_person_id);
-      const handles = srcPos && tgtPos
-        ? pickHandles(srcPos, tgtPos, preferVertical)
-        : { sourceHandle: preferVertical ? SOURCE_HANDLES.bottom : SOURCE_HANDLES.right,
-            targetHandle: preferVertical ? TARGET_HANDLES.top : TARGET_HANDLES.left };
-      const coupleColor = useCoupleColors && rel.type === RelationshipType.BiologicalParent
-        ? childCoupleColor.get(rel.target_person_id)
-        : undefined;
+      const handles =
+        srcPos && tgtPos
+          ? pickHandles(srcPos, tgtPos, preferVertical)
+          : {
+              sourceHandle: preferVertical ? SOURCE_HANDLES.bottom : SOURCE_HANDLES.right,
+              targetHandle: preferVertical ? TARGET_HANDLES.top : TARGET_HANDLES.left,
+            };
+      const coupleColor =
+        useCoupleColors && rel.type === RelationshipType.BiologicalParent
+          ? childCoupleColor.get(rel.target_person_id)
+          : undefined;
 
       edges.push({
         id: rel.id,
@@ -315,9 +327,10 @@ export function useTreeLayout(
     for (const sib of inferred) {
       const srcPos = nodeCenter.get(sib.personAId);
       const tgtPos = nodeCenter.get(sib.personBId);
-      const handles = srcPos && tgtPos
-        ? pickHandles(srcPos, tgtPos, false)
-        : { sourceHandle: SOURCE_HANDLES.right, targetHandle: TARGET_HANDLES.left };
+      const handles =
+        srcPos && tgtPos
+          ? pickHandles(srcPos, tgtPos, false)
+          : { sourceHandle: SOURCE_HANDLES.right, targetHandle: TARGET_HANDLES.left };
       edges.push({
         id: `inferred-${sib.personAId}-${sib.personBId}`,
         type: "relationship",
@@ -373,10 +386,14 @@ export function useTreeLayout(
         const data = edges[edgeIdx].data!;
         if (end === "source") {
           const prev = data.sourceOffset ?? { x: 0, y: 0 };
-          data.sourceOffset = horizontal ? { x: prev.x + px, y: prev.y } : { x: prev.x, y: prev.y + px };
+          data.sourceOffset = horizontal
+            ? { x: prev.x + px, y: prev.y }
+            : { x: prev.x, y: prev.y + px };
         } else {
           const prev = data.targetOffset ?? { x: 0, y: 0 };
-          data.targetOffset = horizontal ? { x: prev.x + px, y: prev.y } : { x: prev.x, y: prev.y + px };
+          data.targetOffset = horizontal
+            ? { x: prev.x + px, y: prev.y }
+            : { x: prev.x, y: prev.y + px };
         }
       }
     }
