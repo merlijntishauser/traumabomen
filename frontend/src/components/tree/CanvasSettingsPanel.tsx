@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { CanvasSettings, EdgeStyle } from "../../hooks/useCanvasSettings";
 import "./CanvasSettingsPanel.css";
@@ -14,10 +15,16 @@ const EDGE_STYLES: EdgeStyle[] = ["curved", "elbows", "straight"];
 export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) {
+    const target = e.target as Node;
+    if (
+      triggerRef.current && !triggerRef.current.contains(target) &&
+      dropdownRef.current && !dropdownRef.current.contains(target)
+    ) {
       setOpen(false);
     }
   }, []);
@@ -29,9 +36,20 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
     }
   }, [open, handleClickOutside]);
 
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [open]);
+
   return (
-    <div className="canvas-settings" ref={ref}>
+    <>
       <button
+        ref={triggerRef}
         className={`canvas-settings__trigger ${className ?? ""}`}
         onClick={() => setOpen((v) => !v)}
         title={t("canvas.settings")}
@@ -43,8 +61,12 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
         </svg>
       </button>
 
-      {open && (
-        <div className="canvas-settings__dropdown">
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          className="canvas-settings__dropdown"
+          style={{ top: pos.top, right: pos.right }}
+        >
           <label className="canvas-settings__toggle">
             <input
               type="checkbox"
@@ -102,8 +124,9 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
             />
             <span>{t("canvas.showMinimap")}</span>
           </label>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }

@@ -11,21 +11,6 @@ export function ThemeToggle({ className }: { className?: string }) {
       className={className}
       aria-label={t("theme.toggle")}
       title={t("theme.toggle")}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 32,
-        height: 32,
-        padding: 0,
-        background: "var(--color-bg-tertiary)",
-        border: "1px solid var(--color-border-primary)",
-        borderRadius: "var(--radius-md)",
-        color: "var(--color-text-secondary)",
-        cursor: "pointer",
-        transition: "var(--transition-colors)",
-        fontSize: 16,
-      }}
     >
       {theme === "dark" ? (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

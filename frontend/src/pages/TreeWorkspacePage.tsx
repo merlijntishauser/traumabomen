@@ -419,41 +419,68 @@ function TreeWorkspaceInner() {
       <div className="tree-toolbar">
         <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
         <div className="tree-toolbar__spacer" />
-        <button
-          className="tree-toolbar__btn tree-toolbar__btn--primary"
-          onClick={handleAddPerson}
-          disabled={mutations.createPerson.isPending}
-        >
-          {t("tree.addPerson")}
-        </button>
-        <button
-          className="tree-toolbar__btn"
-          onClick={handleAutoLayout}
-          disabled={!hasPinnedNodes}
-        >
-          {t("tree.autoLayout")}
-        </button>
-        <Link to={`/trees/${uuidToCompact(treeId!)}/timeline`} className="tree-toolbar__btn">
-          {t("tree.timeline")}
-        </Link>
-        <Link to="/trees" className="tree-toolbar__btn">
-          {t("nav.trees")}
-        </Link>
-        <CanvasSettingsPanel
-          settings={canvasSettings}
-          onUpdate={updateCanvasSettings}
-          className="tree-toolbar__btn"
-        />
-        <ThemeToggle className="tree-toolbar__btn" />
-        <button
-          className="tree-toolbar__btn"
-          onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
-        >
-          {i18n.language === "nl" ? "EN" : "NL"}
-        </button>
-        <button className="tree-toolbar__btn" onClick={logout}>
-          {t("nav.logout")}
-        </button>
+
+        <div className="tree-toolbar__group">
+          <button
+            className="tree-toolbar__btn tree-toolbar__btn--primary"
+            onClick={handleAddPerson}
+            disabled={mutations.createPerson.isPending}
+          >
+            {t("tree.addPerson")}
+          </button>
+          <button
+            className="tree-toolbar__btn"
+            onClick={handleAutoLayout}
+            disabled={!hasPinnedNodes}
+          >
+            {t("tree.autoLayout")}
+          </button>
+        </div>
+
+        <div className="tree-toolbar__separator" />
+
+        <div className="tree-toolbar__group">
+          <Link to={`/trees/${uuidToCompact(treeId!)}/timeline`} className="tree-toolbar__icon-btn" title={t("tree.timeline")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+          </Link>
+          <Link to="/trees" className="tree-toolbar__icon-btn" title={t("nav.trees")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="tree-toolbar__separator" />
+
+        <div className="tree-toolbar__group">
+          <CanvasSettingsPanel
+            settings={canvasSettings}
+            onUpdate={updateCanvasSettings}
+            className="tree-toolbar__icon-btn"
+          />
+          <ThemeToggle className="tree-toolbar__icon-btn" />
+          <button
+            className="tree-toolbar__icon-btn"
+            onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+            title={i18n.language === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
+          >
+            {i18n.language === "nl" ? "EN" : "NL"}
+          </button>
+          <button className="tree-toolbar__icon-btn" onClick={logout} title={t("nav.logout")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="tree-canvas-wrapper">
