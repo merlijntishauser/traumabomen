@@ -55,7 +55,7 @@ app.dependency_overrides[get_db] = _override_get_db
 
 TEST_SETTINGS = Settings(
     DATABASE_URL=TEST_DATABASE_URL,
-    JWT_SECRET_KEY="test-secret-key",
+    JWT_SECRET_KEY="test-secret-key-that-is-at-least-32-bytes-long",
     REQUIRE_EMAIL_VERIFICATION=False,
 )
 
@@ -85,7 +85,9 @@ async def client():
 # ---------------------------------------------------------------------------
 
 
-async def create_user(db: AsyncSession, email: str = "test@example.com", password: str = "password123"):
+async def create_user(
+    db: AsyncSession, email: str = "test@example.com", password: str = "password123"
+):
     """Create a verified user directly in the database and return it."""
     from app.models.user import User
 
@@ -122,7 +124,9 @@ async def headers(user):
 @pytest.fixture
 async def tree(client, headers):
     """Create and return a tree for the default user."""
-    resp = await client.post("/trees", json={"encrypted_data": "encrypted-tree-data"}, headers=headers)
+    resp = await client.post(
+        "/trees", json={"encrypted_data": "encrypted-tree-data"}, headers=headers
+    )
     assert resp.status_code == 201
     return resp.json()
 
