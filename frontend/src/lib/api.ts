@@ -1,7 +1,10 @@
 import type {
+  ActivityStats,
   EventCreate,
   EventResponse,
   EventUpdate,
+  FunnelStats,
+  GrowthStats,
   LifeEventCreate,
   LifeEventResponse,
   LifeEventUpdate,
@@ -26,6 +29,7 @@ import type {
   TreeResponse,
   TreeUpdate,
   UsageStats,
+  UserListStats,
   VerifyResponse,
 } from "../types/api";
 
@@ -386,4 +390,20 @@ export function getAdminRetention(weeks = 12): Promise<RetentionStats> {
 
 export function getAdminUsage(): Promise<UsageStats> {
   return apiFetchWithRetry("/admin/stats/usage");
+}
+
+export function getAdminFunnel(): Promise<FunnelStats> {
+  return apiFetchWithRetry("/admin/stats/funnel");
+}
+
+export function getAdminActivity(): Promise<ActivityStats> {
+  return apiFetchWithRetry("/admin/stats/activity");
+}
+
+export function getAdminGrowth(): Promise<GrowthStats> {
+  return apiFetchWithRetry("/admin/stats/growth");
+}
+
+export function getAdminUsers(): Promise<UserListStats> {
+  return apiFetchWithRetry("/admin/stats/users");
 }

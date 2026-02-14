@@ -37,3 +37,47 @@ class UsageStats(BaseModel):
     persons: UsageBuckets
     relationships: UsageBuckets
     events: UsageBuckets
+
+
+class FunnelStats(BaseModel):
+    registered: int
+    verified: int
+    created_tree: int
+    added_person: int
+    added_relationship: int
+    added_event: int
+
+
+class ActivityCell(BaseModel):
+    day: int
+    hour: int
+    count: int
+
+
+class ActivityStats(BaseModel):
+    cells: list[ActivityCell]
+
+
+class GrowthPoint(BaseModel):
+    date: str
+    total: int
+
+
+class GrowthStats(BaseModel):
+    points: list[GrowthPoint]
+
+
+class UserRow(BaseModel):
+    id: str
+    email: str
+    created_at: str
+    email_verified: bool
+    last_login: str | None
+    tree_count: int
+    person_count: int
+    relationship_count: int
+    event_count: int
+
+
+class UserListStats(BaseModel):
+    users: list[UserRow]

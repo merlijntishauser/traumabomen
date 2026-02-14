@@ -13,12 +13,19 @@ from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.models.user import User
 from app.schemas.admin import (
+    ActivityCell,
+    ActivityStats,
     CohortRow,
+    FunnelStats,
+    GrowthPoint,
+    GrowthStats,
     OverviewStats,
     PeriodCounts,
     RetentionStats,
     UsageBuckets,
     UsageStats,
+    UserListStats,
+    UserRow,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -196,3 +203,175 @@ async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
         relationships=build_buckets(rel_counts),
         events=build_buckets(event_counts),
     )
+
+
+@router.get("/stats/funnel", response_model=FunnelStats)
+async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
+    registered = (await db.execute(select(func.count()).select_from(User))).scalar() or 0
+    verified = (
+        await db.execute(
+            select(func.count()).select_from(User).where(User.email_verified == True)  # noqa: E712
+        )
+    ).scalar() or 0
+
+    # Users who own at least one tree
+    created_tree = (
+        await db.execute(select(func.count(distinct(Tree.user_id))).select_from(Tree))
+    ).scalar() or 0
+
+    # Users whose trees have at least one person
+    added_person = (
+        await db.execute(
+            select(func.count(distinct(Tree.user_id)))
+            .select_from(Tree)
+            .join(Person, Person.tree_id == Tree.id)
+        )
+    ).scalar() or 0
+
+    # Users whose trees have at least one relationship
+    added_relationship = (
+        await db.execute(
+            select(func.count(distinct(Tree.user_id)))
+            .select_from(Tree)
+            .join(Relationship, Relationship.tree_id == Tree.id)
+        )
+    ).scalar() or 0
+
+    # Users whose trees have at least one event
+    added_event = (
+        await db.execute(
+            select(func.count(distinct(Tree.user_id)))
+            .select_from(Tree)
+            .join(TraumaEvent, TraumaEvent.tree_id == Tree.id)
+        )
+    ).scalar() or 0
+
+    return FunnelStats(
+        registered=registered,
+        verified=verified,
+        created_tree=created_tree,
+        added_person=added_person,
+        added_relationship=added_relationship,
+        added_event=added_event,
+    )
+
+
+@router.get("/stats/activity", response_model=ActivityStats)
+async def activity_stats(db: AsyncSession = Depends(get_db)) -> ActivityStats:
+    # Group login events by day-of-week (0=Monday) and hour
+    dow = func.extract("isodow", LoginEvent.logged_at) - 1  # isodow: 1=Mon, convert to 0=Mon
+    hour = func.extract("hour", LoginEvent.logged_at)
+
+    result = await db.execute(
+        select(
+            dow.label("day"),
+            hour.label("hour"),
+            func.count().label("count"),
+        )
+        .group_by("day", "hour")
+        .order_by("day", "hour")
+    )
+
+    cells = [
+        ActivityCell(day=int(row.day), hour=int(row.hour), count=row.count) for row in result.all()
+    ]
+    return ActivityStats(cells=cells)
+
+
+@router.get("/stats/growth", response_model=GrowthStats)
+async def growth_stats(db: AsyncSession = Depends(get_db)) -> GrowthStats:
+    # Count signups per day
+    date_col = func.date_trunc("day", User.created_at).label("signup_date")
+    result = await db.execute(
+        select(date_col, func.count().label("signup_count")).group_by(date_col).order_by(date_col)
+    )
+    rows = result.all()
+
+    # Build cumulative running total
+    points: list[GrowthPoint] = []
+    running_total = 0
+    for row in rows:
+        running_total += row.signup_count
+        points.append(
+            GrowthPoint(
+                date=row.signup_date.strftime("%Y-%m-%d"),
+                total=running_total,
+            )
+        )
+
+    return GrowthStats(points=points)
+
+
+@router.get("/stats/users", response_model=UserListStats)
+async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
+    # Subquery: last login per user
+    last_login_sq = (
+        select(
+            LoginEvent.user_id,
+            func.max(LoginEvent.logged_at).label("last_login"),
+        )
+        .group_by(LoginEvent.user_id)
+        .subquery()
+    )
+
+    # Subquery: entity counts per user (via trees)
+    tree_person_sq = (
+        select(Tree.user_id, func.count(Person.id).label("person_count"))
+        .outerjoin(Person, Person.tree_id == Tree.id)
+        .group_by(Tree.user_id)
+        .subquery()
+    )
+    tree_rel_sq = (
+        select(Tree.user_id, func.count(Relationship.id).label("rel_count"))
+        .outerjoin(Relationship, Relationship.tree_id == Tree.id)
+        .group_by(Tree.user_id)
+        .subquery()
+    )
+    tree_event_sq = (
+        select(Tree.user_id, func.count(TraumaEvent.id).label("event_count"))
+        .outerjoin(TraumaEvent, TraumaEvent.tree_id == Tree.id)
+        .group_by(Tree.user_id)
+        .subquery()
+    )
+    tree_count_sq = (
+        select(Tree.user_id, func.count(Tree.id).label("tree_count"))
+        .group_by(Tree.user_id)
+        .subquery()
+    )
+
+    result = await db.execute(
+        select(
+            User.id,
+            User.email,
+            User.created_at,
+            User.email_verified,
+            last_login_sq.c.last_login,
+            func.coalesce(tree_count_sq.c.tree_count, 0).label("tree_count"),
+            func.coalesce(tree_person_sq.c.person_count, 0).label("person_count"),
+            func.coalesce(tree_rel_sq.c.rel_count, 0).label("rel_count"),
+            func.coalesce(tree_event_sq.c.event_count, 0).label("event_count"),
+        )
+        .outerjoin(last_login_sq, last_login_sq.c.user_id == User.id)
+        .outerjoin(tree_count_sq, tree_count_sq.c.user_id == User.id)
+        .outerjoin(tree_person_sq, tree_person_sq.c.user_id == User.id)
+        .outerjoin(tree_rel_sq, tree_rel_sq.c.user_id == User.id)
+        .outerjoin(tree_event_sq, tree_event_sq.c.user_id == User.id)
+        .order_by(User.created_at.desc())
+    )
+
+    users = [
+        UserRow(
+            id=str(row.id),
+            email=row.email,
+            created_at=row.created_at.isoformat(),
+            email_verified=row.email_verified,
+            last_login=row.last_login.isoformat() if row.last_login else None,
+            tree_count=row.tree_count,
+            person_count=row.person_count,
+            relationship_count=row.rel_count,
+            event_count=row.event_count,
+        )
+        for row in result.all()
+    ]
+
+    return UserListStats(users=users)

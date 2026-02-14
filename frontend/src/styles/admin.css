@@ -174,3 +174,138 @@
   width: 24px;
   flex-shrink: 0;
 }
+
+/* Signup funnel */
+
+.admin-funnel {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+}
+
+.admin-funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-funnel-row:last-child {
+  margin-bottom: 0;
+}
+
+.admin-funnel-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.admin-funnel-count {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  width: 80px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Growth chart */
+
+.admin-growth-svg {
+  width: 100%;
+  height: 200px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+}
+
+/* Activity heatmap */
+
+.admin-heatmap {
+  display: grid;
+  grid-template-columns: 40px repeat(24, 1fr);
+  gap: 2px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+}
+
+.admin-heatmap__corner {
+  /* empty top-left cell */
+}
+
+.admin-heatmap__hour {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1;
+}
+
+.admin-heatmap__row {
+  display: contents;
+}
+
+.admin-heatmap__day {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: right;
+  padding-right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.admin-heatmap__cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--color-bg-tertiary);
+  min-height: 14px;
+}
+
+/* User list */
+
+.admin-users {
+  overflow-x: auto;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-secondary);
+  white-space: nowrap;
+}
+
+.admin-users-table th {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+}
+
+.admin-users-table td {
+  color: var(--color-text-secondary);
+}
+
+.admin-users-table__email {
+  color: var(--color-text-primary) !important;
+  font-weight: 500;
+}
+
+.admin-users-table td:nth-child(n + 5) {
+  text-align: center;
+}
+
+.admin-users-table th:nth-child(n + 5) {
+  text-align: center;
+}

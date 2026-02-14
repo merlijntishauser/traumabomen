@@ -173,6 +173,50 @@ export interface UsageStats {
   events: UsageBuckets;
 }
 
+export interface FunnelStats {
+  registered: number;
+  verified: number;
+  created_tree: number;
+  added_person: number;
+  added_relationship: number;
+  added_event: number;
+}
+
+export interface ActivityCell {
+  day: number;
+  hour: number;
+  count: number;
+}
+
+export interface ActivityStats {
+  cells: ActivityCell[];
+}
+
+export interface GrowthPoint {
+  date: string;
+  total: number;
+}
+
+export interface GrowthStats {
+  points: GrowthPoint[];
+}
+
+export interface UserRow {
+  id: string;
+  email: string;
+  created_at: string;
+  email_verified: boolean;
+  last_login: string | null;
+  tree_count: number;
+  person_count: number;
+  relationship_count: number;
+  event_count: number;
+}
+
+export interface UserListStats {
+  users: UserRow[];
+}
+
 // Sync
 export interface SyncPersonCreate {
   id?: string;
