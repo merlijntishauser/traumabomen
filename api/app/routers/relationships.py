@@ -22,7 +22,7 @@ async def _validate_person_in_tree(
     )
     if result.scalar_one_or_none() is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"{label} not found in this tree",
         )
 

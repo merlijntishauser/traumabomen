@@ -28,7 +28,7 @@ repos:
 
       - id: mypy
         name: mypy type-check
-        entry: bash -c 'cd api && uv run mypy app'
+        entry: bash -c 'docker compose exec -T api uv run mypy app'
         language: system
         files: \.py$
         pass_filenames: false

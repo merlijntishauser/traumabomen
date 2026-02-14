@@ -27,7 +27,7 @@ async def _validate_person_ids_in_tree(
     missing = set(person_ids) - found
     if missing:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"person_ids not found in this tree: {[str(m) for m in missing]}",
         )
 
