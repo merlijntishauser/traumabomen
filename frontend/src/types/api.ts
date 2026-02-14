@@ -134,6 +134,45 @@ export interface LifeEventResponse {
   updated_at: string;
 }
 
+// Admin stats
+export interface PeriodCounts {
+  day: number;
+  week: number;
+  month: number;
+}
+
+export interface OverviewStats {
+  total_users: number;
+  verified_users: number;
+  signups: PeriodCounts;
+  active_users: PeriodCounts;
+}
+
+export interface CohortRow {
+  week: string;
+  signup_count: number;
+  retention: number[];
+}
+
+export interface RetentionStats {
+  cohorts: CohortRow[];
+}
+
+export interface UsageBuckets {
+  zero: number;
+  one_two: number;
+  three_five: number;
+  six_ten: number;
+  eleven_twenty: number;
+  twenty_plus: number;
+}
+
+export interface UsageStats {
+  persons: UsageBuckets;
+  relationships: UsageBuckets;
+  events: UsageBuckets;
+}
+
 // Sync
 export interface SyncPersonCreate {
   id?: string;

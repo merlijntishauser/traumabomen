@@ -1,0 +1,176 @@
+/* Admin dashboard */
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-content {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.admin-loading {
+  color: var(--color-text-secondary);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.admin-error {
+  color: var(--color-danger);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+/* Overview cards */
+
+.admin-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.admin-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.admin-card__label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-card__value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+.admin-card__sub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+/* Section headings */
+
+.admin-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+/* Retention cohort table */
+
+.admin-retention {
+  overflow-x: auto;
+}
+
+.admin-cohort-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-cohort-table th,
+.admin-cohort-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid var(--color-border-secondary);
+}
+
+.admin-cohort-table th {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+}
+
+.admin-cohort-table td:first-child,
+.admin-cohort-table td:nth-child(2) {
+  text-align: left;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.admin-cohort-empty {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+/* Usage histograms */
+
+.admin-usage {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.admin-usage-chart {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.admin-usage-chart__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.admin-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.admin-bar-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.admin-bar-track {
+  flex: 1;
+  height: 16px;
+  background: var(--color-bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.admin-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  min-width: 1px;
+}
+
+.admin-bar-count {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  width: 24px;
+  flex-shrink: 0;
+}

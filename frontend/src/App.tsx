@@ -3,8 +3,9 @@ import { AppFooter } from "./components/AppFooter";
 import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import { MobileBanner } from "./components/MobileBanner";
 import { EncryptionProvider, useEncryption } from "./contexts/EncryptionContext";
-import { getAccessToken } from "./lib/api";
+import { getAccessToken, getIsAdmin } from "./lib/api";
 import "./components/MobileBanner.css";
+import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TimelinePage from "./pages/TimelinePage";
@@ -22,6 +23,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   }
   if (!key) {
     return <Navigate to="/unlock" replace state={{ from: location.pathname }} />;
+  }
+  return <>{children}</>;
+}
+
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  if (!getAccessToken() || !getIsAdmin()) {
+    return <Navigate to="/trees" replace />;
   }
   return <>{children}</>;
 }
@@ -61,6 +69,14 @@ export default function App() {
                 <AuthGuard>
                   <TimelinePage />
                 </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminGuard>
+                  <AdminPage />
+                </AdminGuard>
               }
             />
             <Route path="*" element={<Navigate to="/trees" replace />} />

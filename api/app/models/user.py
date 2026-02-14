@@ -14,6 +14,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     encryption_salt: Mapped[str] = mapped_column(String(255))
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="true")
     email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email_verification_expires_at: Mapped[datetime | None] = mapped_column(

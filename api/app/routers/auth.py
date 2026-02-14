@@ -9,6 +9,7 @@ from app.auth import create_token, decode_token, get_current_user, hash_password
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.email import send_verification_email
+from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.schemas.auth import (
     LoginRequest,
@@ -30,7 +31,7 @@ RESEND_RATE_LIMIT_PER_HOUR = 3
 
 def _build_token_response(user: User, settings: Settings) -> TokenResponse:
     return TokenResponse(
-        access_token=create_token(user.id, "access", settings),
+        access_token=create_token(user.id, "access", settings, is_admin=user.is_admin),
         refresh_token=create_token(user.id, "refresh", settings),
         encryption_salt=user.encryption_salt,
     )
@@ -98,6 +99,9 @@ async def login(
 
     if not user.email_verified:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified")
+
+    db.add(LoginEvent(user_id=user.id))
+    await db.commit()
 
     return _build_token_response(user, settings)
 
@@ -182,6 +186,7 @@ async def resend_verification(
 @router.post("/refresh", response_model=RefreshResponse)
 async def refresh(
     body: RefreshRequest,
+    db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RefreshResponse:
     try:
@@ -197,8 +202,11 @@ async def refresh(
     from uuid import UUID
 
     user_id = UUID(payload["sub"])
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    is_admin = user.is_admin if user else False
     return RefreshResponse(
-        access_token=create_token(user_id, "access", settings),
+        access_token=create_token(user_id, "access", settings, is_admin=is_admin),
     )
 
 

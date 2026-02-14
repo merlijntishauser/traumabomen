@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
-import { createTree, deleteTree, getTrees, updateTree } from "../lib/api";
+import { createTree, deleteTree, getIsAdmin, getTrees, updateTree } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
@@ -115,6 +115,11 @@ export default function TreeListPage() {
         >
           {i18n.language === "nl" ? "EN" : "NL"}
         </button>
+        {getIsAdmin() && (
+          <Link to="/admin" className="tree-toolbar__btn">
+            Admin
+          </Link>
+        )}
         <button type="button" className="tree-toolbar__btn" onClick={logout}>
           {t("nav.logout")}
         </button>

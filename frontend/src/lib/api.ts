@@ -6,6 +6,7 @@ import type {
   LifeEventResponse,
   LifeEventUpdate,
   LoginRequest,
+  OverviewStats,
   PersonCreate,
   PersonResponse,
   PersonUpdate,
@@ -16,6 +17,7 @@ import type {
   RelationshipResponse,
   RelationshipUpdate,
   ResendVerificationRequest,
+  RetentionStats,
   SaltResponse,
   SyncRequest,
   SyncResponse,
@@ -23,6 +25,7 @@ import type {
   TreeCreate,
   TreeResponse,
   TreeUpdate,
+  UsageStats,
   VerifyResponse,
 } from "../types/api";
 
@@ -358,4 +361,29 @@ export function syncTree(treeId: string, data: SyncRequest): Promise<SyncRespons
     method: "POST",
     body: data,
   });
+}
+
+// Admin
+
+export function getIsAdmin(): boolean {
+  const token = getAccessToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.is_admin === true;
+  } catch {
+    return false;
+  }
+}
+
+export function getAdminOverview(): Promise<OverviewStats> {
+  return apiFetchWithRetry("/admin/stats/overview");
+}
+
+export function getAdminRetention(weeks = 12): Promise<RetentionStats> {
+  return apiFetchWithRetry(`/admin/stats/retention?weeks=${weeks}`);
+}
+
+export function getAdminUsage(): Promise<UsageStats> {
+  return apiFetchWithRetry("/admin/stats/usage");
 }

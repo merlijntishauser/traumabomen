@@ -23,19 +23,27 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def create_token(user_id: uuid.UUID, token_type: str, settings: Settings) -> str:
+def create_token(
+    user_id: uuid.UUID,
+    token_type: str,
+    settings: Settings,
+    *,
+    is_admin: bool = False,
+) -> str:
     now = datetime.now(UTC)
     if token_type == "access":
         expires = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     else:
         expires = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    claims = {
+    claims: dict[str, object] = {
         "sub": str(user_id),
         "type": token_type,
         "exp": expires,
         "iat": now,
     }
+    if token_type == "access" and is_admin:
+        claims["is_admin"] = True
     result: str = jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return result
 
@@ -66,4 +74,12 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return user
+
+
+async def require_admin(
+    user: User = Depends(get_current_user),
+) -> User:
+    if not user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user
