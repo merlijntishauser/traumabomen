@@ -52,7 +52,6 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
         ref={triggerRef}
         className={`canvas-settings__trigger ${className ?? ""}`}
         onClick={() => setOpen((v) => !v)}
-        title={t("canvas.settings")}
         aria-label={t("canvas.settings")}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

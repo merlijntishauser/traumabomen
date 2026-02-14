@@ -10,7 +10,6 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggle}
       className={className}
       aria-label={t("theme.toggle")}
-      title={t("theme.toggle")}
     >
       {theme === "dark" ? (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
