@@ -116,6 +116,7 @@ async def update_life_event(
             db.add(LifeEventPerson(life_event_id=event.id, person_id=pid))
 
     await db.commit()
+    await db.refresh(event)
     await db.refresh(event, ["person_links"])
     return _life_event_response(event)
 
