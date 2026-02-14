@@ -10,14 +10,22 @@ const MAX_VISIBLE_BADGES = 8;
 
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
-  const { person, events, lifeEvents = [] } = data;
+  const { person, events, lifeEvents = [], isFriendOnly } = data;
 
   const yearRange = person.death_year
     ? `${person.birth_year} - ${person.death_year}`
     : `${person.birth_year} -`;
 
+  const classNames = [
+    "person-node",
+    selected && "person-node--selected",
+    isFriendOnly && "person-node--friend-only",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={`person-node ${selected ? "person-node--selected" : ""}`}>
+    <div className={classNames}>
       {/* Interactive handles */}
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Bottom} id="bottom" />

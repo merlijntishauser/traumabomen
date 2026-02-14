@@ -117,6 +117,7 @@ function RelationshipEdgeComponent({
     rel.periods.length > 0 &&
     rel.periods.every((p) => p.end_year != null);
   const isHalfSibling = relType === RelationshipType.HalfSibling;
+  const isFriend = relType === RelationshipType.Friend;
   const isDashed =
     relType === RelationshipType.StepParent ||
     relType === RelationshipType.AdoptiveParent ||
@@ -234,6 +235,9 @@ function RelationshipEdgeComponent({
   } else if (isPartner) {
     stroke = getCssVar("--color-edge-partner");
     strokeWidth = 2.5;
+  } else if (isFriend) {
+    stroke = getCssVar("--color-edge-friend");
+    strokeDasharray = "2 4";
   } else if (isDashed) {
     stroke = getCssVar("--color-edge-step");
     strokeDasharray = "6 3";

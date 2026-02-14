@@ -39,6 +39,10 @@
   --color-edge-partner: #ec4899;
   --color-edge-half-sibling: #a855f7;
   --color-edge-step: #5a7a64;
+  --color-edge-friend: #e8863a;
+
+  /* Friend-only node */
+  --color-node-friend: #e8863a;
 
   /* Trauma categories */
   --color-trauma-loss: #818cf8;
@@ -121,6 +125,9 @@
   --color-edge-partner: #db2777;
   --color-edge-half-sibling: #9333ea;
   --color-edge-step: #8a9a8e;
+  --color-edge-friend: #c96a1e;
+
+  --color-node-friend: #c96a1e;
 
   --color-trauma-loss: #6366f1;
   --color-trauma-abuse: #ef4444;

@@ -15,6 +15,7 @@ export interface PersonNodeData extends Record<string, unknown> {
   person: DecryptedPerson;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  isFriendOnly?: boolean;
 }
 
 export type MarkerShape = "circle" | "square" | "diamond" | "triangle";
@@ -111,12 +112,35 @@ export function useTreeLayout(
       return { nodes: [], edges: [] };
     }
 
+    // ---- Identify friend-only persons (no family/partner edges) ----
+    const familyConnected = new Set<string>();
+    for (const rel of relationships.values()) {
+      if (rel.type !== RelationshipType.Friend) {
+        familyConnected.add(rel.source_person_id);
+        familyConnected.add(rel.target_person_id);
+      }
+    }
+
+    const friendOnlyIds = new Set<string>();
+    for (const id of persons.keys()) {
+      if (!familyConnected.has(id)) {
+        const hasFriendEdge = [...relationships.values()].some(
+          (r) =>
+            r.type === RelationshipType.Friend &&
+            (r.source_person_id === id || r.target_person_id === id),
+        );
+        if (hasFriendEdge) friendOnlyIds.add(id);
+      }
+    }
+
     const g = new dagre.graphlib.Graph();
     g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
     g.setDefaultEdgeLabel(() => ({}));
 
     for (const person of persons.values()) {
-      g.setNode(person.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+      if (!friendOnlyIds.has(person.id)) {
+        g.setNode(person.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+      }
     }
 
     // ---- Detect biological parent couples for junction routing ----
@@ -170,6 +194,51 @@ export function useTreeLayout(
       }
     }
 
+    // ---- Position friend-only persons to the right of the family tree ----
+    const friendPositions = new Map<string, { x: number; y: number }>();
+    if (friendOnlyIds.size > 0) {
+      let maxFamilyX = 0;
+      for (const person of persons.values()) {
+        if (!friendOnlyIds.has(person.id)) {
+          const n = g.node(person.id);
+          if (n) maxFamilyX = Math.max(maxFamilyX, n.x + NODE_WIDTH / 2);
+        }
+      }
+
+      const FRIEND_X_OFFSET = 200;
+      const FRIEND_Y_GAP = 20;
+      const usedYPositions: number[] = [];
+
+      for (const friendId of friendOnlyIds) {
+        // Find y-positions of connected family members
+        const connectedYs: number[] = [];
+        for (const rel of relationships.values()) {
+          if (rel.type !== RelationshipType.Friend) continue;
+          if (rel.source_person_id !== friendId && rel.target_person_id !== friendId) continue;
+          const otherId =
+            rel.source_person_id === friendId ? rel.target_person_id : rel.source_person_id;
+          const otherNode = g.node(otherId);
+          if (otherNode) connectedYs.push(otherNode.y);
+        }
+
+        let targetY =
+          connectedYs.length > 0 ? connectedYs.reduce((a, b) => a + b, 0) / connectedYs.length : 0;
+
+        // Avoid overlapping with other friend nodes
+        for (const usedY of usedYPositions) {
+          if (Math.abs(targetY - usedY) < NODE_HEIGHT + FRIEND_Y_GAP) {
+            targetY = usedY + NODE_HEIGHT + FRIEND_Y_GAP;
+          }
+        }
+        usedYPositions.push(targetY);
+
+        friendPositions.set(friendId, {
+          x: maxFamilyX + FRIEND_X_OFFSET,
+          y: targetY,
+        });
+      }
+    }
+
     // ---- Build event lookups ----
     const eventsByPerson = new Map<string, DecryptedEvent[]>();
     for (const event of events.values()) {
@@ -195,21 +264,34 @@ export function useTreeLayout(
     const nodes: PersonNodeType[] = [];
 
     for (const person of persons.values()) {
-      const nodeWithPosition = g.node(person.id);
+      const isFriendOnly = friendOnlyIds.has(person.id);
+      const friendPos = friendPositions.get(person.id);
+      const nodeWithPosition = !isFriendOnly ? g.node(person.id) : undefined;
       const pinned = person.position;
+
+      let position: { x: number; y: number };
+      if (pinned) {
+        position = { x: pinned.x, y: pinned.y };
+      } else if (friendPos) {
+        position = { x: friendPos.x - NODE_WIDTH / 2, y: friendPos.y - NODE_HEIGHT / 2 };
+      } else if (nodeWithPosition) {
+        position = {
+          x: nodeWithPosition.x - NODE_WIDTH / 2,
+          y: nodeWithPosition.y - NODE_HEIGHT / 2,
+        };
+      } else {
+        position = { x: 0, y: 0 };
+      }
+
       nodes.push({
         id: person.id,
         type: "person",
-        position: pinned
-          ? { x: pinned.x, y: pinned.y }
-          : {
-              x: nodeWithPosition.x - NODE_WIDTH / 2,
-              y: nodeWithPosition.y - NODE_HEIGHT / 2,
-            },
+        position,
         data: {
           person,
           events: eventsByPerson.get(person.id) ?? [],
           lifeEvents: lifeEventsByPerson.get(person.id) ?? [],
+          isFriendOnly: isFriendOnly || undefined,
         },
         selected: person.id === selectedPersonId,
         width: NODE_WIDTH,

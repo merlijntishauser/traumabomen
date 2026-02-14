@@ -6,6 +6,7 @@ export enum RelationshipType {
   StepSibling = "step_sibling",
   HalfSibling = "half_sibling",
   Partner = "partner",
+  Friend = "friend",
 }
 
 export enum PartnerStatus {

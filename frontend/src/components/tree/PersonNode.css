@@ -21,6 +21,10 @@
   box-shadow: 0 0 0 3px var(--color-accent-focus-ring);
 }
 
+.person-node--friend-only {
+  border-color: var(--color-node-friend);
+}
+
 .person-node__name {
   font-weight: 600;
   overflow: hidden;
