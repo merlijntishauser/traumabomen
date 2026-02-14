@@ -1,4 +1,4 @@
-.PHONY: help up down logs lint format typecheck ci test test-fe test-be coverage e2e \
+.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-be coverage e2e \
        bump setup migrate migrate-up migrate-down privacy-scan
 
 .DEFAULT_GOAL := help
@@ -12,8 +12,15 @@ help: ## Show this help
 up: ## Start all services (postgres + api + frontend)
 	docker compose up
 
-down: ## Stop all services and remove volumes
+down: ## Stop all services (keeps database)
+	docker compose down
+
+nuke: ## Stop all services and delete database volume
 	docker compose down -v
+
+rebuild: ## Rebuild images from scratch and restart
+	docker compose build --pull --no-cache
+	docker compose up -d
 
 logs: ## Follow service logs
 	docker compose logs -f
