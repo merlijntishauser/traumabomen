@@ -143,6 +143,27 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
     const width = container.clientWidth;
     const totalAvailableHeight = container.clientHeight;
 
+    // Filter out friend-only persons (those with no family edges)
+    const familyConnected = new Set<string>();
+    for (const rel of relationships.values()) {
+      if (rel.type !== RelationshipType.Friend) {
+        familyConnected.add(rel.source_person_id);
+        familyConnected.add(rel.target_person_id);
+      }
+    }
+    const timelinePersons = new Map<string, DecryptedPerson>();
+    for (const [id, person] of persons) {
+      if (familyConnected.has(id) || !relationships.size) {
+        timelinePersons.set(id, person);
+      } else {
+        // Include persons with no relationships at all (unconnected family)
+        const hasAnyRel = [...relationships.values()].some(
+          (r) => r.source_person_id === id || r.target_person_id === id,
+        );
+        if (!hasAnyRel) timelinePersons.set(id, person);
+      }
+    }
+
     // Read theme colors from CSS variables
     const rootStyle = getComputedStyle(document.documentElement);
     const cssVar = (name: string) => rootStyle.getPropertyValue(name).trim();
@@ -150,9 +171,9 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
     const lifeEventColors = getLifeEventColors();
 
     // Compute generations and build row layout
-    const generations = computeGenerations(persons, relationships);
+    const generations = computeGenerations(timelinePersons, relationships);
     const personsByGen = new Map<number, DecryptedPerson[]>();
-    for (const person of persons.values()) {
+    for (const person of timelinePersons.values()) {
       const gen = generations.get(person.id) ?? 0;
       const list = personsByGen.get(gen) ?? [];
       list.push(person);
@@ -185,7 +206,7 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
     const currentYear = new Date().getFullYear();
     let minYear = currentYear;
     let maxYear = 0;
-    for (const person of persons.values()) {
+    for (const person of timelinePersons.values()) {
       minYear = Math.min(minYear, person.birth_year);
       maxYear = Math.max(maxYear, person.death_year ?? currentYear);
     }
