@@ -55,6 +55,10 @@ function renderNode(person: DecryptedPerson, events: DecryptedEvent[] = [], sele
     positionAbsoluteX: 0,
     positionAbsoluteY: 0,
     zIndex: 0,
+    draggable: true,
+    dragging: false,
+    selectable: true,
+    deletable: false,
   } as Parameters<typeof PersonNode>[0];
 
   return render(<PersonNode {...props} />);
