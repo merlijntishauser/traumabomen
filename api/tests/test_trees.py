@@ -18,9 +18,10 @@ class TestCreateTree:
         assert "created_at" in data
 
     @pytest.mark.asyncio
-    async def test_create_second_tree_fails(self, client, headers, tree):
+    async def test_create_second_tree(self, client, headers, tree):
         resp = await client.post("/trees", json={"encrypted_data": "blob2"}, headers=headers)
-        assert resp.status_code == 409
+        assert resp.status_code == 201
+        assert resp.json()["id"] != tree["id"]
 
     @pytest.mark.asyncio
     async def test_create_tree_unauthenticated(self, client):
