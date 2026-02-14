@@ -133,10 +133,18 @@ function RelationshipEdgeComponent({
   const forkParentIds = data.junctionFork?.parentIds;
   const forkChildIds = data.junctionFork?.childIds;
   const forkSelector = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any): ForkPositions | null => {
+    (state: {
+      nodeLookup: Map<
+        string,
+        {
+          position: { x: number; y: number };
+          internals?: { positionAbsolute?: { x: number; y: number } };
+          measured?: { width?: number; height?: number };
+        }
+      >;
+    }): ForkPositions | null => {
       if (!forkParentIds || !forkChildIds) return null;
-      const lookup = state.nodeLookup as Map<string, any>;
+      const lookup = state.nodeLookup;
       const parents: { cx: number; bottom: number }[] = [];
       const children: { cx: number; top: number }[] = [];
       for (const id of forkParentIds) {

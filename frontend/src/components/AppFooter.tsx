@@ -21,11 +21,13 @@ export function AppFooter() {
           i18nKey="mentalHealth.footer"
           components={{
             a: (
+              // biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
               <a
                 href={resource.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="app-footer__link"
+                aria-label={resource.name}
               />
             ),
           }}
@@ -45,6 +47,7 @@ export function AppFooter() {
           </svg>
         </a>
         <button
+          type="button"
           className="app-footer__btn"
           onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
         >

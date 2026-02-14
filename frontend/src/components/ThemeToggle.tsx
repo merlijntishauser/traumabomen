@@ -6,7 +6,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const { t } = useTranslation();
 
   return (
-    <button onClick={toggle} className={className} aria-label={t("theme.toggle")}>
+    <button type="button" onClick={toggle} className={className} aria-label={t("theme.toggle")}>
       {theme === "dark" ? (
         <svg
           width="16"

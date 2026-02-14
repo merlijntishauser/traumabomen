@@ -51,6 +51,7 @@ export function CanvasSettingsPanel({ settings, onUpdate, className }: Props) {
   return (
     <>
       <button
+        type="button"
         ref={triggerRef}
         className={`canvas-settings__trigger ${className ?? ""}`}
         onClick={() => setOpen((v) => !v)}

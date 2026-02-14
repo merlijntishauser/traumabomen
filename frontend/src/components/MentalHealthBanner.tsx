@@ -29,18 +29,25 @@ export function MentalHealthBanner() {
           i18nKey="mentalHealth.banner"
           components={{
             a: (
+              // biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
               <a
                 href={resource.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mh-banner__link"
+                aria-label={resource.name}
               />
             ),
           }}
           values={{ resource: resource.name }}
         />
       </p>
-      <button className="mh-banner__close" onClick={handleDismiss} aria-label={t("common.close")}>
+      <button
+        type="button"
+        className="mh-banner__close"
+        onClick={handleDismiss}
+        aria-label={t("common.close")}
+      >
         &times;
       </button>
     </div>

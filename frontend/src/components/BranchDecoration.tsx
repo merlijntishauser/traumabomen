@@ -98,9 +98,9 @@ export function BranchDecoration() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {branches.map((b, i) => (
+      {branches.map((b) => (
         <path
-          key={i}
+          key={b.path}
           d={b.path}
           stroke="var(--color-accent)"
           strokeWidth={b.width}
@@ -108,8 +108,14 @@ export function BranchDecoration() {
           fill="none"
         />
       ))}
-      {nodes.map((n, i) => (
-        <circle key={i} cx={n.cx} cy={n.cy} r={n.r} fill="var(--color-accent)" />
+      {nodes.map((n) => (
+        <circle
+          key={`${n.cx}-${n.cy}-${n.r}`}
+          cx={n.cx}
+          cy={n.cy}
+          r={n.r}
+          fill="var(--color-accent)"
+        />
       ))}
     </svg>
   );

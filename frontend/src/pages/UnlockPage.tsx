@@ -108,7 +108,7 @@ export default function UnlockPage() {
           </form>
 
           <p className="auth-footer">
-            <button className="auth-link-btn" onClick={handleLogout}>
+            <button type="button" className="auth-link-btn" onClick={handleLogout}>
               {t("auth.switchAccount")}
             </button>
           </p>

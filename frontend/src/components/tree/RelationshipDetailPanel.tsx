@@ -106,7 +106,7 @@ export function RelationshipDetailPanel({
     <div className="detail-panel">
       <div className="detail-panel__header">
         <h2>{headerLabel}</h2>
-        <button className="detail-panel__close" onClick={onClose}>
+        <button type="button" className="detail-panel__close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>
@@ -152,6 +152,7 @@ export function RelationshipDetailPanel({
         {relationship.type === RelationshipType.Partner && (
           <section className="detail-panel__section">
             <button
+              type="button"
               className="detail-panel__section-toggle"
               onClick={() => setEditingPeriods(!editingPeriods)}
             >
@@ -162,7 +163,11 @@ export function RelationshipDetailPanel({
                 <div className="detail-panel__period-editor">
                   {periods.length === 0 && <p className="detail-panel__empty">---</p>}
                   {periods.map((period, i) => (
-                    <div key={i} className="detail-panel__period-row">
+                    <div
+                      // biome-ignore lint/suspicious/noArrayIndexKey: periods are edited by index
+                      key={i}
+                      className="detail-panel__period-row"
+                    >
                       <label className="detail-panel__field">
                         <span>{t("relationship.status")}</span>
                         <select
@@ -196,6 +201,7 @@ export function RelationshipDetailPanel({
                         </label>
                       </div>
                       <button
+                        type="button"
                         className="detail-panel__btn--small detail-panel__btn--danger"
                         onClick={() => removePeriod(i)}
                       >
@@ -204,6 +210,7 @@ export function RelationshipDetailPanel({
                     </div>
                   ))}
                   <button
+                    type="button"
                     className="detail-panel__btn--small"
                     style={{ marginTop: 4 }}
                     onClick={addPeriod}
@@ -212,6 +219,7 @@ export function RelationshipDetailPanel({
                   </button>
                   <div className="detail-panel__actions">
                     <button
+                      type="button"
                       className="detail-panel__btn detail-panel__btn--primary"
                       onClick={handleSavePeriods}
                     >
@@ -229,8 +237,11 @@ export function RelationshipDetailPanel({
           <section className="detail-panel__section">
             <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
               <div className="detail-panel__rel-periods">
-                {relationship.periods.map((p, i) => (
-                  <span key={i} className="detail-panel__period">
+                {relationship.periods.map((p) => (
+                  <span
+                    key={`${p.status}-${p.start_year}-${p.end_year}`}
+                    className="detail-panel__period"
+                  >
                     {t(`relationship.status.${p.status}`)}: {p.start_year}
                     {p.end_year ? ` - ${p.end_year}` : " -"}
                   </span>
@@ -245,6 +256,7 @@ export function RelationshipDetailPanel({
           <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
             <div className="detail-panel__actions">
               <button
+                type="button"
                 className="detail-panel__btn detail-panel__btn--danger"
                 onClick={handleDelete}
               >

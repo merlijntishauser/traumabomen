@@ -100,6 +100,7 @@ export default function TreeListPage() {
         <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
         <div className="tree-toolbar__spacer" />
         <button
+          type="button"
           className="tree-toolbar__btn tree-toolbar__btn--primary"
           onClick={startCreating}
           disabled={creating || createMutation.isPending}
@@ -108,12 +109,13 @@ export default function TreeListPage() {
         </button>
         <ThemeToggle className="tree-toolbar__btn" />
         <button
+          type="button"
           className="tree-toolbar__btn"
           onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
         >
           {i18n.language === "nl" ? "EN" : "NL"}
         </button>
-        <button className="tree-toolbar__btn" onClick={logout}>
+        <button type="button" className="tree-toolbar__btn" onClick={logout}>
           {t("nav.logout")}
         </button>
       </div>
@@ -182,13 +184,18 @@ export default function TreeListPage() {
                   <div className="tree-list-item__confirm">
                     <span>{t("tree.confirmDelete")}</span>
                     <button
+                      type="button"
                       className="tree-list-item__btn tree-list-item__btn--danger"
                       onClick={() => deleteMutation.mutate(tree.id)}
                       disabled={deleteMutation.isPending}
                     >
                       {t("common.delete")}
                     </button>
-                    <button className="tree-list-item__btn" onClick={() => setDeletingId(null)}>
+                    <button
+                      type="button"
+                      className="tree-list-item__btn"
+                      onClick={() => setDeletingId(null)}
+                    >
                       {t("common.cancel")}
                     </button>
                   </div>
@@ -199,6 +206,7 @@ export default function TreeListPage() {
                     </Link>
                     <div className="tree-list-item__actions">
                       <button
+                        type="button"
                         className="tree-list-item__btn"
                         onClick={() => startEditing(tree)}
                         title={t("common.edit")}
@@ -206,6 +214,7 @@ export default function TreeListPage() {
                         {t("common.edit")}
                       </button>
                       <button
+                        type="button"
                         className="tree-list-item__btn tree-list-item__btn--danger"
                         onClick={() => setDeletingId(tree.id)}
                         title={t("common.delete")}

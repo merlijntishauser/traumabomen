@@ -60,7 +60,12 @@ export default function VerificationPendingPage() {
             </p>
           )}
 
-          <button className="auth-submit" onClick={handleResend} disabled={cooldown > 0 || !email}>
+          <button
+            type="button"
+            className="auth-submit"
+            onClick={handleResend}
+            disabled={cooldown > 0 || !email}
+          >
             {cooldown > 0
               ? t("auth.resendCooldown", { seconds: cooldown })
               : t("auth.resendVerification")}

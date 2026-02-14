@@ -132,7 +132,7 @@ export function PersonDetailPanel({
     <div className="detail-panel">
       <div className="detail-panel__header">
         <h2>{person.name}</h2>
-        <button className="detail-panel__close" onClick={onClose}>
+        <button type="button" className="detail-panel__close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>
@@ -141,6 +141,7 @@ export function PersonDetailPanel({
         {/* Person details section */}
         <section className="detail-panel__section">
           <button
+            type="button"
             className="detail-panel__section-toggle"
             onClick={() => setPersonOpen(!personOpen)}
           >
@@ -191,12 +192,14 @@ export function PersonDetailPanel({
               </label>
               <div className="detail-panel__actions">
                 <button
+                  type="button"
                   className="detail-panel__btn detail-panel__btn--primary"
                   onClick={handleSavePerson}
                 >
                   {t("person.save")}
                 </button>
                 <button
+                  type="button"
                   className="detail-panel__btn detail-panel__btn--danger"
                   onClick={handleDeletePerson}
                 >
@@ -209,7 +212,11 @@ export function PersonDetailPanel({
 
         {/* Relationships section */}
         <section className="detail-panel__section">
-          <button className="detail-panel__section-toggle" onClick={() => setRelsOpen(!relsOpen)}>
+          <button
+            type="button"
+            className="detail-panel__section-toggle"
+            onClick={() => setRelsOpen(!relsOpen)}
+          >
             {relsOpen ? "\u25BC" : "\u25B6"} {t("relationship.relationships")} (
             {relationships.length + inferredSiblings.length})
           </button>
@@ -254,8 +261,11 @@ export function PersonDetailPanel({
                             <>
                               {rel.periods.length > 0 && (
                                 <div className="detail-panel__rel-periods">
-                                  {rel.periods.map((p, i) => (
-                                    <span key={i} className="detail-panel__period">
+                                  {rel.periods.map((p) => (
+                                    <span
+                                      key={`${p.status}-${p.start_year}-${p.end_year}`}
+                                      className="detail-panel__period"
+                                    >
                                       {t(`relationship.status.${p.status}`)}: {p.start_year}
                                       {p.end_year ? ` - ${p.end_year}` : " -"}
                                     </span>
@@ -263,6 +273,7 @@ export function PersonDetailPanel({
                                 </div>
                               )}
                               <button
+                                type="button"
                                 className="detail-panel__btn--small"
                                 style={{ marginTop: 4 }}
                                 onClick={() => setEditingRelId(rel.id)}
@@ -301,6 +312,7 @@ export function PersonDetailPanel({
         {/* Trauma events section */}
         <section className="detail-panel__section">
           <button
+            type="button"
             className="detail-panel__section-toggle"
             onClick={() => setEventsOpen(!eventsOpen)}
           >
@@ -336,6 +348,7 @@ export function PersonDetailPanel({
                       />
                       <span className="detail-panel__event-title">{event.title}</span>
                       <button
+                        type="button"
                         className="detail-panel__btn--small"
                         onClick={() => setEditingEventId(event.id)}
                       >
@@ -362,6 +375,7 @@ export function PersonDetailPanel({
                 />
               ) : (
                 <button
+                  type="button"
                   className="detail-panel__btn detail-panel__btn--secondary"
                   onClick={() => setShowNewEvent(true)}
                 >
@@ -374,6 +388,7 @@ export function PersonDetailPanel({
         {/* Life events section */}
         <section className="detail-panel__section">
           <button
+            type="button"
             className="detail-panel__section-toggle"
             onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
           >
@@ -410,6 +425,7 @@ export function PersonDetailPanel({
                       />
                       <span className="detail-panel__event-title">{event.title}</span>
                       <button
+                        type="button"
                         className="detail-panel__btn--small"
                         onClick={() => setEditingLifeEventId(event.id)}
                       >
@@ -436,6 +452,7 @@ export function PersonDetailPanel({
                 />
               ) : (
                 <button
+                  type="button"
                   className="detail-panel__btn detail-panel__btn--secondary"
                   onClick={() => setShowNewLifeEvent(true)}
                 >
@@ -578,14 +595,19 @@ function LifeEventForm({
         ))}
       </fieldset>
       <div className="detail-panel__actions">
-        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
+        <button
+          type="button"
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
           {t("common.save")}
         </button>
-        <button className="detail-panel__btn" onClick={onCancel}>
+        <button type="button" className="detail-panel__btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
         {onDelete && (
           <button
+            type="button"
             className="detail-panel__btn detail-panel__btn--danger"
             onClick={() => {
               if (confirmDelete) {
@@ -728,14 +750,19 @@ function EventForm({
         ))}
       </fieldset>
       <div className="detail-panel__actions">
-        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
+        <button
+          type="button"
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
           {t("common.save")}
         </button>
-        <button className="detail-panel__btn" onClick={onCancel}>
+        <button type="button" className="detail-panel__btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
         {onDelete && (
           <button
+            type="button"
             className="detail-panel__btn detail-panel__btn--danger"
             onClick={() => {
               if (confirmDelete) {
@@ -800,7 +827,11 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
   return (
     <div className="detail-panel__period-editor">
       {periods.map((period, i) => (
-        <div key={i} className="detail-panel__period-row">
+        <div
+          // biome-ignore lint/suspicious/noArrayIndexKey: periods are edited by index
+          key={i}
+          className="detail-panel__period-row"
+        >
           <label className="detail-panel__field">
             <span>{t("relationship.status")}</span>
             <select
@@ -835,6 +866,7 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
           </div>
           {periods.length > 1 && (
             <button
+              type="button"
               className="detail-panel__btn--small detail-panel__btn--danger"
               onClick={() => removePeriod(i)}
             >
@@ -843,14 +875,23 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
           )}
         </div>
       ))}
-      <button className="detail-panel__btn--small" style={{ marginTop: 4 }} onClick={addPeriod}>
+      <button
+        type="button"
+        className="detail-panel__btn--small"
+        style={{ marginTop: 4 }}
+        onClick={addPeriod}
+      >
         {t("relationship.addPeriod")}
       </button>
       <div className="detail-panel__actions">
-        <button className="detail-panel__btn detail-panel__btn--primary" onClick={handleSave}>
+        <button
+          type="button"
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
           {t("common.save")}
         </button>
-        <button className="detail-panel__btn" onClick={onCancel}>
+        <button type="button" className="detail-panel__btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
       </div>

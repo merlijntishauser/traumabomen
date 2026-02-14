@@ -44,12 +44,13 @@ export default function TimelinePage() {
         </Link>
         <ThemeToggle className="tree-toolbar__btn" />
         <button
+          type="button"
           className="tree-toolbar__btn"
           onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
         >
           {i18n.language === "nl" ? "EN" : "NL"}
         </button>
-        <button className="tree-toolbar__btn" onClick={logout}>
+        <button type="button" className="tree-toolbar__btn" onClick={logout}>
           {t("nav.logout")}
         </button>
       </div>

@@ -22,6 +22,7 @@ export function MobileBanner() {
     <div className="mobile-banner">
       <span>{t("common.mobileWarning")}</span>
       <button
+        type="button"
         className="mobile-banner__close"
         onClick={handleDismiss}
         aria-label={t("common.close")}

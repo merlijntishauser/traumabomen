@@ -69,13 +69,14 @@ function RelationshipPopover({
           <span>
             {sourceName} &rarr; {targetName}
           </span>
-          <button className="relationship-popover__swap" onClick={onSwap}>
+          <button type="button" className="relationship-popover__swap" onClick={onSwap}>
             {t("relationship.swap")}
           </button>
         </div>
         <div className="relationship-popover__options">
           {Object.values(RelationshipType).map((type) => (
             <button
+              type="button"
               key={type}
               className="relationship-popover__option"
               onClick={() => onSelect(type)}
@@ -90,7 +91,7 @@ function RelationshipPopover({
             </button>
           ))}
         </div>
-        <button className="relationship-popover__cancel" onClick={onClose}>
+        <button type="button" className="relationship-popover__cancel" onClick={onClose}>
           {t("common.cancel")}
         </button>
       </div>
@@ -380,6 +381,7 @@ function TreeWorkspaceInner() {
 
         <div className="tree-toolbar__group">
           <button
+            type="button"
             className="tree-toolbar__btn tree-toolbar__btn--primary"
             onClick={handleAddPerson}
             disabled={mutations.createPerson.isPending}
@@ -387,6 +389,7 @@ function TreeWorkspaceInner() {
             {t("tree.addPerson")}
           </button>
           <button
+            type="button"
             className="tree-toolbar__btn"
             onClick={handleAutoLayout}
             disabled={!hasPinnedNodes}
@@ -445,13 +448,19 @@ function TreeWorkspaceInner() {
           />
           <ThemeToggle className="tree-toolbar__icon-btn" />
           <button
+            type="button"
             className="tree-toolbar__icon-btn"
             onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
             aria-label={i18n.language === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
           >
             {i18n.language === "nl" ? "EN" : "NL"}
           </button>
-          <button className="tree-toolbar__icon-btn" onClick={logout} aria-label={t("nav.logout")}>
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={logout}
+            aria-label={t("nav.logout")}
+          >
             <svg
               width="16"
               height="16"
