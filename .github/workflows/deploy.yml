@@ -112,7 +112,8 @@ jobs:
             --memory=256Mi \
             --cpu=1 \
             --cpu-boost \
-            --timeout=60
+            --timeout=60 \
+            --startup-probe httpGet.path=/health,httpGet.port=8000,initialDelaySeconds=0,periodSeconds=4,failureThreshold=3
 
       - name: Deploy frontend
         run: |
@@ -130,7 +131,8 @@ jobs:
             --max-instances=4 \
             --memory=128Mi \
             --cpu=1 \
-            --timeout=60
+            --timeout=60 \
+            --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=0,periodSeconds=4,failureThreshold=3
 
   smoketest:
     needs: [deploy]
