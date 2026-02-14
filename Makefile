@@ -83,5 +83,5 @@ privacy-scan:
 setup:
 	pre-commit install
 	cd frontend && npm install
-	cd api && uv sync --extra dev
+	docker compose exec api uv sync --extra dev 2>/dev/null || true
 	@echo "Setup complete. Pre-commit hooks installed."
