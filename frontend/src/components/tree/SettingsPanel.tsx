@@ -8,6 +8,7 @@ import { useTheme } from "../../hooks/useTheme";
 import {
   changePassword,
   deleteAccount,
+  getClassifications,
   getEncryptionSalt,
   getEvents,
   getLifeEvents,
@@ -15,6 +16,7 @@ import {
   getRelationships,
   getTrees,
   syncTree,
+  updateClassification,
   updateSalt,
 } from "../../lib/api";
 import { decryptFromApi, deriveKey, encryptForApi, generateSalt } from "../../lib/crypto";
@@ -152,11 +154,12 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
         const newTreeEncrypted = await encryptForApi(treeData, newKey);
 
         // Fetch all entities for this tree
-        const [persons, relationships, events, lifeEvents] = await Promise.all([
+        const [persons, relationships, events, lifeEvents, classifications] = await Promise.all([
           getPersons(tree.id),
           getRelationships(tree.id),
           getEvents(tree.id),
           getLifeEvents(tree.id),
+          getClassifications(tree.id),
         ]);
 
         // Re-encrypt persons
@@ -217,6 +220,16 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
           await updateLifeEvent(tree.id, le.id, {
             person_ids: le.person_ids,
             encrypted_data: le.encrypted_data,
+          });
+        }
+
+        // Update classifications individually
+        for (const cls of classifications) {
+          const data = await decryptFromApi(cls.encrypted_data, oldKey);
+          const enc = await encryptForApi(data, newKey);
+          await updateClassification(tree.id, cls.id, {
+            person_ids: cls.person_ids,
+            encrypted_data: enc,
           });
         }
       }

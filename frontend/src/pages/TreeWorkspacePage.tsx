@@ -30,7 +30,13 @@ import { useTreeLayout } from "../hooks/useTreeLayout";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { uuidToCompact } from "../lib/compactId";
 import { inferSiblings } from "../lib/inferSiblings";
-import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
+import type {
+  Classification,
+  LifeEvent,
+  Person,
+  RelationshipData,
+  TraumaEvent,
+} from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
@@ -109,9 +115,16 @@ function TreeWorkspaceInner() {
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
 
-  const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
-    treeId!,
-  );
+  const {
+    treeName,
+    persons,
+    relationships,
+    events,
+    lifeEvents,
+    classifications,
+    isLoading,
+    error,
+  } = useTreeData(treeId!);
   const mutations = useTreeMutations(treeId!);
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
 
@@ -127,6 +140,7 @@ function TreeWorkspaceInner() {
     selectedPersonId,
     lifeEvents,
     layoutSettings,
+    classifications,
   );
 
   // Local node state that accepts both layout updates and drag changes
@@ -304,6 +318,22 @@ function TreeWorkspaceInner() {
     mutations.deleteLifeEvent.mutate(lifeEventId);
   }
 
+  function handleSaveClassification(
+    classificationId: string | null,
+    data: Classification,
+    personIds: string[],
+  ) {
+    if (classificationId) {
+      mutations.updateClassification.mutate({ classificationId, personIds, data });
+    } else {
+      mutations.createClassification.mutate({ personIds, data });
+    }
+  }
+
+  function handleDeleteClassification(classificationId: string) {
+    mutations.deleteClassification.mutate(classificationId);
+  }
+
   const hasPinnedNodes = Array.from(persons.values()).some((p) => p.position);
 
   function handleAutoLayout() {
@@ -347,6 +377,10 @@ function TreeWorkspaceInner() {
 
   const selectedLifeEvents = selectedPersonId
     ? Array.from(lifeEvents.values()).filter((e) => e.person_ids.includes(selectedPersonId))
+    : [];
+
+  const selectedClassifications = selectedPersonId
+    ? Array.from(classifications.values()).filter((c) => c.person_ids.includes(selectedPersonId))
     : [];
 
   const inferredSiblings = useMemo(() => inferSiblings(relationships), [relationships]);
@@ -504,6 +538,7 @@ function TreeWorkspaceInner() {
             inferredSiblings={selectedInferredSiblings}
             events={selectedEvents}
             lifeEvents={selectedLifeEvents}
+            classifications={selectedClassifications}
             allPersons={persons}
             onSavePerson={handleSavePerson}
             onDeletePerson={handleDeletePerson}
@@ -512,6 +547,8 @@ function TreeWorkspaceInner() {
             onDeleteEvent={handleDeleteEvent}
             onSaveLifeEvent={handleSaveLifeEvent}
             onDeleteLifeEvent={handleDeleteLifeEvent}
+            onSaveClassification={handleSaveClassification}
+            onDeleteClassification={handleDeleteClassification}
             onClose={() => setSelectedPersonId(null)}
           />
         )}

@@ -75,6 +75,22 @@ export interface LifeEvent {
   tags: string[];
 }
 
+export type ClassificationStatus = "suspected" | "diagnosed";
+
+export interface ClassificationPeriod {
+  start_year: number;
+  end_year: number | null;
+}
+
+export interface Classification {
+  dsm_category: string;
+  dsm_subcategory: string | null;
+  status: ClassificationStatus;
+  diagnosis_year: number | null;
+  periods: ClassificationPeriod[];
+  notes: string | null;
+}
+
 export interface EncryptedBlob {
   iv: string;
   ciphertext: string;

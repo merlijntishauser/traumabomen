@@ -1,6 +1,9 @@
 import type {
   ActivityStats,
   ChangePasswordRequest,
+  ClassificationCreate,
+  ClassificationResponse,
+  ClassificationUpdate,
   DeleteAccountRequest,
   EventCreate,
   EventResponse,
@@ -381,6 +384,46 @@ export function updateLifeEvent(
 
 export function deleteLifeEvent(treeId: string, lifeEventId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
+    method: "DELETE",
+  });
+}
+
+// Classifications
+
+export function getClassifications(treeId: string): Promise<ClassificationResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/classifications`);
+}
+
+export function getClassification(
+  treeId: string,
+  classificationId: string,
+): Promise<ClassificationResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`);
+}
+
+export function createClassification(
+  treeId: string,
+  data: ClassificationCreate,
+): Promise<ClassificationResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/classifications`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export function updateClassification(
+  treeId: string,
+  classificationId: string,
+  data: ClassificationUpdate,
+): Promise<ClassificationResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+export function deleteClassification(treeId: string, classificationId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`, {
     method: "DELETE",
   });
 }

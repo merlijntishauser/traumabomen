@@ -5,6 +5,7 @@ import { inferSiblings } from "../lib/inferSiblings";
 import { RelationshipType } from "../types/domain";
 import type { EdgeStyle } from "./useCanvasSettings";
 import type {
+  DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
@@ -15,6 +16,7 @@ export interface PersonNodeData extends Record<string, unknown> {
   person: DecryptedPerson;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  classifications: DecryptedClassification[];
   isFriendOnly?: boolean;
 }
 
@@ -106,6 +108,7 @@ export function useTreeLayout(
   selectedPersonId: string | null,
   lifeEvents?: Map<string, DecryptedLifeEvent>,
   canvasSettings?: { edgeStyle: EdgeStyle; showMarkers: boolean },
+  classifications?: Map<string, DecryptedClassification>,
 ): { nodes: PersonNodeType[]; edges: RelationshipEdgeType[] } {
   return useMemo(() => {
     if (persons.size === 0) {
@@ -260,6 +263,17 @@ export function useTreeLayout(
       }
     }
 
+    const classificationsByPerson = new Map<string, DecryptedClassification[]>();
+    if (classifications) {
+      for (const cls of classifications.values()) {
+        for (const personId of cls.person_ids) {
+          const existing = classificationsByPerson.get(personId) ?? [];
+          existing.push(cls);
+          classificationsByPerson.set(personId, existing);
+        }
+      }
+    }
+
     // ---- Build React Flow nodes (person nodes only, no junction nodes) ----
     const nodes: PersonNodeType[] = [];
 
@@ -291,6 +305,7 @@ export function useTreeLayout(
           person,
           events: eventsByPerson.get(person.id) ?? [],
           lifeEvents: lifeEventsByPerson.get(person.id) ?? [],
+          classifications: classificationsByPerson.get(person.id) ?? [],
           isFriendOnly: isFriendOnly || undefined,
         },
         selected: person.id === selectedPersonId,
@@ -504,5 +519,13 @@ export function useTreeLayout(
     }
 
     return { nodes, edges };
-  }, [persons, relationships, events, selectedPersonId, lifeEvents, canvasSettings]);
+  }, [
+    persons,
+    relationships,
+    events,
+    selectedPersonId,
+    lifeEvents,
+    canvasSettings,
+    classifications,
+  ]);
 }

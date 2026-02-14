@@ -103,3 +103,24 @@ class LifeEventResponse(BaseModel):
     encrypted_data: str
     created_at: datetime
     updated_at: datetime
+
+
+# --- Classification ---
+
+
+class ClassificationCreate(BaseModel):
+    person_ids: list[uuid.UUID]
+    encrypted_data: str
+
+
+class ClassificationUpdate(BaseModel):
+    person_ids: list[uuid.UUID] | None = None
+    encrypted_data: str | None = None
+
+
+class ClassificationResponse(BaseModel):
+    id: uuid.UUID
+    person_ids: list[uuid.UUID]
+    encrypted_data: str
+    created_at: datetime
+    updated_at: datetime

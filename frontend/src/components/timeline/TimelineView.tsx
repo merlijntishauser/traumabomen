@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type {
+  DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
@@ -18,6 +19,7 @@ interface TimelineViewProps {
   relationships: Map<string, DecryptedRelationship>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  classifications: Map<string, DecryptedClassification>;
 }
 
 interface PersonRow {
@@ -126,7 +128,13 @@ function computeGenerations(
   return generations;
 }
 
-export function TimelineView({ persons, relationships, events, lifeEvents }: TimelineViewProps) {
+export function TimelineView({
+  persons,
+  relationships,
+  events,
+  lifeEvents,
+  classifications,
+}: TimelineViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -483,6 +491,106 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
             });
         }
       }
+
+      // Classification period strips (thin bars at bottom of life bar)
+      const classificationStripHeight = 4;
+      const classificationsByPerson = new Map<string, DecryptedClassification[]>();
+      for (const cls of classifications.values()) {
+        for (const pid of cls.person_ids) {
+          const existing = classificationsByPerson.get(pid) ?? [];
+          existing.push(cls);
+          classificationsByPerson.set(pid, existing);
+        }
+      }
+
+      for (const row of rows) {
+        if (row.person.birth_year == null) continue;
+        const personCls = classificationsByPerson.get(row.person.id);
+        if (!personCls) continue;
+
+        const barY = row.y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
+        let stripIdx = 0;
+
+        for (const cls of personCls) {
+          const clsColor = cssVar(
+            cls.status === "diagnosed"
+              ? "--color-classification-diagnosed"
+              : "--color-classification-suspected",
+          );
+
+          for (const period of cls.periods) {
+            const px1 = scale(period.start_year);
+            const px2 = scale(period.end_year ?? currentYear);
+            const stripY = barY + BAR_HEIGHT + 2 + stripIdx * (classificationStripHeight + 1);
+
+            timeGroup
+              .append("rect")
+              .attr("x", px1)
+              .attr("y", stripY)
+              .attr("width", Math.max(0, px2 - px1))
+              .attr("height", classificationStripHeight)
+              .attr("rx", 1)
+              .attr("fill", clsColor)
+              .attr("opacity", 0.8)
+              .on("mouseenter", (mouseEvent: MouseEvent) => {
+                const catLabel = tRef.current(`dsm.${cls.dsm_category}`);
+                const subLabel = cls.dsm_subcategory
+                  ? tRef.current(`dsm.sub.${cls.dsm_subcategory}`)
+                  : null;
+                const statusLabel = tRef.current(`classification.status.${cls.status}`);
+                const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
+
+                const lines: TooltipLine[] = [
+                  { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
+                  { text: `${statusLabel} ${yearRange}` },
+                ];
+                setTooltipLines(tooltip, lines);
+                tooltip.style.display = "block";
+                tooltip.style.left = `${mouseEvent.clientX + 12}px`;
+                tooltip.style.top = `${mouseEvent.clientY - 10}px`;
+              })
+              .on("mouseleave", () => {
+                tooltip.style.display = "none";
+              });
+          }
+
+          // Triangle marker at diagnosis year
+          if (cls.status === "diagnosed" && cls.diagnosis_year != null) {
+            const dx = scale(cls.diagnosis_year);
+            const dy = row.y + ROW_HEIGHT / 2;
+            const triSize = MARKER_RADIUS * 0.85;
+            const triPath = `M${dx},${dy - triSize} L${dx + triSize},${dy + triSize} L${dx - triSize},${dy + triSize} Z`;
+
+            timeGroup
+              .append("path")
+              .attr("d", triPath)
+              .attr("fill", clsColor)
+              .attr("stroke", cssVar("--color-bg-canvas"))
+              .attr("stroke-width", 1.5)
+              .attr("class", "tl-marker")
+              .on("mouseenter", (mouseEvent: MouseEvent) => {
+                const catLabel = tRef.current(`dsm.${cls.dsm_category}`);
+                const subLabel = cls.dsm_subcategory
+                  ? tRef.current(`dsm.sub.${cls.dsm_subcategory}`)
+                  : null;
+                setTooltipLines(tooltip, [
+                  { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
+                  {
+                    text: `${tRef.current("classification.status.diagnosed")} (${cls.diagnosis_year})`,
+                  },
+                ]);
+                tooltip.style.display = "block";
+                tooltip.style.left = `${mouseEvent.clientX + 12}px`;
+                tooltip.style.top = `${mouseEvent.clientY - 10}px`;
+              })
+              .on("mouseleave", () => {
+                tooltip.style.display = "none";
+              });
+          }
+
+          stripIdx++;
+        }
+      }
     }
 
     renderAxis(xScale);
@@ -507,7 +615,7 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
       });
 
     svgSel.call(zoom);
-  }, [persons, relationships, events, lifeEvents]);
+  }, [persons, relationships, events, lifeEvents, classifications]);
 
   // Render on data change and resize
   useEffect(() => {

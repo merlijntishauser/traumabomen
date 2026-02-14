@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.admin import router as admin_router
 from app.routers.auth import router as auth_router
+from app.routers.classifications import router as classifications_router
 from app.routers.events import router as events_router
 from app.routers.life_events import router as life_events_router
 from app.routers.persons import router as persons_router
@@ -27,6 +28,7 @@ app.include_router(persons_router)
 app.include_router(relationships_router)
 app.include_router(events_router)
 app.include_router(life_events_router)
+app.include_router(classifications_router)
 app.include_router(sync_router)
 
 

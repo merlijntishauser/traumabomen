@@ -53,6 +53,10 @@
   --color-trauma-illness: #4ade80;
   --color-trauma-poverty: #a78bfa;
 
+  /* Classification status */
+  --color-classification-suspected: #fbbf24;
+  --color-classification-diagnosed: #38bdf8;
+
   /* Life event categories */
   --color-life-family: #60a5fa;
   --color-life-education: #a78bfa;
@@ -136,6 +140,9 @@
   --color-trauma-displacement: #ca8a04;
   --color-trauma-illness: #16a34a;
   --color-trauma-poverty: #7c3aed;
+
+  --color-classification-suspected: #d97706;
+  --color-classification-diagnosed: #0284c7;
 
   --color-life-family: #3b82f6;
   --color-life-education: #7c3aed;

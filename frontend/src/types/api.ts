@@ -147,6 +147,25 @@ export interface LifeEventResponse {
   updated_at: string;
 }
 
+// Classifications
+export interface ClassificationCreate {
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface ClassificationUpdate {
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
+export interface ClassificationResponse {
+  id: string;
+  person_ids: string[];
+  encrypted_data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Admin stats
 export interface PeriodCounts {
   day: number;
@@ -267,6 +286,18 @@ export interface SyncEventUpdate {
   encrypted_data?: string;
 }
 
+export interface SyncClassificationCreate {
+  id?: string;
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface SyncClassificationUpdate {
+  id: string;
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
 export interface SyncDelete {
   id: string;
 }
@@ -281,16 +312,22 @@ export interface SyncRequest {
   events_create?: SyncEventCreate[];
   events_update?: SyncEventUpdate[];
   events_delete?: SyncDelete[];
+  classifications_create?: SyncClassificationCreate[];
+  classifications_update?: SyncClassificationUpdate[];
+  classifications_delete?: SyncDelete[];
 }
 
 export interface SyncResponse {
   persons_created: string[];
   relationships_created: string[];
   events_created: string[];
+  classifications_created: string[];
   persons_updated: number;
   relationships_updated: number;
   events_updated: number;
+  classifications_updated: number;
   persons_deleted: number;
   relationships_deleted: number;
   events_deleted: number;
+  classifications_deleted: number;
 }

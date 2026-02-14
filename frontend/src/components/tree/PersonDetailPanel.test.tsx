@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type {
+  DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
@@ -67,6 +68,7 @@ const defaultProps = () => ({
   }[],
   events: [] as DecryptedEvent[],
   lifeEvents: [] as DecryptedLifeEvent[],
+  classifications: [] as DecryptedClassification[],
   allPersons: new Map([["p1", makePerson()]]),
   onSavePerson: vi.fn(),
   onDeletePerson: vi.fn(),
@@ -75,6 +77,8 @@ const defaultProps = () => ({
   onDeleteEvent: vi.fn(),
   onSaveLifeEvent: vi.fn(),
   onDeleteLifeEvent: vi.fn(),
+  onSaveClassification: vi.fn(),
+  onDeleteClassification: vi.fn(),
   onClose: vi.fn(),
 });
 

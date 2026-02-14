@@ -1,3 +1,4 @@
+from app.models.classification import Classification, ClassificationPerson
 from app.models.event import EventPerson, TraumaEvent
 from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.login_event import LoginEvent
@@ -15,5 +16,7 @@ __all__ = [
     "TraumaEvent",
     "LifeEventPerson",
     "LifeEvent",
+    "Classification",
+    "ClassificationPerson",
     "LoginEvent",
 ]

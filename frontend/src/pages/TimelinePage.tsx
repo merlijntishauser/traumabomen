@@ -14,9 +14,16 @@ export default function TimelinePage() {
   const { t } = useTranslation();
   const logout = useLogout();
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
-  const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
-    treeId!,
-  );
+  const {
+    treeName,
+    persons,
+    relationships,
+    events,
+    lifeEvents,
+    classifications,
+    isLoading,
+    error,
+  } = useTreeData(treeId!);
 
   if (error) {
     return (
@@ -117,6 +124,7 @@ export default function TimelinePage() {
           relationships={relationships}
           events={events}
           lifeEvents={lifeEvents}
+          classifications={classifications}
         />
       )}
     </div>

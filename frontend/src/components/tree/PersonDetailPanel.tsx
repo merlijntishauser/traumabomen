@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
+  DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
 } from "../../hooks/useTreeData";
+import { getClassificationColor } from "../../lib/classificationColors";
+import { DSM_CATEGORIES, getCategoryByKey } from "../../lib/dsmCategories";
 import type { InferredSibling } from "../../lib/inferSiblings";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import { getTraumaColor } from "../../lib/traumaColors";
 import type {
+  Classification,
+  ClassificationPeriod,
+  ClassificationStatus,
   LifeEvent,
   Person,
   RelationshipData,
@@ -30,6 +36,7 @@ interface PersonDetailPanelProps {
   inferredSiblings: InferredSibling[];
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  classifications: DecryptedClassification[];
   allPersons: Map<string, DecryptedPerson>;
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
@@ -38,6 +45,12 @@ interface PersonDetailPanelProps {
   onDeleteEvent: (eventId: string) => void;
   onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
   onDeleteLifeEvent: (lifeEventId: string) => void;
+  onSaveClassification: (
+    classificationId: string | null,
+    data: Classification,
+    personIds: string[],
+  ) => void;
+  onDeleteClassification: (classificationId: string) => void;
   onClose: () => void;
 }
 
@@ -47,6 +60,7 @@ export function PersonDetailPanel({
   inferredSiblings,
   events,
   lifeEvents,
+  classifications,
   allPersons,
   onSavePerson,
   onDeletePerson,
@@ -55,6 +69,8 @@ export function PersonDetailPanel({
   onDeleteEvent,
   onSaveLifeEvent,
   onDeleteLifeEvent,
+  onSaveClassification,
+  onDeleteClassification,
   onClose,
 }: PersonDetailPanelProps) {
   const { t } = useTranslation();
@@ -91,6 +107,8 @@ export function PersonDetailPanel({
     setShowNewEvent(false);
     setEditingLifeEventId(null);
     setShowNewLifeEvent(false);
+    setEditingClassificationId(null);
+    setShowNewClassification(false);
   }, [
     person.birth_year,
     person.death_year,
@@ -129,6 +147,11 @@ export function PersonDetailPanel({
   // Life event editing state
   const [editingLifeEventId, setEditingLifeEventId] = useState<string | null>(null);
   const [showNewLifeEvent, setShowNewLifeEvent] = useState(false);
+
+  // Classification editing state
+  const [classificationsOpen, setClassificationsOpen] = useState(false);
+  const [editingClassificationId, setEditingClassificationId] = useState<string | null>(null);
+  const [showNewClassification, setShowNewClassification] = useState(false);
 
   return (
     <div className="detail-panel">
@@ -464,6 +487,353 @@ export function PersonDetailPanel({
             </div>
           )}
         </section>
+        {/* Classifications section */}
+        <section className="detail-panel__section">
+          <button
+            type="button"
+            className="detail-panel__section-toggle"
+            onClick={() => setClassificationsOpen(!classificationsOpen)}
+          >
+            {classificationsOpen ? "\u25BC" : "\u25B6"} {t("classification.classifications")} (
+            {classifications.length})
+          </button>
+          {classificationsOpen && (
+            <div className="detail-panel__section-body">
+              {classifications.map((cls) =>
+                editingClassificationId === cls.id ? (
+                  <ClassificationForm
+                    key={cls.id}
+                    classification={cls}
+                    allPersons={allPersons}
+                    initialPersonIds={cls.person_ids}
+                    onSave={(data, personIds) => {
+                      onSaveClassification(cls.id, data, personIds);
+                      setEditingClassificationId(null);
+                    }}
+                    onCancel={() => setEditingClassificationId(null)}
+                    onDelete={() => {
+                      onDeleteClassification(cls.id);
+                      setEditingClassificationId(null);
+                    }}
+                  />
+                ) : (
+                  <div key={cls.id} className="detail-panel__event-item">
+                    <div className="detail-panel__event-header">
+                      <span
+                        className="detail-panel__event-dot"
+                        style={{
+                          backgroundColor: getClassificationColor(cls.status),
+                          borderRadius: 0,
+                          clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
+                        }}
+                      />
+                      <span className="detail-panel__event-title">
+                        {t(`dsm.${cls.dsm_category}`)}
+                        {cls.dsm_subcategory && ` - ${t(`dsm.sub.${cls.dsm_subcategory}`)}`}
+                      </span>
+                      <button
+                        type="button"
+                        className="detail-panel__btn--small"
+                        onClick={() => setEditingClassificationId(cls.id)}
+                      >
+                        {t("common.edit")}
+                      </button>
+                    </div>
+                    <div className="detail-panel__event-date">
+                      {t(`classification.status.${cls.status}`)}
+                      {cls.diagnosis_year && ` (${cls.diagnosis_year})`}
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {showNewClassification ? (
+                <ClassificationForm
+                  classification={null}
+                  allPersons={allPersons}
+                  initialPersonIds={[person.id]}
+                  onSave={(data, personIds) => {
+                    onSaveClassification(null, data, personIds);
+                    setShowNewClassification(false);
+                  }}
+                  onCancel={() => setShowNewClassification(false)}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="detail-panel__btn detail-panel__btn--secondary"
+                  onClick={() => setShowNewClassification(true)}
+                >
+                  {t("classification.newClassification")}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+interface ClassificationFormProps {
+  classification: DecryptedClassification | null;
+  allPersons: Map<string, DecryptedPerson>;
+  initialPersonIds: string[];
+  onSave: (data: Classification, personIds: string[]) => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}
+
+function ClassificationForm({
+  classification,
+  allPersons,
+  initialPersonIds,
+  onSave,
+  onCancel,
+  onDelete,
+}: ClassificationFormProps) {
+  const { t } = useTranslation();
+  const [dsmCategory, setDsmCategory] = useState(classification?.dsm_category ?? "anxiety");
+  const [dsmSubcategory, setDsmSubcategory] = useState<string | null>(
+    classification?.dsm_subcategory ?? null,
+  );
+  const [status, setStatus] = useState<ClassificationStatus>(classification?.status ?? "suspected");
+  const [diagnosisYear, setDiagnosisYear] = useState(
+    classification?.diagnosis_year != null ? String(classification.diagnosis_year) : "",
+  );
+  const [periods, setPeriods] = useState<ClassificationPeriod[]>(classification?.periods ?? []);
+  const [notes, setNotes] = useState(classification?.notes ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
+    () => new Set(initialPersonIds),
+  );
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const currentCategoryDef = getCategoryByKey(dsmCategory);
+  const hasSubcategories =
+    currentCategoryDef?.subcategories && currentCategoryDef.subcategories.length > 0;
+
+  const filteredCategories = categorySearch
+    ? DSM_CATEGORIES.filter((c) =>
+        t(`dsm.${c.key}`).toLowerCase().includes(categorySearch.toLowerCase()),
+      )
+    : DSM_CATEGORIES;
+
+  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  function togglePerson(personId: string) {
+    setSelectedPersonIds((prev) => {
+      if (prev.has(personId) && prev.size <= 1) return prev;
+      const next = new Set(prev);
+      if (next.has(personId)) {
+        next.delete(personId);
+      } else {
+        next.add(personId);
+      }
+      return next;
+    });
+  }
+
+  function addPeriod() {
+    setPeriods((prev) => [...prev, { start_year: new Date().getFullYear(), end_year: null }]);
+  }
+
+  function removePeriod(index: number) {
+    setPeriods((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updatePeriod(index: number, field: keyof ClassificationPeriod, value: string) {
+    setPeriods((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
+        return { ...p, [field]: parseInt(value, 10) || 0 };
+      }),
+    );
+  }
+
+  function handleCategoryChange(key: string) {
+    setDsmCategory(key);
+    const catDef = getCategoryByKey(key);
+    if (!catDef?.subcategories || catDef.subcategories.length === 0) {
+      setDsmSubcategory(null);
+    }
+    setCategorySearch("");
+  }
+
+  function handleSave() {
+    onSave(
+      {
+        dsm_category: dsmCategory,
+        dsm_subcategory: hasSubcategories ? dsmSubcategory : null,
+        status,
+        diagnosis_year:
+          status === "diagnosed" && diagnosisYear ? parseInt(diagnosisYear, 10) : null,
+        periods,
+        notes: notes || null,
+      },
+      Array.from(selectedPersonIds),
+    );
+  }
+
+  return (
+    <div className="detail-panel__event-form">
+      <label className="detail-panel__field">
+        <span>{t("classification.category")}</span>
+        <input
+          type="text"
+          value={categorySearch}
+          onChange={(e) => setCategorySearch(e.target.value)}
+          placeholder={t("classification.searchPlaceholder")}
+        />
+        <select value={dsmCategory} onChange={(e) => handleCategoryChange(e.target.value)}>
+          {filteredCategories.map((cat) => (
+            <option key={cat.key} value={cat.key}>
+              {t(`dsm.${cat.key}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {hasSubcategories && (
+        <label className="detail-panel__field">
+          <span>{t("classification.subcategory")}</span>
+          <select
+            value={dsmSubcategory ?? ""}
+            onChange={(e) => setDsmSubcategory(e.target.value || null)}
+          >
+            <option value="">---</option>
+            {currentCategoryDef!.subcategories!.map((sub) => (
+              <option key={sub} value={sub}>
+                {t(`dsm.sub.${sub}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <fieldset className="detail-panel__field">
+        <span>{t("classification.status")}</span>
+        <div className="detail-panel__radios" style={{ display: "flex", gap: 12 }}>
+          <label className="detail-panel__field--checkbox">
+            <input
+              type="radio"
+              name="cls-status"
+              checked={status === "suspected"}
+              onChange={() => setStatus("suspected")}
+            />
+            <span>{t("classification.status.suspected")}</span>
+          </label>
+          <label className="detail-panel__field--checkbox">
+            <input
+              type="radio"
+              name="cls-status"
+              checked={status === "diagnosed"}
+              onChange={() => setStatus("diagnosed")}
+            />
+            <span>{t("classification.status.diagnosed")}</span>
+          </label>
+        </div>
+      </fieldset>
+      {status === "diagnosed" && (
+        <label className="detail-panel__field">
+          <span>{t("classification.diagnosisYear")}</span>
+          <input
+            type="number"
+            value={diagnosisYear}
+            onChange={(e) => setDiagnosisYear(e.target.value)}
+            placeholder="---"
+          />
+        </label>
+      )}
+      <fieldset className="detail-panel__field">
+        <span>{t("classification.periods")}</span>
+        {periods.map((period, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: periods are edited by index
+            key={i}
+            className="detail-panel__period-row"
+          >
+            <div className="detail-panel__period-years">
+              <label className="detail-panel__field">
+                <span>{t("common.startYear")}</span>
+                <input
+                  type="number"
+                  value={period.start_year}
+                  onChange={(e) => updatePeriod(i, "start_year", e.target.value)}
+                />
+              </label>
+              <label className="detail-panel__field">
+                <span>{t("common.endYear")}</span>
+                <input
+                  type="number"
+                  value={period.end_year ?? ""}
+                  onChange={(e) => updatePeriod(i, "end_year", e.target.value)}
+                  placeholder="---"
+                />
+              </label>
+            </div>
+            <button
+              type="button"
+              className="detail-panel__btn--small detail-panel__btn--danger"
+              onClick={() => removePeriod(i)}
+            >
+              {t("classification.removePeriod")}
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="detail-panel__btn--small"
+          style={{ marginTop: 4 }}
+          onClick={addPeriod}
+        >
+          {t("classification.addPeriod")}
+        </button>
+      </fieldset>
+      <label className="detail-panel__field">
+        <span>{t("classification.notes")}</span>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+      </label>
+      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
+        <span>{t("classification.linkedPersons")}</span>
+        {sortedPersons.map((p) => (
+          <label key={p.id} className="detail-panel__field--checkbox">
+            <input
+              type="checkbox"
+              checked={selectedPersonIds.has(p.id)}
+              onChange={() => togglePerson(p.id)}
+            />
+            <span>{p.name}</span>
+          </label>
+        ))}
+      </fieldset>
+      <div className="detail-panel__actions">
+        <button
+          type="button"
+          className="detail-panel__btn detail-panel__btn--primary"
+          onClick={handleSave}
+        >
+          {t("common.save")}
+        </button>
+        <button type="button" className="detail-panel__btn" onClick={onCancel}>
+          {t("common.cancel")}
+        </button>
+        {onDelete && (
+          <button
+            type="button"
+            className="detail-panel__btn detail-panel__btn--danger"
+            onClick={() => {
+              if (confirmDelete) {
+                onDelete();
+              } else {
+                setConfirmDelete(true);
+              }
+            }}
+          >
+            {confirmDelete ? t("classification.confirmDelete") : t("common.delete")}
+          </button>
+        )}
       </div>
     </div>
   );

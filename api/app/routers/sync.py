@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_owned_tree
+from app.models.classification import Classification, ClassificationPerson
 from app.models.event import EventPerson, TraumaEvent
 from app.models.person import Person
 from app.models.relationship import Relationship
@@ -56,6 +57,17 @@ async def sync_tree(
                 await db.delete(rel)
                 resp.relationships_deleted += 1
 
+        for item in body.classifications_delete:
+            result = await db.execute(
+                select(Classification).where(
+                    Classification.id == item.id, Classification.tree_id == tree.id
+                )
+            )
+            classification = result.scalar_one_or_none()
+            if classification is not None:
+                await db.delete(classification)
+                resp.classifications_deleted += 1
+
         for item in body.events_delete:
             result = await db.execute(
                 select(TraumaEvent).where(TraumaEvent.id == item.id, TraumaEvent.tree_id == tree.id)
@@ -95,9 +107,12 @@ async def sync_tree(
         event_person_ids = []
         for item in body.events_create:
             event_person_ids.extend(item.person_ids)
+        classification_person_ids = []
+        for item in body.classifications_create:
+            classification_person_ids.extend(item.person_ids)
 
         await _validate_person_ids_in_tree(
-            list(set(rel_person_ids + event_person_ids)), tree.id, db
+            list(set(rel_person_ids + event_person_ids + classification_person_ids)), tree.id, db
         )
 
         for item in body.relationships_create:
@@ -120,12 +135,26 @@ async def sync_tree(
             db.add(event)
             resp.events_created.append(event.id)
 
+        for item in body.classifications_create:
+            classification = Classification(
+                id=item.id or uuid.uuid4(),
+                tree_id=tree.id,
+                encrypted_data=item.encrypted_data,
+            )
+            db.add(classification)
+            resp.classifications_created.append(classification.id)
+
         await db.flush()
 
         # Add event-person junction rows after events are flushed
         for item, event_id in zip(body.events_create, resp.events_created):
             for pid in item.person_ids:
                 db.add(EventPerson(event_id=event_id, person_id=pid))
+
+        # Add classification-person junction rows
+        for item, cls_id in zip(body.classifications_create, resp.classifications_created):
+            for pid in item.person_ids:
+                db.add(ClassificationPerson(classification_id=cls_id, person_id=pid))
 
         # Phase 3: Updates
         for item in body.persons_update:
@@ -183,6 +212,29 @@ async def sync_tree(
                 for pid in item.person_ids:
                     db.add(EventPerson(event_id=event.id, person_id=pid))
             resp.events_updated += 1
+
+        for item in body.classifications_update:
+            result = await db.execute(
+                select(Classification).where(
+                    Classification.id == item.id, Classification.tree_id == tree.id
+                )
+            )
+            classification = result.scalar_one_or_none()
+            if classification is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Classification {item.id} not found",
+                )
+            if item.encrypted_data is not None:
+                classification.encrypted_data = item.encrypted_data
+            if item.person_ids is not None:
+                await _validate_person_ids_in_tree(item.person_ids, tree.id, db)
+                await db.refresh(classification, ["person_links"])
+                classification.person_links.clear()
+                await db.flush()
+                for pid in item.person_ids:
+                    db.add(ClassificationPerson(classification_id=classification.id, person_id=pid))
+            resp.classifications_updated += 1
 
         await db.commit()
     except HTTPException:

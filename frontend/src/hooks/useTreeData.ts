@@ -1,7 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEncryption } from "../contexts/EncryptionContext";
-import { getEvents, getLifeEvents, getPersons, getRelationships, getTree } from "../lib/api";
-import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
+import {
+  getClassifications,
+  getEvents,
+  getLifeEvents,
+  getPersons,
+  getRelationships,
+  getTree,
+} from "../lib/api";
+import type {
+  Classification,
+  LifeEvent,
+  Person,
+  RelationshipData,
+  TraumaEvent,
+} from "../types/domain";
 
 export interface DecryptedPerson extends Person {
   id: string;
@@ -23,18 +36,25 @@ export interface DecryptedLifeEvent extends LifeEvent {
   person_ids: string[];
 }
 
+export interface DecryptedClassification extends Classification {
+  id: string;
+  person_ids: string[];
+}
+
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
   relationships: (treeId: string) => ["trees", treeId, "relationships"] as const,
   events: (treeId: string) => ["trees", treeId, "events"] as const,
   lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
+  classifications: (treeId: string) => ["trees", treeId, "classifications"] as const,
 };
 
 const EMPTY_PERSONS = new Map<string, DecryptedPerson>();
 const EMPTY_RELATIONSHIPS = new Map<string, DecryptedRelationship>();
 const EMPTY_EVENTS = new Map<string, DecryptedEvent>();
 const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
+const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
 
 export function useTreeData(treeId: string) {
   const { decrypt } = useEncryption();
@@ -115,18 +135,41 @@ export function useTreeData(treeId: string) {
     },
   });
 
+  const classificationsQuery = useQuery({
+    queryKey: treeQueryKeys.classifications(treeId),
+    queryFn: async () => {
+      const responses = await getClassifications(treeId);
+      const entries = await Promise.all(
+        responses.map(async (r) => {
+          const data = await decrypt<Classification>(r.encrypted_data);
+          return [
+            r.id,
+            { ...data, id: r.id, person_ids: r.person_ids } as DecryptedClassification,
+          ] as const;
+        }),
+      );
+      return new Map(entries);
+    },
+  });
+
   return {
     treeName: treeQuery.data ?? null,
     persons: personsQuery.data ?? EMPTY_PERSONS,
     relationships: relationshipsQuery.data ?? EMPTY_RELATIONSHIPS,
     events: eventsQuery.data ?? EMPTY_EVENTS,
     lifeEvents: lifeEventsQuery.data ?? EMPTY_LIFE_EVENTS,
+    classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
     isLoading:
       personsQuery.isLoading ||
       relationshipsQuery.isLoading ||
       eventsQuery.isLoading ||
-      lifeEventsQuery.isLoading,
+      lifeEventsQuery.isLoading ||
+      classificationsQuery.isLoading,
     error:
-      personsQuery.error || relationshipsQuery.error || eventsQuery.error || lifeEventsQuery.error,
+      personsQuery.error ||
+      relationshipsQuery.error ||
+      eventsQuery.error ||
+      lifeEventsQuery.error ||
+      classificationsQuery.error,
   };
 }

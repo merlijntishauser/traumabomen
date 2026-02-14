@@ -2,6 +2,7 @@ import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import type { PersonNodeData } from "../../hooks/useTreeLayout";
+import { getClassificationColor } from "../../lib/classificationColors";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import { getTraumaColor } from "../../lib/traumaColors";
 import "./PersonNode.css";
@@ -10,7 +11,7 @@ const MAX_VISIBLE_BADGES = 8;
 
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
-  const { person, events, lifeEvents = [], isFriendOnly } = data;
+  const { person, events, lifeEvents = [], classifications = [], isFriendOnly } = data;
 
   const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
   const yearRange = person.death_year ? `${birthStr} - ${person.death_year}` : `${birthStr} -`;
@@ -63,7 +64,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
           <span className="person-node__adopted"> ({t("person.isAdopted").toLowerCase()})</span>
         )}
       </div>
-      {(events.length > 0 || lifeEvents.length > 0) && (
+      {(events.length > 0 || lifeEvents.length > 0 || classifications.length > 0) && (
         <div className="person-node__badges">
           {events.slice(0, MAX_VISIBLE_BADGES).map((event) => (
             <span key={event.id} className="person-node__badge-wrap">
@@ -119,9 +120,33 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               </span>
             </span>
           ))}
-          {events.length + lifeEvents.length > MAX_VISIBLE_BADGES && (
+          {classifications
+            .slice(0, Math.max(0, MAX_VISIBLE_BADGES - events.length - lifeEvents.length))
+            .map((cls) => (
+              <span key={cls.id} className="person-node__badge-wrap">
+                <span
+                  className="person-node__badge person-node__badge--classification"
+                  style={{ backgroundColor: getClassificationColor(cls.status) }}
+                />
+                <span className="person-node__tooltip">
+                  <span className="person-node__tooltip-title">
+                    <span
+                      className="person-node__tooltip-dot person-node__tooltip-dot--classification"
+                      style={{ backgroundColor: getClassificationColor(cls.status) }}
+                    />
+                    {t(`dsm.${cls.dsm_category}`)}
+                    {cls.dsm_subcategory && ` - ${t(`dsm.sub.${cls.dsm_subcategory}`)}`}
+                  </span>
+                  <span className="person-node__tooltip-meta">
+                    <span>{t(`classification.status.${cls.status}`)}</span>
+                    {cls.diagnosis_year && <span>{cls.diagnosis_year}</span>}
+                  </span>
+                </span>
+              </span>
+            ))}
+          {events.length + lifeEvents.length + classifications.length > MAX_VISIBLE_BADGES && (
             <span className="person-node__badge-overflow">
-              +{events.length + lifeEvents.length - MAX_VISIBLE_BADGES}
+              +{events.length + lifeEvents.length + classifications.length - MAX_VISIBLE_BADGES}
             </span>
           )}
         </div>

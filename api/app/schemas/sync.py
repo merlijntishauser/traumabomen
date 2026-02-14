@@ -3,6 +3,8 @@ import uuid
 from pydantic import BaseModel
 
 from app.schemas.tree import (
+    ClassificationCreate,
+    ClassificationUpdate,
     EventCreate,
     EventUpdate,
     PersonCreate,
@@ -40,6 +42,14 @@ class SyncEventUpdate(EventUpdate):
     id: uuid.UUID
 
 
+class SyncClassificationCreate(ClassificationCreate):
+    id: uuid.UUID | None = None
+
+
+class SyncClassificationUpdate(ClassificationUpdate):
+    id: uuid.UUID
+
+
 class SyncRequest(BaseModel):
     persons_create: list[SyncPersonCreate] = []
     persons_update: list[SyncPersonUpdate] = []
@@ -50,15 +60,21 @@ class SyncRequest(BaseModel):
     events_create: list[SyncEventCreate] = []
     events_update: list[SyncEventUpdate] = []
     events_delete: list[SyncDelete] = []
+    classifications_create: list[SyncClassificationCreate] = []
+    classifications_update: list[SyncClassificationUpdate] = []
+    classifications_delete: list[SyncDelete] = []
 
 
 class SyncResponse(BaseModel):
     persons_created: list[uuid.UUID] = []
     relationships_created: list[uuid.UUID] = []
     events_created: list[uuid.UUID] = []
+    classifications_created: list[uuid.UUID] = []
     persons_updated: int = 0
     relationships_updated: int = 0
     events_updated: int = 0
+    classifications_updated: int = 0
     persons_deleted: int = 0
     relationships_deleted: int = 0
     events_deleted: int = 0
+    classifications_deleted: int = 0
