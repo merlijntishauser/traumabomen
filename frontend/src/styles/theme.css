@@ -180,11 +180,12 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* App layout: flex column so footer sticks to bottom */
+/* App layout: flex column so footer sticks to bottom.
+   dvh accounts for Safari's collapsible address bar on iPad/mobile. */
 .app-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
 }
 
 .app-main {
