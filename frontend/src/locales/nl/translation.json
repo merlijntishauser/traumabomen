@@ -112,6 +112,7 @@
   "common.endYear": "Eindjaar",
 
   "tree.untitled": "Naamloze boom",
+  "tree.namePlaceholder": "Naam van de boom",
   "tree.decryptionError": "Kon boomgegevens niet ontsleutelen. Log opnieuw in.",
 
   "person.details": "Persoonsgegevens",

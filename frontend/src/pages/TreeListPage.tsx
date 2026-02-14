@@ -24,6 +24,8 @@ export default function TreeListPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
 
   const treesQuery = useQuery({
     queryKey: ["trees"],
@@ -40,8 +42,8 @@ export default function TreeListPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async () => {
-      const encrypted_data = await encrypt({ name: t("tree.untitled") });
+    mutationFn: async (name: string) => {
+      const encrypted_data = await encrypt({ name });
       return createTree({ encrypted_data });
     },
     onSuccess: (response) => {
@@ -80,6 +82,17 @@ export default function TreeListPage() {
     renameMutation.mutate({ id: editingId, name: editName.trim() });
   }
 
+  function handleCreateSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    createMutation.mutate(newName.trim());
+  }
+
+  function startCreating() {
+    setCreating(true);
+    setNewName("");
+  }
+
   return (
     <div className="tree-list-page">
       <div className="tree-toolbar">
@@ -87,8 +100,8 @@ export default function TreeListPage() {
         <div className="tree-toolbar__spacer" />
         <button
           className="tree-toolbar__btn tree-toolbar__btn--primary"
-          onClick={() => createMutation.mutate()}
-          disabled={createMutation.isPending}
+          onClick={startCreating}
+          disabled={creating || createMutation.isPending}
         >
           {t("tree.create")}
         </button>
@@ -105,6 +118,32 @@ export default function TreeListPage() {
       </div>
 
       <div className="tree-list-content">
+        {creating && (
+          <form className="tree-list-create" onSubmit={handleCreateSubmit}>
+            <input
+              className="tree-list-item__input"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder={t("tree.namePlaceholder")}
+              autoFocus
+            />
+            <button
+              className="tree-list-item__btn"
+              type="submit"
+              disabled={!newName.trim() || createMutation.isPending}
+            >
+              {t("tree.create")}
+            </button>
+            <button
+              className="tree-list-item__btn"
+              type="button"
+              onClick={() => setCreating(false)}
+            >
+              {t("common.cancel")}
+            </button>
+          </form>
+        )}
+
         {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
 
         {treesQuery.data && treesQuery.data.length === 0 && (

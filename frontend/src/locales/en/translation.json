@@ -112,6 +112,7 @@
   "common.endYear": "End year",
 
   "tree.untitled": "Untitled tree",
+  "tree.namePlaceholder": "Tree name",
   "tree.decryptionError": "Could not decrypt tree data. Please log in again.",
 
   "person.details": "Person details",

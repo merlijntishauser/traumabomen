@@ -126,6 +126,14 @@
   flex: 1;
 }
 
+/* Inline create form */
+.tree-list-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
 .tree-list-loading {
   color: var(--color-text-secondary);
 }
