@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ReactFlowProvider,
@@ -28,6 +28,8 @@ import { inferSiblings } from "../lib/inferSiblings";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { CanvasSettingsPanel } from "../components/tree/CanvasSettingsPanel";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
+import { useTreeId } from "../hooks/useTreeId";
+import { uuidToCompact } from "../lib/compactId";
 import { BranchDecoration } from "../components/BranchDecoration";
 import { RelationshipType } from "../types/domain";
 import type { Person, TraumaEvent, LifeEvent, RelationshipData } from "../types/domain";
@@ -106,7 +108,7 @@ function RelationshipPopover({
 }
 
 function TreeWorkspaceInner() {
-  const { id: treeId } = useParams<{ id: string }>();
+  const treeId = useTreeId();
   const { t, i18n } = useTranslation();
   const logout = useLogout();
   const { fitView } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
@@ -431,7 +433,7 @@ function TreeWorkspaceInner() {
         >
           {t("tree.autoLayout")}
         </button>
-        <Link to={`/trees/${treeId}/timeline`} className="tree-toolbar__btn">
+        <Link to={`/trees/${uuidToCompact(treeId!)}/timeline`} className="tree-toolbar__btn">
           {t("tree.timeline")}
         </Link>
         <Link to="/trees" className="tree-toolbar__btn">

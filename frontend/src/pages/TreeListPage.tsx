@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTrees, createTree, updateTree, deleteTree } from "../lib/api";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
+import { uuidToCompact } from "../lib/compactId";
 import { ThemeToggle } from "../components/ThemeToggle";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
@@ -48,7 +49,7 @@ export default function TreeListPage() {
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
-      navigate(`/trees/${response.id}`);
+      navigate(`/trees/${uuidToCompact(response.id)}`);
     },
   });
 
@@ -196,7 +197,7 @@ export default function TreeListPage() {
                   </div>
                 ) : (
                   <div className="tree-list-item">
-                    <Link className="tree-list-item__link" to={`/trees/${tree.id}`}>
+                    <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
                       {tree.name}
                     </Link>
                     <div className="tree-list-item__actions">

@@ -1,13 +1,15 @@
-import { useParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useLogout } from "../hooks/useLogout";
 import { useTreeData } from "../hooks/useTreeData";
+import { useTreeId } from "../hooks/useTreeId";
+import { uuidToCompact } from "../lib/compactId";
 import { TimelineView } from "../components/timeline/TimelineView";
 import { ThemeToggle } from "../components/ThemeToggle";
 import "../components/tree/TreeCanvas.css";
 
 export default function TimelinePage() {
-  const { id: treeId } = useParams<{ id: string }>();
+  const treeId = useTreeId();
   const { t, i18n } = useTranslation();
   const logout = useLogout();
   const { treeName, persons, relationships, events, lifeEvents, isLoading, error } = useTreeData(
@@ -34,7 +36,7 @@ export default function TimelinePage() {
       <div className="tree-toolbar">
         <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
         <div className="tree-toolbar__spacer" />
-        <Link to={`/trees/${treeId}`} className="tree-toolbar__btn">
+        <Link to={`/trees/${uuidToCompact(treeId!)}`} className="tree-toolbar__btn">
           {t("tree.canvas")}
         </Link>
         <Link to="/trees" className="tree-toolbar__btn">
