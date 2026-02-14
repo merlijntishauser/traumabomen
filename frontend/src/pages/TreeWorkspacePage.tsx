@@ -442,11 +442,9 @@ function TreeWorkspaceInner() {
         <div className="tree-toolbar__group">
           <Link to={`/trees/${uuidToCompact(treeId!)}/timeline`} className="tree-toolbar__icon-btn" title={t("tree.timeline")}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-              <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-              <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" />
-              <line x1="17" y1="16" x2="23" y2="16" />
+              <circle cx="12" cy="12" r="7" />
+              <polyline points="12 9 12 12 13.5 13.5" />
+              <path d="M16.51 17.35l-.35 3.83a2 2 0 01-2 1.82H9.83a2 2 0 01-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 019.83 1h4.35a2 2 0 012 1.82l.35 3.83" />
             </svg>
           </Link>
           <Link to="/trees" className="tree-toolbar__icon-btn" title={t("nav.trees")}>
