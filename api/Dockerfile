@@ -16,7 +16,7 @@ FROM dhi.io/python:3.14 AS production
 WORKDIR /app
 
 ENV PYTHONPATH=/app/site-packages
-COPY --from=build /app/.venv/lib/python3.13/site-packages /app/site-packages
+COPY --from=build /app/.venv/lib/python3.14/site-packages /app/site-packages
 COPY --from=build /app .
 
 EXPOSE 8000
