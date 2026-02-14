@@ -474,6 +474,7 @@ function TreeWorkspaceInner() {
             snapGrid={[20, 20]}
             fitView
             deleteKeyCode={null}
+            proOptions={{ hideAttribution: true }}
           >
             {canvasSettings.showGrid && <Background gap={20} />}
             {canvasSettings.showMinimap && <MiniMap />}
