@@ -57,14 +57,15 @@ async def register(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse | RegisterResponse:
-    result = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none() is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     if settings.REQUIRE_EMAIL_VERIFICATION:
         token, hashed = _generate_verification_token()
         user = User(
-            email=body.email,
+            email=email,
             hashed_password=hash_password(body.password),
             encryption_salt=body.encryption_salt,
             email_verified=False,
@@ -75,7 +76,7 @@ async def register(
         db.add(user)
         await db.commit()
 
-        send_verification_email(body.email, token, settings)
+        send_verification_email(email, token, settings)
         return RegisterResponse(message="verification_email_sent")
 
     user = User(
@@ -97,7 +98,8 @@ async def login(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
-    result = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if user is None or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
@@ -156,7 +158,8 @@ async def resend_verification(
             detail="Email verification is not enabled",
         )
 
-    result = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     # Always return success to avoid email enumeration

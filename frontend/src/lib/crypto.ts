@@ -1,6 +1,13 @@
 import type { EncryptedBlob } from "../types/domain";
 import argon2 from "./argon2";
 
+export class DecryptError extends Error {
+  constructor(message = "Failed to decrypt data. Wrong passphrase or corrupted data.") {
+    super(message);
+    this.name = "DecryptError";
+  }
+}
+
 const ARGON2_TIME_COST = 3;
 const ARGON2_MEMORY_COST = 65536; // 64 MB
 const ARGON2_PARALLELISM = 1;
@@ -68,13 +75,21 @@ export async function decrypt(blob: EncryptedBlob, key: CryptoKey): Promise<stri
   const iv = fromBase64(blob.iv);
   const ciphertext = fromBase64(blob.ciphertext);
 
-  const plaintextBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: new Uint8Array(iv).buffer as ArrayBuffer },
-    key,
-    new Uint8Array(ciphertext).buffer as ArrayBuffer,
-  );
+  if (iv.length !== IV_LENGTH) {
+    throw new DecryptError(`Invalid IV length: expected ${IV_LENGTH}, got ${iv.length}`);
+  }
 
-  return new TextDecoder().decode(plaintextBuffer);
+  try {
+    const plaintextBuffer = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(iv).buffer as ArrayBuffer },
+      key,
+      new Uint8Array(ciphertext).buffer as ArrayBuffer,
+    );
+
+    return new TextDecoder().decode(plaintextBuffer);
+  } catch {
+    throw new DecryptError();
+  }
 }
 
 export async function encryptForApi(data: unknown, key: CryptoKey): Promise<string> {

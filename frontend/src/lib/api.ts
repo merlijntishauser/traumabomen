@@ -112,21 +112,33 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   return response.json();
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
 async function refreshAccessToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const data = await apiFetch<RefreshResponse>("/auth/refresh", {
+        method: "POST",
+        body: { refresh_token: refreshToken },
+        requiresAuth: false,
+      });
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      return true;
+    } catch {
+      clearTokens();
+      return false;
+    }
+  })();
 
   try {
-    const data = await apiFetch<RefreshResponse>("/auth/refresh", {
-      method: "POST",
-      body: { refresh_token: refreshToken },
-      requiresAuth: false,
-    });
-    localStorage.setItem(TOKEN_KEY, data.access_token);
-    return true;
-  } catch {
-    clearTokens();
-    return false;
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
   }
 }
 

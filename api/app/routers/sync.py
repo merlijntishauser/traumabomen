@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +12,8 @@ from app.models.person import Person
 from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.schemas.sync import SyncRequest, SyncResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/trees/{tree_id}/sync", tags=["sync"])
 
@@ -186,6 +189,7 @@ async def sync_tree(
         await db.rollback()
         raise
     except Exception:
+        logger.exception("Unexpected error during tree sync (tree_id=%s)", tree.id)
         await db.rollback()
         raise
 

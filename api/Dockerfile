@@ -15,7 +15,9 @@ RUN uv sync --no-dev
 FROM dhi.io/python:3.14 AS production
 WORKDIR /app
 
-ENV PYTHONPATH=/app/site-packages
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/site-packages
 COPY --from=build /app/.venv/lib/python3.14/site-packages /app/site-packages
 COPY --from=build /app .
 
