@@ -3,6 +3,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -195,15 +196,17 @@ async def refresh(
 ) -> RefreshResponse:
     try:
         payload = decode_token(body.refresh_token, settings)
-    except Exception as exc:
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
+            )
+        user_id = UUID(payload["sub"])
+    except HTTPException:
+        raise
+    except (jwt.PyJWTError, KeyError, ValueError) as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         ) from exc
-
-    if payload.get("type") != "refresh":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
-
-    user_id = UUID(payload["sub"])
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
