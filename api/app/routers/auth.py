@@ -1,5 +1,7 @@
+import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -38,9 +40,14 @@ def _build_token_response(user: User, settings: Settings) -> TokenResponse:
 
 
 def _generate_verification_token() -> tuple[str, str]:
-    """Return (plaintext_token, hashed_token)."""
+    """Return (plaintext_token, sha256_hex_hash).
+
+    Uses SHA-256 instead of bcrypt so the token can be looked up directly
+    by hash rather than scanning all unverified users. SHA-256 is secure
+    for random 256-bit tokens (no brute-force resistance needed).
+    """
     token = secrets.token_urlsafe(32)
-    hashed = hash_password(token)
+    hashed = hashlib.sha256(token.encode()).hexdigest()
     return token, hashed
 
 
@@ -111,33 +118,27 @@ async def verify_email(
     token: str,
     db: AsyncSession = Depends(get_db),
 ) -> VerifyResponse:
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
     result = await db.execute(
         select(User).where(
             User.email_verified == False,  # noqa: E712
-            User.email_verification_token.isnot(None),
+            User.email_verification_token == token_hash,
         )
     )
-    users = result.scalars().all()
+    user = result.scalar_one_or_none()
 
-    verified_user = None
-    for user in users:
-        if user.email_verification_token and verify_password(token, user.email_verification_token):
-            if (
-                user.email_verification_expires_at
-                and user.email_verification_expires_at > datetime.now(UTC)
-            ):
-                verified_user = user
-            break
-
-    if verified_user is None:
+    if user is None or (
+        user.email_verification_expires_at
+        and user.email_verification_expires_at <= datetime.now(UTC)
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="invalid_or_expired_token",
         )
 
-    verified_user.email_verified = True
-    verified_user.email_verification_token = None
-    verified_user.email_verification_expires_at = None
+    user.email_verified = True
+    user.email_verification_token = None
+    user.email_verification_expires_at = None
     await db.commit()
 
     return VerifyResponse(message="email_verified")
@@ -199,14 +200,15 @@ async def refresh(
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
 
-    from uuid import UUID
-
     user_id = UUID(payload["sub"])
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    is_admin = user.is_admin if user else False
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists"
+        )
     return RefreshResponse(
-        access_token=create_token(user_id, "access", settings, is_admin=is_admin),
+        access_token=create_token(user_id, "access", settings, is_admin=user.is_admin),
     )
 
 

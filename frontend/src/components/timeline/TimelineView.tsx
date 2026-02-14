@@ -26,6 +26,23 @@ interface PersonRow {
   y: number;
 }
 
+interface TooltipLine {
+  text: string;
+  bold?: boolean;
+}
+
+/** Build tooltip content using textContent (safe from XSS) instead of innerHTML. */
+function setTooltipLines(tooltip: HTMLDivElement, lines: TooltipLine[]): void {
+  tooltip.textContent = "";
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) tooltip.appendChild(document.createElement("br"));
+    const span = document.createElement("span");
+    span.textContent = lines[i].text;
+    if (lines[i].bold) span.style.fontWeight = "600";
+    tooltip.appendChild(span);
+  }
+}
+
 const LABEL_WIDTH = 180;
 const ROW_HEIGHT = 36;
 const BAR_HEIGHT = 12;
@@ -333,10 +350,10 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
             .attr("stroke-width", 12)
             .style("cursor", "pointer")
             .on("mouseenter", (mouseEvent: MouseEvent) => {
-              tooltip.innerHTML = [
-                `<strong>${sourceName} &mdash; ${targetName}</strong>`,
-                `${statusLabel} ${yearRange}`,
-              ].join("<br>");
+              setTooltipLines(tooltip, [
+                { text: `${sourceName} \u2014 ${targetName}`, bold: true },
+                { text: `${statusLabel} ${yearRange}` },
+              ]);
               tooltip.style.display = "block";
               tooltip.style.left = `${mouseEvent.clientX + 12}px`;
               tooltip.style.top = `${mouseEvent.clientY - 10}px`;
@@ -374,13 +391,13 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
                 .filter(Boolean)
                 .join(", ");
 
-              tooltip.innerHTML = [
-                `<strong>${event.title}</strong>`,
-                tRef.current(`trauma.category.${event.category}`),
-                event.approximate_date,
-                tRef.current("timeline.severity", { value: event.severity }),
-                linkedNames,
-              ].join("<br>");
+              setTooltipLines(tooltip, [
+                { text: event.title, bold: true },
+                { text: tRef.current(`trauma.category.${event.category}`) },
+                { text: event.approximate_date },
+                { text: tRef.current("timeline.severity", { value: event.severity }) },
+                { text: linkedNames },
+              ]);
 
               tooltip.style.display = "block";
               tooltip.style.left = `${mouseEvent.clientX + 12}px`;
@@ -422,17 +439,17 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
                 .filter(Boolean)
                 .join(", ");
 
-              const lines = [
-                `<strong>${le.title}</strong>`,
-                tRef.current(`lifeEvent.category.${le.category}`),
-                le.approximate_date,
+              const lines: TooltipLine[] = [
+                { text: le.title, bold: true },
+                { text: tRef.current(`lifeEvent.category.${le.category}`) },
+                { text: le.approximate_date },
               ];
               if (le.impact != null) {
-                lines.push(tRef.current("timeline.impact", { value: le.impact }));
+                lines.push({ text: tRef.current("timeline.impact", { value: le.impact }) });
               }
-              lines.push(linkedNames);
+              lines.push({ text: linkedNames });
 
-              tooltip.innerHTML = lines.join("<br>");
+              setTooltipLines(tooltip, lines);
               tooltip.style.display = "block";
               tooltip.style.left = `${mouseEvent.clientX + 12}px`;
               tooltip.style.top = `${mouseEvent.clientY - 10}px`;

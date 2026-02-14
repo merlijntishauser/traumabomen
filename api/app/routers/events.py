@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.dependencies import get_owned_tree
@@ -64,11 +65,12 @@ async def list_events(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[EventResponse]:
-    result = await db.execute(select(TraumaEvent).where(TraumaEvent.tree_id == tree.id))
+    result = await db.execute(
+        select(TraumaEvent)
+        .where(TraumaEvent.tree_id == tree.id)
+        .options(selectinload(TraumaEvent.person_links))
+    )
     events = result.scalars().all()
-    # Eagerly load person_links for each event
-    for event in events:
-        await db.refresh(event, ["person_links"])
     return [_event_response(e) for e in events]
 
 
@@ -114,7 +116,6 @@ async def update_event(
             db.add(EventPerson(event_id=event.id, person_id=pid))
 
     await db.commit()
-    await db.refresh(event)
     await db.refresh(event, ["person_links"])
     return _event_response(event)
 
