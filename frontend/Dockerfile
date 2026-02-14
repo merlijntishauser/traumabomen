@@ -1,4 +1,4 @@
-FROM node:22-alpine AS dev
+FROM node:25-alpine AS dev
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
