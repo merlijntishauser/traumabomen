@@ -48,7 +48,7 @@ function renderNode(person: DecryptedPerson, events: DecryptedEvent[] = [], sele
   // PersonNode expects NodeProps shape but we only use data and selected
   const props = {
     id: person.id,
-    data: { person, events },
+    data: { person, events, lifeEvents: [] },
     selected,
     type: "person",
     isConnectable: true,

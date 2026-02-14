@@ -10,7 +10,7 @@ const MAX_VISIBLE_BADGES = 8;
 
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
-  const { person, events, lifeEvents } = data;
+  const { person, events, lifeEvents = [] } = data;
 
   const yearRange = person.death_year
     ? `${person.birth_year} - ${person.death_year}`
