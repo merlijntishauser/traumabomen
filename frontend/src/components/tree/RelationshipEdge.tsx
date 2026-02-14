@@ -59,29 +59,42 @@ function buildForkPath(fp: ForkPositions, edgeStyle: EdgeStyle = "curved"): stri
     path += `Q ${rp.cx},${fp.barY} ${rp.cx},${fp.barY - rr} `;
     path += `L ${rp.cx},${rp.bottom} `;
 
-    // Extend bar if children fall outside parent range
-    if (minX < lp.cx) {
-      path += `M ${minX},${fp.barY} L ${lp.cx},${fp.barY} `;
-    }
-    if (maxX > rp.cx) {
-      path += `M ${rp.cx},${fp.barY} L ${maxX},${fp.barY} `;
-    }
-
-    // Children: each branches off the bar
+    // Children: each branches off the bar with a curve
     const barMid = (lp.cx + rp.cx) / 2;
+    // Compute where each child curve connects to the bar, then extend
+    // the bar to cover all connection points
+    let barLeft = lp.cx;
+    let barRight = rp.cx;
+    const childSegments: string[] = [];
     for (const c of fp.children) {
       const cr = Math.min(R, Math.abs(c.top - fp.barY) / 2);
-      // If child is near a parent's x position, go straight down to avoid
-      // the curve starting outside the drawn bar (creating a visual gap)
       const nearParent = fp.parents.some((p) => Math.abs(c.cx - p.cx) <= R);
-      const dir = nearParent ? 0 : c.cx < barMid ? -1 : c.cx > barMid ? 1 : 0;
+      const dir = nearParent ? 0 : c.cx < barMid ? 1 : c.cx > barMid ? -1 : 0;
       if (dir !== 0) {
-        path += `M ${c.cx + dir * cr},${fp.barY} `;
-        path += `Q ${c.cx},${fp.barY} ${c.cx},${fp.barY + cr} `;
-        path += `L ${c.cx},${c.top} `;
+        const barConn = c.cx + dir * cr;
+        barLeft = Math.min(barLeft, barConn);
+        barRight = Math.max(barRight, barConn);
+        let seg = `M ${barConn},${fp.barY} `;
+        seg += `Q ${c.cx},${fp.barY} ${c.cx},${fp.barY + cr} `;
+        seg += `L ${c.cx},${c.top} `;
+        childSegments.push(seg);
       } else {
-        path += `M ${c.cx},${fp.barY} L ${c.cx},${c.top} `;
+        barLeft = Math.min(barLeft, c.cx);
+        barRight = Math.max(barRight, c.cx);
+        childSegments.push(`M ${c.cx},${fp.barY} L ${c.cx},${c.top} `);
       }
+    }
+
+    // Extend bar if child connections fall outside parent range
+    if (barLeft < lp.cx) {
+      path += `M ${barLeft},${fp.barY} L ${lp.cx},${fp.barY} `;
+    }
+    if (barRight > rp.cx) {
+      path += `M ${rp.cx},${fp.barY} L ${barRight},${fp.barY} `;
+    }
+
+    for (const seg of childSegments) {
+      path += seg;
     }
     return path;
   }
