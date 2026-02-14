@@ -130,3 +130,45 @@ jobs:
             --memory=128Mi \
             --cpu=1 \
             --timeout=60
+
+  smoketest:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Production smoketest
+        env:
+          SMOKETEST_EMAIL: ${{ secrets.SMOKETEST_EMAIL }}
+          SMOKETEST_PASSWORD: ${{ secrets.SMOKETEST_PASSWORD }}
+        run: |
+          retry() {
+            local name="$1" url="$2" method="${3:-GET}" body="$4" expect="$5"
+            for i in 1 2 3 4 5; do
+              echo "[$name] attempt $i..."
+              if [ "$method" = "POST" ]; then
+                resp=$(curl -sf -X POST -H "Content-Type: application/json" -d "$body" "$url" 2>&1) && \
+                echo "$resp" | grep -q "$expect" && echo "[$name] OK" && return 0
+              else
+                resp=$(curl -sf "$url" 2>&1) && \
+                echo "$resp" | grep -q "$expect" && echo "[$name] OK" && return 0
+              fi
+              echo "[$name] not ready, waiting 10s..."
+              sleep 10
+            done
+            echo "[$name] FAILED after 5 attempts"
+            echo "Last response: $resp"
+            return 1
+          }
+
+          retry "Frontend (traumatrees.org)" \
+            "https://traumatrees.org/" GET "" "<html"
+
+          retry "Frontend (traumabomen.nl)" \
+            "https://www.traumabomen.nl/" GET "" "<html"
+
+          retry "API health" \
+            "https://traumatrees.org/api/health" GET "" '"ok"'
+
+          retry "Auth login" \
+            "https://traumatrees.org/api/auth/login" POST \
+            "{\"email\":\"${SMOKETEST_EMAIL}\",\"password\":\"${SMOKETEST_PASSWORD}\"}" \
+            "access_token"
