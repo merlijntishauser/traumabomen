@@ -156,6 +156,10 @@ export default function RegisterPage() {
           <p className="auth-footer">
             {t("auth.hasAccount")} <Link to="/login">{t("auth.login")}</Link>
           </p>
+
+          <p className="auth-footer">
+            <Link to="/privacy">{t("landing.readPrivacyPolicy")}</Link>
+          </p>
         </div>
       </div>
     </div>

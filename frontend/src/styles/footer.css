@@ -14,9 +14,17 @@
 }
 
 .app-footer__copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.app-footer__privacy {
+  font-size: 11px;
+  text-decoration: none;
 }
 
 .app-footer__mh {

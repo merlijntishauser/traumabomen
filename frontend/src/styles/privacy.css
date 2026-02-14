@@ -1,0 +1,64 @@
+/* Privacy policy page */
+
+.privacy-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--color-bg-primary);
+}
+
+.privacy-content {
+  max-width: 700px;
+  width: 100%;
+}
+
+.privacy-back {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.privacy-back:hover {
+  color: var(--color-accent);
+}
+
+.privacy-title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.privacy-updated {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 36px;
+}
+
+.privacy-section {
+  margin-bottom: 28px;
+}
+
+.privacy-section h2 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.privacy-section p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.privacy-email {
+  margin-top: 8px;
+  font-weight: 500;
+  color: var(--color-accent);
+}

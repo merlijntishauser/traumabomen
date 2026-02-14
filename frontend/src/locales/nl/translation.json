@@ -177,5 +177,33 @@
   "landing.tagline": "Breng intergenerationeel trauma in kaart op visuele stambomen.",
   "landing.about": "Traumabomen is een persoonlijk reflectie-instrument om patronen van trauma door generaties heen te verkennen. Bouw je stamboom, leg gebeurtenissen vast en visualiseer hoe ervaringen door de tijd heen doorwerken.",
   "landing.privacyHeading": "Jouw gegevens blijven van jou",
-  "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling -- dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou."
+  "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling -- dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou.",
+  "landing.readPrivacyPolicy": "Lees ons volledige privacybeleid",
+
+  "privacy.title": "Privacybeleid",
+  "privacy.lastUpdated": "Laatst bijgewerkt: februari 2026",
+
+  "privacy.collect.heading": "Wat we verzamelen",
+  "privacy.collect.body": "Wanneer je een account aanmaakt, slaan we je e-mailadres en een gehashte versie van je wachtwoord op voor authenticatie. We slaan ook een versleutelingssalt op die wordt gebruikt om je persoonlijke versleutelingssleutel af te leiden. Wanneer je de app gebruikt, slaan we je boomgegevens (personen, relaties, gebeurtenissen) op als versleutelde blobs die we niet kunnen lezen. We registreren inlogtijdstippen om de dienst te monitoren en misbruik te detecteren.",
+
+  "privacy.cannotAccess.heading": "Wat we niet kunnen inzien",
+  "privacy.cannotAccess.body": "Alle boominhoud -- namen, geboortejaren, relatiedetails, beschrijvingen van traumagebeurtenissen en alle andere informatie die je invoert -- wordt op je apparaat versleuteld voordat het onze server bereikt. We slaan deze gegevens op als ondoorzichtige cijfertekst. We hebben geen manier om je inhoud te ontsleutelen, te lezen of te analyseren. Zelfs bij een gerechtelijk bevel zouden we je onversleutelde gegevens niet kunnen overhandigen, omdat we je versleutelingssleutel niet hebben.",
+
+  "privacy.encryption.heading": "Hoe versleuteling werkt",
+  "privacy.encryption.body": "Bij registratie kies je een versleutelingswachtwoord, los van je inlogwachtwoord. Dit wachtwoord wordt samen met een willekeurige salt gebruikt om een 256-bits AES-GCM-versleutelingssleutel af te leiden via Argon2id (een geheugenintensieve sleutelafleidingsfunctie). De sleutel bestaat alleen in het geheugen van je browser terwijl je bent ingelogd. Elk stuk data wordt versleuteld met een verse willekeurige initialisatievector voordat het naar de server wordt gestuurd. Wanneer je het tabblad sluit of uitlogt, wordt de sleutel verwijderd. We slaan je wachtwoord of versleutelingssleutel nooit op, verzenden deze nooit en loggen deze nooit.",
+
+  "privacy.hosting.heading": "Hosting en infrastructuur",
+  "privacy.hosting.body": "De applicatie draait op Google Cloud Platform (Cloud Run en Cloud SQL) in de EU. Verificatie-e-mails worden verzonden via SMTP. We gebruiken geen externe analyse-, tracking- of advertentiescripts, en geen contentdeliverynetwerken die je gegevens verwerken.",
+
+  "privacy.cookies.heading": "Cookies en lokale opslag",
+  "privacy.cookies.body": "We gebruiken geen cookies. We slaan twee JSON Web Tokens (authenticatietokens) op in de lokale opslag van je browser om je ingelogd te houden. Deze tokens bevatten je gebruikers-ID en vervaltijd -- geen persoonlijke inhoud. We gebruiken geen scripts van derden die cookies plaatsen of je gedrag volgen.",
+
+  "privacy.retention.heading": "Gegevensbewaartermijn",
+  "privacy.retention.body": "Je gegevens worden bewaard zolang je account bestaat. Als je je account verwijdert, worden alle bijbehorende gegevens (versleutelde blobs, inlogregistraties en accountinformatie) permanent van onze systemen verwijderd.",
+
+  "privacy.rights.heading": "Jouw rechten",
+  "privacy.rights.body": "Op grond van de Algemene Verordening Gegevensbescherming (AVG) heb je het recht om je persoonsgegevens in te zien, onjuiste gegevens te corrigeren, verwijdering van je gegevens te verzoeken, verwerking te beperken of er bezwaar tegen te maken, en je gegevens in een overdraagbaar formaat te ontvangen. Je hebt ook het recht om een klacht in te dienen bij je lokale gegevensbeschermingsautoriteit. Voor versleutelde inhoud geldt dat je al volledige toegang hebt via de app -- wij kunnen geen onversleutelde kopie leveren omdat we die niet hebben.",
+
+  "privacy.contact.heading": "Contact",
+  "privacy.contact.body": "Voor privacygerelateerde vragen of om je rechten uit te oefenen, neem contact met ons op via:"
 }

@@ -88,6 +88,9 @@ export default function LoginPage() {
             <p className="auth-explainer__text">{t("landing.about")}</p>
             <h3 className="auth-explainer__heading">{t("landing.privacyHeading")}</h3>
             <p className="auth-explainer__text">{t("landing.privacy")}</p>
+            <Link to="/privacy" className="auth-explainer__policy-link">
+              {t("landing.readPrivacyPolicy")}
+            </Link>
           </div>
         </div>
       </div>

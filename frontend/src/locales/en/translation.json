@@ -177,5 +177,33 @@
   "landing.tagline": "Map intergenerational trauma onto visual family trees.",
   "landing.about": "Traumatrees is a personal reflection tool for exploring patterns of trauma across generations. Build your family tree, record events, and visualize how experiences ripple through time.",
   "landing.privacyHeading": "Your data stays yours",
-  "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption -- meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you."
+  "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption -- meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you.",
+  "landing.readPrivacyPolicy": "Read our full privacy policy",
+
+  "privacy.title": "Privacy Policy",
+  "privacy.lastUpdated": "Last updated: February 2026",
+
+  "privacy.collect.heading": "What we collect",
+  "privacy.collect.body": "When you create an account, we store your email address and a hashed version of your password for authentication purposes. We also store an encryption salt used to derive your personal encryption key. When you use the app, we store your tree data (persons, relationships, events) as encrypted blobs that we cannot read. We record login timestamps to monitor service health and detect abuse.",
+
+  "privacy.cannotAccess.heading": "What we cannot access",
+  "privacy.cannotAccess.body": "All tree content -- names, birth years, relationship details, trauma event descriptions, and any other information you enter -- is encrypted on your device before it reaches our server. We store this data as opaque ciphertext. We have no way to decrypt, read, or analyse your content. Even under a legal order, we could not produce your plaintext data because we do not have your encryption key.",
+
+  "privacy.encryption.heading": "How encryption works",
+  "privacy.encryption.body": "When you register, you choose an encryption passphrase separate from your login password. This passphrase, combined with a random salt, derives a 256-bit AES-GCM encryption key using Argon2id (a memory-hard key derivation function). The key exists only in your browser's memory while you are logged in. Every piece of data is encrypted with a fresh random initialisation vector before being sent to the server. When you close the tab or log out, the key is discarded. We never store, transmit, or log your passphrase or encryption key.",
+
+  "privacy.hosting.heading": "Hosting and infrastructure",
+  "privacy.hosting.body": "The application runs on Google Cloud Platform (Cloud Run and Cloud SQL) in the EU. Email verification messages are sent via SMTP. We do not use any third-party analytics, tracking scripts, advertising networks, or content delivery networks that process your data.",
+
+  "privacy.cookies.heading": "Cookies and local storage",
+  "privacy.cookies.body": "We do not use cookies. We store two JSON Web Tokens (authentication tokens) in your browser's local storage to keep you logged in. These tokens contain your user ID and expiration time -- no personal content. We do not use any third-party scripts that set cookies or track your behaviour.",
+
+  "privacy.retention.heading": "Data retention",
+  "privacy.retention.body": "Your data is stored for as long as your account exists. If you delete your account, all associated data (encrypted blobs, login records, and account information) is permanently removed from our systems.",
+
+  "privacy.rights.heading": "Your rights",
+  "privacy.rights.body": "Under the General Data Protection Regulation (GDPR), you have the right to access your personal data, rectify inaccurate data, request erasure of your data, restrict or object to processing, and receive your data in a portable format. You also have the right to lodge a complaint with your local data protection authority. Note that for encrypted content, you already have full access through the app -- we cannot provide a plaintext copy because we do not have one.",
+
+  "privacy.contact.heading": "Contact",
+  "privacy.contact.body": "For privacy-related questions or to exercise your rights, contact us at:"
 }

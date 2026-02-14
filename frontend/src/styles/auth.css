@@ -311,3 +311,16 @@
   margin-bottom: 6px;
   letter-spacing: 0.02em;
 }
+
+.auth-explainer__policy-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-explainer__policy-link:hover {
+  color: var(--color-accent-hover);
+}

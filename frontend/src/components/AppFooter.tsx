@@ -1,4 +1,5 @@
 import { Trans, useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
@@ -8,13 +9,16 @@ const resources: Record<string, { name: string; url: string }> = {
 };
 
 export function AppFooter() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const resource = resources[i18n.language] ?? resources.en;
 
   return (
     <footer className="app-footer">
       <span className="app-footer__copy">
         &copy; {new Date().getFullYear()} Merlijn Tishauser &mdash; AGPL-3.0
+        <Link to="/privacy" className="app-footer__link app-footer__privacy">
+          {t("privacy.title")}
+        </Link>
       </span>
       <span className="app-footer__mh">
         <Trans
