@@ -107,6 +107,7 @@
   "common.delete": "Verwijderen",
   "common.edit": "Bewerken",
   "common.loading": "Laden...",
+  "common.mobileWarning": "Deze app is ontworpen voor desktop. Sommige functies werken mogelijk niet goed op mobiel.",
   "common.error": "Er is een fout opgetreden",
   "common.startYear": "Startjaar",
   "common.endYear": "Eindjaar",

@@ -107,6 +107,7 @@
   "common.delete": "Delete",
   "common.edit": "Edit",
   "common.loading": "Loading...",
+  "common.mobileWarning": "This app is designed for desktop. Some features may not work well on mobile.",
   "common.error": "An error occurred",
   "common.startYear": "Start year",
   "common.endYear": "End year",
