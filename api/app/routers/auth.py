@@ -15,6 +15,8 @@ from app.email import send_verification_email
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.schemas.auth import (
+    ChangePasswordRequest,
+    DeleteAccountRequest,
     LoginRequest,
     RefreshRequest,
     RefreshResponse,
@@ -23,6 +25,7 @@ from app.schemas.auth import (
     ResendVerificationRequest,
     SaltResponse,
     TokenResponse,
+    UpdateSaltRequest,
     VerifyResponse,
 )
 
@@ -223,3 +226,43 @@ async def get_salt(
     user: User = Depends(get_current_user),
 ) -> SaltResponse:
     return SaltResponse(encryption_salt=user.encryption_salt)
+
+
+@router.put("/password", status_code=status.HTTP_200_OK)
+async def change_password(
+    body: ChangePasswordRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    if not verify_password(body.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect"
+        )
+    user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+    return {"message": "Password changed"}
+
+
+@router.put("/salt", status_code=status.HTTP_200_OK)
+async def update_salt(
+    body: UpdateSaltRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    user.encryption_salt = body.encryption_salt
+    await db.commit()
+    return {"message": "Salt updated"}
+
+
+@router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(
+    body: DeleteAccountRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    if not verify_password(body.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Password is incorrect"
+        )
+    await db.delete(user)
+    await db.commit()

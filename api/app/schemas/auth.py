@@ -42,3 +42,16 @@ class ResendVerificationRequest(BaseModel):
 
 class VerifyResponse(BaseModel):
     message: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class UpdateSaltRequest(BaseModel):
+    encryption_salt: str
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str

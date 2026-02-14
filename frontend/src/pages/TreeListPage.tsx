@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { ThemeToggle } from "../components/ThemeToggle";
+import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useLogout } from "../hooks/useLogout";
 import { createTree, deleteTree, getIsAdmin, getTrees, updateTree } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
@@ -16,7 +17,8 @@ interface DecryptedTree {
 }
 
 export default function TreeListPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
   const navigate = useNavigate();
   const logout = useLogout();
   const { encrypt, decrypt } = useEncryption();
@@ -107,14 +109,12 @@ export default function TreeListPage() {
         >
           {t("tree.create")}
         </button>
-        <ThemeToggle className="tree-toolbar__btn" />
-        <button
-          type="button"
+        <SettingsPanel
+          settings={canvasSettings}
+          onUpdate={updateCanvasSettings}
+          showCanvasTab={false}
           className="tree-toolbar__btn"
-          onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
-        >
-          {i18n.language === "nl" ? "EN" : "NL"}
-        </button>
+        />
         {getIsAdmin() && (
           <Link to="/admin" className="tree-toolbar__btn">
             Admin

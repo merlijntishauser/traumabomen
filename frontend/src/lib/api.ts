@@ -1,5 +1,7 @@
 import type {
   ActivityStats,
+  ChangePasswordRequest,
+  DeleteAccountRequest,
   EventCreate,
   EventResponse,
   EventUpdate,
@@ -28,6 +30,7 @@ import type {
   TreeCreate,
   TreeResponse,
   TreeUpdate,
+  UpdateSaltRequest,
   UsageStats,
   UserListStats,
   VerifyResponse,
@@ -204,6 +207,18 @@ export function logout(): void {
 
 export function getEncryptionSalt(): Promise<SaltResponse> {
   return apiFetchWithRetry("/auth/salt");
+}
+
+export function changePassword(data: ChangePasswordRequest): Promise<void> {
+  return apiFetchWithRetry("/auth/password", { method: "PUT", body: data });
+}
+
+export function updateSalt(data: UpdateSaltRequest): Promise<void> {
+  return apiFetchWithRetry("/auth/salt", { method: "PUT", body: data });
+}
+
+export function deleteAccount(data: DeleteAccountRequest): Promise<void> {
+  return apiFetchWithRetry("/auth/account", { method: "DELETE", body: data });
 }
 
 // Trees

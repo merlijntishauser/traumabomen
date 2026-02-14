@@ -42,6 +42,19 @@ export interface SaltResponse {
   encryption_salt: string;
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface UpdateSaltRequest {
+  encryption_salt: string;
+}
+
+export interface DeleteAccountRequest {
+  password: string;
+}
+
 // Trees
 export interface TreeCreate {
   encrypted_data: string;

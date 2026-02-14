@@ -15,12 +15,11 @@ import { Link } from "react-router-dom";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { BranchDecoration } from "../components/BranchDecoration";
-import { ThemeToggle } from "../components/ThemeToggle";
-import { CanvasSettingsPanel } from "../components/tree/CanvasSettingsPanel";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
+import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useLogout } from "../hooks/useLogout";
 import type { DecryptedPerson } from "../hooks/useTreeData";
@@ -101,7 +100,7 @@ function RelationshipPopover({
 
 function TreeWorkspaceInner() {
   const treeId = useTreeId();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const logout = useLogout();
   const { fitView } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
   const queryClient = useQueryClient();
@@ -441,20 +440,11 @@ function TreeWorkspaceInner() {
         <div className="tree-toolbar__separator" />
 
         <div className="tree-toolbar__group">
-          <CanvasSettingsPanel
+          <SettingsPanel
             settings={canvasSettings}
             onUpdate={updateCanvasSettings}
             className="tree-toolbar__icon-btn"
           />
-          <ThemeToggle className="tree-toolbar__icon-btn" />
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
-            aria-label={i18n.language === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
-          >
-            {i18n.language === "nl" ? "EN" : "NL"}
-          </button>
           <button
             type="button"
             className="tree-toolbar__icon-btn"
