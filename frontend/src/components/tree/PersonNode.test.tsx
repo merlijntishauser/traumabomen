@@ -80,6 +80,16 @@ describe("PersonNode", () => {
     expect(screen.getByText("1920 - 1995")).toBeInTheDocument();
   });
 
+  it("renders unknown birth year as question mark", () => {
+    renderNode(makePerson({ birth_year: null, death_year: null }));
+    expect(screen.getByText("? -")).toBeInTheDocument();
+  });
+
+  it("renders unknown birth year with known death year", () => {
+    renderNode(makePerson({ birth_year: null, death_year: 1995 }));
+    expect(screen.getByText("? - 1995")).toBeInTheDocument();
+  });
+
   it("shows adopted label when is_adopted is true", () => {
     renderNode(makePerson({ is_adopted: true }));
     expect(screen.getByText(/person.isAdopted/i)).toBeInTheDocument();

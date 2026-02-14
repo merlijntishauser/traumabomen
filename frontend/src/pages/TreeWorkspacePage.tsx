@@ -229,7 +229,7 @@ function TreeWorkspaceInner() {
   function handleAddPerson() {
     const newPerson: Person = {
       name: t("person.newPerson"),
-      birth_year: new Date().getFullYear() - 30,
+      birth_year: null,
       death_year: null,
       gender: "other",
       is_adopted: false,

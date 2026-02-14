@@ -67,7 +67,9 @@ export function PersonDetailPanel({
 
   // Person form state
   const [name, setName] = useState(person.name);
-  const [birthYear, setBirthYear] = useState(String(person.birth_year));
+  const [birthYear, setBirthYear] = useState(
+    person.birth_year != null ? String(person.birth_year) : "",
+  );
   const [deathYear, setDeathYear] = useState(
     person.death_year != null ? String(person.death_year) : "",
   );
@@ -78,7 +80,7 @@ export function PersonDetailPanel({
   // Reset form when person changes
   useEffect(() => {
     setName(person.name);
-    setBirthYear(String(person.birth_year));
+    setBirthYear(person.birth_year != null ? String(person.birth_year) : "");
     setDeathYear(person.death_year != null ? String(person.death_year) : "");
     setGender(person.gender);
     setIsAdopted(person.is_adopted);
@@ -101,7 +103,7 @@ export function PersonDetailPanel({
   function handleSavePerson() {
     onSavePerson({
       name,
-      birth_year: parseInt(birthYear, 10) || 0,
+      birth_year: birthYear ? parseInt(birthYear, 10) : null,
       death_year: deathYear ? parseInt(deathYear, 10) : null,
       gender,
       is_adopted: isAdopted,

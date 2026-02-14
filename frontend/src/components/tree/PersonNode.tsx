@@ -12,9 +12,8 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
   const { t } = useTranslation();
   const { person, events, lifeEvents = [], isFriendOnly } = data;
 
-  const yearRange = person.death_year
-    ? `${person.birth_year} - ${person.death_year}`
-    : `${person.birth_year} -`;
+  const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
+  const yearRange = person.death_year ? `${birthStr} - ${person.death_year}` : `${birthStr} -`;
 
   const classNames = [
     "person-node",

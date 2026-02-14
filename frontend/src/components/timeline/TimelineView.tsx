@@ -182,9 +182,9 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
 
     const sortedGens = Array.from(personsByGen.keys()).sort((a, b) => a - b);
 
-    // Sort persons within each generation by birth year
+    // Sort persons within each generation by birth year (unknown last)
     for (const list of personsByGen.values()) {
-      list.sort((a, b) => a.birth_year - b.birth_year);
+      list.sort((a, b) => (a.birth_year ?? Infinity) - (b.birth_year ?? Infinity));
     }
 
     // Compute row positions
@@ -207,7 +207,9 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
     let minYear = currentYear;
     let maxYear = 0;
     for (const person of timelinePersons.values()) {
-      minYear = Math.min(minYear, person.birth_year);
+      if (person.birth_year != null) {
+        minYear = Math.min(minYear, person.birth_year);
+      }
       maxYear = Math.max(maxYear, person.death_year ?? currentYear);
     }
     for (const event of events.values()) {
@@ -308,8 +310,9 @@ export function TimelineView({ persons, relationships, events, lifeEvents }: Tim
     function renderTimeContent(scale: d3.ScaleLinear<number, number>) {
       timeGroup.selectAll("*").remove();
 
-      // Life bars
+      // Life bars (skip persons with unknown birth year)
       for (const row of rows) {
+        if (row.person.birth_year == null) continue;
         const x1 = scale(row.person.birth_year);
         const x2 = scale(row.person.death_year ?? currentYear);
         const barY = row.y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
