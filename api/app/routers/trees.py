@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,13 +18,6 @@ async def create_tree(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TreeResponse:
-    result = await db.execute(select(Tree).where(Tree.user_id == user.id))
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="MVP limit: one tree per user",
-        )
-
     tree = Tree(user_id=user.id, encrypted_data=body.encrypted_data)
     db.add(tree)
     await db.commit()
