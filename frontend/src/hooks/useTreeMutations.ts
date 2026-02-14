@@ -15,6 +15,7 @@ import {
   updateRelationship,
 } from "../lib/api";
 import type { LifeEvent, Person, RelationshipData, TraumaEvent } from "../types/domain";
+import type { DecryptedEvent, DecryptedLifeEvent } from "./useTreeData";
 import { treeQueryKeys } from "./useTreeData";
 
 export function useTreeMutations(treeId: string) {
@@ -146,7 +147,27 @@ export function useTreeMutations(treeId: string) {
         encrypted_data,
       });
     },
-    onSuccess: () => {
+    onMutate: async ({ eventId, personIds, data }) => {
+      await queryClient.cancelQueries({ queryKey: treeQueryKeys.events(treeId) });
+      const previous = queryClient.getQueryData<Map<string, DecryptedEvent>>(
+        treeQueryKeys.events(treeId),
+      );
+      if (previous) {
+        const updated = new Map(previous);
+        const existing = updated.get(eventId);
+        if (existing) {
+          updated.set(eventId, { ...existing, ...data, person_ids: personIds });
+        }
+        queryClient.setQueryData(treeQueryKeys.events(treeId), updated);
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(treeQueryKeys.events(treeId), context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.events(treeId),
       });
@@ -192,7 +213,27 @@ export function useTreeMutations(treeId: string) {
         encrypted_data,
       });
     },
-    onSuccess: () => {
+    onMutate: async ({ lifeEventId, personIds, data }) => {
+      await queryClient.cancelQueries({ queryKey: treeQueryKeys.lifeEvents(treeId) });
+      const previous = queryClient.getQueryData<Map<string, DecryptedLifeEvent>>(
+        treeQueryKeys.lifeEvents(treeId),
+      );
+      if (previous) {
+        const updated = new Map(previous);
+        const existing = updated.get(lifeEventId);
+        if (existing) {
+          updated.set(lifeEventId, { ...existing, ...data, person_ids: personIds });
+        }
+        queryClient.setQueryData(treeQueryKeys.lifeEvents(treeId), updated);
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(treeQueryKeys.lifeEvents(treeId), context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.lifeEvents(treeId),
       });
