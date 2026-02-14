@@ -45,7 +45,7 @@ export async function deriveKey(passphrase: string, salt: string): Promise<Crypt
 
   return crypto.subtle.importKey(
     "raw",
-    result.hash,
+    new Uint8Array(result.hash).buffer as ArrayBuffer,
     { name: "AES-GCM" },
     false, // non-extractable
     ["encrypt", "decrypt"],
@@ -68,7 +68,11 @@ export async function decrypt(blob: EncryptedBlob, key: CryptoKey): Promise<stri
   const iv = fromBase64(blob.iv);
   const ciphertext = fromBase64(blob.ciphertext);
 
-  const plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  const plaintextBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: new Uint8Array(iv).buffer as ArrayBuffer },
+    key,
+    new Uint8Array(ciphertext).buffer as ArrayBuffer,
+  );
 
   return new TextDecoder().decode(plaintextBuffer);
 }
