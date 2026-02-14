@@ -20,7 +20,9 @@ dependencies = [
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-cov>=7.0.0",
     "httpx>=0.28.0",
+    "aiosqlite>=0.20.0",
     "mypy>=1.13.0",
     "ruff>=0.15.0",
 ]
@@ -61,6 +63,15 @@ ignore_errors = true  # complex union types need refactoring
 module = "app.models.*"
 ignore_errors = true  # SQLAlchemy forward refs
 
+[tool.coverage.run]
+source = ["app"]
+concurrency = ["greenlet", "thread"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
