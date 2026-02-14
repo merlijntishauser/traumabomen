@@ -53,5 +53,6 @@ def send_verification_email(to: str, token: str, settings: Settings) -> None:
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
             server.sendmail(settings.SMTP_FROM, to, msg.as_string())
     except Exception:
-        logger.exception("Failed to send verification email to %s", to)
+        safe_to = to.replace("\n", "").replace("\r", "")
+        logger.exception("Failed to send verification email to %s", safe_to)
         raise
