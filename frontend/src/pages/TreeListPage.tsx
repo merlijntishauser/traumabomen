@@ -112,16 +112,33 @@ export default function TreeListPage() {
         <SettingsPanel
           settings={canvasSettings}
           onUpdate={updateCanvasSettings}
-          showCanvasTab={false}
-          className="tree-toolbar__btn"
+          className="tree-toolbar__icon-btn"
         />
         {getIsAdmin() && (
           <Link to="/admin" className="tree-toolbar__btn">
             Admin
           </Link>
         )}
-        <button type="button" className="tree-toolbar__btn" onClick={logout}>
-          {t("nav.logout")}
+        <button
+          type="button"
+          className="tree-toolbar__icon-btn"
+          onClick={logout}
+          aria-label={t("nav.logout")}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
         </button>
       </div>
 

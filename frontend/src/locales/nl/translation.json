@@ -193,6 +193,8 @@
   "account.deleteError": "Wachtwoord is onjuist",
 
   "canvas.settings": "Canvas-instellingen",
+  "canvas.gridSettings": "Rasterinstellingen",
+  "canvas.other": "Overig",
   "canvas.showGrid": "Raster tonen",
   "canvas.snapToGrid": "Uitlijnen op raster",
   "canvas.edgeStyle": "Lijnstijl",

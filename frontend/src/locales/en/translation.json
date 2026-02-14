@@ -193,6 +193,8 @@
   "account.deleteError": "Password is incorrect",
 
   "canvas.settings": "Canvas settings",
+  "canvas.gridSettings": "Grid settings",
+  "canvas.other": "Other",
   "canvas.showGrid": "Show grid",
   "canvas.snapToGrid": "Snap to grid",
   "canvas.edgeStyle": "Edge style",

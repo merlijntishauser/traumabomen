@@ -23,13 +23,12 @@ import "./SettingsPanel.css";
 interface Props {
   settings: CanvasSettings;
   onUpdate: (partial: Partial<CanvasSettings>) => void;
-  showCanvasTab?: boolean;
   className?: string;
 }
 
 const EDGE_STYLES: EdgeStyle[] = ["curved", "elbows", "straight"];
 
-export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, className }: Props) {
+export function SettingsPanel({ settings, onUpdate, className }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, toggle: toggleTheme } = useTheme();
   const { setKey } = useEncryption();
@@ -40,8 +39,7 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, right: 0 });
 
-  const defaultTab = showCanvasTab ? "canvas" : "account";
-  const [tab, setTab] = useState<"canvas" | "account">(defaultTab);
+  const [tab, setTab] = useState<"canvas" | "account">("canvas");
 
   // Password change state
   const [pwCurrent, setPwCurrent] = useState("");
@@ -86,8 +84,8 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
 
   useEffect(() => {
     if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside, true);
+      return () => document.removeEventListener("mousedown", handleClickOutside, true);
     }
   }, [open, handleClickOutside]);
 
@@ -100,13 +98,6 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
       });
     }
   }, [open]);
-
-  // Reset tab when showCanvasTab changes
-  useEffect(() => {
-    if (!showCanvasTab && tab === "canvas") {
-      setTab("account");
-    }
-  }, [showCanvasTab, tab]);
 
   async function handleChangePassword() {
     setPwMessage(null);
@@ -284,28 +275,30 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
             className="settings-panel__dropdown"
             style={{ top: pos.top, right: pos.right }}
           >
-            {showCanvasTab && (
-              <div className="settings-panel__tabs">
-                <button
-                  type="button"
-                  className={`settings-panel__tab ${tab === "canvas" ? "settings-panel__tab--active" : ""}`}
-                  onClick={() => setTab("canvas")}
-                >
-                  {t("settings.canvas")}
-                </button>
-                <button
-                  type="button"
-                  className={`settings-panel__tab ${tab === "account" ? "settings-panel__tab--active" : ""}`}
-                  onClick={() => setTab("account")}
-                >
-                  {t("settings.account")}
-                </button>
-              </div>
-            )}
+            <div className="settings-panel__tabs">
+              <button
+                type="button"
+                className={`settings-panel__tab ${tab === "canvas" ? "settings-panel__tab--active" : ""}`}
+                onClick={() => setTab("canvas")}
+              >
+                {t("settings.canvas")}
+              </button>
+              <button
+                type="button"
+                className={`settings-panel__tab ${tab === "account" ? "settings-panel__tab--active" : ""}`}
+                onClick={() => setTab("account")}
+              >
+                {t("settings.account")}
+              </button>
+            </div>
 
             <div className="settings-panel__content">
-              {tab === "canvas" && showCanvasTab && (
+              {tab === "canvas" && (
                 <>
+                  <div className="settings-panel__group">
+                    <span className="settings-panel__label">{t("canvas.gridSettings")}</span>
+                  </div>
+
                   <label className="settings-panel__toggle">
                     <input
                       type="checkbox"
@@ -346,6 +339,10 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
 
                   <div className="settings-panel__divider" />
 
+                  <div className="settings-panel__group">
+                    <span className="settings-panel__label">{t("canvas.other")}</span>
+                  </div>
+
                   <label className="settings-panel__toggle">
                     <input
                       type="checkbox"
@@ -366,13 +363,55 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
 
                   <div className="settings-panel__divider" />
 
-                  <label className="settings-panel__toggle">
-                    <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
-                    <span>
-                      {t("settings.theme")}:{" "}
-                      {theme === "dark" ? t("settings.themeDark") : t("settings.themeLight")}
-                    </span>
-                  </label>
+                  <div className="settings-panel__group">
+                    <span className="settings-panel__label">{t("settings.theme")}</span>
+                  </div>
+                  <div className="settings-panel__theme-row">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="settings-panel__theme-icon"
+                    >
+                      <circle cx="12" cy="12" r="5" />
+                      <line x1="12" y1="1" x2="12" y2="3" />
+                      <line x1="12" y1="21" x2="12" y2="23" />
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                      <line x1="1" y1="12" x2="3" y2="12" />
+                      <line x1="21" y1="12" x2="23" y2="12" />
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={theme === "dark"}
+                      aria-label={t("settings.theme")}
+                      className={`settings-panel__theme-switch ${theme === "dark" ? "settings-panel__theme-switch--dark" : ""}`}
+                      onClick={toggleTheme}
+                    >
+                      <span className="settings-panel__theme-knob" />
+                    </button>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="settings-panel__theme-icon"
+                    >
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                  </div>
 
                   <div className="settings-panel__group">
                     <span className="settings-panel__label">{t("settings.language")}</span>
@@ -402,48 +441,8 @@ export function SettingsPanel({ settings, onUpdate, showCanvasTab = true, classN
                 </>
               )}
 
-              {(tab === "account" || !showCanvasTab) && (
+              {tab === "account" && (
                 <>
-                  {!showCanvasTab && (
-                    <>
-                      <label className="settings-panel__toggle">
-                        <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
-                        <span>
-                          {t("settings.theme")}:{" "}
-                          {theme === "dark" ? t("settings.themeDark") : t("settings.themeLight")}
-                        </span>
-                      </label>
-
-                      <div className="settings-panel__group">
-                        <span className="settings-panel__label">{t("settings.language")}</span>
-                        <div className="settings-panel__radios">
-                          <label className="settings-panel__radio">
-                            <input
-                              type="radio"
-                              name="language"
-                              value="en"
-                              checked={i18n.language === "en"}
-                              onChange={() => i18n.changeLanguage("en")}
-                            />
-                            <span>English</span>
-                          </label>
-                          <label className="settings-panel__radio">
-                            <input
-                              type="radio"
-                              name="language"
-                              value="nl"
-                              checked={i18n.language === "nl"}
-                              onChange={() => i18n.changeLanguage("nl")}
-                            />
-                            <span>Nederlands</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <div className="settings-panel__divider" />
-                    </>
-                  )}
-
                   {/* Change password */}
                   <div className="settings-panel__section">
                     <h4 className="settings-panel__section-title">{t("account.changePassword")}</h4>
