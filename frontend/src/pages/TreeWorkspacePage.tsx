@@ -497,6 +497,7 @@ function TreeWorkspaceInner() {
             onConnect={onConnect}
             snapToGrid={canvasSettings.snapToGrid}
             snapGrid={[20, 20]}
+            nodeDragThreshold={5}
             fitView
             deleteKeyCode={null}
             proOptions={{ hideAttribution: true }}

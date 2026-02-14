@@ -136,6 +136,14 @@
   background: var(--color-accent);
 }
 
+/* Larger touch targets on touch devices */
+@media (pointer: coarse) {
+  .person-node .react-flow__handle {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .person-node .react-flow__handle.person-node__handle--aux {
   opacity: 0;
   pointer-events: none;
