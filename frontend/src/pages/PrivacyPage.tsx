@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/privacy.css";
 
 const SECTIONS = [
@@ -15,13 +15,14 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="privacy-page">
       <div className="privacy-content">
-        <Link to="/login" className="privacy-back">
+        <button type="button" className="privacy-back" onClick={() => navigate(-1)}>
           &larr;
-        </Link>
+        </button>
 
         <h1 className="privacy-title">{t("privacy.title")}</h1>
         <p className="privacy-updated">{t("privacy.lastUpdated")}</p>
