@@ -8,18 +8,30 @@ Thanks for your interest in contributing to Traumabomen.
 2. Clone the repo and set up your environment:
 
 ```bash
-git clone https://github.com/your-username/traumabomen.git
+git clone https://github.com/merlijntishauser/traumabomen.git
 cd traumabomen
 cp .env.example .env
+make setup
 ```
+
+This installs pre-commit hooks (Biome, Ruff, TypeScript, mypy) and project dependencies. No local Node.js or Python installation required -- everything runs in Docker.
 
 3. Start the development environment:
 
 ```bash
-docker compose up
+make up
 ```
 
-All three services (frontend, API, database) start with hot-reload enabled. No local Node.js or Python installation required.
+## Pre-commit Hooks
+
+The following checks run automatically on every commit:
+
+- **Biome** -- lint and format frontend code
+- **Ruff** -- lint and format backend code
+- **TypeScript** -- type checking
+- **mypy** -- Python type checking
+
+If a hook fails, fix the issue and re-commit. Run `make ci` to check everything manually.
 
 ## Making Changes
 
@@ -35,11 +47,13 @@ Use descriptive branch names:
 
 **Frontend (TypeScript/React):**
 - TypeScript strict mode is enabled
+- Biome handles formatting and linting
 - Use functional components with hooks
 - All UI strings must go through `react-i18next` (`t('key')`) -- no hardcoded user-facing text
 - Add translations to both `en` and `nl` locale files
 
 **Backend (Python):**
+- Ruff handles formatting and linting
 - Follow existing FastAPI patterns
 - Use async endpoints
 - Type hints on all function signatures
@@ -54,33 +68,34 @@ These are non-negotiable:
 - Encryption keys must only exist in memory -- never in localStorage, sessionStorage, or cookies
 - Every `encrypt()` call must use a fresh random IV
 
+See [SECURITY.md](SECURITY.md) for the full security policy.
+
 ### Database Changes
 
 If your change modifies the database schema:
 
 ```bash
-# Generate a migration after modifying SQLAlchemy models
-docker compose exec api uv run alembic revision --autogenerate -m "short description"
-
-# Test the migration applies cleanly
-docker compose exec api uv run alembic upgrade head
+make migrate M="short description"   # Generate migration
+make migrate-up                      # Apply migration
 ```
 
 Always review the generated migration file before committing.
 
 ## Testing
 
-Run the relevant tests before submitting a PR:
+Run the full CI suite before submitting a PR:
 
 ```bash
-# Backend
-docker compose exec api uv run pytest
+make ci    # lint + typecheck + test + privacy scan
+```
 
-# Frontend unit/component tests
-docker compose exec frontend npx vitest run
+Or run individual test suites:
 
-# Frontend e2e tests
-docker compose exec frontend npx playwright test
+```bash
+make test-be    # Backend (pytest)
+make test-fe    # Frontend (Vitest)
+make e2e        # End-to-end (Playwright)
+make coverage   # Tests with coverage reports
 ```
 
 ### What to Test
@@ -94,5 +109,5 @@ docker compose exec frontend npx playwright test
 
 - Keep PRs focused -- one feature or fix per PR
 - Include a clear description of what changed and why
-- Make sure all tests pass
+- Make sure `make ci` passes
 - Update translations if you added or changed UI strings
