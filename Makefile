@@ -1,5 +1,5 @@
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-be coverage e2e \
-       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet
+       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity
 
 .DEFAULT_GOAL := help
 
@@ -87,6 +87,9 @@ migrate-down: ## Rollback last migration
 	docker compose exec api uv run alembic downgrade -1
 
 # --- Quality Gates ---
+
+complexity: ## Report cyclomatic complexity and maintainability index
+	@bash scripts/complexity-report.sh
 
 quality: ## Run complexity checks and coverage gates
 	docker compose exec api uv run xenon app/ --max-absolute C --max-modules B --max-average B
