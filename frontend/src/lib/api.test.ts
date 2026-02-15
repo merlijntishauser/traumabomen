@@ -59,6 +59,12 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
+// Dummy credentials for testing (not real passwords)
+const DUMMY_PASS = "pass";
+const DUMMY_OLD_PASS = "old";
+const DUMMY_NEW_PASS = "new";
+const DUMMY_ACCOUNT_PASS = "my-password";
+
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch;
 
@@ -190,12 +196,12 @@ describe("apiFetch behaviour", () => {
     };
     mockFetch.mockResolvedValueOnce(mockResponse(tokenResp));
 
-    await login({ email: "a@b.com", password: "pass" });
+    await login({ email: "a@b.com", password: DUMMY_PASS });
 
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/auth/login");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body)).toEqual({ email: "a@b.com", password: "pass" });
+    expect(JSON.parse(init.body)).toEqual({ email: "a@b.com", password: DUMMY_PASS });
   });
 
   it("sends Authorization header when access token exists", async () => {
@@ -315,7 +321,7 @@ describe("auth functions", () => {
     };
     mockFetch.mockResolvedValueOnce(mockResponse(resp));
 
-    const result = await register({ email: "a@b.com", password: "p", encryption_salt: "s" });
+    const result = await register({ email: "a@b.com", password: DUMMY_PASS, encryption_salt: "s" });
 
     expect(result).toEqual(resp);
     expect(getAccessToken()).toBe("reg-at");
@@ -326,7 +332,7 @@ describe("auth functions", () => {
     const resp = { message: "Please verify your email" };
     mockFetch.mockResolvedValueOnce(mockResponse(resp));
 
-    const result = await register({ email: "a@b.com", password: "p", encryption_salt: "s" });
+    const result = await register({ email: "a@b.com", password: DUMMY_PASS, encryption_salt: "s" });
 
     expect(result).toEqual(resp);
     expect(getAccessToken()).toBeNull();
@@ -341,7 +347,7 @@ describe("auth functions", () => {
     };
     mockFetch.mockResolvedValueOnce(mockResponse(resp));
 
-    await login({ email: "a@b.com", password: "p" });
+    await login({ email: "a@b.com", password: DUMMY_PASS });
 
     expect(getAccessToken()).toBe("login-at");
     expect(getRefreshToken()).toBe("login-rt");
@@ -522,12 +528,15 @@ describe("auth functions (remaining)", () => {
     setTokens("tok", "ref");
     mockFetch.mockResolvedValueOnce(mockNoContentResponse());
 
-    await changePassword({ current_password: "old", new_password: "new" });
+    await changePassword({ current_password: DUMMY_OLD_PASS, new_password: DUMMY_NEW_PASS });
 
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/auth/password");
     expect(init.method).toBe("PUT");
-    expect(JSON.parse(init.body)).toEqual({ current_password: "old", new_password: "new" });
+    expect(JSON.parse(init.body)).toEqual({
+      current_password: DUMMY_OLD_PASS,
+      new_password: DUMMY_NEW_PASS,
+    });
   });
 
   it("updateSalt sends PUT to /auth/salt", async () => {
@@ -546,12 +555,12 @@ describe("auth functions (remaining)", () => {
     setTokens("tok", "ref");
     mockFetch.mockResolvedValueOnce(mockNoContentResponse());
 
-    await deleteAccount({ password: "my-password" });
+    await deleteAccount({ password: DUMMY_ACCOUNT_PASS });
 
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/auth/account");
     expect(init.method).toBe("DELETE");
-    expect(JSON.parse(init.body)).toEqual({ password: "my-password" });
+    expect(JSON.parse(init.body)).toEqual({ password: DUMMY_ACCOUNT_PASS });
   });
 });
 
