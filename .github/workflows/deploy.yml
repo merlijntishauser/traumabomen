@@ -214,10 +214,10 @@ jobs:
           python3 -c "
           import json, sys, glob
 
-          reports = glob.glob('**/zap-report.json', recursive=True)
+          reports = glob.glob('**/report_json.json', recursive=True)
           if not reports:
-            print('No ZAP report found, skipping check')
-            sys.exit(0)
+            print('::error::No ZAP report found')
+            sys.exit(1)
 
           with open(reports[0]) as f:
             data = json.load(f)
@@ -261,5 +261,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-scan-reports
-          path: "**/zap-report.*"
+          path: |
+            report_json.json
+            report_md.md
+            report_html.html
           retention-days: 30
