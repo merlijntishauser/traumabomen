@@ -6,16 +6,34 @@ Zero-knowledge encrypted web app for mapping intergenerational trauma onto visua
 
 ```
 traumabomen/
-  CLAUDE.md               Project instructions
+  CLAUDE.md               Project instructions (includes @AGENTS.md)
+  AGENTS.md               Detailed project documentation
   docker-compose.yml      Local dev: db + api + frontend
   .env.example            Placeholder env vars (copy to .env)
-  docs/                   Design documents
+  docs/                   Design documents and plans
+  scripts/                Utility scripts
+  .github/                CI workflows and templates
   frontend/               Vite + React + TypeScript SPA
     Dockerfile            Multi-stage: dev / build / production (nginx)
-    src/                  React source code
+    src/
+      components/         React components (tree/, timeline/)
+      contexts/           React contexts (EncryptionContext)
+      hooks/              Custom hooks (useTreeData, useTreeMutations, etc.)
+      lib/                Utilities (api, crypto, colors, dsmCategories)
+      locales/            i18n translations (en/, nl/)
+      pages/              Route page components
+      styles/             CSS (theme, auth, admin, etc.)
+      types/              TypeScript type definitions (domain, api)
   api/                    FastAPI Python backend
     Dockerfile            Multi-stage: dev / production
-    app/                  Application code
+    app/
+      models/             SQLAlchemy models
+      routers/            FastAPI route handlers
+      auth.py             JWT authentication utilities
+      config.py           Environment configuration
+      database.py         Database connection setup
+      dependencies.py     FastAPI dependency injection
+      email.py            Email sending utilities
     alembic/              Database migrations
 ```
 
@@ -77,24 +95,26 @@ docker build --target production -t traumabomen-api ./api
 ## Tech Stack
 
 ### Frontend
-- **Framework:** Vite + React + React Router + TypeScript
-- **Tree visualization:** React Flow + Dagre auto-layout
+- **Framework:** Vite 7 + React 19 + React Router 7 + TypeScript 5.9
+- **Tree visualization:** React Flow (@xyflow/react) + Dagre auto-layout
 - **Timeline visualization:** D3.js
-- **State management:** TanStack Query (React Query)
+- **State management:** TanStack Query (React Query) v5
 - **i18n:** react-i18next (English + Dutch)
 - **Encryption:** Web Crypto API (AES-256-GCM) + Argon2id via argon2-browser WASM
+- **Linting:** Biome
 
 ### Backend
 - **Framework:** FastAPI (Python)
-- **ORM:** SQLAlchemy
+- **ORM:** SQLAlchemy (async, with asyncpg)
 - **Database:** PostgreSQL
-- **Auth:** JWT (access + refresh tokens)
+- **Auth:** JWT (access + refresh tokens) via PyJWT + bcrypt
+- **Linting:** Ruff + mypy
 
 ### Testing
-- **Unit tests:** Vitest
+- **Unit tests:** Vitest v4
 - **Component tests:** React Testing Library
 - **Integration tests:** Playwright
-- **Backend tests:** pytest
+- **Backend tests:** pytest (with pytest-asyncio)
 
 ## Domain Model
 
@@ -115,6 +135,7 @@ Typed and directional. Types:
 - **Biological sibling** -- shared both parents
 - **Step-sibling** -- connected through step-parent relationship
 - **Partner** -- romantic/marital relationship (temporal, see below)
+- **Friend** -- non-familial connection
 
 Half-sibling relationships are inferred (two persons sharing exactly one biological parent), not stored as a separate edge type.
 
@@ -138,7 +159,27 @@ Multiple periods on the same edge support real-world complexity (e.g., marry, di
 - `severity`: integer (user-defined scale)
 - `tags`: list of strings (optional)
 
-### Pattern (deferred from MVP)
+### LifeEvent
+- `id`: UUID
+- `person_ids`: list of UUIDs (attached to one or more Persons)
+- `title`: string
+- `description`: string (free text)
+- `category`: string (family, education, career, relocation, health, other)
+- `approximate_date`: string (year or period)
+- `impact`: integer (user-defined scale)
+- `tags`: list of strings (optional)
+
+### Classification (DSM-5)
+- `id`: UUID
+- `person_ids`: list of UUIDs (attached to one or more Persons)
+- `dsm_category`: string (one of 22 DSM-5 major categories)
+- `dsm_subcategory`: string (optional, e.g. ADHD under neurodevelopmental)
+- `status`: `suspected` | `diagnosed`
+- `diagnosis_year`: integer (optional, relevant when diagnosed)
+- `periods`: list of `{ start_year, end_year }` (recurring time periods)
+- `notes`: string (optional)
+
+### Pattern (deferred)
 - `id`: UUID
 - `name`: string
 - `description`: string
@@ -171,37 +212,57 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/refresh`
+- `POST /auth/verify`
+- `POST /auth/resend-verification`
+- `POST /auth/change-password`
+- `GET /auth/salt`
+- `PUT /auth/salt`
+- `DELETE /auth/account`
 
 ### Resources (all payloads: `{ id, encrypted_data, metadata }`)
 - `GET/POST/PUT/DELETE /trees`
 - `GET/POST/PUT/DELETE /trees/{id}/persons`
 - `GET/POST/PUT/DELETE /trees/{id}/relationships`
 - `GET/POST/PUT/DELETE /trees/{id}/events`
-- `GET/POST/PUT/DELETE /trees/{id}/patterns`
+- `GET/POST/PUT/DELETE /trees/{id}/life-events`
+- `GET/POST/PUT/DELETE /trees/{id}/classifications`
 
 ### Bulk Sync
 - `POST /trees/{id}/sync` -- batch of creates, updates, deletes across all entity types in a single transaction
+
+### Admin
+- `GET /admin/stats/*` -- analytics endpoints (overview, retention, usage, funnel, activity, growth, users)
 
 ## Frontend Architecture
 
 ### Routing
 - `/login`, `/register` -- auth flows
-- `/trees` -- tree list (MVP: single tree)
-- `/trees/{id}` -- main workspace, tree view
+- `/verify-pending`, `/verify` -- email verification
+- `/unlock` -- encryption passphrase entry
+- `/privacy` -- privacy policy
+- `/trees` -- tree list
+- `/trees/{id}` -- main workspace, tree canvas view
 - `/trees/{id}/timeline` -- timeline view
+- `/admin` -- admin dashboard (admin-guarded)
 
 ### Key Components
 - `<EncryptionProvider>` -- React context holding derived key in memory. Exposes `encrypt()` / `decrypt()`. Wraps authenticated app.
-- `<TreeCanvas>` -- React Flow instance. Person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
-- `<PersonNode>` -- Custom React Flow node. Name, years, adoption icon, trauma event badges (color-coded by category).
-- `<PersonDetailPanel>` -- Slide-out panel. Edit person fields, trauma events, relationship periods. Encrypt-then-save.
-- `<TimelineView>` -- D3 horizontal timeline. Generational bands as rows, trauma events as markers, partner periods as horizontal bars.
-- `<PatternEditor>` -- Deferred from MVP.
+- `<TreeWorkspacePage>` -- React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
+- `<PersonNode>` -- Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
+- `<PersonDetailPanel>` -- Slide-out panel. Edit person fields, relationships, trauma events, life events, classifications. Encrypt-then-save.
+- `<RelationshipDetailPanel>` -- Panel for editing relationship details and periods.
+- `<SettingsPanel>` -- Canvas settings, theme, language, account management (password/passphrase change, account deletion).
+- `<TimelineView>` -- D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 
 ### Relationship Visual Styles
 - Solid lines: biological relationships
 - Dashed lines: step/adoptive relationships
 - Small icons/labels on edges for type clarity
+
+### Badge System on Person Nodes
+- Circles: trauma events (colored by category)
+- Squares: life events (colored by category)
+- Triangles: classifications (amber = suspected, blue = diagnosed)
 
 ## Internationalization
 - react-i18next with JSON translation files
@@ -235,22 +296,27 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 - Bulk sync transactionality (partial failure -> rollback)
 - Ownership isolation (user A cannot access user B's trees)
 
-## MVP Scope
+## Scope
 
-### In MVP
-- Auth (email/password + encryption passphrase)
-- Single tree per user
-- Person CRUD with all relationship types
+### Implemented
+- Auth (email/password + encryption passphrase + email verification)
+- Multiple trees per user
+- Person CRUD with all relationship types (including friend)
 - Temporal partner relationships
 - Trauma event CRUD with categories
-- Tree view (React Flow + Dagre layout)
-- Timeline view (basic D3)
+- Life event CRUD with categories
+- DSM-5 classification CRUD (suspected/diagnosed, periods, subcategories)
+- Tree canvas view (React Flow + Dagre layout)
+- Timeline view (D3 with life bars, event markers, classification strips)
 - Zero-knowledge encryption
 - English + Dutch
 - Bulk sync endpoint
+- Admin dashboard with analytics
+- Account management (password change, passphrase change with re-encryption, account deletion)
+- Privacy policy page
+- Mental health support banner
 
 ### Deferred
-- Multiple trees per user
 - Pattern editor
 - OAuth/social login
 - GEDCOM import
