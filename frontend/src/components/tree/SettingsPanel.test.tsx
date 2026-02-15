@@ -471,9 +471,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassword"), DUMMY_OLD_PW);
-      await user.type(screen.getByPlaceholderText("account.newPassword"), DUMMY_NEW_PW);
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), DUMMY_NEW_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       expect(saveButtons[0]).not.toBeDisabled();
@@ -485,9 +491,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassword"), DUMMY_OLD_PW);
-      await user.type(screen.getByPlaceholderText("account.newPassword"), DUMMY_NEW_PW);
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "different");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: "different" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[0]);
@@ -503,9 +515,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassword"), DUMMY_OLD_PW);
-      await user.type(screen.getByPlaceholderText("account.newPassword"), DUMMY_NEW_PW);
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), DUMMY_NEW_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[0]);
@@ -527,9 +545,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassword"), DUMMY_OLD_PW);
-      await user.type(screen.getByPlaceholderText("account.newPassword"), DUMMY_NEW_PW);
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), DUMMY_NEW_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: DUMMY_NEW_PW },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[0]);
@@ -550,9 +574,9 @@ describe("SettingsPanel", () => {
       const newPw = screen.getByPlaceholderText("account.newPassword");
       const confirmPw = screen.getByPlaceholderText("account.confirmNewPassword");
 
-      await user.type(currentPw, DUMMY_OLD_PW);
-      await user.type(newPw, DUMMY_NEW_PW);
-      await user.type(confirmPw, DUMMY_NEW_PW);
+      fireEvent.change(currentPw, { target: { value: DUMMY_OLD_PW } });
+      fireEvent.change(newPw, { target: { value: DUMMY_NEW_PW } });
+      fireEvent.change(confirmPw, { target: { value: DUMMY_NEW_PW } });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[0]);
@@ -589,9 +613,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "oldpp");
-      await user.type(screen.getByPlaceholderText("account.newPassphrase"), "newpp");
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "different");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "different" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -608,9 +638,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "wrongpp");
-      await user.type(screen.getByPlaceholderText("account.newPassphrase"), "newpp");
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "newpp");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "wrongpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -645,9 +681,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "oldpp");
-      await user.type(screen.getByPlaceholderText("account.newPassphrase"), "newpp");
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "newpp");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -680,9 +722,9 @@ describe("SettingsPanel", () => {
       const newPp = screen.getByPlaceholderText("account.newPassphrase");
       const confirmPp = screen.getByPlaceholderText("account.confirmNewPassphrase");
 
-      await user.type(currentPp, "oldpp");
-      await user.type(newPp, "newpp");
-      await user.type(confirmPp, "newpp");
+      fireEvent.change(currentPp, { target: { value: "oldpp" } });
+      fireEvent.change(newPp, { target: { value: "newpp" } });
+      fireEvent.change(confirmPp, { target: { value: "newpp" } });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -710,9 +752,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "oldpp");
-      await user.type(screen.getByPlaceholderText("account.newPassphrase"), "newpp");
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "newpp");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -737,9 +785,15 @@ describe("SettingsPanel", () => {
       await openPanel(user);
       await switchToAccountTab(user);
 
-      await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "oldpp");
-      await user.type(screen.getByPlaceholderText("account.newPassphrase"), "newpp");
-      await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "newpp");
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
 
       const saveButtons = screen.getAllByText("common.save");
       await user.click(saveButtons[1]);
@@ -801,16 +855,21 @@ describe("SettingsPanel", () => {
       expect(confirmDeleteButton).toBeDisabled();
 
       // Type partial confirmation
-      await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELET");
+      fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
+        target: { value: "DELET" },
+      });
       expect(confirmDeleteButton).toBeDisabled();
 
       // Type full confirmation but no password
-      await user.clear(screen.getByPlaceholderText("account.deleteConfirmLabel"));
-      await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
+      fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
+        target: { value: "DELETE" },
+      });
       expect(confirmDeleteButton).toBeDisabled();
 
       // Add password
-      await user.type(screen.getByPlaceholderText("account.deletePassword"), DUMMY_ACCOUNT_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.deletePassword"), {
+        target: { value: DUMMY_ACCOUNT_PW },
+      });
       expect(confirmDeleteButton).not.toBeDisabled();
     });
 
@@ -825,8 +884,12 @@ describe("SettingsPanel", () => {
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
-      await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-      await user.type(screen.getByPlaceholderText("account.deletePassword"), DUMMY_ACCOUNT_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
+        target: { value: "DELETE" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.deletePassword"), {
+        target: { value: DUMMY_ACCOUNT_PW },
+      });
 
       await user.click(screen.getByText("account.deleteButton"));
 
@@ -847,8 +910,12 @@ describe("SettingsPanel", () => {
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
-      await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-      await user.type(screen.getByPlaceholderText("account.deletePassword"), DUMMY_ACCOUNT_PW);
+      fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
+        target: { value: "DELETE" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.deletePassword"), {
+        target: { value: DUMMY_ACCOUNT_PW },
+      });
 
       await user.click(screen.getByText("account.deleteButton"));
 

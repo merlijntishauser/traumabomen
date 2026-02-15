@@ -1,4 +1,4 @@
-.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-be coverage e2e \
+.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e \
        bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity
 
 .DEFAULT_GOAL := help
@@ -48,6 +48,12 @@ test: test-fe test-be ## Run all unit tests
 
 test-fe: ## Run frontend tests (vitest)
 	docker compose exec frontend npx vitest run
+
+test-fe-unit: ## Run fast frontend unit tests only (lib/)
+	docker compose exec frontend npx vitest run src/lib/
+
+test-fe-component: ## Run frontend component/hook tests only
+	docker compose exec frontend npx vitest run src/components/ src/hooks/
 
 test-be: ## Run backend tests (pytest)
 	docker compose exec api uv run pytest

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -178,8 +178,7 @@ describe("PersonDetailPanel", () => {
     render(<PersonDetailPanel {...props} />);
 
     const nameInput = screen.getByDisplayValue("Alice");
-    await user.clear(nameInput);
-    await user.type(nameInput, "Carol");
+    fireEvent.change(nameInput, { target: { value: "Carol" } });
     await user.click(screen.getByText("person.save"));
 
     expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ name: "Carol" }));
@@ -219,7 +218,7 @@ describe("PersonDetailPanel", () => {
     await user.click(screen.getByText("trauma.newEvent"));
 
     const titleInput = screen.getByRole("textbox", { name: /trauma.title/i });
-    await user.type(titleInput, "New trauma");
+    fireEvent.change(titleInput, { target: { value: "New trauma" } });
 
     await user.click(screen.getByText("common.save"));
 
@@ -282,7 +281,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       const deathYearInput = screen.getByPlaceholderText("---");
-      await user.type(deathYearInput, "2020");
+      fireEvent.change(deathYearInput, { target: { value: "2020" } });
       await user.click(screen.getByText("person.save"));
 
       expect(props.onSavePerson).toHaveBeenCalledWith(
@@ -321,7 +320,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       const notesTextarea = screen.getByRole("textbox", { name: /person.notes/i });
-      await user.type(notesTextarea, "Some notes");
+      fireEvent.change(notesTextarea, { target: { value: "Some notes" } });
       await user.click(screen.getByText("person.save"));
 
       expect(props.onSavePerson).toHaveBeenCalledWith(
@@ -336,7 +335,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       const notesTextarea = screen.getByRole("textbox", { name: /person.notes/i });
-      await user.clear(notesTextarea);
+      fireEvent.change(notesTextarea, { target: { value: "" } });
       await user.click(screen.getByText("person.save"));
 
       expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ notes: null }));
@@ -698,14 +697,22 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText(/trauma.events/));
       await user.click(screen.getByText("trauma.newEvent"));
 
-      await user.type(screen.getByRole("textbox", { name: /trauma.title/i }), "Flood");
-      await user.type(screen.getByRole("textbox", { name: /trauma.description/i }), "Big flood");
+      fireEvent.change(screen.getByRole("textbox", { name: /trauma.title/i }), {
+        target: { value: "Flood" },
+      });
+      fireEvent.change(screen.getByRole("textbox", { name: /trauma.description/i }), {
+        target: { value: "Big flood" },
+      });
       await user.selectOptions(
         screen.getByRole("combobox", { name: /trauma.category/i }),
         TraumaCategory.War,
       );
-      await user.type(screen.getByRole("textbox", { name: /trauma.approximateDate/i }), "1999");
-      await user.type(screen.getByRole("textbox", { name: /trauma.tags/i }), "nature, water");
+      fireEvent.change(screen.getByRole("textbox", { name: /trauma.approximateDate/i }), {
+        target: { value: "1999" },
+      });
+      fireEvent.change(screen.getByRole("textbox", { name: /trauma.tags/i }), {
+        target: { value: "nature, water" },
+      });
 
       await user.click(screen.getByText("common.save"));
 
@@ -770,7 +777,9 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText(/lifeEvent.events/));
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
-      await user.type(screen.getByRole("textbox", { name: /lifeEvent.title/i }), "New Job");
+      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
+        target: { value: "New Job" },
+      });
       await user.click(screen.getByText("common.save"));
 
       expect(props.onSaveLifeEvent).toHaveBeenCalledWith(
@@ -788,17 +797,22 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText(/lifeEvent.events/));
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
-      await user.type(screen.getByRole("textbox", { name: /lifeEvent.title/i }), "Moved");
-      await user.type(
-        screen.getByRole("textbox", { name: /lifeEvent.description/i }),
-        "Moved to city",
-      );
+      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
+        target: { value: "Moved" },
+      });
+      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.description/i }), {
+        target: { value: "Moved to city" },
+      });
       await user.selectOptions(
         screen.getByRole("combobox", { name: /lifeEvent.category/i }),
         LifeEventCategory.Relocation,
       );
-      await user.type(screen.getByRole("textbox", { name: /lifeEvent.approximateDate/i }), "2005");
-      await user.type(screen.getByRole("textbox", { name: /lifeEvent.tags/i }), "move, city");
+      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.approximateDate/i }), {
+        target: { value: "2005" },
+      });
+      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.tags/i }), {
+        target: { value: "move, city" },
+      });
 
       await user.click(screen.getByText("common.save"));
 
@@ -829,8 +843,7 @@ describe("PersonDetailPanel", () => {
 
       // Change title
       const titleInput = screen.getByDisplayValue("Graduation");
-      await user.clear(titleInput);
-      await user.type(titleInput, "PhD");
+      fireEvent.change(titleInput, { target: { value: "PhD" } });
 
       await user.click(screen.getByText("common.save"));
 
@@ -1045,7 +1058,7 @@ describe("PersonDetailPanel", () => {
       const yearInput = screen.getByRole("spinbutton", {
         name: /classification.diagnosisYear/i,
       });
-      await user.type(yearInput, "2020");
+      fireEvent.change(yearInput, { target: { value: "2020" } });
 
       await user.click(screen.getByText("common.save"));
 
@@ -1070,7 +1083,7 @@ describe("PersonDetailPanel", () => {
       const notesTextarea = screen.getByRole("textbox", {
         name: /classification.notes/i,
       });
-      await user.type(notesTextarea, "Some clinical notes");
+      fireEvent.change(notesTextarea, { target: { value: "Some clinical notes" } });
       await user.click(screen.getByText("common.save"));
 
       expect(props.onSaveClassification).toHaveBeenCalledWith(
@@ -1156,7 +1169,7 @@ describe("PersonDetailPanel", () => {
 
       // Type search text - since t() returns the key, search for "anxiety"
       const searchInput = screen.getByPlaceholderText("classification.searchPlaceholder");
-      await user.type(searchInput, "anxiety");
+      fireEvent.change(searchInput, { target: { value: "anxiety" } });
 
       // The select should now only show matching categories
       const categorySelect = screen.getByDisplayValue("dsm.anxiety");

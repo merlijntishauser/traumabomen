@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
@@ -253,8 +253,7 @@ describe("RelationshipDetailPanel", () => {
     await user.click(screen.getByText(/relationship.periods/));
 
     const startYearInput = screen.getByDisplayValue("2000");
-    await user.clear(startYearInput);
-    await user.type(startYearInput, "1995");
+    fireEvent.change(startYearInput, { target: { value: "1995" } });
 
     await user.click(screen.getByText("common.save"));
 
@@ -276,7 +275,7 @@ describe("RelationshipDetailPanel", () => {
     await user.click(screen.getByText(/relationship.periods/));
 
     const endYearInput = screen.getByPlaceholderText("---");
-    await user.type(endYearInput, "2010");
+    fireEvent.change(endYearInput, { target: { value: "2010" } });
 
     await user.click(screen.getByText("common.save"));
 
@@ -298,7 +297,7 @@ describe("RelationshipDetailPanel", () => {
     await user.click(screen.getByText(/relationship.periods/));
 
     const endYearInput = screen.getByDisplayValue("2010");
-    await user.clear(endYearInput);
+    fireEvent.change(endYearInput, { target: { value: "" } });
 
     await user.click(screen.getByText("common.save"));
 
