@@ -10,7 +10,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
@@ -145,13 +145,28 @@ function TreeWorkspaceInner() {
 
   // Local node state that accepts both layout updates and drag changes
   const [nodes, setNodes] = useState<PersonNodeType[]>([]);
+  const prevNodeIdsRef = useRef("");
+  const prevNodeCountRef = useRef(0);
 
   useEffect(() => {
+    const currentIds = layoutNodes
+      .map((n) => n.id)
+      .sort()
+      .join(",");
+    const structureChanged = currentIds !== prevNodeIdsRef.current;
+    prevNodeIdsRef.current = currentIds;
+
     setNodes((prev) => {
       const prevMap = new Map(prev.map((n) => [n.id, n]));
       return layoutNodes.map((n) => {
         const existing = prevMap.get(n.id);
-        return existing ? { ...n, measured: existing.measured } : n;
+        if (!existing) return n;
+        if (structureChanged) {
+          // Structure changed (add/delete/relationship): accept new positions
+          return { ...n, measured: existing.measured };
+        }
+        // Data-only change (save/close): keep current positions
+        return { ...n, position: existing.position, measured: existing.measured };
       });
     });
   }, [layoutNodes]);
@@ -160,9 +175,10 @@ function TreeWorkspaceInner() {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
-  // Fit view when node count changes
+  // Fit view only when node count actually changes
   useEffect(() => {
-    if (layoutNodes.length > 0) {
+    if (layoutNodes.length > 0 && layoutNodes.length !== prevNodeCountRef.current) {
+      prevNodeCountRef.current = layoutNodes.length;
       const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
       return () => clearTimeout(timer);
     }
