@@ -31,7 +31,7 @@ def create_token(
     is_admin: bool = False,
 ) -> str:
     now = datetime.now(UTC)
-    if token_type == "access":
+    if token_type == "access":  # nosec B105
         expires = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     else:
         expires = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
@@ -42,7 +42,7 @@ def create_token(
         "exp": expires,
         "iat": now,
     }
-    if token_type == "access" and is_admin:
+    if token_type == "access" and is_admin:  # nosec B105
         claims["is_admin"] = True
     result: str = jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return result
