@@ -113,7 +113,7 @@ jobs:
             --cpu=1 \
             --cpu-boost \
             --timeout=60 \
-            --startup-probe httpGet.path=/health,httpGet.port=8000,initialDelaySeconds=0,periodSeconds=4,failureThreshold=3
+            --startup-probe httpGet.path=/health,httpGet.port=8000,initialDelaySeconds=0,periodSeconds=4,failureThreshold=8
 
       - name: Deploy frontend
         run: |
