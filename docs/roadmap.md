@@ -39,7 +39,7 @@ See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
 Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). Each pattern has a name, description, and linked event IDs.
 
-## Backlog
+## Backlog / Unplanned
 
 ### new features
 - OAuth/social login.... SSO? 
@@ -49,10 +49,21 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 - Collaborative/shared trees
 - Offline-first with service worker
 - Additional languages beyond English and Dutch
+- "familie opstelling" functionality, needs an I person node
+- import of some "big" family trees software products?
+- list of mental health organisations per country, which a user can reach out to for help
 
 ### needs to be fixed or checked 
 - license check! (fonts/ images / used libraries)
 - directly add an adopted sibling? 
+- double check auto assignment of generations in timeline view
+- entering years... sometimes buggy? or non optimal UX
+
+### Improvments
+- Search on classifications, should be on both main categories as subcatergories
+- Extend subcategories on classifications
+- Add DSM 5 codes to classifications
+- Add a possible unknown birth year, but allow a before year, or decade
 
 ### To think about
 - more themes
@@ -64,35 +75,10 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 - rate-limiting on login?
 - context menu on relations, persons and canvas? 
 - life-event: started/stopped medication
+- call name / nickname for persons
+- possibility to send short questionnaires to persons, who can enter their answers in the tree without account
+- Funny thing: add a mascotte which pops up after 10 minutes, asking if you're still there and ok
 
 ---
 
 ### Unfiltered notes
-  future
-  > import major gen software trees...
-  multi-user... allow to share a tree, with view rights only, or edit rights
-  pdf export..en bij export, mogelijkheid om personen/trauma's/gebeurtenissen "eruit te filteren"
-  module systemisch werken... ortho weergave. poppetjes kunnen schuiven
-  
-  hulporganisaties... voor niet nl, misschien link naar aantal hulporganisaties in in europa/amerika? 
-  pagina met overzicht openemen, net als de privacy pagina
-  
-  geboortedatum onbekend mogelijk maken *maar wel tussen , of voor... schatting.
-  
-  jaartallen kiezen niet altijd logisch
-  
-  systeem/familie opstellingen functionaliteit
-   -> IK nodig... verder "poppen" uit stamboom, met trauma markering beschikbaar om in ortho view te plaatsen
-
-   optie bijnamen/roepnamen te geven
-   
-   dubbelchecken van generaties... (waar kees en tiny indezelfde generatie als ik en Ingrid)
-   
-   privacy statement: 2 tabs: for non techies/ techies
-
-   vragenlijst voor familieleden... kiezen welke vragen.. ze vullen het zonder account in, informatie
-   
-   zoeken op classificties in zowel cat als sub cat
-   dsm codes? 
-
-   geinigheidje.. na 5 minuten een "mascotte" die om de hoek komt kijken en vraagt of je nog ok bent...
