@@ -4,15 +4,13 @@
 
 ### Care Providers
 
-Track mental health professionals and institutes associated with persons in the family tree. A new CareProvider entity (like events and classifications) with:
+Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
 
-- **Kind**: professional or institute
-- **Role**: psychiatrist, psychologist, therapist, counselor, social worker, GP, other
-- **Modality** (optional): CBT, EMDR, family therapy, group therapy, psychoanalysis, medication, other
-- **Care periods**: per-person start/end years for timeline visualization
-- **Multi-person linking**: same provider shared across family members
-
-Renders as diamond badges on person nodes and as period strips on the timeline view.
+- **CareProvider nodes**: name, kind (professional/institute), role, optional modality, notes
+- **CareRelationship edges**: link one provider to multiple persons with per-person care periods
+- **CareProviderDetailPanel**: edit provider details and manage linked persons with periods
+- **Timeline**: care periods render as strips below person life bars
+- Visually distinct from family nodes (pill shape, teal/green, dotted edges)
 
 See [design doc](plans/2026-02-15-care-providers-design.md).
 
