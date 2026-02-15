@@ -29,7 +29,7 @@ The security scan runs only on version tag deploys (`v*`), matching the existing
 OWASP ZAP performs an authenticated passive scan of the application:
 
 1. A setup step calls `/api/auth/login` with SMOKETEST credentials to obtain a JWT.
-2. ZAP spiders from `https://www.traumatrees.org` with the JWT injected as an `Authorization` header, reaching protected endpoints (`/trees`, `/persons`, `/relationships`, etc.).
+2. ZAP spiders from `https://www.traumatrees.org` with the JWT injected via `ZAP_AUTH_HEADER`/`ZAP_AUTH_HEADER_VALUE` environment variables, reaching protected endpoints (`/trees`, `/persons`, `/relationships`, etc.).
 3. ZAP passively analyzes all responses for OWASP Top 10 issues: XSS, injection, information disclosure, missing security headers, insecure cookies, etc.
 4. A rules file (`.zap/rules.tsv`) suppresses known false positives (encrypted blobs flagged as information disclosure, SPA client-side routing).
 

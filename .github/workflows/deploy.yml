@@ -198,15 +198,14 @@ jobs:
 
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.15.0
+        env:
+          ZAP_AUTH_HEADER: "Authorization"
+          ZAP_AUTH_HEADER_VALUE: "Bearer ${{ steps.auth.outputs.token }}"
+          ZAP_AUTH_HEADER_SITE: "www.traumatrees.org"
         with:
           target: "https://www.traumatrees.org"
           rules_file_name: ".zap/rules.tsv"
-          cmd_options: >-
-            -z '-config replacer.full_list(0).matchtype=REQ_HEADER
-            -config replacer.full_list(0).matchstr=Authorization
-            -config replacer.full_list(0).replacement=Bearer ${{ steps.auth.outputs.token }}'
-          fail_action: "warn"
-          artifact_name: ""
+          fail_action: "false"
 
       - name: Check ZAP results
         run: |
