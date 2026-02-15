@@ -118,6 +118,66 @@ jobs:
       - run: uv sync --extra dev
       - run: uv run pytest --tb=short
 
+  quality-be:
+    name: Quality gate (backend)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: traumabomen_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: api
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/traumabomen_test
+      JWT_SECRET_KEY: test-secret-key-for-ci
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --extra dev
+      - name: Complexity check (xenon)
+        run: uv run xenon app/ --max-absolute C --max-modules B --max-average B
+      - name: Coverage
+        run: uv run pytest --cov=app --cov-report=json -q
+      - name: Coverage gate
+        working-directory: .
+        run: bash scripts/coverage-gate.sh python
+
+  quality-fe:
+    name: Quality gate (frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Complexity check (eslint/sonarjs)
+        run: npx eslint src/
+      - name: Coverage
+        run: npx vitest run --coverage
+      - name: Coverage gate
+        working-directory: .
+        run: bash scripts/coverage-gate.sh typescript
+
   privacy-scan:
     name: Privacy scan
     runs-on: ubuntu-latest

@@ -116,7 +116,7 @@ export function PersonDetailPanel({
     person.is_adopted,
     person.name,
     person.notes,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  ]);
 
   function handleSavePerson() {
     onSavePerson({

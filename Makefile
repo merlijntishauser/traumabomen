@@ -1,5 +1,5 @@
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-be coverage e2e \
-       bump setup migrate migrate-up migrate-down privacy-scan
+       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet
 
 .DEFAULT_GOAL := help
 
@@ -40,7 +40,7 @@ typecheck: ## Run type checkers (tsc + mypy)
 	cd frontend && npx tsc --noEmit
 	docker compose exec api uv run mypy app
 
-ci: lint typecheck test privacy-scan ## Run full CI pipeline
+ci: lint typecheck test privacy-scan quality ## Run full CI pipeline
 
 # --- Testing ---
 
@@ -85,6 +85,24 @@ migrate-up: ## Run pending migrations
 
 migrate-down: ## Rollback last migration
 	docker compose exec api uv run alembic downgrade -1
+
+# --- Quality Gates ---
+
+quality: ## Run complexity checks and coverage gates
+	docker compose exec api uv run xenon app/ --max-absolute C --max-modules B --max-average B
+	docker compose exec frontend npx eslint src/
+	docker compose exec api uv run pytest --cov=app --cov-report=json -q
+	docker compose exec frontend npx vitest run --coverage
+	@bash scripts/coverage-gate.sh python
+	@bash scripts/coverage-gate.sh typescript
+
+ratchet: ## Update coverage baseline to current values
+	docker compose exec api uv run pytest --cov=app --cov-report=json -q
+	docker compose exec frontend npx vitest run --coverage
+	@PY=$$(docker compose exec api python3 -c "import json; d=json.load(open('coverage.json')); print(int(d['totals']['percent_covered']))"); \
+	TS=$$(docker compose exec frontend node -e "const d=require('./coverage/coverage-summary.json'); console.log(Math.floor(d.total.statements.pct))"); \
+	echo "{\"python\": $$PY, \"typescript\": $$TS}" > .coverage-baseline.json; \
+	echo "Updated baseline: python=$$PY% typescript=$$TS%"
 
 # --- Security ---
 

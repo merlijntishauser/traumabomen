@@ -235,10 +235,7 @@ function RelationshipEdgeComponent({
   let strokeWidth = 1.5;
   let strokeDasharray: string | undefined;
 
-  if (isHalfSibling) {
-    stroke = getCssVar("--color-edge-half-sibling");
-    strokeDasharray = "4 4";
-  } else if (inferredType === "half_sibling") {
+  if (isHalfSibling || inferredType === "half_sibling") {
     stroke = getCssVar("--color-edge-half-sibling");
     strokeDasharray = "4 4";
   } else if (inferredType === "full_sibling") {
@@ -246,7 +243,6 @@ function RelationshipEdgeComponent({
     strokeDasharray = "4 4";
   } else if (isExPartner) {
     stroke = getCssVar("--color-edge-partner");
-    strokeWidth = 1.5;
     strokeDasharray = "6 3";
   } else if (isPartner) {
     stroke = getCssVar("--color-edge-partner");

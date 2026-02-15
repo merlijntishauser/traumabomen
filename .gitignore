@@ -45,3 +45,4 @@ docker-compose.override.yml
 # Logs
 *.log
 /api/.coverage
+/api/coverage.json

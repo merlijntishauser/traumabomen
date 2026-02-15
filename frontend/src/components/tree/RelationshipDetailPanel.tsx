@@ -38,7 +38,7 @@ export function RelationshipDetailPanel({
     setPeriods(relationship.periods);
     setConfirmDelete(false);
     setEditingPeriods(false);
-  }, [relationship.periods, relationship.type]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [relationship.periods, relationship.type]);
 
   const sourcePerson = allPersons.get(relationship.source_person_id);
   const targetPerson = allPersons.get(relationship.target_person_id);
