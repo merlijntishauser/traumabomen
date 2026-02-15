@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: tsc
         name: TypeScript type-check
-        entry: bash -c 'cd frontend && npx tsc --noEmit'
+        entry: bash -c 'cd frontend && npx tsc -b'
         language: system
         files: \.tsx?$
         pass_filenames: false

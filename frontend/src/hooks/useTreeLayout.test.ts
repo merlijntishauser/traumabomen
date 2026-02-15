@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { RelationshipType } from "../types/domain";
+import { RelationshipType, TraumaCategory } from "../types/domain";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -152,7 +152,7 @@ describe("useTreeLayout", () => {
           id: "e1",
           title: "Event",
           description: "",
-          category: "loss" as const,
+          category: TraumaCategory.Loss,
           approximate_date: "1990",
           severity: 3,
           tags: [],

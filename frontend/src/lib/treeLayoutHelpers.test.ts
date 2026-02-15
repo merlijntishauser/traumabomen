@@ -6,7 +6,7 @@ import type {
   DecryptedPerson,
   DecryptedRelationship,
 } from "../hooks/useTreeData";
-import { RelationshipType } from "../types/domain";
+import { LifeEventCategory, RelationshipType, TraumaCategory } from "../types/domain";
 import {
   adjustEdgeOverlaps,
   buildBioParentData,
@@ -253,7 +253,7 @@ describe("buildEntityLookups", () => {
           id: "e1",
           title: "Loss",
           description: "",
-          category: "loss",
+          category: TraumaCategory.Loss,
           approximate_date: "1990",
           severity: 3,
           tags: [],
@@ -266,7 +266,7 @@ describe("buildEntityLookups", () => {
           id: "e2",
           title: "War",
           description: "",
-          category: "war",
+          category: TraumaCategory.War,
           approximate_date: "1945",
           severity: 5,
           tags: [],
@@ -287,7 +287,7 @@ describe("buildEntityLookups", () => {
           id: "e1",
           title: "T",
           description: "",
-          category: "loss",
+          category: TraumaCategory.Loss,
           approximate_date: "1990",
           severity: 1,
           tags: [],
@@ -302,7 +302,7 @@ describe("buildEntityLookups", () => {
           id: "le1",
           title: "L",
           description: "",
-          category: "family",
+          category: LifeEventCategory.Family,
           approximate_date: "1990",
           impact: 1,
           tags: [],
