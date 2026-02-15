@@ -10,6 +10,7 @@ env:
   IMAGE_PREFIX: europe-west4-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/traumabomen
 
 permissions:
+  actions: write
   contents: read
   id-token: write
 
@@ -243,42 +244,17 @@ jobs:
           print('No high/critical ZAP findings')
           "
 
-      - name: Nuclei Scan
+      - name: Trigger Nuclei scan (every 5th deploy)
+        if: github.run_number % 5 == 0
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p results
-          docker run --rm \
-            -v "${{ github.workspace }}/results:/output" \
-            projectdiscovery/nuclei:latest \
-            -u "https://www.traumatrees.org" \
-            -u "https://www.traumabomen.nl" \
-            -severity critical,high \
-            -tags cve,misconfig,exposure,tech \
-            -exclude-tags dos \
-            -rate-limit 10 \
-            -jsonl -output /output/nuclei-report.jsonl
+          gh workflow run nuclei-scan.yml
 
-          if [ -f results/nuclei-report.jsonl ] && grep -qE '"severity":"(critical|high)"' results/nuclei-report.jsonl; then
-            echo "::error::Nuclei found critical/high severity issues"
-            python3 -c "
-          import json
-          for line in open('results/nuclei-report.jsonl'):
-            f = json.loads(line)
-            sev = f.get('info', {}).get('severity', 'unknown').upper()
-            name = f.get('info', {}).get('name', 'unknown')
-            matched = f.get('matched-at', '')
-            print(f'  [{sev}] {name} - {matched}')
-          "
-            exit 1
-          fi
-
-          echo "No critical/high Nuclei findings"
-
-      - name: Upload scan reports
+      - name: Upload ZAP reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-scan-reports
-          path: |
-            results/
-            **/zap-report.*
+          name: zap-scan-reports
+          path: "**/zap-report.*"
           retention-days: 30
