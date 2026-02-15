@@ -11,6 +11,9 @@ import { uuidToCompact } from "../lib/compactId";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
+const T_CANCEL = "common.cancel";
+const T_DELETE = "common.delete";
+
 interface DecryptedTree {
   id: string;
   name: string;
@@ -164,7 +167,7 @@ export default function TreeListPage() {
               type="button"
               onClick={() => setCreating(false)}
             >
-              {t("common.cancel")}
+              {t(T_CANCEL)}
             </button>
           </form>
         )}
@@ -199,7 +202,7 @@ export default function TreeListPage() {
                       type="button"
                       onClick={() => setEditingId(null)}
                     >
-                      {t("common.cancel")}
+                      {t(T_CANCEL)}
                     </button>
                   </form>
                 ) : deletingId === tree.id ? (
@@ -211,14 +214,14 @@ export default function TreeListPage() {
                       onClick={() => deleteMutation.mutate(tree.id)}
                       disabled={deleteMutation.isPending}
                     >
-                      {t("common.delete")}
+                      {t(T_DELETE)}
                     </button>
                     <button
                       type="button"
                       className="tree-list-item__btn"
                       onClick={() => setDeletingId(null)}
                     >
-                      {t("common.cancel")}
+                      {t(T_CANCEL)}
                     </button>
                   </div>
                 ) : (
@@ -239,9 +242,9 @@ export default function TreeListPage() {
                         type="button"
                         className="tree-list-item__btn tree-list-item__btn--danger"
                         onClick={() => setDeletingId(tree.id)}
-                        title={t("common.delete")}
+                        title={t(T_DELETE)}
                       >
-                        {t("common.delete")}
+                        {t(T_DELETE)}
                       </button>
                     </div>
                   </div>

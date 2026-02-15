@@ -30,6 +30,29 @@ import {
 } from "../../types/domain";
 import "./PersonDetailPanel.css";
 
+// Shared i18n keys used across multiple sub-forms
+const T_EDIT = "common.edit";
+const T_SAVE = "common.save";
+const T_CANCEL = "common.cancel";
+const T_DELETE = "common.delete";
+
+/** Toggle a person in a Set, preventing removal of the last person. */
+function togglePersonInSet(
+  personId: string,
+  setter: React.Dispatch<React.SetStateAction<Set<string>>>,
+) {
+  setter((prev) => {
+    if (prev.has(personId) && prev.size <= 1) return prev;
+    const next = new Set(prev);
+    if (next.has(personId)) {
+      next.delete(personId);
+    } else {
+      next.add(personId);
+    }
+    return next;
+  });
+}
+
 interface PersonDetailPanelProps {
   person: DecryptedPerson;
   relationships: DecryptedRelationship[];
@@ -303,7 +326,7 @@ export function PersonDetailPanel({
                                 style={{ marginTop: 4 }}
                                 onClick={() => setEditingRelId(rel.id)}
                               >
-                                {t("common.edit")}
+                                {t(T_EDIT)}
                               </button>
                             </>
                           ))}
@@ -377,7 +400,7 @@ export function PersonDetailPanel({
                         className="detail-panel__btn--small"
                         onClick={() => setEditingEventId(event.id)}
                       >
-                        {t("common.edit")}
+                        {t(T_EDIT)}
                       </button>
                     </div>
                     {event.approximate_date && (
@@ -454,7 +477,7 @@ export function PersonDetailPanel({
                         className="detail-panel__btn--small"
                         onClick={() => setEditingLifeEventId(event.id)}
                       >
-                        {t("common.edit")}
+                        {t(T_EDIT)}
                       </button>
                     </div>
                     {event.approximate_date && (
@@ -536,7 +559,7 @@ export function PersonDetailPanel({
                         className="detail-panel__btn--small"
                         onClick={() => setEditingClassificationId(cls.id)}
                       >
-                        {t("common.edit")}
+                        {t(T_EDIT)}
                       </button>
                     </div>
                     <div className="detail-panel__event-date">
@@ -623,18 +646,7 @@ function ClassificationForm({
     a.name.localeCompare(b.name),
   );
 
-  function togglePerson(personId: string) {
-    setSelectedPersonIds((prev) => {
-      if (prev.has(personId) && prev.size <= 1) return prev;
-      const next = new Set(prev);
-      if (next.has(personId)) {
-        next.delete(personId);
-      } else {
-        next.add(personId);
-      }
-      return next;
-    });
-  }
+  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
 
   function addPeriod() {
     setPeriods((prev) => [...prev, { start_year: new Date().getFullYear(), end_year: null }]);
@@ -813,10 +825,10 @@ function ClassificationForm({
           className="detail-panel__btn detail-panel__btn--primary"
           onClick={handleSave}
         >
-          {t("common.save")}
+          {t(T_SAVE)}
         </button>
         <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t("common.cancel")}
+          {t(T_CANCEL)}
         </button>
         {onDelete && (
           <button
@@ -830,7 +842,7 @@ function ClassificationForm({
               }
             }}
           >
-            {confirmDelete ? t("classification.confirmDelete") : t("common.delete")}
+            {confirmDelete ? t("classification.confirmDelete") : t(T_DELETE)}
           </button>
         )}
       </div>
@@ -873,18 +885,7 @@ function LifeEventForm({
     a.name.localeCompare(b.name),
   );
 
-  function togglePerson(personId: string) {
-    setSelectedPersonIds((prev) => {
-      if (prev.has(personId) && prev.size <= 1) return prev;
-      const next = new Set(prev);
-      if (next.has(personId)) {
-        next.delete(personId);
-      } else {
-        next.add(personId);
-      }
-      return next;
-    });
-  }
+  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
 
   function handleSave() {
     onSave(
@@ -971,10 +972,10 @@ function LifeEventForm({
           className="detail-panel__btn detail-panel__btn--primary"
           onClick={handleSave}
         >
-          {t("common.save")}
+          {t(T_SAVE)}
         </button>
         <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t("common.cancel")}
+          {t(T_CANCEL)}
         </button>
         {onDelete && (
           <button
@@ -988,7 +989,7 @@ function LifeEventForm({
               }
             }}
           >
-            {confirmDelete ? t("lifeEvent.confirmDelete") : t("common.delete")}
+            {confirmDelete ? t("lifeEvent.confirmDelete") : t(T_DELETE)}
           </button>
         )}
       </div>
@@ -1029,18 +1030,7 @@ function EventForm({
     a.name.localeCompare(b.name),
   );
 
-  function togglePerson(personId: string) {
-    setSelectedPersonIds((prev) => {
-      if (prev.has(personId) && prev.size <= 1) return prev;
-      const next = new Set(prev);
-      if (next.has(personId)) {
-        next.delete(personId);
-      } else {
-        next.add(personId);
-      }
-      return next;
-    });
-  }
+  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
 
   function handleSave() {
     onSave(
@@ -1126,10 +1116,10 @@ function EventForm({
           className="detail-panel__btn detail-panel__btn--primary"
           onClick={handleSave}
         >
-          {t("common.save")}
+          {t(T_SAVE)}
         </button>
         <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t("common.cancel")}
+          {t(T_CANCEL)}
         </button>
         {onDelete && (
           <button
@@ -1143,7 +1133,7 @@ function EventForm({
               }
             }}
           >
-            {confirmDelete ? t("trauma.confirmDelete") : t("common.delete")}
+            {confirmDelete ? t("trauma.confirmDelete") : t(T_DELETE)}
           </button>
         )}
       </div>
@@ -1260,10 +1250,10 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
           className="detail-panel__btn detail-panel__btn--primary"
           onClick={handleSave}
         >
-          {t("common.save")}
+          {t(T_SAVE)}
         </button>
         <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t("common.cancel")}
+          {t(T_CANCEL)}
         </button>
       </div>
     </div>

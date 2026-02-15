@@ -17,6 +17,9 @@ export const BAR_HEIGHT = 12;
 export const GEN_HEADER_HEIGHT = 20;
 export const MARKER_RADIUS = 7;
 
+const ATTR_STROKE_WIDTH = "stroke-width";
+const CSS_BG_CANVAS = "--color-bg-canvas";
+
 // ---- Types ----
 
 export interface PersonRow {
@@ -300,7 +303,7 @@ export function renderLifeBars(ctx: TimelineRenderContext): void {
       .attr("rx", 3)
       .attr("fill", ctx.cssVar("--color-lifebar-fill"))
       .attr("stroke", ctx.cssVar("--color-lifebar-stroke"))
-      .attr("stroke-width", 1);
+      .attr(ATTR_STROKE_WIDTH, 1);
   }
 }
 
@@ -337,7 +340,7 @@ export function renderPartnerLines(
         .attr("y1", midY)
         .attr("y2", midY)
         .attr("stroke", ctx.cssVar("--color-edge-partner"))
-        .attr("stroke-width", 2)
+        .attr(ATTR_STROKE_WIDTH, 2)
         .attr("stroke-dasharray", isDashed ? "6 3" : null);
 
       const statusLabel = ctx.tRef.current(`relationship.status.${period.status}`);
@@ -349,7 +352,7 @@ export function renderPartnerLines(
         .attr("y1", midY)
         .attr("y2", midY)
         .attr("stroke", "transparent")
-        .attr("stroke-width", 12)
+        .attr(ATTR_STROKE_WIDTH, 12)
         .style("cursor", "pointer")
         .on("mouseenter", (mouseEvent: MouseEvent) => {
           setTooltipLines(ctx.tooltip, [
@@ -395,8 +398,8 @@ export function renderTraumaMarkers(
         .attr("cy", cy)
         .attr("r", MARKER_RADIUS)
         .attr("fill", traumaColors[event.category])
-        .attr("stroke", ctx.cssVar("--color-bg-canvas"))
-        .attr("stroke-width", 1.5)
+        .attr("stroke", ctx.cssVar(CSS_BG_CANVAS))
+        .attr(ATTR_STROKE_WIDTH, 1.5)
         .attr("class", "tl-marker")
         .on("mouseenter", (mouseEvent: MouseEvent) => {
           const linkedNames = event.person_ids
@@ -455,8 +458,8 @@ export function renderLifeEventMarkers(
         .attr("height", diamondSize * 2)
         .attr("transform", `rotate(45, ${cx}, ${cy})`)
         .attr("fill", lifeEventColors[le.category])
-        .attr("stroke", ctx.cssVar("--color-bg-canvas"))
-        .attr("stroke-width", 1.5)
+        .attr("stroke", ctx.cssVar(CSS_BG_CANVAS))
+        .attr(ATTR_STROKE_WIDTH, 1.5)
         .attr("class", "tl-marker")
         .on("mouseenter", (mouseEvent: MouseEvent) => {
           const linkedNames = le.person_ids
@@ -583,8 +586,8 @@ function renderDiagnosisTriangle(
     .append("path")
     .attr("d", triPath)
     .attr("fill", clsColor)
-    .attr("stroke", ctx.cssVar("--color-bg-canvas"))
-    .attr("stroke-width", 1.5)
+    .attr("stroke", ctx.cssVar(CSS_BG_CANVAS))
+    .attr(ATTR_STROKE_WIDTH, 1.5)
     .attr("class", "tl-marker")
     .on("mouseenter", (mouseEvent: MouseEvent) => {
       const catLabel = ctx.tRef.current(`dsm.${cls.dsm_category}`);
