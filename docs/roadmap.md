@@ -52,7 +52,47 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 
 ### needs to be fixed or checked 
 - license check! (fonts/ images / used libraries)
+- directly add an adopted sibling? 
 
 ### To think about
 - more themes
-- optional pet support? some users might to be able to hide their pet from the family tree
+- optional pet support? some users might to be able to add their pet to the family tree
+- more debug info/verbosity on email sending...
+- we might need a more UX friendly waiting/working notification
+- Beta testing alert/ feedback possibility
+- swagger for fast api? only in dev
+- rate-limiting on login?
+- context menu on relations, persons and canvas? 
+- life-event: started/stopped medication
+
+---
+
+### Unfiltered notes
+  future
+  > import major gen software trees...
+  multi-user... allow to share a tree, with view rights only, or edit rights
+  pdf export..en bij export, mogelijkheid om personen/trauma's/gebeurtenissen "eruit te filteren"
+  module systemisch werken... ortho weergave. poppetjes kunnen schuiven
+  
+  hulporganisaties... voor niet nl, misschien link naar aantal hulporganisaties in in europa/amerika? 
+  pagina met overzicht openemen, net als de privacy pagina
+  
+  geboortedatum onbekend mogelijk maken *maar wel tussen , of voor... schatting.
+  
+  jaartallen kiezen niet altijd logisch
+  
+  systeem/familie opstellingen functionaliteit
+   -> IK nodig... verder "poppen" uit stamboom, met trauma markering beschikbaar om in ortho view te plaatsen
+
+   optie bijnamen/roepnamen te geven
+   
+   dubbelchecken van generaties... (waar kees en tiny indezelfde generatie als ik en Ingrid)
+   
+   privacy statement: 2 tabs: for non techies/ techies
+
+   vragenlijst voor familieleden... kiezen welke vragen.. ze vullen het zonder account in, informatie
+   
+   zoeken op classificties in zowel cat als sub cat
+   dsm codes? 
+
+   geinigheidje.. na 5 minuten een "mascotte" die om de hoek komt kijken en vraagt of je nog ok bent...
