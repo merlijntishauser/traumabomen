@@ -8,10 +8,16 @@ export interface InferredSibling {
   sharedParentIds: string[];
 }
 
-export function inferSiblings(
+const SIBLING_TYPES = new Set([
+  RelationshipType.BiologicalSibling,
+  RelationshipType.StepSibling,
+  RelationshipType.HalfSibling,
+]);
+
+/** Build map: childId -> set of biological parent ids */
+export function buildParentMap(
   relationships: Map<string, DecryptedRelationship>,
-): InferredSibling[] {
-  // Build map: childId -> set of biological parent ids
+): Map<string, Set<string>> {
   const parentMap = new Map<string, Set<string>>();
   for (const rel of relationships.values()) {
     if (rel.type === RelationshipType.BiologicalParent) {
@@ -21,21 +27,28 @@ export function inferSiblings(
       parentMap.get(childId)!.add(parentId);
     }
   }
+  return parentMap;
+}
 
-  // Build set of existing explicit sibling edges for deduplication
-  const explicitSiblings = new Set<string>();
+/** Build set of sorted "idA:idB" keys for existing explicit sibling edges */
+export function buildExplicitSiblingKeys(
+  relationships: Map<string, DecryptedRelationship>,
+): Set<string> {
+  const keys = new Set<string>();
   for (const rel of relationships.values()) {
-    if (
-      rel.type === RelationshipType.BiologicalSibling ||
-      rel.type === RelationshipType.StepSibling ||
-      rel.type === RelationshipType.HalfSibling
-    ) {
+    if (SIBLING_TYPES.has(rel.type)) {
       const key = [rel.source_person_id, rel.target_person_id].sort().join(":");
-      explicitSiblings.add(key);
+      keys.add(key);
     }
   }
+  return keys;
+}
 
-  // Compare all pairs of persons who have at least one parent
+export function inferSiblings(
+  relationships: Map<string, DecryptedRelationship>,
+): InferredSibling[] {
+  const parentMap = buildParentMap(relationships);
+  const explicitSiblings = buildExplicitSiblingKeys(relationships);
   const entries = Array.from(parentMap.entries());
   const result: InferredSibling[] = [];
 
@@ -47,7 +60,6 @@ export function inferSiblings(
       const shared = [...parentsA].filter((p) => parentsB.has(p));
       if (shared.length === 0) continue;
 
-      // Skip if there's already an explicit sibling edge
       const key = [personAId, personBId].sort().join(":");
       if (explicitSiblings.has(key)) continue;
 

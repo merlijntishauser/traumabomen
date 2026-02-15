@@ -1,114 +1,16 @@
-import {
-  BaseEdge,
-  EdgeLabelRenderer,
-  type EdgeProps,
-  getBezierPath,
-  getSmoothStepPath,
-  getStraightPath,
-  useStore,
-} from "@xyflow/react";
-import { memo, useCallback, useState } from "react";
+import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useStore } from "@xyflow/react";
+import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { EdgeStyle } from "../../hooks/useCanvasSettings";
-import type { MarkerShape, RelationshipEdgeData } from "../../hooks/useTreeLayout";
-import { NODE_HEIGHT, NODE_WIDTH } from "../../hooks/useTreeLayout";
-import { RelationshipType } from "../../types/domain";
+import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
+import {
+  buildForkSelector,
+  computeEdgeFlags,
+  computeEdgePath,
+  computeEdgeStroke,
+  computeTooltipContent,
+  MARKER_CLIP,
+} from "./relationshipEdgeHelpers";
 import "./RelationshipEdge.css";
-
-const MARKER_CLIP: Record<MarkerShape, string> = {
-  circle: "",
-  square: "",
-  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-  triangle: "polygon(50% 0%, 100% 100%, 0% 100%)",
-};
-
-function getCssVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-const PARENT_TYPES = new Set([
-  RelationshipType.BiologicalParent,
-  RelationshipType.StepParent,
-  RelationshipType.AdoptiveParent,
-]);
-
-const BAR_Y_OFFSET = 50;
-
-interface ForkPositions {
-  parents: { cx: number; bottom: number }[];
-  children: { cx: number; top: number }[];
-  barY: number;
-}
-
-function buildForkPath(fp: ForkPositions, edgeStyle: EdgeStyle = "curved"): string {
-  const allX = [...fp.parents.map((p) => p.cx), ...fp.children.map((c) => c.cx)];
-  const minX = Math.min(...allX);
-  const maxX = Math.max(...allX);
-
-  if (edgeStyle === "curved") {
-    const R = 16;
-    // Sort parents left-to-right to draw as one continuous sub-path
-    const [lp, rp] = [...fp.parents].sort((a, b) => a.cx - b.cx);
-    const lr = Math.min(R, Math.abs(fp.barY - lp.bottom) / 2);
-    const rr = Math.min(R, Math.abs(fp.barY - rp.bottom) / 2);
-
-    // Parents + bar: one continuous path (no M breaks at corners)
-    let path = `M ${lp.cx},${lp.bottom} L ${lp.cx},${fp.barY - lr} `;
-    path += `Q ${lp.cx},${fp.barY} ${lp.cx + lr},${fp.barY} `;
-    path += `L ${rp.cx - rr},${fp.barY} `;
-    path += `Q ${rp.cx},${fp.barY} ${rp.cx},${fp.barY - rr} `;
-    path += `L ${rp.cx},${rp.bottom} `;
-
-    // Children: each branches off the bar with a curve
-    const barMid = (lp.cx + rp.cx) / 2;
-    // Compute where each child curve connects to the bar, then extend
-    // the bar to cover all connection points
-    let barLeft = lp.cx;
-    let barRight = rp.cx;
-    const childSegments: string[] = [];
-    for (const c of fp.children) {
-      const cr = Math.min(R, Math.abs(c.top - fp.barY) / 2);
-      const nearParent = fp.parents.some((p) => Math.abs(c.cx - p.cx) <= R);
-      const dir = nearParent ? 0 : c.cx < barMid ? 1 : c.cx > barMid ? -1 : 0;
-      if (dir !== 0) {
-        const barConn = c.cx + dir * cr;
-        barLeft = Math.min(barLeft, barConn);
-        barRight = Math.max(barRight, barConn);
-        let seg = `M ${barConn},${fp.barY} `;
-        seg += `Q ${c.cx},${fp.barY} ${c.cx},${fp.barY + cr} `;
-        seg += `L ${c.cx},${c.top} `;
-        childSegments.push(seg);
-      } else {
-        barLeft = Math.min(barLeft, c.cx);
-        barRight = Math.max(barRight, c.cx);
-        childSegments.push(`M ${c.cx},${fp.barY} L ${c.cx},${c.top} `);
-      }
-    }
-
-    // Extend bar if child connections fall outside parent range
-    if (barLeft < lp.cx) {
-      path += `M ${barLeft},${fp.barY} L ${lp.cx},${fp.barY} `;
-    }
-    if (barRight > rp.cx) {
-      path += `M ${rp.cx},${fp.barY} L ${barRight},${fp.barY} `;
-    }
-
-    for (const seg of childSegments) {
-      path += seg;
-    }
-    return path;
-  }
-
-  let path = "";
-  for (const p of fp.parents) {
-    path += `M ${p.cx},${p.bottom} L ${p.cx},${fp.barY} `;
-  }
-  path += `M ${minX},${fp.barY} L ${maxX},${fp.barY} `;
-  for (const c of fp.children) {
-    path += `M ${c.cx},${fp.barY} L ${c.cx},${c.top} `;
-  }
-  return path;
-}
 
 function RelationshipEdgeComponent({
   sourceX,
@@ -126,18 +28,7 @@ function RelationshipEdgeComponent({
   const rel = data.relationship;
   const relType = rel?.type;
   const inferredType = data.inferredType;
-  const isPartner = relType === RelationshipType.Partner;
-  const isExPartner =
-    isPartner &&
-    rel != null &&
-    rel.periods.length > 0 &&
-    rel.periods.every((p) => p.end_year != null);
-  const isHalfSibling = relType === RelationshipType.HalfSibling;
-  const isFriend = relType === RelationshipType.Friend;
-  const isDashed =
-    relType === RelationshipType.StepParent ||
-    relType === RelationshipType.AdoptiveParent ||
-    relType === RelationshipType.StepSibling;
+  const flags = computeEdgeFlags(data);
 
   const sOff = data.sourceOffset ?? { x: 0, y: 0 };
   const tOff = data.targetOffset ?? { x: 0, y: 0 };
@@ -146,45 +37,10 @@ function RelationshipEdgeComponent({
   const tx = targetX + tOff.x;
   const ty = targetY + tOff.y;
 
-  // Fork primary: get reactive positions from store
   const forkParentIds = data.junctionFork?.parentIds;
   const forkChildIds = data.junctionFork?.childIds;
-  const forkSelector = useCallback(
-    (state: {
-      nodeLookup: Map<
-        string,
-        {
-          position: { x: number; y: number };
-          internals?: { positionAbsolute?: { x: number; y: number } };
-          measured?: { width?: number; height?: number };
-        }
-      >;
-    }): ForkPositions | null => {
-      if (!forkParentIds || !forkChildIds) return null;
-      const lookup = state.nodeLookup;
-      const parents: { cx: number; bottom: number }[] = [];
-      const children: { cx: number; top: number }[] = [];
-      for (const id of forkParentIds) {
-        const n = lookup.get(id);
-        if (!n) return null;
-        const px = n.internals?.positionAbsolute?.x ?? n.position.x;
-        const py = n.internals?.positionAbsolute?.y ?? n.position.y;
-        const w = n.measured?.width ?? NODE_WIDTH;
-        const h = n.measured?.height ?? NODE_HEIGHT;
-        parents.push({ cx: px + w / 2, bottom: py + h });
-      }
-      for (const id of forkChildIds) {
-        const n = lookup.get(id);
-        if (!n) continue;
-        const px = n.internals?.positionAbsolute?.x ?? n.position.x;
-        const py = n.internals?.positionAbsolute?.y ?? n.position.y;
-        const w = n.measured?.width ?? NODE_WIDTH;
-        children.push({ cx: px + w / 2, top: py });
-      }
-      if (parents.length < 2 || children.length === 0) return null;
-      const barY = Math.max(...parents.map((p) => p.bottom)) + BAR_Y_OFFSET;
-      return { parents, children, barY };
-    },
+  const forkSelector = useMemo(
+    () => buildForkSelector(forkParentIds, forkChildIds),
     [forkParentIds, forkChildIds],
   );
   const forkPositions = useStore(forkSelector);
@@ -192,105 +48,34 @@ function RelationshipEdgeComponent({
   const isForkPrimary = !!data.junctionFork;
   const isForkHidden = !!data.junctionHidden;
 
-  let edgePath: string;
-  let hitPath: string;
-  let labelX: number;
-  let labelY: number;
+  const { edgePath, hitPath, labelX, labelY } = computeEdgePath({
+    isForkPrimary,
+    isForkHidden,
+    forkPositions,
+    sx,
+    sy,
+    tx,
+    ty,
+    sourcePosition,
+    targetPosition,
+    edgeStyle: data.edgeStyle,
+  });
 
-  if (isForkPrimary && forkPositions) {
-    edgePath = buildForkPath(forkPositions, data.edgeStyle);
-    // Hit path covers entire fork for combined tooltip
-    hitPath = edgePath;
-    labelX = (forkPositions.parents[0].cx + forkPositions.parents[1].cx) / 2;
-    labelY = forkPositions.barY;
-  } else if (isForkHidden) {
-    // Hidden fork edge: compute hit path from reactive handle positions
-    const barY = sy + BAR_Y_OFFSET;
-    hitPath = `M ${sx},${sy} L ${sx},${barY} L ${tx},${barY} L ${tx},${ty}`;
-    edgePath = hitPath;
-    labelX = (sx + tx) / 2;
-    labelY = barY;
-  } else {
-    const pathParams = {
-      sourceX: sx,
-      sourceY: sy,
-      targetX: tx,
-      targetY: ty,
-      sourcePosition,
-      targetPosition,
-    };
-
-    const edgeStyle = data.edgeStyle ?? "curved";
-    if (edgeStyle === "straight") {
-      [edgePath, labelX, labelY] = getStraightPath(pathParams);
-    } else if (edgeStyle === "elbows") {
-      [edgePath, labelX, labelY] = getSmoothStepPath(pathParams);
-    } else {
-      [edgePath, labelX, labelY] = getBezierPath(pathParams);
-    }
-    hitPath = edgePath;
-  }
-
-  let stroke = getCssVar("--color-edge-default");
-  let strokeWidth = 1.5;
-  let strokeDasharray: string | undefined;
-
-  if (isHalfSibling || inferredType === "half_sibling") {
-    stroke = getCssVar("--color-edge-half-sibling");
-    strokeDasharray = "4 4";
-  } else if (inferredType === "full_sibling") {
-    stroke = getCssVar("--color-edge-default");
-    strokeDasharray = "4 4";
-  } else if (isExPartner) {
-    stroke = getCssVar("--color-edge-partner");
-    strokeDasharray = "6 3";
-  } else if (isPartner) {
-    stroke = getCssVar("--color-edge-partner");
-    strokeWidth = 2.5;
-  } else if (isFriend) {
-    stroke = getCssVar("--color-edge-friend");
-    strokeDasharray = "2 4";
-  } else if (isDashed) {
-    stroke = getCssVar("--color-edge-step");
-    strokeDasharray = "6 3";
-  }
-
-  // Couple color overrides stroke for biological parent edges
-  if (data.coupleColor) {
-    stroke = data.coupleColor;
-  }
-
-  // Compute tooltip content
-  let typeLabel: string | undefined;
-  let periodLine: string | undefined;
-
-  if (relType) {
-    if (isExPartner) {
-      typeLabel = t("relationship.type.exPartner");
-    } else if (PARENT_TYPES.has(relType)) {
-      typeLabel = t(`relationship.type.${relType}`);
-    } else {
-      typeLabel = t(`relationship.type.${relType}`);
-    }
-  } else if (inferredType) {
-    typeLabel = t(`relationship.type.${inferredType}`);
-  }
-
-  if (isPartner && rel && rel.periods.length > 0) {
-    const latest = rel.periods[rel.periods.length - 1];
-    periodLine = `${t(`relationship.status.${latest.status}`)} ${latest.start_year}${latest.end_year ? ` - ${latest.end_year}` : " -"}`;
-  }
+  const { stroke, strokeWidth, strokeDasharray } = computeEdgeStroke(
+    flags,
+    inferredType,
+    data.coupleColor,
+  );
+  const { typeLabel, periodLine } = computeTooltipContent(rel, relType, inferredType, flags, t);
 
   const markerShape = data.markerShape;
 
-  // Hidden fork edges: primary edge handles all visual + interaction
   if (isForkHidden) {
     return <path d="M 0,0" fill="none" stroke="none" />;
   }
 
   return (
     <>
-      {/* Visible edge */}
       {isForkPrimary ? (
         <path
           d={edgePath}
@@ -309,7 +94,6 @@ function RelationshipEdgeComponent({
           interactionWidth={20}
         />
       )}
-      {/* Invisible wider hit area for hover */}
       <path
         d={hitPath}
         fill="none"
@@ -318,7 +102,6 @@ function RelationshipEdgeComponent({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       />
-      {/* Shape markers + tooltip rendered via EdgeLabelRenderer (above nodes) */}
       {((!isForkPrimary && markerShape) || (hovered && typeLabel)) && (
         <EdgeLabelRenderer>
           {!isForkPrimary && markerShape && (
