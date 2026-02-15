@@ -3,10 +3,11 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import distinct, func, select
+from sqlalchemy import Select, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import require_admin
+from app.config import get_settings
 from app.database import get_db
 from app.models.event import TraumaEvent
 from app.models.login_event import LoginEvent
@@ -33,6 +34,14 @@ from app.schemas.admin import (
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 
+def _excluded_user_ids() -> Select[tuple[Any]]:
+    """Subquery returning user IDs to exclude from admin stats (e.g. smoketest account)."""
+    email = get_settings().SMOKETEST_EMAIL
+    if not email:
+        return select(User.id).limit(0)
+    return select(User.id).where(User.email == email)
+
+
 def _period_start(period: str) -> datetime:
     now = datetime.now(UTC)
     if period == "day":
@@ -44,10 +53,15 @@ def _period_start(period: str) -> datetime:
 
 @router.get("/stats/overview", response_model=OverviewStats)
 async def overview_stats(db: AsyncSession = Depends(get_db)) -> OverviewStats:
-    total = (await db.execute(select(func.count()).select_from(User))).scalar() or 0
+    excluded = _excluded_user_ids()
+    total = (
+        await db.execute(select(func.count()).select_from(User).where(User.id.not_in(excluded)))
+    ).scalar() or 0
     verified = (
         await db.execute(
-            select(func.count()).select_from(User).where(User.email_verified == True)  # noqa: E712
+            select(func.count())
+            .select_from(User)
+            .where(User.email_verified == True, User.id.not_in(excluded))  # noqa: E712
         )
     ).scalar() or 0
 
@@ -56,12 +70,17 @@ async def overview_stats(db: AsyncSession = Depends(get_db)) -> OverviewStats:
     for period in ("day", "week", "month"):
         since = _period_start(period)
         signups[period] = (
-            await db.execute(select(func.count()).select_from(User).where(User.created_at >= since))
+            await db.execute(
+                select(func.count())
+                .select_from(User)
+                .where(User.created_at >= since, User.id.not_in(excluded))
+            )
         ).scalar() or 0
         active[period] = (
             await db.execute(
                 select(func.count(distinct(LoginEvent.user_id))).where(
-                    LoginEvent.logged_at >= since
+                    LoginEvent.logged_at >= since,
+                    LoginEvent.user_id.not_in(excluded),
                 )
             )
         ).scalar() or 0
@@ -125,8 +144,11 @@ async def retention_stats(
     now = datetime.now(UTC)
     cutoff = now - timedelta(weeks=weeks)
 
+    excluded = _excluded_user_ids()
     result = await db.execute(
-        select(User.id, User.created_at).where(User.created_at >= cutoff).order_by(User.created_at)
+        select(User.id, User.created_at)
+        .where(User.created_at >= cutoff, User.id.not_in(excluded))
+        .order_by(User.created_at)
     )
     users = result.all()
 
@@ -165,8 +187,9 @@ def _bucket(count: int) -> str:
 
 @router.get("/stats/usage", response_model=UsageStats)
 async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
-    # Get all tree IDs
-    tree_result = await db.execute(select(Tree.id))
+    # Get all tree IDs (excluding smoketest user)
+    excluded = _excluded_user_ids()
+    tree_result = await db.execute(select(Tree.id).where(Tree.user_id.not_in(excluded)))
     tree_ids = [row.id for row in tree_result.all()]
 
     if not tree_ids:
@@ -211,16 +234,25 @@ async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
 
 @router.get("/stats/funnel", response_model=FunnelStats)
 async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
-    registered = (await db.execute(select(func.count()).select_from(User))).scalar() or 0
+    excluded = _excluded_user_ids()
+    registered = (
+        await db.execute(select(func.count()).select_from(User).where(User.id.not_in(excluded)))
+    ).scalar() or 0
     verified = (
         await db.execute(
-            select(func.count()).select_from(User).where(User.email_verified == True)  # noqa: E712
+            select(func.count())
+            .select_from(User)
+            .where(User.email_verified == True, User.id.not_in(excluded))  # noqa: E712
         )
     ).scalar() or 0
 
     # Users who own at least one tree
     created_tree = (
-        await db.execute(select(func.count(distinct(Tree.user_id))).select_from(Tree))
+        await db.execute(
+            select(func.count(distinct(Tree.user_id)))
+            .select_from(Tree)
+            .where(Tree.user_id.not_in(excluded))
+        )
     ).scalar() or 0
 
     # Users whose trees have at least one person
@@ -229,6 +261,7 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(Person, Person.tree_id == Tree.id)
+            .where(Tree.user_id.not_in(excluded))
         )
     ).scalar() or 0
 
@@ -238,6 +271,7 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(Relationship, Relationship.tree_id == Tree.id)
+            .where(Tree.user_id.not_in(excluded))
         )
     ).scalar() or 0
 
@@ -247,6 +281,7 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(TraumaEvent, TraumaEvent.tree_id == Tree.id)
+            .where(Tree.user_id.not_in(excluded))
         )
     ).scalar() or 0
 
@@ -263,6 +298,7 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
 @router.get("/stats/activity", response_model=ActivityStats)
 async def activity_stats(db: AsyncSession = Depends(get_db)) -> ActivityStats:
     # Group login events by day-of-week (0=Monday) and hour
+    excluded = _excluded_user_ids()
     dow = func.extract("isodow", LoginEvent.logged_at) - 1  # isodow: 1=Mon, convert to 0=Mon
     hour = func.extract("hour", LoginEvent.logged_at)
 
@@ -272,6 +308,7 @@ async def activity_stats(db: AsyncSession = Depends(get_db)) -> ActivityStats:
             hour.label("hour"),
             func.count().label("count"),
         )
+        .where(LoginEvent.user_id.not_in(excluded))
         .group_by("day", "hour")
         .order_by("day", "hour")
     )
@@ -285,9 +322,13 @@ async def activity_stats(db: AsyncSession = Depends(get_db)) -> ActivityStats:
 @router.get("/stats/growth", response_model=GrowthStats)
 async def growth_stats(db: AsyncSession = Depends(get_db)) -> GrowthStats:
     # Count signups per day
+    excluded = _excluded_user_ids()
     date_col = func.date_trunc("day", User.created_at).label("signup_date")
     result = await db.execute(
-        select(date_col, func.count().label("signup_count")).group_by(date_col).order_by(date_col)
+        select(date_col, func.count().label("signup_count"))
+        .where(User.id.not_in(excluded))
+        .group_by(date_col)
+        .order_by(date_col)
     )
     rows = result.all()
 
@@ -360,6 +401,7 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
         .outerjoin(tree_person_sq, tree_person_sq.c.user_id == User.id)
         .outerjoin(tree_rel_sq, tree_rel_sq.c.user_id == User.id)
         .outerjoin(tree_event_sq, tree_event_sq.c.user_id == User.id)
+        .where(User.id.not_in(_excluded_user_ids()))
         .order_by(User.created_at.desc())
     )
 

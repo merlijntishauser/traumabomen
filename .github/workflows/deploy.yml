@@ -108,7 +108,8 @@ jobs:
               JWT_ALGORITHM=HS256,\
               REQUIRE_EMAIL_VERIFICATION=true,\
               SMTP_FROM=merlijn@traumatrees.org,\
-              APP_BASE_URL=https://www.traumatrees.org" \
+              APP_BASE_URL=https://www.traumatrees.org,\
+              SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }}" \
             --min-instances=0 \
             --max-instances=4 \
             --memory=256Mi \
