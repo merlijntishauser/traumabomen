@@ -714,7 +714,7 @@ function ClassificationForm({
       )}
       <fieldset className="detail-panel__field">
         <span>{t("classification.status")}</span>
-        <div className="detail-panel__radios" style={{ display: "flex", gap: 12 }}>
+        <div className="detail-panel__radios">
           <label className="detail-panel__field--checkbox">
             <input
               type="radio"
@@ -784,8 +784,7 @@ function ClassificationForm({
         ))}
         <button
           type="button"
-          className="detail-panel__btn--small"
-          style={{ marginTop: 4 }}
+          className="detail-panel__btn--small detail-panel__btn--add-period"
           onClick={addPeriod}
         >
           {t("classification.addPeriod")}

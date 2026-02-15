@@ -83,6 +83,11 @@
   margin-bottom: 12px;
 }
 
+fieldset.detail-panel__field {
+  border: none;
+  padding: 0;
+}
+
 .detail-panel__field > span {
   font-size: 12px;
   font-weight: 500;
@@ -117,9 +122,16 @@
   gap: 8px;
 }
 
-.detail-panel__field--checkbox input[type="checkbox"] {
+.detail-panel__field--checkbox input[type="checkbox"],
+.detail-panel__field--checkbox input[type="radio"] {
   width: 16px;
   height: 16px;
+  accent-color: var(--color-accent);
+}
+
+.detail-panel__radios {
+  display: flex;
+  gap: 12px;
 }
 
 .detail-panel__actions {
@@ -314,4 +326,8 @@
 
 .detail-panel__period-years .detail-panel__field {
   flex: 1;
+}
+
+.detail-panel__btn--add-period {
+  margin-top: 4px;
 }
