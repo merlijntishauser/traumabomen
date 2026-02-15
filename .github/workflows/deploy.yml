@@ -246,11 +246,15 @@ jobs:
           "
 
       - name: Trigger Nuclei scan (every 5th deploy)
-        if: github.run_number % 5 == 0
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run nuclei-scan.yml
+          if [ $(( ${{ github.run_number }} % 5 )) -eq 0 ]; then
+            echo "Run #${{ github.run_number }} is a 5th deploy, triggering Nuclei scan"
+            gh workflow run nuclei-scan.yml
+          else
+            echo "Run #${{ github.run_number }}, skipping Nuclei (runs every 5th deploy)"
+          fi
 
       - name: Upload ZAP reports
         if: always()
