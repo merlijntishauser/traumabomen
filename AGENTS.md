@@ -327,12 +327,6 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 - Offline-first with service worker
 - Additional languages
 
-## Security Rules
-- Never store or log the encryption key or passphrase
-- Never send plaintext sensitive data to the backend
-- All sensitive fields must be encrypted before leaving the client
-- Encryption key must only exist in memory, never persisted to localStorage/sessionStorage/cookies
-- Every `encrypt()` call must use a fresh random IV
 
 DISTILLED_AESTHETICS_PROMPT = """
 <frontend_aesthetics>
@@ -372,6 +366,11 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 
 **ALWAYS** follow these security guidelines:
 
+- **IMPORTANT**: Never store or log the encryption key or passphrase
+- **IMPORTANT**: Never send plaintext sensitive data to the backend
+- **IMPORTANT**: All sensitive fields must be encrypted before leaving the client 
+- **IMPORTANT**: Encryption key must only exist in memory, never persisted to localStorage/sessionStorage/cookies
+- **IMPORTANT**:Every `encrypt()` call must use a fresh random IV
 - **IMPORTANT**: When you add or update a Python dependency run `docker compose exec api uv run pip-audit` to check for security issues
 - **IMPORTANT**: When you add or update a npm dependency run `docker compose exec frontend npm audit` to check for security issues
 - **IMPORTANT**: When you add or update a dependency run `docker compose exec frontend npm outdated` and `docker compose exec api uv run pip list --outdated` to check for outdated dependencies
