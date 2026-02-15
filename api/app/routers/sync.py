@@ -80,6 +80,26 @@ async def _phase_deletes(
     await db.flush()
 
 
+def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
+    all_ids: list[uuid.UUID] = []
+    for item in body.relationships_create:
+        all_ids.extend([item.source_person_id, item.target_person_id])
+    for item in body.events_create:
+        all_ids.extend(item.person_ids)
+    for item in body.classifications_create:
+        all_ids.extend(item.person_ids)
+    return all_ids
+
+
+def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) -> None:
+    for item, event_id in zip(body.events_create, resp.events_created):
+        for pid in item.person_ids:
+            db.add(EventPerson(event_id=event_id, person_id=pid))
+    for item, cls_id in zip(body.classifications_create, resp.classifications_created):
+        for pid in item.person_ids:
+            db.add(ClassificationPerson(classification_id=cls_id, person_id=pid))
+
+
 async def _phase_creates(
     body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
 ) -> None:
@@ -94,15 +114,7 @@ async def _phase_creates(
 
     await db.flush()
 
-    # Collect all referenced person IDs for validation
-    all_person_ids: list[uuid.UUID] = []
-    for item in body.relationships_create:
-        all_person_ids.extend([item.source_person_id, item.target_person_id])
-    for item in body.events_create:
-        all_person_ids.extend(item.person_ids)
-    for item in body.classifications_create:
-        all_person_ids.extend(item.person_ids)
-
+    all_person_ids = _collect_referenced_person_ids(body)
     await _validate_person_ids_in_tree(list(set(all_person_ids)), tree.id, db)
 
     for item in body.relationships_create:
@@ -135,15 +147,7 @@ async def _phase_creates(
         resp.classifications_created.append(classification.id)
 
     await db.flush()
-
-    # Add junction rows after entities are flushed
-    for item, event_id in zip(body.events_create, resp.events_created):
-        for pid in item.person_ids:
-            db.add(EventPerson(event_id=event_id, person_id=pid))
-
-    for item, cls_id in zip(body.classifications_create, resp.classifications_created):
-        for pid in item.person_ids:
-            db.add(ClassificationPerson(classification_id=cls_id, person_id=pid))
+    _add_junction_rows(body, resp, db)
 
 
 async def _phase_updates(

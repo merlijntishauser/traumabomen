@@ -92,7 +92,7 @@ complexity: ## Report cyclomatic complexity and maintainability index
 	@bash scripts/complexity-report.sh
 
 quality: ## Run complexity checks and coverage gates
-	docker compose exec api uv run xenon app/ --max-absolute C --max-modules B --max-average B
+	docker compose exec api uv run xenon app/ --max-absolute B --max-modules B --max-average A
 	docker compose exec frontend npx eslint src/
 	docker compose exec api uv run pytest --cov=app --cov-report=json -q
 	docker compose exec frontend npx vitest run --coverage

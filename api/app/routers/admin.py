@@ -1,4 +1,6 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import distinct, func, select
@@ -72,6 +74,49 @@ async def overview_stats(db: AsyncSession = Depends(get_db)) -> OverviewStats:
     )
 
 
+def _build_user_active_weeks(users: Sequence[Any], logins: Sequence[Any]) -> dict[str, set[int]]:
+    user_signup: dict[str, datetime] = {str(u.id): u.created_at for u in users}
+    active_weeks: dict[str, set[int]] = {}
+    for login in logins:
+        uid = str(login.user_id)
+        signup = user_signup.get(uid)
+        if signup is None:
+            continue
+        week_offset = (login.logged_at - signup).days // 7
+        active_weeks.setdefault(uid, set()).add(week_offset)
+    return active_weeks
+
+
+def _group_users_into_cohorts(users: Sequence[Any]) -> dict[str, list[str]]:
+    cohort_users: dict[str, list[str]] = {}
+    for u in users:
+        week_start = u.created_at - timedelta(days=u.created_at.weekday())
+        week_key = week_start.strftime("%Y-%m-%d")
+        cohort_users.setdefault(week_key, []).append(str(u.id))
+    return cohort_users
+
+
+def _compute_cohort_rows(
+    cohort_users: dict[str, list[str]],
+    active_weeks: dict[str, set[int]],
+    weeks: int,
+    now: datetime,
+) -> list[CohortRow]:
+    cohorts: list[CohortRow] = []
+    for week_key in sorted(cohort_users.keys()):
+        uids = cohort_users[week_key]
+        signup_count = len(uids)
+        cohort_start = datetime.strptime(week_key, "%Y-%m-%d").replace(tzinfo=UTC)
+        max_weeks = min(weeks, (now - cohort_start).days // 7 + 1)
+        retention: list[float] = []
+        for w in range(max_weeks):
+            active_count = sum(1 for uid in uids if w in active_weeks.get(uid, set()))
+            pct = round(active_count / signup_count * 100, 1) if signup_count else 0
+            retention.append(pct)
+        cohorts.append(CohortRow(week=week_key, signup_count=signup_count, retention=retention))
+    return cohorts
+
+
 @router.get("/stats/retention", response_model=RetentionStats)
 async def retention_stats(
     db: AsyncSession = Depends(get_db),
@@ -80,7 +125,6 @@ async def retention_stats(
     now = datetime.now(UTC)
     cutoff = now - timedelta(weeks=weeks)
 
-    # Get all users who signed up since cutoff
     result = await db.execute(
         select(User.id, User.created_at).where(User.created_at >= cutoff).order_by(User.created_at)
     )
@@ -89,7 +133,6 @@ async def retention_stats(
     if not users:
         return RetentionStats(cohorts=[])
 
-    # Get all login events for these users since cutoff
     user_ids = [u.id for u in users]
     login_result = await db.execute(
         select(LoginEvent.user_id, LoginEvent.logged_at).where(
@@ -99,48 +142,9 @@ async def retention_stats(
     )
     logins = login_result.all()
 
-    # Build lookup: user_id -> set of week offsets they were active
-    user_active_weeks: dict[str, set[int]] = {}
-    user_signup_week: dict[str, datetime] = {}
-    for u in users:
-        user_signup_week[str(u.id)] = u.created_at
-
-    for login in logins:
-        uid = str(login.user_id)
-        signup = user_signup_week.get(uid)
-        if signup is None:
-            continue
-        week_offset = (login.logged_at - signup).days // 7
-        if uid not in user_active_weeks:
-            user_active_weeks[uid] = set()
-        user_active_weeks[uid].add(week_offset)
-
-    # Group users by signup week (Monday-aligned)
-    cohort_users: dict[str, list[str]] = {}
-    for u in users:
-        # Truncate to Monday of that week
-        week_start = u.created_at - timedelta(days=u.created_at.weekday())
-        week_key = week_start.strftime("%Y-%m-%d")
-        if week_key not in cohort_users:
-            cohort_users[week_key] = []
-        cohort_users[week_key].append(str(u.id))
-
-    # Build cohort rows
-    cohorts: list[CohortRow] = []
-    for week_key in sorted(cohort_users.keys()):
-        uids = cohort_users[week_key]
-        signup_count = len(uids)
-
-        # How many weeks has this cohort existed?
-        cohort_start = datetime.strptime(week_key, "%Y-%m-%d").replace(tzinfo=UTC)
-        max_weeks = min(weeks, (now - cohort_start).days // 7 + 1)
-
-        retention: list[float] = []
-        for w in range(max_weeks):
-            active_count = sum(1 for uid in uids if w in user_active_weeks.get(uid, set()))
-            retention.append(round(active_count / signup_count * 100, 1) if signup_count > 0 else 0)
-
-        cohorts.append(CohortRow(week=week_key, signup_count=signup_count, retention=retention))
+    active_weeks = _build_user_active_weeks(users, logins)
+    cohort_users = _group_users_into_cohorts(users)
+    cohorts = _compute_cohort_rows(cohort_users, active_weeks, weeks, now)
 
     return RetentionStats(cohorts=cohorts)
 

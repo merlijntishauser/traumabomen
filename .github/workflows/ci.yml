@@ -149,7 +149,7 @@ jobs:
           python-version: "3.13"
       - run: uv sync --extra dev
       - name: Complexity check (xenon)
-        run: uv run xenon app/ --max-absolute C --max-modules B --max-average B
+        run: uv run xenon app/ --max-absolute B --max-modules B --max-average A
       - name: Coverage
         run: uv run pytest --cov=app --cov-report=json -q
       - name: Coverage gate
