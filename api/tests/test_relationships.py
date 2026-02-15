@@ -126,6 +126,27 @@ class TestUpdateRelationship:
         assert resp.json()["encrypted_data"] == "new"
 
     @pytest.mark.asyncio
+    async def test_update_source_person(self, client, headers, tree, two_persons):
+        p1, p2 = two_persons
+        create = await client.post(
+            f"/trees/{tree['id']}/relationships",
+            json={
+                "source_person_id": p1["id"],
+                "target_person_id": p2["id"],
+                "encrypted_data": "x",
+            },
+            headers=headers,
+        )
+        rel_id = create.json()["id"]
+        resp = await client.put(
+            f"/trees/{tree['id']}/relationships/{rel_id}",
+            json={"source_person_id": p2["id"]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["source_person_id"] == p2["id"]
+
+    @pytest.mark.asyncio
     async def test_update_with_invalid_person(self, client, headers, tree, two_persons):
         p1, p2 = two_persons
         create = await client.post(
@@ -144,7 +165,6 @@ class TestUpdateRelationship:
             headers=headers,
         )
         assert resp.status_code == 422
-
 
     @pytest.mark.asyncio
     async def test_update_nonexistent(self, client, headers, tree):

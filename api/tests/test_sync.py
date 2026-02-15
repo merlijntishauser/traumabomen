@@ -325,6 +325,105 @@ class TestSyncEmpty:
         assert data["persons_deleted"] == 0
 
 
+class TestSyncClassifications:
+    @pytest.mark.asyncio
+    async def test_create_classification(self, client, headers, tree, person):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_create": [{"person_ids": [person["id"]], "encrypted_data": "cls"}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()["classifications_created"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_delete_classification(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_create": [{"person_ids": [person["id"]], "encrypted_data": "cls"}],
+            },
+            headers=headers,
+        )
+        cls_id = create.json()["classifications_created"][0]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"classifications_delete": [{"id": cls_id}]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["classifications_deleted"] == 1
+
+    @pytest.mark.asyncio
+    async def test_update_classification(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_create": [{"person_ids": [person["id"]], "encrypted_data": "old"}],
+            },
+            headers=headers,
+        )
+        cls_id = create.json()["classifications_created"][0]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_update": [{"id": cls_id, "encrypted_data": "new"}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["classifications_updated"] == 1
+
+    @pytest.mark.asyncio
+    async def test_update_classification_person_ids(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_create": [{"person_ids": [person["id"]], "encrypted_data": "cls"}],
+            },
+            headers=headers,
+        )
+        cls_id = create.json()["classifications_created"][0]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_update": [{"id": cls_id, "person_ids": []}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["classifications_updated"] == 1
+
+    @pytest.mark.asyncio
+    async def test_update_nonexistent_classification(self, client, headers, tree):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_update": [{"id": str(uuid.uuid4()), "encrypted_data": "x"}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_classification_invalid_person(self, client, headers, tree):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "classifications_create": [
+                    {"person_ids": [str(uuid.uuid4())], "encrypted_data": "cls"}
+                ],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 422
+
+
 class TestSyncFullCycle:
     @pytest.mark.asyncio
     async def test_create_update_delete_in_one_call(self, client, headers, tree, person):
