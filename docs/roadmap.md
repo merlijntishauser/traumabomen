@@ -24,6 +24,17 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
+### Passkey Authentication
+
+Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
+
+- **Login**: "Sign in with passkey" button using discoverable credentials
+- **Multi-domain**: separate credentials per domain (traumatrees.org / traumabomen.nl)
+- **Management**: add/remove passkeys in settings, multiple per account
+- **Prompt**: one-time post-login banner encouraging passkey setup
+
+See [design doc](plans/2026-02-15-passkey-auth-design.md).
+
 ### Pattern Editor
 
 Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). Each pattern has a name, description, and linked event IDs.
@@ -31,7 +42,7 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 ## Backlog
 
 ### new features
-- OAuth/social login
+- OAuth/social login.... SSO? 
 - GEDCOM import/export
 - PDF/image export
 - Custom category management
@@ -44,5 +55,4 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 
 ### To think about
 - more themes
-- passkey support
-- 
+- optional pet support? some users might to be able to hide their pet from the family tree
