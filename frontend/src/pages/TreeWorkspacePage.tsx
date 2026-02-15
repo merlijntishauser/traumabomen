@@ -108,7 +108,7 @@ function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
   const logout = useLogout();
-  const { fitView } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
+  const { fitView, setCenter, getZoom } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
   const queryClient = useQueryClient();
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -147,6 +147,7 @@ function TreeWorkspaceInner() {
   const [nodes, setNodes] = useState<PersonNodeType[]>([]);
   const prevNodeIdsRef = useRef("");
   const prevNodeCountRef = useRef(0);
+  const newlyCreatedNodeRef = useRef<string | null>(null);
 
   useEffect(() => {
     const currentIds = layoutNodes
@@ -175,14 +176,33 @@ function TreeWorkspaceInner() {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
-  // Fit view only when node count actually changes
+  // Fit view when node count changes, or center on newly created node
   useEffect(() => {
     if (layoutNodes.length > 0 && layoutNodes.length !== prevNodeCountRef.current) {
       prevNodeCountRef.current = layoutNodes.length;
+
+      const newNodeId = newlyCreatedNodeRef.current;
+      if (newNodeId) {
+        newlyCreatedNodeRef.current = null;
+        const newNode = layoutNodes.find((n) => n.id === newNodeId);
+        if (newNode) {
+          // Center on new node, offset right to account for 400px detail panel
+          const timer = setTimeout(() => {
+            const zoom = getZoom();
+            const panelOffset = 200 / zoom;
+            setCenter(newNode.position.x + 90 + panelOffset, newNode.position.y + 40, {
+              zoom,
+              duration: 300,
+            });
+          }, 50);
+          return () => clearTimeout(timer);
+        }
+      }
+
       const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
       return () => clearTimeout(timer);
     }
-  }, [layoutNodes.length, fitView]);
+  }, [layoutNodes, fitView, setCenter, getZoom]);
 
   // Escape key handler
   useEffect(() => {
@@ -266,6 +286,7 @@ function TreeWorkspaceInner() {
     };
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
+        newlyCreatedNodeRef.current = response.id;
         setSelectedPersonId(response.id);
       },
     });
