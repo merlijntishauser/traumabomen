@@ -1,3 +1,4 @@
+import * as dagre from "dagre";
 import { describe, expect, it } from "vitest";
 import type {
   DecryptedClassification,
@@ -9,13 +10,18 @@ import type {
 import { LifeEventCategory, RelationshipType, TraumaCategory } from "../types/domain";
 import {
   adjustEdgeOverlaps,
+  assignMarkerShapes,
   buildBioParentData,
   buildEntityLookups,
   buildJunctionForks,
   buildPersonNodes,
   buildRelationshipEdges,
   computeCoupleColors,
+  computeFriendY,
   findFriendOnlyIds,
+  findMaxFamilyX,
+  groupEdgesBySide,
+  handleSide,
   layoutDagreGraph,
   MARKER_SHAPES,
   NODE_HEIGHT,
@@ -23,6 +29,7 @@ import {
   pickHandles,
   positionFriendNodes,
   type RelationshipEdgeType,
+  resolveNodePosition,
 } from "./treeLayoutHelpers";
 
 function makePerson(
@@ -629,5 +636,598 @@ describe("adjustEdgeOverlaps", () => {
     const shapes = edges.map((e) => e.data?.markerShape);
     expect(shapes.every((s) => s !== undefined)).toBe(true);
     expect(MARKER_SHAPES).toContain(shapes[0]);
+  });
+
+  it("skips junction fork and junction hidden edges", () => {
+    const edges: RelationshipEdgeType[] = [
+      {
+        id: "e1",
+        type: "relationship",
+        source: "a",
+        target: "b",
+        sourceHandle: "bottom",
+        targetHandle: "top",
+        data: {
+          junctionFork: {
+            parentIds: ["a", "x"],
+            childIds: ["b"],
+            parentNames: ["A", "X"],
+            childNames: ["B"],
+          },
+        },
+      },
+      {
+        id: "e2",
+        type: "relationship",
+        source: "a",
+        target: "c",
+        sourceHandle: "bottom",
+        targetHandle: "top",
+        data: { junctionHidden: true },
+      },
+    ];
+    const nodeCenter = new Map([
+      ["a", { x: 100, y: 0 }],
+      ["b", { x: 50, y: 200 }],
+      ["c", { x: 150, y: 200 }],
+    ]);
+    // Should not throw, and should not add offsets since junction edges are skipped
+    adjustEdgeOverlaps(edges, nodeCenter, false);
+    expect(edges[0].data?.sourceOffset).toBeUndefined();
+    expect(edges[1].data?.sourceOffset).toBeUndefined();
+  });
+
+  it("spreads offsets on vertical (left/right) side groups", () => {
+    // Two edges sharing a node on the "right" side
+    const edges = [
+      makeEdge("e1", "a", "b", "right", "left"),
+      makeEdge("e2", "a", "c", "right", "left"),
+    ];
+    const nodeCenter = new Map([
+      ["a", { x: 0, y: 100 }],
+      ["b", { x: 300, y: 50 }],
+      ["c", { x: 300, y: 150 }],
+    ]);
+    adjustEdgeOverlaps(edges, nodeCenter, false);
+    // Both edges share source "a" right handle -> should have vertical (y) offsets
+    const offsets = edges.map((e) => e.data?.sourceOffset?.y ?? 0);
+    expect(offsets[0]).not.toBe(offsets[1]);
+  });
+
+  it("spreads target offsets when edges share a target handle", () => {
+    // Two edges from different sources pointing to the same target
+    const edges = [
+      makeEdge("e1", "a", "c", "bottom", "top"),
+      makeEdge("e2", "b", "c", "bottom", "top"),
+    ];
+    const nodeCenter = new Map([
+      ["a", { x: 50, y: 0 }],
+      ["b", { x: 150, y: 0 }],
+      ["c", { x: 100, y: 200 }],
+    ]);
+    adjustEdgeOverlaps(edges, nodeCenter, false);
+    // Both edges share target "c" top handle -> should have target offsets
+    const offsets = edges.map((e) => e.data?.targetOffset?.x ?? 0);
+    expect(offsets[0]).not.toBe(offsets[1]);
+  });
+});
+
+// ---- handleSide ----
+
+describe("handleSide", () => {
+  it("returns top for top-prefixed handle", () => {
+    expect(handleSide("top")).toBe("top");
+    expect(handleSide("top-source")).toBe("top");
+  });
+
+  it("returns bottom for bottom-prefixed handle", () => {
+    expect(handleSide("bottom")).toBe("bottom");
+    expect(handleSide("bottom-target")).toBe("bottom");
+  });
+
+  it("returns left for left-prefixed handle", () => {
+    expect(handleSide("left")).toBe("left");
+    expect(handleSide("left-source")).toBe("left");
+  });
+
+  it("returns right for anything else", () => {
+    expect(handleSide("right")).toBe("right");
+    expect(handleSide("right-target")).toBe("right");
+    expect(handleSide("unknown")).toBe("right");
+  });
+});
+
+// ---- groupEdgesBySide ----
+
+describe("groupEdgesBySide", () => {
+  function makeEdge(
+    id: string,
+    source: string,
+    target: string,
+    sourceHandle: string,
+    targetHandle: string,
+  ): RelationshipEdgeType {
+    return {
+      id,
+      type: "relationship",
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+      data: {},
+    };
+  }
+
+  it("groups edges by source and target node+side", () => {
+    const edges = [
+      makeEdge("e1", "a", "b", "bottom", "top"),
+      makeEdge("e2", "a", "c", "bottom", "top"),
+    ];
+    const groups = groupEdgesBySide(edges);
+    // "a:bottom" should have two entries (from e1 and e2 source)
+    expect(groups.get("a:bottom")?.length).toBe(2);
+    // "b:top" and "c:top" should each have one
+    expect(groups.get("b:top")?.length).toBe(1);
+    expect(groups.get("c:top")?.length).toBe(1);
+  });
+
+  it("skips junction fork edges", () => {
+    const edges: RelationshipEdgeType[] = [
+      {
+        id: "e1",
+        type: "relationship",
+        source: "a",
+        target: "b",
+        sourceHandle: "bottom",
+        targetHandle: "top",
+        data: {
+          junctionFork: {
+            parentIds: ["a", "x"],
+            childIds: ["b"],
+            parentNames: ["A", "X"],
+            childNames: ["B"],
+          },
+        },
+      },
+    ];
+    const groups = groupEdgesBySide(edges);
+    expect(groups.size).toBe(0);
+  });
+
+  it("skips junction hidden edges", () => {
+    const edges: RelationshipEdgeType[] = [
+      {
+        id: "e1",
+        type: "relationship",
+        source: "a",
+        target: "b",
+        sourceHandle: "bottom",
+        targetHandle: "top",
+        data: { junctionHidden: true },
+      },
+    ];
+    const groups = groupEdgesBySide(edges);
+    expect(groups.size).toBe(0);
+  });
+});
+
+// ---- assignMarkerShapes ----
+
+describe("assignMarkerShapes", () => {
+  function makeEdge(
+    id: string,
+    source: string,
+    target: string,
+    sourceHandle: string,
+    targetHandle: string,
+  ): RelationshipEdgeType {
+    return {
+      id,
+      type: "relationship",
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+      data: {},
+    };
+  }
+
+  it("does not assign shapes when groups have single edges", () => {
+    const edges = [makeEdge("e1", "a", "b", "bottom", "top")];
+    const sideGroups = groupEdgesBySide(edges);
+    assignMarkerShapes(edges, sideGroups);
+    expect(edges[0].data?.markerShape).toBeUndefined();
+  });
+
+  it("assigns distinct shapes to overlapping edges", () => {
+    const edges = [
+      makeEdge("e1", "a", "b", "bottom", "top"),
+      makeEdge("e2", "a", "c", "bottom", "top"),
+      makeEdge("e3", "a", "d", "bottom", "top"),
+    ];
+    const sideGroups = groupEdgesBySide(edges);
+    assignMarkerShapes(edges, sideGroups);
+    const shapes = edges.map((e) => e.data?.markerShape);
+    // All three should have shapes
+    expect(shapes.every((s) => s !== undefined)).toBe(true);
+    // All shapes should be from MARKER_SHAPES
+    for (const s of shapes) {
+      expect(MARKER_SHAPES).toContain(s);
+    }
+  });
+});
+
+// ---- resolveNodePosition ----
+
+describe("resolveNodePosition", () => {
+  function makeGraph(): dagre.graphlib.Graph {
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: "TB" });
+    g.setDefaultEdgeLabel(() => ({}));
+    return g;
+  }
+
+  it("returns person.position when pinned", () => {
+    const person = makePerson("p1", "Alice", { x: 42, y: 99 });
+    const g = makeGraph();
+    const result = resolveNodePosition(person, g, false, undefined);
+    expect(result).toEqual({ x: 42, y: 99 });
+  });
+
+  it("returns friend position when provided (offset by half node size)", () => {
+    const person = makePerson("p1", "Alice");
+    const g = makeGraph();
+    const result = resolveNodePosition(person, g, true, { x: 500, y: 200 });
+    expect(result).toEqual({ x: 500 - NODE_WIDTH / 2, y: 200 - NODE_HEIGHT / 2 });
+  });
+
+  it("returns graph position for non-friend-only when in graph", () => {
+    const person = makePerson("p1", "Alice");
+    const g = makeGraph();
+    g.setNode("p1", { width: NODE_WIDTH, height: NODE_HEIGHT, x: 300, y: 150 });
+    const result = resolveNodePosition(person, g, false, undefined);
+    expect(result).toEqual({ x: 300 - NODE_WIDTH / 2, y: 150 - NODE_HEIGHT / 2 });
+  });
+
+  it("returns (0,0) when friend-only with no friendPos and no graph position", () => {
+    const person = makePerson("p1", "Alice");
+    const g = makeGraph();
+    const result = resolveNodePosition(person, g, true, undefined);
+    expect(result).toEqual({ x: 0, y: 0 });
+  });
+
+  it("returns (0,0) when non-friend-only but not in graph", () => {
+    const person = makePerson("p1", "Alice");
+    const g = makeGraph();
+    const result = resolveNodePosition(person, g, false, undefined);
+    expect(result).toEqual({ x: 0, y: 0 });
+  });
+
+  it("prioritizes pinned position over friend position", () => {
+    const person = makePerson("p1", "Alice", { x: 10, y: 20 });
+    const g = makeGraph();
+    const result = resolveNodePosition(person, g, true, { x: 500, y: 200 });
+    expect(result).toEqual({ x: 10, y: 20 });
+  });
+});
+
+// ---- findMaxFamilyX ----
+
+describe("findMaxFamilyX", () => {
+  it("returns 0 when no non-friend nodes", () => {
+    const persons = new Map([["f1", makePerson("f1", "Friend")]]);
+    const friendOnlyIds = new Set(["f1"]);
+    const { graph } = layoutDagreGraph(new Map(), new Map(), new Set());
+    const result = findMaxFamilyX(persons, friendOnlyIds, graph);
+    expect(result).toBe(0);
+  });
+
+  it("returns rightmost x + half node width for family nodes", () => {
+    const persons = new Map([
+      ["p1", makePerson("p1", "Alice")],
+      ["p2", makePerson("p2", "Bob")],
+    ]);
+    const { graph } = layoutDagreGraph(persons, new Map(), new Set());
+    const result = findMaxFamilyX(persons, new Set(), graph);
+    // Should be greater than 0 since dagre places nodes
+    expect(result).toBeGreaterThan(0);
+  });
+});
+
+// ---- computeFriendY ----
+
+describe("computeFriendY", () => {
+  it("returns 0 when friend has no connections in the graph", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.Friend, "f1", "p1")]]);
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: "TB" });
+    g.setDefaultEdgeLabel(() => ({}));
+    // p1 is NOT in the graph
+    const result = computeFriendY("f1", rels, g, []);
+    expect(result).toBe(0);
+  });
+
+  it("returns average Y of connected family members", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.Friend, "f1", "p1")]]);
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: "TB" });
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("p1", { width: NODE_WIDTH, height: NODE_HEIGHT, x: 100, y: 200 });
+    const result = computeFriendY("f1", rels, g, []);
+    expect(result).toBe(200);
+  });
+
+  it("avoids overlap with used Y positions", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.Friend, "f1", "p1")]]);
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: "TB" });
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("p1", { width: NODE_WIDTH, height: NODE_HEIGHT, x: 100, y: 200 });
+    // Already a friend at y=200
+    const result = computeFriendY("f1", rels, g, [200]);
+    expect(result).toBeGreaterThan(200);
+    expect(result).toBe(200 + NODE_HEIGHT + 20); // NODE_HEIGHT + FRIEND_Y_GAP
+  });
+
+  it("skips non-friend relationships", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.BiologicalParent, "f1", "p1")]]);
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: "TB" });
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("p1", { width: NODE_WIDTH, height: NODE_HEIGHT, x: 100, y: 200 });
+    const result = computeFriendY("f1", rels, g, []);
+    // No friend relationships, so connectedYs is empty, result is 0
+    expect(result).toBe(0);
+  });
+});
+
+// ---- buildPersonNodes edge cases ----
+
+describe("buildPersonNodes additional cases", () => {
+  it("sets isFriendOnly to undefined for non-friend nodes", () => {
+    const persons = new Map([["p1", makePerson("p1", "Alice")]]);
+    const { graph } = layoutDagreGraph(persons, new Map(), new Set());
+    const lookups = buildEntityLookups(new Map());
+    const result = buildPersonNodes(persons, graph, new Set(), new Map(), lookups, null);
+    expect(result.nodes[0].data.isFriendOnly).toBeUndefined();
+  });
+
+  it("sets selected to false when selectedPersonId does not match", () => {
+    const persons = new Map([["p1", makePerson("p1", "Alice")]]);
+    const { graph } = layoutDagreGraph(persons, new Map(), new Set());
+    const lookups = buildEntityLookups(new Map());
+    const result = buildPersonNodes(persons, graph, new Set(), new Map(), lookups, "other");
+    expect(result.nodes[0].selected).toBe(false);
+  });
+
+  it("attaches events, lifeEvents, and classifications to nodes", () => {
+    const persons = new Map([["p1", makePerson("p1", "Alice")]]);
+    const events = new Map<string, DecryptedEvent>([
+      [
+        "e1",
+        {
+          id: "e1",
+          title: "T",
+          description: "",
+          category: TraumaCategory.Loss,
+          approximate_date: "1990",
+          severity: 1,
+          tags: [],
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+    const lifeEvents = new Map<string, DecryptedLifeEvent>([
+      [
+        "le1",
+        {
+          id: "le1",
+          title: "L",
+          description: "",
+          category: LifeEventCategory.Family,
+          approximate_date: "1990",
+          impact: 1,
+          tags: [],
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+    const classifications = new Map<string, DecryptedClassification>([
+      [
+        "c1",
+        {
+          id: "c1",
+          dsm_category: "mood",
+          dsm_subcategory: null,
+          status: "diagnosed",
+          diagnosis_year: 2020,
+          periods: [],
+          notes: null,
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+    const lookups = buildEntityLookups(events, lifeEvents, classifications);
+    const { graph } = layoutDagreGraph(persons, new Map(), new Set());
+    const result = buildPersonNodes(persons, graph, new Set(), new Map(), lookups, null);
+    expect(result.nodes[0].data.events).toHaveLength(1);
+    expect(result.nodes[0].data.lifeEvents).toHaveLength(1);
+    expect(result.nodes[0].data.classifications).toHaveLength(1);
+  });
+});
+
+// ---- buildJunctionForks edge cases ----
+
+describe("buildJunctionForks additional cases", () => {
+  it("skips couples where all children have no nodeCenter", () => {
+    const coupleChildren = new Map([["dad|mom", ["child1"]]]);
+    const nodeCenter = new Map([
+      ["dad", { x: 0, y: 0 }],
+      ["mom", { x: 200, y: 0 }],
+      // child1 is NOT in nodeCenter
+    ]);
+    const rels = new Map([
+      ["r1", makeRel("r1", RelationshipType.BiologicalParent, "dad", "child1")],
+      ["r2", makeRel("r2", RelationshipType.BiologicalParent, "mom", "child1")],
+    ]);
+    const persons = new Map([
+      ["dad", makePerson("dad", "Dad")],
+      ["mom", makePerson("mom", "Mom")],
+      ["child1", makePerson("child1", "Child")],
+    ]);
+    const result = buildJunctionForks(coupleChildren, nodeCenter, rels, persons);
+    expect(result.forkPrimaryIds.size).toBe(0);
+    expect(result.forkHiddenIds.size).toBe(0);
+  });
+
+  it("uses ? for unknown person names", () => {
+    const coupleChildren = new Map([["dad|mom", ["child1"]]]);
+    const nodeCenter = new Map([
+      ["dad", { x: 0, y: 0 }],
+      ["mom", { x: 200, y: 0 }],
+      ["child1", { x: 100, y: 200 }],
+    ]);
+    const rels = new Map([
+      ["r1", makeRel("r1", RelationshipType.BiologicalParent, "dad", "child1")],
+      ["r2", makeRel("r2", RelationshipType.BiologicalParent, "mom", "child1")],
+    ]);
+    // Empty persons map -> names will be "?"
+    const result = buildJunctionForks(coupleChildren, nodeCenter, rels, new Map());
+    const forkData = result.forkDataByEdge.values().next().value;
+    expect(forkData).toBeDefined();
+    expect(forkData!.parentNames).toEqual(["?", "?"]);
+    expect(forkData!.childNames).toEqual(["?"]);
+  });
+});
+
+// ---- layoutDagreGraph additional cases ----
+
+describe("layoutDagreGraph additional cases", () => {
+  it("excludes friend-only nodes from the graph", () => {
+    const persons = new Map([
+      ["p1", makePerson("p1", "Alice")],
+      ["f1", makePerson("f1", "Friend")],
+    ]);
+    const friendOnlyIds = new Set(["f1"]);
+    const result = layoutDagreGraph(persons, new Map(), friendOnlyIds);
+    expect(result.graph.node("p1")).toBeDefined();
+    expect(result.graph.node("f1")).toBeUndefined();
+  });
+
+  it("handles sibling relationships with minlen 0", () => {
+    const persons = new Map([
+      ["p1", makePerson("p1", "A")],
+      ["p2", makePerson("p2", "B")],
+    ]);
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.BiologicalSibling, "p1", "p2")]]);
+    const result = layoutDagreGraph(persons, rels, new Set());
+    expect(result.graph.node("p1")).toBeDefined();
+    expect(result.graph.node("p2")).toBeDefined();
+  });
+});
+
+// ---- buildRelationshipEdges additional cases ----
+
+describe("buildRelationshipEdges additional cases", () => {
+  type BuildEdgesParamsType = Parameters<typeof buildRelationshipEdges>[0];
+  const emptyForkData = new Map() as BuildEdgesParamsType["forkDataByEdge"];
+
+  it("uses default handles when node positions are missing from nodeCenter", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.Partner, "p1", "p2")]]);
+    const persons = new Map([
+      ["p1", makePerson("p1", "A")],
+      ["p2", makePerson("p2", "B")],
+    ]);
+    // Empty nodeCenter -> resolveEdgeHandles falls back to defaultHandles
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      nodeCenter: new Map(),
+      childCoupleColor: new Map(),
+      useCoupleColors: false,
+      forkDataByEdge: emptyForkData,
+      forkHiddenIds: new Set(),
+      inferred: [],
+    });
+    expect(edges).toHaveLength(1);
+    // Partner is not a parent type -> preferVertical=false -> default horizontal handles
+    expect(edges[0].sourceHandle).toBe("right");
+    expect(edges[0].targetHandle).toBe("left");
+  });
+
+  it("sets junctionHidden for hidden fork edges", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.BiologicalParent, "p1", "c1")]]);
+    const persons = new Map([
+      ["p1", makePerson("p1", "P")],
+      ["c1", makePerson("c1", "C")],
+    ]);
+    const nodeCenter = new Map([
+      ["p1", { x: 90, y: 40 }],
+      ["c1", { x: 90, y: 200 }],
+    ]);
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      nodeCenter,
+      childCoupleColor: new Map(),
+      useCoupleColors: false,
+      forkDataByEdge: emptyForkData,
+      forkHiddenIds: new Set(["r1"]),
+      inferred: [],
+    });
+    expect(edges[0].data?.junctionHidden).toBe(true);
+  });
+
+  it("sets junctionFork data on fork primary edge", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.BiologicalParent, "p1", "c1")]]);
+    const persons = new Map([
+      ["p1", makePerson("p1", "P")],
+      ["c1", makePerson("c1", "C")],
+    ]);
+    const nodeCenter = new Map([
+      ["p1", { x: 90, y: 40 }],
+      ["c1", { x: 90, y: 200 }],
+    ]);
+    const forkData = {
+      parentIds: ["p1", "p2"] as [string, string],
+      childIds: ["c1"],
+      parentNames: ["P", "P2"] as [string, string],
+      childNames: ["C"],
+    };
+    const forkDataByEdge = new Map([["r1", forkData]]);
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      nodeCenter,
+      childCoupleColor: new Map(),
+      useCoupleColors: false,
+      forkDataByEdge,
+      forkHiddenIds: new Set(),
+      inferred: [],
+    });
+    expect(edges[0].data?.junctionFork).toBe(forkData);
+  });
+
+  it("does not set coupleColor for non-bio-parent edges", () => {
+    const rels = new Map([["r1", makeRel("r1", RelationshipType.Partner, "p1", "p2")]]);
+    const persons = new Map([
+      ["p1", makePerson("p1", "A")],
+      ["p2", makePerson("p2", "B")],
+    ]);
+    const nodeCenter = new Map([
+      ["p1", { x: 0, y: 0 }],
+      ["p2", { x: 200, y: 0 }],
+    ]);
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      nodeCenter,
+      childCoupleColor: new Map([["p2", "hsl(0,0%,0%)"]]),
+      useCoupleColors: true,
+      forkDataByEdge: emptyForkData,
+      forkHiddenIds: new Set(),
+      inferred: [],
+    });
+    expect(edges[0].data?.coupleColor).toBeUndefined();
   });
 });

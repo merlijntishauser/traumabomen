@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { Position } from "@xyflow/react";
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from "vitest";
 import type { DecryptedRelationship } from "../../hooks/useTreeData";
 import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
 import { RelationshipType } from "../../types/domain";
@@ -8,8 +9,11 @@ import {
   buildForkSelector,
   buildStraightForkPath,
   computeEdgeFlags,
+  computeEdgePath,
+  computeEdgeStroke,
   computeTooltipContent,
   type ForkPositions,
+  getCssVar,
 } from "./relationshipEdgeHelpers";
 
 // ---- buildCurvedForkPath ----
@@ -291,5 +295,298 @@ describe("buildForkSelector", () => {
     const result = selector({ nodeLookup: lookup });
     expect(result).not.toBeNull();
     expect(result!.children).toHaveLength(1);
+  });
+});
+
+// ---- getCssVar ----
+
+describe("getCssVar", () => {
+  let spy: MockInstance;
+
+  beforeEach(() => {
+    spy = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      getPropertyValue: () => "  #abc123  ",
+    } as unknown as CSSStyleDeclaration);
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it("returns the trimmed CSS variable value", () => {
+    const result = getCssVar("--color-edge-default");
+    expect(result).toBe("#abc123");
+    expect(spy).toHaveBeenCalledWith(document.documentElement);
+  });
+});
+
+// ---- computeEdgeStroke ----
+
+describe("computeEdgeStroke", () => {
+  let spy: MockInstance;
+
+  const cssValues: Record<string, string> = {
+    "--color-edge-default": "#default",
+    "--color-edge-half-sibling": "#half",
+    "--color-edge-partner": "#partner",
+    "--color-edge-friend": "#friend",
+    "--color-edge-step": "#step",
+  };
+
+  beforeEach(() => {
+    spy = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      getPropertyValue: (name: string) => cssValues[name] ?? "",
+    } as unknown as CSSStyleDeclaration);
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  const baseFlags = {
+    isPartner: false,
+    isExPartner: false,
+    isHalfSibling: false,
+    isFriend: false,
+    isDashed: false,
+  };
+
+  it("returns default stroke when no flags are set", () => {
+    const result = computeEdgeStroke(baseFlags, undefined, undefined);
+    expect(result.stroke).toBe("#default");
+    expect(result.strokeWidth).toBe(1.5);
+    expect(result.strokeDasharray).toBeUndefined();
+  });
+
+  it("returns half-sibling style when isHalfSibling flag is set", () => {
+    const result = computeEdgeStroke({ ...baseFlags, isHalfSibling: true }, undefined, undefined);
+    expect(result.stroke).toBe("#half");
+    expect(result.strokeDasharray).toBe("4 4");
+  });
+
+  it("returns half-sibling style when inferredType is half_sibling", () => {
+    const result = computeEdgeStroke(baseFlags, "half_sibling", undefined);
+    expect(result.stroke).toBe("#half");
+    expect(result.strokeDasharray).toBe("4 4");
+  });
+
+  it("returns full_sibling style with dashed default stroke", () => {
+    const result = computeEdgeStroke(baseFlags, "full_sibling", undefined);
+    expect(result.stroke).toBe("#default");
+    expect(result.strokeDasharray).toBe("4 4");
+  });
+
+  it("returns ex-partner style", () => {
+    const result = computeEdgeStroke({ ...baseFlags, isExPartner: true }, undefined, undefined);
+    expect(result.stroke).toBe("#partner");
+    expect(result.strokeDasharray).toBe("6 3");
+  });
+
+  it("returns partner style with thicker stroke", () => {
+    const result = computeEdgeStroke({ ...baseFlags, isPartner: true }, undefined, undefined);
+    expect(result.stroke).toBe("#partner");
+    expect(result.strokeWidth).toBe(2.5);
+    expect(result.strokeDasharray).toBeUndefined();
+  });
+
+  it("returns friend style", () => {
+    const result = computeEdgeStroke({ ...baseFlags, isFriend: true }, undefined, undefined);
+    expect(result.stroke).toBe("#friend");
+    expect(result.strokeDasharray).toBe("2 4");
+  });
+
+  it("returns step/dashed style", () => {
+    const result = computeEdgeStroke({ ...baseFlags, isDashed: true }, undefined, undefined);
+    expect(result.stroke).toBe("#step");
+    expect(result.strokeDasharray).toBe("6 3");
+  });
+
+  it("overrides stroke with coupleColor when provided", () => {
+    const result = computeEdgeStroke(
+      { ...baseFlags, isPartner: true },
+      undefined,
+      "hsl(210, 60%, 55%)",
+    );
+    expect(result.stroke).toBe("hsl(210, 60%, 55%)");
+    expect(result.strokeWidth).toBe(2.5);
+  });
+
+  it("prioritizes half-sibling over partner", () => {
+    const result = computeEdgeStroke(
+      { ...baseFlags, isHalfSibling: true, isPartner: true },
+      undefined,
+      undefined,
+    );
+    expect(result.stroke).toBe("#half");
+    expect(result.strokeDasharray).toBe("4 4");
+  });
+});
+
+// ---- computeEdgePath ----
+
+describe("computeEdgePath", () => {
+  const baseForkPositions: ForkPositions = {
+    parents: [
+      { cx: 100, bottom: 80 },
+      { cx: 300, bottom: 80 },
+    ],
+    children: [{ cx: 200, top: 200 }],
+    barY: 130,
+  };
+
+  it("returns fork path when isForkPrimary with forkPositions", () => {
+    const result = computeEdgePath({
+      isForkPrimary: true,
+      isForkHidden: false,
+      forkPositions: baseForkPositions,
+      sx: 0,
+      sy: 0,
+      tx: 100,
+      ty: 200,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+    });
+    expect(result.edgePath).toContain("M ");
+    expect(result.edgePath).toBe(result.hitPath);
+    expect(result.labelX).toBe(200); // midpoint of 100 and 300
+    expect(result.labelY).toBe(130); // barY
+  });
+
+  it("returns fork path with specified edgeStyle", () => {
+    const result = computeEdgePath({
+      isForkPrimary: true,
+      isForkHidden: false,
+      forkPositions: baseForkPositions,
+      sx: 0,
+      sy: 0,
+      tx: 100,
+      ty: 200,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+      edgeStyle: "straight",
+    });
+    // straight fork should not contain Q curves
+    expect(result.edgePath).not.toContain("Q ");
+  });
+
+  it("returns hidden fork path when isForkHidden", () => {
+    const result = computeEdgePath({
+      isForkPrimary: false,
+      isForkHidden: true,
+      forkPositions: null,
+      sx: 50,
+      sy: 80,
+      tx: 200,
+      ty: 300,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+    });
+    const barY = 80 + 50; // sy + BAR_Y_OFFSET
+    expect(result.edgePath).toBe(`M 50,80 L 50,${barY} L 200,${barY} L 200,300`);
+    expect(result.hitPath).toBe(result.edgePath);
+    expect(result.labelX).toBe(125); // (50 + 200) / 2
+    expect(result.labelY).toBe(barY);
+  });
+
+  it("returns bezier path for curved edgeStyle (default)", () => {
+    const result = computeEdgePath({
+      isForkPrimary: false,
+      isForkHidden: false,
+      forkPositions: null,
+      sx: 0,
+      sy: 0,
+      tx: 100,
+      ty: 200,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+    });
+    // Should return a valid path
+    expect(result.edgePath.length).toBeGreaterThan(0);
+    expect(result.hitPath).toBe(result.edgePath);
+    expect(typeof result.labelX).toBe("number");
+    expect(typeof result.labelY).toBe("number");
+  });
+
+  it("returns straight path for straight edgeStyle", () => {
+    const result = computeEdgePath({
+      isForkPrimary: false,
+      isForkHidden: false,
+      forkPositions: null,
+      sx: 0,
+      sy: 0,
+      tx: 100,
+      ty: 200,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+      edgeStyle: "straight",
+    });
+    expect(result.edgePath.length).toBeGreaterThan(0);
+    expect(result.hitPath).toBe(result.edgePath);
+  });
+
+  it("returns smooth step path for elbows edgeStyle", () => {
+    const result = computeEdgePath({
+      isForkPrimary: false,
+      isForkHidden: false,
+      forkPositions: null,
+      sx: 0,
+      sy: 0,
+      tx: 100,
+      ty: 200,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+      edgeStyle: "elbows",
+    });
+    expect(result.edgePath.length).toBeGreaterThan(0);
+    expect(result.hitPath).toBe(result.edgePath);
+  });
+
+  it("returns bezier path when edgeStyle is explicitly curved", () => {
+    const result = computeEdgePath({
+      isForkPrimary: false,
+      isForkHidden: false,
+      forkPositions: null,
+      sx: 10,
+      sy: 20,
+      tx: 300,
+      ty: 400,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+      edgeStyle: "curved",
+    });
+    expect(result.edgePath.length).toBeGreaterThan(0);
+  });
+});
+
+// ---- buildCurvedForkPath: barRight extension ----
+
+describe("buildCurvedForkPath bar extensions", () => {
+  it("extends bar to the right when child falls beyond right parent", () => {
+    const fork: ForkPositions = {
+      parents: [
+        { cx: 100, bottom: 80 },
+        { cx: 200, bottom: 80 },
+      ],
+      children: [{ cx: 350, top: 200 }],
+      barY: 130,
+    };
+    const path = buildCurvedForkPath(fork);
+    // barRight > rp.cx should add extension from rp.cx to barRight
+    expect(path).toContain(`M 200,130`);
+  });
+
+  it("handles child directly below a parent (nearParent case)", () => {
+    const fork: ForkPositions = {
+      parents: [
+        { cx: 100, bottom: 80 },
+        { cx: 300, bottom: 80 },
+      ],
+      // Child cx is within R=16 of left parent cx=100
+      children: [{ cx: 105, top: 200 }],
+      barY: 130,
+    };
+    const path = buildCurvedForkPath(fork);
+    // nearParent=true -> dir=0 -> straight drop, no Q curve for this child
+    expect(path).toContain(`M 105,130 L 105,200`);
   });
 });
