@@ -39,6 +39,16 @@ export default function LoginPage() {
     <div className="auth-page">
       <AuthHero />
       <div className="auth-content">
+        <div className="auth-explainer">
+          <p className="auth-explainer__tagline">{t("landing.tagline")}</p>
+          <p className="auth-explainer__text">{t("landing.about")}</p>
+          <h3 className="auth-explainer__heading">{t("landing.privacyHeading")}</h3>
+          <p className="auth-explainer__text">{t("landing.privacy")}</p>
+          <Link to="/privacy" className="auth-explainer__policy-link">
+            {t("landing.readPrivacyPolicy")}
+          </Link>
+        </div>
+
         <div className="auth-card">
           <h1>{t("app.title")}</h1>
           <h2>{t("auth.login")}</h2>
@@ -82,16 +92,6 @@ export default function LoginPage() {
           <p className="auth-footer">
             {t("auth.noAccount")} <Link to="/register">{t("auth.register")}</Link>
           </p>
-
-          <div className="auth-explainer">
-            <p className="auth-explainer__tagline">{t("landing.tagline")}</p>
-            <p className="auth-explainer__text">{t("landing.about")}</p>
-            <h3 className="auth-explainer__heading">{t("landing.privacyHeading")}</h3>
-            <p className="auth-explainer__text">{t("landing.privacy")}</p>
-            <Link to="/privacy" className="auth-explainer__policy-link">
-              {t("landing.readPrivacyPolicy")}
-            </Link>
-          </div>
         </div>
       </div>
     </div>
