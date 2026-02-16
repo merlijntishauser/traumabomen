@@ -43,6 +43,41 @@ import "../components/tree/TreeCanvas.css";
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { relationship: RelationshipEdge };
 
+const NODE_W = 180;
+const NODE_H = 80;
+
+function findFreePosition(
+  center: { x: number; y: number },
+  occupied: { position: { x: number; y: number } }[],
+): { x: number; y: number } {
+  const origin = { x: center.x - NODE_W / 2, y: center.y - NODE_H / 2 };
+
+  const overlaps = (px: number, py: number) =>
+    occupied.some(
+      (n) =>
+        px < n.position.x + NODE_W &&
+        px + NODE_W > n.position.x &&
+        py < n.position.y + NODE_H &&
+        py + NODE_H > n.position.y,
+    );
+
+  if (!overlaps(origin.x, origin.y)) return origin;
+
+  const step = 40;
+  for (let r = 1; r <= 8; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+        const cx = origin.x + dx * step;
+        const cy = origin.y + dy * step;
+        if (!overlaps(cx, cy)) return { x: cx, y: cy };
+      }
+    }
+  }
+
+  return origin;
+}
+
 const DIRECTIONAL_TYPES = new Set([
   RelationshipType.BiologicalParent,
   RelationshipType.StepParent,
@@ -261,38 +296,7 @@ function TreeWorkspaceInner() {
     const visibleCenterX = (window.innerWidth - panelWidth) / 2;
     const visibleCenterY = window.innerHeight / 2;
     const flowPos = screenToFlowPosition({ x: visibleCenterX, y: visibleCenterY });
-
-    // Find a free spot near the viewport center (avoid overlapping existing nodes)
-    const nodeW = 180;
-    const nodeH = 80;
-    const step = 40;
-    let bestPos = { x: flowPos.x - nodeW / 2, y: flowPos.y - nodeH / 2 };
-
-    const overlaps = (px: number, py: number) =>
-      nodes.some(
-        (n) =>
-          px < n.position.x + nodeW &&
-          px + nodeW > n.position.x &&
-          py < n.position.y + nodeH &&
-          py + nodeH > n.position.y,
-      );
-
-    if (overlaps(bestPos.x, bestPos.y)) {
-      // Spiral outward to find free space
-      outer: for (let radius = 1; radius <= 8; radius++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          for (let dy = -radius; dy <= radius; dy++) {
-            if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
-            const cx = bestPos.x + dx * step;
-            const cy = bestPos.y + dy * step;
-            if (!overlaps(cx, cy)) {
-              bestPos = { x: cx, y: cy };
-              break outer;
-            }
-          }
-        }
-      }
-    }
+    const position = findFreePosition(flowPos, nodes);
 
     const newPerson: Person = {
       name: t("person.newPerson"),
@@ -301,7 +305,7 @@ function TreeWorkspaceInner() {
       gender: "other",
       is_adopted: false,
       notes: null,
-      position: bestPos,
+      position,
     };
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
