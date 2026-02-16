@@ -45,34 +45,45 @@ const edgeTypes = { relationship: RelationshipEdge };
 
 const NODE_W = 180;
 const NODE_H = 80;
+const PLACEMENT_STEP = 40;
+
+// Pre-built ring offsets for finding free positions (rings 1-8 around origin)
+const RING_OFFSETS: { dx: number; dy: number }[] = [];
+for (let r = 1; r <= 8; r++) {
+  for (let dx = -r; dx <= r; dx++) {
+    for (let dy = -r; dy <= r; dy++) {
+      if (Math.abs(dx) === r || Math.abs(dy) === r) {
+        RING_OFFSETS.push({ dx, dy });
+      }
+    }
+  }
+}
+
+function hasOverlap(
+  px: number,
+  py: number,
+  occupied: { position: { x: number; y: number } }[],
+): boolean {
+  return occupied.some(
+    (n) =>
+      px < n.position.x + NODE_W &&
+      px + NODE_W > n.position.x &&
+      py < n.position.y + NODE_H &&
+      py + NODE_H > n.position.y,
+  );
+}
 
 function findFreePosition(
   center: { x: number; y: number },
   occupied: { position: { x: number; y: number } }[],
 ): { x: number; y: number } {
   const origin = { x: center.x - NODE_W / 2, y: center.y - NODE_H / 2 };
+  if (!hasOverlap(origin.x, origin.y, occupied)) return origin;
 
-  const overlaps = (px: number, py: number) =>
-    occupied.some(
-      (n) =>
-        px < n.position.x + NODE_W &&
-        px + NODE_W > n.position.x &&
-        py < n.position.y + NODE_H &&
-        py + NODE_H > n.position.y,
-    );
-
-  if (!overlaps(origin.x, origin.y)) return origin;
-
-  const step = 40;
-  for (let r = 1; r <= 8; r++) {
-    for (let dx = -r; dx <= r; dx++) {
-      for (let dy = -r; dy <= r; dy++) {
-        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-        const cx = origin.x + dx * step;
-        const cy = origin.y + dy * step;
-        if (!overlaps(cx, cy)) return { x: cx, y: cy };
-      }
-    }
+  for (const { dx, dy } of RING_OFFSETS) {
+    const cx = origin.x + dx * PLACEMENT_STEP;
+    const cy = origin.y + dy * PLACEMENT_STEP;
+    if (!hasOverlap(cx, cy, occupied)) return { x: cx, y: cy };
   }
 
   return origin;
