@@ -1,9 +1,13 @@
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
+import { LockScreen } from "./components/LockScreen";
 import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import { MobileBanner } from "./components/MobileBanner";
+import { OnboardingGate } from "./components/OnboardingGate";
 import { EncryptionProvider, useEncryption } from "./contexts/EncryptionContext";
-import { getAccessToken, getIsAdmin } from "./lib/api";
+import { useLockScreen } from "./hooks/useLockScreen";
+import { getAccessToken, getIsAdmin, getOnboardingFlag } from "./lib/api";
 import "./components/MobileBanner.css";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
@@ -35,9 +39,49 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function App() {
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { key } = useEncryption();
+  const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
+  const isAuthenticated = !!getAccessToken();
+
+  if (isAuthenticated && key && !acknowledged) {
+    return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppContent() {
+  const { key, clearKey, verifyPassphrase } = useEncryption();
+  const navigate = useNavigate();
+
+  const handleFullLock = useCallback(() => {
+    clearKey();
+    navigate("/unlock", { replace: true });
+  }, [clearKey, navigate]);
+
+  const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
+    enabled: key !== null,
+    onFullLock: handleFullLock,
+  });
+
+  const handleLockUnlock = useCallback(
+    async (passphrase: string) => {
+      const valid = await verifyPassphrase(passphrase);
+      if (valid) {
+        unlock();
+      } else {
+        failedAttempt();
+      }
+    },
+    [verifyPassphrase, unlock, failedAttempt],
+  );
+
   return (
-    <EncryptionProvider>
+    <OnboardingGuard>
+      {lockLevel === "blur" && (
+        <LockScreen wrongAttempts={wrongAttempts} onUnlock={handleLockUnlock} />
+      )}
       <div className="app-layout">
         <MentalHealthBanner />
         <MobileBanner />
@@ -84,8 +128,16 @@ export default function App() {
             <Route path="*" element={<Navigate to="/trees" replace />} />
           </Routes>
         </main>
-        <AppFooter />
+        <AppFooter onLock={key ? lock : undefined} />
       </div>
+    </OnboardingGuard>
+  );
+}
+
+export default function App() {
+  return (
+    <EncryptionProvider>
+      <AppContent />
     </EncryptionProvider>
   );
 }

@@ -437,3 +437,51 @@ class TestRefreshDeletedUser:
 
         resp = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
         assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Onboarding safety acknowledgement
+# ---------------------------------------------------------------------------
+
+
+class TestAcknowledgeOnboarding:
+    @pytest.mark.asyncio
+    async def test_acknowledge_onboarding_success(self, client, user, headers):
+        """Authenticated user can acknowledge the onboarding safety gate."""
+        resp = await client.put("/auth/onboarding", headers=headers)
+        assert resp.status_code == 200
+        assert resp.json()["message"] == "Onboarding acknowledged"
+
+    @pytest.mark.asyncio
+    async def test_acknowledge_onboarding_unauthenticated(self, client):
+        """Unauthenticated request returns 401."""
+        resp = await client.put("/auth/onboarding")
+        assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_onboarding_flag_in_login_response(self, client, user):
+        """Login response includes onboarding_safety_acknowledged (False for new user)."""
+        resp = await client.post(
+            "/auth/login",
+            json={"email": "test@example.com", "password": "password123"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "onboarding_safety_acknowledged" in data
+        assert data["onboarding_safety_acknowledged"] is False
+
+    @pytest.mark.asyncio
+    async def test_onboarding_flag_in_register_response(self, client):
+        """Register response includes onboarding_safety_acknowledged as False."""
+        resp = await client.post(
+            "/auth/register",
+            json={
+                "email": "onboard@example.com",
+                "password": "pass1234",
+                "encryption_salt": "salt",
+            },
+        )
+        assert resp.status_code == 201
+        data = resp.json()
+        assert "onboarding_safety_acknowledged" in data
+        assert data["onboarding_safety_acknowledged"] is False

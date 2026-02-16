@@ -296,5 +296,31 @@
 
   "privacy.contact.heading": "Contact",
   "privacy.contact.body": "For privacy-related questions or to exercise your rights, contact us at:",
-  "privacy.contact.glance": "Questions about privacy? Reach out to us at:"
+  "privacy.contact.glance": "Questions about privacy? Reach out to us at:",
+
+  "safety.onboarding.whatThisIs": "What this is",
+  "safety.onboarding.whatThisIsBody": "Traumatrees is a personal reflection tool. It is not therapy and not crisis support.",
+  "safety.onboarding.whatThisMayBringUp": "What this may bring up",
+  "safety.onboarding.whatThisMayBringUpBody": "Exploring family patterns can be emotionally charged. You set the pace. Pause or stop whenever you want.",
+  "safety.onboarding.whatWeCannotSee": "What we cannot see",
+  "safety.onboarding.whatWeCannotSeeBody": "Your data is encrypted before it leaves your device. The server sees no content.",
+  "safety.onboarding.continue": "I understand, continue",
+
+  "safety.footer.disclaimer": "Personal reflection tool -- not therapy",
+  "safety.footer.disclaimerShort": "Reflection tool",
+  "safety.footer.support": "Need support?",
+  "safety.footer.lock": "Lock screen",
+  "safety.footer.privacy": "How privacy works",
+
+  "safety.lock.title": "Screen locked",
+  "safety.lock.passphrase": "Enter your passphrase to unlock",
+  "safety.lock.wrongPassphrase": "Wrong passphrase",
+  "safety.lock.tooManyAttempts": "Too many attempts. Full re-authentication required.",
+  "safety.lock.unlock": "Unlock",
+
+  "privacy.diagram.youType": "You type",
+  "privacy.diagram.encrypted": "Encrypted in your browser",
+  "privacy.diagram.serverStores": "Server stores ???-blobs",
+  "privacy.diagram.technicalDetails": "Technical details",
+  "privacy.diagram.technicalBody": "Key derivation: Argon2id (memory-hard, 64 MB, 3 iterations). Encryption: AES-256-GCM with fresh random IV per operation. Implementation: Web Crypto API (browser-native, no external libraries)."
 }

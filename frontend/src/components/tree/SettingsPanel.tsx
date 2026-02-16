@@ -19,7 +19,13 @@ import {
   updateClassification,
   updateSalt,
 } from "../../lib/api";
-import { decryptFromApi, deriveKey, encryptForApi, generateSalt } from "../../lib/crypto";
+import {
+  decryptFromApi,
+  deriveKey,
+  encryptForApi,
+  generateSalt,
+  hashPassphrase,
+} from "../../lib/crypto";
 import "./SettingsPanel.css";
 
 interface Props {
@@ -33,7 +39,7 @@ const EDGE_STYLES: EdgeStyle[] = ["curved", "elbows", "straight"];
 export function SettingsPanel({ settings, onUpdate, className }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, toggle: toggleTheme } = useTheme();
-  const { setKey } = useEncryption();
+  const { setKey, setPassphraseHash } = useEncryption();
   const logout = useLogout();
 
   const [open, setOpen] = useState(false);
@@ -237,8 +243,10 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
       // 4. Update salt on server
       await updateSalt({ encryption_salt: newSalt });
 
-      // 5. Update key in encryption context
+      // 5. Update key and passphrase hash in encryption context
+      const newHash = await hashPassphrase(ppNew);
       setKey(newKey);
+      setPassphraseHash(newHash);
 
       setPpMessage({ type: "success", text: t("account.passphraseChanged") });
       setPpCurrent("");

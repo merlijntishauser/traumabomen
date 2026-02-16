@@ -11,8 +11,18 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("react-router-dom", () => ({
-  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    to,
+    children,
+    ...rest
+  }: {
+    to: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
@@ -30,15 +40,14 @@ describe("AppFooter", () => {
     expect(container.querySelector("footer")).toBeTruthy();
   });
 
-  it("contains copyright text with current year", () => {
+  it("contains the disclaimer text", () => {
     render(<AppFooter />);
-    const year = new Date().getFullYear().toString();
-    expect(screen.getByText(new RegExp(year))).toBeInTheDocument();
+    expect(screen.getByText("safety.footer.disclaimer")).toBeInTheDocument();
   });
 
   it("contains a privacy link", () => {
     render(<AppFooter />);
-    expect(screen.getByText("privacy.title")).toBeInTheDocument();
+    expect(screen.getByLabelText("safety.footer.privacy")).toBeInTheDocument();
   });
 
   it("contains a GitHub link", () => {
@@ -60,5 +69,16 @@ describe("AppFooter", () => {
   it("renders the theme toggle", () => {
     render(<AppFooter />);
     expect(screen.getByText("theme-toggle")).toBeInTheDocument();
+  });
+
+  it("renders lock button when onLock is provided", () => {
+    const onLock = vi.fn();
+    render(<AppFooter onLock={onLock} />);
+    expect(screen.getByLabelText("safety.footer.lock")).toBeInTheDocument();
+  });
+
+  it("does not render lock button when onLock is not provided", () => {
+    render(<AppFooter />);
+    expect(screen.queryByLabelText("safety.footer.lock")).not.toBeInTheDocument();
   });
 });

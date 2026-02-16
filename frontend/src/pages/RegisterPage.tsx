@@ -4,13 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { ApiError, register } from "../lib/api";
-import { deriveKey, generateSalt } from "../lib/crypto";
+import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
 import "../styles/auth.css";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { setKey } = useEncryption();
+  const { setKey, setPassphraseHash } = useEncryption();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +50,9 @@ export default function RegisterPage() {
       }
 
       const derivedKey = await deriveKey(passphrase, salt);
+      const hash = await hashPassphrase(passphrase);
       setKey(derivedKey);
+      setPassphraseHash(hash);
       navigate("/trees");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

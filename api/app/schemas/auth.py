@@ -17,6 +17,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     encryption_salt: str
+    onboarding_safety_acknowledged: bool
 
 
 class RegisterResponse(BaseModel):

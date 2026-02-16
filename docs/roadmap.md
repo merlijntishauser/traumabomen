@@ -142,3 +142,4 @@ See [design doc](plans/2026-02-15-passkey-auth-design.md).
 - Swagger for FastAPI (dev only)
 - Rate-limiting on login
 - More debug info on email sending
+- tutorial/demo mode

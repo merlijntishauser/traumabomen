@@ -296,5 +296,31 @@
 
   "privacy.contact.heading": "Contact",
   "privacy.contact.body": "Voor privacygerelateerde vragen of om je rechten uit te oefenen, neem contact met ons op via:",
-  "privacy.contact.glance": "Vragen over privacy? Neem contact met ons op via:"
+  "privacy.contact.glance": "Vragen over privacy? Neem contact met ons op via:",
+
+  "safety.onboarding.whatThisIs": "Wat dit is",
+  "safety.onboarding.whatThisIsBody": "Traumabomen is een persoonlijk reflectie-instrument. Het is geen therapie en geen crisishulp.",
+  "safety.onboarding.whatThisMayBringUp": "Wat dit kan oproepen",
+  "safety.onboarding.whatThisMayBringUpBody": "Het verkennen van familiepatronen kan emotioneel beladen zijn. Jij bepaalt het tempo. Pauzeer of stop wanneer je wilt.",
+  "safety.onboarding.whatWeCannotSee": "Wat wij niet kunnen zien",
+  "safety.onboarding.whatWeCannotSeeBody": "Je gegevens worden versleuteld voordat ze je apparaat verlaten. De server ziet geen inhoud.",
+  "safety.onboarding.continue": "Ik begrijp het, ga verder",
+
+  "safety.footer.disclaimer": "Persoonlijk reflectie-instrument -- geen therapie",
+  "safety.footer.disclaimerShort": "Reflectie-instrument",
+  "safety.footer.support": "Hulp nodig?",
+  "safety.footer.lock": "Scherm vergrendelen",
+  "safety.footer.privacy": "Hoe privacy werkt",
+
+  "safety.lock.title": "Scherm vergrendeld",
+  "safety.lock.passphrase": "Voer je wachtwoord in om te ontgrendelen",
+  "safety.lock.wrongPassphrase": "Verkeerd wachtwoord",
+  "safety.lock.tooManyAttempts": "Te veel pogingen. Volledige herauthenticatie vereist.",
+  "safety.lock.unlock": "Ontgrendelen",
+
+  "privacy.diagram.youType": "Jij typt",
+  "privacy.diagram.encrypted": "Versleuteld in je browser",
+  "privacy.diagram.serverStores": "Server bewaart ???-blobs",
+  "privacy.diagram.technicalDetails": "Technische details",
+  "privacy.diagram.technicalBody": "Sleutelafleiding: Argon2id (geheugenintensief, 64 MB, 3 iteraties). Versleuteling: AES-256-GCM met verse willekeurige IV per bewerking. Implementatie: Web Crypto API (browser-native, geen externe bibliotheken)."
 }
