@@ -108,7 +108,7 @@ function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
   const logout = useLogout();
-  const { fitView, setCenter, getZoom } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
+  const { fitView, screenToFlowPosition } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
   const queryClient = useQueryClient();
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -147,7 +147,6 @@ function TreeWorkspaceInner() {
   const [nodes, setNodes] = useState<PersonNodeType[]>([]);
   const prevNodeIdsRef = useRef("");
   const prevNodeCountRef = useRef(0);
-  const newlyCreatedNodeRef = useRef<string | null>(null);
 
   useEffect(() => {
     const currentIds = layoutNodes
@@ -176,33 +175,14 @@ function TreeWorkspaceInner() {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
-  // Fit view when node count changes, or center on newly created node
+  // Fit view only when node count actually changes
   useEffect(() => {
     if (layoutNodes.length > 0 && layoutNodes.length !== prevNodeCountRef.current) {
       prevNodeCountRef.current = layoutNodes.length;
-
-      const newNodeId = newlyCreatedNodeRef.current;
-      if (newNodeId) {
-        newlyCreatedNodeRef.current = null;
-        const newNode = layoutNodes.find((n) => n.id === newNodeId);
-        if (newNode) {
-          // Center on new node, offset right to account for 400px detail panel
-          const timer = setTimeout(() => {
-            const zoom = getZoom();
-            const panelOffset = 200 / zoom;
-            setCenter(newNode.position.x + 90 + panelOffset, newNode.position.y + 40, {
-              zoom,
-              duration: 300,
-            });
-          }, 50);
-          return () => clearTimeout(timer);
-        }
-      }
-
       const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
       return () => clearTimeout(timer);
     }
-  }, [layoutNodes, fitView, setCenter, getZoom]);
+  }, [layoutNodes.length, fitView]);
 
   // Escape key handler
   useEffect(() => {
@@ -276,6 +256,44 @@ function TreeWorkspaceInner() {
   );
 
   function handleAddPerson() {
+    // Place new node in the visible area, offset left to leave room for the detail panel
+    const panelWidth = 400;
+    const visibleCenterX = (window.innerWidth - panelWidth) / 2;
+    const visibleCenterY = window.innerHeight / 2;
+    const flowPos = screenToFlowPosition({ x: visibleCenterX, y: visibleCenterY });
+
+    // Find a free spot near the viewport center (avoid overlapping existing nodes)
+    const nodeW = 180;
+    const nodeH = 80;
+    const step = 40;
+    let bestPos = { x: flowPos.x - nodeW / 2, y: flowPos.y - nodeH / 2 };
+
+    const overlaps = (px: number, py: number) =>
+      nodes.some(
+        (n) =>
+          px < n.position.x + nodeW &&
+          px + nodeW > n.position.x &&
+          py < n.position.y + nodeH &&
+          py + nodeH > n.position.y,
+      );
+
+    if (overlaps(bestPos.x, bestPos.y)) {
+      // Spiral outward to find free space
+      outer: for (let radius = 1; radius <= 8; radius++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          for (let dy = -radius; dy <= radius; dy++) {
+            if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+            const cx = bestPos.x + dx * step;
+            const cy = bestPos.y + dy * step;
+            if (!overlaps(cx, cy)) {
+              bestPos = { x: cx, y: cy };
+              break outer;
+            }
+          }
+        }
+      }
+    }
+
     const newPerson: Person = {
       name: t("person.newPerson"),
       birth_year: null,
@@ -283,10 +301,10 @@ function TreeWorkspaceInner() {
       gender: "other",
       is_adopted: false,
       notes: null,
+      position: bestPos,
     };
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
-        newlyCreatedNodeRef.current = response.id;
         setSelectedPersonId(response.id);
       },
     });
