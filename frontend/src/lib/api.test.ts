@@ -6,6 +6,7 @@ import {
   createClassification,
   createEvent,
   createLifeEvent,
+  createPattern,
   createPerson,
   createRelationship,
   createTree,
@@ -13,6 +14,7 @@ import {
   deleteClassification,
   deleteEvent,
   deleteLifeEvent,
+  deletePattern,
   deletePerson,
   deleteRelationship,
   deleteTree,
@@ -32,6 +34,8 @@ import {
   getIsAdmin,
   getLifeEvent,
   getLifeEvents,
+  getPattern,
+  getPatterns,
   getPerson,
   getPersons,
   getRefreshToken,
@@ -48,6 +52,7 @@ import {
   updateClassification,
   updateEvent,
   updateLifeEvent,
+  updatePattern,
   updatePerson,
   updateRelationship,
   updateSalt,
@@ -1096,5 +1101,93 @@ describe("admin functions", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/admin/stats/users");
     expect(init.method).toBe("GET");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pattern functions
+// ---------------------------------------------------------------------------
+
+describe("pattern functions", () => {
+  it("getPatterns sends GET to /trees/{treeId}/patterns", async () => {
+    setTokens("tok", "ref");
+    const patterns = [{ id: "pat1", encrypted_data: "enc", created_at: "now", updated_at: "now" }];
+    mockFetch.mockResolvedValueOnce(mockResponse(patterns));
+
+    const result = await getPatterns("tree-1");
+
+    expect(result).toEqual(patterns);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/patterns");
+    expect(init.method).toBe("GET");
+  });
+
+  it("getPattern sends GET to /trees/{treeId}/patterns/{patternId}", async () => {
+    setTokens("tok", "ref");
+    const pattern = {
+      id: "pat1",
+      encrypted_data: "enc",
+      created_at: "now",
+      updated_at: "now",
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(pattern));
+
+    const result = await getPattern("tree-1", "pat1");
+
+    expect(result).toEqual(pattern);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/patterns/pat1");
+    expect(init.method).toBe("GET");
+  });
+
+  it("createPattern sends POST to /trees/{treeId}/patterns", async () => {
+    setTokens("tok", "ref");
+    const pattern = {
+      id: "pat1",
+      encrypted_data: "enc",
+      created_at: "now",
+      updated_at: "now",
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(pattern));
+
+    const data = { encrypted_data: "enc" };
+    const result = await createPattern("tree-1", data);
+
+    expect(result).toEqual(pattern);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/patterns");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual(data);
+  });
+
+  it("updatePattern sends PUT to /trees/{treeId}/patterns/{patternId}", async () => {
+    setTokens("tok", "ref");
+    const pattern = {
+      id: "pat1",
+      encrypted_data: "updated",
+      created_at: "now",
+      updated_at: "now",
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(pattern));
+
+    const data = { encrypted_data: "updated" };
+    const result = await updatePattern("tree-1", "pat1", data);
+
+    expect(result).toEqual(pattern);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/patterns/pat1");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(init.body)).toEqual(data);
+  });
+
+  it("deletePattern sends DELETE to /trees/{treeId}/patterns/{patternId}", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await deletePattern("tree-1", "pat1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/patterns/pat1");
+    expect(init.method).toBe("DELETE");
   });
 });

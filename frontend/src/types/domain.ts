@@ -91,6 +91,18 @@ export interface Classification {
   notes: string | null;
 }
 
+export interface LinkedEntity {
+  entity_type: "trauma_event" | "life_event" | "classification";
+  entity_id: string;
+}
+
+export interface Pattern {
+  name: string;
+  description: string;
+  color: string;
+  linked_entities: LinkedEntity[];
+}
+
 export interface EncryptedBlob {
   iv: string;
   ciphertext: string;

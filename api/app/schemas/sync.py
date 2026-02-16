@@ -7,6 +7,8 @@ from app.schemas.tree import (
     ClassificationUpdate,
     EventCreate,
     EventUpdate,
+    PatternCreate,
+    PatternUpdate,
     PersonCreate,
     PersonUpdate,
     RelationshipCreate,
@@ -50,6 +52,14 @@ class SyncClassificationUpdate(ClassificationUpdate):
     id: uuid.UUID
 
 
+class SyncPatternCreate(PatternCreate):
+    id: uuid.UUID | None = None
+
+
+class SyncPatternUpdate(PatternUpdate):
+    id: uuid.UUID
+
+
 class SyncRequest(BaseModel):
     persons_create: list[SyncPersonCreate] = []
     persons_update: list[SyncPersonUpdate] = []
@@ -63,6 +73,9 @@ class SyncRequest(BaseModel):
     classifications_create: list[SyncClassificationCreate] = []
     classifications_update: list[SyncClassificationUpdate] = []
     classifications_delete: list[SyncDelete] = []
+    patterns_create: list[SyncPatternCreate] = []
+    patterns_update: list[SyncPatternUpdate] = []
+    patterns_delete: list[SyncDelete] = []
 
 
 class SyncResponse(BaseModel):
@@ -70,11 +83,14 @@ class SyncResponse(BaseModel):
     relationships_created: list[uuid.UUID] = []
     events_created: list[uuid.UUID] = []
     classifications_created: list[uuid.UUID] = []
+    patterns_created: list[uuid.UUID] = []
     persons_updated: int = 0
     relationships_updated: int = 0
     events_updated: int = 0
     classifications_updated: int = 0
+    patterns_updated: int = 0
     persons_deleted: int = 0
     relationships_deleted: int = 0
     events_deleted: int = 0
     classifications_deleted: int = 0
+    patterns_deleted: int = 0

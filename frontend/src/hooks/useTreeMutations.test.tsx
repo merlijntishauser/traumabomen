@@ -176,7 +176,7 @@ describe("person mutations", () => {
     expect(mockedApi.deletePerson).toHaveBeenCalledWith(TREE_ID, "p-1");
   });
 
-  it("deletePerson invalidates 5 query keys on success", async () => {
+  it("deletePerson invalidates 6 query keys on success", async () => {
     mockedApi.deletePerson.mockResolvedValue(undefined);
 
     const wrapper = createWrapper();
@@ -203,8 +203,11 @@ describe("person mutations", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "classifications"],
     });
-    // Exactly 5 invalidation calls
-    expect(invalidateSpy).toHaveBeenCalledTimes(5);
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "patterns"],
+    });
+    // Exactly 6 invalidation calls
+    expect(invalidateSpy).toHaveBeenCalledTimes(6);
   });
 });
 
@@ -1075,6 +1078,128 @@ describe("classification mutations", () => {
 
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "classifications"],
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Patterns
+// ---------------------------------------------------------------------------
+describe("pattern mutations", () => {
+  const patternData = {
+    name: "Test Pattern",
+    description: "desc",
+    color: "#818cf8",
+    linked_entities: [{ entity_type: "trauma_event" as const, entity_id: "e-1" }],
+  };
+
+  it("createPattern encrypts data then calls api.createPattern", async () => {
+    mockedApi.createPattern.mockResolvedValue({
+      id: "pat-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.createPattern.mutateAsync({
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(patternData);
+    expect(mockedApi.createPattern).toHaveBeenCalledWith(TREE_ID, {
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("createPattern invalidates patterns query key on success", async () => {
+    mockedApi.createPattern.mockResolvedValue({
+      id: "pat-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.createPattern.mutateAsync({
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "patterns"],
+    });
+  });
+
+  it("updatePattern encrypts data then calls api.updatePattern", async () => {
+    mockedApi.updatePattern.mockResolvedValue({
+      id: "pat-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.updatePattern.mutateAsync({
+        patternId: "pat-1",
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(patternData);
+    expect(mockedApi.updatePattern).toHaveBeenCalledWith(TREE_ID, "pat-1", {
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("deletePattern calls api.deletePattern without encryption", async () => {
+    mockedApi.deletePattern.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.deletePattern.mutateAsync("pat-1");
+    });
+
+    expect(mockEncrypt).not.toHaveBeenCalled();
+    expect(mockedApi.deletePattern).toHaveBeenCalledWith(TREE_ID, "pat-1");
+  });
+
+  it("deletePattern invalidates patterns query key on success", async () => {
+    mockedApi.deletePattern.mockResolvedValue(undefined);
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.deletePattern.mutateAsync("pat-1");
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "patterns"],
     });
   });
 });

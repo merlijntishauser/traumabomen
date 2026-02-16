@@ -4,6 +4,7 @@ import {
   getClassifications,
   getEvents,
   getLifeEvents,
+  getPatterns,
   getPersons,
   getRelationships,
   getTree,
@@ -11,6 +12,7 @@ import {
 import type {
   Classification,
   LifeEvent,
+  Pattern,
   Person,
   RelationshipData,
   TraumaEvent,
@@ -41,6 +43,11 @@ export interface DecryptedClassification extends Classification {
   person_ids: string[];
 }
 
+export interface DecryptedPattern extends Pattern {
+  id: string;
+  person_ids: string[];
+}
+
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
@@ -48,6 +55,7 @@ export const treeQueryKeys = {
   events: (treeId: string) => ["trees", treeId, "events"] as const,
   lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
   classifications: (treeId: string) => ["trees", treeId, "classifications"] as const,
+  patterns: (treeId: string) => ["trees", treeId, "patterns"] as const,
 };
 
 const EMPTY_PERSONS = new Map<string, DecryptedPerson>();
@@ -55,6 +63,7 @@ const EMPTY_RELATIONSHIPS = new Map<string, DecryptedRelationship>();
 const EMPTY_EVENTS = new Map<string, DecryptedEvent>();
 const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
 const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
+const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
 
 export function useTreeData(treeId: string) {
   const { decrypt } = useEncryption();
@@ -152,6 +161,23 @@ export function useTreeData(treeId: string) {
     },
   });
 
+  const patternsQuery = useQuery({
+    queryKey: treeQueryKeys.patterns(treeId),
+    queryFn: async () => {
+      const responses = await getPatterns(treeId);
+      const entries = await Promise.all(
+        responses.map(async (r) => {
+          const data = await decrypt<Pattern>(r.encrypted_data);
+          return [
+            r.id,
+            { ...data, id: r.id, person_ids: r.person_ids } as DecryptedPattern,
+          ] as const;
+        }),
+      );
+      return new Map(entries);
+    },
+  });
+
   return {
     treeName: treeQuery.data ?? null,
     persons: personsQuery.data ?? EMPTY_PERSONS,
@@ -159,17 +185,20 @@ export function useTreeData(treeId: string) {
     events: eventsQuery.data ?? EMPTY_EVENTS,
     lifeEvents: lifeEventsQuery.data ?? EMPTY_LIFE_EVENTS,
     classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
+    patterns: patternsQuery.data ?? EMPTY_PATTERNS,
     isLoading:
       personsQuery.isLoading ||
       relationshipsQuery.isLoading ||
       eventsQuery.isLoading ||
       lifeEventsQuery.isLoading ||
-      classificationsQuery.isLoading,
+      classificationsQuery.isLoading ||
+      patternsQuery.isLoading,
     error:
       personsQuery.error ||
       relationshipsQuery.error ||
       eventsQuery.error ||
       lifeEventsQuery.error ||
-      classificationsQuery.error,
+      classificationsQuery.error ||
+      patternsQuery.error,
   };
 }

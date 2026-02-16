@@ -167,6 +167,25 @@ export interface ClassificationResponse {
   updated_at: string;
 }
 
+// Patterns
+export interface PatternCreate {
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface PatternUpdate {
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
+export interface PatternResponse {
+  id: string;
+  person_ids: string[];
+  encrypted_data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Admin stats
 export interface PeriodCounts {
   day: number;
@@ -299,6 +318,18 @@ export interface SyncClassificationUpdate {
   encrypted_data?: string;
 }
 
+export interface SyncPatternCreate {
+  id?: string;
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface SyncPatternUpdate {
+  id: string;
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
 export interface SyncDelete {
   id: string;
 }
@@ -316,6 +347,9 @@ export interface SyncRequest {
   classifications_create?: SyncClassificationCreate[];
   classifications_update?: SyncClassificationUpdate[];
   classifications_delete?: SyncDelete[];
+  patterns_create?: SyncPatternCreate[];
+  patterns_update?: SyncPatternUpdate[];
+  patterns_delete?: SyncDelete[];
 }
 
 export interface SyncResponse {
@@ -323,12 +357,15 @@ export interface SyncResponse {
   relationships_created: string[];
   events_created: string[];
   classifications_created: string[];
+  patterns_created: string[];
   persons_updated: number;
   relationships_updated: number;
   events_updated: number;
   classifications_updated: number;
+  patterns_updated: number;
   persons_deleted: number;
   relationships_deleted: number;
   events_deleted: number;
   classifications_deleted: number;
+  patterns_deleted: number;
 }

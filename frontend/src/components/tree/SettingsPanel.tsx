@@ -12,11 +12,13 @@ import {
   getEncryptionSalt,
   getEvents,
   getLifeEvents,
+  getPatterns,
   getPersons,
   getRelationships,
   getTrees,
   syncTree,
   updateClassification,
+  updatePattern,
   updateSalt,
 } from "../../lib/api";
 import {
@@ -160,13 +162,15 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
         const newTreeEncrypted = await encryptForApi(treeData, newKey);
 
         // Fetch all entities for this tree
-        const [persons, relationships, events, lifeEvents, classifications] = await Promise.all([
-          getPersons(tree.id),
-          getRelationships(tree.id),
-          getEvents(tree.id),
-          getLifeEvents(tree.id),
-          getClassifications(tree.id),
-        ]);
+        const [persons, relationships, events, lifeEvents, classifications, patterns] =
+          await Promise.all([
+            getPersons(tree.id),
+            getRelationships(tree.id),
+            getEvents(tree.id),
+            getLifeEvents(tree.id),
+            getClassifications(tree.id),
+            getPatterns(tree.id),
+          ]);
 
         // Re-encrypt persons
         const personsUpdate = await Promise.all(
@@ -235,6 +239,16 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
           const enc = await encryptForApi(data, newKey);
           await updateClassification(tree.id, cls.id, {
             person_ids: cls.person_ids,
+            encrypted_data: enc,
+          });
+        }
+
+        // Update patterns individually
+        for (const pat of patterns) {
+          const data = await decryptFromApi(pat.encrypted_data, oldKey);
+          const enc = await encryptForApi(data, newKey);
+          await updatePattern(tree.id, pat.id, {
+            person_ids: pat.person_ids,
             encrypted_data: enc,
           });
         }

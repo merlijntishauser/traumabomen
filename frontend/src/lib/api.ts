@@ -15,6 +15,9 @@ import type {
   LifeEventUpdate,
   LoginRequest,
   OverviewStats,
+  PatternCreate,
+  PatternResponse,
+  PatternUpdate,
   PersonCreate,
   PersonResponse,
   PersonUpdate,
@@ -443,6 +446,40 @@ export function updateClassification(
 
 export function deleteClassification(treeId: string, classificationId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`, {
+    method: "DELETE",
+  });
+}
+
+// Patterns
+
+export function getPatterns(treeId: string): Promise<PatternResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/patterns`);
+}
+
+export function getPattern(treeId: string, patternId: string): Promise<PatternResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`);
+}
+
+export function createPattern(treeId: string, data: PatternCreate): Promise<PatternResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/patterns`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export function updatePattern(
+  treeId: string,
+  patternId: string,
+  data: PatternUpdate,
+): Promise<PatternResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+export function deletePattern(treeId: string, patternId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`, {
     method: "DELETE",
   });
 }

@@ -4,27 +4,36 @@ import {
   createClassification,
   createEvent,
   createLifeEvent,
+  createPattern,
   createPerson,
   createRelationship,
   deleteClassification,
   deleteEvent,
   deleteLifeEvent,
+  deletePattern,
   deletePerson,
   deleteRelationship,
   updateClassification,
   updateEvent,
   updateLifeEvent,
+  updatePattern,
   updatePerson,
   updateRelationship,
 } from "../lib/api";
 import type {
   Classification,
   LifeEvent,
+  Pattern,
   Person,
   RelationshipData,
   TraumaEvent,
 } from "../types/domain";
-import type { DecryptedClassification, DecryptedEvent, DecryptedLifeEvent } from "./useTreeData";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPattern,
+} from "./useTreeData";
 import { treeQueryKeys } from "./useTreeData";
 
 export function useTreeMutations(treeId: string) {
@@ -74,6 +83,9 @@ export function useTreeMutations(treeId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.classifications(treeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.patterns(treeId),
       });
     },
   });
@@ -329,6 +341,72 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const createPatternMutation = useMutation({
+    mutationFn: async ({ personIds, data }: { personIds: string[]; data: Pattern }) => {
+      const encrypted_data = await encrypt(data);
+      return createPattern(treeId, { person_ids: personIds, encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.patterns(treeId),
+      });
+    },
+  });
+
+  const updatePatternMutation = useMutation({
+    mutationFn: async ({
+      patternId,
+      personIds,
+      data,
+    }: {
+      patternId: string;
+      personIds: string[];
+      data: Pattern;
+    }) => {
+      const encrypted_data = await encrypt(data);
+      return updatePattern(treeId, patternId, {
+        person_ids: personIds,
+        encrypted_data,
+      });
+    },
+    onMutate: async ({ patternId, personIds, data }) => {
+      await queryClient.cancelQueries({ queryKey: treeQueryKeys.patterns(treeId) });
+      const previous = queryClient.getQueryData<Map<string, DecryptedPattern>>(
+        treeQueryKeys.patterns(treeId),
+      );
+      if (previous) {
+        const updated = new Map(previous);
+        const existing = updated.get(patternId);
+        if (existing) {
+          updated.set(patternId, { ...existing, ...data, person_ids: personIds });
+        }
+        queryClient.setQueryData(treeQueryKeys.patterns(treeId), updated);
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(treeQueryKeys.patterns(treeId), context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.patterns(treeId),
+      });
+    },
+  });
+
+  const deletePatternMutation = useMutation({
+    mutationFn: async (patternId: string) => {
+      return deletePattern(treeId, patternId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.patterns(treeId),
+      });
+    },
+  });
+
   return {
     createPerson: createPersonMutation,
     updatePerson: updatePersonMutation,
@@ -345,5 +423,8 @@ export function useTreeMutations(treeId: string) {
     createClassification: createClassificationMutation,
     updateClassification: updateClassificationMutation,
     deleteClassification: deleteClassificationMutation,
+    createPattern: createPatternMutation,
+    updatePattern: updatePatternMutation,
+    deletePattern: deletePatternMutation,
   };
 }

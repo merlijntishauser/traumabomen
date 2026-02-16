@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { TimelineView } from "../components/timeline/TimelineView";
+import { PatternView } from "../components/PatternView";
 import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useLogout } from "../hooks/useLogout";
@@ -9,21 +9,13 @@ import { useTreeId } from "../hooks/useTreeId";
 import { uuidToCompact } from "../lib/compactId";
 import "../components/tree/TreeCanvas.css";
 
-export default function TimelinePage() {
+export default function PatternPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
   const logout = useLogout();
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
-  const {
-    treeName,
-    persons,
-    relationships,
-    events,
-    lifeEvents,
-    classifications,
-    isLoading,
-    error,
-  } = useTreeData(treeId!);
+  const { treeName, patterns, events, lifeEvents, classifications, persons, isLoading, error } =
+    useTreeData(treeId!);
 
   if (error) {
     return (
@@ -68,9 +60,9 @@ export default function TimelinePage() {
             </svg>
           </Link>
           <Link
-            to={`/trees/${uuidToCompact(treeId!)}/patterns`}
+            to={`/trees/${uuidToCompact(treeId!)}/timeline`}
             className="tree-toolbar__icon-btn"
-            aria-label={t("pattern.patterns")}
+            aria-label={t("tree.timeline")}
           >
             <svg
               width="16"
@@ -82,12 +74,9 @@ export default function TimelinePage() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <circle cx="6" cy="6" r="3" />
-              <circle cx="18" cy="6" r="3" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="18" r="3" />
-              <line x1="8.5" y1="7.5" x2="15.5" y2="16.5" />
-              <line x1="15.5" y1="7.5" x2="8.5" y2="16.5" />
+              <circle cx="12" cy="12" r="7" />
+              <polyline points="12 9 12 12 13.5 13.5" />
+              <path d="M16.51 17.35l-.35 3.83a2 2 0 01-2 1.82H9.83a2 2 0 01-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 019.83 1h4.35a2 2 0 012 1.82l.35 3.83" />
             </svg>
           </Link>
           <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
@@ -142,12 +131,13 @@ export default function TimelinePage() {
       {isLoading ? (
         <div style={{ padding: 20 }}>{t("common.loading")}</div>
       ) : (
-        <TimelineView
-          persons={persons}
-          relationships={relationships}
+        <PatternView
+          treeId={treeId!}
+          patterns={patterns}
           events={events}
           lifeEvents={lifeEvents}
           classifications={classifications}
+          persons={persons}
         />
       )}
     </div>

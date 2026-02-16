@@ -15,6 +15,8 @@ import { Link } from "react-router-dom";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { BranchDecoration } from "../components/BranchDecoration";
+import { PatternConnectors } from "../components/tree/PatternConnectors";
+import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
@@ -33,6 +35,7 @@ import { inferSiblings } from "../lib/inferSiblings";
 import type {
   Classification,
   LifeEvent,
+  Pattern,
   Person,
   RelationshipData,
   TraumaEvent,
@@ -160,6 +163,8 @@ function TreeWorkspaceInner() {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
+  const [patternPanelOpen, setPatternPanelOpen] = useState(false);
+  const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(new Set());
 
   const {
     treeName,
@@ -168,6 +173,7 @@ function TreeWorkspaceInner() {
     events,
     lifeEvents,
     classifications,
+    patterns,
     isLoading,
     error,
   } = useTreeData(treeId!);
@@ -237,6 +243,7 @@ function TreeWorkspaceInner() {
         setSelectedPersonId(null);
         setSelectedEdgeId(null);
         setPendingConnection(null);
+        setPatternPanelOpen(false);
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -404,6 +411,30 @@ function TreeWorkspaceInner() {
     mutations.deleteClassification.mutate(classificationId);
   }
 
+  function handleSavePattern(patternId: string | null, data: Pattern, personIds: string[]) {
+    if (patternId) {
+      mutations.updatePattern.mutate({ patternId, personIds, data });
+    } else {
+      mutations.createPattern.mutate({ personIds, data });
+    }
+  }
+
+  function handleDeletePattern(patternId: string) {
+    mutations.deletePattern.mutate(patternId);
+  }
+
+  function handleTogglePatternVisibility(patternId: string) {
+    setVisiblePatternIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(patternId)) {
+        next.delete(patternId);
+      } else {
+        next.add(patternId);
+      }
+      return next;
+    });
+  }
+
   const hasPinnedNodes = Array.from(persons.values()).some((p) => p.position);
 
   function handleAutoLayout() {
@@ -524,6 +555,51 @@ function TreeWorkspaceInner() {
               <path d="M16.51 17.35l-.35 3.83a2 2 0 01-2 1.82H9.83a2 2 0 01-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 019.83 1h4.35a2 2 0 012 1.82l.35 3.83" />
             </svg>
           </Link>
+          <Link
+            to={`/trees/${uuidToCompact(treeId!)}/patterns`}
+            className="tree-toolbar__icon-btn"
+            aria-label={t("pattern.patterns")}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="6" cy="6" r="3" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="18" r="3" />
+              <line x1="8.5" y1="7.5" x2="15.5" y2="16.5" />
+              <line x1="15.5" y1="7.5" x2="8.5" y2="16.5" />
+            </svg>
+          </Link>
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={() => setPatternPanelOpen((v) => !v)}
+            aria-label={t("pattern.patterns")}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+              <circle cx="8" cy="6" r="1.5" fill="currentColor" />
+              <circle cx="16" cy="12" r="1.5" fill="currentColor" />
+              <circle cx="10" cy="18" r="1.5" fill="currentColor" />
+            </svg>
+          </button>
           <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
             <svg
               width="16"
@@ -578,27 +654,34 @@ function TreeWorkspaceInner() {
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>
         ) : (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodesChange={onNodesChange}
-            onNodeClick={onNodeClick}
-            onNodeDragStop={handleNodeDragStop}
-            onPaneClick={onPaneClick}
-            onEdgeClick={onEdgeClick}
-            onConnect={onConnect}
-            snapToGrid={canvasSettings.snapToGrid}
-            snapGrid={[20, 20]}
-            nodeDragThreshold={5}
-            fitView
-            deleteKeyCode={null}
-            proOptions={{ hideAttribution: true }}
-          >
-            {canvasSettings.showGrid && <Background gap={20} />}
-            {canvasSettings.showMinimap && <MiniMap />}
-          </ReactFlow>
+          <>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange}
+              onNodeClick={onNodeClick}
+              onNodeDragStop={handleNodeDragStop}
+              onPaneClick={onPaneClick}
+              onEdgeClick={onEdgeClick}
+              onConnect={onConnect}
+              snapToGrid={canvasSettings.snapToGrid}
+              snapGrid={[20, 20]}
+              nodeDragThreshold={5}
+              fitView
+              deleteKeyCode={null}
+              proOptions={{ hideAttribution: true }}
+            >
+              {canvasSettings.showGrid && <Background gap={20} />}
+              {canvasSettings.showMinimap && <MiniMap />}
+            </ReactFlow>
+            <PatternConnectors
+              patterns={patterns}
+              visiblePatternIds={visiblePatternIds}
+              onPatternClick={() => setPatternPanelOpen(true)}
+            />
+          </>
         )}
 
         {selectedPerson && (
@@ -630,6 +713,21 @@ function TreeWorkspaceInner() {
             onSaveRelationship={handleSaveRelationship}
             onDeleteRelationship={handleDeleteRelationship}
             onClose={() => setSelectedEdgeId(null)}
+          />
+        )}
+
+        {patternPanelOpen && (
+          <PatternPanel
+            patterns={patterns}
+            events={events}
+            lifeEvents={lifeEvents}
+            classifications={classifications}
+            persons={persons}
+            visiblePatternIds={visiblePatternIds}
+            onToggleVisibility={handleTogglePatternVisibility}
+            onSave={handleSavePattern}
+            onDelete={handleDeletePattern}
+            onClose={() => setPatternPanelOpen(false)}
           />
         )}
       </div>

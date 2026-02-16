@@ -11,6 +11,7 @@ import { getAccessToken, getIsAdmin, getOnboardingFlag } from "./lib/api";
 import "./components/MobileBanner.css";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
+import PatternPage from "./pages/PatternPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
 import TimelinePage from "./pages/TimelinePage";
@@ -114,6 +115,14 @@ function AppContent() {
               element={
                 <AuthGuard>
                   <TimelinePage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/trees/:id/patterns"
+              element={
+                <AuthGuard>
+                  <PatternPage />
                 </AuthGuard>
               }
             />

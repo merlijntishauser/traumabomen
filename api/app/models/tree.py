@@ -37,3 +37,6 @@ class Tree(Base):
     classifications: Mapped[list[Classification]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    patterns: Mapped[list[Pattern]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )

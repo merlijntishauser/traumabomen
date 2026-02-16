@@ -19,11 +19,13 @@ const mockGetEncryptionSalt = vi.fn();
 const mockGetClassifications = vi.fn();
 const mockGetEvents = vi.fn();
 const mockGetLifeEvents = vi.fn();
+const mockGetPatterns = vi.fn();
 const mockGetPersons = vi.fn();
 const mockGetRelationships = vi.fn();
 const mockGetTrees = vi.fn();
 const mockSyncTree = vi.fn();
 const mockUpdateClassification = vi.fn();
+const mockUpdatePattern = vi.fn();
 const mockUpdateSalt = vi.fn();
 
 vi.mock("../../lib/api", () => ({
@@ -33,11 +35,13 @@ vi.mock("../../lib/api", () => ({
   getClassifications: (...args: unknown[]) => mockGetClassifications(...args),
   getEvents: (...args: unknown[]) => mockGetEvents(...args),
   getLifeEvents: (...args: unknown[]) => mockGetLifeEvents(...args),
+  getPatterns: (...args: unknown[]) => mockGetPatterns(...args),
   getPersons: (...args: unknown[]) => mockGetPersons(...args),
   getRelationships: (...args: unknown[]) => mockGetRelationships(...args),
   getTrees: (...args: unknown[]) => mockGetTrees(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
   updateClassification: (...args: unknown[]) => mockUpdateClassification(...args),
+  updatePattern: (...args: unknown[]) => mockUpdatePattern(...args),
   updateSalt: (...args: unknown[]) => mockUpdateSalt(...args),
   updateTree: vi.fn(),
   updateLifeEvent: vi.fn(),
@@ -676,6 +680,7 @@ describe("SettingsPanel", () => {
       mockGetEvents.mockResolvedValue([]);
       mockGetLifeEvents.mockResolvedValue([]);
       mockGetClassifications.mockResolvedValue([]);
+      mockGetPatterns.mockResolvedValue([]);
       mockSyncTree.mockResolvedValue(undefined);
       mockUpdateSalt.mockResolvedValue(undefined);
 
@@ -714,6 +719,7 @@ describe("SettingsPanel", () => {
       mockDeriveKey.mockResolvedValue({} as CryptoKey);
       mockGenerateSalt.mockReturnValue("newsalt");
       mockGetTrees.mockResolvedValue([]);
+      mockGetPatterns.mockResolvedValue([]);
       mockUpdateSalt.mockResolvedValue(undefined);
 
       renderPanel();
@@ -748,6 +754,7 @@ describe("SettingsPanel", () => {
       mockDeriveKey.mockResolvedValue({} as CryptoKey);
       mockGenerateSalt.mockReturnValue("newsalt");
       mockGetTrees.mockResolvedValue([]);
+      mockGetPatterns.mockResolvedValue([]);
       mockUpdateSalt.mockResolvedValue(undefined);
 
       renderPanel();
