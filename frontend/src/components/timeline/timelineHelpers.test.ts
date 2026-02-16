@@ -345,7 +345,14 @@ function mockSelection() {
   }> = [];
   let current: (typeof appended)[number] | null = null;
 
-  const sel: any = {
+  interface MockSel {
+    append(tag: string): MockSel;
+    attr(key: string, value: unknown): MockSel;
+    style(key: string, value: unknown): MockSel;
+    on(event: string, handler: (...args: never[]) => unknown): MockSel;
+  }
+
+  const sel: MockSel = {
     append(tag: string) {
       current = { tag, attrs: {}, styles: {}, handlers: {} };
       appended.push(current);
@@ -381,8 +388,8 @@ type MockElement = {
 function makeCtx(rows: PersonRow[]): TimelineRenderContext & { appended: MockElement[] } {
   const { sel, appended } = mockSelection();
   return {
-    timeGroup: sel,
-    scale: ((v: number) => v * 10) as any,
+    timeGroup: sel as unknown as TimelineRenderContext["timeGroup"],
+    scale: ((v: number) => v * 10) as unknown as TimelineRenderContext["scale"],
     rows,
     tooltip: document.createElement("div"),
     cssVar: (name: string) => name,

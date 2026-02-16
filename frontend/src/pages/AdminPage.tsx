@@ -331,9 +331,9 @@ export default function AdminPage() {
                     <tr>
                       <th>Cohort</th>
                       <th>Users</th>
-                      {/* biome-ignore lint/suspicious/noArrayIndexKey: static week columns never reorder */}
                       {Array.from({ length: maxWeeks }, (_, i) => (
-                        <th key={i}>W{i}</th>
+                        // biome-ignore lint/suspicious/noArrayIndexKey: static week columns never reorder
+                        <th key={`w${i}`}>W{i}</th>
                       ))}
                     </tr>
                   </thead>

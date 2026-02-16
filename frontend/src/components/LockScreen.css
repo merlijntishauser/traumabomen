@@ -11,8 +11,8 @@
   -webkit-backdrop-filter: blur(20px);
 
   /* Dark mode: moonlit forest canopy */
+  /* Scattered canopy leaves - small organic dots */
   background:
-    /* Scattered canopy leaves - small organic dots */
     radial-gradient(1.5px 2px at 12% 8%, rgba(45, 138, 94, 0.15) 50%, transparent 50%),
     radial-gradient(2px 1.5px at 28% 15%, rgba(45, 138, 94, 0.1) 50%, transparent 50%),
     radial-gradient(1px 2px at 45% 5%, rgba(90, 122, 100, 0.12) 50%, transparent 50%),
@@ -31,8 +31,8 @@
 
 /* Light mode: morning mist through birch branches */
 [data-theme="light"] .lock-screen {
+  /* Dappled light - soft warm spots filtering through */
   background:
-    /* Dappled light - soft warm spots filtering through */
     radial-gradient(3px 3px at 18% 12%, rgba(45, 138, 94, 0.06) 50%, transparent 50%),
     radial-gradient(2px 3px at 38% 8%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
     radial-gradient(3px 2px at 58% 15%, rgba(45, 138, 94, 0.05) 50%, transparent 50%),

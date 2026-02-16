@@ -21,6 +21,7 @@ interface PatternViewProps {
 }
 
 interface EntityDisplay {
+  id: string;
   type: "trauma" | "life" | "classification";
   label: string;
   personName: string;
@@ -38,16 +39,17 @@ function getEntityDisplays(
     if (le.entity_type === "trauma_event") {
       const ev = events.get(le.entity_id);
       const personName = ev?.person_ids[0] ? (persons.get(ev.person_ids[0])?.name ?? "") : "";
-      return { type: "trauma" as const, label: ev?.title ?? "?", personName };
+      return { id: le.entity_id, type: "trauma" as const, label: ev?.title ?? "?", personName };
     }
     if (le.entity_type === "life_event") {
       const ev = lifeEvents.get(le.entity_id);
       const personName = ev?.person_ids[0] ? (persons.get(ev.person_ids[0])?.name ?? "") : "";
-      return { type: "life" as const, label: ev?.title ?? "?", personName };
+      return { id: le.entity_id, type: "life" as const, label: ev?.title ?? "?", personName };
     }
     const cls = classifications.get(le.entity_id);
     const personName = cls?.person_ids[0] ? (persons.get(cls.person_ids[0])?.name ?? "") : "";
     return {
+      id: le.entity_id,
       type: "classification" as const,
       label: cls ? t(`dsm.${cls.dsm_category}`) : "?",
       personName,
@@ -149,7 +151,7 @@ export function PatternView({
               {displays.length > 0 && (
                 <div className="pattern-view__card-entities">
                   {displays.slice(0, MAX_CARD_ENTITIES).map((d) => (
-                    <div key={`${d.type}:${d.label}`} className="pattern-view__card-entity">
+                    <div key={d.id} className="pattern-view__card-entity">
                       <div
                         className={`pattern-view__card-entity-dot pattern-view__card-entity-dot--${d.type}`}
                       />
@@ -214,7 +216,7 @@ function PatternDetail({
 
       <div className="pattern-view__detail-entities">
         {displays.map((d) => (
-          <div key={`${d.type}:${d.label}`} className="pattern-view__detail-entity">
+          <div key={d.id} className="pattern-view__detail-entity">
             <div
               className={`pattern-view__card-entity-dot pattern-view__card-entity-dot--${d.type}`}
             />

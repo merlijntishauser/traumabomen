@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { EdgeProps } from "@xyflow/react";
 import { describe, expect, it, type Mock, vi } from "vitest";
+import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
 import { RelationshipType } from "../../types/domain";
 import { RelationshipEdge } from "./RelationshipEdge";
 
@@ -53,7 +55,7 @@ describe("RelationshipEdge", () => {
   it("renders BaseEdge for normal (non-fork) edges", () => {
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(baseProps() as any)} />
+        <RelationshipEdge {...(baseProps() as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -73,7 +75,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -115,7 +117,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -139,7 +141,7 @@ describe("RelationshipEdge", () => {
 
     render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -177,7 +179,7 @@ describe("RelationshipEdge", () => {
 
     render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -191,7 +193,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -242,7 +244,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -273,7 +275,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -304,7 +306,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -330,7 +332,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -351,7 +353,7 @@ describe("RelationshipEdge", () => {
 
     render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -378,7 +380,7 @@ describe("RelationshipEdge", () => {
 
     render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 
@@ -408,7 +410,7 @@ describe("RelationshipEdge", () => {
 
     const { container } = render(
       <svg>
-        <RelationshipEdge {...(props as any)} />
+        <RelationshipEdge {...(props as EdgeProps<RelationshipEdgeData>)} />
       </svg>,
     );
 

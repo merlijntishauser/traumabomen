@@ -297,8 +297,8 @@
   color: var(--color-text-secondary);
 }
 
-.admin-users-table__email {
-  color: var(--color-text-primary) !important;
+.admin-users-table td.admin-users-table__email {
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 

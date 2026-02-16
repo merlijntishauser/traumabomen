@@ -157,11 +157,11 @@ describe("PatternView", () => {
   it("shows entity summaries on card, max 4 visible", () => {
     const manyEntities = [
       { entity_type: "trauma_event" as const, entity_id: "e1" },
-      { entity_type: "trauma_event" as const, entity_id: "e1" },
-      { entity_type: "trauma_event" as const, entity_id: "e1" },
-      { entity_type: "trauma_event" as const, entity_id: "e1" },
-      { entity_type: "trauma_event" as const, entity_id: "e1" },
-      { entity_type: "trauma_event" as const, entity_id: "e1" },
+      { entity_type: "trauma_event" as const, entity_id: "e2" },
+      { entity_type: "trauma_event" as const, entity_id: "e3" },
+      { entity_type: "trauma_event" as const, entity_id: "e4" },
+      { entity_type: "trauma_event" as const, entity_id: "e5" },
+      { entity_type: "trauma_event" as const, entity_id: "e6" },
     ];
     const pattern = makePattern({ linked_entities: manyEntities });
     const props = {
@@ -207,10 +207,10 @@ describe("PatternView", () => {
     const pattern = makePattern({
       linked_entities: [
         { entity_type: "trauma_event", entity_id: "e1" },
-        { entity_type: "trauma_event", entity_id: "e1" },
-        { entity_type: "trauma_event", entity_id: "e1" },
-        { entity_type: "trauma_event", entity_id: "e1" },
-        { entity_type: "trauma_event", entity_id: "e1" },
+        { entity_type: "trauma_event", entity_id: "e2" },
+        { entity_type: "trauma_event", entity_id: "e3" },
+        { entity_type: "trauma_event", entity_id: "e4" },
+        { entity_type: "trauma_event", entity_id: "e5" },
       ],
     });
     const props = {
