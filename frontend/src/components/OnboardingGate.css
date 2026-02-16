@@ -1,0 +1,105 @@
+/* Onboarding safety gate -- fullscreen overlay */
+
+.onboarding-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary);
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.onboarding-gate__card {
+  max-width: 540px;
+  width: 100%;
+  padding: 40px 32px 36px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.onboarding-gate__title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.onboarding-gate__block {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.onboarding-gate__block:last-of-type {
+  border-bottom: none;
+  margin-bottom: 28px;
+  padding-bottom: 0;
+}
+
+.onboarding-gate__block-title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+
+.onboarding-gate__block-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.onboarding-gate__privacy-link {
+  display: inline;
+  font-size: 14px;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.onboarding-gate__privacy-link:hover {
+  color: var(--color-accent-hover);
+}
+
+.onboarding-gate__continue {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.onboarding-gate__continue:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.onboarding-gate__continue:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .onboarding-gate {
+    padding: 16px;
+    align-items: flex-start;
+    padding-top: 48px;
+  }
+
+  .onboarding-gate__card {
+    padding: 28px 20px 24px;
+  }
+}

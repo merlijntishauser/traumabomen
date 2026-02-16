@@ -15,6 +15,7 @@ export interface TokenResponse {
   refresh_token: string;
   token_type: string;
   encryption_salt: string;
+  onboarding_safety_acknowledged: boolean;
 }
 
 export interface RegisterResponse {

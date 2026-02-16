@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { decrypt, decryptFromApi, encrypt, encryptForApi, generateSalt } from "./crypto";
+import {
+  decrypt,
+  decryptFromApi,
+  encrypt,
+  encryptForApi,
+  generateSalt,
+  hashPassphrase,
+} from "./crypto";
 
 async function createTestKey(): Promise<CryptoKey> {
   const rawKey = crypto.getRandomValues(new Uint8Array(32));
@@ -104,5 +111,28 @@ describe("encryptForApi / decryptFromApi", () => {
     parsed.ciphertext = "corrupted_data_here";
     const corrupted = JSON.stringify(parsed);
     await expect(decryptFromApi(corrupted, key)).rejects.toThrow();
+  });
+});
+
+describe("hashPassphrase", () => {
+  it("returns a base64 string", async () => {
+    const hash = await hashPassphrase("test-passphrase");
+    expect(typeof hash).toBe("string");
+    expect(hash.length).toBeGreaterThan(0);
+    // Verify it's valid base64 by decoding
+    const bytes = Uint8Array.from(atob(hash), (c) => c.charCodeAt(0));
+    expect(bytes.length).toBe(32); // SHA-256 produces 32 bytes
+  });
+
+  it("returns same hash for same input", async () => {
+    const hash1 = await hashPassphrase("deterministic");
+    const hash2 = await hashPassphrase("deterministic");
+    expect(hash1).toBe(hash2);
+  });
+
+  it("returns different hash for different input", async () => {
+    const hash1 = await hashPassphrase("passphrase-one");
+    const hash2 = await hashPassphrase("passphrase-two");
+    expect(hash1).not.toBe(hash2);
   });
 });

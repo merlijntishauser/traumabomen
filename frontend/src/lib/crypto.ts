@@ -92,6 +92,12 @@ export async function decrypt(blob: EncryptedBlob, key: CryptoKey): Promise<stri
   }
 }
 
+export async function hashPassphrase(passphrase: string): Promise<string> {
+  const encoded = new TextEncoder().encode(passphrase);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+  return toBase64(new Uint8Array(hashBuffer));
+}
+
 export async function encryptForApi(data: unknown, key: CryptoKey): Promise<string> {
   const plaintext = JSON.stringify(data);
   const blob = await encrypt(plaintext, key);

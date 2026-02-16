@@ -40,6 +40,7 @@ def _build_token_response(user: User, settings: Settings) -> TokenResponse:
         access_token=create_token(user.id, "access", settings, is_admin=user.is_admin),
         refresh_token=create_token(user.id, "refresh", settings),
         encryption_salt=user.encryption_salt,
+        onboarding_safety_acknowledged=user.onboarding_safety_acknowledged,
     )
 
 
@@ -219,6 +220,16 @@ async def refresh(
     return RefreshResponse(
         access_token=create_token(user_id, "access", settings, is_admin=user.is_admin),
     )
+
+
+@router.put("/onboarding", status_code=status.HTTP_200_OK)
+async def acknowledge_onboarding(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    user.onboarding_safety_acknowledged = True
+    await db.commit()
+    return {"message": "Onboarding acknowledged"}
 
 
 @router.get("/salt", response_model=SaltResponse)

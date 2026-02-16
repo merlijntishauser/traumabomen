@@ -4,14 +4,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
-import { deriveKey } from "../lib/crypto";
+import { deriveKey, hashPassphrase } from "../lib/crypto";
 import "../styles/auth.css";
 
 export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { setKey } = useEncryption();
+  const { setKey, setPassphraseHash } = useEncryption();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [passphrase, setPassphrase] = useState("");
@@ -46,7 +46,9 @@ export default function UnlockPage() {
 
     try {
       const derivedKey = await deriveKey(passphrase, salt);
+      const hash = await hashPassphrase(passphrase);
       setKey(derivedKey);
+      setPassphraseHash(hash);
       navigate(returnTo, { replace: true });
     } catch {
       setError(t("auth.passphraseError"));

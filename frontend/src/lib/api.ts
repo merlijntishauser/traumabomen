@@ -41,6 +41,7 @@ import type {
 
 const TOKEN_KEY = "traumabomen_access_token";
 const REFRESH_KEY = "traumabomen_refresh_token";
+const ONBOARDING_KEY = "traumabomen_onboarding_acknowledged";
 
 export class ApiError extends Error {
   constructor(
@@ -70,6 +71,17 @@ export function setTokens(access: string, refresh: string): void {
 export function clearTokens(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(ONBOARDING_KEY);
+}
+
+// Onboarding flag management
+
+export function getOnboardingFlag(): boolean {
+  return localStorage.getItem(ONBOARDING_KEY) === "true";
+}
+
+export function setOnboardingFlag(value: boolean): void {
+  localStorage.setItem(ONBOARDING_KEY, String(value));
 }
 
 // Core fetch
@@ -174,6 +186,7 @@ export async function register(
   });
   if ("access_token" in data) {
     setTokens(data.access_token, data.refresh_token);
+    setOnboardingFlag(false);
   }
   return data;
 }
@@ -201,11 +214,17 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
     requiresAuth: false,
   });
   setTokens(data.access_token, data.refresh_token);
+  setOnboardingFlag(data.onboarding_safety_acknowledged);
   return data;
 }
 
 export function logout(): void {
   clearTokens();
+}
+
+export async function acknowledgeOnboarding(): Promise<void> {
+  await apiFetchWithRetry("/auth/onboarding", { method: "PUT" });
+  setOnboardingFlag(true);
 }
 
 export function getEncryptionSalt(): Promise<SaltResponse> {

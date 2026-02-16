@@ -53,11 +53,13 @@ vi.mock("../../lib/crypto", () => ({
   deriveKey: (...args: unknown[]) => mockDeriveKey(...args),
   encryptForApi: (...args: unknown[]) => mockEncryptForApi(...args),
   generateSalt: (...args: unknown[]) => mockGenerateSalt(...args),
+  hashPassphrase: () => Promise.resolve("mock-hash"),
 }));
 
 const mockSetKey = vi.fn();
+const mockSetPassphraseHash = vi.fn();
 vi.mock("../../contexts/EncryptionContext", () => ({
-  useEncryption: () => ({ setKey: mockSetKey }),
+  useEncryption: () => ({ setKey: mockSetKey, setPassphraseHash: mockSetPassphraseHash }),
 }));
 
 const mockToggleTheme = vi.fn();
