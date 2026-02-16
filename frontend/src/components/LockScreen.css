@@ -7,9 +7,46 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-overlay);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+
+  /* Dark mode: moonlit forest canopy */
+  background:
+    /* Scattered canopy leaves - small organic dots */
+    radial-gradient(1.5px 2px at 12% 8%, rgba(45, 138, 94, 0.15) 50%, transparent 50%),
+    radial-gradient(2px 1.5px at 28% 15%, rgba(45, 138, 94, 0.1) 50%, transparent 50%),
+    radial-gradient(1px 2px at 45% 5%, rgba(90, 122, 100, 0.12) 50%, transparent 50%),
+    radial-gradient(2px 1.5px at 67% 12%, rgba(45, 138, 94, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 2px at 82% 7%, rgba(90, 122, 100, 0.1) 50%, transparent 50%),
+    radial-gradient(2px 2px at 35% 22%, rgba(45, 138, 94, 0.06) 50%, transparent 50%),
+    radial-gradient(1px 1.5px at 55% 18%, rgba(90, 122, 100, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 1px at 75% 25%, rgba(45, 138, 94, 0.05) 50%, transparent 50%),
+    /* Soft moonlight from above */
+    radial-gradient(ellipse 60% 35% at 50% 0%, rgba(143, 170, 151, 0.08) 0%, transparent 70%),
+    /* Subtle ground fog at bottom */
+    linear-gradient(to top, rgba(10, 26, 15, 0.4) 0%, transparent 30%),
+    /* Base dark overlay */
+    rgba(10, 26, 15, 0.82);
+}
+
+/* Light mode: morning mist through birch branches */
+[data-theme="light"] .lock-screen {
+  background:
+    /* Dappled light - soft warm spots filtering through */
+    radial-gradient(3px 3px at 18% 12%, rgba(45, 138, 94, 0.06) 50%, transparent 50%),
+    radial-gradient(2px 3px at 38% 8%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
+    radial-gradient(3px 2px at 58% 15%, rgba(45, 138, 94, 0.05) 50%, transparent 50%),
+    radial-gradient(2px 2px at 78% 10%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
+    radial-gradient(2px 3px at 25% 20%, rgba(45, 138, 94, 0.03) 50%, transparent 50%),
+    radial-gradient(3px 2px at 65% 22%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
+    /* Misty glow at center - where the card sits */
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 255, 255, 0.25) 0%, transparent 70%),
+    /* Soft golden morning light from upper right */
+    radial-gradient(ellipse 40% 50% at 75% 10%, rgba(232, 235, 229, 0.15) 0%, transparent 60%),
+    /* Ground mist rising */
+    linear-gradient(to top, rgba(232, 235, 229, 0.2) 0%, transparent 25%),
+    /* Base light overlay */
+    rgba(232, 235, 229, 0.78);
 }
 
 .lock-screen__card {
