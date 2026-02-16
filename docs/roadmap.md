@@ -16,7 +16,18 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 - Visual overlay on the canvas connecting related events across generations
 - Pattern summary visible in timeline view
 
-### 2. Resilience and Strengths Layer
+### 2. Safety Envelope
+
+Three-layer protection system wrapping the user experience: emotional context-setting, persistent safety reminders, and instant privacy controls.
+
+- **Onboarding gate**: fullscreen post-registration step explaining what the tool is (and isn't), what it may bring up, and how encryption works
+- **Safety footer**: merged footer with "personal reflection tool -- not therapy" disclaimer, crisis support link, and lock icon
+- **Lock + blur**: instant panic hide (double-Esc or footer icon), key stays in memory, passphrase verifies to unlock
+- **Two-tier auto-lock**: blur at 5 min inactivity, full key clearing at 30 min
+
+See [design doc](plans/2026-02-16-safety-envelope-design.md).
+
+### 3. Resilience and Strengths Layer
 
 Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen.
 
@@ -25,7 +36,7 @@ Balance the deficit focus with a way to map resilience: who broke a cycle, what 
 - Categories: cycle-breaking, protective relationship, recovery, achievement, positive change
 - Keeps the tool from feeling purely pathology-oriented
 
-### 3. Reflection Journal
+### 4. Reflection Journal
 
 Per-tree journal with timestamped entries. Not a generic diary -- entries that can optionally link to specific persons, events, patterns, or classifications.
 
@@ -34,7 +45,7 @@ Per-tree journal with timestamped entries. Not a generic diary -- entries that c
 - Rich text or markdown for longer entries
 - The connective tissue between the data and the meaning
 
-### 4. Guided Reflection Prompts
+### 5. Guided Reflection Prompts
 
 Small curated library of optional prompts that help users explore their tree more deeply. Available as starting points for journal entries.
 
@@ -44,7 +55,7 @@ Small curated library of optional prompts that help users explore their tree mor
 - "What patterns do you notice repeating?"
 - Static, curated -- not AI-generated
 
-### 5. Personal Insights Summary
+### 6. Personal Insights Summary
 
 Read-only overview page per tree that surfaces basic observations from what the user already entered.
 
@@ -55,7 +66,7 @@ Read-only overview page per tree that surfaces basic observations from what the 
 
 ## Planned -- Features (medium priority)
 
-### 6. Care Providers
+### 7. Care Providers
 
 Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
 
@@ -67,17 +78,17 @@ Track mental health professionals and institutes as their own nodes on the canva
 
 See [design doc](plans/2026-02-15-care-providers-design.md).
 
-### 7. Canvas Annotations
+### 8. Canvas Annotations
 
 Free-text sticky notes or arrows that users can place directly on the canvas between nodes. Sometimes the insight is spatial. Lighter than the pattern editor.
 
-### 8. Wellbeing Check-in
+### 9. Wellbeing Check-in
 
 Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
 
 ## Planned -- Infrastructure (lower priority)
 
-### 9. Passphrase Hints and Auth Modals
+### 10. Passphrase Hints and Auth Modals
 
 User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
 
@@ -87,7 +98,7 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
-### 10. Passkey Authentication
+### 11. Passkey Authentication
 
 Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
 
