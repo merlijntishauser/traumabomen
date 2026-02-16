@@ -134,11 +134,6 @@ See [design doc](plans/2026-02-15-passkey-auth-design.md).
 - Context menu on relations, persons, and canvas
 - Directly add an adopted sibling shortcut
 
-### Needs fixing or checking
-- License check (fonts, images, used libraries)
-- Double check auto assignment of generations in timeline view
-- Year input UX (sometimes buggy or non-optimal)
-
 ### To think about
 - More themes
 - Optional pet support
