@@ -8,17 +8,9 @@ Priority should shift toward features that turn the tree from a diagram into a l
 
 ## Planned -- Reflection (high priority)
 
-### 1. Pattern Editor
+### 1. Safety Envelope
 
-Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). This is the single most important reflection feature -- the moment the tree stops being a diagram and becomes an insight.
-
-- Each pattern has a name, description, and linked event IDs
-- Visual overlay on the canvas connecting related events across generations
-- Pattern summary visible in timeline view
-
-### 2. Safety Envelope
-
-Three-layer protection system wrapping the user experience: emotional context-setting, persistent safety reminders, and instant privacy controls.
+Three-layer protection system wrapping the user experience: emotional context-setting, persistent safety reminders, and instant privacy controls. Should be in place before adding deeper reflection features.
 
 - **Onboarding gate**: fullscreen post-registration step explaining what the tool is (and isn't), what it may bring up, and how encryption works
 - **Safety footer**: merged footer with "personal reflection tool -- not therapy" disclaimer, crisis support link, and lock icon
@@ -26,6 +18,14 @@ Three-layer protection system wrapping the user experience: emotional context-se
 - **Two-tier auto-lock**: blur at 5 min inactivity, full key clearing at 30 min
 
 See [design doc](plans/2026-02-16-safety-envelope-design.md).
+
+### 2. Pattern Editor
+
+Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). The moment the tree stops being a diagram and becomes an insight.
+
+- Each pattern has a name, description, and linked event IDs
+- Visual overlay on the canvas connecting related events across generations
+- Pattern summary visible in timeline view
 
 ### 3. Resilience and Strengths Layer
 
