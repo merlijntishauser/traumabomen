@@ -8,18 +8,7 @@ Priority should shift toward features that turn the tree from a diagram into a l
 
 ## Planned -- Reflection (high priority)
 
-### 1. Safety Envelope
-
-Three-layer protection system wrapping the user experience: emotional context-setting, persistent safety reminders, and instant privacy controls. Should be in place before adding deeper reflection features.
-
-- **Onboarding gate**: fullscreen post-registration step explaining what the tool is (and isn't), what it may bring up, and how encryption works
-- **Safety footer**: merged footer with "personal reflection tool -- not therapy" disclaimer, crisis support link, and lock icon
-- **Lock + blur**: instant panic hide (double-Esc or footer icon), key stays in memory, passphrase verifies to unlock
-- **Two-tier auto-lock**: blur at 5 min inactivity, full key clearing at 30 min
-
-See [design doc](plans/2026-02-16-safety-envelope-design.md).
-
-### 2. Pattern Editor
+### 1. Pattern editor
 
 Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). The moment the tree stops being a diagram and becomes an insight.
 
@@ -27,7 +16,7 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 - Visual overlay on the canvas connecting related events across generations
 - Pattern summary visible in timeline view
 
-### 3. Resilience and Strengths Layer
+### 2. Resilience and strengths layer
 
 Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen.
 
@@ -36,7 +25,7 @@ Balance the deficit focus with a way to map resilience: who broke a cycle, what 
 - Categories: cycle-breaking, protective relationship, recovery, achievement, positive change
 - Keeps the tool from feeling purely pathology-oriented
 
-### 4. Reflection Journal
+### 3. Reflection journal
 
 Per-tree journal with timestamped entries. Not a generic diary -- entries that can optionally link to specific persons, events, patterns, or classifications.
 
@@ -45,7 +34,7 @@ Per-tree journal with timestamped entries. Not a generic diary -- entries that c
 - Rich text or markdown for longer entries
 - The connective tissue between the data and the meaning
 
-### 5. Guided Reflection Prompts
+### 4. Guided reflection prompts
 
 Small curated library of optional prompts that help users explore their tree more deeply. Available as starting points for journal entries.
 
@@ -55,7 +44,7 @@ Small curated library of optional prompts that help users explore their tree mor
 - "What patterns do you notice repeating?"
 - Static, curated -- not AI-generated
 
-### 6. Personal Insights Summary
+### 5. Personal insights summary
 
 Read-only overview page per tree that surfaces basic observations from what the user already entered.
 
@@ -66,7 +55,7 @@ Read-only overview page per tree that surfaces basic observations from what the 
 
 ## Planned -- Features (medium priority)
 
-### 7. Care Providers
+### 6. Care providers
 
 Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
 
@@ -78,17 +67,17 @@ Track mental health professionals and institutes as their own nodes on the canva
 
 See [design doc](plans/2026-02-15-care-providers-design.md).
 
-### 8. Canvas Annotations
+### 7. Canvas annotations
 
 Free-text sticky notes or arrows that users can place directly on the canvas between nodes. Sometimes the insight is spatial. Lighter than the pattern editor.
 
-### 9. Wellbeing Check-in
+### 8. Wellbeing check-in
 
 Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
 
 ## Planned -- Infrastructure (lower priority)
 
-### 10. Passphrase Hints and Auth Modals
+### 9. Passphrase hints and auth modals
 
 User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
 
@@ -98,7 +87,7 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
-### 11. Passkey Authentication
+### 10. Passkey authentication
 
 Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
 
@@ -108,6 +97,12 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 - **Prompt**: one-time post-login banner encouraging passkey setup
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
+
+## Done
+
+### Safety envelope
+
+Three-layer protection system: onboarding gate, safety footer, lock + blur screen. [Design doc](plans/2026-02-16-safety-envelope-design.md).
 
 ## Backlog
 
