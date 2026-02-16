@@ -56,7 +56,7 @@ check "Console output may contain decrypted data" \
 echo "Checking for unsafe storage usage..."
 
 # Allowlisted localStorage keys and variable names that resolve to safe keys
-ALLOWED_STORAGE="traumabomen-theme|traumabomen-canvas-settings|traumabomen-mobile-dismissed|traumabomen_access_token|traumabomen_refresh_token|mentalHealthBannerDismissed|i18nextLng|i18next|STORAGE_KEY|TOKEN_KEY|REFRESH_KEY"
+ALLOWED_STORAGE="traumabomen-theme|traumabomen-canvas-settings|traumabomen-mobile-dismissed|traumabomen_access_token|traumabomen_refresh_token|traumabomen_onboarding_acknowledged|mentalHealthBannerDismissed|i18nextLng|i18next|STORAGE_KEY|TOKEN_KEY|REFRESH_KEY|ONBOARDING_KEY"
 
 # Find localStorage.setItem calls that don't use allowlisted keys
 STORAGE_HITS=$(grep -rn --include="*.ts" --include="*.tsx" -E 'localStorage\.setItem\(' "$FRONTEND_SRC" 2>/dev/null | grep -v "privacy-ok" || true)

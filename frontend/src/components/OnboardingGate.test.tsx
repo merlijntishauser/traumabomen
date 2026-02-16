@@ -63,4 +63,21 @@ describe("OnboardingGate", () => {
       expect(onAcknowledged).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("re-enables button when API call fails", async () => {
+    const { acknowledgeOnboarding } = await import("../lib/api");
+    (acknowledgeOnboarding as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("network"));
+
+    const onAcknowledged = vi.fn();
+    render(<OnboardingGate onAcknowledged={onAcknowledged} />);
+
+    const continueButton = screen.getByRole("button", { name: "safety.onboarding.continue" });
+    fireEvent.click(continueButton);
+
+    await waitFor(() => {
+      expect(continueButton).not.toBeDisabled();
+    });
+
+    expect(onAcknowledged).not.toHaveBeenCalled();
+  });
 });
