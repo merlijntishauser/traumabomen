@@ -313,8 +313,8 @@
   "safety.footer.privacy": "Hoe privacy werkt",
 
   "safety.lock.title": "Scherm vergrendeld",
-  "safety.lock.passphrase": "Voer je wachtwoord in om te ontgrendelen",
-  "safety.lock.wrongPassphrase": "Verkeerd wachtwoord",
+  "safety.lock.passphrase": "Voer je versleutelingswachtwoord in om te ontgrendelen",
+  "safety.lock.wrongPassphrase": "Verkeerd versleutelingswachtwoord",
   "safety.lock.tooManyAttempts": "Te veel pogingen. Volledige herauthenticatie vereist.",
   "safety.lock.unlock": "Ontgrendelen",
 

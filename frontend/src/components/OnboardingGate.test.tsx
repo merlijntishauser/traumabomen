@@ -9,22 +9,6 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("react-router-dom", () => ({
-  Link: ({
-    to,
-    children,
-    ...rest
-  }: {
-    to: string;
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <a href={to} {...rest}>
-      {children}
-    </a>
-  ),
-}));
-
 vi.mock("../lib/api", () => ({
   acknowledgeOnboarding: vi.fn().mockResolvedValue(undefined),
 }));
@@ -79,5 +63,15 @@ describe("OnboardingGate", () => {
     });
 
     expect(onAcknowledged).not.toHaveBeenCalled();
+  });
+
+  it("privacy link opens in a new tab", () => {
+    const onAcknowledged = vi.fn();
+    render(<OnboardingGate onAcknowledged={onAcknowledged} />);
+
+    const link = screen.getByText("safety.footer.privacy");
+    expect(link.tagName).toBe("A");
+    expect(link).toHaveAttribute("href", "/privacy");
+    expect(link).toHaveAttribute("target", "_blank");
   });
 });

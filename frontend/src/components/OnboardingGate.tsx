@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+
 import { acknowledgeOnboarding } from "../lib/api";
 import "./OnboardingGate.css";
 
@@ -47,9 +47,14 @@ export function OnboardingGate({ onAcknowledged }: Props) {
           <h2 className="onboarding-gate__block-title">{t("safety.onboarding.whatWeCannotSee")}</h2>
           <p className="onboarding-gate__block-body">
             {t("safety.onboarding.whatWeCannotSeeBody")}{" "}
-            <Link to="/privacy" className="onboarding-gate__privacy-link">
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="onboarding-gate__privacy-link"
+            >
               {t("safety.footer.privacy")}
-            </Link>
+            </a>
           </p>
         </div>
 
