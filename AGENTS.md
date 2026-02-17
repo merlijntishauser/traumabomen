@@ -369,6 +369,7 @@ When modifying the frontend, follow these principles:
 - **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations -- the subject matter is sensitive.
 - **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
 - **Buttons have three tiers.** Primary (accent background), default (secondary background with border), and danger (red text/border). Small variant uses 11px font.
+- **Button heights are uniform within a bar.** All toolbar buttons (text and icon) share `height: 32px`. All footer buttons and links share `height: 24px`. Never let padding alone determine button height -- use an explicit `height` so elements align.
 - **Badge shapes encode meaning.** Circles = trauma events, squares = life events, triangles = classifications. These shapes are part of the visual language, don't repurpose them.
 
 ### Quality guidelines  

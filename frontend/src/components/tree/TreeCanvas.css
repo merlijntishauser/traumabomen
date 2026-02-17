@@ -57,7 +57,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  height: 32px;
+  padding: 0 14px;
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-size: 13px;
@@ -107,7 +108,8 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 14px;
+  height: 32px;
+  padding: 0 14px;
   font-size: 13px;
   color: var(--color-text-secondary);
   text-decoration: none;
