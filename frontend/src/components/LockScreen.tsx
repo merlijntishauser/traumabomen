@@ -61,30 +61,44 @@ export function LockScreen({ wrongAttempts, onUnlock }: Props) {
       aria-label={t("safety.lock.title")}
     >
       <div className="lock-screen__card">
-        <div className="lock-screen__icon">
-          <Lock size={24} aria-hidden="true" />
-        </div>
-        <h2 className="lock-screen__title">{t("safety.lock.title")}</h2>
-        <p className="lock-screen__subtitle">{t("safety.lock.passphrase")}</p>
+        <img
+          className="lock-screen__bg lock-screen__bg--dark"
+          src="/images/hero-unlock-dark.jpg"
+          alt=""
+          aria-hidden="true"
+        />
+        <img
+          className="lock-screen__bg lock-screen__bg--light"
+          src="/images/hero-unlock-light.jpg"
+          alt=""
+          aria-hidden="true"
+        />
+        <div className="lock-screen__content">
+          <div className="lock-screen__icon">
+            <Lock size={24} aria-hidden="true" />
+          </div>
+          <h2 className="lock-screen__title">{t("safety.lock.title")}</h2>
+          <p className="lock-screen__subtitle">{t("safety.lock.passphrase")}</p>
 
-        <form className="lock-screen__form" onSubmit={handleSubmit}>
-          <div className="lock-screen__input-wrapper">
-            <input
-              ref={inputRef}
-              type="password"
-              className={`lock-screen__input${shaking ? " lock-screen__input--shake" : ""}`}
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div className="lock-screen__error" role="alert">
-            {wrongAttempts > 0 && t("safety.lock.wrongPassphrase")}
-          </div>
-          <button type="submit" className="lock-screen__submit" disabled={!passphrase}>
-            {t("safety.lock.unlock")}
-          </button>
-        </form>
+          <form className="lock-screen__form" onSubmit={handleSubmit}>
+            <div className="lock-screen__input-wrapper">
+              <input
+                ref={inputRef}
+                type="password"
+                className={`lock-screen__input${shaking ? " lock-screen__input--shake" : ""}`}
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div className="lock-screen__error" role="alert">
+              {wrongAttempts > 0 && t("safety.lock.wrongPassphrase")}
+            </div>
+            <button type="submit" className="lock-screen__submit" disabled={!passphrase}>
+              {t("safety.lock.unlock")}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
