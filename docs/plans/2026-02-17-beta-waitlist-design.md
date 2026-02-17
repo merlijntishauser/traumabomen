@@ -10,9 +10,12 @@ Traumabomen is preparing for a limited beta launch. To control growth and ensure
 
 - **Email-only waitlist**: Waitlisted users submit only their email address. No account is created until they are approved and complete registration.
 - **Approval email**: When an admin approves a waitlisted user, they receive an email with a link to complete registration.
-- **Admin dashboard tab**: Waitlist management lives in the existing admin dashboard as a new tab.
+- **Admin dashboard section**: Waitlist management lives in the existing admin dashboard as a new section.
 - **Configurable cap**: `MAX_ACTIVE_USERS` environment variable (default `20`, `0` = unlimited/disabled).
 - **Feature toggle**: `ENABLE_WAITLIST` environment variable (default `false`). When false, registration works exactly as today with no cap. When true, the cap and waitlist are active.
+- **No status-check endpoint**: Users see a confirmation on screen after joining the waitlist. Status updates come via the approval email. No public endpoint to query waitlist status (avoids email enumeration).
+- **No confirmation email**: The on-screen success message is sufficient. Only the approval email (with registration link) is sent.
+- **No rejected status**: Admin can delete unwanted waitlist entries instead. Simpler than maintaining a rejected state and deciding whether to notify.
 
 ## Data Model
 
@@ -22,14 +25,13 @@ Traumabomen is preparing for a limited beta launch. To control growth and ensure
 |---|---|---|
 | `id` | UUID | PK, server-generated |
 | `email` | String(255) | Unique, indexed |
-| `status` | Enum: `waiting`, `approved`, `registered`, `rejected` | Default `waiting` |
+| `status` | Enum: `waiting`, `approved`, `registered` | Default `waiting` |
 | `invite_token` | String(255), nullable | SHA-256 hash of plaintext token (like email verification) |
 | `invite_expires_at` | DateTime(tz), nullable | 7-day expiry from approval |
 | `created_at` | DateTime(tz) | When they joined the waitlist |
 | `approved_at` | DateTime(tz), nullable | When admin approved |
-| `registered_at` | DateTime(tz), nullable | When they completed registration |
 
-No FK to `users` -- the waitlist entry exists before any user account. The `email` column connects them logically. Status transitions: `waiting` -> `approved` -> `registered` (happy path), or `waiting` -> `rejected`.
+No FK to `users` -- the waitlist entry exists before any user account. The `email` column connects them logically. Status transitions: `waiting` -> `approved` -> `registered` (happy path). Admin can delete entries at any stage.
 
 ## Backend Changes
 
@@ -41,7 +43,7 @@ Add:
 
 ### New model (`api/app/models/waitlist.py`)
 
-SQLAlchemy model for `waitlist_entries` table. New `WaitlistStatus` enum.
+SQLAlchemy model for `waitlist_entries` table. New `WaitlistStatus` enum with values `waiting`, `approved`, `registered`.
 
 ### Model registry (`api/app/models/__init__.py`)
 
@@ -51,44 +53,39 @@ Import `WaitlistEntry` so Alembic sees it.
 
 Create `waitlist_entries` table.
 
-### New router (`api/app/routers/waitlist.py`)
-
-Public endpoints:
-- `POST /waitlist` -- submit email to join waitlist. Validates: email not already on waitlist, email not already registered as a user. Returns 201 with message. If waitlist is disabled or cap not reached, returns 409 telling them to register normally.
-- `GET /waitlist/status?email=xxx` -- check waitlist status (waiting/approved/rejected). Returns 404 if not found. Public so the frontend can show status.
-
-Admin endpoints (require `require_admin`):
-- `GET /admin/waitlist` -- list all waitlist entries with counts by status.
-- `PATCH /admin/waitlist/{id}/approve` -- set status to `approved`, generate invite token (random 32 bytes, store SHA-256 hash), set 7-day expiry, send approval email. Returns the entry.
-- `PATCH /admin/waitlist/{id}/reject` -- set status to `rejected`. Returns the entry.
-
 ### Registration flow changes (`api/app/routers/auth.py`)
 
 Modify `POST /auth/register`:
 1. If `ENABLE_WAITLIST` is true, count active users (verified users). If count >= `MAX_ACTIVE_USERS`:
-   - Return 403 with `{ detail: "registration_closed", waitlist_url: "/waitlist" }` -- tells frontend to redirect to waitlist.
-2. If request includes an `invite_token` query param:
+   - Return 403 with `{ detail: "registration_closed" }` -- tells frontend to redirect to waitlist.
+2. If request body includes an `invite_token` field:
    - Look up waitlist entry with matching token hash and status `approved`
    - Validate token not expired
    - Validate email matches the waitlist entry email
-   - Mark entry as `registered` with timestamp
+   - Mark entry as `registered`
    - Proceed with normal registration
 3. If no invite token and cap not reached: normal registration (existing behavior).
 
-### New email templates (`api/app/email.py`)
+### New router (`api/app/routers/waitlist.py`)
+
+Public endpoint:
+- `POST /waitlist` -- submit email to join waitlist. Validates: email not already on waitlist, email not already registered as a user. Returns 201 with message.
+
+Admin endpoints (require `require_admin`):
+- `GET /admin/waitlist` -- list all waitlist entries with counts by status.
+- `PATCH /admin/waitlist/{id}/approve` -- set status to `approved`, generate invite token (random 32 bytes, store SHA-256 hash), set 7-day expiry, send approval email. Returns the entry.
+- `DELETE /admin/waitlist/{id}` -- delete a waitlist entry.
+
+### New email template (`api/app/email.py`)
 
 Add `send_waitlist_approval_email(to, token, settings)`:
 - Subject: "You're in! Complete your Traumabomen registration"
 - Body: approval message + registration link: `{APP_BASE_URL}/register?invite={token}`
 - Same SMTP setup as verification email.
 
-Also add `send_waitlist_confirmation_email(to, settings)`:
-- Subject: "You're on the Traumabomen waitlist"
-- Body: confirmation that they're on the list, we'll email when a spot opens.
-
 ### Capacity helper
 
-Add a utility function `get_active_user_count(db)` and `is_registration_open(db, settings)` to avoid duplicating the cap check logic across endpoints.
+Add utility functions `get_active_user_count(db)` and `is_registration_open(db, settings)` to avoid duplicating the cap check logic across endpoints.
 
 ## Frontend Changes
 
@@ -98,22 +95,21 @@ Simple page matching the auth page layout (AuthHero, card styling):
 - Email input field
 - "Join waitlist" button
 - On success: show confirmation message ("You're on the list. We'll email you when a spot opens.")
-- If already on waitlist: show current status
-- If waitlist is disabled: redirect to `/register`
+- If already on waitlist: show message that they're already signed up
 
 ### Modified: `RegisterPage.tsx`
 
 - Read `invite` query param from URL
-- If present, pass it to the register API call
+- If present, include `invite_token` in the register request body
 - If registration returns 403 `registration_closed`, navigate to `/waitlist`
 - Show a subtle banner at top when registering via invite: "You've been approved! Complete your registration below."
 
-### New admin tab: Waitlist management
+### New admin section: Waitlist management
 
 Add to `AdminPage.tsx`:
-- New "Waitlist" tab alongside existing analytics tabs
+- New section in the admin dashboard
 - Table showing waitlist entries: email, status, joined date, approved date
-- "Approve" and "Reject" buttons per entry
+- "Approve" and "Delete" buttons per entry (approve only for `waiting` entries)
 - Count badges: "X waiting, Y approved, Z registered"
 - Show current capacity: "N / MAX_ACTIVE_USERS active users"
 
@@ -121,10 +117,22 @@ Add to `AdminPage.tsx`:
 
 Add functions:
 - `joinWaitlist(email)` -- POST /waitlist
-- `getWaitlistStatus(email)` -- GET /waitlist/status
 - `getAdminWaitlist()` -- GET /admin/waitlist
 - `approveWaitlistEntry(id)` -- PATCH /admin/waitlist/{id}/approve
-- `rejectWaitlistEntry(id)` -- PATCH /admin/waitlist/{id}/reject
+- `deleteWaitlistEntry(id)` -- DELETE /admin/waitlist/{id}
+
+### Types (`frontend/src/types/api.ts`)
+
+Add interfaces:
+- `WaitlistEntry`: id, email, status, created_at, approved_at
+- `WaitlistListResponse`: items list + count summary
+
+### Schemas (`api/app/schemas/waitlist.py`)
+
+Add Pydantic models:
+- `WaitlistJoinRequest`: email (EmailStr)
+- `WaitlistEntryResponse`: id, email, status, created_at, approved_at
+- `WaitlistListResponse`: items list, counts (waiting, approved, registered)
 
 ### i18n keys (EN + NL)
 
@@ -132,21 +140,22 @@ New keys under `waitlist.*`:
 - `waitlist.title`, `waitlist.subtitle`
 - `waitlist.emailPlaceholder`, `waitlist.joinButton`
 - `waitlist.success`, `waitlist.alreadyOnList`
-- `waitlist.statusWaiting`, `waitlist.statusApproved`, `waitlist.statusRejected`
 - `waitlist.registrationClosed`, `waitlist.registrationClosedDescription`
 - `waitlist.approvalBanner`
 
 Admin keys under `admin.waitlist.*`:
-- `admin.waitlist.title`, `admin.waitlist.approve`, `admin.waitlist.reject`
-- `admin.waitlist.statusFilter`, `admin.waitlist.capacity`
+- `admin.waitlist.title`, `admin.waitlist.approve`, `admin.waitlist.delete`
+- `admin.waitlist.capacity`, `admin.waitlist.empty`
 
 ## Files to Create
 
 | File | Purpose |
 |---|---|
 | `api/app/models/waitlist.py` | WaitlistEntry model + WaitlistStatus enum |
+| `api/app/schemas/waitlist.py` | Pydantic request/response models |
 | `api/app/routers/waitlist.py` | Public + admin waitlist endpoints |
 | `api/alembic/versions/xxxx_add_waitlist_table.py` | Migration |
+| `api/tests/test_waitlist.py` | Backend tests |
 | `frontend/src/pages/WaitlistPage.tsx` | Waitlist signup page |
 
 ## Files to Modify
@@ -155,12 +164,13 @@ Admin keys under `admin.waitlist.*`:
 |---|---|
 | `api/app/config.py` | Add `ENABLE_WAITLIST`, `MAX_ACTIVE_USERS` |
 | `api/app/models/__init__.py` | Import WaitlistEntry |
-| `api/app/email.py` | Add approval + confirmation email functions |
+| `api/app/email.py` | Add approval email function |
 | `api/app/routers/auth.py` | Cap check on registration, invite token validation |
-| `api/app/routers/__init__.py` or `api/app/main.py` | Register waitlist router |
+| `api/app/main.py` | Register waitlist router |
 | `frontend/src/lib/api.ts` | Waitlist API functions |
+| `frontend/src/types/api.ts` | Waitlist types |
 | `frontend/src/pages/RegisterPage.tsx` | Invite token handling, cap redirect |
-| `frontend/src/pages/AdminPage.tsx` | Waitlist management tab |
+| `frontend/src/pages/AdminPage.tsx` | Waitlist management section |
 | `frontend/src/locales/en/translation.json` | English waitlist strings |
 | `frontend/src/locales/nl/translation.json` | Dutch waitlist strings |
 | `frontend/src/App.tsx` (or router config) | Add `/waitlist` route |
@@ -169,18 +179,20 @@ Admin keys under `admin.waitlist.*`:
 ## Implementation Order
 
 1. Backend model + migration
-2. Config settings
-3. Email templates (approval + confirmation)
-4. Waitlist router (public + admin endpoints)
-5. Auth router modifications (cap check + invite token)
-6. Backend tests
-7. Frontend API client functions
-8. WaitlistPage
-9. RegisterPage modifications
-10. AdminPage waitlist tab
-11. i18n strings (EN + NL)
-12. Frontend tests
-13. End-to-end verification
+2. Config settings + .env.example
+3. Capacity helper functions
+4. Schemas (Pydantic models)
+5. Approval email template
+6. Waitlist router (public + admin endpoints)
+7. Auth router modifications (cap check + invite token)
+8. Backend tests
+9. Frontend types + API client functions
+10. WaitlistPage
+11. RegisterPage modifications
+12. AdminPage waitlist section
+13. i18n strings (EN + NL)
+14. Frontend tests
+15. End-to-end verification
 
 ## Verification
 
