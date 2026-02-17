@@ -250,6 +250,7 @@ function TreeWorkspaceInner() {
   const onNodeClick = useCallback((_: React.MouseEvent, node: PersonNodeType) => {
     setSelectedPersonId(node.id);
     setSelectedEdgeId(null);
+    setPatternPanelOpen(false);
   }, []);
 
   const onPaneClick = useCallback(() => {
@@ -329,6 +330,7 @@ function TreeWorkspaceInner() {
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
         setSelectedPersonId(response.id);
+        setPatternPanelOpen(false);
       },
     });
   }
