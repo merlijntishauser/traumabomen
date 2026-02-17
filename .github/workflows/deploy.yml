@@ -109,7 +109,9 @@ jobs:
               REQUIRE_EMAIL_VERIFICATION=true,\
               SMTP_FROM=merlijn@traumatrees.org,\
               APP_BASE_URL=https://www.traumatrees.org,\
-              SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }}" \
+              SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }},\
+              ENABLE_WAITLIST=true,\
+              MAX_ACTIVE_USERS=20" \
             --min-instances=0 \
             --max-instances=4 \
             --memory=256Mi \
