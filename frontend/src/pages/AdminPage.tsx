@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useLogout } from "../hooks/useLogout";
@@ -26,16 +27,24 @@ const BUCKET_LABELS: { key: keyof UsageBuckets; label: string }[] = [
   { key: "twenty_plus", label: "20+" },
 ];
 
-const FUNNEL_STEPS: { key: string; label: string }[] = [
-  { key: "registered", label: "Registered" },
-  { key: "verified", label: "Verified email" },
-  { key: "created_tree", label: "Created tree" },
-  { key: "added_person", label: "Added person" },
-  { key: "added_relationship", label: "Added relationship" },
-  { key: "added_event", label: "Added event" },
+const FUNNEL_STEP_KEYS: { key: string; i18nKey: string }[] = [
+  { key: "registered", i18nKey: "admin.funnel.registered" },
+  { key: "verified", i18nKey: "admin.funnel.verified" },
+  { key: "created_tree", i18nKey: "admin.funnel.createdTree" },
+  { key: "added_person", i18nKey: "admin.funnel.addedPerson" },
+  { key: "added_relationship", i18nKey: "admin.funnel.addedRelationship" },
+  { key: "added_event", i18nKey: "admin.funnel.addedEvent" },
 ];
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_I18N_KEYS = [
+  "admin.day.mon",
+  "admin.day.tue",
+  "admin.day.wed",
+  "admin.day.thu",
+  "admin.day.fri",
+  "admin.day.sat",
+  "admin.day.sun",
+];
 
 function retentionColor(pct: number): string {
   const alpha = Math.round((pct / 100) * 0.6 * 100) / 100;
@@ -48,8 +57,8 @@ function heatmapColor(count: number, max: number): string {
   return `rgba(45, 138, 94, ${Math.max(0.08, alpha)})`;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -157,6 +166,7 @@ function GrowthChart({ points }: { points: GrowthPoint[] }) {
 }
 
 export default function AdminPage() {
+  const { t, i18n } = useTranslation();
   const logout = useLogout();
 
   const overview = useQuery({ queryKey: ["admin", "overview"], queryFn: getAdminOverview });
@@ -205,49 +215,95 @@ export default function AdminPage() {
   // Funnel max for bar widths
   const funnelMax = funnel.data?.registered ?? 1;
 
+  const dayLabels = DAY_I18N_KEYS.map((key) => t(key));
+
   return (
     <div className="admin-page">
       <div className="tree-toolbar">
-        <span className="tree-toolbar__title">Admin</span>
+        <span className="tree-toolbar__title">{t("admin.title")}</span>
         <div className="tree-toolbar__spacer" />
-        <Link to="/trees" className="tree-toolbar__btn">
-          Trees
-        </Link>
-        <ThemeToggle className="tree-toolbar__btn" />
-        <button type="button" className="tree-toolbar__btn" onClick={logout}>
-          Log out
-        </button>
+
+        <div className="tree-toolbar__group">
+          <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="tree-toolbar__separator" />
+
+        <div className="tree-toolbar__group">
+          <ThemeToggle className="tree-toolbar__icon-btn" />
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={logout}
+            aria-label={t("nav.logout")}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {isLoading && <div className="admin-loading">Loading...</div>}
-      {error && <div className="admin-error">Failed to load stats</div>}
+      {isLoading && <div className="admin-loading">{t("common.loading")}</div>}
+      {error && <div className="admin-error">{t("admin.loadError")}</div>}
 
       {!isLoading && !error && (
         <div className="admin-content">
           {/* Overview cards */}
           <section>
-            <div className="admin-section__title">Overview</div>
+            <div className="admin-section__title">{t("admin.overview")}</div>
             <div className="admin-overview">
               <div className="admin-card">
-                <div className="admin-card__label">Total users</div>
+                <div className="admin-card__label">{t("admin.totalUsers")}</div>
                 <div className="admin-card__value">{overview.data?.total_users}</div>
-                <div className="admin-card__sub">{overview.data?.verified_users} verified</div>
+                <div className="admin-card__sub">
+                  {overview.data?.verified_users} {t("admin.verified")}
+                </div>
               </div>
               <div className="admin-card">
-                <div className="admin-card__label">Signups (week)</div>
+                <div className="admin-card__label">{t("admin.signupsWeek")}</div>
                 <div className="admin-card__value">{overview.data?.signups.week}</div>
-                <div className="admin-card__sub">{overview.data?.signups.day} today</div>
+                <div className="admin-card__sub">
+                  {overview.data?.signups.day} {t("admin.today")}
+                </div>
               </div>
               <div className="admin-card">
-                <div className="admin-card__label">Signups (month)</div>
+                <div className="admin-card__label">{t("admin.signupsMonth")}</div>
                 <div className="admin-card__value">{overview.data?.signups.month}</div>
               </div>
               <div className="admin-card">
-                <div className="admin-card__label">Active users</div>
+                <div className="admin-card__label">{t("admin.activeUsers")}</div>
                 <div className="admin-card__value">{overview.data?.active_users.week}</div>
                 <div className="admin-card__sub">
-                  {overview.data?.active_users.day} today / {overview.data?.active_users.month}{" "}
-                  month
+                  {t("admin.activeUsersSub", {
+                    day: overview.data?.active_users.day,
+                    month: overview.data?.active_users.month,
+                  })}
                 </div>
               </div>
             </div>
@@ -256,14 +312,14 @@ export default function AdminPage() {
           {/* Signup funnel */}
           {funnel.data && (
             <section>
-              <div className="admin-section__title">Signup funnel</div>
+              <div className="admin-section__title">{t("admin.signupFunnel")}</div>
               <div className="admin-funnel">
-                {FUNNEL_STEPS.map((step) => {
+                {FUNNEL_STEP_KEYS.map((step) => {
                   const count = funnel.data[step.key as keyof typeof funnel.data] as number;
                   const pct = funnelMax > 0 ? Math.round((count / funnelMax) * 100) : 0;
                   return (
                     <div key={step.key} className="admin-funnel-row">
-                      <span className="admin-funnel-label">{step.label}</span>
+                      <span className="admin-funnel-label">{t(step.i18nKey)}</span>
                       <div className="admin-bar-track">
                         <div
                           className="admin-bar-fill"
@@ -283,7 +339,7 @@ export default function AdminPage() {
           {/* Growth chart */}
           {growth.data && growth.data.points.length > 0 && (
             <section>
-              <div className="admin-section__title">User growth</div>
+              <div className="admin-section__title">{t("admin.userGrowth")}</div>
               <GrowthChart points={growth.data.points} />
             </section>
           )}
@@ -291,7 +347,7 @@ export default function AdminPage() {
           {/* Activity heatmap */}
           {activity.data && (
             <section>
-              <div className="admin-section__title">Login activity</div>
+              <div className="admin-section__title">{t("admin.loginActivity")}</div>
               <div className="admin-heatmap">
                 <div className="admin-heatmap__corner" />
                 {Array.from({ length: 24 }, (_, h) => (
@@ -300,7 +356,7 @@ export default function AdminPage() {
                     {h}
                   </div>
                 ))}
-                {DAY_LABELS.map((dayLabel, dayIdx) => (
+                {dayLabels.map((dayLabel, dayIdx) => (
                   <div key={dayLabel} className="admin-heatmap__row">
                     <div className="admin-heatmap__day">{dayLabel}</div>
                     {Array.from({ length: 24 }, (_, h) => {
@@ -311,7 +367,11 @@ export default function AdminPage() {
                           key={h}
                           className="admin-heatmap__cell"
                           style={{ backgroundColor: heatmapColor(count, activityMax) }}
-                          title={`${dayLabel} ${h}:00 - ${count} logins`}
+                          title={t("admin.heatmapTooltip", {
+                            day: dayLabel,
+                            hour: h,
+                            count,
+                          })}
                         />
                       );
                     })}
@@ -323,14 +383,14 @@ export default function AdminPage() {
 
           {/* Retention cohort table */}
           <section>
-            <div className="admin-section__title">Retention (weekly cohorts)</div>
+            <div className="admin-section__title">{t("admin.retention")}</div>
             <div className="admin-retention">
               {retention.data && retention.data.cohorts.length > 0 ? (
                 <table className="admin-cohort-table">
                   <thead>
                     <tr>
-                      <th>Cohort</th>
-                      <th>Users</th>
+                      <th>{t("admin.cohort")}</th>
+                      <th>{t("admin.users")}</th>
                       {Array.from({ length: maxWeeks }, (_, i) => (
                         // biome-ignore lint/suspicious/noArrayIndexKey: static week columns never reorder
                         <th key={`w${i}`}>W{i}</th>
@@ -363,19 +423,19 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               ) : (
-                <div className="admin-cohort-empty">No cohort data yet</div>
+                <div className="admin-cohort-empty">{t("admin.noCohortData")}</div>
               )}
             </div>
           </section>
 
           {/* Usage depth */}
           <section>
-            <div className="admin-section__title">Usage depth (entities per tree)</div>
+            <div className="admin-section__title">{t("admin.usageDepth")}</div>
             {usage.data && (
               <div className="admin-usage">
-                <UsageChart title="Persons" buckets={usage.data.persons} />
-                <UsageChart title="Relationships" buckets={usage.data.relationships} />
-                <UsageChart title="Events" buckets={usage.data.events} />
+                <UsageChart title={t("admin.persons")} buckets={usage.data.persons} />
+                <UsageChart title={t("admin.relationships")} buckets={usage.data.relationships} />
+                <UsageChart title={t("admin.events")} buckets={usage.data.events} />
               </div>
             )}
           </section>
@@ -383,28 +443,30 @@ export default function AdminPage() {
           {/* User list */}
           {users.data && (
             <section>
-              <div className="admin-section__title">Users</div>
+              <div className="admin-section__title">{t("admin.userList")}</div>
               <div className="admin-users">
                 <table className="admin-users-table">
                   <thead>
                     <tr>
-                      <th>Email</th>
-                      <th>Signed up</th>
-                      <th>Last login</th>
-                      <th>Verified</th>
-                      <th>Trees</th>
-                      <th>Persons</th>
-                      <th>Rels</th>
-                      <th>Events</th>
+                      <th>{t("admin.email")}</th>
+                      <th>{t("admin.signedUp")}</th>
+                      <th>{t("admin.lastLogin")}</th>
+                      <th>{t("admin.emailVerified")}</th>
+                      <th>{t("admin.trees")}</th>
+                      <th>{t("admin.persons")}</th>
+                      <th>{t("admin.rels")}</th>
+                      <th>{t("admin.events")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.data.users.map((user: UserRow) => (
                       <tr key={user.id}>
                         <td className="admin-users-table__email">{user.email}</td>
-                        <td>{formatDate(user.created_at)}</td>
-                        <td>{user.last_login ? formatDate(user.last_login) : "--"}</td>
-                        <td>{user.email_verified ? "Yes" : "No"}</td>
+                        <td>{formatDate(user.created_at, i18n.language)}</td>
+                        <td>
+                          {user.last_login ? formatDate(user.last_login, i18n.language) : "--"}
+                        </td>
+                        <td>{user.email_verified ? t("admin.yes") : t("admin.no")}</td>
                         <td>{user.tree_count}</td>
                         <td>{user.person_count}</td>
                         <td>{user.relationship_count}</td>
