@@ -7,6 +7,8 @@ const LIFE_EVENT_CSS_VARS: Record<LifeEventCategory, string> = {
   [LifeEventCategory.Career]: "--color-life-career",
   [LifeEventCategory.Relocation]: "--color-life-relocation",
   [LifeEventCategory.Health]: "--color-life-health",
+  [LifeEventCategory.StartedMedication]: "--color-life-started-medication",
+  [LifeEventCategory.StoppedMedication]: "--color-life-stopped-medication",
   [LifeEventCategory.Other]: "--color-life-other",
 };
 
@@ -39,5 +41,7 @@ export const LIFE_EVENT_COLORS: Record<LifeEventCategory, string> = {
   [LifeEventCategory.Career]: "#f59e0b",
   [LifeEventCategory.Relocation]: "#34d399",
   [LifeEventCategory.Health]: "#f472b6",
+  [LifeEventCategory.StartedMedication]: "#2dd4bf",
+  [LifeEventCategory.StoppedMedication]: "#fb7185",
   [LifeEventCategory.Other]: "#94a3b8",
 };

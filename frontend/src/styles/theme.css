@@ -63,6 +63,8 @@
   --color-life-career: #f59e0b;
   --color-life-relocation: #34d399;
   --color-life-health: #f472b6;
+  --color-life-started-medication: #2dd4bf;
+  --color-life-stopped-medication: #fb7185;
   --color-life-other: #94a3b8;
 
   /* Pattern colors */
@@ -159,6 +161,8 @@
   --color-life-career: #d97706;
   --color-life-relocation: #059669;
   --color-life-health: #db2777;
+  --color-life-started-medication: #0d9488;
+  --color-life-stopped-medication: #e11d48;
   --color-life-other: #64748b;
 
   /* Pattern colors */

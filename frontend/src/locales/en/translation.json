@@ -160,6 +160,8 @@
   "lifeEvent.category.career": "Career",
   "lifeEvent.category.relocation": "Relocation",
   "lifeEvent.category.health": "Health",
+  "lifeEvent.category.started_medication": "Started medication",
+  "lifeEvent.category.stopped_medication": "Stopped medication",
   "lifeEvent.category.other": "Other",
 
   "classification.classifications": "Classifications",

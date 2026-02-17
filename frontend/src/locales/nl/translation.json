@@ -160,6 +160,8 @@
   "lifeEvent.category.career": "Carriere",
   "lifeEvent.category.relocation": "Verhuizing",
   "lifeEvent.category.health": "Gezondheid",
+  "lifeEvent.category.started_medication": "Gestart met medicatie",
+  "lifeEvent.category.stopped_medication": "Gestopt met medicatie",
   "lifeEvent.category.other": "Overig",
 
   "classification.classifications": "Classificaties",
