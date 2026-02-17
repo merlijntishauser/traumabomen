@@ -54,24 +54,24 @@ export function AppFooter({ onLock }: Props) {
         {onLock && (
           <button
             type="button"
-            className="app-footer__btn app-footer__lock-btn"
+            className="app-footer__btn"
             onClick={onLock}
             aria-label={t("safety.footer.lock")}
             title={t("safety.footer.lock")}
           >
-            <Lock size={12} aria-hidden="true" />
+            <Lock size={14} aria-hidden="true" />
           </button>
         )}
         <Link
           to="/privacy"
-          className="app-footer__link"
+          className="app-footer__btn"
           aria-label={t("safety.footer.privacy")}
           title={t("safety.footer.privacy")}
         >
-          <ShieldCheck size={12} aria-hidden="true" />
+          <ShieldCheck size={14} aria-hidden="true" />
         </Link>
         <a
-          className="app-footer__link"
+          className="app-footer__btn"
           href="https://github.com/merlijntishauser/traumabomen"
           target="_blank"
           rel="noopener noreferrer"
