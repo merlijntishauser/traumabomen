@@ -58,6 +58,34 @@ def _generate_verification_token() -> tuple[str, str]:
     return token, hashed
 
 
+async def _validate_invite_token(token: str, email: str, db: AsyncSession) -> WaitlistEntry:
+    """Validate an invite token and return the matching waitlist entry."""
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    result = await db.execute(
+        select(WaitlistEntry).where(
+            WaitlistEntry.invite_token == token_hash,
+            WaitlistEntry.status == WaitlistStatus.approved.value,
+        )
+    )
+    entry = result.scalar_one_or_none()
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_invite",
+        )
+    if entry.invite_expires_at and entry.invite_expires_at <= datetime.now(UTC):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_invite",
+        )
+    if entry.email != email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invite_email_mismatch",
+        )
+    return entry
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     body: RegisterRequest,
@@ -69,36 +97,10 @@ async def register(
     if result.scalar_one_or_none() is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
-    # Validate invite token if provided
     waitlist_entry: WaitlistEntry | None = None
     if body.invite_token:
-        token_hash = hashlib.sha256(body.invite_token.encode()).hexdigest()
-        wl_result = await db.execute(
-            select(WaitlistEntry).where(
-                WaitlistEntry.invite_token == token_hash,
-                WaitlistEntry.status == WaitlistStatus.approved.value,
-            )
-        )
-        waitlist_entry = wl_result.scalar_one_or_none()
-        if waitlist_entry is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="invalid_or_expired_invite",
-            )
-        if waitlist_entry.invite_expires_at and waitlist_entry.invite_expires_at <= datetime.now(
-            UTC
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="invalid_or_expired_invite",
-            )
-        if waitlist_entry.email != email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="invite_email_mismatch",
-            )
+        waitlist_entry = await _validate_invite_token(body.invite_token, email, db)
     elif not await is_registration_open(db, settings):
-        # No invite token and cap reached
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="registration_closed",

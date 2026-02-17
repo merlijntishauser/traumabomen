@@ -7,6 +7,15 @@ import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
 import "../styles/auth.css";
 
+function getRegistrationError(err: unknown, t: (key: string) => string): string {
+  if (err instanceof ApiError && err.status === 409) return t("auth.emailTaken");
+  if (err instanceof ApiError && err.detail === "invalid_or_expired_invite")
+    return t("waitlist.invalidInvite");
+  if (err instanceof ApiError && err.detail === "invite_email_mismatch")
+    return t("waitlist.emailMismatch");
+  return t("auth.registerError");
+}
+
 export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -74,15 +83,7 @@ export default function RegisterPage() {
         navigate("/waitlist", { replace: true });
         return;
       }
-      if (err instanceof ApiError && err.status === 409) {
-        setError(t("auth.emailTaken"));
-      } else if (err instanceof ApiError && err.detail === "invalid_or_expired_invite") {
-        setError(t("waitlist.invalidInvite"));
-      } else if (err instanceof ApiError && err.detail === "invite_email_mismatch") {
-        setError(t("waitlist.emailMismatch"));
-      } else {
-        setError(t("auth.registerError"));
-      }
+      setError(getRegistrationError(err, t));
     } finally {
       setLoading(false);
     }
