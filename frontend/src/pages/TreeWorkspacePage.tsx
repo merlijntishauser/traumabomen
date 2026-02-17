@@ -527,7 +527,7 @@ function TreeWorkspaceInner() {
       >
         <button
           type="button"
-          className="tree-toolbar__btn tree-toolbar__btn--primary"
+          className="tree-toolbar__btn"
           onClick={handleAddPerson}
           disabled={mutations.createPerson.isPending}
         >
