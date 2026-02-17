@@ -19,6 +19,7 @@ function RelationshipEdgeComponent({
   targetY,
   sourcePosition,
   targetPosition,
+  selected,
   data,
   ...rest
 }: EdgeProps & { data: RelationshipEdgeData }) {
@@ -76,11 +77,12 @@ function RelationshipEdgeComponent({
     edgeStyle: data.edgeStyle,
   });
 
-  const { stroke, strokeWidth, strokeDasharray } = computeEdgeStroke(
-    flags,
-    inferredType,
-    data.coupleColor,
-  );
+  const {
+    stroke,
+    strokeWidth: baseStrokeWidth,
+    strokeDasharray,
+  } = computeEdgeStroke(flags, inferredType, data.coupleColor);
+  const strokeWidth = selected ? baseStrokeWidth + 2 : baseStrokeWidth;
   const { typeLabel, periodLine } = computeTooltipContent(rel, relType, inferredType, flags, t);
 
   const markerShape = data.markerShape;
