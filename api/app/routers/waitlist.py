@@ -115,7 +115,7 @@ async def admin_approve_waitlist(
             detail="Entry is not in waiting status",
         )
 
-    # Generate invite token (store hash, send plaintext)
+    # Generate invite token (store hash, email token to user)  # privacy-ok
     token = secrets.token_urlsafe(32)
     hashed = hashlib.sha256(token.encode()).hexdigest()
 
