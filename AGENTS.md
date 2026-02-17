@@ -336,8 +336,8 @@ The app uses a "dark forest" nature aesthetic with strong thematic coherence. Th
 
 ### Typography
 
-- **Heading font:** `Playwrite NZ Basic` (cursive) -- flowing, hand-drawn quality for headings. Weight 400, never bold.
-- **Body font:** `Literata` -- literary serif with optical sizing, warm and readable. Pairs naturally with the cursive Playwrite headings and matches the personal journaling nature of the app.
+- **Heading font:** `Fraunces` -- old-style soft serif with organic, flowing terminals and optical sizing (9-144pt). Variable font with WONK axis for distinctive character. Soft curves evoke bark and roots, fitting the forest theme.
+- **Body font:** `Newsreader` -- editorial serif with optical sizing (6-72pt). Warm, literary micro-typography with excellent legibility at 13-15px. Designed for sustained reading.
 - Fonts loaded via Google Fonts CDN with `preconnect`.
 - All font families defined as CSS variables (`--font-heading`, `--font-body`) in `theme.css`.
 
@@ -364,7 +364,7 @@ When modifying the frontend, follow these principles:
 
 - **Stay in the green palette.** New surfaces, borders, and shadows should use the existing green-tinted variables. Never introduce grays or blues for structural elements.
 - **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
-- **Heading font is sacred.** Playwrite NZ Basic creates the app's distinctive character. Never substitute it with a generic sans-serif. Use it at weight 400, never bold.
+- **Heading font is organic.** Fraunces' soft terminals and wonky curves give headings a distinctive, natural character. Use weight 400 for large display, 500-600 for compact panel headers. Never substitute with a sans-serif.
 - **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in both themes. Don't add new ones without updating both theme variants.
 - **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations -- the subject matter is sensitive.
 - **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
