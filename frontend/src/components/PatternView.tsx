@@ -52,7 +52,11 @@ function getEntityDisplays(
     return {
       id: le.entity_id,
       type: "classification" as const,
-      label: cls ? t(`dsm.${cls.dsm_category}`) : "?",
+      label: cls
+        ? cls.dsm_subcategory
+          ? t(`dsm.sub.${cls.dsm_subcategory}`)
+          : t(`dsm.${cls.dsm_category}`)
+        : "?",
       personName,
     };
   });

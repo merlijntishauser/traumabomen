@@ -64,8 +64,10 @@ function buildPersonEntityGroups(
     for (const pid of ev.person_ids) addEntry(pid, "life_event", id, ev.title);
   }
   for (const [id, cls] of classifications) {
-    for (const pid of cls.person_ids)
-      addEntry(pid, "classification", id, t(`dsm.${cls.dsm_category}`));
+    const label = cls.dsm_subcategory
+      ? t(`dsm.sub.${cls.dsm_subcategory}`)
+      : t(`dsm.${cls.dsm_category}`);
+    for (const pid of cls.person_ids) addEntry(pid, "classification", id, label);
   }
 
   return Array.from(personMap, ([pid, entities]) => ({
@@ -300,7 +302,11 @@ function PatternEditForm({
         }
       } else if (le.entity_type === "classification") {
         const cls = classifications.get(le.entity_id);
-        label = cls ? t(`dsm.${cls.dsm_category}`) : "?";
+        label = cls
+          ? cls.dsm_subcategory
+            ? t(`dsm.sub.${cls.dsm_subcategory}`)
+            : t(`dsm.${cls.dsm_category}`)
+          : "?";
         const pid = cls?.person_ids[0];
         if (pid) {
           personName = persons.get(pid)?.name ?? "";

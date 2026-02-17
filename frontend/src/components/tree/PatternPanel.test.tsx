@@ -328,6 +328,46 @@ describe("PatternPanel", () => {
     expect(screen.getByText("Alice")).toBeInTheDocument();
   });
 
+  it("shows subcategory label when classification has a subcategory", () => {
+    const classificationsWithSub = new Map<string, DecryptedClassification>([
+      [
+        "cls1",
+        {
+          id: "cls1",
+          dsm_category: "neurodevelopmental",
+          dsm_subcategory: "adhd",
+          status: "diagnosed",
+          diagnosis_year: 2000,
+          periods: [],
+          notes: null,
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+
+    const patternWithSub: DecryptedPattern = {
+      id: "pat-sub",
+      name: "Subcategory Pattern",
+      description: "",
+      color: "#818cf8",
+      linked_entities: [{ entity_type: "classification", entity_id: "cls1" }],
+      person_ids: ["p1"],
+    };
+
+    const patterns = new Map<string, DecryptedPattern>([["pat-sub", patternWithSub]]);
+    renderPanel({
+      patterns,
+      classifications: classificationsWithSub,
+      visiblePatternIds: new Set(["pat-sub"]),
+    });
+
+    fireEvent.click(screen.getByText("Subcategory Pattern"));
+
+    // Should show the subcategory key, not the category key
+    expect(screen.getByText("dsm.sub.adhd")).toBeInTheDocument();
+    expect(screen.queryByText("dsm.neurodevelopmental")).not.toBeInTheDocument();
+  });
+
   it("link picker shows life events and classifications", () => {
     const lifeEventsWithData = new Map<string, DecryptedLifeEvent>([
       [
