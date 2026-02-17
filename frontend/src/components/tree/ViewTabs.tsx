@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { GanttChart, Network, Waypoints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { uuidToCompact } from "../../lib/compactId";
@@ -8,6 +10,12 @@ interface ViewTabsProps {
   treeId: string;
   activeView: ActiveView;
 }
+
+const TAB_ICONS: Record<ActiveView, LucideIcon> = {
+  canvas: Network,
+  timeline: GanttChart,
+  patterns: Waypoints,
+};
 
 export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
   const { t } = useTranslation();
@@ -21,17 +29,20 @@ export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
 
   return (
     <nav className="tree-toolbar__tabs">
-      {tabs.map((tab) =>
-        tab.view === activeView ? (
+      {tabs.map((tab) => {
+        const Icon = TAB_ICONS[tab.view];
+        return tab.view === activeView ? (
           <span key={tab.view} className="tree-toolbar__tab tree-toolbar__tab--active">
+            <Icon size={13} />
             {tab.label}
           </span>
         ) : (
           <Link key={tab.view} to={tab.to} className="tree-toolbar__tab">
+            <Icon size={13} />
             {tab.label}
           </Link>
-        ),
-      )}
+        );
+      })}
     </nav>
   );
 }

@@ -104,6 +104,9 @@
 }
 
 .tree-toolbar__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 4px 14px;
   font-size: 13px;
   color: var(--color-text-secondary);
