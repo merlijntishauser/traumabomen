@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as d3 from "d3";
+import { House, LogOut } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -225,19 +226,7 @@ export default function AdminPage() {
 
         <div className="tree-toolbar__group">
           <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            <House size={16} />
           </Link>
         </div>
 
@@ -251,20 +240,7 @@ export default function AdminPage() {
             onClick={logout}
             aria-label={t("nav.logout")}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <LogOut size={16} />
           </button>
         </div>
       </div>

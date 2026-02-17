@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./LockScreen.css";
@@ -61,9 +62,7 @@ export function LockScreen({ wrongAttempts, onUnlock }: Props) {
     >
       <div className="lock-screen__card">
         <div className="lock-screen__icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" />
-          </svg>
+          <Lock size={24} aria-hidden="true" />
         </div>
         <h2 className="lock-screen__title">{t("safety.lock.title")}</h2>
         <p className="lock-screen__subtitle">{t("safety.lock.passphrase")}</p>

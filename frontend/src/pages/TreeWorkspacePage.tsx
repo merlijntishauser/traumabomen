@@ -10,6 +10,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
+import { LayoutGrid, UserPlus, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
@@ -518,21 +519,7 @@ function TreeWorkspaceInner() {
           onClick={handleAddPerson}
           disabled={mutations.createPerson.isPending}
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-            <circle cx="8.5" cy="7" r="4" />
-            <line x1="20" y1="8" x2="20" y2="14" />
-            <line x1="23" y1="11" x2="17" y2="11" />
-          </svg>
+          <UserPlus size={14} />
           {t("tree.addPerson")}
         </button>
         <button
@@ -541,21 +528,7 @@ function TreeWorkspaceInner() {
           onClick={handleAutoLayout}
           disabled={!hasPinnedNodes}
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-          </svg>
+          <LayoutGrid size={14} />
           {t("tree.autoLayout")}
         </button>
         <button
@@ -563,23 +536,7 @@ function TreeWorkspaceInner() {
           className="tree-toolbar__btn"
           onClick={() => setPatternPanelOpen((v) => !v)}
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="5" cy="6" r="3" />
-            <circle cx="19" cy="6" r="3" />
-            <circle cx="12" cy="19" r="3" />
-            <line x1="7.5" y1="7.5" x2="10" y2="17" />
-            <line x1="16.5" y1="7.5" x2="14" y2="17" />
-            <line x1="8" y1="6" x2="16" y2="6" />
-          </svg>
+          <Waypoints size={14} />
           {t("pattern.editPatterns")}
         </button>
       </TreeToolbar>
