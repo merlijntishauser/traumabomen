@@ -56,6 +56,31 @@ function distToRect(px: number, py: number, r: Rect): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+/** Find the shortest edge between a tree node and a non-tree node. */
+function findNearestEdge(
+  cx: number[],
+  cy: number[],
+  inTree: Uint8Array,
+  n: number,
+): [number, number] {
+  let bestD = Infinity;
+  let bestI = 0;
+  let bestJ = 0;
+  for (let i = 0; i < n; i++) {
+    if (!inTree[i]) continue;
+    for (let j = 0; j < n; j++) {
+      if (inTree[j]) continue;
+      const d = (cx[i] - cx[j]) ** 2 + (cy[i] - cy[j]) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        bestI = i;
+        bestJ = j;
+      }
+    }
+  }
+  return [bestI, bestJ];
+}
+
 /** Minimum spanning tree of rects by center-to-center distance (Prim's). */
 function computeMST(rects: Rect[]): [number, number][] {
   const n = rects.length;
@@ -68,21 +93,7 @@ function computeMST(rects: Rect[]): [number, number][] {
   const edges: [number, number][] = [];
 
   for (let added = 1; added < n; added++) {
-    let bestD = Infinity;
-    let bestI = 0;
-    let bestJ = 0;
-    for (let i = 0; i < n; i++) {
-      if (!inTree[i]) continue;
-      for (let j = 0; j < n; j++) {
-        if (inTree[j]) continue;
-        const d = (cx[i] - cx[j]) ** 2 + (cy[i] - cy[j]) ** 2;
-        if (d < bestD) {
-          bestD = d;
-          bestI = i;
-          bestJ = j;
-        }
-      }
-    }
+    const [bestI, bestJ] = findNearestEdge(cx, cy, inTree, n);
     edges.push([bestI, bestJ]);
     inTree[bestJ] = 1;
   }
@@ -116,11 +127,11 @@ function generateBridges(rects: Rect[], mst: [number, number][]): Point[] {
 
 // ── Marching squares ───────────────────────────────────────────
 
-/** Sample metaball field on a grid and extract isoline contours. */
-function computeContours(memberRects: Rect[], bridges: Point[], repelRects: Rect[]): Point[][] {
-  if (memberRects.length === 0) return [];
-
-  // Bounding box of all sources
+/** Compute padded bounding box around all field sources. */
+function computeFieldBounds(
+  memberRects: Rect[],
+  bridges: Point[],
+): { minX: number; minY: number; maxX: number; maxY: number } {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -137,15 +148,24 @@ function computeContours(memberRects: Rect[], bridges: Point[], repelRects: Rect
     maxX = Math.max(maxX, b.x);
     maxY = Math.max(maxY, b.y);
   }
-  minX -= FIELD_MARGIN;
-  minY -= FIELD_MARGIN;
-  maxX += FIELD_MARGIN;
-  maxY += FIELD_MARGIN;
+  return {
+    minX: minX - FIELD_MARGIN,
+    minY: minY - FIELD_MARGIN,
+    maxX: maxX + FIELD_MARGIN,
+    maxY: maxY + FIELD_MARGIN,
+  };
+}
 
-  const cols = Math.ceil((maxX - minX) / GRID_SIZE) + 2;
-  const rows = Math.ceil((maxY - minY) / GRID_SIZE) + 2;
-
-  // Sample field
+/** Sample metaball field values on a regular grid. */
+function sampleField(
+  memberRects: Rect[],
+  bridges: Point[],
+  repelRects: Rect[],
+  minX: number,
+  minY: number,
+  cols: number,
+  rows: number,
+): Float64Array {
   const invBlob = 1 / (2 * BLOB_RADIUS * BLOB_RADIUS);
   const invBridge = 1 / (2 * BRIDGE_RADIUS * BRIDGE_RADIUS);
   const invRepel = 1 / (2 * REPEL_RADIUS * REPEL_RADIUS);
@@ -158,23 +178,86 @@ function computeContours(memberRects: Rect[], bridges: Point[], repelRects: Rect
       let sum = 0;
       for (const r of memberRects) {
         const d = distToRect(px, py, r);
-        sum += Math.exp(-d * d * invBlob);
+        sum += Math.exp(-(d * d) * invBlob);
       }
       for (const b of bridges) {
         const dx = px - b.x;
         const dy = py - b.y;
         sum += Math.exp(-(dx * dx + dy * dy) * invBridge);
       }
-      // Repulsion from non-member nodes pushes the contour away
       for (const r of repelRects) {
         const d = distToRect(px, py, r);
-        sum -= REPEL_STRENGTH * Math.exp(-d * d * invRepel);
+        sum -= REPEL_STRENGTH * Math.exp(-(d * d) * invRepel);
       }
       vals[row * cols + col] = sum;
     }
   }
+  return vals;
+}
 
-  // Marching squares
+/** Emit marching-squares segments for one cell given its case index. */
+function emitCellSegments(
+  ci: number,
+  top: Point,
+  right: Point,
+  bottom: Point,
+  left: Point,
+  out: Seg[],
+): void {
+  switch (ci) {
+    case 1:
+    case 14:
+      out.push({ x1: left.x, y1: left.y, x2: bottom.x, y2: bottom.y });
+      break;
+    case 2:
+    case 13:
+      out.push({ x1: bottom.x, y1: bottom.y, x2: right.x, y2: right.y });
+      break;
+    case 3:
+    case 12:
+      out.push({ x1: left.x, y1: left.y, x2: right.x, y2: right.y });
+      break;
+    case 4:
+    case 11:
+      out.push({ x1: top.x, y1: top.y, x2: right.x, y2: right.y });
+      break;
+    case 5:
+      out.push({ x1: left.x, y1: left.y, x2: top.x, y2: top.y });
+      out.push({ x1: bottom.x, y1: bottom.y, x2: right.x, y2: right.y });
+      break;
+    case 6:
+    case 9:
+      out.push({ x1: top.x, y1: top.y, x2: bottom.x, y2: bottom.y });
+      break;
+    case 7:
+    case 8:
+      out.push({ x1: top.x, y1: top.y, x2: left.x, y2: left.y });
+      break;
+    case 10:
+      out.push({ x1: top.x, y1: top.y, x2: right.x, y2: right.y });
+      out.push({ x1: left.x, y1: left.y, x2: bottom.x, y2: bottom.y });
+      break;
+  }
+}
+
+/** Classify a marching-squares cell from its four corner values. 0 or 15 = no contour. */
+function classifyCell(tl: number, tr: number, br: number, bl: number): number {
+  let ci = 0;
+  if (tl >= FIELD_THRESHOLD) ci |= 8;
+  if (tr >= FIELD_THRESHOLD) ci |= 4;
+  if (br >= FIELD_THRESHOLD) ci |= 2;
+  if (bl >= FIELD_THRESHOLD) ci |= 1;
+  return ci;
+}
+
+/** Extract marching-squares segments from a sampled field grid. */
+function extractSegments(
+  vals: Float64Array,
+  cols: number,
+  rows: number,
+  minX: number,
+  minY: number,
+): Seg[] {
   const segments: Seg[] = [];
   const v = (c: number, r: number) => vals[r * cols + c];
   const frac = (a: number, b: number) => (b === a ? 0.5 : (FIELD_THRESHOLD - a) / (b - a));
@@ -186,110 +269,101 @@ function computeContours(memberRects: Rect[], bridges: Point[], repelRects: Rect
       const br = v(col + 1, row + 1);
       const bl = v(col, row + 1);
 
-      let ci = 0;
-      if (tl >= FIELD_THRESHOLD) ci |= 8;
-      if (tr >= FIELD_THRESHOLD) ci |= 4;
-      if (br >= FIELD_THRESHOLD) ci |= 2;
-      if (bl >= FIELD_THRESHOLD) ci |= 1;
+      const ci = classifyCell(tl, tr, br, bl);
       if (ci === 0 || ci === 15) continue;
 
       const x = minX + col * GRID_SIZE;
       const y = minY + row * GRID_SIZE;
       const s = GRID_SIZE;
 
-      const top = { x: x + frac(tl, tr) * s, y };
-      const right = { x: x + s, y: y + frac(tr, br) * s };
-      const bottom = { x: x + frac(bl, br) * s, y: y + s };
-      const left = { x, y: y + frac(tl, bl) * s };
-
-      switch (ci) {
-        case 1:
-        case 14:
-          segments.push({ x1: left.x, y1: left.y, x2: bottom.x, y2: bottom.y });
-          break;
-        case 2:
-        case 13:
-          segments.push({ x1: bottom.x, y1: bottom.y, x2: right.x, y2: right.y });
-          break;
-        case 3:
-        case 12:
-          segments.push({ x1: left.x, y1: left.y, x2: right.x, y2: right.y });
-          break;
-        case 4:
-        case 11:
-          segments.push({ x1: top.x, y1: top.y, x2: right.x, y2: right.y });
-          break;
-        case 5:
-          segments.push({ x1: left.x, y1: left.y, x2: top.x, y2: top.y });
-          segments.push({ x1: bottom.x, y1: bottom.y, x2: right.x, y2: right.y });
-          break;
-        case 6:
-        case 9:
-          segments.push({ x1: top.x, y1: top.y, x2: bottom.x, y2: bottom.y });
-          break;
-        case 7:
-        case 8:
-          segments.push({ x1: top.x, y1: top.y, x2: left.x, y2: left.y });
-          break;
-        case 10:
-          segments.push({ x1: top.x, y1: top.y, x2: right.x, y2: right.y });
-          segments.push({ x1: left.x, y1: left.y, x2: bottom.x, y2: bottom.y });
-          break;
-      }
+      emitCellSegments(
+        ci,
+        { x: x + frac(tl, tr) * s, y },
+        { x: x + s, y: y + frac(tr, br) * s },
+        { x: x + frac(bl, br) * s, y: y + s },
+        { x, y: y + frac(tl, bl) * s },
+        segments,
+      );
     }
   }
+  return segments;
+}
 
-  // Chain segments into closed contours
+/** Sample metaball field on a grid and extract isoline contours. */
+function computeContours(memberRects: Rect[], bridges: Point[], repelRects: Rect[]): Point[][] {
+  if (memberRects.length === 0) return [];
+
+  const { minX, minY, maxX, maxY } = computeFieldBounds(memberRects, bridges);
+  const cols = Math.ceil((maxX - minX) / GRID_SIZE) + 2;
+  const rows = Math.ceil((maxY - minY) / GRID_SIZE) + 2;
+
+  const vals = sampleField(memberRects, bridges, repelRects, minX, minY, cols, rows);
+  const segments = extractSegments(vals, cols, rows, minX, minY);
+
   return chainSegments(segments);
+}
+
+const roundCoord = (n: number) => Math.round(n * 10) / 10;
+const coordKey = (x: number, y: number) => `${roundCoord(x)},${roundCoord(y)}`;
+
+type AdjEntry = { x: number; y: number; idx: number };
+
+/** Build an adjacency map from segment endpoints to their neighbors. */
+function buildAdjacency(segments: Seg[]): Map<string, AdjEntry[]> {
+  const adj = new Map<string, AdjEntry[]>();
+  for (let i = 0; i < segments.length; i++) {
+    const s = segments[i];
+    const k1 = coordKey(s.x1, s.y1);
+    const k2 = coordKey(s.x2, s.y2);
+    if (!adj.has(k1)) adj.set(k1, []);
+    if (!adj.has(k2)) adj.set(k2, []);
+    adj.get(k1)!.push({ x: s.x2, y: s.y2, idx: i });
+    adj.get(k2)!.push({ x: s.x1, y: s.y1, idx: i });
+  }
+  return adj;
+}
+
+/** Trace a single contour starting from a segment, consuming connected unused segments. */
+function traceContour(
+  start: Seg,
+  startIdx: number,
+  adj: Map<string, AdjEntry[]>,
+  used: Set<number>,
+): Point[] {
+  used.add(startIdx);
+  const contour: Point[] = [
+    { x: start.x1, y: start.y1 },
+    { x: start.x2, y: start.y2 },
+  ];
+
+  let extending = true;
+  while (extending) {
+    extending = false;
+    const last = contour[contour.length - 1];
+    const neighbors = adj.get(coordKey(last.x, last.y));
+    if (!neighbors) continue;
+    for (const n of neighbors) {
+      if (used.has(n.idx)) continue;
+      contour.push({ x: n.x, y: n.y });
+      used.add(n.idx);
+      extending = true;
+      break;
+    }
+  }
+  return contour;
 }
 
 /** Chain marching-squares segments into ordered closed contours. */
 function chainSegments(segments: Seg[]): Point[][] {
   if (segments.length === 0) return [];
 
-  const round = (n: number) => Math.round(n * 10) / 10;
-  const key = (x: number, y: number) => `${round(x)},${round(y)}`;
-
-  // Adjacency: each endpoint -> list of (otherEnd, segmentIndex)
-  const adj = new Map<string, { x: number; y: number; idx: number }[]>();
-  for (let i = 0; i < segments.length; i++) {
-    const s = segments[i];
-    const k1 = key(s.x1, s.y1);
-    const k2 = key(s.x2, s.y2);
-    if (!adj.has(k1)) adj.set(k1, []);
-    if (!adj.has(k2)) adj.set(k2, []);
-    adj.get(k1)!.push({ x: s.x2, y: s.y2, idx: i });
-    adj.get(k2)!.push({ x: s.x1, y: s.y1, idx: i });
-  }
-
+  const adj = buildAdjacency(segments);
   const used = new Set<number>();
   const contours: Point[][] = [];
 
   for (let i = 0; i < segments.length; i++) {
     if (used.has(i)) continue;
-
-    const contour: Point[] = [];
-    const s = segments[i];
-    used.add(i);
-    contour.push({ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 });
-
-    let extending = true;
-    while (extending) {
-      extending = false;
-      const last = contour[contour.length - 1];
-      const neighbors = adj.get(key(last.x, last.y));
-      if (neighbors) {
-        for (const n of neighbors) {
-          if (!used.has(n.idx)) {
-            contour.push({ x: n.x, y: n.y });
-            used.add(n.idx);
-            extending = true;
-            break;
-          }
-        }
-      }
-    }
-
+    const contour = traceContour(segments[i], i, adj, used);
     if (contour.length >= 6) contours.push(contour);
   }
 
