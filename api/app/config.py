@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     SMOKETEST_EMAIL: str = ""
     FEEDBACK_EMAIL: str = ""
 
+    ENABLE_WAITLIST: bool = False
+    MAX_ACTIVE_USERS: int = 20
+
     model_config = {"extra": "ignore"}
 
 

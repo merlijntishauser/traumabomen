@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { ApiError, register } from "../lib/api";
@@ -11,6 +11,8 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setKey, setPassphraseHash } = useEncryption();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +44,20 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const salt = generateSalt();
-      const result = await register({ email, password, encryption_salt: salt });
+      const registerRequest: {
+        email: string;
+        password: string;
+        encryption_salt: string;
+        invite_token?: string;
+      } = {
+        email,
+        password,
+        encryption_salt: salt,
+      };
+      if (inviteToken) {
+        registerRequest.invite_token = inviteToken;
+      }
+      const result = await register(registerRequest);
 
       if ("message" in result && result.message === "verification_email_sent") {
         navigate("/verify-pending", { state: { email } });
@@ -55,8 +70,16 @@ export default function RegisterPage() {
       setPassphraseHash(hash);
       navigate("/trees");
     } catch (err) {
+      if (err instanceof ApiError && err.status === 403 && err.detail === "registration_closed") {
+        navigate("/waitlist", { replace: true });
+        return;
+      }
       if (err instanceof ApiError && err.status === 409) {
         setError(t("auth.emailTaken"));
+      } else if (err instanceof ApiError && err.detail === "invalid_or_expired_invite") {
+        setError(t("waitlist.invalidInvite"));
+      } else if (err instanceof ApiError && err.detail === "invite_email_mismatch") {
+        setError(t("waitlist.emailMismatch"));
       } else {
         setError(t("auth.registerError"));
       }
@@ -72,6 +95,8 @@ export default function RegisterPage() {
         <div className="auth-card">
           <h1>{t("app.title")}</h1>
           <h2>{t("auth.register")}</h2>
+
+          {inviteToken && <div className="auth-success">{t("waitlist.approvalBanner")}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="auth-field">

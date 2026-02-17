@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as d3 from "d3";
 import { House, LogOut } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useLogout } from "../hooks/useLogout";
 import {
+  approveWaitlistEntry,
+  deleteWaitlistEntry,
   getAdminActivity,
   getAdminFeedback,
   getAdminFunnel,
@@ -15,6 +17,8 @@ import {
   getAdminRetention,
   getAdminUsage,
   getAdminUsers,
+  getAdminWaitlist,
+  getAdminWaitlistCapacity,
 } from "../lib/api";
 import type {
   ActivityCell,
@@ -23,6 +27,7 @@ import type {
   GrowthPoint,
   UsageBuckets,
   UserRow,
+  WaitlistEntry,
 } from "../types/api";
 import "../styles/admin.css";
 import "../components/tree/TreeCanvas.css";
@@ -177,6 +182,7 @@ function GrowthChart({ points }: { points: GrowthPoint[] }) {
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
   const logout = useLogout();
+  const queryClient = useQueryClient();
 
   const overview = useQuery({ queryKey: ["admin", "overview"], queryFn: getAdminOverview });
   const funnel = useQuery({ queryKey: ["admin", "funnel"], queryFn: getAdminFunnel });
@@ -189,6 +195,26 @@ export default function AdminPage() {
   const usage = useQuery({ queryKey: ["admin", "usage"], queryFn: getAdminUsage });
   const users = useQuery({ queryKey: ["admin", "users"], queryFn: getAdminUsers });
   const feedback = useQuery({ queryKey: ["admin", "feedback"], queryFn: getAdminFeedback });
+  const waitlist = useQuery({ queryKey: ["admin", "waitlist"], queryFn: getAdminWaitlist });
+  const waitlistCapacity = useQuery({
+    queryKey: ["admin", "waitlist-capacity"],
+    queryFn: getAdminWaitlistCapacity,
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: approveWaitlistEntry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "waitlist"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "waitlist-capacity"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteWaitlistEntry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "waitlist"] });
+    },
+  });
 
   const isLoading =
     overview.isLoading ||
@@ -198,7 +224,9 @@ export default function AdminPage() {
     retention.isLoading ||
     usage.isLoading ||
     users.isLoading ||
-    feedback.isLoading;
+    feedback.isLoading ||
+    waitlist.isLoading ||
+    waitlistCapacity.isLoading;
   const error =
     overview.error ||
     funnel.error ||
@@ -207,7 +235,9 @@ export default function AdminPage() {
     retention.error ||
     usage.error ||
     users.error ||
-    feedback.error;
+    feedback.error ||
+    waitlist.error ||
+    waitlistCapacity.error;
 
   const maxWeeks = retention.data
     ? Math.max(0, ...retention.data.cohorts.map((c: CohortRow) => c.retention.length))
@@ -465,6 +495,95 @@ export default function AdminPage() {
               </div>
             </section>
           )}
+
+          {/* Waitlist */}
+          <section>
+            <div className="admin-section__title">
+              {t("admin.waitlist.title")}
+              {waitlistCapacity.data && (
+                <span className="admin-section__subtitle">
+                  {" "}
+                  (
+                  {t("admin.waitlist.capacity", {
+                    current: waitlistCapacity.data.active_users,
+                    max: waitlistCapacity.data.max_active_users,
+                  })}
+                  {!waitlistCapacity.data.waitlist_enabled && ` -- ${t("admin.waitlist.disabled")}`}
+                  )
+                </span>
+              )}
+            </div>
+            {waitlist.data && waitlist.data.items.length > 0 ? (
+              <>
+                <div className="admin-waitlist-counts">
+                  <span className="admin-waitlist-badge admin-waitlist-badge--waiting">
+                    {waitlist.data.waiting} {t("admin.waitlist.waiting")}
+                  </span>
+                  <span className="admin-waitlist-badge admin-waitlist-badge--approved">
+                    {waitlist.data.approved} {t("admin.waitlist.approved")}
+                  </span>
+                  <span className="admin-waitlist-badge admin-waitlist-badge--registered">
+                    {waitlist.data.registered} {t("admin.waitlist.registered")}
+                  </span>
+                </div>
+                <div className="admin-users">
+                  <table className="admin-users-table">
+                    <thead>
+                      <tr>
+                        <th>{t("admin.email")}</th>
+                        <th>{t("admin.waitlist.status")}</th>
+                        <th>{t("admin.waitlist.joined")}</th>
+                        <th>{t("admin.waitlist.approvedAt")}</th>
+                        <th>{t("admin.waitlist.actions")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {waitlist.data.items.map((entry: WaitlistEntry) => (
+                        <tr key={entry.id}>
+                          <td className="admin-users-table__email">{entry.email}</td>
+                          <td>
+                            <span
+                              className={`admin-waitlist-badge admin-waitlist-badge--${entry.status}`}
+                            >
+                              {t(`admin.waitlist.${entry.status}`)}
+                            </span>
+                          </td>
+                          <td>{formatDate(entry.created_at, i18n.language)}</td>
+                          <td>
+                            {entry.approved_at
+                              ? formatDate(entry.approved_at, i18n.language)
+                              : "--"}
+                          </td>
+                          <td className="admin-waitlist-actions">
+                            {entry.status === "waiting" && (
+                              <button
+                                type="button"
+                                className="admin-waitlist-btn admin-waitlist-btn--approve"
+                                onClick={() => approveMutation.mutate(entry.id)}
+                                disabled={approveMutation.isPending}
+                              >
+                                {t("admin.waitlist.approve")}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="admin-waitlist-btn admin-waitlist-btn--delete"
+                              onClick={() => deleteMutation.mutate(entry.id)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              {t("admin.waitlist.delete")}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <div className="admin-cohort-empty">{t("admin.waitlist.empty")}</div>
+            )}
+          </section>
 
           {/* Feedback */}
           <section>

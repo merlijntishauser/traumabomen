@@ -42,6 +42,8 @@ import type {
   UsageStats,
   UserListStats,
   VerifyResponse,
+  WaitlistCapacity,
+  WaitlistListResponse,
 } from "../types/api";
 
 const TOKEN_KEY = "traumabomen_access_token";
@@ -544,4 +546,26 @@ export function getAdminFeedback(): Promise<{ items: FeedbackItem[] }> {
 
 export function submitFeedback(data: FeedbackCreate): Promise<void> {
   return apiFetchWithRetry("/feedback", { method: "POST", body: data });
+}
+
+// Waitlist
+
+export function joinWaitlist(email: string): Promise<{ message: string }> {
+  return apiFetch("/waitlist", { method: "POST", body: { email }, requiresAuth: false });
+}
+
+export function getAdminWaitlist(): Promise<WaitlistListResponse> {
+  return apiFetchWithRetry("/admin/waitlist");
+}
+
+export function approveWaitlistEntry(id: string): Promise<void> {
+  return apiFetchWithRetry(`/admin/waitlist/${id}/approve`, { method: "PATCH" });
+}
+
+export function deleteWaitlistEntry(id: string): Promise<void> {
+  return apiFetchWithRetry(`/admin/waitlist/${id}`, { method: "DELETE" });
+}
+
+export function getAdminWaitlistCapacity(): Promise<WaitlistCapacity> {
+  return apiFetchWithRetry("/admin/waitlist/capacity");
 }

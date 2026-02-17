@@ -9,11 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_token, decode_token, get_current_user, hash_password, verify_password
+from app.capacity import is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.email import send_verification_email
 from app.models.login_event import LoginEvent
 from app.models.user import User
+from app.models.waitlist import WaitlistEntry, WaitlistStatus
 from app.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
@@ -67,6 +69,41 @@ async def register(
     if result.scalar_one_or_none() is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
+    # Validate invite token if provided
+    waitlist_entry: WaitlistEntry | None = None
+    if body.invite_token:
+        token_hash = hashlib.sha256(body.invite_token.encode()).hexdigest()
+        wl_result = await db.execute(
+            select(WaitlistEntry).where(
+                WaitlistEntry.invite_token == token_hash,
+                WaitlistEntry.status == WaitlistStatus.approved.value,
+            )
+        )
+        waitlist_entry = wl_result.scalar_one_or_none()
+        if waitlist_entry is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invalid_or_expired_invite",
+            )
+        if waitlist_entry.invite_expires_at and waitlist_entry.invite_expires_at <= datetime.now(
+            UTC
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invalid_or_expired_invite",
+            )
+        if waitlist_entry.email != email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invite_email_mismatch",
+            )
+    elif not await is_registration_open(db, settings):
+        # No invite token and cap reached
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="registration_closed",
+        )
+
     if settings.REQUIRE_EMAIL_VERIFICATION:
         token, hashed = _generate_verification_token()
         user = User(
@@ -79,6 +116,8 @@ async def register(
             + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS),
         )
         db.add(user)
+        if waitlist_entry:
+            waitlist_entry.status = WaitlistStatus.registered.value
         await db.commit()
 
         send_verification_email(email, token, settings)
@@ -91,6 +130,8 @@ async def register(
         email_verified=True,
     )
     db.add(user)
+    if waitlist_entry:
+        waitlist_entry.status = WaitlistStatus.registered.value
     await db.commit()
     await db.refresh(user)
 

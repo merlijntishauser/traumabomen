@@ -8,6 +8,7 @@ from app.models.person import Person
 from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.models.user import User
+from app.models.waitlist import WaitlistEntry
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
     "PatternPerson",
     "LoginEvent",
     "Feedback",
+    "WaitlistEntry",
 ]

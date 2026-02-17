@@ -3,6 +3,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   encryption_salt: string;
+  invite_token?: string;
 }
 
 export interface LoginRequest {
@@ -282,6 +283,28 @@ export interface FeedbackItem {
   message: string;
   user_email: string | null;
   created_at: string;
+}
+
+// Waitlist
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  status: string;
+  created_at: string;
+  approved_at: string | null;
+}
+
+export interface WaitlistListResponse {
+  items: WaitlistEntry[];
+  waiting: number;
+  approved: number;
+  registered: number;
+}
+
+export interface WaitlistCapacity {
+  active_users: number;
+  max_active_users: number;
+  waitlist_enabled: boolean;
 }
 
 // Sync

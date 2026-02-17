@@ -21,6 +21,7 @@ import TreeWorkspacePage from "./pages/TreeWorkspacePage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import WaitlistPage from "./pages/WaitlistPage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
@@ -93,6 +94,7 @@ function AppContent() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/waitlist" element={<WaitlistPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/verify-pending" element={<VerificationPendingPage />} />
             <Route path="/verify" element={<VerifyEmailPage />} />

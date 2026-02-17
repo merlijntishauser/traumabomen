@@ -92,11 +92,20 @@ def _register_sqlite_functions(dbapi_conn, _connection_record):
 from datetime import UTC  # noqa: E402
 
 from app.models.user import User as _User  # noqa: E402
+from app.models.waitlist import WaitlistEntry as _WaitlistEntry  # noqa: E402
 
 
 @event.listens_for(_User, "load")
 def _fix_user_tz(target, _context):
     for attr in ("email_verification_expires_at", "created_at", "updated_at"):
+        val = getattr(target, attr, None)
+        if val is not None and val.tzinfo is None:
+            object.__setattr__(target, attr, val.replace(tzinfo=UTC))
+
+
+@event.listens_for(_WaitlistEntry, "load")
+def _fix_waitlist_tz(target, _context):
+    for attr in ("created_at", "approved_at", "invite_expires_at"):
         val = getattr(target, attr, None)
         if val is not None and val.tzinfo is None:
             object.__setattr__(target, attr, val.replace(tzinfo=UTC))
