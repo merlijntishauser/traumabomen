@@ -118,6 +118,8 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Import from major genealogy software
 - List of mental health organisations per country
 - Questionnaires for family members (no account needed, answers feed into the tree)
+- canvas tools, zooming in/out, panning
+- filtering show/hide entity types
 
 ### Improvements
 - Search on classifications: both main categories and subcategories
