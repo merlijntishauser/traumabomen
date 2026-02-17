@@ -377,9 +377,10 @@ When modifying the frontend, follow these principles:
 
 - **IMPORTANT**: When you complete a task that has new functions write unit tests for the new function
 - **IMPORTANT**: When you complete a task that updates code make sure all existing unit tests pass and write new tests if needed
-- Each time you write or update a unit test run them and ensure they pass
+- **IMPORTANT**: Each time you write or update a unit test run them and ensure they pass
 - **IMPORTANT**: When you complete a task run `docker compose exec api uv run pytest` and `docker compose exec frontend npx vitest run` to ensure all tests pass
 - **IMPORTANT**: When you complete a task run `docker compose exec frontend npx tsc --noEmit` and `docker compose exec api uv run mypy app/` to check for type errors and fix them
+- **IMPORTANT**: After refactoring ALWAYS run `make complexity` and `make quality`. Degradation in code coverage and /o r quality is unacceptable
 
 ### Security guidelines
 
@@ -389,7 +390,7 @@ When modifying the frontend, follow these principles:
 - **IMPORTANT**: Never send plaintext sensitive data to the backend
 - **IMPORTANT**: All sensitive fields must be encrypted before leaving the client 
 - **IMPORTANT**: Encryption key must only exist in memory, never persisted to localStorage/sessionStorage/cookies
-- **IMPORTANT**:Every `encrypt()` call must use a fresh random IV
+- **IMPORTANT**: Every `encrypt()` call must use a fresh random IV
 - **IMPORTANT**: When you add or update a Python dependency run `docker compose exec api uv run pip-audit` to check for security issues
 - **IMPORTANT**: When you add or update a npm dependency run `docker compose exec frontend npm audit` to check for security issues
 - **IMPORTANT**: When you add or update a dependency run `docker compose exec frontend npm outdated` and `docker compose exec api uv run pip list --outdated` to check for outdated dependencies

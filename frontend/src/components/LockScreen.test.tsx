@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { LockScreen } from "./LockScreen";
@@ -63,6 +63,15 @@ describe("LockScreen", () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
+  it("handleSubmit guards against empty passphrase via form submit", () => {
+    const onUnlock = vi.fn();
+    render(<LockScreen wrongAttempts={0} onUnlock={onUnlock} />);
+
+    const form = document.querySelector(".lock-screen__form") as HTMLFormElement;
+    fireEvent.submit(form);
+    expect(onUnlock).not.toHaveBeenCalled();
+  });
+
   it("blocks non-Escape keyboard events outside the input", () => {
     const onUnlock = vi.fn();
     render(<LockScreen wrongAttempts={0} onUnlock={onUnlock} />);
@@ -90,6 +99,19 @@ describe("LockScreen", () => {
     const notPrevented = document.dispatchEvent(event);
     // Escape should NOT be prevented (for double-Esc detection)
     expect(notPrevented).toBe(true);
+  });
+
+  it("renders theme-aware background images", () => {
+    const onUnlock = vi.fn();
+    render(<LockScreen wrongAttempts={0} onUnlock={onUnlock} />);
+
+    const darkImg = document.querySelector(".lock-screen__bg--dark") as HTMLImageElement;
+    const lightImg = document.querySelector(".lock-screen__bg--light") as HTMLImageElement;
+    expect(darkImg).toBeTruthy();
+    expect(lightImg).toBeTruthy();
+    expect(darkImg.getAttribute("src")).toBe("/images/hero-unlock-dark.jpg");
+    expect(lightImg.getAttribute("src")).toBe("/images/hero-unlock-light.jpg");
+    expect(darkImg.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("applies shake class when wrongAttempts increases", () => {

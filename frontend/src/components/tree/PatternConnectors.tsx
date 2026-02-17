@@ -196,7 +196,7 @@ function sampleField(
 }
 
 /** Emit marching-squares segments for one cell given its case index. */
-function emitCellSegments(
+export function emitCellSegments(
   ci: number,
   top: Point,
   right: Point,
