@@ -6,9 +6,10 @@ import "./LockScreen.css";
 interface Props {
   wrongAttempts: number;
   onUnlock: (passphrase: string) => void;
+  onLogout: () => void;
 }
 
-export function LockScreen({ wrongAttempts, onUnlock }: Props) {
+export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
   const { t } = useTranslation();
   const [passphrase, setPassphrase] = useState("");
   const [shaking, setShaking] = useState(false);
@@ -98,6 +99,9 @@ export function LockScreen({ wrongAttempts, onUnlock }: Props) {
               {t("safety.lock.unlock")}
             </button>
           </form>
+          <button type="button" className="lock-screen__logout" onClick={onLogout}>
+            {t("auth.switchAccount")}
+          </button>
         </div>
       </div>
     </div>

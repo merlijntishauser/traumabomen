@@ -8,6 +8,7 @@ import { MobileBanner } from "./components/MobileBanner";
 import { OnboardingGate } from "./components/OnboardingGate";
 import { EncryptionProvider, useEncryption } from "./contexts/EncryptionContext";
 import { useLockScreen } from "./hooks/useLockScreen";
+import { useLogout } from "./hooks/useLogout";
 import { getAccessToken, getIsAdmin, getOnboardingFlag } from "./lib/api";
 import "./components/MobileBanner.css";
 import AdminPage from "./pages/AdminPage";
@@ -70,6 +71,8 @@ function AppContent() {
     onFullLock: handleFullLock,
   });
 
+  const handleLogout = useLogout();
+
   const handleLockUnlock = useCallback(
     async (passphrase: string) => {
       const valid = await verifyPassphrase(passphrase);
@@ -85,7 +88,11 @@ function AppContent() {
   return (
     <OnboardingGuard>
       {lockLevel === "blur" && (
-        <LockScreen wrongAttempts={wrongAttempts} onUnlock={handleLockUnlock} />
+        <LockScreen
+          wrongAttempts={wrongAttempts}
+          onUnlock={handleLockUnlock}
+          onLogout={handleLogout}
+        />
       )}
       <div className="app-layout">
         <MentalHealthBanner />

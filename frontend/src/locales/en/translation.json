@@ -349,6 +349,7 @@
   "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption -- meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you.",
   "landing.readPrivacyPolicy": "Read our full privacy policy",
 
+  "privacy.back": "Back",
   "privacy.title": "Privacy Policy",
   "privacy.lastUpdated": "Last updated: February 2026",
   "privacy.tab.glance": "At a glance",

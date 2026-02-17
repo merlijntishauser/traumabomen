@@ -349,6 +349,7 @@
   "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling -- dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou.",
   "landing.readPrivacyPolicy": "Lees ons volledige privacybeleid",
 
+  "privacy.back": "Terug",
   "privacy.title": "Privacybeleid",
   "privacy.lastUpdated": "Laatst bijgewerkt: februari 2026",
   "privacy.tab.glance": "In het kort",

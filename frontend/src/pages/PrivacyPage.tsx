@@ -26,7 +26,7 @@ export default function PrivacyPage() {
     <div className="privacy-page">
       <div className="privacy-content">
         <button type="button" className="privacy-back" onClick={() => navigate(-1)}>
-          &larr;
+          &larr; {t("privacy.back")}
         </button>
 
         <h1 className="privacy-title">{t("privacy.title")}</h1>
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
           <section key={section} className="privacy-section">
             <h2>{t(`privacy.${section}.heading`)}</h2>
             <p>{t(`privacy.${section}.${tab === "glance" ? "glance" : "body"}`)}</p>
-            {section === "contact" && <p className="privacy-email">privacy@traumatrees.com</p>}
+            {section === "contact" && <p className="privacy-email">privacy@traumatrees.org</p>}
           </section>
         ))}
       </div>
