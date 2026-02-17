@@ -10,6 +10,7 @@ from app.auth import require_admin
 from app.config import get_settings
 from app.database import get_db
 from app.models.event import TraumaEvent
+from app.models.feedback import Feedback
 from app.models.login_event import LoginEvent
 from app.models.person import Person
 from app.models.relationship import Relationship
@@ -30,6 +31,7 @@ from app.schemas.admin import (
     UserListStats,
     UserRow,
 )
+from app.schemas.feedback import FeedbackListResponse, FeedbackResponse
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -421,3 +423,25 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
     ]
 
     return UserListStats(users=users)
+
+
+@router.get("/feedback", response_model=FeedbackListResponse)
+async def admin_feedback(db: AsyncSession = Depends(get_db)) -> FeedbackListResponse:
+    result = await db.execute(
+        select(Feedback.id, Feedback.category, Feedback.message, Feedback.created_at, User.email)
+        .outerjoin(User, Feedback.user_id == User.id)
+        .order_by(Feedback.created_at.desc())
+    )
+
+    items = [
+        FeedbackResponse(
+            id=str(row.id),
+            category=row.category,
+            message=row.message,
+            user_email=row.email,
+            created_at=row.created_at,
+        )
+        for row in result.all()
+    ]
+
+    return FeedbackListResponse(items=items)

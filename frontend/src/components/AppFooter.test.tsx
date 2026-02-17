@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AppFooter } from "./AppFooter";
 
@@ -31,6 +31,16 @@ vi.mock("./ThemeToggle", () => ({
     <button type="button" className={className}>
       theme-toggle
     </button>
+  ),
+}));
+
+vi.mock("./FeedbackModal", () => ({
+  FeedbackModal: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="feedback-modal">
+      <button type="button" onClick={onClose}>
+        close
+      </button>
+    </div>
   ),
 }));
 
@@ -80,5 +90,17 @@ describe("AppFooter", () => {
   it("does not render lock button when onLock is not provided", () => {
     render(<AppFooter />);
     expect(screen.queryByLabelText("safety.footer.lock")).not.toBeInTheDocument();
+  });
+
+  it("renders feedback button", () => {
+    render(<AppFooter />);
+    expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
+  });
+
+  it("opens feedback modal on click", () => {
+    render(<AppFooter />);
+    expect(screen.queryByTestId("feedback-modal")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("feedback.button"));
+    expect(screen.getByTestId("feedback-modal")).toBeInTheDocument();
   });
 });

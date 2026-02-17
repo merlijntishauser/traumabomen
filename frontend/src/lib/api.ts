@@ -8,6 +8,8 @@ import type {
   EventCreate,
   EventResponse,
   EventUpdate,
+  FeedbackCreate,
+  FeedbackItem,
   FunnelStats,
   GrowthStats,
   LifeEventCreate,
@@ -532,4 +534,14 @@ export function getAdminGrowth(): Promise<GrowthStats> {
 
 export function getAdminUsers(): Promise<UserListStats> {
   return apiFetchWithRetry("/admin/stats/users");
+}
+
+export function getAdminFeedback(): Promise<{ items: FeedbackItem[] }> {
+  return apiFetchWithRetry("/admin/feedback");
+}
+
+// Feedback
+
+export function submitFeedback(data: FeedbackCreate): Promise<void> {
+  return apiFetchWithRetry("/feedback", { method: "POST", body: data });
 }

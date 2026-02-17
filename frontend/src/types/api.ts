@@ -269,6 +269,21 @@ export interface UserListStats {
   users: UserRow[];
 }
 
+// Feedback
+export interface FeedbackCreate {
+  category: "bug" | "feature" | "general";
+  message: string;
+  anonymous: boolean;
+}
+
+export interface FeedbackItem {
+  id: string;
+  category: string;
+  message: string;
+  user_email: string | null;
+  created_at: string;
+}
+
 // Sync
 export interface SyncPersonCreate {
   id?: string;

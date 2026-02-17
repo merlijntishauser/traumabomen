@@ -8,6 +8,7 @@ import { ThemeToggle } from "../components/ThemeToggle";
 import { useLogout } from "../hooks/useLogout";
 import {
   getAdminActivity,
+  getAdminFeedback,
   getAdminFunnel,
   getAdminGrowth,
   getAdminOverview,
@@ -15,7 +16,14 @@ import {
   getAdminUsage,
   getAdminUsers,
 } from "../lib/api";
-import type { ActivityCell, CohortRow, GrowthPoint, UsageBuckets, UserRow } from "../types/api";
+import type {
+  ActivityCell,
+  CohortRow,
+  FeedbackItem,
+  GrowthPoint,
+  UsageBuckets,
+  UserRow,
+} from "../types/api";
 import "../styles/admin.css";
 import "../components/tree/TreeCanvas.css";
 
@@ -180,6 +188,7 @@ export default function AdminPage() {
   });
   const usage = useQuery({ queryKey: ["admin", "usage"], queryFn: getAdminUsage });
   const users = useQuery({ queryKey: ["admin", "users"], queryFn: getAdminUsers });
+  const feedback = useQuery({ queryKey: ["admin", "feedback"], queryFn: getAdminFeedback });
 
   const isLoading =
     overview.isLoading ||
@@ -188,7 +197,8 @@ export default function AdminPage() {
     activity.isLoading ||
     retention.isLoading ||
     usage.isLoading ||
-    users.isLoading;
+    users.isLoading ||
+    feedback.isLoading;
   const error =
     overview.error ||
     funnel.error ||
@@ -196,7 +206,8 @@ export default function AdminPage() {
     activity.error ||
     retention.error ||
     usage.error ||
-    users.error;
+    users.error ||
+    feedback.error;
 
   const maxWeeks = retention.data
     ? Math.max(0, ...retention.data.cohorts.map((c: CohortRow) => c.retention.length))
@@ -454,6 +465,49 @@ export default function AdminPage() {
               </div>
             </section>
           )}
+
+          {/* Feedback */}
+          <section>
+            <div className="admin-section__title">{t("admin.feedback")}</div>
+            {feedback.data && feedback.data.items.length > 0 ? (
+              <div className="admin-users">
+                <table className="admin-users-table">
+                  <thead>
+                    <tr>
+                      <th>{t("admin.feedbackDate")}</th>
+                      <th>{t("admin.feedbackCategory")}</th>
+                      <th>{t("admin.feedbackMessage")}</th>
+                      <th>{t("admin.feedbackUser")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {feedback.data.items.map((item: FeedbackItem) => (
+                      <tr key={item.id}>
+                        <td>{formatDate(item.created_at, i18n.language)}</td>
+                        <td>
+                          <span
+                            className={`admin-feedback-badge admin-feedback-badge--${item.category}`}
+                          >
+                            {t(
+                              `feedback.category${item.category.charAt(0).toUpperCase()}${item.category.slice(1)}`,
+                            )}
+                          </span>
+                        </td>
+                        <td className="admin-feedback-message" title={item.message}>
+                          {item.message.length > 100
+                            ? `${item.message.slice(0, 100)}...`
+                            : item.message}
+                        </td>
+                        <td>{item.user_email ?? t("admin.feedbackAnonymous")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="admin-cohort-empty">{t("admin.feedbackEmpty")}</div>
+            )}
+          </section>
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     SMTP_FROM: str = ""
     APP_BASE_URL: str = "http://localhost:5173"
     SMOKETEST_EMAIL: str = ""
+    FEEDBACK_EMAIL: str = ""
 
     model_config = {"extra": "ignore"}
 
