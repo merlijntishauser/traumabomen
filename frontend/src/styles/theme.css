@@ -65,6 +65,16 @@
   --color-life-health: #f472b6;
   --color-life-other: #94a3b8;
 
+  /* Pattern colors */
+  --color-pattern-0: #818cf8;
+  --color-pattern-1: #f472b6;
+  --color-pattern-2: #fb923c;
+  --color-pattern-3: #facc15;
+  --color-pattern-4: #34d399;
+  --color-pattern-5: #38bdf8;
+  --color-pattern-6: #a78bfa;
+  --color-pattern-7: #f87171;
+
   /* Nodes */
   --color-node-bg: #0f261a;
   --color-node-border: #1f4d35;
@@ -150,6 +160,16 @@
   --color-life-relocation: #059669;
   --color-life-health: #db2777;
   --color-life-other: #64748b;
+
+  /* Pattern colors */
+  --color-pattern-0: #6366f1;
+  --color-pattern-1: #db2777;
+  --color-pattern-2: #ea580c;
+  --color-pattern-3: #ca8a04;
+  --color-pattern-4: #059669;
+  --color-pattern-5: #0284c7;
+  --color-pattern-6: #7c3aed;
+  --color-pattern-7: #dc2626;
 
   --color-node-bg: #ffffff;
   --color-node-border: #c8cdc3;

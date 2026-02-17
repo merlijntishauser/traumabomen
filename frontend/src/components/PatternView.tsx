@@ -9,6 +9,7 @@ import type {
   DecryptedPerson,
 } from "../hooks/useTreeData";
 import { uuidToCompact } from "../lib/compactId";
+import { getPatternColor } from "../lib/patternColors";
 import "./PatternView.css";
 
 interface PatternViewProps {
@@ -138,7 +139,7 @@ export function PatternView({
               <div className="pattern-view__card-header">
                 <div
                   className="pattern-view__card-dot"
-                  style={{ backgroundColor: pattern.color }}
+                  style={{ backgroundColor: getPatternColor(pattern.color) }}
                 />
                 <span className="pattern-view__card-name">{pattern.name}</span>
                 <span className="pattern-view__card-count">{pattern.linked_entities.length}</span>
@@ -203,7 +204,10 @@ function PatternDetail({
   return (
     <div className="pattern-view__detail">
       <div className="pattern-view__detail-header">
-        <div className="pattern-view__card-dot" style={{ backgroundColor: pattern.color }} />
+        <div
+          className="pattern-view__card-dot"
+          style={{ backgroundColor: getPatternColor(pattern.color) }}
+        />
         <span className="pattern-view__detail-name">{pattern.name}</span>
         <button type="button" className="pattern-view__detail-close" onClick={onClose}>
           {t("common.close")}

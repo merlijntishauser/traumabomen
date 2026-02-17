@@ -8,7 +8,7 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
 } from "../../hooks/useTreeData";
-import { PATTERN_COLORS } from "../../lib/patternColors";
+import { getPatternColor, PATTERN_COLORS } from "../../lib/patternColors";
 import type { LinkedEntity, Pattern } from "../../types/domain";
 import "./PatternPanel.css";
 
@@ -186,7 +186,7 @@ export function PatternPanel({
             >
               <div
                 className="pattern-panel__color-dot"
-                style={{ backgroundColor: pattern.color }}
+                style={{ backgroundColor: getPatternColor(pattern.color) }}
               />
               <span className="pattern-panel__item-name">{pattern.name}</span>
               <span className="pattern-panel__item-count">{pattern.linked_entities.length}</span>
@@ -354,7 +354,7 @@ function PatternEditForm({
               className={`pattern-panel__color-swatch ${
                 color === c ? "pattern-panel__color-swatch--selected" : ""
               }`}
-              style={{ backgroundColor: c }}
+              style={{ backgroundColor: getPatternColor(c) }}
               onClick={() => setColor(c)}
               aria-label={c}
             />

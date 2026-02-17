@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
 import type { PersonNodeType } from "../../hooks/useTreeLayout";
 import { NODE_HEIGHT, NODE_WIDTH } from "../../hooks/useTreeLayout";
+import { getPatternColor } from "../../lib/patternColors";
 
 interface PatternConnectorsProps {
   patterns: Map<string, DecryptedPattern>;
@@ -523,6 +524,7 @@ export function PatternConnectors({
       <g transform={`translate(${vx}, ${vy}) scale(${zoom})`}>
         {areas.map((area) => {
           const isHovered = hoveredId === area.patternId;
+          const resolvedColor = getPatternColor(area.color);
           return (
             <g
               key={area.patternId}
@@ -534,9 +536,9 @@ export function PatternConnectors({
             >
               <path
                 d={area.path}
-                fill={area.color}
+                fill={resolvedColor}
                 fillOpacity={isHovered ? 0.18 : 0.08}
-                stroke={area.color}
+                stroke={resolvedColor}
                 strokeWidth={2}
                 strokeDasharray="6 4"
                 strokeOpacity={isHovered ? 0.8 : 0.4}
@@ -549,7 +551,7 @@ export function PatternConnectors({
                 dominantBaseline="central"
                 fontSize={13}
                 fontWeight={500}
-                fill={area.color}
+                fill={resolvedColor}
                 opacity={isHovered ? 1 : 0}
                 paintOrder="stroke fill"
                 stroke="var(--color-bg-primary)"
