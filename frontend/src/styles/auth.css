@@ -357,6 +357,7 @@
 .auth-explainer__policy-link {
   display: inline-block;
   margin-top: 12px;
+  margin-bottom: 16px;
   font-size: 13px;
   color: var(--color-accent);
   text-decoration: none;
