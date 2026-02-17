@@ -316,7 +316,11 @@ function TreeWorkspaceInner() {
     const newPerson: Person = {
       name: t("person.newPerson"),
       birth_year: null,
+      birth_month: null,
+      birth_day: null,
       death_year: null,
+      death_month: null,
+      death_day: null,
       gender: "other",
       is_adopted: false,
       notes: null,

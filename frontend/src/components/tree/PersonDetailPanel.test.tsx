@@ -28,7 +28,11 @@ function makePerson(overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
     id: "p1",
     name: "Alice",
     birth_year: 1960,
+    birth_month: null,
+    birth_day: null,
     death_year: null,
+    death_month: null,
+    death_day: null,
     gender: "female",
     is_adopted: false,
     notes: null,
@@ -358,14 +362,165 @@ describe("PersonDetailPanel", () => {
     });
   });
 
+  describe("birth/death month and day fields", () => {
+    it("shows birth month dropdown when birth year is set", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+    });
+
+    it("does not show birth month dropdown when birth year is empty", () => {
+      const props = defaultProps();
+      props.person = makePerson({ birth_year: null });
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+    });
+
+    it("shows birth day dropdown when birth month is set", () => {
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 3 });
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.getByText("person.birthDay")).toBeInTheDocument();
+    });
+
+    it("does not show birth day dropdown when birth month is empty", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.queryByText("person.birthDay")).not.toBeInTheDocument();
+    });
+
+    it("shows death month dropdown when death year is set", () => {
+      const props = defaultProps();
+      props.person = makePerson({ death_year: 2020 });
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.getByText("person.deathMonth")).toBeInTheDocument();
+    });
+
+    it("does not show death month dropdown when death year is empty", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      expect(screen.queryByText("person.deathMonth")).not.toBeInTheDocument();
+    });
+
+    it("day dropdown has 28 options for February", () => {
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 2 });
+      render(<PersonDetailPanel {...props} />);
+
+      const daySelect = screen
+        .getByText("person.birthDay")
+        .closest("label")!
+        .querySelector("select")!;
+      // 28 day options + 1 empty "---" option = 29
+      const options = daySelect.querySelectorAll("option");
+      expect(options).toHaveLength(29);
+    });
+
+    it("day dropdown has 31 options for January", () => {
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 1 });
+      render(<PersonDetailPanel {...props} />);
+
+      const daySelect = screen
+        .getByText("person.birthDay")
+        .closest("label")!
+        .querySelector("select")!;
+      // 31 day options + 1 empty "---" option = 32
+      const options = daySelect.querySelectorAll("option");
+      expect(options).toHaveLength(32);
+    });
+
+    it("save payload includes month and day fields", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 7, birth_day: 15 });
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText("person.save"));
+
+      expect(props.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          birth_month: 7,
+          birth_day: 15,
+          death_month: null,
+          death_day: null,
+        }),
+      );
+    });
+
+    it("clearing birth year clears month and day", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 6, birth_day: 10 });
+      render(<PersonDetailPanel {...props} />);
+
+      // Verify month is visible
+      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+
+      // Clear birth year
+      const birthYearInput = screen.getByDisplayValue("1960");
+      fireEvent.change(birthYearInput, { target: { value: "" } });
+
+      // Month dropdown should disappear
+      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+
+      // Save and verify month/day are null
+      await user.click(screen.getByText("person.save"));
+      expect(props.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          birth_year: null,
+          birth_month: null,
+          birth_day: null,
+        }),
+      );
+    });
+
+    it("clearing birth month clears day", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.person = makePerson({ birth_month: 3, birth_day: 20 });
+      render(<PersonDetailPanel {...props} />);
+
+      // Verify day is visible
+      expect(screen.getByText("person.birthDay")).toBeInTheDocument();
+
+      // Clear birth month
+      const monthSelect = screen
+        .getByText("person.birthMonth")
+        .closest("label")!
+        .querySelector("select")!;
+      fireEvent.change(monthSelect, { target: { value: "" } });
+
+      // Day dropdown should disappear
+      expect(screen.queryByText("person.birthDay")).not.toBeInTheDocument();
+
+      // Save and verify day is null
+      await user.click(screen.getByText("person.save"));
+      expect(props.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          birth_month: null,
+          birth_day: null,
+        }),
+      );
+    });
+  });
+
   describe("relationship display", () => {
     it("shows empty message when no relationships or inferred siblings", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
+      const { container } = render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByText(/relationship.relationships/));
-      expect(screen.getByText("---")).toBeInTheDocument();
+      const emptyMsg = container.querySelector(".detail-panel__empty");
+      expect(emptyMsg).toBeTruthy();
+      expect(emptyMsg?.textContent).toBe("---");
     });
 
     it("shows ex-partner label when all periods have end_year", async () => {

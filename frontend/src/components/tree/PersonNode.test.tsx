@@ -22,7 +22,11 @@ function makePerson(overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
     id: "p1",
     name: "Alice",
     birth_year: 1960,
+    birth_month: null,
+    birth_day: null,
     death_year: null,
+    death_month: null,
+    death_day: null,
     gender: "female",
     is_adopted: false,
     notes: null,
@@ -137,6 +141,20 @@ describe("PersonNode", () => {
   it("renders no badges when events array is empty", () => {
     const { container } = renderNode(makePerson(), []);
     expect(container.querySelectorAll(".person-node__badge")).toHaveLength(0);
+  });
+
+  it("shows precise age when birthday has not yet passed this year", () => {
+    // System time: Jan 1, 2026. Born July 8, 1960.
+    // Birthday not yet passed => age = 66 - 1 = 65
+    renderNode(makePerson({ birth_year: 1960, birth_month: 7, birth_day: 8 }));
+    expect(screen.getByText("1960 - (65)")).toBeInTheDocument();
+  });
+
+  it("shows precise age when birthday falls on current date", () => {
+    // System time: Jan 1, 2026. Born Jan 1, 1960.
+    // Exact birthday => no subtraction => age = 66
+    renderNode(makePerson({ birth_year: 1960, birth_month: 1, birth_day: 1 }));
+    expect(screen.getByText("1960 - (66)")).toBeInTheDocument();
   });
 
   it("applies selected class when selected", () => {

@@ -35,7 +35,11 @@ export interface RelationshipPeriod {
 export interface Person {
   name: string;
   birth_year: number | null;
+  birth_month: number | null;
+  birth_day: number | null;
   death_year: number | null;
+  death_month: number | null;
+  death_day: number | null;
   gender: string;
   is_adopted: boolean;
   notes: string | null;

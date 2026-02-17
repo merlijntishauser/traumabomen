@@ -15,7 +15,14 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
   const { person, events, lifeEvents = [], classifications = [], isFriendOnly } = data;
 
   const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
-  const age = formatAge(person.birth_year, person.death_year);
+  const age = formatAge(
+    person.birth_year,
+    person.death_year,
+    person.birth_month,
+    person.birth_day,
+    person.death_month,
+    person.death_day,
+  );
   const agePrefix = person.death_year ? "\u2020\u2009" : "";
   const ageStr = age != null ? ` (${agePrefix}${age})` : "";
   const yearRange = person.death_year

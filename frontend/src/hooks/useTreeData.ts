@@ -84,7 +84,14 @@ export function useTreeData(treeId: string) {
       const entries = await Promise.all(
         responses.map(async (r) => {
           const data = await decrypt<Person>(r.encrypted_data);
-          return [r.id, { ...data, id: r.id } as DecryptedPerson] as const;
+          const person: Person = {
+            ...data,
+            birth_month: data.birth_month ?? null,
+            birth_day: data.birth_day ?? null,
+            death_month: data.death_month ?? null,
+            death_day: data.death_day ?? null,
+          };
+          return [r.id, { ...person, id: r.id } as DecryptedPerson] as const;
         }),
       );
       return new Map(entries);

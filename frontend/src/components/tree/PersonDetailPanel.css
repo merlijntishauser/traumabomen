@@ -337,3 +337,12 @@ fieldset.detail-panel__field {
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+.detail-panel__date-row {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-panel__date-row .detail-panel__field {
+  flex: 1;
+}
