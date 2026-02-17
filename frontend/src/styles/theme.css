@@ -80,8 +80,8 @@
   --color-band-odd: transparent;
 
   /* Typography */
-  --font-heading: "Fraunces", "Georgia", serif;
-  --font-body: "Newsreader", "Georgia", serif;
+  --font-heading: "Playwrite NZ", "Georgia", cursive;
+  --font-body: "Lato", "Helvetica Neue", sans-serif;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(45, 138, 94, 0.06);
