@@ -129,13 +129,9 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - filtering show/hide entity types
 
 ### Improvements
-- Search on classifications: both main categories and subcategories
-- Extend subcategories on classifications
-- Add DSM-5 codes to classifications
 - Unknown birth year with approximation (before year, or decade)
 - Call name / nickname for persons
 - Life event: started/stopped medication
-- Context menu on relations, persons, and canvas
 - Directly add an adopted sibling shortcut
 
 ### To think about
@@ -144,6 +140,6 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Better loading/working notifications
 - Beta testing alert and feedback mechanism
 - Swagger for FastAPI (dev only)
-- Rate-limiting on login
+- Rate-limiting on login (tarpitting scheme)
 - More debug info on email sending
 - tutorial/demo mode
