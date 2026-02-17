@@ -1,5 +1,5 @@
-import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useStore } from "@xyflow/react";
-import { memo, useMemo, useState } from "react";
+import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useStore, useViewport } from "@xyflow/react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
 import {
@@ -24,6 +24,29 @@ function RelationshipEdgeComponent({
 }: EdgeProps & { data: RelationshipEdgeData }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
+  const { x: vx, y: vy, zoom } = useViewport();
+  const [mouseFlowPos, setMouseFlowPos] = useState({ x: 0, y: 0 });
+
+  const toFlowPos = useCallback(
+    (e: React.MouseEvent) => ({
+      x: (e.clientX - vx) / zoom,
+      y: (e.clientY - vy) / zoom,
+    }),
+    [vx, vy, zoom],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => setMouseFlowPos(toFlowPos(e)),
+    [toFlowPos],
+  );
+
+  const handleMouseEnter = useCallback(
+    (e: React.MouseEvent) => {
+      setMouseFlowPos(toFlowPos(e));
+      setHovered(true);
+    },
+    [toFlowPos],
+  );
 
   const rel = data.relationship;
   const relType = rel?.type;
@@ -48,7 +71,7 @@ function RelationshipEdgeComponent({
   const isForkPrimary = !!data.junctionFork;
   const isForkHidden = !!data.junctionHidden;
 
-  const { edgePath, hitPath, labelX, labelY } = computeEdgePath({
+  const { edgePath, hitPath } = computeEdgePath({
     isForkPrimary,
     isForkHidden,
     forkPositions,
@@ -99,7 +122,8 @@ function RelationshipEdgeComponent({
         fill="none"
         stroke="transparent"
         strokeWidth={20}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
         onMouseLeave={() => setHovered(false)}
       />
       {((!isForkPrimary && markerShape) || (hovered && typeLabel)) && (
@@ -128,7 +152,7 @@ function RelationshipEdgeComponent({
             <div
               className="edge-tooltip"
               style={{
-                transform: `translate(-50%, -100%) translate(${labelX}px, ${labelY - 10}px)`,
+                transform: `translate(-50%, -100%) translate(${mouseFlowPos.x}px, ${mouseFlowPos.y - 10}px)`,
               }}
             >
               <span className="edge-tooltip__type">{typeLabel}</span>

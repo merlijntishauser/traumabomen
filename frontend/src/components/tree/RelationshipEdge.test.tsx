@@ -17,6 +17,7 @@ vi.mock("@xyflow/react", () => ({
     <div data-testid="edge-label-renderer">{children}</div>
   ),
   useStore: (...args: unknown[]) => mockUseStore(...args),
+  useViewport: () => ({ x: 0, y: 0, zoom: 1 }),
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
   getBezierPath: () => ["M 100,200 C 200,200 200,200 300,200", 200, 200],
   getSmoothStepPath: () => ["M 100,200 L 200,200 L 300,200", 200, 200],

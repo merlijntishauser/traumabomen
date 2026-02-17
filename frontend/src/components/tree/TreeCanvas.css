@@ -136,6 +136,7 @@
 }
 
 .tree-toolbar__icon-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -158,11 +159,7 @@
   color: var(--color-text-primary);
 }
 
-/* Toolbar tooltips -- matching canvas tooltip style */
-.tree-toolbar__icon-btn {
-  position: relative;
-}
-
+/* Toolbar tooltips */
 .tree-toolbar__icon-btn::after {
   content: attr(aria-label);
   display: none;
