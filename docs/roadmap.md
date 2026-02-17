@@ -101,6 +101,12 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
+### 11. Beta waitlist and user cap
+
+Configurable user cap (default 20) with email-only waitlist. When the cap is reached, new visitors join a waitlist by submitting their email. Admin approves from the dashboard, triggering an invitation email with a registration link. Controlled by `ENABLE_WAITLIST` and `MAX_ACTIVE_USERS` environment variables.
+
+See [design doc](plans/2026-02-17-beta-waitlist-design.md).
+
 ## Done
 
 ### Pattern editor
