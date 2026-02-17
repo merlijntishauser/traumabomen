@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
@@ -55,11 +56,13 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const { key, clearKey, verifyPassphrase } = useEncryption();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleFullLock = useCallback(() => {
     clearKey();
+    queryClient.clear();
     navigate("/unlock", { replace: true });
-  }, [clearKey, navigate]);
+  }, [clearKey, queryClient, navigate]);
 
   const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
     enabled: key !== null,

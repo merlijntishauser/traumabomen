@@ -66,7 +66,8 @@ const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
 const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
 
 export function useTreeData(treeId: string) {
-  const { decrypt } = useEncryption();
+  const { decrypt, key } = useEncryption();
+  const hasKey = key !== null;
 
   const treeQuery = useQuery({
     queryKey: treeQueryKeys.tree(treeId),
@@ -75,6 +76,7 @@ export function useTreeData(treeId: string) {
       const data = await decrypt<{ name: string }>(response.encrypted_data);
       return data.name;
     },
+    enabled: hasKey,
   });
 
   const personsQuery = useQuery({
@@ -96,6 +98,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   const relationshipsQuery = useQuery({
@@ -118,6 +121,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   const eventsQuery = useQuery({
@@ -132,6 +136,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   const lifeEventsQuery = useQuery({
@@ -149,6 +154,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   const classificationsQuery = useQuery({
@@ -166,6 +172,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   const patternsQuery = useQuery({
@@ -183,6 +190,7 @@ export function useTreeData(treeId: string) {
       );
       return new Map(entries);
     },
+    enabled: hasKey,
   });
 
   return {
