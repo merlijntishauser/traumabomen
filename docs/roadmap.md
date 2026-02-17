@@ -123,7 +123,7 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Additional languages beyond English and Dutch
 - Family constellation ("familie opstelling") functionality with an "I" person node
 - Import from major genealogy software
-- List of mental health organisations per country
+- List of mental health organizations per country
 - Questionnaires for family members (no account needed, answers feed into the tree)
 - canvas tools, zooming in/out, panning
 - filtering show/hide entity types
@@ -142,4 +142,3 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Swagger for FastAPI (dev only)
 - Rate-limiting on login (tarpitting scheme)
 - More debug info on email sending
-- tutorial/demo mode
