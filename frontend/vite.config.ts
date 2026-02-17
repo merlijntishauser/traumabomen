@@ -1,10 +1,11 @@
 import { type Plugin, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-/** Replace __OG_*__ placeholders in index.html during dev (nginx does this in prod). */
+/** Replace __OG_*__ placeholders in index.html during dev only (nginx does this in prod). */
 function devHtmlPlaceholders(): Plugin {
   return {
     name: "dev-html-placeholders",
+    apply: "serve",
     transformIndexHtml(html) {
       return html
         .replace(/__OG_TITLE__/g, "Traumabomen (local dev)")
