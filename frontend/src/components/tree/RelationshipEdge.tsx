@@ -1,4 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useStore, useViewport } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useReactFlow, useStore } from "@xyflow/react";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { RelationshipEdgeData } from "../../hooks/useTreeLayout";
@@ -24,28 +24,20 @@ function RelationshipEdgeComponent({
 }: EdgeProps & { data: RelationshipEdgeData }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
-  const { x: vx, y: vy, zoom } = useViewport();
+  const { screenToFlowPosition } = useReactFlow();
   const [mouseFlowPos, setMouseFlowPos] = useState({ x: 0, y: 0 });
 
-  const toFlowPos = useCallback(
-    (e: React.MouseEvent) => ({
-      x: (e.clientX - vx) / zoom,
-      y: (e.clientY - vy) / zoom,
-    }),
-    [vx, vy, zoom],
-  );
-
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => setMouseFlowPos(toFlowPos(e)),
-    [toFlowPos],
+    (e: React.MouseEvent) => setMouseFlowPos(screenToFlowPosition({ x: e.clientX, y: e.clientY })),
+    [screenToFlowPosition],
   );
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent) => {
-      setMouseFlowPos(toFlowPos(e));
+      setMouseFlowPos(screenToFlowPosition({ x: e.clientX, y: e.clientY }));
       setHovered(true);
     },
-    [toFlowPos],
+    [screenToFlowPosition],
   );
 
   const rel = data.relationship;
