@@ -2,10 +2,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AppFooter } from "./AppFooter";
 
+const mockChangeLanguage = vi.fn();
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (k: string) => k,
-    i18n: { language: "en", changeLanguage: vi.fn() },
+    i18n: { language: "en", changeLanguage: mockChangeLanguage },
   }),
   Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
 }));
@@ -102,5 +103,19 @@ describe("AppFooter", () => {
     expect(screen.queryByTestId("feedback-modal")).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("feedback.button"));
     expect(screen.getByTestId("feedback-modal")).toBeInTheDocument();
+  });
+
+  it("toggles language when language button is clicked", () => {
+    render(<AppFooter />);
+    fireEvent.click(screen.getByText("NL"));
+    expect(mockChangeLanguage).toHaveBeenCalledWith("nl");
+  });
+
+  it("closes feedback modal via onClose", () => {
+    render(<AppFooter />);
+    fireEvent.click(screen.getByLabelText("feedback.button"));
+    expect(screen.getByTestId("feedback-modal")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("close"));
+    expect(screen.queryByTestId("feedback-modal")).not.toBeInTheDocument();
   });
 });

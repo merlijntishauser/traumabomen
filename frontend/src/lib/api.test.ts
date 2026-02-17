@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
+  approveWaitlistEntry,
   changePassword,
   clearTokens,
   createClassification,
@@ -18,14 +19,18 @@ import {
   deletePerson,
   deleteRelationship,
   deleteTree,
+  deleteWaitlistEntry,
   getAccessToken,
   getAdminActivity,
+  getAdminFeedback,
   getAdminFunnel,
   getAdminGrowth,
   getAdminOverview,
   getAdminRetention,
   getAdminUsage,
   getAdminUsers,
+  getAdminWaitlist,
+  getAdminWaitlistCapacity,
   getClassification,
   getClassifications,
   getEncryptionSalt,
@@ -43,11 +48,13 @@ import {
   getRelationships,
   getTree,
   getTrees,
+  joinWaitlist,
   login,
   logout,
   register,
   resendVerification,
   setTokens,
+  submitFeedback,
   syncTree,
   updateClassification,
   updateEvent,
@@ -1189,5 +1196,103 @@ describe("pattern functions", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/trees/tree-1/patterns/pat1");
     expect(init.method).toBe("DELETE");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Feedback functions
+// ---------------------------------------------------------------------------
+
+describe("feedback functions", () => {
+  it("getAdminFeedback sends GET to /admin/feedback", async () => {
+    setTokens("tok", "ref");
+    const data = { items: [{ id: "f1", category: "bug", message: "broken" }] };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await getAdminFeedback();
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/feedback");
+    expect(init.method).toBe("GET");
+  });
+
+  it("submitFeedback sends POST to /feedback", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await submitFeedback({ category: "bug", message: "broken", anonymous: false });
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/feedback");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ category: "bug", message: "broken", anonymous: false });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Waitlist functions
+// ---------------------------------------------------------------------------
+
+describe("waitlist functions", () => {
+  it("joinWaitlist sends POST to /waitlist", async () => {
+    const data = { message: "joined_waitlist" };
+    mockFetch.mockResolvedValueOnce(mockResponse(data, 201));
+
+    const result = await joinWaitlist("test@example.com");
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/waitlist");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ email: "test@example.com" });
+  });
+
+  it("getAdminWaitlist sends GET to /admin/waitlist", async () => {
+    setTokens("tok", "ref");
+    const data = { items: [], waiting: 0, approved: 0, registered: 0 };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await getAdminWaitlist();
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/waitlist");
+    expect(init.method).toBe("GET");
+  });
+
+  it("approveWaitlistEntry sends PATCH to /admin/waitlist/{id}/approve", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await approveWaitlistEntry("entry-1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/waitlist/entry-1/approve");
+    expect(init.method).toBe("PATCH");
+  });
+
+  it("deleteWaitlistEntry sends DELETE to /admin/waitlist/{id}", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await deleteWaitlistEntry("entry-1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/waitlist/entry-1");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("getAdminWaitlistCapacity sends GET to /admin/waitlist/capacity", async () => {
+    setTokens("tok", "ref");
+    const data = { active_users: 5, max_active_users: 20, waitlist_enabled: true };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await getAdminWaitlistCapacity();
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/waitlist/capacity");
+    expect(init.method).toBe("GET");
   });
 });
