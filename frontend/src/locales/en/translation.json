@@ -327,6 +327,7 @@
   "pattern.linkEntity": "Link entity",
   "pattern.unlinkEntity": "Unlink",
   "pattern.confirmDelete": "Are you sure you want to delete this pattern?",
+  "pattern.editPatterns": "Edit patterns",
   "pattern.empty": "No patterns yet. Create one to start connecting events across generations.",
   "pattern.createFirst": "Create your first pattern",
   "pattern.editOnCanvas": "Edit on canvas",

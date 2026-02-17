@@ -11,7 +11,6 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { BranchDecoration } from "../components/BranchDecoration";
@@ -21,16 +20,14 @@ import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
-import { SettingsPanel } from "../components/tree/SettingsPanel";
+import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
-import { useLogout } from "../hooks/useLogout";
 import type { DecryptedPerson } from "../hooks/useTreeData";
 import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
 import { useTreeLayout } from "../hooks/useTreeLayout";
 import { useTreeMutations } from "../hooks/useTreeMutations";
-import { uuidToCompact } from "../lib/compactId";
 import { inferSiblings } from "../lib/inferSiblings";
 import type {
   Classification,
@@ -156,7 +153,6 @@ function RelationshipPopover({
 function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
-  const logout = useLogout();
   const { fitView, screenToFlowPosition } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
   const queryClient = useQueryClient();
 
@@ -495,13 +491,13 @@ function TreeWorkspaceInner() {
   if (error) {
     return (
       <div className="tree-workspace">
-        <div className="tree-toolbar">
-          <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
-          <div className="tree-toolbar__spacer" />
-          <Link to="/trees" className="tree-toolbar__btn">
-            {t("nav.trees")}
-          </Link>
-        </div>
+        <TreeToolbar
+          treeId={treeId!}
+          treeName={treeName}
+          activeView="canvas"
+          canvasSettings={canvasSettings}
+          onUpdateSettings={updateCanvasSettings}
+        />
         <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
       </div>
     );
@@ -509,145 +505,37 @@ function TreeWorkspaceInner() {
 
   return (
     <div className="tree-workspace">
-      <div className="tree-toolbar">
-        <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
-        <div className="tree-toolbar__spacer" />
-
-        <div className="tree-toolbar__group">
-          <button
-            type="button"
-            className="tree-toolbar__btn tree-toolbar__btn--primary"
-            onClick={handleAddPerson}
-            disabled={mutations.createPerson.isPending}
-          >
-            {t("tree.addPerson")}
-          </button>
-          <button
-            type="button"
-            className="tree-toolbar__btn"
-            onClick={handleAutoLayout}
-            disabled={!hasPinnedNodes}
-          >
-            {t("tree.autoLayout")}
-          </button>
-        </div>
-
-        <div className="tree-toolbar__separator" />
-
-        <div className="tree-toolbar__group">
-          <Link
-            to={`/trees/${uuidToCompact(treeId!)}/timeline`}
-            className="tree-toolbar__icon-btn"
-            aria-label={t("tree.timeline")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="7" />
-              <polyline points="12 9 12 12 13.5 13.5" />
-              <path d="M16.51 17.35l-.35 3.83a2 2 0 01-2 1.82H9.83a2 2 0 01-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 019.83 1h4.35a2 2 0 012 1.82l.35 3.83" />
-            </svg>
-          </Link>
-          <Link
-            to={`/trees/${uuidToCompact(treeId!)}/patterns`}
-            className="tree-toolbar__icon-btn"
-            aria-label={t("pattern.patterns")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="6" cy="6" r="3" />
-              <circle cx="18" cy="6" r="3" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="18" r="3" />
-              <line x1="8.5" y1="7.5" x2="15.5" y2="16.5" />
-              <line x1="15.5" y1="7.5" x2="8.5" y2="16.5" />
-            </svg>
-          </Link>
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={() => setPatternPanelOpen((v) => !v)}
-            aria-label={t("pattern.patterns")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-              <circle cx="8" cy="6" r="1.5" fill="currentColor" />
-              <circle cx="16" cy="12" r="1.5" fill="currentColor" />
-              <circle cx="10" cy="18" r="1.5" fill="currentColor" />
-            </svg>
-          </button>
-          <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </Link>
-        </div>
-
-        <div className="tree-toolbar__separator" />
-
-        <div className="tree-toolbar__group">
-          <SettingsPanel
-            settings={canvasSettings}
-            onUpdate={updateCanvasSettings}
-            className="tree-toolbar__icon-btn"
-          />
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={logout}
-            aria-label={t("nav.logout")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
-        </div>
-      </div>
+      <TreeToolbar
+        treeId={treeId!}
+        treeName={treeName}
+        activeView="canvas"
+        canvasSettings={canvasSettings}
+        onUpdateSettings={updateCanvasSettings}
+      >
+        <button
+          type="button"
+          className="tree-toolbar__btn tree-toolbar__btn--primary"
+          onClick={handleAddPerson}
+          disabled={mutations.createPerson.isPending}
+        >
+          {t("tree.addPerson")}
+        </button>
+        <button
+          type="button"
+          className="tree-toolbar__btn"
+          onClick={handleAutoLayout}
+          disabled={!hasPinnedNodes}
+        >
+          {t("tree.autoLayout")}
+        </button>
+        <button
+          type="button"
+          className="tree-toolbar__btn"
+          onClick={() => setPatternPanelOpen((v) => !v)}
+        >
+          {t("pattern.editPatterns")}
+        </button>
+      </TreeToolbar>
 
       <div className="tree-canvas-wrapper bg-gradient">
         <BranchDecoration />
