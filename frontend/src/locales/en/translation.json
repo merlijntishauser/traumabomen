@@ -51,6 +51,8 @@
   "tree.timeline": "Timeline",
   "tree.autoLayout": "Auto-layout",
   "tree.canvas": "Canvas",
+  "tree.canvasEmpty": "Your tree is empty",
+  "tree.canvasEmptyHint": "Add your first family member to start building your tree.",
 
   "person.name": "Name",
   "person.birthYear": "Birth year",

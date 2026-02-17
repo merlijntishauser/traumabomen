@@ -214,6 +214,55 @@
   background: var(--color-bg-secondary);
 }
 
+/* Empty canvas state */
+.tree-canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.tree-canvas-empty__title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.tree-canvas-empty__hint {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  max-width: 300px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.tree-canvas-empty__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  height: 36px;
+  padding: 0 18px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: var(--transition-colors);
+}
+
+.tree-canvas-empty__btn:hover {
+  background: var(--color-accent-hover);
+}
+
 .relationship-popover {
   position: fixed;
   top: 0;

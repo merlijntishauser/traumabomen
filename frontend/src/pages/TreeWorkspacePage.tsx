@@ -10,7 +10,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
-import { LayoutGrid, UserPlus, Waypoints } from "lucide-react";
+import { LayoutGrid, TreePine, UserPlus, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
@@ -590,6 +590,17 @@ function TreeWorkspaceInner() {
               visiblePatternIds={effectiveVisiblePatternIds}
               onPatternClick={() => setPatternPanelOpen(true)}
             />
+            {!isLoading && persons.size === 0 && (
+              <div className="tree-canvas-empty">
+                <TreePine size={32} strokeWidth={1.5} color="var(--color-text-muted)" />
+                <h2 className="tree-canvas-empty__title">{t("tree.canvasEmpty")}</h2>
+                <p className="tree-canvas-empty__hint">{t("tree.canvasEmptyHint")}</p>
+                <button type="button" className="tree-canvas-empty__btn" onClick={handleAddPerson}>
+                  <UserPlus size={16} />
+                  {t("tree.addPerson")}
+                </button>
+              </div>
+            )}
           </>
         )}
 
