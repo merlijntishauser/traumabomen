@@ -132,6 +132,23 @@ describe("useLockScreen", () => {
     expect(result.current.lockLevel).toBe("none");
   });
 
+  it("resets lock level when disabled (e.g. logout)", () => {
+    const onFullLock = vi.fn();
+    let enabled = true;
+    const { result, rerender } = renderHook(() => useLockScreen({ enabled, onFullLock }));
+
+    // Lock the screen
+    act(() => {
+      result.current.lock();
+    });
+    expect(result.current.lockLevel).toBe("blur");
+
+    // Disable (simulates logout clearing the key)
+    enabled = false;
+    rerender();
+    expect(result.current.lockLevel).toBe("none");
+  });
+
   it("does not register Esc when disabled", () => {
     const onFullLock = vi.fn();
     const { result } = renderHook(() => useLockScreen({ enabled: false, onFullLock }));

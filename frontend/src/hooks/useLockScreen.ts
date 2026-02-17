@@ -38,6 +38,14 @@ export function useLockScreen({
   const fullTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hiddenAtRef = useRef<number | null>(null);
 
+  // Reset lock state when disabled (e.g. logout)
+  useEffect(() => {
+    if (!enabled) {
+      setLockLevel("none");
+      setWrongAttempts(0);
+    }
+  }, [enabled]);
+
   const triggerFullLock = useCallback(() => {
     setLockLevel("full");
     setWrongAttempts(0);
