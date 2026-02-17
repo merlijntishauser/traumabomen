@@ -11,6 +11,7 @@
   flex-direction: column;
   z-index: 10;
   overflow: hidden;
+  animation: slide-in-right 0.25s ease-out;
 }
 
 .detail-panel__header {

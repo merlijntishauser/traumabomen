@@ -328,29 +328,48 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 - Additional languages
 
 
-DISTILLED_AESTHETICS_PROMPT = """
-<frontend_aesthetics>
-You tend to converge toward generic, "on distribution" outputs. In frontend design, this creates what users call the "AI slop" aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight. Focus on:
- 
-Typography: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend's aesthetics.
- 
-Color & Theme: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes. Draw from IDE themes and cultural aesthetics for inspiration.
- 
-Motion: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions.
- 
-Backgrounds: Create atmosphere and depth rather than defaulting to solid colors. Layer CSS gradients, use geometric patterns, or add contextual effects that match the overall aesthetic.
- 
-Avoid generic AI-generated aesthetics:
-- Overused font families (Inter, Roboto, Arial, system fonts)
-- Clichéd color schemes (particularly purple gradients on white backgrounds)
-- Predictable layouts and component patterns
-- Cookie-cutter design that lacks context-specific character
- 
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. Vary between light and dark themes, different fonts, different aesthetics. You still tend to converge on common choices (Space Grotesk, for example) across generations. Avoid this: it is critical that you think outside the box!
-</frontend_aesthetics>
-"""
+## Design System
 
-...
+### Visual Identity
+
+The app uses a "dark forest" nature aesthetic with strong thematic coherence. The dominant hue is forest green (`#2d8a5e`), used as the single accent color across both themes. The dark theme evokes a midnight forest (near-black greens), while the light theme evokes morning light through birches (warm linen-sage).
+
+### Typography
+
+- **Heading font:** `Playwrite NZ Basic` (cursive) -- flowing, hand-drawn quality for headings. Weight 400, never bold.
+- **Body font:** `Literata` -- literary serif with optical sizing, warm and readable. Pairs naturally with the cursive Playwrite headings and matches the personal journaling nature of the app.
+- Fonts loaded via Google Fonts CDN with `preconnect`.
+- All font families defined as CSS variables (`--font-heading`, `--font-body`) in `theme.css`.
+
+### Color Palette
+
+All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`.
+
+- **Surfaces:** 5-level depth scale from `--color-bg-primary` (deepest) to `--color-bg-hover` (interactive)
+- **Accent:** Single green (`#2d8a5e`) with hover, subtle, and focus-ring variants
+- **Text:** 4-level hierarchy: primary, secondary, muted, inverse
+- **Semantic:** Danger (red), edge types (pink/purple/orange for partner/half-sibling/friend), trauma categories (7 colors), life event categories (6 colors), classification status (amber suspected, blue diagnosed)
+
+### Atmospheric Details
+
+- **Toolbar accent line:** 3px gradient (`--color-accent` to transparent) via `::after` pseudo-element on `.tree-toolbar`
+- **Background gradient:** Radial gradient with noise texture overlay (`feTurbulence` SVG filter at `opacity: 0.035`) to prevent banding
+- **BranchDecoration:** Procedurally generated SVG trees in bottom-left corner at `opacity: 0.12`, randomized on page load, drawn with Bezier curves in accent color
+- **Lock screen:** Multi-layered CSS backgrounds simulating moonlit canopy (dark) or morning mist (light) using 6-8 radial gradients with `backdrop-filter: blur(20px)`
+- **Auth hero:** Theme-aware photo images with gradient overlays fading to background color
+
+### Design Principles
+
+When modifying the frontend, follow these principles:
+
+- **Stay in the green palette.** New surfaces, borders, and shadows should use the existing green-tinted variables. Never introduce grays or blues for structural elements.
+- **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
+- **Heading font is sacred.** Playwrite NZ Basic creates the app's distinctive character. Never substitute it with a generic sans-serif. Use it at weight 400, never bold.
+- **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in both themes. Don't add new ones without updating both theme variants.
+- **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations -- the subject matter is sensitive.
+- **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
+- **Buttons have three tiers.** Primary (accent background), default (secondary background with border), and danger (red text/border). Small variant uses 11px font.
+- **Badge shapes encode meaning.** Circles = trauma events, squares = life events, triangles = classifications. These shapes are part of the visual language, don't repurpose them.
 
 ### Quality guidelines  
 
