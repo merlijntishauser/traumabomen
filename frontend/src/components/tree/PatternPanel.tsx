@@ -24,6 +24,7 @@ interface PatternPanelProps {
   onDelete: (patternId: string) => void;
   onClose: () => void;
   onHoverPattern?: (patternId: string | null) => void;
+  initialExpandedId?: string | null;
 }
 
 interface EntityInfo {
@@ -107,9 +108,10 @@ export function PatternPanel({
   onDelete,
   onClose,
   onHoverPattern,
+  initialExpandedId,
 }: PatternPanelProps) {
   const { t } = useTranslation();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId ?? null);
   const [editingNew, setEditingNew] = useState(false);
 
   const handleToggleExpand = useCallback((id: string) => {

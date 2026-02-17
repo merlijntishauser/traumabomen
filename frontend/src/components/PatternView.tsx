@@ -232,7 +232,11 @@ function PatternDetail({
         ))}
       </div>
 
-      <Link to={`/trees/${uuidToCompact(treeId)}`} className="pattern-view__detail-link">
+      <Link
+        to={`/trees/${uuidToCompact(treeId)}`}
+        state={{ openPatternId: pattern.id }}
+        className="pattern-view__detail-link"
+      >
         {t("pattern.editOnCanvas")}
       </Link>
     </div>

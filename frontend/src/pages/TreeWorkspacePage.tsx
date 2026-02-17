@@ -14,6 +14,7 @@ import { LayoutGrid, UserPlus, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/BranchDecoration";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import { PatternPanel } from "../components/tree/PatternPanel";
@@ -156,12 +157,16 @@ function TreeWorkspaceInner() {
   const { t } = useTranslation();
   const { fitView, screenToFlowPosition } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const openPatternId = (location.state as { openPatternId?: string } | null)?.openPatternId;
 
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
-  const [patternPanelOpen, setPatternPanelOpen] = useState(false);
-  const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(new Set());
+  const [patternPanelOpen, setPatternPanelOpen] = useState(!!openPatternId);
+  const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(
+    openPatternId ? new Set([openPatternId]) : new Set(),
+  );
   const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
 
   const effectiveVisiblePatternIds = useMemo(() => {
@@ -633,6 +638,7 @@ function TreeWorkspaceInner() {
             onDelete={handleDeletePattern}
             onClose={() => setPatternPanelOpen(false)}
             onHoverPattern={setHoveredPatternId}
+            initialExpandedId={openPatternId}
           />
         )}
       </div>
