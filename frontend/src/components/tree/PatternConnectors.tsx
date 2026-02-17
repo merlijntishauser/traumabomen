@@ -23,7 +23,7 @@ interface PatternArea {
   centroid: Point;
 }
 
-const HULL_PADDING = 28;
+const HULL_PADDING = 10;
 
 /** Cross product of vectors OA and OB. Positive = counter-clockwise. */
 function cross(o: Point, a: Point, b: Point): number {
@@ -110,22 +110,55 @@ function expandHull(hull: Point[], padding: number): Point[] {
   return convexHull(result);
 }
 
-/** Closed Catmull-Rom spline -> SVG cubic bezier path. */
-function smoothClosedPath(points: Point[]): string {
-  const n = points.length;
-  if (n < 3) {
-    // Fallback to polygon
-    return `M ${points.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`;
+/** Resample a closed polygon into N evenly-spaced points along its perimeter. */
+function resampleHull(hull: Point[], count: number): Point[] {
+  const n = hull.length;
+  if (n <= 2) return hull;
+
+  // Compute cumulative edge lengths
+  const lengths: number[] = [0];
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    const a = hull[i];
+    const b = hull[(i + 1) % n];
+    total += Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+    lengths.push(total);
   }
 
-  const tension = 0.35;
-  const parts: string[] = [`M ${points[0].x} ${points[0].y}`];
+  const step = total / count;
+  const result: Point[] = [];
+  for (let i = 0; i < count; i++) {
+    const target = i * step;
+    // Find which edge this distance falls on
+    let edgeIdx = 0;
+    while (edgeIdx < n - 1 && lengths[edgeIdx + 1] < target) edgeIdx++;
+    const edgeStart = lengths[edgeIdx];
+    const edgeLen = lengths[edgeIdx + 1] - edgeStart;
+    const frac = edgeLen > 0 ? (target - edgeStart) / edgeLen : 0;
+    const a = hull[edgeIdx];
+    const b = hull[(edgeIdx + 1) % n];
+    result.push({ x: a.x + (b.x - a.x) * frac, y: a.y + (b.y - a.y) * frac });
+  }
+  return result;
+}
+
+/** Closed Catmull-Rom spline -> SVG cubic bezier path. */
+function smoothClosedPath(points: Point[]): string {
+  // Resample into evenly-spaced points for organic curves
+  const resampled = points.length >= 3 ? resampleHull(points, Math.max(points.length, 24)) : points;
+  const n = resampled.length;
+  if (n < 3) {
+    return `M ${resampled.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`;
+  }
+
+  const tension = 0.5;
+  const parts: string[] = [`M ${resampled[0].x} ${resampled[0].y}`];
 
   for (let i = 0; i < n; i++) {
-    const p0 = points[(i - 1 + n) % n];
-    const p1 = points[i];
-    const p2 = points[(i + 1) % n];
-    const p3 = points[(i + 2) % n];
+    const p0 = resampled[(i - 1 + n) % n];
+    const p1 = resampled[i];
+    const p2 = resampled[(i + 1) % n];
+    const p3 = resampled[(i + 2) % n];
 
     const cp1x = p1.x + (p2.x - p0.x) * tension * (1 / 3);
     const cp1y = p1.y + (p2.y - p0.y) * tension * (1 / 3);
@@ -175,15 +208,21 @@ export function PatternConnectors({
       const personIds = Array.from(new Set(pattern.person_ids)).filter((pid) => nodeRects.has(pid));
       if (personIds.length === 0) continue;
 
-      // Collect node center points for hull computation
-      const centerPoints: Point[] = personIds.map((pid) => {
+      // Collect node corner points so the hull tightly wraps each rectangle
+      const cornerPoints: Point[] = [];
+      for (const pid of personIds) {
         const r = nodeRects.get(pid)!;
-        return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
-      });
+        cornerPoints.push(
+          { x: r.x, y: r.y },
+          { x: r.x + r.w, y: r.y },
+          { x: r.x + r.w, y: r.y + r.h },
+          { x: r.x, y: r.y + r.h },
+        );
+      }
 
-      const hull = convexHull(centerPoints);
-      // Expand to clear node boundaries + visual padding
-      const expanded = expandHull(hull, NODE_WIDTH / 2 + HULL_PADDING);
+      const hull = convexHull(cornerPoints);
+      // Small visual breathing room beyond node edges
+      const expanded = expandHull(hull, HULL_PADDING);
       const path = smoothClosedPath(expanded);
       const center = centroid(expanded);
 
