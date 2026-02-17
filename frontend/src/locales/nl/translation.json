@@ -54,6 +54,8 @@
 
   "person.name": "Naam",
   "person.birthYear": "Geboortejaar",
+  "person.age": "Leeftijd: {{age}}",
+  "person.ageAtDeath": "Leeftijd bij overlijden: {{age}}",
   "person.deathYear": "Sterfjaar",
   "person.gender": "Geslacht",
   "person.isAdopted": "Geadopteerd",

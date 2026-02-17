@@ -2,6 +2,7 @@ import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import type { PersonNodeData } from "../../hooks/useTreeLayout";
+import { formatAge } from "../../lib/age";
 import { getClassificationColor } from "../../lib/classificationColors";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import { getTraumaColor } from "../../lib/traumaColors";
@@ -14,7 +15,12 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
   const { person, events, lifeEvents = [], classifications = [], isFriendOnly } = data;
 
   const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
-  const yearRange = person.death_year ? `${birthStr} - ${person.death_year}` : `${birthStr} -`;
+  const age = formatAge(person.birth_year, person.death_year);
+  const agePrefix = person.death_year ? "\u2020\u2009" : "";
+  const ageStr = age != null ? ` (${agePrefix}${age})` : "";
+  const yearRange = person.death_year
+    ? `${birthStr} - ${person.death_year}${ageStr}`
+    : `${birthStr} -${ageStr}`;
 
   const classNames = [
     "person-node",

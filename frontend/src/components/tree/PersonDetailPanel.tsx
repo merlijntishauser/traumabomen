@@ -7,6 +7,7 @@ import type {
   DecryptedPerson,
   DecryptedRelationship,
 } from "../../hooks/useTreeData";
+import { formatAge } from "../../lib/age";
 import { getClassificationColor } from "../../lib/classificationColors";
 import { DSM_CATEGORIES, getCategoryByKey } from "../../lib/dsmCategories";
 import type { InferredSibling } from "../../lib/inferSiblings";
@@ -208,6 +209,19 @@ export function PersonDetailPanel({
                   value={birthYear}
                   onChange={(e) => setBirthYear(e.target.value)}
                 />
+                {birthYear &&
+                  (() => {
+                    const by = parseInt(birthYear, 10);
+                    const dy = deathYear ? parseInt(deathYear, 10) : null;
+                    const age = formatAge(
+                      Number.isNaN(by) ? null : by,
+                      dy != null && !Number.isNaN(dy) ? dy : null,
+                    );
+                    if (age == null) return null;
+                    const key =
+                      dy != null && !Number.isNaN(dy) ? "person.ageAtDeath" : "person.age";
+                    return <span className="detail-panel__age-hint">{t(key, { age })}</span>;
+                  })()}
               </label>
               <label className="detail-panel__field">
                 <span>{t("person.deathYear")}</span>

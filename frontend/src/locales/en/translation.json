@@ -54,6 +54,8 @@
 
   "person.name": "Name",
   "person.birthYear": "Birth year",
+  "person.age": "Age: {{age}}",
+  "person.ageAtDeath": "Age at death: {{age}}",
   "person.deathYear": "Death year",
   "person.gender": "Gender",
   "person.isAdopted": "Adopted",

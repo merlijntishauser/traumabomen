@@ -332,3 +332,8 @@ fieldset.detail-panel__field {
 .detail-panel__btn--add-period {
   margin-top: 4px;
 }
+
+.detail-panel__age-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

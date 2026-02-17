@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { TRAUMA_COLORS } from "../../lib/traumaColors";
 import { TraumaCategory } from "../../types/domain";
@@ -65,27 +65,44 @@ function renderNode(person: DecryptedPerson, events: DecryptedEvent[] = [], sele
 }
 
 describe("PersonNode", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 1));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders person name", () => {
     renderNode(makePerson({ name: "Alice" }));
     expect(screen.getByText("Alice")).toBeInTheDocument();
   });
 
-  it("renders birth year with dash when alive", () => {
+  it("renders birth year with dash and current age when alive", () => {
     renderNode(makePerson({ birth_year: 1960, death_year: null }));
-    expect(screen.getByText("1960 -")).toBeInTheDocument();
+    expect(screen.getByText("1960 - (66)")).toBeInTheDocument();
   });
 
-  it("renders birth and death year when deceased", () => {
+  it("renders birth and death year with dagger-prefixed age when deceased", () => {
     renderNode(makePerson({ birth_year: 1920, death_year: 1995 }));
-    expect(screen.getByText("1920 - 1995")).toBeInTheDocument();
+    expect(
+      screen.getByText((_content, element) =>
+        element?.classList.contains("person-node__years")
+          ? element.textContent?.includes("1920 - 1995") === true &&
+            element.textContent?.includes("\u2020") === true &&
+            element.textContent?.includes("75") === true
+          : false,
+      ),
+    ).toBeInTheDocument();
   });
 
-  it("renders unknown birth year as question mark", () => {
+  it("renders unknown birth year as question mark without age", () => {
     renderNode(makePerson({ birth_year: null, death_year: null }));
     expect(screen.getByText("? -")).toBeInTheDocument();
   });
 
-  it("renders unknown birth year with known death year", () => {
+  it("renders unknown birth year with known death year without age", () => {
     renderNode(makePerson({ birth_year: null, death_year: 1995 }));
     expect(screen.getByText("? - 1995")).toBeInTheDocument();
   });
