@@ -23,6 +23,7 @@ interface PatternPanelProps {
   onSave: (patternId: string | null, data: Pattern, personIds: string[]) => void;
   onDelete: (patternId: string) => void;
   onClose: () => void;
+  onHoverPattern?: (patternId: string | null) => void;
 }
 
 interface EntityInfo {
@@ -105,6 +106,7 @@ export function PatternPanel({
   onSave,
   onDelete,
   onClose,
+  onHoverPattern,
 }: PatternPanelProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -179,7 +181,12 @@ export function PatternPanel({
         )}
 
         {patternList.map((pattern) => (
-          <div key={pattern.id} className="pattern-panel__item">
+          <div
+            key={pattern.id}
+            className="pattern-panel__item"
+            onMouseEnter={() => onHoverPattern?.(pattern.id)}
+            onMouseLeave={() => onHoverPattern?.(null)}
+          >
             <div
               className="pattern-panel__item-header"
               onClick={() => handleToggleExpand(pattern.id)}

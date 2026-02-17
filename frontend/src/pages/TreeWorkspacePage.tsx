@@ -162,6 +162,12 @@ function TreeWorkspaceInner() {
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
   const [patternPanelOpen, setPatternPanelOpen] = useState(false);
   const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(new Set());
+  const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
+
+  const effectiveVisiblePatternIds = useMemo(() => {
+    if (!hoveredPatternId || visiblePatternIds.has(hoveredPatternId)) return visiblePatternIds;
+    return new Set([...visiblePatternIds, hoveredPatternId]);
+  }, [visiblePatternIds, hoveredPatternId]);
 
   const {
     treeName,
@@ -576,7 +582,7 @@ function TreeWorkspaceInner() {
             </ReactFlow>
             <PatternConnectors
               patterns={patterns}
-              visiblePatternIds={visiblePatternIds}
+              visiblePatternIds={effectiveVisiblePatternIds}
               onPatternClick={() => setPatternPanelOpen(true)}
             />
           </>
@@ -626,6 +632,7 @@ function TreeWorkspaceInner() {
             onSave={handleSavePattern}
             onDelete={handleDeletePattern}
             onClose={() => setPatternPanelOpen(false)}
+            onHoverPattern={setHoveredPatternId}
           />
         )}
       </div>
