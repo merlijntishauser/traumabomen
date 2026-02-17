@@ -4,19 +4,11 @@
 
 The app is strong on mapping and visualization (tree canvas, timeline, DSM classifications) but thin on the reflection and sense-making side. There is great data entry, but limited tools to help users actually process what they have entered. The current feature set is deficit-focused (trauma events, classifications, severity scores) without an explicit resilience or strengths layer.
 
-Priority should shift toward features that turn the tree from a diagram into a living reflection tool. The pattern editor, resilience tracking, and a reflection journal are the highest-impact additions for the core "personal reflection" use case. Infrastructure features (passkeys, auth modals) are valuable polish but secondary to the reflection mission.
+Priority should shift toward features that turn the tree from a diagram into a living reflection tool. Resilience tracking and a reflection journal are the highest-impact additions for the core "personal reflection" use case. Infrastructure features (passkeys, auth modals) are valuable polish but secondary to the reflection mission.
 
 ## Planned -- Reflection (high priority)
 
-### 1. Pattern editor
-
-Annotation layer linking multiple TraumaEvents across generations to mark recurring themes (e.g., addiction patterns, attachment disruption). The moment the tree stops being a diagram and becomes an insight.
-
-- Each pattern has a name, description, and linked event IDs
-- Visual overlay on the canvas connecting related events across generations
-- Pattern summary visible in timeline view
-
-### 2. Resilience and strengths layer
+### 1. Resilience and strengths layer
 
 Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen.
 
@@ -25,7 +17,7 @@ Balance the deficit focus with a way to map resilience: who broke a cycle, what 
 - Categories: cycle-breaking, protective relationship, recovery, achievement, positive change
 - Keeps the tool from feeling purely pathology-oriented
 
-### 3. Reflection journal
+### 2. Reflection journal
 
 Per-tree journal with timestamped entries. Not a generic diary -- entries that can optionally link to specific persons, events, patterns, or classifications.
 
@@ -34,7 +26,7 @@ Per-tree journal with timestamped entries. Not a generic diary -- entries that c
 - Rich text or markdown for longer entries
 - The connective tissue between the data and the meaning
 
-### 4. Guided reflection prompts
+### 3. Guided reflection prompts
 
 Small curated library of optional prompts that help users explore their tree more deeply. Available as starting points for journal entries.
 
@@ -44,7 +36,7 @@ Small curated library of optional prompts that help users explore their tree mor
 - "What patterns do you notice repeating?"
 - Static, curated -- not AI-generated
 
-### 5. Personal insights summary
+### 4. Personal insights summary
 
 Read-only overview page per tree that surfaces basic observations from what the user already entered.
 
@@ -54,6 +46,17 @@ Read-only overview page per tree that surfaces basic observations from what the 
 - Not AI analysis -- counting and grouping, presented as a reflection starting point
 
 ## Planned -- Features (medium priority)
+
+### 5. Timeline view refinement
+
+The timeline view needs significant work to become a useful reflection tool rather than just a data display.
+
+- Layout and spacing improvements for readability
+- Better visual hierarchy between generations
+- Pattern overlays on the timeline (connecting related events visually)
+- Interaction improvements (click-to-select, hover detail, zoom/pan)
+- Responsive behavior for different tree sizes
+- Visual connection between timeline markers and the canvas view
 
 ### 6. Care providers
 
@@ -99,6 +102,10 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
 ## Done
+
+### Pattern editor
+
+Annotation layer linking trauma events, life events, and classifications across generations to mark recurring themes. Metaball contour visualization on the canvas, theme-aware colors, hover preview from panel, dedicated pattern view with edit-on-canvas navigation. [Design doc](plans/2026-02-16-pattern-editor-design.md).
 
 ### Safety envelope
 
