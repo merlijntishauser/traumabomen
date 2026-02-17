@@ -40,12 +40,12 @@ interface PatternArea {
 // -- Metaball field parameters --
 const GRID_SIZE = 8;
 const BLOB_RADIUS = 50;
-const BRIDGE_RADIUS = 35;
+const BRIDGE_RADIUS = 50;
 const FIELD_THRESHOLD = 0.5;
-const BRIDGE_SPACING = 50;
+const BRIDGE_SPACING = 40;
 const FIELD_MARGIN = 80;
 const REPEL_RADIUS = 45;
-const REPEL_STRENGTH = 1.5;
+const REPEL_STRENGTH = 1.2;
 
 // ── Field helpers ──────────────────────────────────────────────
 
