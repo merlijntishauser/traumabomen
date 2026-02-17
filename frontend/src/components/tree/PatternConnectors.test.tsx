@@ -38,15 +38,17 @@ describe("PatternConnectors", () => {
     expect(container.querySelector('[data-testid="pattern-connectors"]')).toBeNull();
   });
 
-  it("renders SVG lines for visible patterns", () => {
+  it("renders SVG areas for visible patterns", () => {
     const patterns = new Map<string, DecryptedPattern>([[pattern.id, pattern]]);
     render(<PatternConnectors patterns={patterns} visiblePatternIds={new Set(["pat1"])} />);
     expect(screen.getByTestId("pattern-connectors")).toBeInTheDocument();
-    const line = document.querySelector("line");
-    expect(line).not.toBeNull();
+    const area = document.querySelector('[data-testid="pattern-area"]');
+    expect(area).not.toBeNull();
+    const path = area!.querySelector("path");
+    expect(path).not.toBeNull();
   });
 
-  it("does not render lines for hidden patterns", () => {
+  it("does not render areas for hidden patterns", () => {
     const patterns = new Map<string, DecryptedPattern>([[pattern.id, pattern]]);
     const { container } = render(
       <PatternConnectors patterns={patterns} visiblePatternIds={new Set(["other-id"])} />,
@@ -54,15 +56,16 @@ describe("PatternConnectors", () => {
     expect(container.querySelector('[data-testid="pattern-connectors"]')).toBeNull();
   });
 
-  it("lines have correct stroke color", () => {
+  it("areas have correct fill color", () => {
     const patterns = new Map<string, DecryptedPattern>([[pattern.id, pattern]]);
     render(<PatternConnectors patterns={patterns} visiblePatternIds={new Set(["pat1"])} />);
-    const line = document.querySelector("line");
-    expect(line).not.toBeNull();
-    expect(line!.getAttribute("stroke")).toBe("#818cf8");
+    const path = document.querySelector('[data-testid="pattern-area"] path');
+    expect(path).not.toBeNull();
+    expect(path!.getAttribute("fill")).toBe("#818cf8");
+    expect(path!.getAttribute("stroke")).toBe("#818cf8");
   });
 
-  it("clicking a line calls onPatternClick", () => {
+  it("clicking an area calls onPatternClick", () => {
     const patterns = new Map<string, DecryptedPattern>([[pattern.id, pattern]]);
     const handleClick = vi.fn();
     render(
@@ -72,9 +75,17 @@ describe("PatternConnectors", () => {
         onPatternClick={handleClick}
       />,
     );
-    const line = document.querySelector("line");
-    expect(line).not.toBeNull();
-    fireEvent.click(line!);
+    const area = document.querySelector('[data-testid="pattern-area"]');
+    expect(area).not.toBeNull();
+    fireEvent.click(area!);
     expect(handleClick).toHaveBeenCalledWith("pat1");
+  });
+
+  it("shows pattern name text element", () => {
+    const patterns = new Map<string, DecryptedPattern>([[pattern.id, pattern]]);
+    render(<PatternConnectors patterns={patterns} visiblePatternIds={new Set(["pat1"])} />);
+    const text = document.querySelector('[data-testid="pattern-area"] text');
+    expect(text).not.toBeNull();
+    expect(text!.textContent).toBe("Test Pattern");
   });
 });

@@ -1,5 +1,5 @@
 import { useNodes, useViewport } from "@xyflow/react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
 import type { PersonNodeType } from "../../hooks/useTreeLayout";
 import { NODE_HEIGHT, NODE_WIDTH } from "../../hooks/useTreeLayout";
@@ -10,15 +10,138 @@ interface PatternConnectorsProps {
   onPatternClick?: (patternId: string) => void;
 }
 
-interface Line {
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface PatternArea {
   patternId: string;
   color: string;
   name: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  offset: number;
+  path: string;
+  centroid: Point;
+}
+
+const HULL_PADDING = 28;
+
+/** Cross product of vectors OA and OB. Positive = counter-clockwise. */
+function cross(o: Point, a: Point, b: Point): number {
+  return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+}
+
+/** Convex hull via Andrew's monotone chain (returns CCW order). */
+function convexHull(points: Point[]): Point[] {
+  const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+  if (pts.length <= 1) return pts;
+
+  const lower: Point[] = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+      lower.pop();
+    }
+    lower.push(p);
+  }
+
+  const upper: Point[] = [];
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+      upper.pop();
+    }
+    upper.push(p);
+  }
+
+  // Remove last point of each half because it's repeated
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
+/** Expand hull outward by offsetting each edge and computing new intersections. */
+function expandHull(hull: Point[], padding: number): Point[] {
+  const n = hull.length;
+  if (n === 0) return [];
+  if (n === 1) {
+    // Single point -> square around it
+    const p = hull[0];
+    return [
+      { x: p.x - padding, y: p.y - padding },
+      { x: p.x + padding, y: p.y - padding },
+      { x: p.x + padding, y: p.y + padding },
+      { x: p.x - padding, y: p.y + padding },
+    ];
+  }
+  if (n === 2) {
+    // Two points -> rectangle with padding
+    const [a, b] = hull;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = (-dy / len) * padding;
+    const ny = (dx / len) * padding;
+    const ex = (dx / len) * padding;
+    const ey = (dy / len) * padding;
+    return [
+      { x: a.x + nx - ex, y: a.y + ny - ey },
+      { x: b.x + nx + ex, y: b.y + ny + ey },
+      { x: b.x - nx + ex, y: b.y - ny + ey },
+      { x: a.x - nx - ex, y: a.y - ny - ey },
+    ];
+  }
+
+  // For 3+ points, offset each edge outward
+  const result: Point[] = [];
+  for (let i = 0; i < n; i++) {
+    const curr = hull[i];
+    const next = hull[(i + 1) % n];
+
+    const dx = next.x - curr.x;
+    const dy = next.y - curr.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    // Outward normal (hull is CCW)
+    const nx = (-dy / len) * padding;
+    const ny = (dx / len) * padding;
+
+    result.push({ x: curr.x + nx, y: curr.y + ny });
+    result.push({ x: next.x + nx, y: next.y + ny });
+  }
+  // Re-hull the expanded points to clean up
+  return convexHull(result);
+}
+
+/** Closed Catmull-Rom spline -> SVG cubic bezier path. */
+function smoothClosedPath(points: Point[]): string {
+  const n = points.length;
+  if (n < 3) {
+    // Fallback to polygon
+    return `M ${points.map((p) => `${p.x} ${p.y}`).join(" L ")} Z`;
+  }
+
+  const tension = 0.35;
+  const parts: string[] = [`M ${points[0].x} ${points[0].y}`];
+
+  for (let i = 0; i < n; i++) {
+    const p0 = points[(i - 1 + n) % n];
+    const p1 = points[i];
+    const p2 = points[(i + 1) % n];
+    const p3 = points[(i + 2) % n];
+
+    const cp1x = p1.x + (p2.x - p0.x) * tension * (1 / 3);
+    const cp1y = p1.y + (p2.y - p0.y) * tension * (1 / 3);
+    const cp2x = p2.x - (p3.x - p1.x) * tension * (1 / 3);
+    const cp2y = p2.y - (p3.y - p1.y) * tension * (1 / 3);
+
+    parts.push(`C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`);
+  }
+
+  return parts.join(" ");
+}
+
+function centroid(points: Point[]): Point {
+  const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
+  const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
+  return { x: cx, y: cy };
 }
 
 export function PatternConnectors({
@@ -28,59 +151,57 @@ export function PatternConnectors({
 }: PatternConnectorsProps) {
   const nodes = useNodes<PersonNodeType>();
   const { x: vx, y: vy, zoom } = useViewport();
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const nodeCenter = useMemo(() => {
-    const map = new Map<string, { x: number; y: number }>();
+  const nodeRects = useMemo(() => {
+    const map = new Map<string, { x: number; y: number; w: number; h: number }>();
     for (const node of nodes) {
       map.set(node.id, {
-        x: node.position.x + NODE_WIDTH / 2,
-        y: node.position.y + NODE_HEIGHT / 2,
+        x: node.position.x,
+        y: node.position.y,
+        w: NODE_WIDTH,
+        h: NODE_HEIGHT,
       });
     }
     return map;
   }, [nodes]);
 
-  const lines = useMemo(() => {
-    const result: Line[] = [];
-    // Track segment counts for offset calculation
-    const segmentCounts = new Map<string, number>();
+  const areas = useMemo(() => {
+    const result: PatternArea[] = [];
 
     for (const pattern of patterns.values()) {
       if (!visiblePatternIds.has(pattern.id)) continue;
 
-      // Collect unique person IDs from linked entities
-      const personIds = new Set(pattern.person_ids);
-      const personIdArray = Array.from(personIds).filter((pid) => nodeCenter.has(pid));
+      const personIds = Array.from(new Set(pattern.person_ids)).filter((pid) => nodeRects.has(pid));
+      if (personIds.length === 0) continue;
 
-      // Generate all unique pairs
-      for (let i = 0; i < personIdArray.length; i++) {
-        for (let j = i + 1; j < personIdArray.length; j++) {
-          const a = personIdArray[i];
-          const b = personIdArray[j];
-          const segKey = [a, b].sort().join("-");
-          const count = segmentCounts.get(segKey) ?? 0;
-          segmentCounts.set(segKey, count + 1);
+      // Collect node center points for hull computation
+      const centerPoints: Point[] = personIds.map((pid) => {
+        const r = nodeRects.get(pid)!;
+        return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+      });
 
-          const centerA = nodeCenter.get(a)!;
-          const centerB = nodeCenter.get(b)!;
+      const hull = convexHull(centerPoints);
+      // Expand to clear node boundaries + visual padding
+      const expanded = expandHull(hull, NODE_WIDTH / 2 + HULL_PADDING);
+      const path = smoothClosedPath(expanded);
+      const center = centroid(expanded);
 
-          result.push({
-            patternId: pattern.id,
-            color: pattern.color,
-            name: pattern.name,
-            x1: centerA.x,
-            y1: centerA.y,
-            x2: centerB.x,
-            y2: centerB.y,
-            offset: count * 3,
-          });
-        }
-      }
+      result.push({
+        patternId: pattern.id,
+        color: pattern.color,
+        name: pattern.name,
+        path,
+        centroid: center,
+      });
     }
     return result;
-  }, [patterns, visiblePatternIds, nodeCenter]);
+  }, [patterns, visiblePatternIds, nodeRects]);
 
-  if (lines.length === 0) return null;
+  const handleMouseEnter = useCallback((id: string) => setHoveredId(id), []);
+  const handleMouseLeave = useCallback(() => setHoveredId(null), []);
+
+  if (areas.length === 0) return null;
 
   return (
     <svg
@@ -96,30 +217,45 @@ export function PatternConnectors({
       }}
     >
       <g transform={`translate(${vx}, ${vy}) scale(${zoom})`}>
-        {lines.map((line, i) => {
-          // Perpendicular offset for overlapping lines
-          const dx = line.x2 - line.x1;
-          const dy = line.y2 - line.y1;
-          const len = Math.sqrt(dx * dx + dy * dy) || 1;
-          const nx = (-dy / len) * line.offset;
-          const ny = (dx / len) * line.offset;
-
+        {areas.map((area) => {
+          const isHovered = hoveredId === area.patternId;
           return (
-            <line
-              key={`${line.patternId}-${i}`}
-              x1={line.x1 + nx}
-              y1={line.y1 + ny}
-              x2={line.x2 + nx}
-              y2={line.y2 + ny}
-              stroke={line.color}
-              strokeWidth={2}
-              strokeDasharray="4 4"
-              opacity={0.6}
-              style={{ pointerEvents: "stroke", cursor: "pointer" }}
-              onClick={() => onPatternClick?.(line.patternId)}
+            <g
+              key={area.patternId}
+              style={{ pointerEvents: "all", cursor: "pointer" }}
+              onMouseEnter={() => handleMouseEnter(area.patternId)}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => onPatternClick?.(area.patternId)}
+              data-testid="pattern-area"
             >
-              <title>{line.name}</title>
-            </line>
+              <path
+                d={area.path}
+                fill={area.color}
+                fillOpacity={isHovered ? 0.18 : 0.08}
+                stroke={area.color}
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                strokeOpacity={isHovered ? 0.8 : 0.4}
+                style={{ transition: "fill-opacity 0.15s ease, stroke-opacity 0.15s ease" }}
+              />
+              <text
+                x={area.centroid.x}
+                y={area.centroid.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={13}
+                fontWeight={500}
+                fill={area.color}
+                opacity={isHovered ? 1 : 0}
+                paintOrder="stroke fill"
+                stroke="var(--color-bg-primary)"
+                strokeWidth={4}
+                strokeLinejoin="round"
+                style={{ transition: "opacity 0.15s ease", pointerEvents: "none" }}
+              >
+                {area.name}
+              </text>
+            </g>
           );
         })}
       </g>
