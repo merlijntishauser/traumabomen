@@ -336,7 +336,7 @@ The app uses a "dark forest" nature aesthetic with strong thematic coherence. Th
 
 ### Typography
 
-- **Heading font:** `Playwrite NZ` -- a flowing handwriting-style script with variable weight (100-400). Evokes personal journals and handwritten family notes, fitting the reflective nature of the tool.
+- **Heading font:** `Playwrite New Zealand Basic` -- a flowing handwriting-style script with variable weight (100-400). Evokes personal journals and handwritten family notes, fitting the reflective nature of the tool.
 - **Body font:** `Lato` -- a clean, humanist sans-serif with good legibility at all sizes. Weights 300/400/700/900 loaded. Warm and approachable without being decorative.
 - Fonts loaded via Google Fonts CDN with `preconnect`.
 - All font families defined as CSS variables (`--font-heading`, `--font-body`) in `theme.css`.
@@ -364,7 +364,7 @@ When modifying the frontend, follow these principles:
 
 - **Stay in the green palette.** New surfaces, borders, and shadows should use the existing green-tinted variables. Never introduce grays or blues for structural elements.
 - **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
-- **Heading font is personal.** Playwrite NZ's flowing script gives headings a handwritten, journal-like quality. Use weight 200-300 for large display, 300-400 for compact panel headers. Pair with the clean Lato body font for readability.
+- **Heading font is personal.** Playwrite New Zealand Basic's flowing script gives headings a handwritten, journal-like quality. Use weight 200-300 for large display, 300-400 for compact panel headers. Pair with the clean Lato body font for readability.
 - **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in both themes. Don't add new ones without updating both theme variants.
 - **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations -- the subject matter is sensitive.
 - **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
