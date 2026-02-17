@@ -175,7 +175,7 @@
   "classification.removePeriod": "Remove",
   "classification.notes": "Notes",
   "classification.confirmDelete": "Are you sure you want to delete this classification?",
-  "classification.searchPlaceholder": "Search categories...",
+  "classification.searchPlaceholder": "Search categories, conditions, or codes...",
   "classification.linkedPersons": "Linked persons",
 
   "dsm.neurodevelopmental": "Neurodevelopmental Disorders",
@@ -207,6 +207,84 @@
   "dsm.sub.learning": "Specific Learning Disorder",
   "dsm.sub.communication": "Communication Disorders",
   "dsm.sub.motor": "Motor Disorders",
+
+  "dsm.sub.schizophrenia_disorder": "Schizophrenia",
+  "dsm.sub.schizoaffective": "Schizoaffective Disorder",
+  "dsm.sub.brief_psychotic": "Brief Psychotic Disorder",
+  "dsm.sub.delusional": "Delusional Disorder",
+
+  "dsm.sub.bipolar_i": "Bipolar I Disorder",
+  "dsm.sub.bipolar_ii": "Bipolar II Disorder",
+  "dsm.sub.cyclothymia": "Cyclothymic Disorder",
+
+  "dsm.sub.major_depression": "Major Depressive Disorder",
+  "dsm.sub.persistent_depressive": "Persistent Depressive Disorder (Dysthymia)",
+  "dsm.sub.premenstrual_dysphoric": "Premenstrual Dysphoric Disorder (PMDD)",
+  "dsm.sub.seasonal_depression": "Seasonal Affective Disorder (SAD)",
+
+  "dsm.sub.generalized_anxiety": "Generalized Anxiety Disorder (GAD)",
+  "dsm.sub.panic_disorder": "Panic Disorder",
+  "dsm.sub.social_anxiety": "Social Anxiety Disorder",
+  "dsm.sub.specific_phobia": "Specific Phobia",
+  "dsm.sub.agoraphobia": "Agoraphobia",
+  "dsm.sub.separation_anxiety": "Separation Anxiety Disorder",
+
+  "dsm.sub.ocd_disorder": "Obsessive-Compulsive Disorder (OCD)",
+  "dsm.sub.hoarding": "Hoarding Disorder",
+  "dsm.sub.body_dysmorphic": "Body Dysmorphic Disorder (BDD)",
+  "dsm.sub.hair_pulling": "Trichotillomania (Hair-Pulling Disorder)",
+  "dsm.sub.skin_picking": "Excoriation (Skin-Picking Disorder)",
+
+  "dsm.sub.ptsd": "PTSD",
+  "dsm.sub.acute_stress": "Acute Stress Disorder",
+  "dsm.sub.adjustment_disorder": "Adjustment Disorder",
+  "dsm.sub.reactive_attachment": "Reactive Attachment Disorder",
+
+  "dsm.sub.dissociative_identity": "Dissociative Identity Disorder (DID)",
+  "dsm.sub.dissociative_amnesia": "Dissociative Amnesia",
+  "dsm.sub.depersonalization": "Depersonalization/Derealization Disorder",
+
+  "dsm.sub.somatic_symptom": "Somatic Symptom Disorder",
+  "dsm.sub.illness_anxiety": "Illness Anxiety Disorder",
+  "dsm.sub.conversion": "Conversion Disorder",
+  "dsm.sub.factitious": "Factitious Disorder",
+
+  "dsm.sub.anorexia": "Anorexia Nervosa",
+  "dsm.sub.bulimia": "Bulimia Nervosa",
+  "dsm.sub.binge_eating": "Binge-Eating Disorder",
+  "dsm.sub.avoidant_restrictive": "Avoidant/Restrictive Food Intake Disorder (ARFID)",
+
+  "dsm.sub.insomnia": "Insomnia Disorder",
+  "dsm.sub.hypersomnia": "Hypersomnolence Disorder",
+  "dsm.sub.nightmare_disorder": "Nightmare Disorder",
+  "dsm.sub.sleepwalking": "Sleepwalking Disorder",
+
+  "dsm.sub.oppositional_defiant": "Oppositional Defiant Disorder (ODD)",
+  "dsm.sub.conduct_disorder": "Conduct Disorder",
+  "dsm.sub.intermittent_explosive": "Intermittent Explosive Disorder",
+  "dsm.sub.pyromania": "Pyromania",
+  "dsm.sub.kleptomania": "Kleptomania",
+
+  "dsm.sub.alcohol_use": "Alcohol Use Disorder",
+  "dsm.sub.cannabis_use": "Cannabis Use Disorder",
+  "dsm.sub.stimulant_use": "Stimulant Use Disorder",
+  "dsm.sub.opioid_use": "Opioid Use Disorder",
+  "dsm.sub.tobacco_use": "Tobacco Use Disorder",
+  "dsm.sub.gambling": "Gambling Disorder",
+
+  "dsm.sub.alzheimers": "Alzheimer's Disease",
+  "dsm.sub.vascular_dementia": "Vascular Dementia",
+  "dsm.sub.mild_cognitive": "Mild Cognitive Impairment",
+  "dsm.sub.delirium": "Delirium",
+
+  "dsm.sub.borderline_pd": "Borderline Personality Disorder (BPD)",
+  "dsm.sub.narcissistic_pd": "Narcissistic Personality Disorder",
+  "dsm.sub.antisocial_pd": "Antisocial Personality Disorder (ASPD)",
+  "dsm.sub.avoidant_pd": "Avoidant Personality Disorder",
+  "dsm.sub.dependent_pd": "Dependent Personality Disorder",
+  "dsm.sub.obsessive_compulsive_pd": "Obsessive-Compulsive Personality Disorder (OCPD)",
+  "dsm.sub.paranoid_pd": "Paranoid Personality Disorder",
+  "dsm.sub.schizotypal_pd": "Schizotypal Personality Disorder",
 
   "timeline.generation": "Generation {{number}}",
   "timeline.severity": "Severity: {{value}}",

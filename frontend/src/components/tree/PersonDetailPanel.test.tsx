@@ -1298,7 +1298,7 @@ describe("PersonDetailPanel", () => {
       );
     });
 
-    it("shows subcategory select for categories with subcategories", async () => {
+    it("shows subcategories as options within optgroup", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
@@ -1306,12 +1306,11 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText(/classification.classifications/));
       await user.click(screen.getByText("classification.newClassification"));
 
-      // Change to neurodevelopmental (has subcategories)
+      // The select should contain subcategory options (e.g. ADHD under neurodevelopmental)
       const categorySelect = screen.getByDisplayValue("dsm.anxiety");
-      await user.selectOptions(categorySelect, "neurodevelopmental");
-
-      // Subcategory select should appear
-      expect(screen.getByText("classification.subcategory")).toBeInTheDocument();
+      const adhdOption = within(categorySelect).getByText(/dsm\.sub\.adhd/);
+      expect(adhdOption).toBeInTheDocument();
+      expect(adhdOption.getAttribute("value")).toBe("neurodevelopmental::adhd");
     });
 
     it("filters DSM categories by search text", async () => {

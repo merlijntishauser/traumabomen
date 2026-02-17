@@ -175,7 +175,7 @@
   "classification.removePeriod": "Verwijderen",
   "classification.notes": "Notities",
   "classification.confirmDelete": "Weet je zeker dat je deze classificatie wilt verwijderen?",
-  "classification.searchPlaceholder": "Zoek categorieen...",
+  "classification.searchPlaceholder": "Zoek categorieen, aandoeningen of codes...",
   "classification.linkedPersons": "Gekoppelde personen",
 
   "dsm.neurodevelopmental": "Neurobiologische ontwikkelingsstoornissen",
@@ -207,6 +207,84 @@
   "dsm.sub.learning": "Specifieke leerstoornis",
   "dsm.sub.communication": "Communicatiestoornissen",
   "dsm.sub.motor": "Motorische stoornissen",
+
+  "dsm.sub.schizophrenia_disorder": "Schizofrenie",
+  "dsm.sub.schizoaffective": "Schizoaffectieve stoornis",
+  "dsm.sub.brief_psychotic": "Kortdurende psychotische stoornis",
+  "dsm.sub.delusional": "Waanstoornis",
+
+  "dsm.sub.bipolar_i": "Bipolaire I stoornis",
+  "dsm.sub.bipolar_ii": "Bipolaire II stoornis",
+  "dsm.sub.cyclothymia": "Cyclothyme stoornis",
+
+  "dsm.sub.major_depression": "Depressieve stoornis",
+  "dsm.sub.persistent_depressive": "Persisterende depressieve stoornis (dysthymie)",
+  "dsm.sub.premenstrual_dysphoric": "Premenstruele stemmingsstoornis (PMDD)",
+  "dsm.sub.seasonal_depression": "Seizoensgebonden depressie (SAD)",
+
+  "dsm.sub.generalized_anxiety": "Gegeneraliseerde angststoornis (GAS)",
+  "dsm.sub.panic_disorder": "Paniekstoornis",
+  "dsm.sub.social_anxiety": "Sociale-angststoornis",
+  "dsm.sub.specific_phobia": "Specifieke fobie",
+  "dsm.sub.agoraphobia": "Agorafobie",
+  "dsm.sub.separation_anxiety": "Separatieangststoornis",
+
+  "dsm.sub.ocd_disorder": "Obsessieve-compulsieve stoornis (OCS)",
+  "dsm.sub.hoarding": "Verzamelstoornis",
+  "dsm.sub.body_dysmorphic": "Morfodysfore stoornis",
+  "dsm.sub.hair_pulling": "Trichotillomanie (haartrekstoornis)",
+  "dsm.sub.skin_picking": "Excoriatiestoornis (huidpulkstoornis)",
+
+  "dsm.sub.ptsd": "PTSS",
+  "dsm.sub.acute_stress": "Acute stressstoornis",
+  "dsm.sub.adjustment_disorder": "Aanpassingsstoornis",
+  "dsm.sub.reactive_attachment": "Reactieve hechtingsstoornis",
+
+  "dsm.sub.dissociative_identity": "Dissociatieve identiteitsstoornis (DIS)",
+  "dsm.sub.dissociative_amnesia": "Dissociatieve amnesie",
+  "dsm.sub.depersonalization": "Depersonalisatie-/derealisatiestoornis",
+
+  "dsm.sub.somatic_symptom": "Somatische-symptoomstoornis",
+  "dsm.sub.illness_anxiety": "Ziektevreesstoornis",
+  "dsm.sub.conversion": "Conversiestoornis",
+  "dsm.sub.factitious": "Nagebootste stoornis",
+
+  "dsm.sub.anorexia": "Anorexia nervosa",
+  "dsm.sub.bulimia": "Boulimia nervosa",
+  "dsm.sub.binge_eating": "Eetbuistoornis",
+  "dsm.sub.avoidant_restrictive": "Vermijdende/restrictieve voedselinnamestoornis (ARFID)",
+
+  "dsm.sub.insomnia": "Insomniestoornis",
+  "dsm.sub.hypersomnia": "Hypersomniestoornis",
+  "dsm.sub.nightmare_disorder": "Nachtmerriestoornis",
+  "dsm.sub.sleepwalking": "Slaapwandelstoornis",
+
+  "dsm.sub.oppositional_defiant": "Oppositioneel-opstandige stoornis (ODD)",
+  "dsm.sub.conduct_disorder": "Normoverschrijdend-gedragsstoornis",
+  "dsm.sub.intermittent_explosive": "Periodieke explosieve stoornis",
+  "dsm.sub.pyromania": "Pyromanie",
+  "dsm.sub.kleptomania": "Kleptomanie",
+
+  "dsm.sub.alcohol_use": "Stoornis in alcoholgebruik",
+  "dsm.sub.cannabis_use": "Stoornis in cannabisgebruik",
+  "dsm.sub.stimulant_use": "Stoornis in stimulantiagebruik",
+  "dsm.sub.opioid_use": "Stoornis in opioïdengebruik",
+  "dsm.sub.tobacco_use": "Stoornis in tabaksgebruik",
+  "dsm.sub.gambling": "Gokstoornis",
+
+  "dsm.sub.alzheimers": "Ziekte van Alzheimer",
+  "dsm.sub.vascular_dementia": "Vasculaire dementie",
+  "dsm.sub.mild_cognitive": "Lichte cognitieve stoornis",
+  "dsm.sub.delirium": "Delirium",
+
+  "dsm.sub.borderline_pd": "Borderline-persoonlijkheidsstoornis (BPS)",
+  "dsm.sub.narcissistic_pd": "Narcistische persoonlijkheidsstoornis",
+  "dsm.sub.antisocial_pd": "Antisociale persoonlijkheidsstoornis (ASPS)",
+  "dsm.sub.avoidant_pd": "Ontwijkende persoonlijkheidsstoornis",
+  "dsm.sub.dependent_pd": "Afhankelijke persoonlijkheidsstoornis",
+  "dsm.sub.obsessive_compulsive_pd": "Dwangmatige persoonlijkheidsstoornis (OCPS)",
+  "dsm.sub.paranoid_pd": "Paranoïde persoonlijkheidsstoornis",
+  "dsm.sub.schizotypal_pd": "Schizotypische persoonlijkheidsstoornis",
 
   "timeline.generation": "Generatie {{number}}",
   "timeline.severity": "Ernst: {{value}}",

@@ -9,7 +9,7 @@ import type {
 } from "../../hooks/useTreeData";
 import { formatAge } from "../../lib/age";
 import { getClassificationColor } from "../../lib/classificationColors";
-import { DSM_CATEGORIES, getCategoryByKey } from "../../lib/dsmCategories";
+import { DSM_CATEGORIES, type DsmCategory } from "../../lib/dsmCategories";
 import type { InferredSibling } from "../../lib/inferSiblings";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import { getTraumaColor } from "../../lib/traumaColors";
@@ -813,15 +813,31 @@ function ClassificationForm({
   );
   const [categorySearch, setCategorySearch] = useState("");
 
-  const currentCategoryDef = getCategoryByKey(dsmCategory);
-  const hasSubcategories =
-    currentCategoryDef?.subcategories && currentCategoryDef.subcategories.length > 0;
+  // Build compound select value from category + subcategory
+  const selectValue = dsmSubcategory ? `${dsmCategory}::${dsmSubcategory}` : dsmCategory;
 
-  const filteredCategories = categorySearch
-    ? DSM_CATEGORIES.filter((c) =>
-        t(`dsm.${c.key}`).toLowerCase().includes(categorySearch.toLowerCase()),
-      )
-    : DSM_CATEGORIES;
+  // Filter categories and subcategories based on search
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch) return DSM_CATEGORIES;
+    const q = categorySearch.toLowerCase();
+    return DSM_CATEGORIES.map((cat) => {
+      const categoryLabel = t(`dsm.${cat.key}`).toLowerCase();
+      const categoryCodeMatch = cat.code.toLowerCase().includes(q);
+      const categoryLabelMatch = categoryLabel.includes(q);
+
+      if (categoryLabelMatch || categoryCodeMatch) return cat;
+
+      if (cat.subcategories) {
+        const matchedSubs = cat.subcategories.filter((sub) => {
+          const subLabel = t(`dsm.sub.${sub.key}`).toLowerCase();
+          return subLabel.includes(q) || sub.code.toLowerCase().includes(q);
+        });
+        if (matchedSubs.length > 0) return { ...cat, subcategories: matchedSubs };
+      }
+
+      return null;
+    }).filter((cat): cat is DsmCategory => cat !== null);
+  }, [categorySearch, t]);
 
   const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
     a.name.localeCompare(b.name),
@@ -847,12 +863,10 @@ function ClassificationForm({
     );
   }
 
-  function handleCategoryChange(key: string) {
-    setDsmCategory(key);
-    const catDef = getCategoryByKey(key);
-    if (!catDef?.subcategories || catDef.subcategories.length === 0) {
-      setDsmSubcategory(null);
-    }
+  function handleSelectChange(compoundValue: string) {
+    const parts = compoundValue.split("::");
+    setDsmCategory(parts[0]);
+    setDsmSubcategory(parts.length > 1 ? parts[1] : null);
     setCategorySearch("");
   }
 
@@ -860,7 +874,7 @@ function ClassificationForm({
     onSave(
       {
         dsm_category: dsmCategory,
-        dsm_subcategory: hasSubcategories ? dsmSubcategory : null,
+        dsm_subcategory: dsmSubcategory,
         status,
         diagnosis_year:
           status === "diagnosed" && diagnosisYear ? parseInt(diagnosisYear, 10) : null,
@@ -881,30 +895,19 @@ function ClassificationForm({
           onChange={(e) => setCategorySearch(e.target.value)}
           placeholder={t("classification.searchPlaceholder")}
         />
-        <select value={dsmCategory} onChange={(e) => handleCategoryChange(e.target.value)}>
+        <select value={selectValue} onChange={(e) => handleSelectChange(e.target.value)}>
           {filteredCategories.map((cat) => (
-            <option key={cat.key} value={cat.key}>
-              {t(`dsm.${cat.key}`)}
-            </option>
+            <optgroup key={cat.key} label={`${cat.code} - ${t(`dsm.${cat.key}`)}`}>
+              <option value={cat.key}>{t(`dsm.${cat.key}`)}</option>
+              {cat.subcategories?.map((sub) => (
+                <option key={sub.key} value={`${cat.key}::${sub.key}`}>
+                  {sub.code} - {t(`dsm.sub.${sub.key}`)}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </label>
-      {hasSubcategories && (
-        <label className="detail-panel__field">
-          <span>{t("classification.subcategory")}</span>
-          <select
-            value={dsmSubcategory ?? ""}
-            onChange={(e) => setDsmSubcategory(e.target.value || null)}
-          >
-            <option value="">---</option>
-            {currentCategoryDef!.subcategories!.map((sub) => (
-              <option key={sub} value={sub}>
-                {t(`dsm.sub.${sub}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
       <fieldset className="detail-panel__field">
         <span>{t("classification.status")}</span>
         <div className="detail-panel__radios">
