@@ -1,0 +1,242 @@
+import React, { useCallback } from "react";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPerson,
+} from "../../hooks/useTreeData";
+import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import type { TooltipLine } from "./timelineHelpers";
+import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
+
+interface PersonLaneProps {
+  person: DecryptedPerson;
+  y: number;
+  currentYear: number;
+  events: DecryptedEvent[];
+  lifeEvents: DecryptedLifeEvent[];
+  classifications: DecryptedClassification[];
+  persons: Map<string, DecryptedPerson>;
+  traumaColors: Record<TraumaCategory, string>;
+  lifeEventColors: Record<LifeEventCategory, string>;
+  cssVar: (name: string) => string;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+  onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
+}
+
+export const PersonLane = React.memo(function PersonLane({
+  person,
+  y,
+  currentYear,
+  events,
+  lifeEvents,
+  classifications,
+  persons,
+  traumaColors,
+  lifeEventColors,
+  cssVar,
+  t,
+  onTooltip,
+}: PersonLaneProps) {
+  const barY = y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
+  const cy = y + ROW_HEIGHT / 2;
+  const hasBirth = person.birth_year != null;
+  const birthX = person.birth_year ?? 0;
+  const deathX = person.death_year ?? currentYear;
+
+  const hideTooltip = useCallback(() => {
+    onTooltip({ visible: false, x: 0, y: 0, lines: [] });
+  }, [onTooltip]);
+
+  return (
+    <g>
+      {/* Life bar */}
+      {hasBirth && (
+        <rect
+          x={birthX}
+          y={barY}
+          width={Math.max(0, deathX - birthX)}
+          height={BAR_HEIGHT}
+          rx={3}
+          fill={cssVar("--color-lifebar-fill")}
+          stroke={cssVar("--color-lifebar-stroke")}
+          strokeWidth={1}
+        />
+      )}
+
+      {/* Classification strips */}
+      {hasBirth &&
+        classifications.map((cls, stripIdx) => {
+          const clsColor = cssVar(
+            cls.status === "diagnosed"
+              ? "--color-classification-diagnosed"
+              : "--color-classification-suspected",
+          );
+          const stripHeight = 4;
+
+          return (
+            <g key={cls.id}>
+              {/* Period strips */}
+              {cls.periods.map((period, pi) => {
+                const px1 = period.start_year;
+                const px2 = period.end_year ?? currentYear;
+                const stripY = barY + BAR_HEIGHT + 2 + stripIdx * (stripHeight + 1);
+
+                const catLabel = t(`dsm.${cls.dsm_category}`);
+                const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
+                const statusLabel = t(`classification.status.${cls.status}`);
+                const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
+
+                return (
+                  <rect
+                    key={`${cls.id}-p${pi}`}
+                    x={px1}
+                    y={stripY}
+                    width={Math.max(0, px2 - px1)}
+                    height={stripHeight}
+                    rx={1}
+                    fill={clsColor}
+                    opacity={0.8}
+                    className="tl-marker"
+                    onMouseEnter={(e) => {
+                      onTooltip({
+                        visible: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        lines: [
+                          { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
+                          { text: `${statusLabel} ${yearRange}` },
+                        ],
+                      });
+                    }}
+                    onMouseLeave={hideTooltip}
+                  />
+                );
+              })}
+
+              {/* Diagnosis triangle */}
+              {cls.status === "diagnosed" &&
+                cls.diagnosis_year != null &&
+                (() => {
+                  const dx = cls.diagnosis_year!;
+                  const triSize = MARKER_RADIUS * 0.85;
+                  const triPath = `M${dx},${cy - triSize} L${dx + triSize},${cy + triSize} L${dx - triSize},${cy + triSize} Z`;
+
+                  const catLabel = t(`dsm.${cls.dsm_category}`);
+                  const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
+
+                  return (
+                    <path
+                      d={triPath}
+                      fill={clsColor}
+                      stroke={cssVar("--color-bg-canvas")}
+                      strokeWidth={1.5}
+                      className="tl-marker"
+                      onMouseEnter={(e) => {
+                        onTooltip({
+                          visible: true,
+                          x: e.clientX,
+                          y: e.clientY,
+                          lines: [
+                            { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
+                            {
+                              text: `${t("classification.status.diagnosed")} (${cls.diagnosis_year})`,
+                            },
+                          ],
+                        });
+                      }}
+                      onMouseLeave={hideTooltip}
+                    />
+                  );
+                })()}
+            </g>
+          );
+        })}
+
+      {/* Trauma markers (circles) */}
+      {events.map((event) => {
+        const year = Number.parseInt(event.approximate_date, 10);
+        if (Number.isNaN(year)) return null;
+
+        const linkedNames = event.person_ids
+          .map((pid) => persons.get(pid)?.name)
+          .filter(Boolean)
+          .join(", ");
+
+        return (
+          <circle
+            key={event.id}
+            cx={year}
+            cy={cy}
+            r={MARKER_RADIUS}
+            fill={traumaColors[event.category]}
+            stroke={cssVar("--color-bg-canvas")}
+            strokeWidth={1.5}
+            className="tl-marker"
+            onMouseEnter={(e) => {
+              onTooltip({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                lines: [
+                  { text: event.title, bold: true },
+                  { text: t(`trauma.category.${event.category}`) },
+                  { text: event.approximate_date },
+                  { text: t("timeline.severity", { value: event.severity }) },
+                  { text: linkedNames },
+                ],
+              });
+            }}
+            onMouseLeave={hideTooltip}
+          />
+        );
+      })}
+
+      {/* Life event markers (diamonds) */}
+      {lifeEvents.map((le) => {
+        const year = Number.parseInt(le.approximate_date, 10);
+        if (Number.isNaN(year)) return null;
+
+        const diamondSize = MARKER_RADIUS * 0.9;
+        const linkedNames = le.person_ids
+          .map((pid) => persons.get(pid)?.name)
+          .filter(Boolean)
+          .join(", ");
+
+        const lines: TooltipLine[] = [
+          { text: le.title, bold: true },
+          { text: t(`lifeEvent.category.${le.category}`) },
+          { text: le.approximate_date },
+        ];
+        if (le.impact != null) {
+          lines.push({ text: t("timeline.impact", { value: le.impact }) });
+        }
+        lines.push({ text: linkedNames });
+
+        return (
+          <rect
+            key={le.id}
+            x={year - diamondSize}
+            y={cy - diamondSize}
+            width={diamondSize * 2}
+            height={diamondSize * 2}
+            transform={`rotate(45, ${year}, ${cy})`}
+            fill={lifeEventColors[le.category]}
+            stroke={cssVar("--color-bg-canvas")}
+            strokeWidth={1.5}
+            className="tl-marker"
+            onMouseEnter={(e) => {
+              onTooltip({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                lines,
+              });
+            }}
+            onMouseLeave={hideTooltip}
+          />
+        );
+      })}
+    </g>
+  );
+});
