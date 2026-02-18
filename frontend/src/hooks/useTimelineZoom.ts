@@ -19,12 +19,14 @@ export function useTimelineZoom({
   fixedOffset,
   width,
   height,
-}: UseTimelineZoomOptions): { rescaled: d3.ScaleLinear<number, number> } {
+}: UseTimelineZoomOptions): { rescaled: d3.ScaleLinear<number, number>; zoomK: number } {
   const [rescaled, setRescaled] = useState<d3.ScaleLinear<number, number>>(() => scale);
+  const [zoomK, setZoomK] = useState(1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setRescaled(() => scale);
+    setZoomK(1);
   }, [scale]);
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export function useTimelineZoom({
             ? event.transform.rescaleX(scale)
             : event.transform.rescaleY(scale);
           setRescaled(() => newScale);
+          setZoomK(event.transform.k);
         }, 50);
       });
 
@@ -82,5 +85,5 @@ export function useTimelineZoom({
     };
   }, [svgRef, zoomGroupRef, scale, direction, fixedOffset, width, height]);
 
-  return { rescaled };
+  return { rescaled, zoomK };
 }

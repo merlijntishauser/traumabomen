@@ -117,7 +117,7 @@ export function TimelineAgeContent({
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
 
-  const { rescaled: rescaledAge } = useTimelineZoom({
+  const { rescaled: rescaledAge, zoomK } = useTimelineZoom({
     svgRef,
     zoomGroupRef,
     scale: ageScale,
@@ -290,6 +290,7 @@ export function TimelineAgeContent({
                 x={col.x}
                 laneWidth={col.laneWidth}
                 yScale={ageScale}
+                zoomK={zoomK}
                 currentYear={currentYear}
                 events={personDataMaps.eventsByPerson.get(col.person.id) ?? []}
                 lifeEvents={personDataMaps.lifeEventsByPerson.get(col.person.id) ?? []}

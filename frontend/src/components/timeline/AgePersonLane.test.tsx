@@ -663,6 +663,6 @@ describe("AgePersonLane", () => {
     );
 
     const circle = container.querySelector("circle");
-    expect(circle?.getAttribute("opacity")).toBe("0.15");
+    expect(circle?.closest("g[opacity]")?.getAttribute("opacity")).toBe("0.15");
   });
 });

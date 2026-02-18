@@ -22,6 +22,7 @@ interface PersonLaneProps {
   person: DecryptedPerson;
   y: number;
   xScale: (year: number) => number;
+  zoomK?: number;
   currentYear: number;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
@@ -47,6 +48,7 @@ export const PersonLane = React.memo(function PersonLane({
   person,
   y,
   xScale,
+  zoomK = 1,
   currentYear,
   events,
   lifeEvents,
@@ -73,6 +75,10 @@ export const PersonLane = React.memo(function PersonLane({
   const birthX = xScale(person.birth_year ?? 0);
   const deathX = xScale(person.death_year ?? currentYear);
   const canvasStroke = cssVar("--color-bg-canvas");
+  // Counter-scale: neutralize the parent zoom group's horizontal scale on point markers
+  const inv = 1 / zoomK;
+  const markerTransform = (px: number) =>
+    zoomK === 1 ? undefined : `translate(${px},0) scale(${inv},1) translate(${-px},0)`;
 
   const hideTooltip = useCallback(() => {
     onTooltip({ visible: false, x: 0, y: 0, lines: [] });
@@ -191,7 +197,7 @@ export const PersonLane = React.memo(function PersonLane({
                   const isClsSelected = selectedEntityKeys?.has(`classification:${cls.id}`);
 
                   return (
-                    <>
+                    <g transform={markerTransform(dx)}>
                       <path
                         d={triPath}
                         fill={clsColor}
@@ -225,7 +231,7 @@ export const PersonLane = React.memo(function PersonLane({
                           className="tl-selection-ring"
                         />
                       )}
-                    </>
+                    </g>
                   );
                 })()}
             </g>
@@ -249,7 +255,11 @@ export const PersonLane = React.memo(function PersonLane({
         const isEntitySelected = selectedEntityKeys?.has(`trauma_event:${event.id}`);
 
         return (
-          <React.Fragment key={event.id}>
+          <g
+            key={event.id}
+            transform={markerTransform(px)}
+            opacity={isMarkerDimmed ? 0.15 : undefined}
+          >
             <circle
               cx={px}
               cy={cy}
@@ -258,7 +268,6 @@ export const PersonLane = React.memo(function PersonLane({
               stroke={canvasStroke}
               strokeWidth={1.5}
               className="tl-marker"
-              opacity={isMarkerDimmed ? 0.15 : undefined}
               onClick={(e) => handleMarkerClick("trauma_event", event.id, e)}
               onMouseEnter={(e) => {
                 onTooltip({
@@ -279,7 +288,7 @@ export const PersonLane = React.memo(function PersonLane({
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
-          </React.Fragment>
+          </g>
         );
       })}
 
@@ -310,7 +319,11 @@ export const PersonLane = React.memo(function PersonLane({
         const isEntitySelected = selectedEntityKeys?.has(`life_event:${le.id}`);
 
         return (
-          <React.Fragment key={le.id}>
+          <g
+            key={le.id}
+            transform={markerTransform(px)}
+            opacity={isMarkerDimmed ? 0.15 : undefined}
+          >
             <rect
               x={px - diamondSize}
               y={cy - diamondSize}
@@ -321,7 +334,6 @@ export const PersonLane = React.memo(function PersonLane({
               stroke={canvasStroke}
               strokeWidth={1.5}
               className="tl-marker"
-              opacity={isMarkerDimmed ? 0.15 : undefined}
               onClick={(e) => handleMarkerClick("life_event", le.id, e)}
               onMouseEnter={(e) => {
                 onTooltip({
@@ -336,7 +348,7 @@ export const PersonLane = React.memo(function PersonLane({
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
-          </React.Fragment>
+          </g>
         );
       })}
     </g>
