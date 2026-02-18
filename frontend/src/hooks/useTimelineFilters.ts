@@ -21,6 +21,7 @@ export interface TimelineFilterState {
 export interface TimelineFilterActions {
   togglePerson: (personId: string) => void;
   toggleAllPersons: (visible: boolean) => void;
+  togglePersonGroup: (personIds: Set<string>) => void;
   toggleTraumaCategory: (cat: TraumaCategory) => void;
   toggleLifeEventCategory: (cat: LifeEventCategory) => void;
   toggleClassificationCategory: (cat: string) => void;
@@ -309,6 +310,26 @@ export function useTimelineFilters(
     }
   }, []);
 
+  const togglePersonGroupFn = useCallback(
+    (groupPersonIds: Set<string>) => {
+      setVisiblePersonIds((prev) => {
+        if (prev === null) {
+          return new Set(groupPersonIds);
+        }
+        const allInSet = [...groupPersonIds].every((id) => prev.has(id));
+        const next = new Set(prev);
+        if (allInSet) {
+          for (const id of groupPersonIds) next.delete(id);
+          return next.size === 0 ? null : next;
+        }
+        for (const id of groupPersonIds) next.add(id);
+        if (next.size === allPersonIds.size) return null;
+        return next;
+      });
+    },
+    [allPersonIds],
+  );
+
   const toggleTraumaCategory = useCallback((cat: TraumaCategory) => {
     setTraumaCategories((prev) => {
       if (prev === null) {
@@ -428,6 +449,7 @@ export function useTimelineFilters(
     () => ({
       togglePerson: togglePersonFn,
       toggleAllPersons,
+      togglePersonGroup: togglePersonGroupFn,
       toggleTraumaCategory,
       toggleLifeEventCategory,
       toggleClassificationCategory,
@@ -440,6 +462,7 @@ export function useTimelineFilters(
     [
       togglePersonFn,
       toggleAllPersons,
+      togglePersonGroupFn,
       toggleTraumaCategory,
       toggleLifeEventCategory,
       toggleClassificationCategory,

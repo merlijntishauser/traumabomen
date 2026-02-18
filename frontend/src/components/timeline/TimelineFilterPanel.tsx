@@ -4,6 +4,7 @@ import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/use
 import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
 import { DSM_CATEGORIES } from "../../lib/dsmCategories";
 import { getPatternColor } from "../../lib/patternColors";
+import type { FilterGroup, SmartFilterGroups } from "../../lib/smartFilterGroups";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import "./TimelineFilterPanel.css";
 
@@ -13,6 +14,7 @@ interface TimelineFilterPanelProps {
   actions: TimelineFilterActions;
   timeDomain: { minYear: number; maxYear: number };
   patterns?: Map<string, DecryptedPattern>;
+  groups?: SmartFilterGroups;
   onClose: () => void;
 }
 
@@ -22,6 +24,7 @@ export function TimelineFilterPanel({
   actions,
   timeDomain,
   patterns,
+  groups,
   onClose,
 }: TimelineFilterPanelProps) {
   const { t } = useTranslation();
@@ -81,6 +84,13 @@ export function TimelineFilterPanel({
     actions.setTimeRange({ min: localMin, max: num });
   }
 
+  function pillClass(group: FilterGroup): string {
+    const active =
+      filters.visiblePersonIds === null ||
+      [...group.personIds].every((id) => filters.visiblePersonIds!.has(id));
+    return active ? "tl-filter-panel__pill tl-filter-panel__pill--active" : "tl-filter-panel__pill";
+  }
+
   // DSM categories in use for display
   const dsmCategoriesForDisplay = DSM_CATEGORIES.map((c) => c.key);
 
@@ -112,6 +122,71 @@ export function TimelineFilterPanel({
           </button>
           {peopleOpen && (
             <div className="detail-panel__section-body">
+              {groups &&
+                (groups.demographic.length > 0 ||
+                  groups.roles.length > 0 ||
+                  groups.generations.length > 0) && (
+                  <div className="tl-filter-panel__groups">
+                    {groups.demographic.length > 0 && (
+                      <div className="tl-filter-panel__group-row">
+                        <span className="tl-filter-panel__group-label">
+                          {t("timeline.groupDemographic")}
+                        </span>
+                        <div className="tl-filter-panel__pills">
+                          {groups.demographic.map((g) => (
+                            <button
+                              key={g.key}
+                              type="button"
+                              className={pillClass(g)}
+                              onClick={() => actions.togglePersonGroup(g.personIds)}
+                            >
+                              {t(g.labelKey)} ({g.personIds.size})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {groups.roles.length > 0 && (
+                      <div className="tl-filter-panel__group-row">
+                        <span className="tl-filter-panel__group-label">
+                          {t("timeline.groupRoles")}
+                        </span>
+                        <div className="tl-filter-panel__pills">
+                          {groups.roles.map((g) => (
+                            <button
+                              key={g.key}
+                              type="button"
+                              className={pillClass(g)}
+                              onClick={() => actions.togglePersonGroup(g.personIds)}
+                            >
+                              {t(g.labelKey)} ({g.personIds.size})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {groups.generations.length > 0 && (
+                      <div className="tl-filter-panel__group-row">
+                        <span className="tl-filter-panel__group-label">
+                          {t("timeline.groupGenerations")}
+                        </span>
+                        <div className="tl-filter-panel__pills">
+                          {groups.generations.map((g) => (
+                            <button
+                              key={g.key}
+                              type="button"
+                              className={pillClass(g)}
+                              onClick={() => actions.togglePersonGroup(g.personIds)}
+                            >
+                              {g.labelKey.startsWith("Gen ") ? g.labelKey : t(g.labelKey)} (
+                              {g.personIds.size})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               <div className="tl-filter-panel__toggle-all">
                 <button
                   type="button"

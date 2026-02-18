@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/useTimelineFilters";
 import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
+import type { SmartFilterGroups } from "../../lib/smartFilterGroups";
 import { TimelineFilterPanel } from "./TimelineFilterPanel";
 
 vi.mock("react-i18next", () => ({
@@ -35,6 +36,7 @@ function makeActions(overrides: Partial<TimelineFilterActions> = {}): TimelineFi
   return {
     togglePerson: vi.fn(),
     toggleAllPersons: vi.fn(),
+    togglePersonGroup: vi.fn(),
     toggleTraumaCategory: vi.fn(),
     toggleLifeEventCategory: vi.fn(),
     toggleClassificationCategory: vi.fn(),
@@ -441,5 +443,159 @@ describe("TimelineFilterPanel", () => {
     const checkbox = screen.getByText("Grief Cycle").parentElement!.querySelector("input")!;
     fireEvent.click(checkbox);
     expect(actions.togglePatternFilter).toHaveBeenCalledWith("pat1");
+  });
+
+  describe("smart filter groups", () => {
+    const sampleGroups: SmartFilterGroups = {
+      demographic: [
+        { key: "gender:female", labelKey: "timeline.group.women", personIds: new Set(["p1"]) },
+        { key: "gender:male", labelKey: "timeline.group.men", personIds: new Set(["p2"]) },
+      ],
+      roles: [
+        {
+          key: "role:parents",
+          labelKey: "timeline.group.parents",
+          personIds: new Set(["p1"]),
+        },
+      ],
+      generations: [{ key: "gen:0", labelKey: "Gen 1", personIds: new Set(["p1", "p2"]) }],
+    };
+
+    it("renders group pills when groups are provided", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={sampleGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText("timeline.groupDemographic")).toBeTruthy();
+      expect(screen.getByText("timeline.groupRoles")).toBeTruthy();
+      expect(screen.getByText("timeline.groupGenerations")).toBeTruthy();
+    });
+
+    it("renders group pill labels with counts", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={sampleGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText("timeline.group.women (1)")).toBeTruthy();
+      expect(screen.getByText("timeline.group.men (1)")).toBeTruthy();
+      expect(screen.getByText("Gen 1 (2)")).toBeTruthy();
+    });
+
+    it("marks all group pills as active when no filter is set (null)", () => {
+      const actions = makeActions();
+      const { container } = render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={sampleGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      const activePills = container.querySelectorAll(".tl-filter-panel__pill--active");
+      const allPills = container.querySelectorAll(".tl-filter-panel__pill");
+      expect(activePills.length).toBe(allPills.length);
+    });
+
+    it("marks group pill as inactive when not all members visible", () => {
+      const actions = makeActions();
+      const filtersWithPerson: TimelineFilterState = {
+        ...defaultFilters,
+        visiblePersonIds: new Set(["p1"]),
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersWithPerson}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={sampleGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      // "Men" group has p2 which is not visible
+      const menPill = screen.getByText("timeline.group.men (1)");
+      expect(menPill.classList.contains("tl-filter-panel__pill--active")).toBe(false);
+
+      // "Women" group has p1 which is visible
+      const womenPill = screen.getByText("timeline.group.women (1)");
+      expect(womenPill.classList.contains("tl-filter-panel__pill--active")).toBe(true);
+    });
+
+    it("calls togglePersonGroup when pill is clicked", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={sampleGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getByText("timeline.group.women (1)"));
+      expect(actions.togglePersonGroup).toHaveBeenCalledWith(new Set(["p1"]));
+    });
+
+    it("does not render groups section when no groups provided", () => {
+      const actions = makeActions();
+      const { container } = render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(container.querySelector(".tl-filter-panel__groups")).toBeNull();
+    });
+
+    it("omits empty group categories", () => {
+      const actions = makeActions();
+      const emptyRolesGroups: SmartFilterGroups = {
+        demographic: [
+          { key: "gender:female", labelKey: "timeline.group.women", personIds: new Set(["p1"]) },
+        ],
+        roles: [],
+        generations: [],
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          groups={emptyRolesGroups}
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText("timeline.groupDemographic")).toBeTruthy();
+      expect(screen.queryByText("timeline.groupRoles")).toBeNull();
+      expect(screen.queryByText("timeline.groupGenerations")).toBeNull();
+    });
   });
 });

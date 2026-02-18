@@ -6,7 +6,11 @@ import type { MarkerClickInfo, TimelineMode } from "../components/timeline/Perso
 import { TimelineChipBar } from "../components/timeline/TimelineChipBar";
 import { TimelineFilterPanel } from "../components/timeline/TimelineFilterPanel";
 import { type LayoutMode, TimelineView } from "../components/timeline/TimelineView";
-import { computeTimeDomain, filterTimelinePersons } from "../components/timeline/timelineHelpers";
+import {
+  computeGenerations,
+  computeTimeDomain,
+  filterTimelinePersons,
+} from "../components/timeline/timelineHelpers";
 import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
@@ -16,6 +20,7 @@ import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { inferSiblings } from "../lib/inferSiblings";
+import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
 import type {
   Classification,
   LifeEvent,
@@ -92,6 +97,16 @@ export default function TimelinePage() {
   const timeDomain = useMemo(
     () => computeTimeDomain(timelinePersons, events, lifeEvents),
     [timelinePersons, events, lifeEvents],
+  );
+
+  const generations = useMemo(
+    () => computeGenerations(timelinePersons, relationships),
+    [timelinePersons, relationships],
+  );
+
+  const smartGroups = useMemo(
+    () => computeSmartFilterGroups(timelinePersons, relationships, generations),
+    [timelinePersons, relationships, generations],
   );
 
   // Visible pattern IDs (show all when showPatterns is on, unless filter overrides)
@@ -481,6 +496,7 @@ export default function TimelinePage() {
             actions={filterActions}
             timeDomain={timeDomain}
             patterns={patterns}
+            groups={smartGroups}
             onClose={() => setFilterPanelOpen(false)}
           />
         )}

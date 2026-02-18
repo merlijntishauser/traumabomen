@@ -520,4 +520,93 @@ describe("useTimelineFilters", () => {
       expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true);
     });
   });
+
+  describe("togglePersonGroup", () => {
+    it("from null (all visible) sets to group members only", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+      });
+
+      expect(result.current.filters.visiblePersonIds).not.toBeNull();
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p3")).toBe(false);
+    });
+
+    it("adds second group members (union)", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1"]));
+      });
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p2"]));
+      });
+
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
+    });
+
+    it("removes group when all members are already visible", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+      });
+      // Now p1 and p2 are visible. Toggle same group -> removes them
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+      });
+
+      // Both removed, set becomes empty -> resets to null
+      expect(result.current.filters.visiblePersonIds).toBeNull();
+    });
+
+    it("removing a partial group adds the missing members", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1"]));
+      });
+      // Now only p1 visible. Toggle group [p1, p2] -> not all in set -> adds all
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+      });
+
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
+    });
+
+    it("resets to null when adding makes all persons visible", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      // Start by selecting p1 only
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p1"]));
+      });
+      // Add remaining persons
+      act(() => {
+        result.current.actions.togglePersonGroup(new Set(["p2", "p3"]));
+      });
+
+      expect(result.current.filters.visiblePersonIds).toBeNull();
+    });
+  });
 });

@@ -94,3 +94,52 @@
 .tl-filter-panel__time-field input {
   width: 100%;
 }
+
+.tl-filter-panel__groups {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.tl-filter-panel__group-row {
+  margin-bottom: 8px;
+}
+
+.tl-filter-panel__group-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tl-filter-panel__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.tl-filter-panel__pill {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tl-filter-panel__pill:hover {
+  background: var(--color-bg-hover);
+}
+
+.tl-filter-panel__pill--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
