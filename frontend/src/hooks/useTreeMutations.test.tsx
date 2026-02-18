@@ -511,6 +511,72 @@ describe("event mutations", () => {
     });
   });
 
+  it("updateEvent onMutate handles empty cache gracefully", async () => {
+    // No prior cache data set — the `if (previous)` branch should be false
+    mockedApi.updateEvent.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    // Intentionally do NOT set query data
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateEvent.mutate({
+        eventId: "e-1",
+        personIds: ["p-1"],
+        data: eventData,
+      });
+    });
+
+    await waitFor(() => {
+      // Cache should remain undefined
+      const cached = queryClient.getQueryData(["trees", TREE_ID, "events"]);
+      expect(cached).toBeUndefined();
+    });
+  });
+
+  it("updateEvent onMutate skips unknown entity ID", async () => {
+    // Cache exists but the specific eventId is not in it
+    const existingEvents = new Map([
+      [
+        "e-other",
+        {
+          id: "e-other",
+          person_ids: ["p-1"],
+          title: "Other Event",
+          description: "other",
+          category: "loss" as const,
+          approximate_date: "1985",
+          severity: 3,
+          tags: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updateEvent.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "events"], existingEvents);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateEvent.mutate({
+        eventId: "e-nonexistent",
+        personIds: ["p-1"],
+        data: eventData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "events"]);
+      // The "e-other" entry should remain untouched and "e-nonexistent" should not be added
+      expect(cached?.size).toBe(1);
+      expect(cached?.has("e-other")).toBe(true);
+      expect(cached?.has("e-nonexistent")).toBe(false);
+    });
+  });
+
   it("updateEvent rolls back on error via onError", async () => {
     const existingEvents = new Map([
       [
@@ -552,6 +618,32 @@ describe("event mutations", () => {
       const entry = cached?.get("e-1") as Record<string, unknown> | undefined;
       expect(entry?.title).toBe("Original");
     });
+  });
+
+  it("updateEvent onError without previous context is a no-op", async () => {
+    mockedApi.updateEvent.mockRejectedValue(new Error("fail"));
+
+    const wrapper = createWrapper();
+    // No cache set, so onMutate returns { previous: undefined }
+    // onError should handle context?.previous being falsy
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updateEvent.mutateAsync({
+          eventId: "e-1",
+          personIds: ["p-1"],
+          data: eventData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    // No crash; cache remains undefined
+    const cached = queryClient.getQueryData(["trees", TREE_ID, "events"]);
+    expect(cached).toBeUndefined();
   });
 
   it("updateEvent invalidates events query on settled", async () => {
@@ -748,6 +840,71 @@ describe("life event mutations", () => {
     });
   });
 
+  it("updateLifeEvent onMutate handles empty cache gracefully", async () => {
+    mockedApi.updateLifeEvent.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateLifeEvent.mutate({
+        lifeEventId: "le-1",
+        personIds: ["p-1"],
+        data: lifeEventData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData(["trees", TREE_ID, "lifeEvents"]);
+      expect(cached).toBeUndefined();
+    });
+  });
+
+  it("updateLifeEvent onMutate skips unknown entity ID", async () => {
+    const existingLifeEvents = new Map([
+      [
+        "le-other",
+        {
+          id: "le-other",
+          person_ids: ["p-1"],
+          title: "Other LE",
+          description: "other",
+          category: "career" as const,
+          approximate_date: "2000",
+          impact: 3,
+          tags: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updateLifeEvent.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "lifeEvents"], existingLifeEvents);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateLifeEvent.mutate({
+        lifeEventId: "le-nonexistent",
+        personIds: ["p-1"],
+        data: lifeEventData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>([
+        "trees",
+        TREE_ID,
+        "lifeEvents",
+      ]);
+      expect(cached?.size).toBe(1);
+      expect(cached?.has("le-other")).toBe(true);
+      expect(cached?.has("le-nonexistent")).toBe(false);
+    });
+  });
+
   it("updateLifeEvent rolls back on error via onError", async () => {
     const existingLifeEvents = new Map([
       [
@@ -793,6 +950,29 @@ describe("life event mutations", () => {
       const entry = cached?.get("le-1") as Record<string, unknown> | undefined;
       expect(entry?.title).toBe("Original LE");
     });
+  });
+
+  it("updateLifeEvent onError without previous context is a no-op", async () => {
+    mockedApi.updateLifeEvent.mockRejectedValue(new Error("fail"));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updateLifeEvent.mutateAsync({
+          lifeEventId: "le-1",
+          personIds: ["p-1"],
+          data: lifeEventData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    const cached = queryClient.getQueryData(["trees", TREE_ID, "lifeEvents"]);
+    expect(cached).toBeUndefined();
   });
 
   it("updateLifeEvent invalidates lifeEvents query on settled", async () => {
@@ -991,6 +1171,71 @@ describe("classification mutations", () => {
     });
   });
 
+  it("updateClassification onMutate handles empty cache gracefully", async () => {
+    mockedApi.updateClassification.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateClassification.mutate({
+        classificationId: "c-1",
+        personIds: ["p-1"],
+        data: classificationData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData(["trees", TREE_ID, "classifications"]);
+      expect(cached).toBeUndefined();
+    });
+  });
+
+  it("updateClassification onMutate skips unknown entity ID", async () => {
+    const existingClassifications = new Map([
+      [
+        "c-other",
+        {
+          id: "c-other",
+          person_ids: ["p-1"],
+          dsm_category: "anxiety",
+          dsm_subcategory: null,
+          status: "suspected" as const,
+          diagnosis_year: null,
+          periods: [],
+          notes: null,
+        },
+      ],
+    ]);
+
+    mockedApi.updateClassification.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "classifications"], existingClassifications);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateClassification.mutate({
+        classificationId: "c-nonexistent",
+        personIds: ["p-1"],
+        data: classificationData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>([
+        "trees",
+        TREE_ID,
+        "classifications",
+      ]);
+      expect(cached?.size).toBe(1);
+      expect(cached?.has("c-other")).toBe(true);
+      expect(cached?.has("c-nonexistent")).toBe(false);
+    });
+  });
+
   it("updateClassification rolls back on error via onError", async () => {
     const existingClassifications = new Map([
       [
@@ -1037,6 +1282,29 @@ describe("classification mutations", () => {
       expect(entry?.dsm_category).toBe("anxiety");
       expect(entry?.notes).toBe("original note");
     });
+  });
+
+  it("updateClassification onError without previous context is a no-op", async () => {
+    mockedApi.updateClassification.mockRejectedValue(new Error("fail"));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updateClassification.mutateAsync({
+          classificationId: "c-1",
+          personIds: ["p-1"],
+          data: classificationData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    const cached = queryClient.getQueryData(["trees", TREE_ID, "classifications"]);
+    expect(cached).toBeUndefined();
   });
 
   it("updateClassification invalidates classifications query on settled", async () => {
@@ -1184,6 +1452,193 @@ describe("pattern mutations", () => {
     expect(mockedApi.updatePattern).toHaveBeenCalledWith(TREE_ID, "pat-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("updatePattern performs optimistic update via onMutate", async () => {
+    const existingPatterns = new Map([
+      [
+        "pat-1",
+        {
+          id: "pat-1",
+          person_ids: ["p-1"],
+          name: "Old Pattern",
+          description: "old",
+          color: "#000000",
+          linked_entities: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updatePattern.mutate({
+        patternId: "pat-1",
+        personIds: ["p-1", "p-2"],
+        data: patternData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
+      const entry = cached?.get("pat-1") as Record<string, unknown> | undefined;
+      expect(entry?.name).toBe("Test Pattern");
+      expect(entry?.person_ids).toEqual(["p-1", "p-2"]);
+    });
+  });
+
+  it("updatePattern onMutate handles empty cache gracefully", async () => {
+    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updatePattern.mutate({
+        patternId: "pat-1",
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData(["trees", TREE_ID, "patterns"]);
+      expect(cached).toBeUndefined();
+    });
+  });
+
+  it("updatePattern onMutate skips unknown entity ID", async () => {
+    const existingPatterns = new Map([
+      [
+        "pat-other",
+        {
+          id: "pat-other",
+          person_ids: ["p-1"],
+          name: "Other Pattern",
+          description: "other",
+          color: "#000000",
+          linked_entities: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updatePattern.mutate({
+        patternId: "pat-nonexistent",
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
+      expect(cached?.size).toBe(1);
+      expect(cached?.has("pat-other")).toBe(true);
+      expect(cached?.has("pat-nonexistent")).toBe(false);
+    });
+  });
+
+  it("updatePattern rolls back on error via onError", async () => {
+    const existingPatterns = new Map([
+      [
+        "pat-1",
+        {
+          id: "pat-1",
+          person_ids: ["p-1"],
+          name: "Original Pattern",
+          description: "orig",
+          color: "#000000",
+          linked_entities: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updatePattern.mockRejectedValue(new Error("network error"));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updatePattern.mutateAsync({
+          patternId: "pat-1",
+          personIds: ["p-1"],
+          data: patternData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
+      const entry = cached?.get("pat-1") as Record<string, unknown> | undefined;
+      expect(entry?.name).toBe("Original Pattern");
+    });
+  });
+
+  it("updatePattern onError without previous context is a no-op", async () => {
+    mockedApi.updatePattern.mockRejectedValue(new Error("fail"));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updatePattern.mutateAsync({
+          patternId: "pat-1",
+          personIds: ["p-1"],
+          data: patternData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    const cached = queryClient.getQueryData(["trees", TREE_ID, "patterns"]);
+    expect(cached).toBeUndefined();
+  });
+
+  it("updatePattern invalidates patterns query on settled", async () => {
+    mockedApi.updatePattern.mockResolvedValue({
+      id: "pat-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.updatePattern.mutateAsync({
+        patternId: "pat-1",
+        personIds: ["p-1"],
+        data: patternData,
+      });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "patterns"],
     });
   });
 
