@@ -8,6 +8,88 @@ import type { FilterGroup, SmartFilterGroups } from "../../lib/smartFilterGroups
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import "./TimelineFilterPanel.css";
 
+const TRAUMA_COUNT = Object.values(TraumaCategory).length;
+const LIFE_EVENT_COUNT = Object.values(LifeEventCategory).length;
+const DSM_KEYS = DSM_CATEGORIES.map((c) => c.key);
+
+function isLayerEmpty(set: Set<unknown> | null): boolean {
+  return set !== null && set.size === 0;
+}
+
+function isQuickPresetActive(
+  filters: TimelineFilterState,
+  preset: "trauma" | "lifeEvents" | "classifications",
+): boolean {
+  if (preset === "trauma") {
+    return (
+      filters.traumaCategories === null &&
+      isLayerEmpty(filters.lifeEventCategories) &&
+      isLayerEmpty(filters.classificationCategories)
+    );
+  }
+  if (preset === "lifeEvents") {
+    return (
+      filters.lifeEventCategories === null &&
+      isLayerEmpty(filters.traumaCategories) &&
+      isLayerEmpty(filters.classificationCategories)
+    );
+  }
+  return (
+    filters.classificationCategories === null &&
+    isLayerEmpty(filters.traumaCategories) &&
+    isLayerEmpty(filters.lifeEventCategories)
+  );
+}
+
+function computeBadge(
+  set: Set<unknown> | null,
+  total: number,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string | null {
+  if (set === null) return null;
+  return t("timeline.filterBadge", { active: set.size, total });
+}
+
+const PILL_BASE = "tl-filter-panel__pill";
+const PILL_ACTIVE = `${PILL_BASE} ${PILL_BASE}--active`;
+
+function quickPillClass(active: boolean): string {
+  return active ? PILL_ACTIVE : PILL_BASE;
+}
+
+function GroupRow({
+  label,
+  groups: rowGroups,
+  pillClass: pillClassFn,
+  onToggle,
+  t,
+}: {
+  label: string;
+  groups: FilterGroup[];
+  pillClass: (g: FilterGroup) => string;
+  onToggle: (personIds: Set<string>) => void;
+  t: (key: string) => string;
+}) {
+  if (rowGroups.length === 0) return null;
+  return (
+    <div className="tl-filter-panel__group-row">
+      <span className="tl-filter-panel__group-label">{label}</span>
+      <div className="tl-filter-panel__pills">
+        {rowGroups.map((g) => (
+          <button
+            key={g.key}
+            type="button"
+            className={pillClassFn(g)}
+            onClick={() => onToggle(g.personIds)}
+          >
+            {g.labelKey.startsWith("Gen ") ? g.labelKey : t(g.labelKey)} ({g.personIds.size})
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface TimelineFilterPanelProps {
   persons: Map<string, DecryptedPerson>;
   filters: TimelineFilterState;
@@ -88,11 +170,23 @@ export function TimelineFilterPanel({
     const active =
       filters.visiblePersonIds === null ||
       [...group.personIds].every((id) => filters.visiblePersonIds!.has(id));
-    return active ? "tl-filter-panel__pill tl-filter-panel__pill--active" : "tl-filter-panel__pill";
+    return active ? PILL_ACTIVE : PILL_BASE;
   }
 
-  // DSM categories in use for display
-  const dsmCategoriesForDisplay = DSM_CATEGORIES.map((c) => c.key);
+  // Quick filter active state
+  const isQuickTraumaActive = isQuickPresetActive(filters, "trauma");
+  const isQuickLifeEventsActive = isQuickPresetActive(filters, "lifeEvents");
+  const isQuickClassificationsActive = isQuickPresetActive(filters, "classifications");
+
+  // Section count badges
+  const peopleBadge = computeBadge(filters.visiblePersonIds, persons.size, t);
+  const traumaBadge = computeBadge(filters.traumaCategories, TRAUMA_COUNT, t);
+  const lifeEventBadge = computeBadge(filters.lifeEventCategories, LIFE_EVENT_COUNT, t);
+  const classificationsBadgeActive =
+    filters.classificationCategories !== null || filters.classificationStatus !== null;
+  const patternsBadge = patterns ? computeBadge(filters.visiblePatterns, patterns.size, t) : null;
+  const timeRangeBadge =
+    filters.timeRange !== null ? `${filters.timeRange.min} - ${filters.timeRange.max}` : null;
 
   return (
     <div className="detail-panel tl-filter-panel">
@@ -104,6 +198,13 @@ export function TimelineFilterPanel({
               {t("timeline.resetFilters")}
             </button>
           )}
+          <button
+            type="button"
+            className={`tl-filter-panel__mode-toggle${filters.filterMode === "hide" ? " tl-filter-panel__mode-toggle--active" : ""}`}
+            onClick={() => actions.setFilterMode(filters.filterMode === "dim" ? "hide" : "dim")}
+          >
+            {filters.filterMode === "dim" ? t("timeline.filterDim") : t("timeline.filterHide")}
+          </button>
           <button type="button" className="detail-panel__close" onClick={onClose}>
             {t("common.close")}
           </button>
@@ -111,6 +212,31 @@ export function TimelineFilterPanel({
       </div>
 
       <div className="detail-panel__content">
+        {/* Quick filter pills */}
+        <div className="tl-filter-panel__quick-filters">
+          <button
+            type="button"
+            className={quickPillClass(isQuickTraumaActive)}
+            onClick={() => actions.applyQuickFilter("trauma")}
+          >
+            {t("timeline.quickTrauma")}
+          </button>
+          <button
+            type="button"
+            className={quickPillClass(isQuickLifeEventsActive)}
+            onClick={() => actions.applyQuickFilter("lifeEvents")}
+          >
+            {t("timeline.quickLifeEvents")}
+          </button>
+          <button
+            type="button"
+            className={quickPillClass(isQuickClassificationsActive)}
+            onClick={() => actions.applyQuickFilter("classifications")}
+          >
+            {t("timeline.quickClassifications")}
+          </button>
+        </div>
+
         {/* People section */}
         <section className="detail-panel__section">
           <button
@@ -119,6 +245,7 @@ export function TimelineFilterPanel({
             onClick={() => setPeopleOpen(!peopleOpen)}
           >
             {peopleOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterPeople")}
+            {peopleBadge && <span className="tl-filter-panel__badge">{peopleBadge}</span>}
           </button>
           {peopleOpen && (
             <div className="detail-panel__section-body">
@@ -127,64 +254,27 @@ export function TimelineFilterPanel({
                   groups.roles.length > 0 ||
                   groups.generations.length > 0) && (
                   <div className="tl-filter-panel__groups">
-                    {groups.demographic.length > 0 && (
-                      <div className="tl-filter-panel__group-row">
-                        <span className="tl-filter-panel__group-label">
-                          {t("timeline.groupDemographic")}
-                        </span>
-                        <div className="tl-filter-panel__pills">
-                          {groups.demographic.map((g) => (
-                            <button
-                              key={g.key}
-                              type="button"
-                              className={pillClass(g)}
-                              onClick={() => actions.togglePersonGroup(g.personIds)}
-                            >
-                              {t(g.labelKey)} ({g.personIds.size})
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {groups.roles.length > 0 && (
-                      <div className="tl-filter-panel__group-row">
-                        <span className="tl-filter-panel__group-label">
-                          {t("timeline.groupRoles")}
-                        </span>
-                        <div className="tl-filter-panel__pills">
-                          {groups.roles.map((g) => (
-                            <button
-                              key={g.key}
-                              type="button"
-                              className={pillClass(g)}
-                              onClick={() => actions.togglePersonGroup(g.personIds)}
-                            >
-                              {t(g.labelKey)} ({g.personIds.size})
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {groups.generations.length > 0 && (
-                      <div className="tl-filter-panel__group-row">
-                        <span className="tl-filter-panel__group-label">
-                          {t("timeline.groupGenerations")}
-                        </span>
-                        <div className="tl-filter-panel__pills">
-                          {groups.generations.map((g) => (
-                            <button
-                              key={g.key}
-                              type="button"
-                              className={pillClass(g)}
-                              onClick={() => actions.togglePersonGroup(g.personIds)}
-                            >
-                              {g.labelKey.startsWith("Gen ") ? g.labelKey : t(g.labelKey)} (
-                              {g.personIds.size})
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <GroupRow
+                      label={t("timeline.groupDemographic")}
+                      groups={groups.demographic}
+                      pillClass={pillClass}
+                      onToggle={actions.togglePersonGroup}
+                      t={t}
+                    />
+                    <GroupRow
+                      label={t("timeline.groupRoles")}
+                      groups={groups.roles}
+                      pillClass={pillClass}
+                      onToggle={actions.togglePersonGroup}
+                      t={t}
+                    />
+                    <GroupRow
+                      label={t("timeline.groupGenerations")}
+                      groups={groups.generations}
+                      pillClass={pillClass}
+                      onToggle={actions.togglePersonGroup}
+                      t={t}
+                    />
                   </div>
                 )}
               <div className="tl-filter-panel__toggle-all">
@@ -218,6 +308,7 @@ export function TimelineFilterPanel({
             onClick={() => setTraumaOpen(!traumaOpen)}
           >
             {traumaOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTrauma")}
+            {traumaBadge && <span className="tl-filter-panel__badge">{traumaBadge}</span>}
           </button>
           {traumaOpen && (
             <div className="detail-panel__section-body">
@@ -248,6 +339,7 @@ export function TimelineFilterPanel({
             onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
           >
             {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterLifeEvents")}
+            {lifeEventBadge && <span className="tl-filter-panel__badge">{lifeEventBadge}</span>}
           </button>
           {lifeEventsOpen && (
             <div className="detail-panel__section-body">
@@ -278,6 +370,9 @@ export function TimelineFilterPanel({
             onClick={() => setClassificationsOpen(!classificationsOpen)}
           >
             {classificationsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterClassifications")}
+            {classificationsBadgeActive && (
+              <span className="tl-filter-panel__badge tl-filter-panel__badge--dot" />
+            )}
           </button>
           {classificationsOpen && (
             <div className="detail-panel__section-body">
@@ -310,7 +405,7 @@ export function TimelineFilterPanel({
                   <span>{t("classification.status.diagnosed")}</span>
                 </label>
               </div>
-              {dsmCategoriesForDisplay.map((catKey) => (
+              {DSM_KEYS.map((catKey) => (
                 <label key={catKey} className="tl-filter-panel__checkbox">
                   <input
                     type="checkbox"
@@ -333,6 +428,7 @@ export function TimelineFilterPanel({
               onClick={() => setPatternsOpen(!patternsOpen)}
             >
               {patternsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterPatterns")}
+              {patternsBadge && <span className="tl-filter-panel__badge">{patternsBadge}</span>}
             </button>
             {patternsOpen && (
               <div className="detail-panel__section-body">
@@ -367,6 +463,7 @@ export function TimelineFilterPanel({
             onClick={() => setTimeRangeOpen(!timeRangeOpen)}
           >
             {timeRangeOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTimeRange")}
+            {timeRangeBadge && <span className="tl-filter-panel__badge">{timeRangeBadge}</span>}
           </button>
           {timeRangeOpen && (
             <div className="detail-panel__section-body">

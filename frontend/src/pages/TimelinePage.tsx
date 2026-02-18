@@ -468,6 +468,7 @@ export default function TimelinePage() {
             mode={mode}
             selectedPersonId={selectedPersonId}
             dims={dims}
+            filterMode={filters.filterMode}
             layoutMode={layoutMode}
             onSelectPerson={handleSelectPerson}
             onClickMarker={handleClickMarker}

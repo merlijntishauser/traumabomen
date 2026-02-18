@@ -43,6 +43,8 @@ function makeActions(overrides: Partial<TimelineFilterActions> = {}): TimelineFi
     toggleClassificationStatus: vi.fn(),
     setTimeRange: vi.fn(),
     togglePatternFilter: vi.fn(),
+    setFilterMode: vi.fn(),
+    applyQuickFilter: vi.fn(),
     resetAll: vi.fn(),
     activeFilterCount: 0,
     ...overrides,
@@ -68,6 +70,7 @@ const defaultFilters: TimelineFilterState = {
   classificationStatus: null,
   timeRange: null,
   visiblePatterns: null,
+  filterMode: "dim",
 };
 
 const persons = new Map<string, DecryptedPerson>([
@@ -510,8 +513,10 @@ describe("TimelineFilterPanel", () => {
         />,
       );
 
-      const activePills = container.querySelectorAll(".tl-filter-panel__pill--active");
-      const allPills = container.querySelectorAll(".tl-filter-panel__pill");
+      // Only count pills inside the groups section (not quick filter pills)
+      const groupsSection = container.querySelector(".tl-filter-panel__groups")!;
+      const activePills = groupsSection.querySelectorAll(".tl-filter-panel__pill--active");
+      const allPills = groupsSection.querySelectorAll(".tl-filter-panel__pill");
       expect(activePills.length).toBe(allPills.length);
     });
 
@@ -596,6 +601,200 @@ describe("TimelineFilterPanel", () => {
       expect(screen.getByText("timeline.groupDemographic")).toBeTruthy();
       expect(screen.queryByText("timeline.groupRoles")).toBeNull();
       expect(screen.queryByText("timeline.groupGenerations")).toBeNull();
+    });
+  });
+
+  describe("quick filters", () => {
+    it("renders three quick filter pills", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("timeline.quickTrauma")).toBeTruthy();
+      expect(screen.getByText("timeline.quickLifeEvents")).toBeTruthy();
+      expect(screen.getByText("timeline.quickClassifications")).toBeTruthy();
+    });
+
+    it("calls applyQuickFilter with trauma when trauma pill clicked", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByText("timeline.quickTrauma"));
+      expect(actions.applyQuickFilter).toHaveBeenCalledWith("trauma");
+    });
+
+    it("calls applyQuickFilter with lifeEvents when life events pill clicked", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByText("timeline.quickLifeEvents"));
+      expect(actions.applyQuickFilter).toHaveBeenCalledWith("lifeEvents");
+    });
+
+    it("marks trauma pill as active when trauma-only filter is set", () => {
+      const actions = makeActions();
+      const filtersTraumaOnly: TimelineFilterState = {
+        ...defaultFilters,
+        traumaCategories: null,
+        lifeEventCategories: new Set(),
+        classificationCategories: new Set(),
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersTraumaOnly}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      const traumaPill = screen.getByText("timeline.quickTrauma");
+      expect(traumaPill.classList.contains("tl-filter-panel__pill--active")).toBe(true);
+    });
+  });
+
+  describe("section count badges", () => {
+    it("shows people badge when person filter is active", () => {
+      const actions = makeActions();
+      const filtersWithPerson: TimelineFilterState = {
+        ...defaultFilters,
+        visiblePersonIds: new Set(["p1"]),
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersWithPerson}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      // The badge renders the translation key with params
+      const badges = document.querySelectorAll(".tl-filter-panel__badge");
+      expect(badges.length).toBeGreaterThan(0);
+    });
+
+    it("does not show people badge when no person filter is active", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      // People section header should not have a badge
+      const peopleToggle = screen.getByText(/timeline.filterPeople/);
+      const badge = peopleToggle.parentElement?.querySelector(".tl-filter-panel__badge");
+      expect(badge).toBeNull();
+    });
+
+    it("shows time range badge when time filter is active", () => {
+      const actions = makeActions();
+      const filtersWithTime: TimelineFilterState = {
+        ...defaultFilters,
+        timeRange: { min: 1970, max: 2010 },
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersWithTime}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("1970 - 2010")).toBeTruthy();
+    });
+  });
+
+  describe("dim/hide toggle", () => {
+    it("renders dim/hide toggle button", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("timeline.filterDim")).toBeTruthy();
+    });
+
+    it("shows hide text when filter mode is hide", () => {
+      const actions = makeActions();
+      const filtersHide: TimelineFilterState = {
+        ...defaultFilters,
+        filterMode: "hide",
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersHide}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("timeline.filterHide")).toBeTruthy();
+    });
+
+    it("calls setFilterMode when toggle clicked", () => {
+      const actions = makeActions();
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={defaultFilters}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByText("timeline.filterDim"));
+      expect(actions.setFilterMode).toHaveBeenCalledWith("hide");
+    });
+
+    it("calls setFilterMode(dim) when toggling from hide back to dim", () => {
+      const actions = makeActions();
+      const filtersHide: TimelineFilterState = {
+        ...defaultFilters,
+        filterMode: "hide",
+      };
+      render(
+        <TimelineFilterPanel
+          persons={persons}
+          filters={filtersHide}
+          actions={actions}
+          timeDomain={timeDomain}
+          onClose={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByText("timeline.filterHide"));
+      expect(actions.setFilterMode).toHaveBeenCalledWith("dim");
     });
   });
 });

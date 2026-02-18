@@ -609,4 +609,137 @@ describe("useTimelineFilters", () => {
       expect(result.current.filters.visiblePersonIds).toBeNull();
     });
   });
+
+  describe("filterMode", () => {
+    it("defaults to dim", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      expect(result.current.filters.filterMode).toBe("dim");
+    });
+
+    it("setFilterMode changes mode", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.setFilterMode("hide");
+      });
+
+      expect(result.current.filters.filterMode).toBe("hide");
+    });
+
+    it("resetAll resets filterMode to dim", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.setFilterMode("hide");
+      });
+      expect(result.current.filters.filterMode).toBe("hide");
+
+      act(() => {
+        result.current.actions.resetAll();
+      });
+      expect(result.current.filters.filterMode).toBe("dim");
+    });
+  });
+
+  describe("applyQuickFilter", () => {
+    it("trauma preset clears life events and classifications", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.applyQuickFilter("trauma");
+      });
+
+      expect(result.current.filters.traumaCategories).toBeNull();
+      expect(result.current.filters.lifeEventCategories).not.toBeNull();
+      expect(result.current.filters.lifeEventCategories!.size).toBe(0);
+      expect(result.current.filters.classificationCategories).not.toBeNull();
+      expect(result.current.filters.classificationCategories!.size).toBe(0);
+    });
+
+    it("lifeEvents preset clears trauma and classifications", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.applyQuickFilter("lifeEvents");
+      });
+
+      expect(result.current.filters.lifeEventCategories).toBeNull();
+      expect(result.current.filters.traumaCategories).not.toBeNull();
+      expect(result.current.filters.traumaCategories!.size).toBe(0);
+      expect(result.current.filters.classificationCategories).not.toBeNull();
+      expect(result.current.filters.classificationCategories!.size).toBe(0);
+    });
+
+    it("classifications preset clears trauma and life events", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.applyQuickFilter("classifications");
+      });
+
+      expect(result.current.filters.classificationCategories).toBeNull();
+      expect(result.current.filters.traumaCategories).not.toBeNull();
+      expect(result.current.filters.traumaCategories!.size).toBe(0);
+      expect(result.current.filters.lifeEventCategories).not.toBeNull();
+      expect(result.current.filters.lifeEventCategories!.size).toBe(0);
+    });
+
+    it("toggling active preset resets all category filters", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      // Apply trauma preset
+      act(() => {
+        result.current.actions.applyQuickFilter("trauma");
+      });
+
+      // Toggle off (same preset while active)
+      act(() => {
+        result.current.actions.applyQuickFilter("trauma");
+      });
+
+      expect(result.current.filters.traumaCategories).toBeNull();
+      expect(result.current.filters.lifeEventCategories).toBeNull();
+      expect(result.current.filters.classificationCategories).toBeNull();
+    });
+
+    it("switching from one preset to another", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.applyQuickFilter("trauma");
+      });
+      act(() => {
+        result.current.actions.applyQuickFilter("lifeEvents");
+      });
+
+      expect(result.current.filters.lifeEventCategories).toBeNull();
+      expect(result.current.filters.traumaCategories).not.toBeNull();
+      expect(result.current.filters.traumaCategories!.size).toBe(0);
+    });
+  });
 });

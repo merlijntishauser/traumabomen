@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { DimSets } from "../../hooks/useTimelineFilters";
+import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
 import { useTimelineZoom } from "../../hooks/useTimelineZoom";
 import type {
   DecryptedClassification,
@@ -39,6 +39,7 @@ interface TimelineYearsContentProps {
   mode: TimelineMode;
   selectedPersonId: string | null;
   dims?: DimSets;
+  filterMode?: FilterMode;
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
   onTooltip: (state: TooltipState) => void;
@@ -62,6 +63,7 @@ export function TimelineYearsContent({
   mode,
   selectedPersonId,
   dims,
+  filterMode = "dim",
   onSelectPerson,
   onClickMarker,
   onTooltip,
@@ -82,9 +84,18 @@ export function TimelineYearsContent({
     [persons, relationships],
   );
 
+  const effectivePersons = useMemo(() => {
+    if (filterMode !== "hide" || !dims || dims.dimmedPersonIds.size === 0) return timelinePersons;
+    const filtered = new Map<string, DecryptedPerson>();
+    for (const [id, person] of timelinePersons) {
+      if (!dims.dimmedPersonIds.has(id)) filtered.set(id, person);
+    }
+    return filtered;
+  }, [timelinePersons, filterMode, dims]);
+
   const { rows, sortedGens, personsByGen, totalHeight } = useMemo(
-    () => buildRowLayout(timelinePersons, relationships, height),
-    [timelinePersons, relationships, height],
+    () => buildRowLayout(effectivePersons, relationships, height),
+    [effectivePersons, relationships, height],
   );
 
   const { minYear, maxYear } = useMemo(
@@ -301,6 +312,7 @@ export function TimelineYearsContent({
                 dimmed={isDimmed}
                 mode={mode}
                 dims={dims}
+                filterMode={filterMode}
                 onSelectPerson={handleSelectPerson}
                 onClickMarker={onClickMarker}
                 selectedEntityKeys={selectedEntityKeys}

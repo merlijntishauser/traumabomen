@@ -334,6 +334,12 @@
   "timeline.group.grandparents": "Grandparents",
   "timeline.group.partners": "Partners",
   "timeline.group.siblings": "Siblings",
+  "timeline.quickTrauma": "Trauma only",
+  "timeline.quickLifeEvents": "Life events only",
+  "timeline.quickClassifications": "Classifications only",
+  "timeline.filterDim": "Dim",
+  "timeline.filterHide": "Hide",
+  "timeline.filterBadge": "{{active}} of {{total}}",
 
   "settings.title": "Settings",
   "settings.canvas": "Canvas",

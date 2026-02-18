@@ -8,6 +8,10 @@ import type {
   DecryptedPerson,
 } from "./useTreeData";
 
+export type FilterMode = "dim" | "hide";
+
+export type QuickFilterPreset = "trauma" | "lifeEvents" | "classifications";
+
 export interface TimelineFilterState {
   visiblePersonIds: Set<string> | null;
   traumaCategories: Set<TraumaCategory> | null;
@@ -16,6 +20,7 @@ export interface TimelineFilterState {
   classificationStatus: Set<ClassificationStatus> | null;
   timeRange: { min: number; max: number } | null;
   visiblePatterns: Set<string> | null;
+  filterMode: FilterMode;
 }
 
 export interface TimelineFilterActions {
@@ -28,6 +33,8 @@ export interface TimelineFilterActions {
   toggleClassificationStatus: (status: ClassificationStatus) => void;
   setTimeRange: (range: { min: number; max: number } | null) => void;
   togglePatternFilter: (patternId: string) => void;
+  setFilterMode: (mode: FilterMode) => void;
+  applyQuickFilter: (preset: QuickFilterPreset) => void;
   resetAll: () => void;
   activeFilterCount: number;
 }
@@ -255,6 +262,7 @@ export function useTimelineFilters(
     useState<Set<ClassificationStatus> | null>(null);
   const [timeRange, setTimeRange] = useState<{ min: number; max: number } | null>(null);
   const [visiblePatterns, setVisiblePatterns] = useState<Set<string> | null>(null);
+  const [filterMode, setFilterModeState] = useState<FilterMode>("dim");
 
   const filters: TimelineFilterState = useMemo(
     () => ({
@@ -265,6 +273,7 @@ export function useTimelineFilters(
       classificationStatus,
       timeRange,
       visiblePatterns,
+      filterMode,
     }),
     [
       visiblePersonIds,
@@ -274,6 +283,7 @@ export function useTimelineFilters(
       classificationStatus,
       timeRange,
       visiblePatterns,
+      filterMode,
     ],
   );
 
@@ -410,6 +420,66 @@ export function useTimelineFilters(
     });
   }, []);
 
+  const setFilterMode = useCallback((mode: FilterMode) => {
+    setFilterModeState(mode);
+  }, []);
+
+  const applyQuickFilter = useCallback(
+    (preset: QuickFilterPreset) => {
+      // Check if preset is already active (its layer unfiltered, others fully off)
+      const isTraumaActive =
+        traumaCategories === null &&
+        lifeEventCategories !== null &&
+        lifeEventCategories.size === 0 &&
+        classificationCategories !== null &&
+        classificationCategories.size === 0;
+      const isLifeEventsActive =
+        lifeEventCategories === null &&
+        traumaCategories !== null &&
+        traumaCategories.size === 0 &&
+        classificationCategories !== null &&
+        classificationCategories.size === 0;
+      const isClassificationsActive =
+        classificationCategories === null &&
+        traumaCategories !== null &&
+        traumaCategories.size === 0 &&
+        lifeEventCategories !== null &&
+        lifeEventCategories.size === 0;
+
+      const isAlreadyActive =
+        (preset === "trauma" && isTraumaActive) ||
+        (preset === "lifeEvents" && isLifeEventsActive) ||
+        (preset === "classifications" && isClassificationsActive);
+
+      if (isAlreadyActive) {
+        // Toggle off: reset category filters
+        setTraumaCategories(null);
+        setLifeEventCategories(null);
+        setClassificationCategories(null);
+        setClassificationStatus(null);
+        return;
+      }
+
+      if (preset === "trauma") {
+        setTraumaCategories(null);
+        setLifeEventCategories(new Set());
+        setClassificationCategories(new Set());
+        setClassificationStatus(null);
+      } else if (preset === "lifeEvents") {
+        setTraumaCategories(new Set());
+        setLifeEventCategories(null);
+        setClassificationCategories(new Set());
+        setClassificationStatus(null);
+      } else if (preset === "classifications") {
+        setTraumaCategories(new Set());
+        setLifeEventCategories(new Set());
+        setClassificationCategories(null);
+        setClassificationStatus(null);
+      }
+    },
+    [traumaCategories, lifeEventCategories, classificationCategories],
+  );
+
   const resetAll = useCallback(() => {
     setVisiblePersonIds(null);
     setTraumaCategories(null);
@@ -418,6 +488,7 @@ export function useTimelineFilters(
     setClassificationStatus(null);
     setTimeRange(null);
     setVisiblePatterns(null);
+    setFilterModeState("dim");
   }, []);
 
   const activeFilterCount = useMemo(() => {
@@ -456,6 +527,8 @@ export function useTimelineFilters(
       toggleClassificationStatus: toggleClassificationStatusFn,
       setTimeRange: setTimeRangeFn,
       togglePatternFilter: togglePatternFilterFn,
+      setFilterMode,
+      applyQuickFilter,
       resetAll,
       activeFilterCount,
     }),
@@ -469,6 +542,8 @@ export function useTimelineFilters(
       toggleClassificationStatusFn,
       setTimeRangeFn,
       togglePatternFilterFn,
+      setFilterMode,
+      applyQuickFilter,
       resetAll,
       activeFilterCount,
     ],

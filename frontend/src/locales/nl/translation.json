@@ -334,6 +334,12 @@
   "timeline.group.grandparents": "Grootouders",
   "timeline.group.partners": "Partners",
   "timeline.group.siblings": "Broers/zussen",
+  "timeline.quickTrauma": "Alleen trauma",
+  "timeline.quickLifeEvents": "Alleen levensgebeurtenissen",
+  "timeline.quickClassifications": "Alleen classificaties",
+  "timeline.filterDim": "Dimmen",
+  "timeline.filterHide": "Verbergen",
+  "timeline.filterBadge": "{{active}} van {{total}}",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",

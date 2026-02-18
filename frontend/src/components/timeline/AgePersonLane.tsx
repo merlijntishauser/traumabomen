@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import type { DimSets } from "../../hooks/useTimelineFilters";
+import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -29,6 +29,7 @@ interface AgePersonLaneProps {
   dimmed?: boolean;
   mode?: TimelineMode;
   dims?: DimSets;
+  filterMode?: FilterMode;
   onSelectPerson?: (personId: string) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
   selectedEntityKeys?: Set<string>;
@@ -53,6 +54,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   dimmed,
   mode = "explore",
   dims,
+  filterMode = "dim",
   onSelectPerson,
   onClickMarker,
   selectedEntityKeys,
@@ -131,6 +133,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           );
           const stripWidth = 4;
           const isMarkerDimmed = dims?.dimmedClassificationIds.has(cls.id);
+          if (isMarkerDimmed && filterMode === "hide") return null;
 
           return (
             <g key={cls.id} opacity={isMarkerDimmed ? 0.15 : undefined}>
@@ -238,6 +241,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           .join(", ");
 
         const isMarkerDimmed = dims?.dimmedEventIds.has(event.id);
+        if (isMarkerDimmed && filterMode === "hide") return null;
         const isEntitySelected = selectedEntityKeys?.has(`trauma_event:${event.id}`);
 
         return (
@@ -298,6 +302,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         lines.push({ text: linkedNames });
 
         const isMarkerDimmed = dims?.dimmedLifeEventIds.has(le.id);
+        if (isMarkerDimmed && filterMode === "hide") return null;
         const isEntitySelected = selectedEntityKeys?.has(`life_event:${le.id}`);
 
         return (

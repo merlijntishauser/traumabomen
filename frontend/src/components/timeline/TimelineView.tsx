@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { DimSets } from "../../hooks/useTimelineFilters";
+import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -27,6 +27,7 @@ interface TimelineViewProps {
   mode?: TimelineMode;
   selectedPersonId?: string | null;
   dims?: DimSets;
+  filterMode?: FilterMode;
   layoutMode?: LayoutMode;
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
@@ -48,6 +49,7 @@ export function TimelineView({
   mode = "explore",
   selectedPersonId = null,
   dims,
+  filterMode = "dim",
   layoutMode = "years",
   onSelectPerson,
   onClickMarker,
@@ -109,6 +111,7 @@ export function TimelineView({
     mode,
     selectedPersonId,
     dims,
+    filterMode,
     onSelectPerson,
     onClickMarker,
     onTooltip,
