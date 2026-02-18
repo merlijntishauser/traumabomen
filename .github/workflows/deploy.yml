@@ -111,7 +111,8 @@ jobs:
               APP_BASE_URL=https://www.traumatrees.org,\
               SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }},\
               ENABLE_WAITLIST=true,\
-              MAX_ACTIVE_USERS=20" \
+              MAX_ACTIVE_USERS=20,\
+              FEEDBACK_EMAIL=feedback@traumatrees.org" \
             --min-instances=0 \
             --max-instances=4 \
             --memory=256Mi \
