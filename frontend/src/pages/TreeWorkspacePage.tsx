@@ -91,6 +91,8 @@ function findFreePosition(
   return origin;
 }
 
+const T_COMMON_CANCEL = "common.cancel";
+
 const DIRECTIONAL_TYPES = new Set([
   RelationshipType.BiologicalParent,
   RelationshipType.StepParent,
@@ -145,7 +147,7 @@ function RelationshipPopover({
           ))}
         </div>
         <button type="button" className="relationship-popover__cancel" onClick={onClose}>
-          {t("common.cancel")}
+          {t(T_COMMON_CANCEL)}
         </button>
       </div>
     </div>
@@ -221,7 +223,7 @@ function RelationshipPrompt({
               {t("relationship.promptConnectTo", { name: person.name })}
             </p>
             <button type="button" className="relationship-prompt__btn" onClick={onDismiss}>
-              {t("common.cancel")}
+              {t(T_COMMON_CANCEL)}
             </button>
           </div>
           <div className="relationship-prompt__list">
@@ -263,7 +265,7 @@ function RelationshipPrompt({
             </button>
           </div>
           <button type="button" className="relationship-prompt__btn" onClick={onDismiss}>
-            {t("common.cancel")}
+            {t(T_COMMON_CANCEL)}
           </button>
         </div>
         <div className="relationship-prompt__list">

@@ -19,6 +19,18 @@ function devHtmlPlaceholders(): Plugin {
 
 export default defineConfig({
   plugins: [react(), devHtmlPlaceholders()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-reactflow": ["@xyflow/react", "dagre"],
+          "vendor-d3": ["d3"],
+          "vendor-query": ["@tanstack/react-query"],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {
