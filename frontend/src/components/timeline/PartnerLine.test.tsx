@@ -11,6 +11,7 @@ const defaultProps = {
   targetY: 56,
   periods: [{ start_year: 1975, end_year: null as number | null, status: PartnerStatus.Married }],
   currentYear: 2025,
+  xScale: (v: number) => v,
   cssVar: (name: string) => name,
   t: (key: string) => key,
   onTooltip: vi.fn(),

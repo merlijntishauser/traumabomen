@@ -270,6 +270,7 @@ export function TimelineAgeContent({
               classifications={classifications}
               persons={persons}
               direction="vertical"
+              coordScale={ageScale}
               columns={columns}
               totalWidth={totalWidth}
               hoveredPatternId={hoveredPatternId ?? null}
@@ -288,6 +289,7 @@ export function TimelineAgeContent({
                 person={col.person}
                 x={col.x}
                 laneWidth={col.laneWidth}
+                yScale={ageScale}
                 currentYear={currentYear}
                 events={personDataMaps.eventsByPerson.get(col.person.id) ?? []}
                 lifeEvents={personDataMaps.lifeEventsByPerson.get(col.person.id) ?? []}

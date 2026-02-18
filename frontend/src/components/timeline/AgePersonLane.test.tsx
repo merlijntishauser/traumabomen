@@ -51,6 +51,7 @@ function makeBaseProps(personOverrides: Partial<DecryptedPerson> = {}) {
       LifeEventCategory,
       string
     >,
+    yScale: (v: number) => v,
     cssVar: (name: string) => {
       const vars: Record<string, string> = {
         "--color-lifebar-fill": "#3a7a5a",

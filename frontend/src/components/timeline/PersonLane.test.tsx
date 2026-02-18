@@ -92,6 +92,7 @@ const defaultProps = {
     [LifeEventCategory.Career]: "#00ff00",
     [LifeEventCategory.Relocation]: "#0000ff",
   } as Record<LifeEventCategory, string>,
+  xScale: (v: number) => v,
   cssVar: (name: string) => name,
   t: (key: string) => key,
   onTooltip: vi.fn(),

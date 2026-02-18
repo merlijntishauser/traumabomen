@@ -15,6 +15,7 @@ interface AgePersonLaneProps {
   person: DecryptedPerson;
   x: number;
   laneWidth: number;
+  yScale: (age: number) => number;
   currentYear: number;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
@@ -40,6 +41,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   person,
   x,
   laneWidth,
+  yScale,
   currentYear,
   events,
   lifeEvents,
@@ -71,6 +73,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   const canvasStroke = cssVar("--color-bg-canvas");
 
   const ageOf = (year: number) => year - birthYear;
+  const scaledAge = (year: number) => yScale(ageOf(year));
 
   const hideTooltip = useCallback(() => {
     onTooltip({ visible: false, x: 0, y: 0, lines: [] });
@@ -101,9 +104,9 @@ export const AgePersonLane = React.memo(function AgePersonLane({
       {/* Hit area */}
       <rect
         x={x}
-        y={-5}
+        y={yScale(0) - 5}
         width={laneWidth}
-        height={Math.max(10, maxAge + 10)}
+        height={Math.max(10, yScale(maxAge) - yScale(0) + 10)}
         className={`tl-lane-hitarea${mode === "edit" ? " tl-lane-hitarea--edit" : ""}${mode === "annotate" ? " tl-lane-hitarea--annotate" : ""}`}
         onClick={handleLaneClick}
       />
@@ -112,9 +115,9 @@ export const AgePersonLane = React.memo(function AgePersonLane({
       {hasBirth && (
         <rect
           x={barX}
-          y={0}
+          y={yScale(0)}
           width={barWidth}
-          height={Math.max(0, maxAge)}
+          height={Math.max(0, yScale(maxAge) - yScale(0))}
           rx={3}
           fill={cssVar("--color-lifebar-fill")}
           stroke={cssVar("--color-lifebar-stroke")}
@@ -138,8 +141,8 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           return (
             <g key={cls.id} opacity={isMarkerDimmed ? 0.15 : undefined}>
               {cls.periods.map((period, pi) => {
-                const startAge = ageOf(period.start_year);
-                const endAge = period.end_year != null ? ageOf(period.end_year) : maxAge;
+                const startY = scaledAge(period.start_year);
+                const endY = period.end_year != null ? scaledAge(period.end_year) : yScale(maxAge);
                 const stripX = barX + barWidth + 2 + stripIdx * (stripWidth + 1);
 
                 const catLabel = t(`dsm.${cls.dsm_category}`);
@@ -151,9 +154,9 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                   <rect
                     key={`${cls.id}-p${pi}`}
                     x={stripX}
-                    y={startAge}
+                    y={startY}
                     width={stripWidth}
-                    height={Math.max(0, endAge - startAge)}
+                    height={Math.max(0, endY - startY)}
                     rx={1}
                     fill={clsColor}
                     opacity={0.8}
@@ -179,9 +182,9 @@ export const AgePersonLane = React.memo(function AgePersonLane({
               {cls.status === "diagnosed" &&
                 cls.diagnosis_year != null &&
                 (() => {
-                  const diagAge = ageOf(cls.diagnosis_year!);
+                  const diagY = scaledAge(cls.diagnosis_year!);
                   const triSize = MARKER_RADIUS * 0.85;
-                  const triPath = `M${cx},${diagAge - triSize} L${cx + triSize},${diagAge + triSize} L${cx - triSize},${diagAge + triSize} Z`;
+                  const triPath = `M${cx},${diagY - triSize} L${cx + triSize},${diagY + triSize} L${cx - triSize},${diagY + triSize} Z`;
 
                   const catLabel = t(`dsm.${cls.dsm_category}`);
                   const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
@@ -217,7 +220,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                       {isClsSelected && (
                         <circle
                           cx={cx}
-                          cy={diagAge}
+                          cy={diagY}
                           r={MARKER_RADIUS + 3}
                           className="tl-selection-ring"
                         />
@@ -234,7 +237,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         const year = Number.parseInt(event.approximate_date, 10);
         if (Number.isNaN(year)) return null;
 
-        const age = ageOf(year);
+        const py = scaledAge(year);
         const linkedNames = event.person_ids
           .map((pid) => persons.get(pid)?.name)
           .filter(Boolean)
@@ -248,7 +251,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           <React.Fragment key={event.id}>
             <circle
               cx={cx}
-              cy={age}
+              cy={py}
               r={MARKER_RADIUS}
               fill={traumaColors[event.category]}
               stroke={canvasStroke}
@@ -264,7 +267,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                   lines: [
                     { text: event.title, bold: true },
                     { text: t(`trauma.category.${event.category}`) },
-                    { text: `${t("timeline.ageAxis")}: ${age}` },
+                    { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
                     { text: t("timeline.severity", { value: event.severity }) },
                     { text: linkedNames },
                   ],
@@ -273,7 +276,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
               onMouseLeave={hideTooltip}
             />
             {isEntitySelected && (
-              <circle cx={cx} cy={age} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
           </React.Fragment>
         );
@@ -284,7 +287,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         const year = Number.parseInt(le.approximate_date, 10);
         if (Number.isNaN(year)) return null;
 
-        const age = ageOf(year);
+        const py = scaledAge(year);
         const diamondSize = MARKER_RADIUS * 0.9;
         const linkedNames = le.person_ids
           .map((pid) => persons.get(pid)?.name)
@@ -294,7 +297,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         const lines: TooltipLine[] = [
           { text: le.title, bold: true },
           { text: t(`lifeEvent.category.${le.category}`) },
-          { text: `${t("timeline.ageAxis")}: ${age}` },
+          { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
         ];
         if (le.impact != null) {
           lines.push({ text: t("timeline.impact", { value: le.impact }) });
@@ -309,10 +312,10 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           <React.Fragment key={le.id}>
             <rect
               x={cx - diamondSize}
-              y={age - diamondSize}
+              y={py - diamondSize}
               width={diamondSize * 2}
               height={diamondSize * 2}
-              transform={`rotate(45, ${cx}, ${age})`}
+              transform={`rotate(45, ${cx}, ${py})`}
               fill={lifeEventColors[le.category]}
               stroke={canvasStroke}
               strokeWidth={1.5}
@@ -330,7 +333,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
               onMouseLeave={hideTooltip}
             />
             {isEntitySelected && (
-              <circle cx={cx} cy={age} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
           </React.Fragment>
         );

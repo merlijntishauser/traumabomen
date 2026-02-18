@@ -33,21 +33,7 @@ export function useTimelineZoom({
 
     const isHorizontal = direction === "horizontal";
 
-    // Compute initial transform that maps data-space to pixel-space.
-    // Elements inside the zoom group are positioned in data coordinates
-    // (e.g. year values for horizontal, age values for vertical).
-    // The initial transform scales and translates them into pixel range.
-    const [d0, d1] = scale.domain();
-    const [r0, r1] = scale.range();
-    const dataSpan = d1 - d0;
-    const initialK = dataSpan > 0 ? (r1 - r0) / dataSpan : 1;
-    const initialT = r0 - d0 * initialK;
-
-    const initialTransform = isHorizontal
-      ? d3.zoomIdentity.translate(initialT, 0).scale(initialK)
-      : d3.zoomIdentity.translate(0, initialT).scale(initialK);
-
-    const viewportExtent: [[number, number], [number, number]] = isHorizontal
+    const translateExtent: [[number, number], [number, number]] = isHorizontal
       ? [
           [fixedOffset, 0],
           [width, height],
@@ -59,8 +45,9 @@ export function useTimelineZoom({
 
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([initialK * 0.5, initialK * 20])
-      .extent(viewportExtent)
+      .scaleExtent([0.5, 20])
+      .translateExtent(translateExtent)
+      .extent(translateExtent)
       .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
         const g = zoomGroupRef.current;
         if (g) {
@@ -88,7 +75,6 @@ export function useTimelineZoom({
 
     const svgSel = d3.select(svg);
     svgSel.call(zoom);
-    svgSel.call(zoom.transform, initialTransform);
 
     return () => {
       svgSel.on(".zoom", null);

@@ -281,6 +281,7 @@ export function TimelineYearsContent({
               classifications={classifications}
               persons={persons}
               direction="horizontal"
+              coordScale={xScale}
               rows={rows}
               totalHeight={totalHeight}
               hoveredPatternId={hoveredPatternId ?? null}
@@ -298,6 +299,7 @@ export function TimelineYearsContent({
                 key={row.person.id}
                 person={row.person}
                 y={row.y}
+                xScale={xScale}
                 currentYear={currentYear}
                 events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
                 lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
@@ -328,6 +330,7 @@ export function TimelineYearsContent({
               sourceY={pl.sourceY}
               targetY={pl.targetY}
               periods={pl.periods}
+              xScale={xScale}
               currentYear={currentYear}
               cssVar={cssVar}
               t={t}

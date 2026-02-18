@@ -280,6 +280,7 @@ describe("TimelinePatternArcs", () => {
     classifications: new Map<string, DecryptedClassification>(),
     persons: new Map<string, DecryptedPerson>([["p1", makePerson("p1")]]),
     direction: "horizontal" as const,
+    coordScale: (v: number) => v,
     totalHeight: 200,
     hoveredPatternId: null,
     onPatternHover: vi.fn(),

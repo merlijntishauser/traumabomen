@@ -21,6 +21,7 @@ export interface MarkerClickInfo {
 interface PersonLaneProps {
   person: DecryptedPerson;
   y: number;
+  xScale: (year: number) => number;
   currentYear: number;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
@@ -45,6 +46,7 @@ interface PersonLaneProps {
 export const PersonLane = React.memo(function PersonLane({
   person,
   y,
+  xScale,
   currentYear,
   events,
   lifeEvents,
@@ -68,8 +70,8 @@ export const PersonLane = React.memo(function PersonLane({
   const barY = y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
   const cy = y + ROW_HEIGHT / 2;
   const hasBirth = person.birth_year != null;
-  const birthX = person.birth_year ?? 0;
-  const deathX = person.death_year ?? currentYear;
+  const birthX = xScale(person.birth_year ?? 0);
+  const deathX = xScale(person.death_year ?? currentYear);
   const canvasStroke = cssVar("--color-bg-canvas");
 
   const hideTooltip = useCallback(() => {
@@ -139,8 +141,8 @@ export const PersonLane = React.memo(function PersonLane({
             <g key={cls.id} opacity={isMarkerDimmed ? 0.15 : undefined}>
               {/* Period strips */}
               {cls.periods.map((period, pi) => {
-                const px1 = period.start_year;
-                const px2 = period.end_year ?? currentYear;
+                const px1 = xScale(period.start_year);
+                const px2 = xScale(period.end_year ?? currentYear);
                 const stripY = barY + BAR_HEIGHT + 2 + stripIdx * (stripHeight + 1);
 
                 const catLabel = t(`dsm.${cls.dsm_category}`);
@@ -180,7 +182,7 @@ export const PersonLane = React.memo(function PersonLane({
               {cls.status === "diagnosed" &&
                 cls.diagnosis_year != null &&
                 (() => {
-                  const dx = cls.diagnosis_year!;
+                  const dx = xScale(cls.diagnosis_year!);
                   const triSize = MARKER_RADIUS * 0.85;
                   const triPath = `M${dx},${cy - triSize} L${dx + triSize},${cy + triSize} L${dx - triSize},${cy + triSize} Z`;
 
@@ -235,6 +237,7 @@ export const PersonLane = React.memo(function PersonLane({
         const year = Number.parseInt(event.approximate_date, 10);
         if (Number.isNaN(year)) return null;
 
+        const px = xScale(year);
         const linkedNames = event.person_ids
           .map((pid) => persons.get(pid)?.name)
           .filter(Boolean)
@@ -248,7 +251,7 @@ export const PersonLane = React.memo(function PersonLane({
         return (
           <React.Fragment key={event.id}>
             <circle
-              cx={year}
+              cx={px}
               cy={cy}
               r={MARKER_RADIUS}
               fill={traumaColors[event.category]}
@@ -274,7 +277,7 @@ export const PersonLane = React.memo(function PersonLane({
               onMouseLeave={hideTooltip}
             />
             {isEntitySelected && (
-              <circle cx={year} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
           </React.Fragment>
         );
@@ -285,6 +288,7 @@ export const PersonLane = React.memo(function PersonLane({
         const year = Number.parseInt(le.approximate_date, 10);
         if (Number.isNaN(year)) return null;
 
+        const px = xScale(year);
         const diamondSize = MARKER_RADIUS * 0.9;
         const linkedNames = le.person_ids
           .map((pid) => persons.get(pid)?.name)
@@ -308,11 +312,11 @@ export const PersonLane = React.memo(function PersonLane({
         return (
           <React.Fragment key={le.id}>
             <rect
-              x={year - diamondSize}
+              x={px - diamondSize}
               y={cy - diamondSize}
               width={diamondSize * 2}
               height={diamondSize * 2}
-              transform={`rotate(45, ${year}, ${cy})`}
+              transform={`rotate(45, ${px}, ${cy})`}
               fill={lifeEventColors[le.category]}
               stroke={canvasStroke}
               strokeWidth={1.5}
@@ -330,7 +334,7 @@ export const PersonLane = React.memo(function PersonLane({
               onMouseLeave={hideTooltip}
             />
             {isEntitySelected && (
-              <circle cx={year} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
           </React.Fragment>
         );

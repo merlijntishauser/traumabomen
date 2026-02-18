@@ -17,6 +17,7 @@ interface TimelinePatternArcsProps {
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
   direction: "horizontal" | "vertical";
+  coordScale: (value: number) => number;
   rows?: PersonRow[];
   totalHeight?: number;
   columns?: PersonColumn[];
@@ -195,6 +196,7 @@ function ArcBand({
   arc,
   isHovered,
   direction,
+  coordScale,
   bandSize,
   onPatternHover,
   onPatternClick,
@@ -202,17 +204,20 @@ function ArcBand({
   arc: ArcSpan;
   isHovered: boolean;
   direction: "horizontal" | "vertical";
+  coordScale: (value: number) => number;
   bandSize: number;
   onPatternHover: (id: string | null) => void;
   onPatternClick: (id: string) => void;
 }) {
   const isHorizontal = direction === "horizontal";
+  const scaledMin = coordScale(arc.min);
+  const scaledMax = coordScale(arc.max);
   const rectProps = isHorizontal
-    ? { x: arc.min, y: 0, width: arc.max - arc.min, height: bandSize }
-    : { x: 0, y: arc.min, width: bandSize, height: arc.max - arc.min };
+    ? { x: scaledMin, y: 0, width: scaledMax - scaledMin, height: bandSize }
+    : { x: 0, y: scaledMin, width: bandSize, height: scaledMax - scaledMin };
 
-  const textX = isHorizontal ? arc.min + (arc.max - arc.min) / 2 : 16;
-  const textY = isHorizontal ? 16 : arc.min + (arc.max - arc.min) / 2 + 4;
+  const textX = isHorizontal ? scaledMin + (scaledMax - scaledMin) / 2 : 16;
+  const textY = isHorizontal ? 16 : scaledMin + (scaledMax - scaledMin) / 2 + 4;
 
   return (
     <g
@@ -256,6 +261,7 @@ export const TimelinePatternArcs = React.memo(function TimelinePatternArcs({
   classifications,
   persons,
   direction,
+  coordScale,
   totalHeight,
   totalWidth,
   hoveredPatternId,
@@ -288,6 +294,7 @@ export const TimelinePatternArcs = React.memo(function TimelinePatternArcs({
           arc={arc}
           isHovered={hoveredPatternId === arc.patternId}
           direction={direction}
+          coordScale={coordScale}
           bandSize={bandSize}
           onPatternHover={onPatternHover}
           onPatternClick={onPatternClick}

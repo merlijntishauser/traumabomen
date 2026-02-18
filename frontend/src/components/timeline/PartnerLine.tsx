@@ -13,6 +13,7 @@ interface PartnerLineProps {
     end_year: number | null;
     status: PartnerStatus;
   }>;
+  xScale: (year: number) => number;
   currentYear: number;
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
@@ -25,6 +26,7 @@ export const PartnerLine = React.memo(function PartnerLine({
   sourceY,
   targetY,
   periods,
+  xScale,
   currentYear,
   cssVar,
   t,
@@ -39,8 +41,8 @@ export const PartnerLine = React.memo(function PartnerLine({
   return (
     <g>
       {periods.map((period, i) => {
-        const px1 = period.start_year;
-        const px2 = period.end_year ?? currentYear;
+        const px1 = xScale(period.start_year);
+        const px2 = xScale(period.end_year ?? currentYear);
         const isDashed =
           period.status === PartnerStatus.Separated || period.status === PartnerStatus.Divorced;
         const statusLabel = t(`relationship.status.${period.status}`);
