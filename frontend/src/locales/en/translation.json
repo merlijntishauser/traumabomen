@@ -346,7 +346,7 @@
   "landing.tagline": "Map intergenerational trauma onto visual family trees.",
   "landing.about": "Traumatrees is a personal reflection tool for exploring patterns of trauma across generations. Build your family tree, record events, and visualize how experiences ripple through time.",
   "landing.privacyHeading": "Your data stays yours",
-  "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption —meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you.",
+  "landing.privacy": "Everything you enter is encrypted on your device before it ever reaches our server. We use zero-knowledge encryption, meaning we cannot read your data, even if we wanted to. Your encryption passphrase is the only key that can unlock your information. We don't store it, and we can't recover it. If you lose your passphrase, your data is gone forever. This is by design: your story belongs to no one but you.",
   "landing.readPrivacyPolicy": "Read our full privacy policy",
 
   "privacy.back": "Back",
@@ -360,7 +360,7 @@
   "privacy.collect.glance": "We store your email, a scrambled version of your password, and your tree data in encrypted form that we cannot read.",
 
   "privacy.cannotAccess.heading": "What we cannot access",
-  "privacy.cannotAccess.body": "All tree content —names, birth years, relationship details, trauma event descriptions, and any other information you enter —is encrypted on your device before it reaches our server. We store this data as opaque ciphertext. We have no way to decrypt, read, or analyse your content. Even under a legal order, we could not produce your plaintext data because we do not have your encryption key.",
+  "privacy.cannotAccess.body": "All tree content (names, birth years, relationship details, trauma event descriptions, and any other information you enter) is encrypted on your device before it reaches our server. We store this data as opaque ciphertext. We have no way to decrypt, read, or analyse your content. Even under a legal order, we could not produce your plaintext data because we do not have your encryption key.",
   "privacy.cannotAccess.glance": "We can never read your names, dates, relationships, or events. Everything is encrypted before it leaves your device. Even if ordered by a court, we could not hand over your data.",
 
   "privacy.encryption.heading": "How encryption works",
@@ -372,7 +372,7 @@
   "privacy.hosting.glance": "Our servers run in the EU on Google Cloud. We use no analytics, no trackers, and no advertising networks.",
 
   "privacy.cookies.heading": "Cookies and local storage",
-  "privacy.cookies.body": "We do not use cookies. We store two JSON Web Tokens (authentication tokens) in your browser's local storage to keep you logged in. These tokens contain your user ID and expiration time —no personal content. We do not use any third-party scripts that set cookies or track your behaviour.",
+  "privacy.cookies.body": "We do not use cookies. We store two JSON Web Tokens (authentication tokens) in your browser's local storage to keep you logged in. These tokens contain your user ID and expiration time; no personal content. We do not use any third-party scripts that set cookies or track your behaviour.",
   "privacy.cookies.glance": "No cookies. We only store a login token in your browser to keep you signed in. No tracking of any kind.",
 
   "privacy.retention.heading": "Data retention",
@@ -380,7 +380,7 @@
   "privacy.retention.glance": "Your data exists as long as your account does. Delete your account and everything is permanently removed.",
 
   "privacy.rights.heading": "Your rights",
-  "privacy.rights.body": "Under the General Data Protection Regulation (GDPR), you have the right to access your personal data, rectify inaccurate data, request erasure of your data, restrict or object to processing, and receive your data in a portable format. You also have the right to lodge a complaint with your local data protection authority. Note that for encrypted content, you already have full access through the app —we cannot provide a plaintext copy because we do not have one.",
+  "privacy.rights.body": "Under the General Data Protection Regulation (GDPR), you have the right to access your personal data, rectify inaccurate data, request erasure of your data, restrict or object to processing, and receive your data in a portable format. You also have the right to lodge a complaint with your local data protection authority. Note that for encrypted content, you already have full access through the app; we cannot provide a plaintext copy because we do not have one.",
   "privacy.rights.glance": "Under GDPR, you can access, correct, or delete your data at any time. Since everything is encrypted, you already have full access through the app.",
 
   "privacy.contact.heading": "Contact",
@@ -395,7 +395,7 @@
   "safety.onboarding.whatWeCannotSeeBody": "Your data is encrypted before it leaves your device. The server sees no content.",
   "safety.onboarding.continue": "I understand, continue",
 
-  "safety.footer.disclaimer": "Personal reflection tool —not therapy",
+  "safety.footer.disclaimer": "Personal reflection tool, not therapy",
   "safety.footer.disclaimerShort": "Reflection tool",
   "safety.footer.support": "Need support?",
   "safety.footer.lock": "Lock screen",
@@ -527,7 +527,7 @@
   "feedback.button": "Feedback",
 
   "welcome.title": "Welcome to Traumatrees",
-  "welcome.body": "This is an early version of the app. Start by creating your first tree —and if anything feels off or you have ideas, we'd genuinely love to hear from you.",
+  "welcome.body": "This is an early version of the app. Start by creating your first tree, and if anything feels off or you have ideas, we'd genuinely love to hear from you.",
   "welcome.sendMessage": "Send us a message",
   "welcome.createTree": "Create your first tree",
 

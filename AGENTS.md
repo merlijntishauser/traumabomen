@@ -371,7 +371,7 @@ When modifying the frontend, follow these principles:
 - **Buttons have three tiers.** Primary (accent background), default (secondary background with border), and danger (red text/border). Small variant uses 11px font.
 - **Button heights are uniform within a bar.** All toolbar buttons (text and icon) share `height: 32px`. All footer buttons and links share `height: 24px`. Never let padding alone determine button height —use an explicit `height` so elements align.
 - **Badge shapes encode meaning.** Circles = trauma events, squares = life events, triangles = classifications. These shapes are part of the visual language, don't repurpose them.
-- **Never use `--` in text strings.** Use a proper em dash character (`—`) instead. This applies to translation files, UI copy, documentation, and any other user-facing text.
+- **Never use `--` or `—` in text strings.** Use proper punctuation (`,` `;` `:` or parentheses) instead. This applies to translation files, UI copy, and any other user-facing text.
 
 ### Quality guidelines
 
