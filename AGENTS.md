@@ -8,26 +8,30 @@ Zero-knowledge encrypted web app for mapping intergenerational trauma onto visua
 traumabomen/
   CLAUDE.md               Project instructions (includes @AGENTS.md)
   AGENTS.md               Detailed project documentation
+  CONTRIBUTING.md         Contributor guide
+  SECURITY.md             Security policy and reporting
+  Makefile                Development, testing, and deployment targets
   docker-compose.yml      Local dev: db + api + frontend
   .env.example            Placeholder env vars (copy to .env)
   docs/                   Design documents and plans
-  scripts/                Utility scripts
-  .github/                CI workflows and templates
+  scripts/                Utility scripts (coverage, complexity, privacy, performance)
+  .github/                CI workflows (ci, deploy, CodeQL, Nuclei, Dependabot)
   frontend/               Vite + React + TypeScript SPA
     Dockerfile            Multi-stage: dev / build / production (nginx)
+    vite.config.ts        Build config with manual chunk splitting
     src/
       components/         React components (tree/, timeline/)
       contexts/           React contexts (EncryptionContext)
       hooks/              Custom hooks (useTreeData, useTreeMutations, etc.)
       lib/                Utilities (api, crypto, colors, dsmCategories)
       locales/            i18n translations (en/, nl/)
-      pages/              Route page components
+      pages/              Route page components (heavy pages lazy-loaded)
       styles/             CSS (theme, auth, admin, etc.)
       types/              TypeScript type definitions (domain, api)
   api/                    FastAPI Python backend
     Dockerfile            Multi-stage: dev / production
     app/
-      models/             SQLAlchemy models
+      models/             SQLAlchemy models (user, tree, feedback, waitlist)
       routers/            FastAPI route handlers
       auth.py             JWT authentication utilities
       config.py           Environment configuration
@@ -179,13 +183,15 @@ Multiple periods on the same edge support real-world complexity (e.g., marry, di
 - `periods`: list of `{ start_year, end_year }` (recurring time periods)
 - `notes`: string (optional)
 
-### Pattern (deferred)
+### Pattern
 - `id`: UUID
 - `name`: string
 - `description`: string
-- `linked_event_ids`: list of TraumaEvent UUIDs
+- `color`: string (from predefined palette)
+- `linked_entities`: list of `{ entity_type, entity_id }` (trauma events, life events, or classifications)
+- `person_ids`: list of UUIDs (persons associated with the pattern)
 
-Annotation layer linking multiple TraumaEvents across generations to mark recurring themes.
+Annotation layer linking multiple entities across generations to mark recurring themes. Supports linking trauma events, life events, and classifications. Visualized as connectors on the canvas and as cards on the dedicated pattern page.
 
 ## Architecture
 
@@ -217,6 +223,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `POST /auth/change-password`
 - `GET /auth/salt`
 - `PUT /auth/salt`
+- `PUT /auth/onboarding` —acknowledge onboarding safety modal
 - `DELETE /auth/account`
 
 ### Resources (all payloads: `{ id, encrypted_data, metadata }`)
@@ -226,33 +233,51 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/events`
 - `GET/POST/PUT/DELETE /trees/{id}/life-events`
 - `GET/POST/PUT/DELETE /trees/{id}/classifications`
+- `GET/POST/PUT/DELETE /trees/{id}/patterns`
 
 ### Bulk Sync
 - `POST /trees/{id}/sync` —batch of creates, updates, deletes across all entity types in a single transaction
 
+### Feedback
+- `POST /feedback` —submit user feedback (category, message, optional anonymous flag)
+
+### Waitlist
+- `POST /waitlist` —join the waitlist
+
 ### Admin
 - `GET /admin/stats/*` —analytics endpoints (overview, retention, usage, funnel, activity, growth, users)
+- `GET /admin/waitlist` —list all waitlist entries
+- `PATCH /admin/waitlist/{id}/approve` —approve and send invite email
+- `DELETE /admin/waitlist/{id}` —remove entry
+- `GET /admin/waitlist/capacity` —active user count and waitlist status
 
 ## Frontend Architecture
 
 ### Routing
 - `/login`, `/register` —auth flows
+- `/waitlist` —waitlist signup (when registration is capacity-gated)
 - `/verify-pending`, `/verify` —email verification
 - `/unlock` —encryption passphrase entry
 - `/privacy` —privacy policy
 - `/trees` —tree list
 - `/trees/{id}` —main workspace, tree canvas view
 - `/trees/{id}/timeline` —timeline view
+- `/trees/{id}/patterns` —pattern view (linked trauma/life events/classifications)
 - `/admin` —admin dashboard (admin-guarded)
 
 ### Key Components
 - `<EncryptionProvider>` —React context holding derived key in memory. Exposes `encrypt()` / `decrypt()`. Wraps authenticated app.
+- `<OnboardingGuard>` —Shows safety acknowledgment modal on first login. Syncs with server-side flag via `PUT /auth/onboarding`.
 - `<TreeWorkspacePage>` —React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
 - `<PersonNode>` —Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
 - `<PersonDetailPanel>` —Slide-out panel. Edit person fields, relationships, trauma events, life events, classifications. Encrypt-then-save.
 - `<RelationshipDetailPanel>` —Panel for editing relationship details and periods.
+- `<PatternPanel>` —Inline panel in tree workspace for pattern CRUD: create/edit/delete patterns, link entities (trauma events, life events, classifications), color picker, visibility toggle.
+- `<PatternView>` —Dedicated page showing pattern cards with linked entities, generation span, and detail expansion.
+- `<PatternConnectors>` —Canvas overlay rendering visual links between pattern-connected entities.
 - `<SettingsPanel>` —Canvas settings, theme, language, account management (password/passphrase change, account deletion).
 - `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
+- `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
 
 ### Relationship Visual Styles
 - Solid lines: biological relationships
@@ -300,24 +325,29 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 
 ### Implemented
 - Auth (email/password + encryption passphrase + email verification)
+- Onboarding safety acknowledgment modal (persisted server-side)
+- Waitlist with admin approval and invite emails
 - Multiple trees per user
 - Person CRUD with all relationship types (including friend)
 - Temporal partner relationships
 - Trauma event CRUD with categories
 - Life event CRUD with categories
 - DSM-5 classification CRUD (suspected/diagnosed, periods, subcategories)
+- Pattern CRUD (link trauma events, life events, classifications across persons; color-coded; canvas connectors)
 - Tree canvas view (React Flow + Dagre layout)
 - Timeline view (D3 with life bars, event markers, classification strips)
+- Pattern view (dedicated page with card grid and detail expansion)
 - Zero-knowledge encryption
 - English + Dutch
 - Bulk sync endpoint
-- Admin dashboard with analytics
+- Admin dashboard with analytics and waitlist management
 - Account management (password change, passphrase change with re-encryption, account deletion)
+- User feedback submission
 - Privacy policy page
 - Mental health support banner
+- Route-based code splitting (lazy-loaded heavy pages with stale-deploy auto-reload)
 
 ### Deferred
-- Pattern editor
 - OAuth/social login
 - GEDCOM import
 - PDF/image export

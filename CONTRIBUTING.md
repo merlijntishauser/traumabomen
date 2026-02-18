@@ -14,13 +14,17 @@ cp .env.example .env
 make setup
 ```
 
-This installs pre-commit hooks (Biome, Ruff, TypeScript, mypy) and project dependencies. No local Node.js or Python installation required -- everything runs in Docker.
+This installs pre-commit hooks (Biome, Ruff, TypeScript, mypy) and project dependencies. No local Node.js or Python installation required; everything runs in Docker.
 
 3. Start the development environment:
 
 ```bash
 make up
 ```
+
+- Frontend: http://localhost:5173
+- API: http://localhost:8000
+- API via frontend proxy: http://localhost:5173/api/health
 
 ## Pre-commit Hooks
 
@@ -32,6 +36,74 @@ The following checks run automatically on every commit:
 - **mypy** -- Python type checking
 
 If a hook fails, fix the issue and re-commit. Run `make ci` to check everything manually.
+
+## Makefile Targets
+
+### Development
+
+| Target | Description |
+|--------|-------------|
+| `make up` | Start all services (postgres + api + frontend) |
+| `make down` | Stop all services (keeps database) |
+| `make nuke` | Stop all services and delete database volume |
+| `make rebuild` | Rebuild images from scratch and restart |
+| `make logs` | Follow service logs |
+
+### Code Quality
+
+| Target | Description |
+|--------|-------------|
+| `make lint` | Run linters (Biome + Ruff) |
+| `make format` | Auto-format code (Biome + Ruff) |
+| `make typecheck` | Run type checkers (tsc + mypy) |
+| `make ci` | Run full CI pipeline (lint + typecheck + test + privacy scan) |
+
+### Testing
+
+| Target | Description |
+|--------|-------------|
+| `make test` | Run all unit tests (frontend + backend) |
+| `make test-fe` | Run frontend tests (Vitest) |
+| `make test-fe-unit` | Run fast frontend unit tests only (lib/) |
+| `make test-fe-component` | Run frontend component/hook tests only |
+| `make test-be` | Run backend tests (pytest) |
+| `make coverage` | Run tests with coverage reports |
+| `make e2e` | Run end-to-end tests (Playwright) |
+
+### Quality Gates
+
+| Target | Description |
+|--------|-------------|
+| `make complexity` | Report cyclomatic complexity and maintainability index |
+| `make quality` | Run complexity checks and coverage gates |
+| `make ratchet` | Update coverage baseline to current values |
+
+### Performance
+
+| Target | Description |
+|--------|-------------|
+| `make perf-check` | Run performance checks against production |
+| `make perf-ratchet` | Update performance baseline to current production values |
+
+### Security
+
+| Target | Description |
+|--------|-------------|
+| `make privacy-scan` | Scan for leaked secrets and PII |
+
+### Database
+
+| Target | Description |
+|--------|-------------|
+| `make migrate M="description"` | Generate a new migration |
+| `make migrate-up` | Apply pending migrations |
+| `make migrate-down` | Rollback last migration |
+
+### Release
+
+| Target | Description |
+|--------|-------------|
+| `make bump` | Tag a new version and push |
 
 ## Making Changes
 
@@ -51,6 +123,7 @@ Use descriptive branch names:
 - Use functional components with hooks
 - All UI strings must go through `react-i18next` (`t('key')`) -- no hardcoded user-facing text
 - Add translations to both `en` and `nl` locale files
+- Heavy route pages (TreeWorkspacePage, TimelinePage, AdminPage, PatternPage) are lazy-loaded via `React.lazy()` with a `lazyWithReload` wrapper that handles stale deploys
 
 **Backend (Python):**
 - Ruff handles formatting and linting
@@ -65,8 +138,9 @@ These are non-negotiable:
 - Never store or log encryption keys or passphrases
 - Never send plaintext sensitive data to the backend
 - All sensitive fields must be encrypted client-side before any API call
-- Encryption keys must only exist in memory -- never in localStorage, sessionStorage, or cookies
+- Encryption keys must only exist in memory; never in localStorage, sessionStorage, or cookies
 - Every `encrypt()` call must use a fresh random IV
+- Run `make privacy-scan` before submitting a PR
 
 See [SECURITY.md](SECURITY.md) for the full security policy.
 
@@ -104,10 +178,12 @@ make coverage   # Tests with coverage reports
 - **Components:** render states, CRUD interactions
 - **API endpoints:** encrypted blobs stored and returned untouched, auth flows
 - **Integration:** full user journeys through the app
+- **Quality gates:** run `make quality` to verify no degradation in coverage or complexity
 
 ## Pull Requests
 
-- Keep PRs focused -- one feature or fix per PR
+- Keep PRs focused; one feature or fix per PR
 - Include a clear description of what changed and why
 - Make sure `make ci` passes
 - Update translations if you added or changed UI strings
+- Run `make quality` to verify no coverage or complexity regressions
