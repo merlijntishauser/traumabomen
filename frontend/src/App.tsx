@@ -44,7 +44,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function OnboardingGuard({ children }: { children: React.ReactNode }) {
+export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
   const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
   const isAuthenticated = !!getAccessToken();
