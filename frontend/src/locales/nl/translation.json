@@ -346,7 +346,7 @@
   "landing.tagline": "Breng intergenerationeel trauma in kaart op visuele stambomen.",
   "landing.about": "Traumabomen is een persoonlijk reflectie-instrument om patronen van trauma door generaties heen te verkennen. Bouw je stamboom, leg gebeurtenissen vast en visualiseer hoe ervaringen door de tijd heen doorwerken.",
   "landing.privacyHeading": "Jouw gegevens blijven van jou",
-  "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling -- dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou.",
+  "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling —dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou.",
   "landing.readPrivacyPolicy": "Lees ons volledige privacybeleid",
 
   "privacy.back": "Terug",
@@ -360,7 +360,7 @@
   "privacy.collect.glance": "We bewaren je e-mailadres, een versleutelde versie van je wachtwoord, en je boomgegevens in versleutelde vorm die wij niet kunnen lezen.",
 
   "privacy.cannotAccess.heading": "Wat we niet kunnen inzien",
-  "privacy.cannotAccess.body": "Alle boominhoud -- namen, geboortejaren, relatiedetails, beschrijvingen van traumagebeurtenissen en alle andere informatie die je invoert -- wordt op je apparaat versleuteld voordat het onze server bereikt. We slaan deze gegevens op als ondoorzichtige cijfertekst. We hebben geen manier om je inhoud te ontsleutelen, te lezen of te analyseren. Zelfs bij een gerechtelijk bevel zouden we je onversleutelde gegevens niet kunnen overhandigen, omdat we je versleutelingssleutel niet hebben.",
+  "privacy.cannotAccess.body": "Alle boominhoud —namen, geboortejaren, relatiedetails, beschrijvingen van traumagebeurtenissen en alle andere informatie die je invoert —wordt op je apparaat versleuteld voordat het onze server bereikt. We slaan deze gegevens op als ondoorzichtige cijfertekst. We hebben geen manier om je inhoud te ontsleutelen, te lezen of te analyseren. Zelfs bij een gerechtelijk bevel zouden we je onversleutelde gegevens niet kunnen overhandigen, omdat we je versleutelingssleutel niet hebben.",
   "privacy.cannotAccess.glance": "We kunnen nooit je namen, data, relaties of gebeurtenissen lezen. Alles wordt versleuteld voordat het je apparaat verlaat. Zelfs bij een gerechtelijk bevel kunnen we je gegevens niet overhandigen.",
 
   "privacy.encryption.heading": "Hoe versleuteling werkt",
@@ -372,7 +372,7 @@
   "privacy.hosting.glance": "Onze servers draaien in de EU op Google Cloud. We gebruiken geen analytics, geen trackers en geen advertentienetwerken.",
 
   "privacy.cookies.heading": "Cookies en lokale opslag",
-  "privacy.cookies.body": "We gebruiken geen cookies. We slaan twee JSON Web Tokens (authenticatietokens) op in de lokale opslag van je browser om je ingelogd te houden. Deze tokens bevatten je gebruikers-ID en vervaltijd -- geen persoonlijke inhoud. We gebruiken geen scripts van derden die cookies plaatsen of je gedrag volgen.",
+  "privacy.cookies.body": "We gebruiken geen cookies. We slaan twee JSON Web Tokens (authenticatietokens) op in de lokale opslag van je browser om je ingelogd te houden. Deze tokens bevatten je gebruikers-ID en vervaltijd —geen persoonlijke inhoud. We gebruiken geen scripts van derden die cookies plaatsen of je gedrag volgen.",
   "privacy.cookies.glance": "Geen cookies. We slaan alleen een inlogtoken op in je browser om je aangemeld te houden. Geen tracking van welke aard dan ook.",
 
   "privacy.retention.heading": "Gegevensbewaartermijn",
@@ -380,7 +380,7 @@
   "privacy.retention.glance": "Je gegevens bestaan zolang je account bestaat. Verwijder je je account, dan wordt alles permanent gewist.",
 
   "privacy.rights.heading": "Jouw rechten",
-  "privacy.rights.body": "Op grond van de Algemene Verordening Gegevensbescherming (AVG) heb je het recht om je persoonsgegevens in te zien, onjuiste gegevens te corrigeren, verwijdering van je gegevens te verzoeken, verwerking te beperken of er bezwaar tegen te maken, en je gegevens in een overdraagbaar formaat te ontvangen. Je hebt ook het recht om een klacht in te dienen bij je lokale gegevensbeschermingsautoriteit. Voor versleutelde inhoud geldt dat je al volledige toegang hebt via de app -- wij kunnen geen onversleutelde kopie leveren omdat we die niet hebben.",
+  "privacy.rights.body": "Op grond van de Algemene Verordening Gegevensbescherming (AVG) heb je het recht om je persoonsgegevens in te zien, onjuiste gegevens te corrigeren, verwijdering van je gegevens te verzoeken, verwerking te beperken of er bezwaar tegen te maken, en je gegevens in een overdraagbaar formaat te ontvangen. Je hebt ook het recht om een klacht in te dienen bij je lokale gegevensbeschermingsautoriteit. Voor versleutelde inhoud geldt dat je al volledige toegang hebt via de app —wij kunnen geen onversleutelde kopie leveren omdat we die niet hebben.",
   "privacy.rights.glance": "Onder de AVG kun je je gegevens op elk moment inzien, corrigeren of verwijderen. Omdat alles versleuteld is, heb je via de app al volledige toegang.",
 
   "privacy.contact.heading": "Contact",
@@ -395,7 +395,7 @@
   "safety.onboarding.whatWeCannotSeeBody": "Je gegevens worden versleuteld voordat ze je apparaat verlaten. De server ziet geen inhoud.",
   "safety.onboarding.continue": "Ik begrijp het, ga verder",
 
-  "safety.footer.disclaimer": "Persoonlijk reflectie-instrument -- geen therapie",
+  "safety.footer.disclaimer": "Persoonlijk reflectie-instrument —geen therapie",
   "safety.footer.disclaimerShort": "Reflectie-instrument",
   "safety.footer.support": "Hulp nodig?",
   "safety.footer.lock": "Scherm vergrendelen",
@@ -527,7 +527,7 @@
   "feedback.button": "Feedback",
 
   "welcome.title": "Welkom bij Traumabomen",
-  "welcome.body": "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom -- en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je.",
+  "welcome.body": "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom —en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je.",
   "welcome.sendMessage": "Stuur ons een bericht",
   "welcome.createTree": "Maak je eerste boom",
 

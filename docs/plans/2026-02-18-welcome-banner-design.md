@@ -8,8 +8,8 @@ The feedback button is buried as an icon-only button among several other icons i
 
 Two changes that work together:
 
-1. **Welcome card** on the tree list page -- a warm, inviting banner that greets users, guides them to create their first tree, and prominently offers a way to send feedback.
-2. **Upgraded footer feedback button** -- icon + text label with accent styling so it remains visible after the welcome card is dismissed.
+1. **Welcome card** on the tree list page —a warm, inviting banner that greets users, guides them to create their first tree, and prominently offers a way to send feedback.
+2. **Upgraded footer feedback button** —icon + text label with accent styling so it remains visible after the welcome card is dismissed.
 
 ## Welcome Card
 
@@ -19,13 +19,13 @@ Top of the tree list content area (`TreeListPage.tsx`), above the tree list or e
 
 ### Copy
 
-Heading: `welcome.title` -- "Welcome to Traumatrees" / "Welkom bij Traumabomen"
+Heading: `welcome.title` —"Welcome to Traumatrees" / "Welkom bij Traumabomen"
 
-Body: `welcome.body` -- "This is an early version of the app. Start by creating your first tree -- and if anything feels off or you have ideas, we'd genuinely love to hear from you."
+Body: `welcome.body` —"This is an early version of the app. Start by creating your first tree —and if anything feels off or you have ideas, we'd genuinely love to hear from you."
 
 Buttons:
-- `welcome.sendMessage` -- "Send us a message" (opens FeedbackModal)
-- `welcome.createTree` -- "Create your first tree" (triggers existing create flow)
+- `welcome.sendMessage` —"Send us a message" (opens FeedbackModal)
+- `welcome.createTree` —"Create your first tree" (triggers existing create flow)
 
 Dismiss: small X button in top-right corner.
 
@@ -37,15 +37,15 @@ Dismiss: small X button in top-right corner.
 - Body: standard `--font-body` (Lato)
 - Border radius: `--radius-lg`
 - Max width matches tree list content
-- Subtle, no shadows -- fits the layered forest aesthetic
+- Subtle, no shadows —fits the layered forest aesthetic
 
 ### Background Images
 
 Two theme-aware Unsplash photos displayed behind a semi-transparent overlay.
 
-**Dark theme:** Bench in a green park (Unsplash `0YAIK1HaC-Q`) -- lush green foliage with a solitary bench. Dark green overlay preserves the moody forest aesthetic.
+**Dark theme:** Bench in a green park (Unsplash `0YAIK1HaC-Q`) —lush green foliage with a solitary bench. Dark green overlay preserves the moody forest aesthetic.
 
-**Light theme:** Sunlit foggy forest (Unsplash `U-eRC8Q5iEY`) -- golden morning light streaming through misty autumn trees. Warm white overlay keeps the bright, open feel.
+**Light theme:** Sunlit foggy forest (Unsplash `U-eRC8Q5iEY`) —golden morning light streaming through misty autumn trees. Warm white overlay keeps the bright, open feel.
 
 **Implementation:**
 - Two `<img>` elements inside the card, absolute-positioned with `object-fit: cover`
@@ -88,24 +88,24 @@ Icon-only `MessageSquare` button, same muted styling as all other footer actions
 
 ### English
 - `welcome.title`: "Welcome to Traumatrees"
-- `welcome.body`: "This is an early version of the app. Start by creating your first tree -- and if anything feels off or you have ideas, we'd genuinely love to hear from you."
+- `welcome.body`: "This is an early version of the app. Start by creating your first tree —and if anything feels off or you have ideas, we'd genuinely love to hear from you."
 - `welcome.sendMessage`: "Send us a message"
 - `welcome.createTree`: "Create your first tree"
 
 ### Dutch
 - `welcome.title`: "Welkom bij Traumabomen"
-- `welcome.body`: "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom -- en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je."
+- `welcome.body`: "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom —en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je."
 - `welcome.sendMessage`: "Stuur ons een bericht"
 - `welcome.createTree`: "Maak je eerste boom"
 
 ## Files Changed
 
-- `frontend/src/pages/TreeListPage.tsx` -- add welcome card component
-- `frontend/src/styles/tree-list.css` -- welcome card styles
-- `frontend/src/components/AppFooter.tsx` -- add text label to feedback button
-- `frontend/src/styles/footer.css` -- accent styling for feedback button
-- `frontend/src/locales/en/translation.json` -- welcome keys
-- `frontend/src/locales/nl/translation.json` -- welcome keys
+- `frontend/src/pages/TreeListPage.tsx` —add welcome card component
+- `frontend/src/styles/tree-list.css` —welcome card styles
+- `frontend/src/components/AppFooter.tsx` —add text label to feedback button
+- `frontend/src/styles/footer.css` —accent styling for feedback button
+- `frontend/src/locales/en/translation.json` —welcome keys
+- `frontend/src/locales/nl/translation.json` —welcome keys
 
 ## Tests
 
@@ -116,4 +116,4 @@ Icon-only `MessageSquare` button, same muted styling as all other footer actions
   - Welcome card reappears when trees are empty again
   - "Send us a message" opens feedback modal
   - "Create your first tree" button only shown when no trees
-- `AppFooter.test.tsx` -- verify feedback button has text label
+- `AppFooter.test.tsx` —verify feedback button has text label

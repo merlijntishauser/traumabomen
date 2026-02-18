@@ -1,6 +1,6 @@
 # Traumabomen
 
-Zero-knowledge encrypted web app for mapping intergenerational trauma onto visual family trees. Personal reflection tool -- all sensitive data is encrypted client-side; the server never sees plaintext.
+Zero-knowledge encrypted web app for mapping intergenerational trauma onto visual family trees. Personal reflection tool — all sensitive data is encrypted client-side; the server never sees plaintext.
 
 ## Project Structure
 
@@ -129,13 +129,13 @@ docker build --target production -t traumabomen-api ./api
 
 ### Relationship (edge between two Persons)
 Typed and directional. Types:
-- **Biological parent** -- birth parent connection
-- **Step-parent** -- partner of a biological parent, no biological link
-- **Adoptive parent** -- legally/emotionally parenting, non-biological
-- **Biological sibling** -- shared both parents
-- **Step-sibling** -- connected through step-parent relationship
-- **Partner** -- romantic/marital relationship (temporal, see below)
-- **Friend** -- non-familial connection
+- **Biological parent** —birth parent connection
+- **Step-parent** —partner of a biological parent, no biological link
+- **Adoptive parent** —legally/emotionally parenting, non-biological
+- **Biological sibling** —shared both parents
+- **Step-sibling** —connected through step-parent relationship
+- **Partner** —romantic/marital relationship (temporal, see below)
+- **Friend** —non-familial connection
 
 Half-sibling relationships are inferred (two persons sharing exactly one biological parent), not stored as a separate edge type.
 
@@ -204,7 +204,7 @@ Annotation layer linking multiple TraumaEvents across generations to mark recurr
 - `generateSalt()` -> used during registration
 
 ### Backend is a Thin Encrypted Document Store
-No domain logic server-side -- content is opaque. Server validates auth, ownership, and structural integrity (referenced UUIDs exist) but cannot validate content.
+No domain logic server-side —content is opaque. Server validates auth, ownership, and structural integrity (referenced UUIDs exist) but cannot validate content.
 
 ## API Design
 
@@ -228,31 +228,31 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/classifications`
 
 ### Bulk Sync
-- `POST /trees/{id}/sync` -- batch of creates, updates, deletes across all entity types in a single transaction
+- `POST /trees/{id}/sync` —batch of creates, updates, deletes across all entity types in a single transaction
 
 ### Admin
-- `GET /admin/stats/*` -- analytics endpoints (overview, retention, usage, funnel, activity, growth, users)
+- `GET /admin/stats/*` —analytics endpoints (overview, retention, usage, funnel, activity, growth, users)
 
 ## Frontend Architecture
 
 ### Routing
-- `/login`, `/register` -- auth flows
-- `/verify-pending`, `/verify` -- email verification
-- `/unlock` -- encryption passphrase entry
-- `/privacy` -- privacy policy
-- `/trees` -- tree list
-- `/trees/{id}` -- main workspace, tree canvas view
-- `/trees/{id}/timeline` -- timeline view
-- `/admin` -- admin dashboard (admin-guarded)
+- `/login`, `/register` —auth flows
+- `/verify-pending`, `/verify` —email verification
+- `/unlock` —encryption passphrase entry
+- `/privacy` —privacy policy
+- `/trees` —tree list
+- `/trees/{id}` —main workspace, tree canvas view
+- `/trees/{id}/timeline` —timeline view
+- `/admin` —admin dashboard (admin-guarded)
 
 ### Key Components
-- `<EncryptionProvider>` -- React context holding derived key in memory. Exposes `encrypt()` / `decrypt()`. Wraps authenticated app.
-- `<TreeWorkspacePage>` -- React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
-- `<PersonNode>` -- Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
-- `<PersonDetailPanel>` -- Slide-out panel. Edit person fields, relationships, trauma events, life events, classifications. Encrypt-then-save.
-- `<RelationshipDetailPanel>` -- Panel for editing relationship details and periods.
-- `<SettingsPanel>` -- Canvas settings, theme, language, account management (password/passphrase change, account deletion).
-- `<TimelineView>` -- D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
+- `<EncryptionProvider>` —React context holding derived key in memory. Exposes `encrypt()` / `decrypt()`. Wraps authenticated app.
+- `<TreeWorkspacePage>` —React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
+- `<PersonNode>` —Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
+- `<PersonDetailPanel>` —Slide-out panel. Edit person fields, relationships, trauma events, life events, classifications. Encrypt-then-save.
+- `<RelationshipDetailPanel>` —Panel for editing relationship details and periods.
+- `<SettingsPanel>` —Canvas settings, theme, language, account management (password/passphrase change, account deletion).
+- `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 
 ### Relationship Visual Styles
 - Solid lines: biological relationships
@@ -266,8 +266,8 @@ No domain logic server-side -- content is opaque. Server validates auth, ownersh
 
 ## Internationalization
 - react-i18next with JSON translation files
-- `/locales/en/translation.json` -- English (base, all keys)
-- `/locales/nl/translation.json` -- Dutch
+- `/locales/en/translation.json` —English (base, all keys)
+- `/locales/nl/translation.json` —Dutch
 - Language detection: browser preference, overridable in settings
 - All UI strings via `t('key')` from day one
 - Flat namespaced keys: `tree.addPerson`, `trauma.category.addiction`, `relationship.type.stepParent`
@@ -336,8 +336,8 @@ The app uses a "dark forest" nature aesthetic with strong thematic coherence. Th
 
 ### Typography
 
-- **Heading font:** `Playwrite NZ Basic` -- a flowing handwriting-style script with variable weight (100-400). Evokes personal journals and handwritten family notes, fitting the reflective nature of the tool.
-- **Body font:** `Lato` -- a clean, humanist sans-serif with good legibility at all sizes. Weights 300/400/700/900 loaded. Warm and approachable without being decorative.
+- **Heading font:** `Playwrite NZ Basic` —a flowing handwriting-style script with variable weight (100-400). Evokes personal journals and handwritten family notes, fitting the reflective nature of the tool.
+- **Body font:** `Lato` —a clean, humanist sans-serif with good legibility at all sizes. Weights 300/400/700/900 loaded. Warm and approachable without being decorative.
 - Fonts loaded via Google Fonts CDN with `preconnect`.
 - All font families defined as CSS variables (`--font-heading`, `--font-body`) in `theme.css`.
 
@@ -366,13 +366,14 @@ When modifying the frontend, follow these principles:
 - **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
 - **Heading font is personal.** Playwrite NZ Basic's flowing script gives headings a handwritten, journal-like quality. Use weight 200-300 for large display, 300-400 for compact panel headers. Pair with the clean Lato body font for readability.
 - **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in both themes. Don't add new ones without updating both theme variants.
-- **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations -- the subject matter is sensitive.
+- **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations —the subject matter is sensitive.
 - **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
 - **Buttons have three tiers.** Primary (accent background), default (secondary background with border), and danger (red text/border). Small variant uses 11px font.
-- **Button heights are uniform within a bar.** All toolbar buttons (text and icon) share `height: 32px`. All footer buttons and links share `height: 24px`. Never let padding alone determine button height -- use an explicit `height` so elements align.
+- **Button heights are uniform within a bar.** All toolbar buttons (text and icon) share `height: 32px`. All footer buttons and links share `height: 24px`. Never let padding alone determine button height —use an explicit `height` so elements align.
 - **Badge shapes encode meaning.** Circles = trauma events, squares = life events, triangles = classifications. These shapes are part of the visual language, don't repurpose them.
+- **Never use `--` in text strings.** Use a proper em dash character (`—`) instead. This applies to translation files, UI copy, documentation, and any other user-facing text.
 
-### Quality guidelines  
+### Quality guidelines
 
 **ALWAYS** follow these quality guidelines:
 
