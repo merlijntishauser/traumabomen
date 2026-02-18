@@ -152,3 +152,4 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Swagger for FastAPI (dev only)
 - Rate-limiting on login (tarpitting scheme)
 - More debug info on email sending
+- saved views... 

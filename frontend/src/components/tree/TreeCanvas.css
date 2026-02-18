@@ -263,6 +263,75 @@
   background: var(--color-accent-hover);
 }
 
+/* Relationship prompt toast */
+.relationship-prompt {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  animation: relationship-prompt-in 0.25s ease-out;
+}
+
+.relationship-prompt__card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.relationship-prompt__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.relationship-prompt__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.relationship-prompt__btn {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors);
+}
+
+.relationship-prompt__btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.relationship-prompt__btn--primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.relationship-prompt__btn--primary:hover {
+  background: var(--color-accent-hover);
+}
+
+@keyframes relationship-prompt-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 .relationship-popover {
   position: fixed;
   top: 0;

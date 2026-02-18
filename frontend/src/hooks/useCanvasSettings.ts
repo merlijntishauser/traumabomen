@@ -8,6 +8,7 @@ export interface CanvasSettings {
   edgeStyle: EdgeStyle;
   showMarkers: boolean;
   showMinimap: boolean;
+  promptRelationship: boolean;
 }
 
 const DEFAULTS: CanvasSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: CanvasSettings = {
   edgeStyle: "curved",
   showMarkers: true,
   showMinimap: false,
+  promptRelationship: true,
 };
 
 const STORAGE_KEY = "traumabomen-canvas-settings";

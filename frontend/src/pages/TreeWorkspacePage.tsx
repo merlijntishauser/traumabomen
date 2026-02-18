@@ -152,6 +152,39 @@ function RelationshipPopover({
   );
 }
 
+function RelationshipPrompt({
+  personName,
+  onYes,
+  onNo,
+}: {
+  personName: string;
+  onYes: () => void;
+  onNo: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="relationship-prompt">
+      <div className="relationship-prompt__card">
+        <p className="relationship-prompt__text">
+          {t("relationship.promptConnect", { name: personName })}
+        </p>
+        <div className="relationship-prompt__actions">
+          <button
+            type="button"
+            className="relationship-prompt__btn relationship-prompt__btn--primary"
+            onClick={onYes}
+          >
+            {t("common.yes")}
+          </button>
+          <button type="button" className="relationship-prompt__btn" onClick={onNo}>
+            {t("common.no")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
@@ -168,6 +201,7 @@ function TreeWorkspaceInner() {
     openPatternId ? new Set([openPatternId]) : new Set(),
   );
   const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
+  const [relationshipPromptPersonId, setRelationshipPromptPersonId] = useState<string | null>(null);
 
   const effectiveVisiblePatternIds = useMemo(() => {
     if (!hoveredPatternId || visiblePatternIds.has(hoveredPatternId)) return visiblePatternIds;
@@ -252,11 +286,19 @@ function TreeWorkspaceInner() {
         setSelectedEdgeId(null);
         setPendingConnection(null);
         setPatternPanelOpen(false);
+        setRelationshipPromptPersonId(null);
       }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Auto-dismiss relationship prompt when selected person changes
+  useEffect(() => {
+    if (relationshipPromptPersonId && selectedPersonId !== relationshipPromptPersonId) {
+      setRelationshipPromptPersonId(null);
+    }
+  }, [selectedPersonId, relationshipPromptPersonId]);
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: PersonNodeType) => {
     setSelectedPersonId(node.id);
@@ -342,6 +384,9 @@ function TreeWorkspaceInner() {
       onSuccess: (response) => {
         setSelectedPersonId(response.id);
         setPatternPanelOpen(false);
+        if (canvasSettings.promptRelationship && persons.size > 0) {
+          setRelationshipPromptPersonId(response.id);
+        }
       },
     });
   }
@@ -366,7 +411,10 @@ function TreeWorkspaceInner() {
 
   function handleSavePerson(data: Person) {
     if (!selectedPersonId) return;
-    mutations.updatePerson.mutate({ personId: selectedPersonId, data });
+    mutations.updatePerson.mutate(
+      { personId: selectedPersonId, data },
+      { onSuccess: () => setSelectedPersonId(null) },
+    );
   }
 
   function handleDeletePerson(personId: string) {
@@ -667,6 +715,19 @@ function TreeWorkspaceInner() {
             })
           }
           onClose={() => setPendingConnection(null)}
+        />
+      )}
+
+      {relationshipPromptPersonId && (
+        <RelationshipPrompt
+          personName={persons.get(relationshipPromptPersonId)?.name ?? ""}
+          onYes={() => {
+            setSelectedPersonId(null);
+            setRelationshipPromptPersonId(null);
+          }}
+          onNo={() => {
+            setRelationshipPromptPersonId(null);
+          }}
         />
       )}
     </div>

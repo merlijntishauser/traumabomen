@@ -43,6 +43,7 @@ describe("useCanvasSettings", () => {
       edgeStyle: "curved",
       showMarkers: true,
       showMinimap: false,
+      promptRelationship: true,
     });
   });
 
@@ -53,6 +54,7 @@ describe("useCanvasSettings", () => {
       edgeStyle: "straight",
       showMarkers: false,
       showMinimap: true,
+      promptRelationship: false,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
 
@@ -94,6 +96,7 @@ describe("useCanvasSettings", () => {
       edgeStyle: "curved",
       showMarkers: true,
       showMinimap: false,
+      promptRelationship: true,
     });
   });
 

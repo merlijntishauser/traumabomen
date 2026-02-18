@@ -394,6 +394,15 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
                     <span>{t("canvas.showMinimap")}</span>
                   </label>
 
+                  <label className="settings-panel__toggle">
+                    <input
+                      type="checkbox"
+                      checked={settings.promptRelationship}
+                      onChange={(e) => onUpdate({ promptRelationship: e.target.checked })}
+                    />
+                    <span>{t("canvas.promptRelationship")}</span>
+                  </label>
+
                   <div className="settings-panel__divider" />
 
                   <div className="settings-panel__group">

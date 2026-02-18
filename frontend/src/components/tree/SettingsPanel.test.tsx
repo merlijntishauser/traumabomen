@@ -101,6 +101,7 @@ function defaultSettings(): CanvasSettings {
     edgeStyle: "curved",
     showMarkers: true,
     showMinimap: false,
+    promptRelationship: true,
   };
 }
 
@@ -203,6 +204,7 @@ describe("SettingsPanel", () => {
       expect(screen.getByText("canvas.edgeStyle")).toBeInTheDocument();
       expect(screen.getByText("canvas.showMarkers")).toBeInTheDocument();
       expect(screen.getByText("canvas.showMinimap")).toBeInTheDocument();
+      expect(screen.getByText("canvas.promptRelationship")).toBeInTheDocument();
     });
 
     it("toggle grid calls onUpdate with showGrid", async () => {
@@ -289,6 +291,22 @@ describe("SettingsPanel", () => {
       expect(onUpdate).toHaveBeenCalledWith({ showMarkers: false });
     });
 
+    it("toggle promptRelationship calls onUpdate with promptRelationship", async () => {
+      const user = userEvent.setup();
+      const { onUpdate } = renderPanel();
+      await openPanel(user);
+
+      // promptRelationship defaults to true, so clicking should set it to false
+      const promptCheckbox = screen
+        .getByText("canvas.promptRelationship")
+        .closest("label")
+        ?.querySelector("input");
+      expect(promptCheckbox).toBeDefined();
+      await user.click(promptCheckbox!);
+
+      expect(onUpdate).toHaveBeenCalledWith({ promptRelationship: false });
+    });
+
     it("toggle minimap calls onUpdate with showMinimap", async () => {
       const user = userEvent.setup();
       const { onUpdate } = renderPanel();
@@ -313,6 +331,7 @@ describe("SettingsPanel", () => {
           edgeStyle: "curved",
           showMarkers: false,
           showMinimap: true,
+          promptRelationship: true,
         },
       });
       await openPanel(user);
