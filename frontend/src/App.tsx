@@ -49,6 +49,13 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
   const isAuthenticated = !!getAccessToken();
 
+  // Re-sync with localStorage: login() updates the flag after this component
+  // has already mounted with the stale pre-login value.
+  const flagFromStorage = getOnboardingFlag();
+  if (flagFromStorage && !acknowledged) {
+    setAcknowledged(true);
+  }
+
   if (isAuthenticated && key && !acknowledged) {
     return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;
   }

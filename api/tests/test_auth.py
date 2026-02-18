@@ -459,6 +459,19 @@ class TestAcknowledgeOnboarding:
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
+    async def test_acknowledge_persists_across_login(self, client, user, headers):
+        """After acknowledging, subsequent login returns True."""
+        resp = await client.put("/auth/onboarding", headers=headers)
+        assert resp.status_code == 200
+
+        resp = await client.post(
+            "/auth/login",
+            json={"email": "test@example.com", "password": "password123"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["onboarding_safety_acknowledged"] is True
+
+    @pytest.mark.asyncio
     async def test_onboarding_flag_in_login_response(self, client, user):
         """Login response includes onboarding_safety_acknowledged (False for new user)."""
         resp = await client.post(
