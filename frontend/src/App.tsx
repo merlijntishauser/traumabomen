@@ -20,10 +20,31 @@ import VerificationPendingPage from "./pages/VerificationPendingPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import WaitlistPage from "./pages/WaitlistPage";
 
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const PatternPage = lazy(() => import("./pages/PatternPage"));
-const TimelinePage = lazy(() => import("./pages/TimelinePage"));
-const TreeWorkspacePage = lazy(() => import("./pages/TreeWorkspacePage"));
+const RELOAD_KEY = "traumabomen_chunk_reload";
+
+/**
+ * Wrap a dynamic import so that a failed chunk load (stale deploy) triggers
+ * a single full page reload. Uses sessionStorage to prevent infinite loops.
+ */
+function lazyWithReload(importFn: () => Promise<{ default: React.ComponentType }>) {
+  return lazy(() =>
+    importFn().catch(() => {
+      if (!sessionStorage.getItem(RELOAD_KEY)) {
+        // privacy-ok: non-sensitive reload flag
+        sessionStorage.setItem(RELOAD_KEY, "1"); // privacy-ok
+        window.location.reload();
+        return new Promise<never>(() => {}); // never resolves; page is reloading
+      }
+      sessionStorage.removeItem(RELOAD_KEY); // privacy-ok
+      return Promise.reject(new Error("Failed to load page after reload"));
+    }),
+  );
+}
+
+const AdminPage = lazyWithReload(() => import("./pages/AdminPage"));
+const PatternPage = lazyWithReload(() => import("./pages/PatternPage"));
+const TimelinePage = lazyWithReload(() => import("./pages/TimelinePage"));
+const TreeWorkspacePage = lazyWithReload(() => import("./pages/TreeWorkspacePage"));
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
@@ -166,6 +187,9 @@ function AppContent() {
 }
 
 export default function App() {
+  // Clear the chunk-reload flag on successful app boot so future deploys can retry.
+  sessionStorage.removeItem(RELOAD_KEY); // privacy-ok
+
   return (
     <EncryptionProvider>
       <AppContent />
