@@ -33,12 +33,12 @@ export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
         const Icon = TAB_ICONS[tab.view];
         return tab.view === activeView ? (
           <span key={tab.view} className="tree-toolbar__tab tree-toolbar__tab--active">
-            <Icon size={13} />
+            <Icon size={14} />
             {tab.label}
           </span>
         ) : (
           <Link key={tab.view} to={tab.to} className="tree-toolbar__tab">
-            <Icon size={13} />
+            <Icon size={14} />
             {tab.label}
           </Link>
         );

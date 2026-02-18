@@ -104,13 +104,6 @@
   pointer-events: none;
 }
 
-/* Active mode button */
-.tree-toolbar__btn--active {
-  background: var(--color-accent-subtle);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
 /* Age mode: column header */
 .tl-col-header {
   font-size: 12px;

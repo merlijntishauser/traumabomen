@@ -110,6 +110,7 @@
   gap: 5px;
   height: 32px;
   padding: 0 14px;
+  font-family: inherit;
   font-size: 13px;
   color: var(--color-text-secondary);
   text-decoration: none;
@@ -157,6 +158,18 @@
 .tree-toolbar__icon-btn:hover {
   background: var(--color-bg-hover);
   color: var(--color-text-primary);
+}
+
+.tree-toolbar__icon-btn--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.tree-toolbar__btn--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* Toolbar tooltips */

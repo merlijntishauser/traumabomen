@@ -346,8 +346,8 @@ export default function TimelinePage() {
     [mode],
   );
 
-  const toolbarBtnClass = (active: boolean) =>
-    `tree-toolbar__btn${active ? " tree-toolbar__btn--active" : ""}`;
+  const tabClass = (active: boolean) =>
+    `tree-toolbar__tab${active ? " tree-toolbar__tab--active" : ""}`;
 
   if (error) {
     return (
@@ -373,73 +373,80 @@ export default function TimelinePage() {
         canvasSettings={canvasSettings}
         onUpdateSettings={updateCanvasSettings}
       >
-        <button
-          type="button"
-          className={toolbarBtnClass(layoutMode === "years")}
-          onClick={() => setLayoutMode("years")}
-        >
-          <Calendar size={14} />
-          {t("timeline.years")}
-        </button>
-        <button
-          type="button"
-          className={toolbarBtnClass(layoutMode === "age")}
-          onClick={() => setLayoutMode("age")}
-        >
-          <Clock size={14} />
-          {t("timeline.age")}
-        </button>
+        {/* Layout mode segment control */}
+        <div className="tree-toolbar__tabs">
+          <button
+            type="button"
+            className={tabClass(layoutMode === "years")}
+            onClick={() => setLayoutMode("years")}
+          >
+            <Calendar size={14} />
+            {t("timeline.years")}
+          </button>
+          <button
+            type="button"
+            className={tabClass(layoutMode === "age")}
+            onClick={() => setLayoutMode("age")}
+          >
+            <Clock size={14} />
+            {t("timeline.age")}
+          </button>
+        </div>
+
+        {/* Interaction mode segment control */}
+        <div className="tree-toolbar__tabs">
+          <button
+            type="button"
+            className={tabClass(mode === "explore")}
+            onClick={() => {
+              setMode("explore");
+              setSelectedPersonId(null);
+            }}
+          >
+            <Search size={14} />
+            {t("timeline.explore")}
+          </button>
+          <button
+            type="button"
+            className={tabClass(mode === "edit")}
+            onClick={() => {
+              setMode("edit");
+              setSelectedPersonId(null);
+            }}
+          >
+            <Pencil size={14} />
+            {t("timeline.edit")}
+          </button>
+          <button
+            type="button"
+            className={tabClass(mode === "annotate")}
+            onClick={() => {
+              setMode("annotate");
+              setSelectedPersonId(null);
+            }}
+          >
+            <Waypoints size={14} />
+            {t("timeline.annotate")}
+          </button>
+        </div>
+
         <div className="tree-toolbar__separator" />
+
         <button
           type="button"
-          className={toolbarBtnClass(mode === "explore")}
-          onClick={() => {
-            setMode("explore");
-            setSelectedPersonId(null);
-          }}
-        >
-          <Search size={14} />
-          {t("timeline.explore")}
-        </button>
-        <button
-          type="button"
-          className={toolbarBtnClass(mode === "edit")}
-          onClick={() => {
-            setMode("edit");
-            setSelectedPersonId(null);
-          }}
-        >
-          <Pencil size={14} />
-          {t("timeline.edit")}
-        </button>
-        <button
-          type="button"
-          className={toolbarBtnClass(mode === "annotate")}
-          onClick={() => {
-            setMode("annotate");
-            setSelectedPersonId(null);
-          }}
-        >
-          <Waypoints size={14} />
-          {t("timeline.annotate")}
-        </button>
-        <div className="tree-toolbar__separator" />
-        <button
-          type="button"
-          className="tree-toolbar__icon-btn"
+          className={`tree-toolbar__icon-btn${showPatterns ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => setShowPatterns((v) => !v)}
           aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
         >
-          {showPatterns ? <Eye size={16} /> : <EyeOff size={16} />}
+          {showPatterns ? <Eye size={14} /> : <EyeOff size={14} />}
         </button>
         <button
           type="button"
-          className="tree-toolbar__icon-btn"
+          className={`tree-toolbar__icon-btn${filterPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => setFilterPanelOpen((v) => !v)}
           aria-label={t("timeline.filter")}
-          style={{ position: "relative" }}
         >
-          <Filter size={16} />
+          <Filter size={14} />
           {filterActions.activeFilterCount > 0 && (
             <span className="tl-filter-badge">{filterActions.activeFilterCount}</span>
           )}

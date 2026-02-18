@@ -46,7 +46,7 @@ export function TreeToolbar({
 
       <div className="tree-toolbar__group">
         <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
-          <House size={16} />
+          <House size={14} />
         </Link>
         <SettingsPanel
           settings={canvasSettings}
@@ -59,7 +59,7 @@ export function TreeToolbar({
           onClick={logout}
           aria-label={t("nav.logout")}
         >
-          <LogOut size={16} />
+          <LogOut size={14} />
         </button>
       </div>
     </div>

@@ -298,7 +298,7 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
         onClick={() => setOpen((v) => !v)}
         aria-label={t("settings.title")}
       >
-        <Settings size={16} />
+        <Settings size={14} />
       </button>
 
       {open &&
