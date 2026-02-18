@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import type { DimSets } from "../../hooks/useTimelineFilters";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -8,6 +9,14 @@ import type {
 import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import type { TooltipLine } from "./timelineHelpers";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
+
+export type TimelineMode = "explore" | "edit";
+
+export interface MarkerClickInfo {
+  personId: string;
+  entityType: "trauma_event" | "life_event" | "classification";
+  entityId: string;
+}
 
 interface PersonLaneProps {
   person: DecryptedPerson;
@@ -22,6 +31,12 @@ interface PersonLaneProps {
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
+  selected?: boolean;
+  dimmed?: boolean;
+  mode?: TimelineMode;
+  dims?: DimSets;
+  onSelectPerson?: (personId: string) => void;
+  onClickMarker?: (info: MarkerClickInfo) => void;
 }
 
 export const PersonLane = React.memo(function PersonLane({
@@ -37,19 +52,52 @@ export const PersonLane = React.memo(function PersonLane({
   cssVar,
   t,
   onTooltip,
+  selected,
+  dimmed,
+  mode = "explore",
+  dims,
+  onSelectPerson,
+  onClickMarker,
 }: PersonLaneProps) {
   const barY = y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
   const cy = y + ROW_HEIGHT / 2;
   const hasBirth = person.birth_year != null;
   const birthX = person.birth_year ?? 0;
   const deathX = person.death_year ?? currentYear;
+  const canvasStroke = cssVar("--color-bg-canvas");
 
   const hideTooltip = useCallback(() => {
     onTooltip({ visible: false, x: 0, y: 0, lines: [] });
   }, [onTooltip]);
 
+  const handleLaneClick = useCallback(() => {
+    onSelectPerson?.(person.id);
+  }, [onSelectPerson, person.id]);
+
+  const handleMarkerClick = useCallback(
+    (entityType: MarkerClickInfo["entityType"], entityId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      onClickMarker?.({ personId: person.id, entityType, entityId });
+    },
+    [onClickMarker, person.id],
+  );
+
+  const className = ["tl-lane", selected && "tl-lane--selected", dimmed && "tl-lane--dimmed"]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <g>
+    <g className={className}>
+      {/* Invisible hit area for click handling */}
+      <rect
+        x={birthX - 50}
+        y={y}
+        width={Math.max(100, deathX - birthX + 100)}
+        height={ROW_HEIGHT}
+        className={`tl-lane-hitarea${mode === "edit" ? " tl-lane-hitarea--edit" : ""}`}
+        onClick={handleLaneClick}
+      />
+
       {/* Life bar */}
       {hasBirth && (
         <rect
@@ -61,6 +109,7 @@ export const PersonLane = React.memo(function PersonLane({
           fill={cssVar("--color-lifebar-fill")}
           stroke={cssVar("--color-lifebar-stroke")}
           strokeWidth={1}
+          className="tl-lifebar"
         />
       )}
 
@@ -73,9 +122,10 @@ export const PersonLane = React.memo(function PersonLane({
               : "--color-classification-suspected",
           );
           const stripHeight = 4;
+          const isMarkerDimmed = dims?.dimmedClassificationIds.has(cls.id);
 
           return (
-            <g key={cls.id}>
+            <g key={cls.id} opacity={isMarkerDimmed ? 0.15 : undefined}>
               {/* Period strips */}
               {cls.periods.map((period, pi) => {
                 const px1 = period.start_year;
@@ -98,6 +148,7 @@ export const PersonLane = React.memo(function PersonLane({
                     fill={clsColor}
                     opacity={0.8}
                     className="tl-marker"
+                    onClick={(e) => handleMarkerClick("classification", cls.id, e)}
                     onMouseEnter={(e) => {
                       onTooltip({
                         visible: true,
@@ -129,9 +180,10 @@ export const PersonLane = React.memo(function PersonLane({
                     <path
                       d={triPath}
                       fill={clsColor}
-                      stroke={cssVar("--color-bg-canvas")}
+                      stroke={canvasStroke}
                       strokeWidth={1.5}
                       className="tl-marker"
+                      onClick={(e) => handleMarkerClick("classification", cls.id, e)}
                       onMouseEnter={(e) => {
                         onTooltip({
                           visible: true,
@@ -163,6 +215,8 @@ export const PersonLane = React.memo(function PersonLane({
           .filter(Boolean)
           .join(", ");
 
+        const isMarkerDimmed = dims?.dimmedEventIds.has(event.id);
+
         return (
           <circle
             key={event.id}
@@ -170,9 +224,11 @@ export const PersonLane = React.memo(function PersonLane({
             cy={cy}
             r={MARKER_RADIUS}
             fill={traumaColors[event.category]}
-            stroke={cssVar("--color-bg-canvas")}
+            stroke={canvasStroke}
             strokeWidth={1.5}
             className="tl-marker"
+            opacity={isMarkerDimmed ? 0.15 : undefined}
+            onClick={(e) => handleMarkerClick("trauma_event", event.id, e)}
             onMouseEnter={(e) => {
               onTooltip({
                 visible: true,
@@ -213,6 +269,8 @@ export const PersonLane = React.memo(function PersonLane({
         }
         lines.push({ text: linkedNames });
 
+        const isMarkerDimmed = dims?.dimmedLifeEventIds.has(le.id);
+
         return (
           <rect
             key={le.id}
@@ -222,9 +280,11 @@ export const PersonLane = React.memo(function PersonLane({
             height={diamondSize * 2}
             transform={`rotate(45, ${year}, ${cy})`}
             fill={lifeEventColors[le.category]}
-            stroke={cssVar("--color-bg-canvas")}
+            stroke={canvasStroke}
             strokeWidth={1.5}
             className="tl-marker"
+            opacity={isMarkerDimmed ? 0.15 : undefined}
+            onClick={(e) => handleMarkerClick("life_event", le.id, e)}
             onMouseEnter={(e) => {
               onTooltip({
                 visible: true,

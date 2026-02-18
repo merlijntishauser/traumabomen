@@ -56,3 +56,64 @@
   max-width: 280px;
   box-shadow: var(--shadow-lg);
 }
+
+/* Selection and dimming */
+.tl-lane--dimmed {
+  opacity: 0.1;
+  transition: opacity 0.15s ease;
+}
+
+.tl-lane--selected .tl-lifebar {
+  filter: brightness(1.15);
+}
+
+.tl-person-label--dimmed {
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+.tl-person-label--selected {
+  font-weight: 600;
+  fill: var(--color-accent);
+}
+
+.tl-lane-hitarea {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.tl-lane-hitarea--edit {
+  cursor: crosshair;
+}
+
+/* Filter badge on toolbar icon button */
+.tl-filter-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Active mode button */
+.tree-toolbar__btn--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Workspace area for timeline panels */
+.timeline-workspace-area {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}

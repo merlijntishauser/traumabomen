@@ -308,4 +308,69 @@ describe("TimelineView", () => {
     const tooltip = container.querySelector(".timeline-tooltip");
     expect(tooltip).toBeNull();
   });
+
+  describe("selection and dimming", () => {
+    function makeTwoPersonProps() {
+      const p1 = makePerson("p1", { name: "Alice", birth_year: 1960 });
+      const p2 = makePerson("p2", { name: "Bob", birth_year: 1958 });
+      return {
+        ...makeEmptyProps(),
+        persons: new Map<string, DecryptedPerson>([
+          ["p1", p1],
+          ["p2", p2],
+        ]),
+      };
+    }
+
+    it("applies selected class to selected person label", () => {
+      const props = makeTwoPersonProps();
+      const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
+      const labels = container.querySelectorAll(".tl-person-label");
+      const aliceLabel = Array.from(labels).find((l) => l.textContent === "Alice");
+      expect(aliceLabel?.classList.contains("tl-person-label--selected")).toBe(true);
+    });
+
+    it("applies dimmed class to non-selected person labels when selection active", () => {
+      const props = makeTwoPersonProps();
+      const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
+      const labels = container.querySelectorAll(".tl-person-label");
+      const bobLabel = Array.from(labels).find((l) => l.textContent === "Bob");
+      expect(bobLabel?.classList.contains("tl-person-label--dimmed")).toBe(true);
+    });
+
+    it("applies selected class to selected person lane", () => {
+      const props = makeTwoPersonProps();
+      const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
+      const lanes = container.querySelectorAll(".tl-lane");
+      const selectedLanes = container.querySelectorAll(".tl-lane--selected");
+      expect(lanes.length).toBe(2);
+      expect(selectedLanes.length).toBe(1);
+    });
+
+    it("applies dimmed class to non-selected person lanes", () => {
+      const props = makeTwoPersonProps();
+      const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
+      const dimmedLanes = container.querySelectorAll(".tl-lane--dimmed");
+      expect(dimmedLanes.length).toBe(1);
+    });
+
+    it("no selection means no selected or dimmed classes", () => {
+      const props = makeTwoPersonProps();
+      const { container } = render(<TimelineView {...props} selectedPersonId={null} />);
+      expect(container.querySelectorAll(".tl-lane--selected").length).toBe(0);
+      expect(container.querySelectorAll(".tl-lane--dimmed").length).toBe(0);
+      expect(container.querySelectorAll(".tl-person-label--selected").length).toBe(0);
+      expect(container.querySelectorAll(".tl-person-label--dimmed").length).toBe(0);
+    });
+
+    it("calls onSelectPerson when person label is clicked", () => {
+      const props = makeTwoPersonProps();
+      const onSelectPerson = vi.fn();
+      const { container } = render(<TimelineView {...props} onSelectPerson={onSelectPerson} />);
+      const labels = container.querySelectorAll(".tl-person-label");
+      const aliceLabel = Array.from(labels).find((l) => l.textContent === "Alice");
+      aliceLabel?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      expect(onSelectPerson).toHaveBeenCalledWith("p1");
+    });
+  });
 });

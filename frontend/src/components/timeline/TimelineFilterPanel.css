@@ -1,0 +1,96 @@
+.tl-filter-panel {
+  z-index: 20;
+}
+
+.tl-filter-panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tl-filter-panel__reset {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.tl-filter-panel__reset:hover {
+  background: var(--color-accent-subtle);
+}
+
+.tl-filter-panel__toggle-all {
+  margin-bottom: 6px;
+}
+
+.tl-filter-panel__toggle-btn {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.tl-filter-panel__toggle-btn:hover {
+  text-decoration: underline;
+}
+
+.tl-filter-panel__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.tl-filter-panel__checkbox input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.tl-filter-panel__color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tl-filter-panel__sub-group {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.tl-filter-panel__sub-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.tl-filter-panel__time-range {
+  display: flex;
+  gap: 12px;
+}
+
+.tl-filter-panel__time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.tl-filter-panel__time-field input {
+  width: 100%;
+}

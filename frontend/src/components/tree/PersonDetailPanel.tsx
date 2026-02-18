@@ -165,6 +165,14 @@ function togglePersonInSet(
   });
 }
 
+export type PersonDetailSection =
+  | "person"
+  | "relationships"
+  | "trauma_event"
+  | "life_event"
+  | "classification"
+  | null;
+
 interface PersonDetailPanelProps {
   person: DecryptedPerson;
   relationships: DecryptedRelationship[];
@@ -173,6 +181,7 @@ interface PersonDetailPanelProps {
   lifeEvents: DecryptedLifeEvent[];
   classifications: DecryptedClassification[];
   allPersons: Map<string, DecryptedPerson>;
+  initialSection?: PersonDetailSection;
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
@@ -197,6 +206,7 @@ export function PersonDetailPanel({
   lifeEvents,
   classifications,
   allPersons,
+  initialSection,
   onSavePerson,
   onDeletePerson,
   onSaveRelationship,
@@ -215,10 +225,10 @@ export function PersonDetailPanel({
     return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2000, i, 1)));
   }, [i18n.language]);
 
-  const [personOpen, setPersonOpen] = useState(true);
-  const [relsOpen, setRelsOpen] = useState(false);
-  const [eventsOpen, setEventsOpen] = useState(false);
-  const [lifeEventsOpen, setLifeEventsOpen] = useState(false);
+  const [personOpen, setPersonOpen] = useState(initialSection === "person" || !initialSection);
+  const [relsOpen, setRelsOpen] = useState(initialSection === "relationships");
+  const [eventsOpen, setEventsOpen] = useState(initialSection === "trauma_event");
+  const [lifeEventsOpen, setLifeEventsOpen] = useState(initialSection === "life_event");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Person form state
@@ -324,7 +334,9 @@ export function PersonDetailPanel({
   const [showNewLifeEvent, setShowNewLifeEvent] = useState(false);
 
   // Classification editing state
-  const [classificationsOpen, setClassificationsOpen] = useState(false);
+  const [classificationsOpen, setClassificationsOpen] = useState(
+    initialSection === "classification",
+  );
   const [editingClassificationId, setEditingClassificationId] = useState<string | null>(null);
   const [showNewClassification, setShowNewClassification] = useState(false);
 

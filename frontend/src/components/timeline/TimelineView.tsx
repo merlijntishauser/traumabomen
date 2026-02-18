@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { DimSets } from "../../hooks/useTimelineFilters";
 import { useTimelineZoom } from "../../hooks/useTimelineZoom";
 import type {
   DecryptedClassification,
@@ -14,7 +15,7 @@ import { getTraumaColors } from "../../lib/traumaColors";
 import { RelationshipType } from "../../types/domain";
 import { BranchDecoration } from "../BranchDecoration";
 import { PartnerLine } from "./PartnerLine";
-import { PersonLane } from "./PersonLane";
+import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
 import { INITIAL_TOOLTIP, TimelineTooltip, type TooltipState } from "./TimelineTooltip";
 import {
   buildPersonDataMaps,
@@ -33,6 +34,11 @@ interface TimelineViewProps {
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
   classifications: Map<string, DecryptedClassification>;
+  mode?: TimelineMode;
+  selectedPersonId?: string | null;
+  dims?: DimSets;
+  onSelectPerson?: (personId: string | null) => void;
+  onClickMarker?: (info: MarkerClickInfo) => void;
 }
 
 export function TimelineView({
@@ -41,6 +47,11 @@ export function TimelineView({
   events,
   lifeEvents,
   classifications,
+  mode = "explore",
+  selectedPersonId = null,
+  dims,
+  onSelectPerson,
+  onClickMarker,
 }: TimelineViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -176,6 +187,17 @@ export function TimelineView({
     setTooltip(state);
   }, []);
 
+  const handleBackgroundClick = useCallback(() => {
+    onSelectPerson?.(null);
+  }, [onSelectPerson]);
+
+  const handleSelectPerson = useCallback(
+    (personId: string) => {
+      onSelectPerson?.(personId);
+    },
+    [onSelectPerson],
+  );
+
   if (persons.size === 0) {
     return (
       <div className="timeline-container bg-gradient" ref={containerRef}>
@@ -213,16 +235,31 @@ export function TimelineView({
           ))}
 
           {/* Person name labels */}
-          {rows.map((row) => (
-            <text
-              key={row.person.id}
-              x={24}
-              y={row.y + ROW_HEIGHT / 2 + 4}
-              className="tl-person-label"
-            >
-              {row.person.name}
-            </text>
-          ))}
+          {rows.map((row) => {
+            const isSelected = selectedPersonId === row.person.id;
+            const isDimmed =
+              dims?.dimmedPersonIds.has(row.person.id) || (selectedPersonId != null && !isSelected);
+            const labelClassName = [
+              "tl-person-label",
+              isSelected && "tl-person-label--selected",
+              isDimmed && "tl-person-label--dimmed",
+            ]
+              .filter(Boolean)
+              .join(" ");
+
+            return (
+              <text
+                key={row.person.id}
+                x={24}
+                y={row.y + ROW_HEIGHT / 2 + 4}
+                className={labelClassName}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSelectPerson(row.person.id)}
+              >
+                {row.person.name}
+              </text>
+            );
+          })}
         </g>
 
         {/* Axis */}
@@ -237,26 +274,49 @@ export function TimelineView({
           ))}
         </g>
 
+        {/* Transparent background rect for deselect on click */}
+        <rect
+          x={LABEL_WIDTH}
+          y={0}
+          width={Math.max(0, width - LABEL_WIDTH)}
+          height={totalHeight}
+          fill="transparent"
+          onClick={handleBackgroundClick}
+        />
+
         {/* Clipped time content */}
         <g clipPath="url(#timeline-clip)">
           <g ref={zoomGroupRef} className="tl-time">
-            {rows.map((row) => (
-              <PersonLane
-                key={row.person.id}
-                person={row.person}
-                y={row.y}
-                currentYear={currentYear}
-                events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
-                lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
-                classifications={personDataMaps.classificationsByPerson.get(row.person.id) ?? []}
-                persons={persons}
-                traumaColors={traumaColors}
-                lifeEventColors={lifeEventColors}
-                cssVar={cssVar}
-                t={t}
-                onTooltip={onTooltip}
-              />
-            ))}
+            {rows.map((row) => {
+              const isSelected = selectedPersonId === row.person.id;
+              const isDimmed =
+                dims?.dimmedPersonIds.has(row.person.id) ||
+                (selectedPersonId != null && !isSelected);
+
+              return (
+                <PersonLane
+                  key={row.person.id}
+                  person={row.person}
+                  y={row.y}
+                  currentYear={currentYear}
+                  events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
+                  lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
+                  classifications={personDataMaps.classificationsByPerson.get(row.person.id) ?? []}
+                  persons={persons}
+                  traumaColors={traumaColors}
+                  lifeEventColors={lifeEventColors}
+                  cssVar={cssVar}
+                  t={t}
+                  onTooltip={onTooltip}
+                  selected={isSelected}
+                  dimmed={isDimmed}
+                  mode={mode}
+                  dims={dims}
+                  onSelectPerson={handleSelectPerson}
+                  onClickMarker={onClickMarker}
+                />
+              );
+            })}
             {partnerLines.map((pl) => (
               <PartnerLine
                 key={pl.key}

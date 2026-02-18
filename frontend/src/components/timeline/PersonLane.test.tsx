@@ -125,22 +125,20 @@ describe("PersonLane", () => {
   describe("life bar", () => {
     it("renders a rect for person with birth_year", () => {
       const { container } = renderLane();
-      const rects = container.querySelectorAll("rect");
-      expect(rects.length).toBeGreaterThanOrEqual(1);
-      const lifeBar = rects[0];
-      expect(lifeBar.getAttribute("rx")).toBe("3");
+      const lifeBar = container.querySelector(".tl-lifebar");
+      expect(lifeBar).not.toBeNull();
+      expect(lifeBar!.getAttribute("rx")).toBe("3");
     });
 
     it("does not render life bar when birth_year is null", () => {
       const person = makePerson("a", { birth_year: null });
       const { container } = renderLane({ person });
-      const rects = container.querySelectorAll("rect");
-      expect(rects).toHaveLength(0);
+      expect(container.querySelector(".tl-lifebar")).toBeNull();
     });
 
     it("positions life bar correctly", () => {
       const { container } = renderLane({ y: 40 });
-      const rect = container.querySelector("rect")!;
+      const rect = container.querySelector(".tl-lifebar")!;
       const expectedY = 40 + (ROW_HEIGHT - BAR_HEIGHT) / 2;
       expect(rect.getAttribute("y")).toBe(String(expectedY));
       expect(rect.getAttribute("x")).toBe("1980");
@@ -149,20 +147,20 @@ describe("PersonLane", () => {
     it("uses death_year for width when present", () => {
       const person = makePerson("a", { birth_year: 1950, death_year: 2000 });
       const { container } = renderLane({ person });
-      const rect = container.querySelector("rect")!;
+      const rect = container.querySelector(".tl-lifebar")!;
       expect(rect.getAttribute("width")).toBe("50");
     });
 
     it("uses currentYear for width when death_year is null", () => {
       const { container } = renderLane();
-      const rect = container.querySelector("rect")!;
+      const rect = container.querySelector(".tl-lifebar")!;
       expect(rect.getAttribute("width")).toBe(String(2025 - 1980));
     });
 
     it("clamps width to zero minimum", () => {
       const person = makePerson("a", { birth_year: 2000, death_year: 1990 });
       const { container } = renderLane({ person });
-      const rect = container.querySelector("rect")!;
+      const rect = container.querySelector(".tl-lifebar")!;
       expect(rect.getAttribute("width")).toBe("0");
     });
   });
@@ -263,9 +261,9 @@ describe("PersonLane", () => {
     it("skips events with non-numeric dates", () => {
       const lifeEvents = [makeLifeEvent("le1", ["a"], { approximate_date: "unknown" })];
       const { container } = renderLane({ lifeEvents });
-      // Only life bar rect
-      const rects = container.querySelectorAll("rect");
-      expect(rects).toHaveLength(1);
+      // Only life bar + hit area rects (no diamond)
+      const diamonds = container.querySelectorAll("rect[transform]");
+      expect(diamonds).toHaveLength(0);
     });
 
     it("shows tooltip on mouseenter", () => {
@@ -321,16 +319,18 @@ describe("PersonLane", () => {
     it("renders strips for classification periods", () => {
       const classifications = [makeClassification("c1", ["a"])];
       const { container } = renderLane({ classifications });
-      // Life bar + 1 classification period strip = 2 rects
+      // Hit area + Life bar + 1 classification period strip = 3 rects
       const rects = container.querySelectorAll("rect");
-      expect(rects.length).toBeGreaterThanOrEqual(2);
+      expect(rects.length).toBeGreaterThanOrEqual(3);
     });
 
     it("does not render strips when birth_year is null", () => {
       const person = makePerson("a", { birth_year: null });
       const classifications = [makeClassification("c1", ["a"])];
       const { container } = renderLane({ person, classifications });
-      expect(container.querySelectorAll("rect")).toHaveLength(0);
+      // Only hit area rect remains
+      expect(container.querySelector(".tl-lifebar")).toBeNull();
+      expect(container.querySelectorAll(".tl-marker")).toHaveLength(0);
     });
 
     it("uses diagnosed color for diagnosed classifications", () => {
@@ -338,16 +338,16 @@ describe("PersonLane", () => {
         makeClassification("c1", ["a"], { status: "diagnosed", diagnosis_year: 2005 }),
       ];
       const { container } = renderLane({ classifications });
-      const rects = container.querySelectorAll("rect");
-      // Second rect is the classification strip
-      expect(rects[1].getAttribute("fill")).toBe("--color-classification-diagnosed");
+      // Classification strip is the .tl-marker rect (not the hit area or life bar)
+      const strips = container.querySelectorAll("rect.tl-marker");
+      expect(strips[0].getAttribute("fill")).toBe("--color-classification-diagnosed");
     });
 
     it("uses suspected color for suspected classifications", () => {
       const classifications = [makeClassification("c1", ["a"], { status: "suspected" })];
       const { container } = renderLane({ classifications });
-      const rects = container.querySelectorAll("rect");
-      expect(rects[1].getAttribute("fill")).toBe("--color-classification-suspected");
+      const strips = container.querySelectorAll("rect.tl-marker");
+      expect(strips[0].getAttribute("fill")).toBe("--color-classification-suspected");
     });
 
     it("renders diagnosis triangle for diagnosed with year", () => {
@@ -383,8 +383,7 @@ describe("PersonLane", () => {
     it("shows tooltip on classification strip mouseenter", () => {
       const classifications = [makeClassification("c1", ["a"], { dsm_category: "depressive" })];
       const { container, props } = renderLane({ classifications });
-      const rects = container.querySelectorAll("rect");
-      const strip = rects[1];
+      const strip = container.querySelector("rect.tl-marker")!;
 
       fireEvent.mouseEnter(strip, { clientX: 100, clientY: 200 });
 
@@ -431,9 +430,9 @@ describe("PersonLane", () => {
         }),
       ];
       const { container } = renderLane({ classifications });
-      // Life bar + 2 period strips = 3 rects
-      const rects = container.querySelectorAll("rect");
-      expect(rects).toHaveLength(3);
+      // 2 period strip rects with tl-marker class
+      const strips = container.querySelectorAll("rect.tl-marker");
+      expect(strips).toHaveLength(2);
     });
   });
 });
