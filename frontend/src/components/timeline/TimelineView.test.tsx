@@ -40,8 +40,8 @@ vi.mock("../../lib/lifeEventColors", () => ({
 
 // Mock useTimelineZoom to return a pass-through scale
 vi.mock("../../hooks/useTimelineZoom", () => ({
-  useTimelineZoom: ({ xScale }: { xScale: d3.ScaleLinear<number, number> }) => ({
-    rescaledX: xScale,
+  useTimelineZoom: ({ scale }: { scale: d3.ScaleLinear<number, number> }) => ({
+    rescaled: scale,
   }),
 }));
 
@@ -371,6 +371,56 @@ describe("TimelineView", () => {
       const aliceLabel = Array.from(labels).find((l) => l.textContent === "Alice");
       aliceLabel?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       expect(onSelectPerson).toHaveBeenCalledWith("p1");
+    });
+  });
+
+  describe("age mode", () => {
+    it("renders SVG with age clip path in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      expect(container.querySelector("svg")).toBeTruthy();
+      expect(container.querySelector("#timeline-clip-age")).toBeTruthy();
+    });
+
+    it("renders column headers in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const colHeaders = container.querySelectorAll(".tl-col-header");
+      expect(colHeaders.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("renders age axis labels in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const ageLabels = container.querySelectorAll(".tl-age-axis-text");
+      expect(ageLabels.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("renders person name labels in column headers", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const personNames = container.querySelectorAll(".tl-col-person-name");
+      expect(personNames.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("renders vertical life bar in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const lifebar = container.querySelector(".tl-lifebar-v");
+      expect(lifebar).toBeTruthy();
+    });
+
+    it("does not render years-mode clip path in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      expect(container.querySelector("#timeline-clip")).toBeNull();
+    });
+
+    it("renders zoom group in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const timeGroup = container.querySelector(".tl-time");
+      expect(timeGroup).toBeTruthy();
     });
   });
 });

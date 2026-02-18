@@ -1,10 +1,10 @@
-import { Filter, Pencil, Search } from "lucide-react";
+import { Calendar, Clock, Filter, Pencil, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MarkerClickInfo, TimelineMode } from "../components/timeline/PersonLane";
 import { TimelineChipBar } from "../components/timeline/TimelineChipBar";
 import { TimelineFilterPanel } from "../components/timeline/TimelineFilterPanel";
-import { TimelineView } from "../components/timeline/TimelineView";
+import { type LayoutMode, TimelineView } from "../components/timeline/TimelineView";
 import { computeTimeDomain, filterTimelinePersons } from "../components/timeline/timelineHelpers";
 import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
@@ -39,6 +39,7 @@ export default function TimelinePage() {
   } = useTreeData(treeId!);
   const mutations = useTreeMutations(treeId!);
 
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("years");
   const [mode, setMode] = useState<TimelineMode>("explore");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
@@ -212,6 +213,9 @@ export default function TimelinePage() {
     [mode],
   );
 
+  const toolbarBtnClass = (active: boolean) =>
+    `tree-toolbar__btn${active ? " tree-toolbar__btn--active" : ""}`;
+
   if (error) {
     return (
       <div className="tree-workspace">
@@ -238,7 +242,24 @@ export default function TimelinePage() {
       >
         <button
           type="button"
-          className={`tree-toolbar__btn${mode === "explore" ? " tree-toolbar__btn--active" : ""}`}
+          className={toolbarBtnClass(layoutMode === "years")}
+          onClick={() => setLayoutMode("years")}
+        >
+          <Calendar size={14} />
+          {t("timeline.years")}
+        </button>
+        <button
+          type="button"
+          className={toolbarBtnClass(layoutMode === "age")}
+          onClick={() => setLayoutMode("age")}
+        >
+          <Clock size={14} />
+          {t("timeline.age")}
+        </button>
+        <div className="tree-toolbar__separator" />
+        <button
+          type="button"
+          className={toolbarBtnClass(mode === "explore")}
           onClick={() => {
             setMode("explore");
             setSelectedPersonId(null);
@@ -249,7 +270,7 @@ export default function TimelinePage() {
         </button>
         <button
           type="button"
-          className={`tree-toolbar__btn${mode === "edit" ? " tree-toolbar__btn--active" : ""}`}
+          className={toolbarBtnClass(mode === "edit")}
           onClick={() => {
             setMode("edit");
             setSelectedPersonId(null);
@@ -290,6 +311,7 @@ export default function TimelinePage() {
             mode={mode}
             selectedPersonId={selectedPersonId}
             dims={dims}
+            layoutMode={layoutMode}
             onSelectPerson={handleSelectPerson}
             onClickMarker={handleClickMarker}
           />

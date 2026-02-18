@@ -312,6 +312,9 @@
   "timeline.activeFilters": "{{count}} actief",
   "timeline.minYear": "Van",
   "timeline.maxYear": "Tot",
+  "timeline.years": "Jaren",
+  "timeline.age": "Leeftijd",
+  "timeline.ageAxis": "Leeftijd",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",

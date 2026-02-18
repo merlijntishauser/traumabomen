@@ -8,14 +8,19 @@ import type {
 } from "../../hooks/useTreeData";
 import { LifeEventCategory, RelationshipType, TraumaCategory } from "../../types/domain";
 import {
+  AGE_LABEL_WIDTH,
   assignBaseGenerations,
   buildChildToParentsMap,
+  buildColumnLayout,
   buildPersonDataMaps,
   buildRowLayout,
+  computeAgeDomain,
   computeGenerations,
   computeTimeDomain,
   equalizePartnerGenerations,
   filterTimelinePersons,
+  GEN_COL_GAP,
+  LANE_WIDTH,
 } from "./timelineHelpers";
 
 // ---- Test helpers ----
@@ -376,5 +381,99 @@ describe("buildPersonDataMaps", () => {
     expect(result.eventsByPerson.get("b")).toBeUndefined();
     expect(result.lifeEventsByPerson.get("a")).toBeUndefined();
     expect(result.classificationsByPerson.get("a")).toBeUndefined();
+  });
+});
+
+// ---- buildColumnLayout ----
+
+describe("buildColumnLayout", () => {
+  it("creates columns for a single generation", () => {
+    const persons = personsMap(
+      makePerson("a", { birth_year: 1980 }),
+      makePerson("b", { birth_year: 1990 }),
+    );
+    const layout = buildColumnLayout(persons, new Map(), 800);
+
+    expect(layout.columns).toHaveLength(2);
+    expect(layout.sortedGens).toEqual([0]);
+    expect(layout.columns[0].person.id).toBe("a");
+    expect(layout.columns[1].person.id).toBe("b");
+  });
+
+  it("creates separate columns for multiple generations", () => {
+    const persons = personsMap(
+      makePerson("parent", { birth_year: 1950 }),
+      makePerson("child", { birth_year: 1980 }),
+    );
+    const rels = relsMap(makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"));
+    const layout = buildColumnLayout(persons, rels, 800);
+
+    expect(layout.sortedGens).toEqual([0, 1]);
+    expect(layout.columns).toHaveLength(2);
+    // Parent in gen 0, child in gen 1
+    expect(layout.columns[0].generation).toBe(0);
+    expect(layout.columns[1].generation).toBe(1);
+  });
+
+  it("positions columns with gap between generations", () => {
+    const persons = personsMap(
+      makePerson("parent", { birth_year: 1950 }),
+      makePerson("child", { birth_year: 1980 }),
+    );
+    const rels = relsMap(makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"));
+    const layout = buildColumnLayout(persons, rels, 800);
+
+    const gen0Start = layout.genStarts.get(0)!;
+    const gen0Width = layout.genWidths.get(0)!;
+    const gen1Start = layout.genStarts.get(1)!;
+
+    expect(gen0Start).toBe(AGE_LABEL_WIDTH);
+    expect(gen0Width).toBe(LANE_WIDTH);
+    expect(gen1Start).toBe(AGE_LABEL_WIDTH + LANE_WIDTH + GEN_COL_GAP);
+  });
+
+  it("sorts persons within generation by birth year", () => {
+    const persons = personsMap(
+      makePerson("b", { birth_year: 1990 }),
+      makePerson("a", { birth_year: 1980 }),
+    );
+    const layout = buildColumnLayout(persons, new Map(), 800);
+
+    expect(layout.columns[0].person.id).toBe("a");
+    expect(layout.columns[1].person.id).toBe("b");
+  });
+
+  it("returns totalWidth >= availableWidth", () => {
+    const persons = personsMap(makePerson("a"));
+    const layout = buildColumnLayout(persons, new Map(), 2000);
+    expect(layout.totalWidth).toBeGreaterThanOrEqual(2000);
+  });
+});
+
+// ---- computeAgeDomain ----
+
+describe("computeAgeDomain", () => {
+  it("returns 0 to maxLifespan + 5", () => {
+    const persons = personsMap(
+      makePerson("a", { birth_year: 1950, death_year: 2020 }),
+      makePerson("b", { birth_year: 1980, death_year: 2000 }),
+    );
+    const { minAge, maxAge } = computeAgeDomain(persons);
+    expect(minAge).toBe(0);
+    expect(maxAge).toBe(75); // 70 (2020-1950) + 5
+  });
+
+  it("uses current year for living persons", () => {
+    const currentYear = new Date().getFullYear();
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const { maxAge } = computeAgeDomain(persons);
+    expect(maxAge).toBe(currentYear - 1980 + 5);
+  });
+
+  it("returns 5 when all persons lack birth_year", () => {
+    const persons = personsMap(makePerson("a", { birth_year: null }));
+    const { minAge, maxAge } = computeAgeDomain(persons);
+    expect(minAge).toBe(0);
+    expect(maxAge).toBe(5);
   });
 });

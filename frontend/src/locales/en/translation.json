@@ -312,6 +312,9 @@
   "timeline.activeFilters": "{{count}} active",
   "timeline.minYear": "From",
   "timeline.maxYear": "To",
+  "timeline.years": "Years",
+  "timeline.age": "Age",
+  "timeline.ageAxis": "Age",
 
   "settings.title": "Settings",
   "settings.canvas": "Canvas",

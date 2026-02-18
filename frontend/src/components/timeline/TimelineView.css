@@ -111,6 +111,33 @@
   color: var(--color-accent);
 }
 
+/* Age mode: column header */
+.tl-col-header {
+  font-size: 12px;
+  fill: var(--color-text-primary);
+  text-anchor: middle;
+}
+
+/* Age mode: person name in column header */
+.tl-col-person-name {
+  font-size: 10px;
+  fill: var(--color-text-secondary);
+  text-anchor: middle;
+}
+
+/* Age mode: age axis labels */
+.tl-age-axis-text {
+  font-size: 11px;
+  fill: var(--color-text-secondary);
+  text-anchor: end;
+}
+
+/* Age mode: vertical life bar */
+.tl-lifebar-v {
+  fill: var(--color-lifebar-fill);
+  stroke: var(--color-lifebar-stroke);
+}
+
 /* Workspace area for timeline panels */
 .timeline-workspace-area {
   position: relative;

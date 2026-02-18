@@ -15,6 +15,12 @@ export const BAR_HEIGHT = 12;
 export const GEN_HEADER_HEIGHT = 20;
 export const MARKER_RADIUS = 7;
 
+// Age mode constants
+export const LANE_WIDTH = 36;
+export const GEN_COL_GAP = 24;
+export const AGE_LABEL_WIDTH = 40;
+export const COL_HEADER_HEIGHT = 52;
+
 // ---- Types ----
 
 export interface PersonRow {
@@ -33,6 +39,22 @@ export interface RowLayout {
   sortedGens: number[];
   personsByGen: Map<number, DecryptedPerson[]>;
   totalHeight: number;
+}
+
+export interface PersonColumn {
+  person: DecryptedPerson;
+  generation: number;
+  x: number;
+  laneWidth: number;
+}
+
+export interface ColumnLayout {
+  columns: PersonColumn[];
+  sortedGens: number[];
+  personsByGen: Map<number, DecryptedPerson[]>;
+  genStarts: Map<number, number>;
+  genWidths: Map<number, number>;
+  totalWidth: number;
 }
 
 export interface PersonDataMaps {
@@ -298,4 +320,74 @@ export function buildPersonDataMaps(
   }
 
   return { eventsByPerson, lifeEventsByPerson, classificationsByPerson };
+}
+
+// ---- Column layout (age mode) ----
+
+export function buildColumnLayout(
+  timelinePersons: Map<string, DecryptedPerson>,
+  relationships: Map<string, DecryptedRelationship>,
+  availableWidth: number,
+): ColumnLayout {
+  const generations = computeGenerations(timelinePersons, relationships);
+  const personsByGen = new Map<number, DecryptedPerson[]>();
+
+  for (const person of timelinePersons.values()) {
+    const gen = generations.get(person.id) ?? 0;
+    const list = personsByGen.get(gen) ?? [];
+    list.push(person);
+    personsByGen.set(gen, list);
+  }
+
+  const sortedGens = Array.from(personsByGen.keys()).sort((a, b) => a - b);
+
+  for (const list of personsByGen.values()) {
+    list.sort(
+      (a, b) =>
+        (a.birth_year ?? Number.POSITIVE_INFINITY) - (b.birth_year ?? Number.POSITIVE_INFINITY),
+    );
+  }
+
+  const columns: PersonColumn[] = [];
+  const genStarts = new Map<number, number>();
+  const genWidths = new Map<number, number>();
+  let currentX = AGE_LABEL_WIDTH;
+
+  for (const gen of sortedGens) {
+    const genPersons = personsByGen.get(gen)!;
+    const genWidth = genPersons.length * LANE_WIDTH;
+    genStarts.set(gen, currentX);
+    genWidths.set(gen, genWidth);
+
+    for (let i = 0; i < genPersons.length; i++) {
+      columns.push({
+        person: genPersons[i],
+        generation: gen,
+        x: currentX + i * LANE_WIDTH,
+        laneWidth: LANE_WIDTH,
+      });
+    }
+
+    currentX += genWidth + GEN_COL_GAP;
+  }
+
+  const totalWidth = Math.max(currentX, availableWidth);
+  return { columns, sortedGens, personsByGen, genStarts, genWidths, totalWidth };
+}
+
+export function computeAgeDomain(persons: Map<string, DecryptedPerson>): {
+  minAge: number;
+  maxAge: number;
+} {
+  const currentYear = new Date().getFullYear();
+  let maxLifespan = 0;
+
+  for (const person of persons.values()) {
+    if (person.birth_year == null) continue;
+    const endYear = person.death_year ?? currentYear;
+    const lifespan = endYear - person.birth_year;
+    if (lifespan > maxLifespan) maxLifespan = lifespan;
+  }
+
+  return { minAge: 0, maxAge: maxLifespan + 5 };
 }

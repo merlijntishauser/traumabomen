@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 interface UseTimelineZoomOptions {
   svgRef: React.RefObject<SVGSVGElement | null>;
   zoomGroupRef: React.RefObject<SVGGElement | null>;
-  xScale: d3.ScaleLinear<number, number>;
-  labelWidth: number;
+  scale: d3.ScaleLinear<number, number>;
+  direction?: "horizontal" | "vertical";
+  fixedOffset: number;
   width: number;
   height: number;
 }
@@ -13,46 +14,62 @@ interface UseTimelineZoomOptions {
 export function useTimelineZoom({
   svgRef,
   zoomGroupRef,
-  xScale,
-  labelWidth,
+  scale,
+  direction = "horizontal",
+  fixedOffset,
   width,
   height,
-}: UseTimelineZoomOptions): { rescaledX: d3.ScaleLinear<number, number> } {
-  const [rescaledX, setRescaledX] = useState<d3.ScaleLinear<number, number>>(() => xScale);
+}: UseTimelineZoomOptions): { rescaled: d3.ScaleLinear<number, number> } {
+  const [rescaled, setRescaled] = useState<d3.ScaleLinear<number, number>>(() => scale);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setRescaledX(() => xScale);
-  }, [xScale]);
+    setRescaled(() => scale);
+  }, [scale]);
 
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg || width <= 0 || height <= 0) return;
 
+    const isHorizontal = direction === "horizontal";
+
+    const translateExtent: [[number, number], [number, number]] = isHorizontal
+      ? [
+          [fixedOffset, 0],
+          [width, height],
+        ]
+      : [
+          [0, fixedOffset],
+          [width, height],
+        ];
+
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 20])
-      .translateExtent([
-        [labelWidth, 0],
-        [width, height],
-      ])
-      .extent([
-        [labelWidth, 0],
-        [width, height],
-      ])
+      .translateExtent(translateExtent)
+      .extent(translateExtent)
       .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
         const g = zoomGroupRef.current;
         if (g) {
-          g.setAttribute(
-            "transform",
-            `translate(${event.transform.x},0) scale(${event.transform.k},1)`,
-          );
+          if (isHorizontal) {
+            g.setAttribute(
+              "transform",
+              `translate(${event.transform.x},0) scale(${event.transform.k},1)`,
+            );
+          } else {
+            g.setAttribute(
+              "transform",
+              `translate(0,${event.transform.y}) scale(1,${event.transform.k})`,
+            );
+          }
         }
 
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
-          const newScale = event.transform.rescaleX(xScale);
-          setRescaledX(() => newScale);
+          const newScale = isHorizontal
+            ? event.transform.rescaleX(scale)
+            : event.transform.rescaleY(scale);
+          setRescaled(() => newScale);
         }, 50);
       });
 
@@ -63,7 +80,7 @@ export function useTimelineZoom({
       svgSel.on(".zoom", null);
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [svgRef, zoomGroupRef, xScale, labelWidth, width, height]);
+  }, [svgRef, zoomGroupRef, scale, direction, fixedOffset, width, height]);
 
-  return { rescaledX };
+  return { rescaled };
 }
