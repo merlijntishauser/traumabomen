@@ -139,6 +139,7 @@
   "relationship.swap": "Richting omdraaien",
   "relationship.directionLabel": "{{source}} is {{type}} van {{target}}",
   "relationship.promptConnect": "{{name}} koppelen aan iemand?",
+  "relationship.promptConnectTo": "{{name}} koppelen aan:",
   "relationship.editRelationship": "Relatie bewerken",
   "relationship.confirmDelete": "Weet je zeker dat je deze relatie wilt verwijderen?",
   "relationship.between": "Tussen",

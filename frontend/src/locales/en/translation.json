@@ -139,6 +139,7 @@
   "relationship.swap": "Swap direction",
   "relationship.directionLabel": "{{source}} is {{type}} of {{target}}",
   "relationship.promptConnect": "Connect {{name}} to someone?",
+  "relationship.promptConnectTo": "Connect {{name}} to:",
   "relationship.editRelationship": "Edit relationship",
   "relationship.confirmDelete": "Are you sure you want to delete this relationship?",
   "relationship.between": "Between",
