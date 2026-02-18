@@ -278,6 +278,36 @@ describe("PersonDetailPanel", () => {
     expect(aliceCheckbox).toBeChecked();
   });
 
+  it("unchecking a person in multi-person event removes them", async () => {
+    const user = userEvent.setup();
+    const bob = makePerson({ id: "p2", name: "Bob" });
+    const props = defaultProps();
+    props.allPersons.set("p2", bob);
+    props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
+    render(<PersonDetailPanel {...props} />);
+
+    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByText("common.edit"));
+
+    // Both should be checked
+    const checkboxes = screen.getAllByRole("checkbox");
+    const bobCheckbox = checkboxes.find((cb) => cb.closest("label")?.textContent?.includes("Bob"));
+    expect(bobCheckbox).toBeDefined();
+    expect(bobCheckbox).toBeChecked();
+
+    // Uncheck Bob
+    await user.click(bobCheckbox!);
+    expect(bobCheckbox).not.toBeChecked();
+
+    await user.click(screen.getByText("common.save"));
+
+    expect(props.onSaveEvent).toHaveBeenCalledWith(
+      "e1",
+      expect.objectContaining({ title: "Test Event" }),
+      ["p1"],
+    );
+  });
+
   describe("person form fields", () => {
     it("saves death year when provided", async () => {
       const user = userEvent.setup();
@@ -359,6 +389,65 @@ describe("PersonDetailPanel", () => {
       expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
       await user.click(screen.getByText(/person.details/));
       expect(screen.queryByDisplayValue("Alice")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("death month and day clearing", () => {
+    it("clearing death month clears death day", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.person = makePerson({ death_year: 2020, death_month: 6, death_day: 15 });
+      render(<PersonDetailPanel {...props} />);
+
+      // Verify death day is visible
+      expect(screen.getByText("person.deathDay")).toBeInTheDocument();
+
+      // Clear death month
+      const deathMonthSelect = screen
+        .getByText("person.deathMonth")
+        .closest("label")!
+        .querySelector("select")!;
+      fireEvent.change(deathMonthSelect, { target: { value: "" } });
+
+      // Death day dropdown should disappear
+      expect(screen.queryByText("person.deathDay")).not.toBeInTheDocument();
+
+      // Save and verify death day is null
+      await user.click(screen.getByText("person.save"));
+      expect(props.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          death_year: 2020,
+          death_month: null,
+          death_day: null,
+        }),
+      );
+    });
+
+    it("clearing death year clears death month and day", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.person = makePerson({ death_year: 2020, death_month: 6, death_day: 15 });
+      render(<PersonDetailPanel {...props} />);
+
+      // Verify death month is visible
+      expect(screen.getByText("person.deathMonth")).toBeInTheDocument();
+
+      // Clear death year
+      const deathYearInput = screen.getByDisplayValue("2020");
+      fireEvent.change(deathYearInput, { target: { value: "" } });
+
+      // Death month dropdown should disappear
+      expect(screen.queryByText("person.deathMonth")).not.toBeInTheDocument();
+
+      // Save and verify all death fields are null
+      await user.click(screen.getByText("person.save"));
+      expect(props.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          death_year: null,
+          death_month: null,
+          death_day: null,
+        }),
+      );
     });
   });
 
@@ -609,6 +698,47 @@ describe("PersonDetailPanel", () => {
       expect(screen.getByText(/relationship.viaParent/)).toBeInTheDocument();
     });
 
+    it("shows full sibling inferred relationship", async () => {
+      const user = userEvent.setup();
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      const carol = makePerson({ id: "p3", name: "Carol" });
+      const dave = makePerson({ id: "p4", name: "Dave" });
+      const props = defaultProps();
+      props.allPersons.set("p2", bob);
+      props.allPersons.set("p3", carol);
+      props.allPersons.set("p4", dave);
+      props.inferredSiblings = [
+        {
+          personAId: "p1",
+          personBId: "p2",
+          sharedParentIds: ["p3", "p4"],
+          type: "full_sibling",
+        },
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/relationship.relationships/));
+      expect(screen.getByText("relationship.type.full_sibling")).toBeInTheDocument();
+      expect(screen.getByText("Bob")).toBeInTheDocument();
+    });
+
+    it("shows inferred sibling when current person is personB", async () => {
+      const user = userEvent.setup();
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      const carol = makePerson({ id: "p3", name: "Carol" });
+      const props = defaultProps();
+      props.allPersons.set("p2", bob);
+      props.allPersons.set("p3", carol);
+      props.inferredSiblings = [
+        { personAId: "p2", personBId: "p1", sharedParentIds: ["p3"], type: "half_sibling" },
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/relationship.relationships/));
+      expect(screen.getByText("Bob")).toBeInTheDocument();
+      expect(screen.getByText("relationship.type.half_sibling")).toBeInTheDocument();
+    });
+
     it("shows ? for unknown other person in relationship", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
@@ -776,6 +906,92 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("common.edit"));
 
       expect(screen.queryByText("relationship.removePeriod")).not.toBeInTheDocument();
+    });
+
+    it("changes start_year in partner period editor", async () => {
+      const user = userEvent.setup();
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      const props = defaultProps();
+      props.allPersons.set("p2", bob);
+      props.relationships = [
+        makeRelationship({
+          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByText("common.edit"));
+
+      const startYearInput = screen.getByDisplayValue("2000");
+      fireEvent.change(startYearInput, { target: { value: "2005" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          periods: [expect.objectContaining({ start_year: 2005 })],
+        }),
+      );
+    });
+
+    it("changes end_year in partner period editor", async () => {
+      const user = userEvent.setup();
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      const props = defaultProps();
+      props.allPersons.set("p2", bob);
+      props.relationships = [
+        makeRelationship({
+          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByText("common.edit"));
+
+      // Find the end year input within the period editor (next to the "common.endYear" label)
+      const endYearLabel = screen.getByText("common.endYear");
+      const endYearInput = endYearLabel.closest("label")!.querySelector("input")!;
+      fireEvent.change(endYearInput, { target: { value: "2010" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          periods: [expect.objectContaining({ end_year: 2010 })],
+        }),
+      );
+    });
+
+    it("clears end_year to null in partner period editor", async () => {
+      const user = userEvent.setup();
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      const props = defaultProps();
+      props.allPersons.set("p2", bob);
+      props.relationships = [
+        makeRelationship({
+          periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Married }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByText("common.edit"));
+
+      const endYearInput = screen.getByDisplayValue("2010");
+      fireEvent.change(endYearInput, { target: { value: "" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          periods: [expect.objectContaining({ end_year: null })],
+        }),
+      );
     });
   });
 
@@ -1330,6 +1546,88 @@ describe("PersonDetailPanel", () => {
       const options = within(categorySelect).getAllByRole("option");
       // Should be filtered to only categories containing "anxiety"
       expect(options.length).toBeLessThan(22);
+    });
+
+    it("changes classification period start_year", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByText("classification.newClassification"));
+
+      // Add a period
+      await user.click(screen.getByText("classification.addPeriod"));
+
+      // The period should have the current year as start_year
+      const currentYear = new Date().getFullYear();
+      const startYearInput = screen.getByDisplayValue(String(currentYear));
+      fireEvent.change(startYearInput, { target: { value: "2015" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveClassification).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          periods: [expect.objectContaining({ start_year: 2015 })],
+        }),
+        expect.arrayContaining(["p1"]),
+      );
+    });
+
+    it("changes classification period end_year", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByText("classification.newClassification"));
+
+      // Add a period
+      await user.click(screen.getByText("classification.addPeriod"));
+
+      // Find end year input within the period row (next to "common.endYear" label)
+      const endYearLabel = screen.getByText("common.endYear");
+      const endYearInput = endYearLabel.closest("label")!.querySelector("input")!;
+      fireEvent.change(endYearInput, { target: { value: "2020" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveClassification).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          periods: [expect.objectContaining({ end_year: 2020 })],
+        }),
+        expect.arrayContaining(["p1"]),
+      );
+    });
+
+    it("clears classification period end_year to null", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({
+          periods: [{ start_year: 2010, end_year: 2020 }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByText("common.edit"));
+
+      // Clear the end_year
+      const endYearInput = screen.getByDisplayValue("2020");
+      fireEvent.change(endYearInput, { target: { value: "" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveClassification).toHaveBeenCalledWith(
+        "cls1",
+        expect.objectContaining({
+          periods: [expect.objectContaining({ start_year: 2010, end_year: null })],
+        }),
+        expect.arrayContaining(["p1"]),
+      );
     });
 
     it("links classification to multiple persons", async () => {

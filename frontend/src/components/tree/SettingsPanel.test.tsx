@@ -77,10 +77,16 @@ vi.mock("../../hooks/useLogout", () => ({
 }));
 
 const mockChangeLanguage = vi.fn();
+let mockI18nLanguage = "en";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { language: "en", changeLanguage: mockChangeLanguage },
+    i18n: {
+      get language() {
+        return mockI18nLanguage;
+      },
+      changeLanguage: mockChangeLanguage,
+    },
   }),
 }));
 
@@ -122,6 +128,7 @@ async function switchToAccountTab(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockI18nLanguage = "en";
 });
 
 describe("SettingsPanel", () => {
@@ -397,6 +404,30 @@ describe("SettingsPanel", () => {
       await user.click(nlRadio!);
 
       expect(mockChangeLanguage).toHaveBeenCalledWith("nl");
+    });
+
+    it("clicking English radio calls changeLanguage with en when language is nl", async () => {
+      mockI18nLanguage = "nl";
+      const user = userEvent.setup();
+      renderPanel();
+      await openPanel(user);
+
+      const enRadio = screen
+        .getByText("English")
+        .closest("label")
+        ?.querySelector("input") as HTMLInputElement;
+      const nlRadio = screen
+        .getByText("Nederlands")
+        .closest("label")
+        ?.querySelector("input") as HTMLInputElement;
+
+      // Nederlands should be checked, English should not
+      expect(nlRadio.checked).toBe(true);
+      expect(enRadio.checked).toBe(false);
+
+      await user.click(enRadio);
+
+      expect(mockChangeLanguage).toHaveBeenCalledWith("en");
     });
   });
 
@@ -711,6 +742,92 @@ describe("SettingsPanel", () => {
       expect(mockGetTrees).toHaveBeenCalled();
       expect(mockUpdateSalt).toHaveBeenCalledWith({ encryption_salt: "newsalt456" });
       expect(mockSetKey).toHaveBeenCalledWith(fakeNewKey);
+    });
+
+    it("re-encrypts all entity types during passphrase change", async () => {
+      const user = userEvent.setup();
+      const fakeCryptoKey = {} as CryptoKey;
+      const fakeNewKey = {} as CryptoKey;
+
+      mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "salt123" });
+      mockDeriveKey
+        .mockResolvedValueOnce(fakeCryptoKey) // old key
+        .mockResolvedValueOnce(fakeNewKey); // new key
+      mockGenerateSalt.mockReturnValue("newsalt456");
+      mockGetTrees.mockResolvedValue([{ id: "t1", encrypted_data: "enc-tree" }]);
+      mockDecryptFromApi.mockResolvedValue({ some: "data" });
+      mockEncryptForApi.mockResolvedValue("re-encrypted");
+      mockGetPersons.mockResolvedValue([{ id: "p1", encrypted_data: "enc-p" }]);
+      mockGetRelationships.mockResolvedValue([
+        { id: "r1", source_person_id: "p1", target_person_id: "p2", encrypted_data: "enc-r" },
+      ]);
+      mockGetEvents.mockResolvedValue([{ id: "e1", person_ids: ["p1"], encrypted_data: "enc-e" }]);
+      mockGetLifeEvents.mockResolvedValue([
+        { id: "le1", person_ids: ["p1"], encrypted_data: "enc-le" },
+      ]);
+      mockGetClassifications.mockResolvedValue([
+        { id: "c1", person_ids: ["p1"], encrypted_data: "enc-c" },
+      ]);
+      mockGetPatterns.mockResolvedValue([
+        { id: "pat1", person_ids: ["p1"], encrypted_data: "enc-pat" },
+      ]);
+      mockSyncTree.mockResolvedValue(undefined);
+      mockUpdateClassification.mockResolvedValue(undefined);
+      mockUpdatePattern.mockResolvedValue(undefined);
+      mockUpdateSalt.mockResolvedValue(undefined);
+
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
+
+      const saveButtons = screen.getAllByText("common.save");
+      await user.click(saveButtons[1]);
+
+      await waitFor(() => {
+        expect(screen.getByText("account.passphraseChanged")).toBeInTheDocument();
+      });
+
+      // Decrypt is called for: tree + person + relationship + event + life event
+      //   + classification + pattern = 7 times
+      expect(mockDecryptFromApi).toHaveBeenCalledTimes(7);
+      // Encrypt is called for the same 7 entities
+      expect(mockEncryptForApi).toHaveBeenCalledTimes(7);
+
+      // syncTree should have been called with persons, relationships, and events
+      expect(mockSyncTree).toHaveBeenCalledWith("t1", {
+        persons_update: [{ id: "p1", encrypted_data: "re-encrypted" }],
+        relationships_update: [
+          {
+            id: "r1",
+            source_person_id: "p1",
+            target_person_id: "p2",
+            encrypted_data: "re-encrypted",
+          },
+        ],
+        events_update: [{ id: "e1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
+      });
+
+      // Classification updated individually
+      expect(mockUpdateClassification).toHaveBeenCalledWith("t1", "c1", {
+        person_ids: ["p1"],
+        encrypted_data: "re-encrypted",
+      });
+
+      // Pattern updated individually
+      expect(mockUpdatePattern).toHaveBeenCalledWith("t1", "pat1", {
+        person_ids: ["p1"],
+        encrypted_data: "re-encrypted",
+      });
     });
 
     it("clears passphrase fields after successful change", async () => {
