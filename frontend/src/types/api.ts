@@ -283,6 +283,7 @@ export interface FeedbackItem {
   message: string;
   user_email: string | null;
   created_at: string;
+  is_read: boolean;
 }
 
 // Waitlist

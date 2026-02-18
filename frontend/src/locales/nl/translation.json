@@ -482,6 +482,8 @@
   "admin.feedbackMessage": "Bericht",
   "admin.feedbackUser": "Gebruiker",
   "admin.feedbackAnonymous": "Anoniem",
+  "admin.feedbackMarkRead": "Gelezen",
+  "admin.feedbackDelete": "Verwijderen",
 
   "admin.waitlist.title": "Wachtlijst",
   "admin.waitlist.capacity": "{{current}} / {{max}} gebruikers",

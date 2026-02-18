@@ -8,6 +8,7 @@ import { ThemeToggle } from "../components/ThemeToggle";
 import { useLogout } from "../hooks/useLogout";
 import {
   approveWaitlistEntry,
+  deleteFeedback,
   deleteWaitlistEntry,
   getAdminActivity,
   getAdminFeedback,
@@ -19,6 +20,7 @@ import {
   getAdminUsers,
   getAdminWaitlist,
   getAdminWaitlistCapacity,
+  markFeedbackRead,
 } from "../lib/api";
 import type {
   ActivityCell,
@@ -213,6 +215,20 @@ export default function AdminPage() {
     mutationFn: deleteWaitlistEntry,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "waitlist"] });
+    },
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: markFeedbackRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "feedback"] });
+    },
+  });
+
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: deleteFeedback,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "feedback"] });
     },
   });
 
@@ -597,12 +613,21 @@ export default function AdminPage() {
                       <th>{t("admin.feedbackCategory")}</th>
                       <th>{t("admin.feedbackMessage")}</th>
                       <th>{t("admin.feedbackUser")}</th>
+                      <th>{t("admin.waitlist.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {feedback.data.items.map((item: FeedbackItem) => (
-                      <tr key={item.id}>
-                        <td>{formatDate(item.created_at, i18n.language)}</td>
+                      <tr
+                        key={item.id}
+                        className={item.is_read ? undefined : "admin-feedback-row--unread"}
+                      >
+                        <td>
+                          <span className="admin-feedback-date">
+                            {!item.is_read && <span className="admin-feedback-unread" />}
+                            {formatDate(item.created_at, i18n.language)}
+                          </span>
+                        </td>
                         <td>
                           <span
                             className={`admin-feedback-badge admin-feedback-badge--${item.category}`}
@@ -618,6 +643,26 @@ export default function AdminPage() {
                             : item.message}
                         </td>
                         <td>{item.user_email ?? t("admin.feedbackAnonymous")}</td>
+                        <td className="admin-feedback-actions">
+                          {!item.is_read && (
+                            <button
+                              type="button"
+                              className="admin-feedback-btn admin-feedback-btn--read"
+                              onClick={() => markReadMutation.mutate(item.id)}
+                              disabled={markReadMutation.isPending}
+                            >
+                              {t("admin.feedbackMarkRead")}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="admin-feedback-btn admin-feedback-btn--delete"
+                            onClick={() => deleteFeedbackMutation.mutate(item.id)}
+                            disabled={deleteFeedbackMutation.isPending}
+                          >
+                            {t("admin.feedbackDelete")}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -116,6 +116,91 @@ class TestAdminFeedback:
         bug_item = next(i for i in data["items"] if i["category"] == "bug")
         assert bug_item["user_email"] == "test@example.com"
 
+    async def test_admin_feedback_includes_is_read(self, client, headers, admin_headers):
+        await client.post(
+            "/feedback",
+            json={"category": "bug", "message": "Test is_read"},
+            headers=headers,
+        )
+        resp = await client.get("/admin/feedback", headers=admin_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["items"]) == 1
+        assert data["items"][0]["is_read"] is False
+
     async def test_admin_feedback_forbidden_for_non_admin(self, client, headers):
         resp = await client.get("/admin/feedback", headers=headers)
+        assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+class TestMarkFeedbackRead:
+    async def test_mark_read_happy_path(self, client, headers, admin_headers):
+        # Submit feedback
+        submit_resp = await client.post(
+            "/feedback",
+            json={"category": "bug", "message": "Mark me read"},
+            headers=headers,
+        )
+        feedback_id = submit_resp.json()["id"]
+
+        # Mark as read
+        resp = await client.patch(f"/admin/feedback/{feedback_id}/read", headers=admin_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["is_read"] is True
+        assert data["id"] == feedback_id
+
+        # Verify in list
+        list_resp = await client.get("/admin/feedback", headers=admin_headers)
+        item = next(i for i in list_resp.json()["items"] if i["id"] == feedback_id)
+        assert item["is_read"] is True
+
+    async def test_mark_read_not_found(self, client, admin_headers):
+        resp = await client.patch(
+            "/admin/feedback/00000000-0000-0000-0000-000000000000/read",
+            headers=admin_headers,
+        )
+        assert resp.status_code == 404
+
+    async def test_mark_read_forbidden_for_non_admin(self, client, headers):
+        resp = await client.patch(
+            "/admin/feedback/00000000-0000-0000-0000-000000000000/read",
+            headers=headers,
+        )
+        assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+class TestDeleteFeedback:
+    async def test_delete_happy_path(self, client, headers, admin_headers, db_session):
+        # Submit feedback
+        submit_resp = await client.post(
+            "/feedback",
+            json={"category": "feature", "message": "Delete me"},
+            headers=headers,
+        )
+        feedback_id = submit_resp.json()["id"]
+
+        # Delete it
+        resp = await client.delete(f"/admin/feedback/{feedback_id}", headers=admin_headers)
+        assert resp.status_code == 204
+
+        # Verify gone from list
+        list_resp = await client.get("/admin/feedback", headers=admin_headers)
+        ids = [i["id"] for i in list_resp.json()["items"]]
+        assert feedback_id not in ids
+
+    async def test_delete_not_found(self, client, admin_headers):
+        resp = await client.delete(
+            "/admin/feedback/00000000-0000-0000-0000-000000000000",
+            headers=admin_headers,
+        )
+        assert resp.status_code == 404
+
+    async def test_delete_forbidden_for_non_admin(self, client, headers):
+        resp = await client.delete(
+            "/admin/feedback/00000000-0000-0000-0000-000000000000",
+            headers=headers,
+        )
         assert resp.status_code == 403

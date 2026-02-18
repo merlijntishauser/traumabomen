@@ -14,6 +14,7 @@ import {
   deleteAccount,
   deleteClassification,
   deleteEvent,
+  deleteFeedback,
   deleteLifeEvent,
   deletePattern,
   deletePerson,
@@ -51,6 +52,7 @@ import {
   joinWaitlist,
   login,
   logout,
+  markFeedbackRead,
   register,
   resendVerification,
   setTokens,
@@ -1227,6 +1229,30 @@ describe("feedback functions", () => {
     expect(url).toBe("/api/feedback");
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body)).toEqual({ category: "bug", message: "broken", anonymous: false });
+  });
+
+  it("markFeedbackRead sends PATCH to /admin/feedback/{id}/read", async () => {
+    setTokens("tok", "ref");
+    const data = { id: "f1", category: "bug", message: "broken", is_read: true };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await markFeedbackRead("f1");
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/feedback/f1/read");
+    expect(init.method).toBe("PATCH");
+  });
+
+  it("deleteFeedback sends DELETE to /admin/feedback/{id}", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await deleteFeedback("f1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/feedback/f1");
+    expect(init.method).toBe("DELETE");
   });
 });
 

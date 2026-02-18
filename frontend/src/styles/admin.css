@@ -346,6 +346,65 @@
   text-overflow: ellipsis;
 }
 
+.admin-feedback-row--unread td {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.admin-feedback-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-feedback-unread {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.admin-feedback-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-feedback-btn {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.admin-feedback-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-feedback-btn--read {
+  color: var(--color-accent);
+  border-color: rgba(45, 138, 94, 0.3);
+}
+
+.admin-feedback-btn--read:hover:not(:disabled) {
+  background: var(--color-accent-subtle);
+}
+
+.admin-feedback-btn--delete {
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+}
+
+.admin-feedback-btn--delete:hover:not(:disabled) {
+  background: var(--color-danger-bg);
+}
+
 /* --- Waitlist --- */
 
 .admin-section__subtitle {

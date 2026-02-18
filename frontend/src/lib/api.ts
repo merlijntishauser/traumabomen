@@ -548,6 +548,14 @@ export function submitFeedback(data: FeedbackCreate): Promise<void> {
   return apiFetchWithRetry("/feedback", { method: "POST", body: data });
 }
 
+export function markFeedbackRead(id: string): Promise<FeedbackItem> {
+  return apiFetchWithRetry(`/admin/feedback/${id}/read`, { method: "PATCH" });
+}
+
+export function deleteFeedback(id: string): Promise<void> {
+  return apiFetchWithRetry(`/admin/feedback/${id}`, { method: "DELETE" });
+}
+
 // Waitlist
 
 export function joinWaitlist(email: string): Promise<{ message: string }> {

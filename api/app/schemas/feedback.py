@@ -16,6 +16,7 @@ class FeedbackResponse(BaseModel):
     message: str
     user_email: str | None
     created_at: datetime
+    is_read: bool
 
 
 class FeedbackListResponse(BaseModel):

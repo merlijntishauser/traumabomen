@@ -482,6 +482,8 @@
   "admin.feedbackMessage": "Message",
   "admin.feedbackUser": "User",
   "admin.feedbackAnonymous": "Anonymous",
+  "admin.feedbackMarkRead": "Mark read",
+  "admin.feedbackDelete": "Delete",
 
   "admin.waitlist.title": "Waitlist",
   "admin.waitlist.capacity": "{{current}} / {{max}} users",
