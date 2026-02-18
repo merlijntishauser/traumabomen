@@ -46,3 +46,4 @@ docker-compose.override.yml
 *.log
 /api/.coverage
 /api/coverage.json
+.performance-current.json

@@ -182,6 +182,26 @@ jobs:
             "{\"email\":\"${SMOKETEST_EMAIL}\",\"password\":\"${SMOKETEST_PASSWORD}\"}" \
             "access_token"
 
+  performance-check:
+    needs: [smoketest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Lighthouse
+        run: |
+          npm install -g lighthouse
+          npx puppeteer browsers install chrome
+
+      - name: Performance check
+        env:
+          SMOKETEST_EMAIL: ${{ secrets.SMOKETEST_EMAIL }}
+          SMOKETEST_PASSWORD: ${{ secrets.SMOKETEST_PASSWORD }}
+        run: |
+          CHROME_PATH=$(find /home/runner/.cache/puppeteer -name chrome -type f | head -1)
+          export CHROME_PATH
+          ./scripts/performance-check.sh https://www.traumatrees.org
+
   security-scan:
     needs: [smoketest]
     runs-on: ubuntu-latest

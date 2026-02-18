@@ -1,5 +1,5 @@
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e \
-       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity
+       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet
 
 .DEFAULT_GOAL := help
 
@@ -112,6 +112,16 @@ ratchet: ## Update coverage baseline to current values
 	TS=$$(docker compose exec frontend node -e "const d=require('./coverage/coverage-summary.json'); console.log(Math.floor(d.total.statements.pct))"); \
 	echo "{\"python\": $$PY, \"typescript\": $$TS}" > .coverage-baseline.json; \
 	echo "Updated baseline: python=$$PY% typescript=$$TS%"
+
+# --- Performance ---
+
+perf-check: ## Run performance checks against production
+	@bash scripts/performance-check.sh https://www.traumatrees.org
+
+perf-ratchet: ## Update performance baseline to current production values
+	@bash scripts/performance-check.sh https://www.traumatrees.org
+	@cp .performance-current.json .performance-baseline.json
+	@echo "Performance baseline updated."
 
 # --- Security ---
 
