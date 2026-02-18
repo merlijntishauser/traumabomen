@@ -93,9 +93,13 @@ describe("AppFooter", () => {
     expect(screen.queryByLabelText("safety.footer.lock")).not.toBeInTheDocument();
   });
 
-  it("renders feedback button", () => {
+  it("renders feedback button with text label", () => {
     render(<AppFooter />);
-    expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
+    const btn = screen.getByLabelText("feedback.button");
+    expect(btn).toBeInTheDocument();
+    expect(btn.querySelector("span")).toBeTruthy();
+    expect(btn.textContent).toContain("feedback.button");
+    expect(btn.classList.contains("app-footer__btn--feedback")).toBe(true);
   });
 
   it("opens feedback modal on click", () => {

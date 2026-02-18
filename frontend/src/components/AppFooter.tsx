@@ -6,6 +6,8 @@ import { FeedbackModal } from "./FeedbackModal";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
+const T_FEEDBACK = "feedback.button";
+
 const resources: Record<string, { name: string; url: string }> = {
   nl: { name: "Wij zijn Mind", url: "https://wijzijnmind.nl" },
   en: { name: "Crisis Text Line", url: "https://www.crisistextline.org" },
@@ -68,12 +70,13 @@ export function AppFooter({ onLock }: Props) {
           )}
           <button
             type="button"
-            className="app-footer__btn"
+            className="app-footer__btn app-footer__btn--feedback"
             onClick={() => setShowFeedback(true)}
-            aria-label={t("feedback.button")}
-            title={t("feedback.button")}
+            aria-label={t(T_FEEDBACK)}
+            title={t(T_FEEDBACK)}
           >
             <MessageSquare size={14} aria-hidden="true" />
+            <span>{t(T_FEEDBACK)}</span>
           </button>
           <Link
             to="/privacy"

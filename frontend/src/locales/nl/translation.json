@@ -526,6 +526,11 @@
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
 
+  "welcome.title": "Welkom bij Traumabomen",
+  "welcome.body": "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom -- en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je.",
+  "welcome.sendMessage": "Stuur ons een bericht",
+  "welcome.createTree": "Maak je eerste boom",
+
   "privacy.diagram.youType": "Jij typt",
   "privacy.diagram.encrypted": "Versleuteld in je browser",
   "privacy.diagram.serverStores": "Server bewaart ???-blobs",

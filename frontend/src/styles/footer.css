@@ -23,11 +23,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  color: var(--color-edge-partner);
 }
 
 .app-footer__heart-icon {
   flex-shrink: 0;
-  opacity: 0.6;
 }
 
 .app-footer__disclaimer-short {
@@ -86,6 +86,17 @@
 .app-footer__btn:hover {
   color: var(--color-text-secondary);
   border-color: var(--color-border-primary);
+}
+
+.app-footer__btn--feedback {
+  gap: 4px;
+  border-color: rgba(236, 72, 153, 0.3);
+  color: var(--color-edge-partner);
+}
+
+.app-footer__btn--feedback:hover {
+  background: rgba(236, 72, 153, 0.08);
+  color: var(--color-edge-partner);
 }
 
 /* Mobile: compact layout */

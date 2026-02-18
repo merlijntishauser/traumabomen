@@ -139,3 +139,91 @@
 .tree-list-loading {
   color: var(--color-text-secondary);
 }
+
+/* Welcome card */
+.welcome-card {
+  position: relative;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  padding: 24px 40px 24px 24px;
+  margin-bottom: 24px;
+}
+
+.welcome-card__dismiss {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.welcome-card__dismiss:hover {
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-primary);
+}
+
+.welcome-card__title {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 20px;
+  color: var(--color-text-primary);
+  margin: 0 0 8px;
+}
+
+.welcome-card__body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px;
+}
+
+.welcome-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.welcome-card__btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.welcome-card__btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.welcome-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.welcome-card__btn--accent {
+  border-color: rgba(45, 138, 94, 0.3);
+  color: var(--color-accent);
+}
+
+.welcome-card__btn--accent:hover {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
