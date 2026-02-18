@@ -149,6 +149,18 @@ export default function TreeListPage() {
         <div className="tree-list-content">
           {!(treesQuery.data && treesQuery.data.length > 0 && welcomeDismissed) && (
             <div className="welcome-card" data-testid="welcome-card">
+              <img
+                src="/images/welcome-dark.jpg"
+                alt=""
+                aria-hidden="true"
+                className="welcome-card__img welcome-card__img--dark"
+              />
+              <img
+                src="/images/welcome-light.jpg"
+                alt=""
+                aria-hidden="true"
+                className="welcome-card__img welcome-card__img--light"
+              />
               <button
                 type="button"
                 className="welcome-card__dismiss"

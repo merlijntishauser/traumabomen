@@ -39,6 +39,25 @@ Dismiss: small X button in top-right corner.
 - Max width matches tree list content
 - Subtle, no shadows -- fits the layered forest aesthetic
 
+### Background Images
+
+Two theme-aware Unsplash photos displayed behind a semi-transparent overlay.
+
+**Dark theme:** Bench in a green park (Unsplash `0YAIK1HaC-Q`) -- lush green foliage with a solitary bench. Dark green overlay preserves the moody forest aesthetic.
+
+**Light theme:** Sunlit foggy forest (Unsplash `U-eRC8Q5iEY`) -- golden morning light streaming through misty autumn trees. Warm white overlay keeps the bright, open feel.
+
+**Implementation:**
+- Two `<img>` elements inside the card, absolute-positioned with `object-fit: cover`
+- CSS opacity swap between themes (same pattern as AuthHero)
+- `::before` pseudo-element overlay with left-to-right gradient: heavier on the text side (~0.75), lighter on the right (~0.55) so the image peeks through
+- Dark overlay: `rgba(10, 26, 15, 0.75)` to `rgba(10, 26, 15, 0.55)`
+- Light overlay: `rgba(255, 255, 255, 0.75)` to `rgba(255, 255, 255, 0.55)`
+- Text shadow for legibility: dark theme `0 1px 3px rgba(0,0,0,0.3)`, light theme `0 1px 2px rgba(255,255,255,0.5)`
+- All card content at z-index 2 above the overlay
+
+**Files:** `frontend/public/images/welcome-dark.jpg`, `frontend/public/images/welcome-light.jpg` (resized to ~1200px wide)
+
 ### Dismiss Logic
 
 The card remains visible until both conditions are met:
