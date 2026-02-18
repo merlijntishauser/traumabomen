@@ -42,7 +42,7 @@ export default function TreeListPage() {
   const [showFeedback, setShowFeedback] = useState(false);
 
   const dismissWelcome = useCallback(() => {
-    localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
+    localStorage.setItem(WELCOME_DISMISSED_KEY, "true"); // privacy-ok: UI dismiss flag, not sensitive data
     setWelcomeDismissed(true);
   }, []);
 

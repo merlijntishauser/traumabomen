@@ -90,9 +90,9 @@ vi.mock("@tanstack/react-query", () => ({
 const STORAGE_KEY = "traumabomen_welcome_dismissed";
 
 const localStorageStore: Record<string, string> = {};
-const mockGetItem = vi.fn((key: string) => localStorageStore[key] ?? null);
+const mockGetItem = vi.fn((key: string) => localStorageStore[key] ?? null); // privacy-ok
 const mockSetItem = vi.fn((key: string, value: string) => {
-  localStorageStore[key] = value;
+  localStorageStore[key] = value; // privacy-ok
 });
 
 vi.stubGlobal("localStorage", {
