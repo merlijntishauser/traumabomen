@@ -122,4 +122,26 @@ describe("AppFooter", () => {
     fireEvent.click(screen.getByText("close"));
     expect(screen.queryByTestId("feedback-modal")).not.toBeInTheDocument();
   });
+
+  it("renders copyright with current year in colophon", () => {
+    render(<AppFooter />);
+    const year = new Date().getFullYear().toString();
+    const colophon = document.querySelector(".app-footer__colophon");
+    expect(colophon).toBeTruthy();
+    expect(colophon?.textContent).toContain(year);
+    expect(colophon?.textContent).toContain("Merlijn Tishauser");
+  });
+
+  it("renders AGPL-3.0 license link in colophon", () => {
+    render(<AppFooter />);
+    const licenseLink = screen.getByText("AGPL-3.0");
+    expect(licenseLink).toBeInTheDocument();
+    expect(licenseLink.tagName).toBe("A");
+    expect(licenseLink).toHaveAttribute(
+      "href",
+      "https://github.com/merlijntishauser/traumabomen/blob/main/LICENSE",
+    );
+    expect(licenseLink).toHaveAttribute("target", "_blank");
+    expect(licenseLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
 });

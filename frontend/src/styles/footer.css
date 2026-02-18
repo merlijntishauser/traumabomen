@@ -2,15 +2,21 @@
 
 .app-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 44px;
-  padding: 0 16px;
+  flex-direction: column;
   background: var(--color-bg-secondary);
   border-top: 1px solid var(--color-border-secondary);
   font-size: 11px;
   color: var(--color-text-muted);
   flex-shrink: 0;
+}
+
+/* Main row: disclaimer | support | actions */
+.app-footer__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 16px;
   gap: 12px;
 }
 
@@ -99,6 +105,39 @@
   color: var(--color-edge-partner);
 }
 
+/* Colophon: copyright & license */
+.app-footer__colophon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  height: 20px;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.app-footer__colophon a {
+  color: var(--color-text-muted);
+  transition: color 0.15s ease;
+}
+
+.app-footer__colophon a:hover {
+  color: var(--color-text-secondary);
+}
+
+.app-footer__colophon-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
 /* Mobile: compact layout */
 @media (max-width: 640px) {
   .app-footer__disclaimer-full {
@@ -116,11 +155,36 @@
 
 @media (max-width: 420px) {
   .app-footer {
-    gap: 8px;
-    padding: 0 10px;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .app-footer__row {
+    flex-direction: column;
+    height: auto;
+    gap: 6px;
+    padding: 0;
+  }
+
+  .app-footer__disclaimer {
+    order: 1;
   }
 
   .app-footer__support {
-    display: none;
+    order: 2;
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .app-footer__actions {
+    order: 3;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .app-footer__colophon {
+    border-top: none;
+    padding-top: 2px;
   }
 }
