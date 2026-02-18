@@ -5,6 +5,7 @@ import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
 } from "../../hooks/useTreeData";
@@ -29,6 +30,13 @@ interface TimelineViewProps {
   layoutMode?: LayoutMode;
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  patterns?: Map<string, DecryptedPattern>;
+  visiblePatternIds?: Set<string>;
+  selectedEntityKeys?: Set<string>;
+  hoveredPatternId?: string | null;
+  onToggleEntitySelect?: (key: string) => void;
+  onPatternHover?: (patternId: string | null) => void;
+  onPatternClick?: (patternId: string) => void;
 }
 
 export function TimelineView({
@@ -43,6 +51,13 @@ export function TimelineView({
   layoutMode = "years",
   onSelectPerson,
   onClickMarker,
+  patterns,
+  visiblePatternIds,
+  selectedEntityKeys,
+  hoveredPatternId,
+  onToggleEntitySelect,
+  onPatternHover,
+  onPatternClick,
 }: TimelineViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -97,6 +112,13 @@ export function TimelineView({
     onSelectPerson,
     onClickMarker,
     onTooltip,
+    patterns,
+    visiblePatternIds,
+    selectedEntityKeys,
+    hoveredPatternId,
+    onToggleEntitySelect,
+    onPatternHover,
+    onPatternClick,
   };
 
   return (

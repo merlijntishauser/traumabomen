@@ -31,6 +31,8 @@ interface AgePersonLaneProps {
   dims?: DimSets;
   onSelectPerson?: (personId: string) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  selectedEntityKeys?: Set<string>;
+  onToggleEntitySelect?: (key: string) => void;
 }
 
 export const AgePersonLane = React.memo(function AgePersonLane({
@@ -53,6 +55,8 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   dims,
   onSelectPerson,
   onClickMarker,
+  selectedEntityKeys,
+  onToggleEntitySelect,
 }: AgePersonLaneProps) {
   const hasBirth = person.birth_year != null;
   const birthYear = person.birth_year ?? 0;
@@ -77,9 +81,13 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   const handleMarkerClick = useCallback(
     (entityType: MarkerClickInfo["entityType"], entityId: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      onClickMarker?.({ personId: person.id, entityType, entityId });
+      if (mode === "annotate") {
+        onToggleEntitySelect?.(`${entityType}:${entityId}`);
+      } else {
+        onClickMarker?.({ personId: person.id, entityType, entityId });
+      }
     },
-    [onClickMarker, person.id],
+    [mode, onClickMarker, onToggleEntitySelect, person.id],
   );
 
   const className = ["tl-lane", selected && "tl-lane--selected", dimmed && "tl-lane--dimmed"]
@@ -94,7 +102,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         y={-5}
         width={laneWidth}
         height={Math.max(10, maxAge + 10)}
-        className={`tl-lane-hitarea${mode === "edit" ? " tl-lane-hitarea--edit" : ""}`}
+        className={`tl-lane-hitarea${mode === "edit" ? " tl-lane-hitarea--edit" : ""}${mode === "annotate" ? " tl-lane-hitarea--annotate" : ""}`}
         onClick={handleLaneClick}
       />
 
@@ -174,33 +182,44 @@ export const AgePersonLane = React.memo(function AgePersonLane({
 
                   const catLabel = t(`dsm.${cls.dsm_category}`);
                   const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
+                  const isClsSelected = selectedEntityKeys?.has(`classification:${cls.id}`);
 
                   return (
-                    <path
-                      d={triPath}
-                      fill={clsColor}
-                      stroke={canvasStroke}
-                      strokeWidth={1.5}
-                      className="tl-marker"
-                      onClick={(e) => handleMarkerClick("classification", cls.id, e)}
-                      onMouseEnter={(e) => {
-                        onTooltip({
-                          visible: true,
-                          x: e.clientX,
-                          y: e.clientY,
-                          lines: [
-                            {
-                              text: subLabel ? `${catLabel} - ${subLabel}` : catLabel,
-                              bold: true,
-                            },
-                            {
-                              text: `${t("classification.status.diagnosed")} (${cls.diagnosis_year})`,
-                            },
-                          ],
-                        });
-                      }}
-                      onMouseLeave={hideTooltip}
-                    />
+                    <>
+                      <path
+                        d={triPath}
+                        fill={clsColor}
+                        stroke={canvasStroke}
+                        strokeWidth={1.5}
+                        className="tl-marker"
+                        onClick={(e) => handleMarkerClick("classification", cls.id, e)}
+                        onMouseEnter={(e) => {
+                          onTooltip({
+                            visible: true,
+                            x: e.clientX,
+                            y: e.clientY,
+                            lines: [
+                              {
+                                text: subLabel ? `${catLabel} - ${subLabel}` : catLabel,
+                                bold: true,
+                              },
+                              {
+                                text: `${t("classification.status.diagnosed")} (${cls.diagnosis_year})`,
+                              },
+                            ],
+                          });
+                        }}
+                        onMouseLeave={hideTooltip}
+                      />
+                      {isClsSelected && (
+                        <circle
+                          cx={cx}
+                          cy={diagAge}
+                          r={MARKER_RADIUS + 3}
+                          className="tl-selection-ring"
+                        />
+                      )}
+                    </>
                   );
                 })()}
             </g>
@@ -219,35 +238,40 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           .join(", ");
 
         const isMarkerDimmed = dims?.dimmedEventIds.has(event.id);
+        const isEntitySelected = selectedEntityKeys?.has(`trauma_event:${event.id}`);
 
         return (
-          <circle
-            key={event.id}
-            cx={cx}
-            cy={age}
-            r={MARKER_RADIUS}
-            fill={traumaColors[event.category]}
-            stroke={canvasStroke}
-            strokeWidth={1.5}
-            className="tl-marker"
-            opacity={isMarkerDimmed ? 0.15 : undefined}
-            onClick={(e) => handleMarkerClick("trauma_event", event.id, e)}
-            onMouseEnter={(e) => {
-              onTooltip({
-                visible: true,
-                x: e.clientX,
-                y: e.clientY,
-                lines: [
-                  { text: event.title, bold: true },
-                  { text: t(`trauma.category.${event.category}`) },
-                  { text: `${t("timeline.ageAxis")}: ${age}` },
-                  { text: t("timeline.severity", { value: event.severity }) },
-                  { text: linkedNames },
-                ],
-              });
-            }}
-            onMouseLeave={hideTooltip}
-          />
+          <React.Fragment key={event.id}>
+            <circle
+              cx={cx}
+              cy={age}
+              r={MARKER_RADIUS}
+              fill={traumaColors[event.category]}
+              stroke={canvasStroke}
+              strokeWidth={1.5}
+              className="tl-marker"
+              opacity={isMarkerDimmed ? 0.15 : undefined}
+              onClick={(e) => handleMarkerClick("trauma_event", event.id, e)}
+              onMouseEnter={(e) => {
+                onTooltip({
+                  visible: true,
+                  x: e.clientX,
+                  y: e.clientY,
+                  lines: [
+                    { text: event.title, bold: true },
+                    { text: t(`trauma.category.${event.category}`) },
+                    { text: `${t("timeline.ageAxis")}: ${age}` },
+                    { text: t("timeline.severity", { value: event.severity }) },
+                    { text: linkedNames },
+                  ],
+                });
+              }}
+              onMouseLeave={hideTooltip}
+            />
+            {isEntitySelected && (
+              <circle cx={cx} cy={age} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+            )}
+          </React.Fragment>
         );
       })}
 
@@ -274,31 +298,36 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         lines.push({ text: linkedNames });
 
         const isMarkerDimmed = dims?.dimmedLifeEventIds.has(le.id);
+        const isEntitySelected = selectedEntityKeys?.has(`life_event:${le.id}`);
 
         return (
-          <rect
-            key={le.id}
-            x={cx - diamondSize}
-            y={age - diamondSize}
-            width={diamondSize * 2}
-            height={diamondSize * 2}
-            transform={`rotate(45, ${cx}, ${age})`}
-            fill={lifeEventColors[le.category]}
-            stroke={canvasStroke}
-            strokeWidth={1.5}
-            className="tl-marker"
-            opacity={isMarkerDimmed ? 0.15 : undefined}
-            onClick={(e) => handleMarkerClick("life_event", le.id, e)}
-            onMouseEnter={(e) => {
-              onTooltip({
-                visible: true,
-                x: e.clientX,
-                y: e.clientY,
-                lines,
-              });
-            }}
-            onMouseLeave={hideTooltip}
-          />
+          <React.Fragment key={le.id}>
+            <rect
+              x={cx - diamondSize}
+              y={age - diamondSize}
+              width={diamondSize * 2}
+              height={diamondSize * 2}
+              transform={`rotate(45, ${cx}, ${age})`}
+              fill={lifeEventColors[le.category]}
+              stroke={canvasStroke}
+              strokeWidth={1.5}
+              className="tl-marker"
+              opacity={isMarkerDimmed ? 0.15 : undefined}
+              onClick={(e) => handleMarkerClick("life_event", le.id, e)}
+              onMouseEnter={(e) => {
+                onTooltip({
+                  visible: true,
+                  x: e.clientX,
+                  y: e.clientY,
+                  lines,
+                });
+              }}
+              onMouseLeave={hideTooltip}
+            />
+            {isEntitySelected && (
+              <circle cx={cx} cy={age} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+            )}
+          </React.Fragment>
         );
       })}
     </g>

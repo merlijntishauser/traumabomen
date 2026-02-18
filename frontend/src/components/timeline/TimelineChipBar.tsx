@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/useTimelineFilters";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
+import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
 import type { ClassificationStatus, LifeEventCategory, TraumaCategory } from "../../types/domain";
 import "./TimelineChipBar.css";
 
@@ -68,9 +68,10 @@ interface TimelineChipBarProps {
   filters: TimelineFilterState;
   actions: TimelineFilterActions;
   persons: Map<string, DecryptedPerson>;
+  patterns?: Map<string, DecryptedPattern>;
 }
 
-export function TimelineChipBar({ filters, actions, persons }: TimelineChipBarProps) {
+export function TimelineChipBar({ filters, actions, persons, patterns }: TimelineChipBarProps) {
   const { t } = useTranslation();
 
   const chips: Chip[] = [
@@ -107,6 +108,13 @@ export function TimelineChipBar({ filters, actions, persons }: TimelineChipBarPr
             onRemove: () => actions.setTimeRange(null),
           },
         ]
+      : []),
+    ...(filters.visiblePatterns && patterns
+      ? Array.from(filters.visiblePatterns).map((id) => ({
+          key: `pattern-${id}`,
+          label: patterns.get(id)?.name ?? id,
+          onRemove: () => actions.togglePatternFilter(id),
+        }))
       : []),
   ];
 

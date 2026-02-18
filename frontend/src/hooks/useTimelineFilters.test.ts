@@ -6,6 +6,7 @@ import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
 } from "./useTreeData";
 
@@ -382,5 +383,141 @@ describe("useTimelineFilters", () => {
 
     // Non-numeric date -> not time-filtered
     expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
+  });
+
+  describe("pattern filtering", () => {
+    function makePattern(
+      id: string,
+      linkedEntities: {
+        entity_type: "trauma_event" | "life_event" | "classification";
+        entity_id: string;
+      }[],
+    ): DecryptedPattern {
+      return {
+        id,
+        name: `Pattern ${id}`,
+        description: "",
+        color: "#818cf8",
+        linked_entities: linkedEntities,
+        person_ids: [],
+      };
+    }
+
+    it("starts with visiblePatterns null", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      expect(result.current.filters.visiblePatterns).toBeNull();
+    });
+
+    it("togglePatternFilter shows only linked entities", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        [
+          "pat1",
+          makePattern("pat1", [
+            { entity_type: "trauma_event", entity_id: "e1" },
+            { entity_type: "life_event", entity_id: "le1" },
+          ]),
+        ],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      act(() => {
+        result.current.actions.togglePatternFilter("pat1");
+      });
+
+      expect(result.current.filters.visiblePatterns).not.toBeNull();
+      expect(result.current.filters.visiblePatterns!.has("pat1")).toBe(true);
+      expect(result.current.actions.activeFilterCount).toBe(1);
+
+      // e1 is linked to pat1 -> not dimmed
+      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
+      // e2 is NOT linked to pat1 -> dimmed
+      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true);
+      // le1 is linked -> not dimmed
+      expect(result.current.dims.dimmedLifeEventIds.has("le1")).toBe(false);
+      // le2 is NOT linked -> dimmed
+      expect(result.current.dims.dimmedLifeEventIds.has("le2")).toBe(true);
+    });
+
+    it("togglePatternFilter twice resets to null", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      act(() => {
+        result.current.actions.togglePatternFilter("pat1");
+      });
+      act(() => {
+        result.current.actions.togglePatternFilter("pat1");
+      });
+
+      expect(result.current.filters.visiblePatterns).toBeNull();
+      expect(result.current.actions.activeFilterCount).toBe(0);
+    });
+
+    it("resetAll also clears pattern filter", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      act(() => {
+        result.current.actions.togglePatternFilter("pat1");
+      });
+      expect(result.current.actions.activeFilterCount).toBe(1);
+
+      act(() => {
+        result.current.actions.resetAll();
+      });
+
+      expect(result.current.filters.visiblePatterns).toBeNull();
+      expect(result.current.actions.activeFilterCount).toBe(0);
+    });
+
+    it("pattern filter combines with other filters", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        [
+          "pat1",
+          makePattern("pat1", [
+            { entity_type: "trauma_event", entity_id: "e1" },
+            { entity_type: "trauma_event", entity_id: "e2" },
+          ]),
+        ],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      act(() => {
+        // Pattern filter: only e1 and e2 linked
+        result.current.actions.togglePatternFilter("pat1");
+        // Category filter: only Loss
+        result.current.actions.toggleTraumaCategory(TraumaCategory.Loss);
+      });
+
+      // e1: Loss, linked -> not dimmed by pattern, not dimmed by category
+      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
+      // e2: Abuse, linked -> not dimmed by pattern, but dimmed by category
+      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true);
+      // e3: War, NOT linked -> dimmed by pattern
+      expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true);
+    });
   });
 });

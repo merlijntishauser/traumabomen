@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/useTimelineFilters";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
+import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
 import { DSM_CATEGORIES } from "../../lib/dsmCategories";
+import { getPatternColor } from "../../lib/patternColors";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import "./TimelineFilterPanel.css";
 
@@ -11,6 +12,7 @@ interface TimelineFilterPanelProps {
   filters: TimelineFilterState;
   actions: TimelineFilterActions;
   timeDomain: { minYear: number; maxYear: number };
+  patterns?: Map<string, DecryptedPattern>;
   onClose: () => void;
 }
 
@@ -19,6 +21,7 @@ export function TimelineFilterPanel({
   filters,
   actions,
   timeDomain,
+  patterns,
   onClose,
 }: TimelineFilterPanelProps) {
   const { t } = useTranslation();
@@ -27,6 +30,7 @@ export function TimelineFilterPanel({
   const [traumaOpen, setTraumaOpen] = useState(false);
   const [lifeEventsOpen, setLifeEventsOpen] = useState(false);
   const [classificationsOpen, setClassificationsOpen] = useState(false);
+  const [patternsOpen, setPatternsOpen] = useState(false);
   const [timeRangeOpen, setTimeRangeOpen] = useState(false);
 
   const allPersonIds = Array.from(persons.keys());
@@ -244,6 +248,41 @@ export function TimelineFilterPanel({
             </div>
           )}
         </section>
+
+        {/* Patterns section */}
+        {patterns && patterns.size > 0 && (
+          <section className="detail-panel__section">
+            <button
+              type="button"
+              className="detail-panel__section-toggle"
+              onClick={() => setPatternsOpen(!patternsOpen)}
+            >
+              {patternsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterPatterns")}
+            </button>
+            {patternsOpen && (
+              <div className="detail-panel__section-body">
+                {Array.from(patterns.entries()).map(([id, pattern]) => {
+                  const isActive =
+                    filters.visiblePatterns === null || filters.visiblePatterns.has(id);
+                  return (
+                    <label key={id} className="tl-filter-panel__checkbox">
+                      <input
+                        type="checkbox"
+                        checked={isActive}
+                        onChange={() => actions.togglePatternFilter(id)}
+                      />
+                      <span
+                        className="tl-filter-panel__color-dot"
+                        style={{ background: getPatternColor(pattern.color) }}
+                      />
+                      <span>{pattern.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Time range section */}
         <section className="detail-panel__section">

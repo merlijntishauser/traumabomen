@@ -138,6 +138,86 @@
   stroke: var(--color-lifebar-stroke);
 }
 
+/* Selection ring around markers in annotate mode */
+.tl-selection-ring {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+/* Pattern arc band */
+.tl-pattern-arc {
+  cursor: pointer;
+  transition:
+    fill-opacity 0.15s ease,
+    stroke-opacity 0.15s ease;
+}
+
+/* Pattern arc label */
+.tl-pattern-arc-label {
+  font-size: 11px;
+  font-weight: 500;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* Annotate mode hit area cursor */
+.tl-lane-hitarea--annotate {
+  cursor: crosshair;
+  fill: transparent;
+}
+
+/* Create pattern mini-form */
+.tl-create-pattern {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 280px;
+  z-index: 20;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tl-create-pattern__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.tl-create-pattern__colors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+
+.tl-create-pattern__color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.tl-create-pattern__color-dot--selected {
+  border-color: var(--color-text-primary);
+}
+
+.tl-create-pattern__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 /* Workspace area for timeline panels */
 .timeline-workspace-area {
   position: relative;

@@ -505,6 +505,133 @@ describe("AgePersonLane", () => {
     expect(parentG?.getAttribute("opacity")).toBe("0.15");
   });
 
+  it("renders annotate cursor in annotate mode", () => {
+    const props = makeBaseProps();
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} mode="annotate" />
+      </svg>,
+    );
+
+    const hitArea = container.querySelector(".tl-lane-hitarea--annotate");
+    expect(hitArea).toBeTruthy();
+  });
+
+  it("renders selection ring when entity is selected in annotate mode", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane
+          {...props}
+          mode="annotate"
+          selectedEntityKeys={new Set(["trauma_event:e1"])}
+        />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-selection-ring");
+    expect(rings.length).toBe(1);
+  });
+
+  it("does not render selection ring when entity is not selected", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} mode="annotate" selectedEntityKeys={new Set()} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-selection-ring");
+    expect(rings.length).toBe(0);
+  });
+
+  it("calls onToggleEntitySelect when marker clicked in annotate mode", () => {
+    const onToggleEntitySelect = vi.fn();
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} mode="annotate" onToggleEntitySelect={onToggleEntitySelect} />
+      </svg>,
+    );
+
+    const circle = container.querySelector("circle");
+    fireEvent.click(circle!);
+    expect(onToggleEntitySelect).toHaveBeenCalledWith("trauma_event:e1");
+  });
+
+  it("does not call onClickMarker in annotate mode", () => {
+    const onClickMarker = vi.fn();
+    const onToggleEntitySelect = vi.fn();
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane
+          {...props}
+          mode="annotate"
+          onClickMarker={onClickMarker}
+          onToggleEntitySelect={onToggleEntitySelect}
+        />
+      </svg>,
+    );
+
+    const circle = container.querySelector("circle");
+    fireEvent.click(circle!);
+    expect(onClickMarker).not.toHaveBeenCalled();
+    expect(onToggleEntitySelect).toHaveBeenCalledWith("trauma_event:e1");
+  });
+
   it("dims trauma event markers when dimmed in dims set", () => {
     const props = makeBaseProps();
     props.events = [

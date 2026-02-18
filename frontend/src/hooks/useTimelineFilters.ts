@@ -4,6 +4,7 @@ import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
 } from "./useTreeData";
 
@@ -14,6 +15,7 @@ export interface TimelineFilterState {
   classificationCategories: Set<string> | null;
   classificationStatus: Set<ClassificationStatus> | null;
   timeRange: { min: number; max: number } | null;
+  visiblePatterns: Set<string> | null;
 }
 
 export interface TimelineFilterActions {
@@ -24,6 +26,7 @@ export interface TimelineFilterActions {
   toggleClassificationCategory: (cat: string) => void;
   toggleClassificationStatus: (status: ClassificationStatus) => void;
   setTimeRange: (range: { min: number; max: number } | null) => void;
+  togglePatternFilter: (patternId: string) => void;
   resetAll: () => void;
   activeFilterCount: number;
 }
@@ -130,12 +133,64 @@ const EMPTY_DIMS: DimSets = {
   dimmedClassificationIds: EMPTY_SET,
 };
 
+function computePatternEntityIds(
+  visiblePatterns: Set<string> | null,
+  patterns?: Map<string, DecryptedPattern>,
+): { eventIds: Set<string>; lifeEventIds: Set<string>; classificationIds: Set<string> } | null {
+  if (visiblePatterns === null || !patterns) return null;
+
+  const eventIds = new Set<string>();
+  const lifeEventIds = new Set<string>();
+  const classificationIds = new Set<string>();
+
+  for (const patternId of visiblePatterns) {
+    const pattern = patterns.get(patternId);
+    if (!pattern) continue;
+    for (const le of pattern.linked_entities) {
+      if (le.entity_type === "trauma_event") eventIds.add(le.entity_id);
+      else if (le.entity_type === "life_event") lifeEventIds.add(le.entity_id);
+      else if (le.entity_type === "classification") classificationIds.add(le.entity_id);
+    }
+  }
+
+  return { eventIds, lifeEventIds, classificationIds };
+}
+
+function applyPatternDimming(
+  visiblePatterns: Set<string> | null,
+  patterns: Map<string, DecryptedPattern> | undefined,
+  events: Map<string, DecryptedEvent>,
+  lifeEvents: Map<string, DecryptedLifeEvent>,
+  classifications: Map<string, DecryptedClassification>,
+  dimmedEventIds: Set<string>,
+  dimmedLifeEventIds: Set<string>,
+  dimmedClassificationIds: Set<string>,
+): void {
+  const patternEntities = computePatternEntityIds(visiblePatterns, patterns);
+  if (!patternEntities) return;
+
+  for (const [id] of events) {
+    if (!patternEntities.eventIds.has(id)) dimmedEventIds.add(id);
+  }
+  for (const [id] of lifeEvents) {
+    if (!patternEntities.lifeEventIds.has(id)) dimmedLifeEventIds.add(id);
+  }
+  for (const [id] of classifications) {
+    if (!patternEntities.classificationIds.has(id)) dimmedClassificationIds.add(id);
+  }
+}
+
+function isAllEmpty(...sets: Set<string>[]): boolean {
+  return sets.every((s) => s.size === 0);
+}
+
 export function computeDimSets(
   filters: TimelineFilterState,
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
   classifications: Map<string, DecryptedClassification>,
+  patterns?: Map<string, DecryptedPattern>,
 ): DimSets {
   const {
     visiblePersonIds,
@@ -144,6 +199,7 @@ export function computeDimSets(
     classificationCategories,
     classificationStatus,
     timeRange,
+    visiblePatterns,
   } = filters;
 
   const dimmedPersonIds = computeDimmedPersons(persons.keys(), visiblePersonIds);
@@ -161,12 +217,18 @@ export function computeDimSets(
     classificationStatus,
   );
 
-  if (
-    dimmedPersonIds.size === 0 &&
-    dimmedEventIds.size === 0 &&
-    dimmedLifeEventIds.size === 0 &&
-    dimmedClassificationIds.size === 0
-  ) {
+  applyPatternDimming(
+    visiblePatterns,
+    patterns,
+    events,
+    lifeEvents,
+    classifications,
+    dimmedEventIds,
+    dimmedLifeEventIds,
+    dimmedClassificationIds,
+  );
+
+  if (isAllEmpty(dimmedPersonIds, dimmedEventIds, dimmedLifeEventIds, dimmedClassificationIds)) {
     return EMPTY_DIMS;
   }
 
@@ -178,6 +240,7 @@ export function useTimelineFilters(
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
   classifications: Map<string, DecryptedClassification>,
+  patterns?: Map<string, DecryptedPattern>,
 ): { filters: TimelineFilterState; actions: TimelineFilterActions; dims: DimSets } {
   const [visiblePersonIds, setVisiblePersonIds] = useState<Set<string> | null>(null);
   const [traumaCategories, setTraumaCategories] = useState<Set<TraumaCategory> | null>(null);
@@ -190,6 +253,7 @@ export function useTimelineFilters(
   const [classificationStatus, setClassificationStatus] =
     useState<Set<ClassificationStatus> | null>(null);
   const [timeRange, setTimeRange] = useState<{ min: number; max: number } | null>(null);
+  const [visiblePatterns, setVisiblePatterns] = useState<Set<string> | null>(null);
 
   const filters: TimelineFilterState = useMemo(
     () => ({
@@ -199,6 +263,7 @@ export function useTimelineFilters(
       classificationCategories,
       classificationStatus,
       timeRange,
+      visiblePatterns,
     }),
     [
       visiblePersonIds,
@@ -207,6 +272,7 @@ export function useTimelineFilters(
       classificationCategories,
       classificationStatus,
       timeRange,
+      visiblePatterns,
     ],
   );
 
@@ -308,6 +374,21 @@ export function useTimelineFilters(
     setTimeRange(range);
   }, []);
 
+  const togglePatternFilterFn = useCallback((patternId: string) => {
+    setVisiblePatterns((prev) => {
+      if (prev === null) {
+        return new Set([patternId]);
+      }
+      const next = new Set(prev);
+      if (next.has(patternId)) {
+        next.delete(patternId);
+      } else {
+        next.add(patternId);
+      }
+      return next.size === 0 ? null : next;
+    });
+  }, []);
+
   const resetAll = useCallback(() => {
     setVisiblePersonIds(null);
     setTraumaCategories(null);
@@ -315,6 +396,7 @@ export function useTimelineFilters(
     setClassificationCategories(null);
     setClassificationStatus(null);
     setTimeRange(null);
+    setVisiblePatterns(null);
   }, []);
 
   const activeFilterCount = useMemo(() => {
@@ -325,6 +407,7 @@ export function useTimelineFilters(
     if (classificationCategories !== null) count++;
     if (classificationStatus !== null) count++;
     if (timeRange !== null) count++;
+    if (visiblePatterns !== null) count++;
     return count;
   }, [
     visiblePersonIds,
@@ -333,11 +416,12 @@ export function useTimelineFilters(
     classificationCategories,
     classificationStatus,
     timeRange,
+    visiblePatterns,
   ]);
 
   const dims = useMemo(
-    () => computeDimSets(filters, persons, events, lifeEvents, classifications),
-    [filters, persons, events, lifeEvents, classifications],
+    () => computeDimSets(filters, persons, events, lifeEvents, classifications, patterns),
+    [filters, persons, events, lifeEvents, classifications, patterns],
   );
 
   const actions: TimelineFilterActions = useMemo(
@@ -349,6 +433,7 @@ export function useTimelineFilters(
       toggleClassificationCategory,
       toggleClassificationStatus: toggleClassificationStatusFn,
       setTimeRange: setTimeRangeFn,
+      togglePatternFilter: togglePatternFilterFn,
       resetAll,
       activeFilterCount,
     }),
@@ -360,6 +445,7 @@ export function useTimelineFilters(
       toggleClassificationCategory,
       toggleClassificationStatusFn,
       setTimeRangeFn,
+      togglePatternFilterFn,
       resetAll,
       activeFilterCount,
     ],

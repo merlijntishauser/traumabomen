@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/useTimelineFilters";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
+import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import { TimelineChipBar } from "./TimelineChipBar";
 
@@ -36,9 +36,21 @@ function makeActions(overrides: Partial<TimelineFilterActions> = {}): TimelineFi
     toggleClassificationCategory: vi.fn(),
     toggleClassificationStatus: vi.fn(),
     setTimeRange: vi.fn(),
+    togglePatternFilter: vi.fn(),
     resetAll: vi.fn(),
     activeFilterCount: 0,
     ...overrides,
+  };
+}
+
+function makePattern(id: string, name: string): DecryptedPattern {
+  return {
+    id,
+    name,
+    description: "",
+    color: "#818cf8",
+    linked_entities: [],
+    person_ids: [],
   };
 }
 
@@ -55,6 +67,7 @@ const emptyFilters: TimelineFilterState = {
   classificationCategories: null,
   classificationStatus: null,
   timeRange: null,
+  visiblePatterns: null,
 };
 
 describe("TimelineChipBar", () => {
@@ -172,5 +185,92 @@ describe("TimelineChipBar", () => {
     };
     render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
     expect(screen.getByText("classification.status.diagnosed")).toBeTruthy();
+  });
+
+  it("shows classification category chips", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      classificationCategories: new Set(["depressive"]),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    expect(screen.getByText("dsm.depressive")).toBeTruthy();
+  });
+
+  it("calls toggleClassificationCategory when chip removed", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      classificationCategories: new Set(["depressive"]),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    fireEvent.click(screen.getByLabelText("Remove dsm.depressive"));
+    expect(actions.toggleClassificationCategory).toHaveBeenCalledWith("depressive");
+  });
+
+  it("shows zero-count chip when no persons visible", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePersonIds: new Set<string>(),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    expect(screen.getByText(/timeline.filterPeople: 0\/3/)).toBeTruthy();
+  });
+
+  it("calls toggleAllPersons(true) when zero-count chip removed", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePersonIds: new Set<string>(),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    const removeBtn = screen.getByLabelText(/Remove timeline.filterPeople/);
+    fireEvent.click(removeBtn);
+    expect(actions.toggleAllPersons).toHaveBeenCalledWith(true);
+  });
+
+  it("shows pattern chips when visiblePatterns is set", () => {
+    const actions = makeActions();
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", "Grief Cycle")],
+      ["pat2", makePattern("pat2", "Displacement")],
+    ]);
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePatterns: new Set(["pat1", "pat2"]),
+    };
+    render(
+      <TimelineChipBar filters={filters} actions={actions} persons={persons} patterns={patterns} />,
+    );
+    expect(screen.getByText("Grief Cycle")).toBeTruthy();
+    expect(screen.getByText("Displacement")).toBeTruthy();
+  });
+
+  it("calls togglePatternFilter when pattern chip removed", () => {
+    const actions = makeActions();
+    const patterns = new Map([["pat1", makePattern("pat1", "Grief Cycle")]]);
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePatterns: new Set(["pat1"]),
+    };
+    render(
+      <TimelineChipBar filters={filters} actions={actions} persons={persons} patterns={patterns} />,
+    );
+    fireEvent.click(screen.getByLabelText("Remove Grief Cycle"));
+    expect(actions.togglePatternFilter).toHaveBeenCalledWith("pat1");
+  });
+
+  it("shows pattern id as fallback when pattern not found in map", () => {
+    const actions = makeActions();
+    const patterns = new Map<string, DecryptedPattern>();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePatterns: new Set(["unknown-id"]),
+    };
+    render(
+      <TimelineChipBar filters={filters} actions={actions} persons={persons} patterns={patterns} />,
+    );
+    expect(screen.getByText("unknown-id")).toBeTruthy();
   });
 });

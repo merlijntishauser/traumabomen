@@ -7,6 +7,7 @@ import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
 } from "../../hooks/useTreeData";
@@ -14,6 +15,7 @@ import { getLifeEventColors } from "../../lib/lifeEventColors";
 import { getTraumaColors } from "../../lib/traumaColors";
 import { AgePersonLane } from "./AgePersonLane";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
+import { TimelinePatternArcs } from "./TimelinePatternArcs";
 import type { TooltipState } from "./TimelineTooltip";
 import {
   AGE_LABEL_WIDTH,
@@ -38,6 +40,13 @@ interface TimelineAgeContentProps {
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
   onTooltip: (state: TooltipState) => void;
+  patterns?: Map<string, DecryptedPattern>;
+  visiblePatternIds?: Set<string>;
+  selectedEntityKeys?: Set<string>;
+  hoveredPatternId?: string | null;
+  onToggleEntitySelect?: (key: string) => void;
+  onPatternHover?: (patternId: string | null) => void;
+  onPatternClick?: (patternId: string) => void;
 }
 
 export function TimelineAgeContent({
@@ -54,6 +63,13 @@ export function TimelineAgeContent({
   onSelectPerson,
   onClickMarker,
   onTooltip,
+  patterns,
+  visiblePatternIds,
+  selectedEntityKeys,
+  hoveredPatternId,
+  onToggleEntitySelect,
+  onPatternHover,
+  onPatternClick,
 }: TimelineAgeContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -234,6 +250,22 @@ export function TimelineAgeContent({
       {/* Clipped age content */}
       <g clipPath="url(#timeline-clip-age)">
         <g ref={zoomGroupRef} className="tl-time">
+          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+            <TimelinePatternArcs
+              patterns={patterns}
+              visiblePatternIds={visiblePatternIds}
+              events={events}
+              lifeEvents={lifeEvents}
+              classifications={classifications}
+              persons={persons}
+              direction="vertical"
+              columns={columns}
+              totalWidth={totalWidth}
+              hoveredPatternId={hoveredPatternId ?? null}
+              onPatternHover={onPatternHover}
+              onPatternClick={onPatternClick}
+            />
+          )}
           {columns.map((col) => {
             const isSelected = selectedPersonId === col.person.id;
             const isDimmed =
@@ -261,6 +293,8 @@ export function TimelineAgeContent({
                 dims={dims}
                 onSelectPerson={handleSelectPerson}
                 onClickMarker={onClickMarker}
+                selectedEntityKeys={selectedEntityKeys}
+                onToggleEntitySelect={onToggleEntitySelect}
               />
             );
           })}

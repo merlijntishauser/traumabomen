@@ -435,4 +435,54 @@ describe("PersonLane", () => {
       expect(strips).toHaveLength(2);
     });
   });
+
+  describe("annotate mode", () => {
+    it("uses crosshair cursor in annotate mode", () => {
+      const { container } = renderLane({ mode: "annotate" });
+      const hitarea = container.querySelector(".tl-lane-hitarea--annotate");
+      expect(hitarea).not.toBeNull();
+    });
+
+    it("renders selection ring around selected trauma marker", () => {
+      const events = [makeEvent("e1", ["a"])];
+      const selectedEntityKeys = new Set(["trauma_event:e1"]);
+      const { container } = renderLane({ events, mode: "annotate", selectedEntityKeys });
+      const rings = container.querySelectorAll(".tl-selection-ring");
+      expect(rings).toHaveLength(1);
+    });
+
+    it("does not render selection ring when marker is not selected", () => {
+      const events = [makeEvent("e1", ["a"])];
+      const selectedEntityKeys = new Set<string>();
+      const { container } = renderLane({ events, mode: "annotate", selectedEntityKeys });
+      const rings = container.querySelectorAll(".tl-selection-ring");
+      expect(rings).toHaveLength(0);
+    });
+
+    it("calls onToggleEntitySelect on marker click in annotate mode", () => {
+      const onToggleEntitySelect = vi.fn();
+      const events = [makeEvent("e1", ["a"])];
+      const { container } = renderLane({
+        events,
+        mode: "annotate",
+        onToggleEntitySelect,
+      });
+      const circle = container.querySelector("circle.tl-marker")!;
+      fireEvent.click(circle);
+      expect(onToggleEntitySelect).toHaveBeenCalledWith("trauma_event:e1");
+    });
+
+    it("does not call onClickMarker in annotate mode", () => {
+      const onClickMarker = vi.fn();
+      const events = [makeEvent("e1", ["a"])];
+      const { container } = renderLane({
+        events,
+        mode: "annotate",
+        onClickMarker,
+      });
+      const circle = container.querySelector("circle.tl-marker")!;
+      fireEvent.click(circle);
+      expect(onClickMarker).not.toHaveBeenCalled();
+    });
+  });
 });
