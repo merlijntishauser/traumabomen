@@ -348,6 +348,7 @@
   "timeline.showPartnerLines": "Show partner lines",
   "timeline.showClassifications": "Show classification strips",
   "timeline.showGridlines": "Show gridlines",
+  "timeline.showMarkerLabels": "Show marker labels",
   "timeline.partnerLabel": "{{status}} {{name}}",
   "timeline.summaryPresent": "present",
   "timeline.timeRangeHint": "Filters event markers by date. Lifebars and classification strips are not affected.",

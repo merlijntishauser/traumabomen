@@ -527,6 +527,7 @@ export default function TimelinePage() {
             showPartnerLines={timelineSettings.showPartnerLines}
             showClassifications={timelineSettings.showClassifications}
             showGridlines={timelineSettings.showGridlines}
+            showMarkerLabels={timelineSettings.showMarkerLabels}
           />
         )}
 

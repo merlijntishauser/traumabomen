@@ -55,6 +55,7 @@ interface TimelineYearsContentProps {
   showPartnerLines?: boolean;
   showClassifications?: boolean;
   showGridlines?: boolean;
+  showMarkerLabels?: boolean;
 }
 
 export function TimelineYearsContent({
@@ -82,6 +83,7 @@ export function TimelineYearsContent({
   showPartnerLines = true,
   showClassifications = true,
   showGridlines = false,
+  showMarkerLabels = true,
 }: TimelineYearsContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -358,6 +360,7 @@ export function TimelineYearsContent({
                   onSelectPerson={handleSelectPerson}
                   onClickMarker={onClickMarker}
                   showClassifications={showClassifications}
+                  showMarkerLabels={showMarkerLabels}
                   selectedEntityKeys={selectedEntityKeys}
                   onToggleEntitySelect={onToggleEntitySelect}
                 />

@@ -41,6 +41,7 @@ interface PersonLaneProps {
   onSelectPerson?: (personId: string) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
   showClassifications?: boolean;
+  showMarkerLabels?: boolean;
   selectedEntityKeys?: Set<string>;
   onToggleEntitySelect?: (key: string) => void;
 }
@@ -68,6 +69,7 @@ export const PersonLane = React.memo(function PersonLane({
   onSelectPerson,
   onClickMarker,
   showClassifications = true,
+  showMarkerLabels = true,
   selectedEntityKeys,
   onToggleEntitySelect,
 }: PersonLaneProps) {
@@ -80,6 +82,9 @@ export const PersonLane = React.memo(function PersonLane({
   // Counter-scale: neutralize the parent zoom group's horizontal scale on point markers
   const inv = 1 / zoomK;
   const markerTransform = (px: number) =>
+    zoomK === 1 ? undefined : `translate(${px},0) scale(${inv},1) translate(${-px},0)`;
+
+  const labelTransform = (px: number) =>
     zoomK === 1 ? undefined : `translate(${px},0) scale(${inv},1) translate(${-px},0)`;
 
   const hideTooltip = useCallback(() => {
@@ -158,32 +163,44 @@ export const PersonLane = React.memo(function PersonLane({
                 const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
                 const statusLabel = t(`classification.status.${cls.status}`);
                 const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
+                const clsLabel = subLabel ?? catLabel;
 
                 return (
-                  <rect
-                    key={`${cls.id}-p${pi}`}
-                    x={px1}
-                    y={stripY}
-                    width={Math.max(0, px2 - px1)}
-                    height={stripHeight}
-                    rx={1}
-                    fill={clsColor}
-                    opacity={0.8}
-                    className="tl-marker"
-                    onClick={(e) => handleMarkerClick("classification", cls.id, e)}
-                    onMouseEnter={(e) => {
-                      onTooltip({
-                        visible: true,
-                        x: e.clientX,
-                        y: e.clientY,
-                        lines: [
-                          { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
-                          { text: `${statusLabel} ${yearRange}` },
-                        ],
-                      });
-                    }}
-                    onMouseLeave={hideTooltip}
-                  />
+                  <React.Fragment key={`${cls.id}-p${pi}`}>
+                    <rect
+                      x={px1}
+                      y={stripY}
+                      width={Math.max(0, px2 - px1)}
+                      height={stripHeight}
+                      rx={1}
+                      fill={clsColor}
+                      opacity={0.8}
+                      className="tl-marker"
+                      onClick={(e) => handleMarkerClick("classification", cls.id, e)}
+                      onMouseEnter={(e) => {
+                        onTooltip({
+                          visible: true,
+                          x: e.clientX,
+                          y: e.clientY,
+                          lines: [
+                            { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
+                            { text: `${statusLabel} ${yearRange}` },
+                          ],
+                        });
+                      }}
+                      onMouseLeave={hideTooltip}
+                    />
+                    {showMarkerLabels && pi === 0 && (
+                      <text
+                        x={px1 + 3}
+                        y={stripY - 2}
+                        className="tl-marker-label"
+                        transform={labelTransform(px1 + 3)}
+                      >
+                        {clsLabel}
+                      </text>
+                    )}
+                  </React.Fragment>
                 );
               })}
 
@@ -198,6 +215,8 @@ export const PersonLane = React.memo(function PersonLane({
                   const catLabel = t(`dsm.${cls.dsm_category}`);
                   const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
                   const isClsSelected = selectedEntityKeys?.has(`classification:${cls.id}`);
+
+                  const triLabel = subLabel ?? catLabel;
 
                   return (
                     <g transform={markerTransform(dx)}>
@@ -233,6 +252,11 @@ export const PersonLane = React.memo(function PersonLane({
                           r={MARKER_RADIUS + 3}
                           className="tl-selection-ring"
                         />
+                      )}
+                      {showMarkerLabels && (
+                        <text x={dx + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+                          {triLabel}
+                        </text>
                       )}
                     </g>
                   );
@@ -290,6 +314,11 @@ export const PersonLane = React.memo(function PersonLane({
             />
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+            )}
+            {showMarkerLabels && (
+              <text x={px + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+                {event.title}
+              </text>
             )}
           </g>
         );
@@ -350,6 +379,11 @@ export const PersonLane = React.memo(function PersonLane({
             />
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+            )}
+            {showMarkerLabels && (
+              <text x={px + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+                {le.title}
+              </text>
             )}
           </g>
         );

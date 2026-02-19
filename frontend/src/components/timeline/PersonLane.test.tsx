@@ -453,6 +453,74 @@ describe("PersonLane", () => {
     });
   });
 
+  describe("marker labels", () => {
+    it("renders label text next to trauma marker by default", () => {
+      const events = [makeEvent("e1", ["a"], { title: "War trauma" })];
+      const { container } = renderLane({ events });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels).toHaveLength(1);
+      expect(labels[0].textContent).toBe("War trauma");
+    });
+
+    it("renders label text next to life event marker by default", () => {
+      const lifeEvents = [makeLifeEvent("le1", ["a"], { title: "Graduated" })];
+      const { container } = renderLane({ lifeEvents });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels).toHaveLength(1);
+      expect(labels[0].textContent).toBe("Graduated");
+    });
+
+    it("renders label next to classification strip using subcategory", () => {
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          dsm_category: "depressive",
+          dsm_subcategory: "major_depression",
+        }),
+      ];
+      const { container } = renderLane({ classifications });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels.length).toBeGreaterThanOrEqual(1);
+      expect(labels[0].textContent).toBe("dsm.sub.major_depression");
+    });
+
+    it("renders label next to classification strip using category when no subcategory", () => {
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          dsm_category: "depressive",
+          dsm_subcategory: null,
+        }),
+      ];
+      const { container } = renderLane({ classifications });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels.length).toBeGreaterThanOrEqual(1);
+      expect(labels[0].textContent).toBe("dsm.depressive");
+    });
+
+    it("renders label next to diagnosis triangle", () => {
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          status: "diagnosed",
+          diagnosis_year: 2005,
+          dsm_category: "anxiety",
+          dsm_subcategory: null,
+        }),
+      ];
+      const { container } = renderLane({ classifications });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      // Strip label + triangle label
+      const triangleLabel = Array.from(labels).find((l) => l.textContent === "dsm.anxiety");
+      expect(triangleLabel).toBeTruthy();
+    });
+
+    it("hides all marker labels when showMarkerLabels is false", () => {
+      const events = [makeEvent("e1", ["a"])];
+      const lifeEvents = [makeLifeEvent("le1", ["a"])];
+      const { container } = renderLane({ events, lifeEvents, showMarkerLabels: false });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels).toHaveLength(0);
+    });
+  });
+
   describe("annotate mode", () => {
     it("uses crosshair cursor in annotate mode", () => {
       const { container } = renderLane({ mode: "annotate" });

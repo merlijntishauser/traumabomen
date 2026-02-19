@@ -378,6 +378,95 @@ describe("AgePersonLane", () => {
     });
   });
 
+  it("renders label text next to trauma marker by default", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "War trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const labels = container.querySelectorAll(".tl-marker-label");
+    expect(labels).toHaveLength(1);
+    expect(labels[0].textContent).toBe("War trauma");
+  });
+
+  it("renders label text next to life event marker by default", () => {
+    const props = makeBaseProps();
+    props.lifeEvents = [
+      {
+        id: "le1",
+        person_ids: ["p1"],
+        title: "Teaching degree",
+        description: "",
+        category: LifeEventCategory.Career,
+        approximate_date: "1995",
+        impact: null,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const labels = container.querySelectorAll(".tl-marker-label");
+    expect(labels).toHaveLength(1);
+    expect(labels[0].textContent).toBe("Teaching degree");
+  });
+
+  it("hides all marker labels when showMarkerLabels is false", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+    props.lifeEvents = [
+      {
+        id: "le1",
+        person_ids: ["p1"],
+        title: "Career move",
+        description: "",
+        category: LifeEventCategory.Career,
+        approximate_date: "1995",
+        impact: null,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} showMarkerLabels={false} />
+      </svg>,
+    );
+
+    const labels = container.querySelectorAll(".tl-marker-label");
+    expect(labels).toHaveLength(0);
+  });
+
   it("renders edit cursor in edit mode", () => {
     const props = makeBaseProps();
     const { container } = render(

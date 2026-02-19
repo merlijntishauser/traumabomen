@@ -41,6 +41,7 @@ interface TimelineViewProps {
   showPartnerLines?: boolean;
   showClassifications?: boolean;
   showGridlines?: boolean;
+  showMarkerLabels?: boolean;
 }
 
 export function TimelineView({
@@ -66,6 +67,7 @@ export function TimelineView({
   showPartnerLines = true,
   showClassifications = true,
   showGridlines = false,
+  showMarkerLabels = true,
 }: TimelineViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -131,6 +133,7 @@ export function TimelineView({
     showPartnerLines,
     showClassifications,
     showGridlines,
+    showMarkerLabels,
   };
 
   return (

@@ -143,6 +143,14 @@
   pointer-events: none;
 }
 
+/* Marker label (persistent text next to markers) */
+.tl-marker-label {
+  font-size: 10px;
+  font-family: var(--font-body);
+  fill: var(--color-text-muted);
+  pointer-events: none;
+}
+
 /* Selection ring around markers in annotate mode */
 .tl-selection-ring {
   fill: none;

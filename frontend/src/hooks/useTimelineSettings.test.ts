@@ -40,6 +40,7 @@ describe("useTimelineSettings", () => {
       showPartnerLines: true,
       showClassifications: true,
       showGridlines: false,
+      showMarkerLabels: true,
     });
   });
 
@@ -48,6 +49,7 @@ describe("useTimelineSettings", () => {
       showPartnerLines: false,
       showClassifications: false,
       showGridlines: true,
+      showMarkerLabels: false,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
 
@@ -62,6 +64,7 @@ describe("useTimelineSettings", () => {
     expect(result.current.settings.showGridlines).toBe(true);
     expect(result.current.settings.showPartnerLines).toBe(true);
     expect(result.current.settings.showClassifications).toBe(true);
+    expect(result.current.settings.showMarkerLabels).toBe(true);
   });
 
   it("update merges partial changes and persists to localStorage", () => {
@@ -87,6 +90,7 @@ describe("useTimelineSettings", () => {
       showPartnerLines: true,
       showClassifications: true,
       showGridlines: false,
+      showMarkerLabels: true,
     });
   });
 

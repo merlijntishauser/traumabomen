@@ -53,6 +53,7 @@ interface TimelineAgeContentProps {
   showPartnerLines?: boolean;
   showClassifications?: boolean;
   showGridlines?: boolean;
+  showMarkerLabels?: boolean;
 }
 
 export function TimelineAgeContent({
@@ -79,6 +80,7 @@ export function TimelineAgeContent({
   onPatternClick,
   showClassifications = true,
   showGridlines = false,
+  showMarkerLabels = true,
 }: TimelineAgeContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -328,6 +330,7 @@ export function TimelineAgeContent({
                   onSelectPerson={handleSelectPerson}
                   onClickMarker={onClickMarker}
                   showClassifications={showClassifications}
+                  showMarkerLabels={showMarkerLabels}
                   selectedEntityKeys={selectedEntityKeys}
                   onToggleEntitySelect={onToggleEntitySelect}
                 />

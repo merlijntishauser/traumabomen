@@ -43,6 +43,15 @@ export function TimelineSettingsContent({ settings, onUpdate }: Props) {
         <span>{t("timeline.showGridlines")}</span>
       </label>
 
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showMarkerLabels}
+          onChange={(e) => onUpdate({ showMarkerLabels: e.target.checked })}
+        />
+        <span>{t("timeline.showMarkerLabels")}</span>
+      </label>
+
       <div className="settings-panel__divider" />
 
       <ThemeLanguageSettings />

@@ -4,12 +4,14 @@ export interface TimelineSettings {
   showPartnerLines: boolean;
   showClassifications: boolean;
   showGridlines: boolean;
+  showMarkerLabels: boolean;
 }
 
 const DEFAULTS: TimelineSettings = {
   showPartnerLines: true,
   showClassifications: true,
   showGridlines: false,
+  showMarkerLabels: true,
 };
 
 const STORAGE_KEY = "traumabomen-timeline-settings";
