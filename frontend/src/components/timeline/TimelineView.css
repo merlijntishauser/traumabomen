@@ -65,6 +65,10 @@
   transition: opacity 0.15s ease;
 }
 
+.tl-lifebar {
+  pointer-events: none;
+}
+
 .tl-lane--selected .tl-lifebar {
   filter: brightness(1.15);
 }
