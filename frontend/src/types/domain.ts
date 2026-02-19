@@ -32,6 +32,67 @@ export interface RelationshipPeriod {
   status: PartnerStatus;
 }
 
+/**
+ * Auto-manage "divorced" periods after ended marriages.
+ *
+ * On each save: strips previously auto-generated divorced periods (those
+ * starting at a married period's end_year), then re-inserts them with
+ * the correct end_year. The end_year is the earliest of: the next period's
+ * start_year, either partner's death_year, or null (ongoing).
+ */
+export function withAutoDissolvedPeriods(
+  periods: RelationshipPeriod[],
+  partnerDeathYears?: { source?: number | null; target?: number | null },
+): RelationshipPeriod[] {
+  const sorted = [...periods].sort((a, b) => a.start_year - b.start_year);
+
+  // Collect end_years of all married periods to identify auto-generated divorced periods
+  const marriedEndYears = new Set(
+    sorted
+      .filter((p) => p.status === PartnerStatus.Married && p.end_year != null)
+      .map((p) => p.end_year!),
+  );
+
+  // Strip auto-generated divorced periods (those starting exactly at a marriage end_year)
+  const cleaned = sorted.filter(
+    (p) => !(p.status === PartnerStatus.Divorced && marriedEndYears.has(p.start_year)),
+  );
+
+  // Earliest death year of either partner (if any)
+  const deathCandidates: number[] = [];
+  if (partnerDeathYears?.source) deathCandidates.push(partnerDeathYears.source);
+  if (partnerDeathYears?.target) deathCandidates.push(partnerDeathYears.target);
+  const earliestDeath = deathCandidates.length > 0 ? Math.min(...deathCandidates) : null;
+
+  // Re-generate divorced periods with correct end_years
+  const result: RelationshipPeriod[] = [];
+  for (let i = 0; i < cleaned.length; i++) {
+    const period = cleaned[i];
+    result.push(period);
+
+    if (period.status === PartnerStatus.Married && period.end_year != null) {
+      const next = cleaned[i + 1];
+      if (!next || next.start_year > period.end_year) {
+        // End at the earliest of: next period start, partner death, or null (ongoing)
+        const candidates: number[] = [];
+        if (next) candidates.push(next.start_year);
+        if (earliestDeath != null && earliestDeath >= period.end_year) {
+          candidates.push(earliestDeath);
+        }
+        const endYear = candidates.length > 0 ? Math.min(...candidates) : null;
+
+        result.push({
+          start_year: period.end_year,
+          end_year: endYear,
+          status: PartnerStatus.Divorced,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
 export interface Person {
   name: string;
   birth_year: number | null;

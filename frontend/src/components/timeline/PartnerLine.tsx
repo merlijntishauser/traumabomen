@@ -103,7 +103,7 @@ export const PartnerLine = React.memo(function PartnerLine({
                   x={px1 + 4}
                   y={srcLineY - 3}
                   fill={strokeColor}
-                  fontSize={8}
+                  fontSize={10}
                   className="tl-partner-label"
                   transform={labelTransform(px1)}
                 >
@@ -138,7 +138,7 @@ export const PartnerLine = React.memo(function PartnerLine({
                   x={px1 + 4}
                   y={tgtLineY - 3}
                   fill={strokeColor}
-                  fontSize={8}
+                  fontSize={10}
                   className="tl-partner-label"
                   transform={labelTransform(px1)}
                 >

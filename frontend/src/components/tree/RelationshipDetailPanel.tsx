@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
 import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
-import { PartnerStatus, RelationshipType } from "../../types/domain";
+import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
 import "./PersonDetailPanel.css";
 
 interface RelationshipDetailPanelProps {
@@ -66,7 +66,10 @@ export function RelationshipDetailPanel({
   function handleSavePeriods() {
     onSaveRelationship(relationship.id, {
       type: relationship.type,
-      periods,
+      periods: withAutoDissolvedPeriods(periods, {
+        source: sourcePerson?.death_year,
+        target: targetPerson?.death_year,
+      }),
       active_period: relationship.active_period,
     });
     setEditingPeriods(false);

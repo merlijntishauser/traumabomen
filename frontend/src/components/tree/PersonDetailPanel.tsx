@@ -28,6 +28,7 @@ import {
   PartnerStatus,
   RelationshipType,
   TraumaCategory,
+  withAutoDissolvedPeriods,
 } from "../../types/domain";
 import "./PersonDetailPanel.css";
 
@@ -492,6 +493,8 @@ export function PersonDetailPanel({
                           (editingRelId === rel.id ? (
                             <PartnerPeriodEditor
                               relationship={rel}
+                              sourceDeathYear={person.death_year}
+                              targetDeathYear={otherPerson?.death_year ?? null}
                               onSave={(data) => {
                                 onSaveRelationship(rel.id, data);
                                 setEditingRelId(null);
@@ -1347,11 +1350,19 @@ function EventForm({
 
 interface PartnerPeriodEditorProps {
   relationship: DecryptedRelationship;
+  sourceDeathYear: number | null;
+  targetDeathYear: number | null;
   onSave: (data: RelationshipData) => void;
   onCancel: () => void;
 }
 
-function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEditorProps) {
+function PartnerPeriodEditor({
+  relationship,
+  sourceDeathYear,
+  targetDeathYear,
+  onSave,
+  onCancel,
+}: PartnerPeriodEditorProps) {
   const { t } = useTranslation();
   const [periods, setPeriods] = useState<RelationshipPeriod[]>(() =>
     relationship.periods.length > 0
@@ -1384,7 +1395,10 @@ function PartnerPeriodEditor({ relationship, onSave, onCancel }: PartnerPeriodEd
   function handleSave() {
     onSave({
       type: relationship.type,
-      periods,
+      periods: withAutoDissolvedPeriods(periods, {
+        source: sourceDeathYear,
+        target: targetDeathYear,
+      }),
       active_period: relationship.active_period,
     });
   }
