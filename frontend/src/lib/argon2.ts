@@ -15,5 +15,17 @@ interface Argon2 {
   }): Promise<{ hash: Uint8Array; hashHex: string; encoded: string }>;
 }
 
-const argon2 = (self as unknown as { argon2: Argon2 }).argon2;
-export default argon2;
+function getArgon2(): Argon2 {
+  const a2 = (self as unknown as { argon2?: Argon2 }).argon2;
+  if (!a2) throw new Error("argon2-browser not loaded yet");
+  return a2;
+}
+
+export default {
+  get ArgonType() {
+    return getArgon2().ArgonType;
+  },
+  hash(options: Parameters<Argon2["hash"]>[0]) {
+    return getArgon2().hash(options);
+  },
+} satisfies Argon2;
