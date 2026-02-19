@@ -3,6 +3,7 @@ import {
   applyNodeChanges,
   Background,
   type Connection,
+  Controls,
   MiniMap,
   type OnConnect,
   type OnNodesChange,
@@ -744,6 +745,7 @@ function TreeWorkspaceInner() {
             >
               {canvasSettings.showGrid && <Background gap={20} />}
               {canvasSettings.showMinimap && <MiniMap />}
+              <Controls showInteractive={false} />
             </ReactFlow>
             <PatternConnectors
               patterns={patterns}

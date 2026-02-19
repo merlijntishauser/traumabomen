@@ -227,3 +227,46 @@
   flex: 1;
   overflow: hidden;
 }
+
+/* Zoom controls overlay */
+.tl-zoom-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+}
+
+.tl-zoom-controls__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tl-zoom-controls__btn:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.tl-zoom-controls__btn:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.tl-zoom-controls__btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.tl-zoom-controls__btn:active {
+  background: var(--color-accent-subtle);
+}

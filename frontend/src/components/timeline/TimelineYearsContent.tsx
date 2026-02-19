@@ -18,6 +18,7 @@ import { PartnerLine } from "./PartnerLine";
 import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
 import { TimelinePatternArcs } from "./TimelinePatternArcs";
 import type { TooltipState } from "./TimelineTooltip";
+import { TimelineZoomControls } from "./TimelineZoomControls";
 import {
   buildPersonDataMaps,
   buildRowLayout,
@@ -136,7 +137,11 @@ export function TimelineYearsContent({
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
 
-  const { rescaled: rescaledX, zoomK } = useTimelineZoom({
+  const {
+    rescaled: rescaledX,
+    zoomK,
+    zoomActions,
+  } = useTimelineZoom({
     svgRef,
     zoomGroupRef,
     scale: xScale,
@@ -213,168 +218,172 @@ export function TimelineYearsContent({
   );
 
   return (
-    <svg ref={svgRef} width={width} height={totalHeight}>
-      <defs>
-        <clipPath id="timeline-clip">
-          <rect x={LABEL_WIDTH} y={0} width={width - LABEL_WIDTH} height={totalHeight} />
-        </clipPath>
-      </defs>
+    <>
+      <svg ref={svgRef} width={width} height={totalHeight}>
+        <defs>
+          <clipPath id="timeline-clip">
+            <rect x={LABEL_WIDTH} y={0} width={width - LABEL_WIDTH} height={totalHeight} />
+          </clipPath>
+        </defs>
 
-      {/* Background: generation bands + labels */}
-      <g className="tl-bg">
-        {genBands.map((band) => (
-          <React.Fragment key={band.gen}>
-            <rect
-              x={0}
-              y={band.y}
-              width={width}
-              height={band.height}
-              fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
-            />
-            <text x={20} y={band.y + GEN_HEADER_HEIGHT - 5} className="tl-gen-label">
-              {t("timeline.generation", { number: band.gen + 1 })}
-            </text>
-          </React.Fragment>
-        ))}
+        {/* Background: generation bands + labels */}
+        <g className="tl-bg">
+          {genBands.map((band) => (
+            <React.Fragment key={band.gen}>
+              <rect
+                x={0}
+                y={band.y}
+                width={width}
+                height={band.height}
+                fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
+              />
+              <text x={20} y={band.y + GEN_HEADER_HEIGHT - 5} className="tl-gen-label">
+                {t("timeline.generation", { number: band.gen + 1 })}
+              </text>
+            </React.Fragment>
+          ))}
 
-        {/* Person name labels */}
-        {rows.map((row) => {
-          const isSelected = selectedPersonId === row.person.id;
-          const isDimmed =
-            dims?.dimmedPersonIds.has(row.person.id) || (selectedPersonId != null && !isSelected);
-          const labelClassName = [
-            "tl-person-label",
-            isSelected && "tl-person-label--selected",
-            isDimmed && "tl-person-label--dimmed",
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-          return (
-            <text
-              key={row.person.id}
-              x={24}
-              y={row.y + ROW_HEIGHT / 2 + 4}
-              className={labelClassName}
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSelectPerson(row.person.id)}
-            >
-              {row.person.name}
-            </text>
-          );
-        })}
-      </g>
-
-      {/* Axis */}
-      <g className="tl-axis" transform={`translate(0, ${GEN_HEADER_HEIGHT - 2})`}>
-        {axisTicks.map((tick) => (
-          <g key={tick.value} transform={`translate(${tick.x}, 0)`}>
-            <line y2={-6} stroke={cssVar("--color-border-secondary")} />
-            <text y={-9} textAnchor="middle" className="tl-axis-text">
-              {tick.value}
-            </text>
-          </g>
-        ))}
-      </g>
-
-      {/* Vertical gridlines at year ticks */}
-      {showGridlines &&
-        axisTicks.map((tick) => (
-          <line
-            key={`grid-${tick.value}`}
-            x1={tick.x}
-            x2={tick.x}
-            y1={0}
-            y2={totalHeight}
-            stroke={cssVar("--color-text-muted")}
-            strokeOpacity={0.25}
-          />
-        ))}
-
-      {/* Transparent background rect for deselect on click */}
-      <rect
-        x={LABEL_WIDTH}
-        y={0}
-        width={Math.max(0, width - LABEL_WIDTH)}
-        height={totalHeight}
-        fill="transparent"
-        onClick={handleBackgroundClick}
-      />
-
-      {/* Clipped time content */}
-      <g clipPath="url(#timeline-clip)">
-        <g ref={zoomGroupRef} className="tl-time">
-          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-            <TimelinePatternArcs
-              patterns={patterns}
-              visiblePatternIds={visiblePatternIds}
-              events={events}
-              lifeEvents={lifeEvents}
-              classifications={classifications}
-              persons={persons}
-              direction="horizontal"
-              coordScale={xScale}
-              rows={rows}
-              totalHeight={totalHeight}
-              hoveredPatternId={hoveredPatternId ?? null}
-              onPatternHover={onPatternHover}
-              onPatternClick={onPatternClick}
-            />
-          )}
+          {/* Person name labels */}
           {rows.map((row) => {
             const isSelected = selectedPersonId === row.person.id;
             const isDimmed =
               dims?.dimmedPersonIds.has(row.person.id) || (selectedPersonId != null && !isSelected);
+            const labelClassName = [
+              "tl-person-label",
+              isSelected && "tl-person-label--selected",
+              isDimmed && "tl-person-label--dimmed",
+            ]
+              .filter(Boolean)
+              .join(" ");
 
             return (
-              <PersonLane
+              <text
                 key={row.person.id}
-                person={row.person}
-                y={row.y}
-                xScale={xScale}
-                zoomK={zoomK}
-                currentYear={currentYear}
-                events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
-                lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
-                classifications={personDataMaps.classificationsByPerson.get(row.person.id) ?? []}
-                persons={persons}
-                traumaColors={traumaColors}
-                lifeEventColors={lifeEventColors}
-                cssVar={cssVar}
-                t={t}
-                onTooltip={onTooltip}
-                selected={isSelected}
-                dimmed={isDimmed}
-                mode={mode}
-                dims={dims}
-                filterMode={filterMode}
-                onSelectPerson={handleSelectPerson}
-                onClickMarker={onClickMarker}
-                showClassifications={showClassifications}
-                selectedEntityKeys={selectedEntityKeys}
-                onToggleEntitySelect={onToggleEntitySelect}
-              />
+                x={24}
+                y={row.y + ROW_HEIGHT / 2 + 4}
+                className={labelClassName}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleSelectPerson(row.person.id)}
+              >
+                {row.person.name}
+              </text>
             );
           })}
-          {showPartnerLines &&
-            partnerLines.map((pl) => (
-              <PartnerLine
-                key={pl.key}
-                sourceName={pl.sourceName}
-                targetName={pl.targetName}
-                sourceY={pl.sourceY}
-                targetY={pl.targetY}
-                periods={pl.periods}
-                xScale={xScale}
-                zoomK={zoomK}
-                currentYear={currentYear}
-                cssVar={cssVar}
-                t={t}
-                onTooltip={onTooltip}
-              />
-            ))}
         </g>
-      </g>
-    </svg>
+
+        {/* Axis */}
+        <g className="tl-axis" transform={`translate(0, ${GEN_HEADER_HEIGHT - 2})`}>
+          {axisTicks.map((tick) => (
+            <g key={tick.value} transform={`translate(${tick.x}, 0)`}>
+              <line y2={-6} stroke={cssVar("--color-border-secondary")} />
+              <text y={-9} textAnchor="middle" className="tl-axis-text">
+                {tick.value}
+              </text>
+            </g>
+          ))}
+        </g>
+
+        {/* Vertical gridlines at year ticks */}
+        {showGridlines &&
+          axisTicks.map((tick) => (
+            <line
+              key={`grid-${tick.value}`}
+              x1={tick.x}
+              x2={tick.x}
+              y1={0}
+              y2={totalHeight}
+              stroke={cssVar("--color-text-muted")}
+              strokeOpacity={0.25}
+            />
+          ))}
+
+        {/* Transparent background rect for deselect on click */}
+        <rect
+          x={LABEL_WIDTH}
+          y={0}
+          width={Math.max(0, width - LABEL_WIDTH)}
+          height={totalHeight}
+          fill="transparent"
+          onClick={handleBackgroundClick}
+        />
+
+        {/* Clipped time content */}
+        <g clipPath="url(#timeline-clip)">
+          <g ref={zoomGroupRef} className="tl-time">
+            {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+              <TimelinePatternArcs
+                patterns={patterns}
+                visiblePatternIds={visiblePatternIds}
+                events={events}
+                lifeEvents={lifeEvents}
+                classifications={classifications}
+                persons={persons}
+                direction="horizontal"
+                coordScale={xScale}
+                rows={rows}
+                totalHeight={totalHeight}
+                hoveredPatternId={hoveredPatternId ?? null}
+                onPatternHover={onPatternHover}
+                onPatternClick={onPatternClick}
+              />
+            )}
+            {rows.map((row) => {
+              const isSelected = selectedPersonId === row.person.id;
+              const isDimmed =
+                dims?.dimmedPersonIds.has(row.person.id) ||
+                (selectedPersonId != null && !isSelected);
+
+              return (
+                <PersonLane
+                  key={row.person.id}
+                  person={row.person}
+                  y={row.y}
+                  xScale={xScale}
+                  zoomK={zoomK}
+                  currentYear={currentYear}
+                  events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
+                  lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
+                  classifications={personDataMaps.classificationsByPerson.get(row.person.id) ?? []}
+                  persons={persons}
+                  traumaColors={traumaColors}
+                  lifeEventColors={lifeEventColors}
+                  cssVar={cssVar}
+                  t={t}
+                  onTooltip={onTooltip}
+                  selected={isSelected}
+                  dimmed={isDimmed}
+                  mode={mode}
+                  dims={dims}
+                  filterMode={filterMode}
+                  onSelectPerson={handleSelectPerson}
+                  onClickMarker={onClickMarker}
+                  showClassifications={showClassifications}
+                  selectedEntityKeys={selectedEntityKeys}
+                  onToggleEntitySelect={onToggleEntitySelect}
+                />
+              );
+            })}
+            {showPartnerLines &&
+              partnerLines.map((pl) => (
+                <PartnerLine
+                  key={pl.key}
+                  sourceName={pl.sourceName}
+                  targetName={pl.targetName}
+                  sourceY={pl.sourceY}
+                  targetY={pl.targetY}
+                  periods={pl.periods}
+                  xScale={xScale}
+                  zoomK={zoomK}
+                  currentYear={currentYear}
+                  cssVar={cssVar}
+                  t={t}
+                  onTooltip={onTooltip}
+                />
+              ))}
+          </g>
+        </g>
+      </svg>
+      <TimelineZoomControls actions={zoomActions} />
+    </>
   );
 }

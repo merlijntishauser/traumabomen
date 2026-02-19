@@ -115,14 +115,11 @@ export function assignBaseGenerations(
   return generations;
 }
 
-function equalizePartners(
+function equalizeExplicitPartners(
   generations: Map<string, number>,
   relationships: Map<string, DecryptedRelationship>,
-  childToParents: Map<string, string[]>,
 ): boolean {
   let changed = false;
-
-  // Equalize explicit partners
   for (const rel of relationships.values()) {
     if (rel.type !== RelationshipType.Partner) continue;
     const genA = generations.get(rel.source_person_id);
@@ -135,9 +132,14 @@ function equalizePartners(
       changed = true;
     }
   }
+  return changed;
+}
 
-  // Equalize co-parents: persons who are both parents of the same child
-  // (covers step-parents without an explicit partner relationship)
+function equalizeCoParents(
+  generations: Map<string, number>,
+  childToParents: Map<string, string[]>,
+): boolean {
+  let changed = false;
   for (const parentIds of childToParents.values()) {
     if (parentIds.length < 2) continue;
     const parentGens = parentIds
@@ -152,8 +154,17 @@ function equalizePartners(
       }
     }
   }
-
   return changed;
+}
+
+function equalizePartners(
+  generations: Map<string, number>,
+  relationships: Map<string, DecryptedRelationship>,
+  childToParents: Map<string, string[]>,
+): boolean {
+  const partnersChanged = equalizeExplicitPartners(generations, relationships);
+  const coParentsChanged = equalizeCoParents(generations, childToParents);
+  return partnersChanged || coParentsChanged;
 }
 
 function propagateToChildren(

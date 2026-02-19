@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseTimelineZoomOptions {
   svgRef: React.RefObject<SVGSVGElement | null>;
@@ -11,6 +11,18 @@ interface UseTimelineZoomOptions {
   height: number;
 }
 
+export interface TimelineZoomActions {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetZoom: () => void;
+}
+
+export interface UseTimelineZoomResult {
+  rescaled: d3.ScaleLinear<number, number>;
+  zoomK: number;
+  zoomActions: TimelineZoomActions;
+}
+
 export function useTimelineZoom({
   svgRef,
   zoomGroupRef,
@@ -19,10 +31,11 @@ export function useTimelineZoom({
   fixedOffset,
   width,
   height,
-}: UseTimelineZoomOptions): { rescaled: d3.ScaleLinear<number, number>; zoomK: number } {
+}: UseTimelineZoomOptions): UseTimelineZoomResult {
   const [rescaled, setRescaled] = useState<d3.ScaleLinear<number, number>>(() => scale);
   const [zoomK, setZoomK] = useState(1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
   // Keep React state in sync when scale changes (even without a mounted SVG)
   useEffect(() => {
@@ -77,6 +90,8 @@ export function useTimelineZoom({
         }, 50);
       });
 
+    zoomRef.current = zoom;
+
     const svgSel = d3.select(svg);
 
     // Reset D3 zoom state and DOM transform so React state (zoomK=1) stays in sync
@@ -91,9 +106,34 @@ export function useTimelineZoom({
 
     return () => {
       svgSel.on(".zoom", null);
+      zoomRef.current = null;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [svgRef, zoomGroupRef, scale, direction, fixedOffset, width, height]);
 
-  return { rescaled, zoomK };
+  const zoomIn = useCallback(() => {
+    const svg = svgRef.current;
+    const zoom = zoomRef.current;
+    if (!svg || !zoom) return;
+    d3.select(svg).transition().duration(250).call(zoom.scaleBy, 1.5);
+  }, [svgRef]);
+
+  const zoomOut = useCallback(() => {
+    const svg = svgRef.current;
+    const zoom = zoomRef.current;
+    if (!svg || !zoom) return;
+    d3.select(svg)
+      .transition()
+      .duration(250)
+      .call(zoom.scaleBy, 1 / 1.5);
+  }, [svgRef]);
+
+  const resetZoom = useCallback(() => {
+    const svg = svgRef.current;
+    const zoom = zoomRef.current;
+    if (!svg || !zoom) return;
+    d3.select(svg).transition().duration(250).call(zoom.transform, d3.zoomIdentity);
+  }, [svgRef]);
+
+  return { rescaled, zoomK, zoomActions: { zoomIn, zoomOut, resetZoom } };
 }

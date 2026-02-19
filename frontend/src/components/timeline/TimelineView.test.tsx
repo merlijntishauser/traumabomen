@@ -39,9 +39,12 @@ vi.mock("../../lib/lifeEventColors", () => ({
 }));
 
 // Mock useTimelineZoom to return a pass-through scale
+const noopZoomActions = { zoomIn: () => {}, zoomOut: () => {}, resetZoom: () => {} };
 vi.mock("../../hooks/useTimelineZoom", () => ({
   useTimelineZoom: ({ scale }: { scale: d3.ScaleLinear<number, number> }) => ({
     rescaled: scale,
+    zoomK: 1,
+    zoomActions: noopZoomActions,
   }),
 }));
 

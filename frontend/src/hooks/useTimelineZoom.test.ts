@@ -124,4 +124,152 @@ describe("useTimelineZoom", () => {
     unmount();
     document.body.removeChild(svg);
   });
+
+  it("zoomIn does not throw when svgRef is null", () => {
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+    const { result } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: null },
+        zoomGroupRef: { current: null },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+    expect(() => act(() => result.current.zoomActions.zoomIn())).not.toThrow();
+  });
+
+  it("zoomOut does not throw when svgRef is null", () => {
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+    const { result } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: null },
+        zoomGroupRef: { current: null },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+    expect(() => act(() => result.current.zoomActions.zoomOut())).not.toThrow();
+  });
+
+  it("resetZoom does not throw when svgRef is null", () => {
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+    const { result } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: null },
+        zoomGroupRef: { current: null },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+    expect(() => act(() => result.current.zoomActions.resetZoom())).not.toThrow();
+  });
+
+  it("zoomIn triggers D3 zoom on a mounted SVG", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.appendChild(g);
+    document.body.appendChild(svg);
+
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+
+    const { result, unmount } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: svg },
+        zoomGroupRef: { current: g },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+
+    expect(() => act(() => result.current.zoomActions.zoomIn())).not.toThrow();
+
+    unmount();
+    document.body.removeChild(svg);
+  });
+
+  it("zoomOut triggers D3 zoom on a mounted SVG", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.appendChild(g);
+    document.body.appendChild(svg);
+
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+
+    const { result, unmount } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: svg },
+        zoomGroupRef: { current: g },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+
+    expect(() => act(() => result.current.zoomActions.zoomOut())).not.toThrow();
+
+    unmount();
+    document.body.removeChild(svg);
+  });
+
+  it("resetZoom triggers D3 zoom on a mounted SVG", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.appendChild(g);
+    document.body.appendChild(svg);
+
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+
+    const { result, unmount } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: svg },
+        zoomGroupRef: { current: g },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+      }),
+    );
+
+    expect(() => act(() => result.current.zoomActions.resetZoom())).not.toThrow();
+
+    unmount();
+    document.body.removeChild(svg);
+  });
+
+  it("zoom actions work with vertical direction", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.appendChild(g);
+    document.body.appendChild(svg);
+
+    const scale = d3.scaleLinear().domain([0, 80]).range([50, 400]);
+
+    const { result, unmount } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: svg },
+        zoomGroupRef: { current: g },
+        scale,
+        direction: "vertical",
+        fixedOffset: 50,
+        width: 600,
+        height: 400,
+      }),
+    );
+
+    expect(() => act(() => result.current.zoomActions.zoomIn())).not.toThrow();
+    expect(() => act(() => result.current.zoomActions.zoomOut())).not.toThrow();
+    expect(() => act(() => result.current.zoomActions.resetZoom())).not.toThrow();
+
+    unmount();
+    document.body.removeChild(svg);
+  });
 });
