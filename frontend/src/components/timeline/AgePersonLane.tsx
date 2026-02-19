@@ -191,10 +191,11 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                     />
                     {showMarkerLabels && pi === 0 && (
                       <text
-                        x={stripX + stripWidth + 2}
-                        y={startY + 8}
+                        x={cx}
+                        y={startY - 2}
                         className="tl-marker-label"
-                        transform={labelTransform(startY + 8)}
+                        textAnchor="middle"
+                        transform={labelTransform(startY - 2)}
                       >
                         {clsLabel}
                       </text>
@@ -253,7 +254,12 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                         />
                       )}
                       {showMarkerLabels && (
-                        <text x={cx + MARKER_RADIUS + 3} y={diagY + 3} className="tl-marker-label">
+                        <text
+                          x={cx}
+                          y={diagY - MARKER_RADIUS - 2}
+                          className="tl-marker-label"
+                          textAnchor="middle"
+                        >
                           {triLabel}
                         </text>
                       )}
@@ -314,7 +320,12 @@ export const AgePersonLane = React.memo(function AgePersonLane({
               <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
             {showMarkerLabels && (
-              <text x={cx + MARKER_RADIUS + 3} y={py + 3} className="tl-marker-label">
+              <text
+                x={cx}
+                y={py - MARKER_RADIUS - 2}
+                className="tl-marker-label"
+                textAnchor="middle"
+              >
                 {event.title}
               </text>
             )}
@@ -379,7 +390,12 @@ export const AgePersonLane = React.memo(function AgePersonLane({
               <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
             {showMarkerLabels && (
-              <text x={cx + MARKER_RADIUS + 3} y={py + 3} className="tl-marker-label">
+              <text
+                x={cx}
+                y={py - MARKER_RADIUS - 2}
+                className="tl-marker-label"
+                textAnchor="middle"
+              >
                 {le.title}
               </text>
             )}

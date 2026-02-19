@@ -192,10 +192,10 @@ export const PersonLane = React.memo(function PersonLane({
                     />
                     {showMarkerLabels && pi === 0 && (
                       <text
-                        x={px1 + 3}
-                        y={stripY - 2}
+                        x={px1}
+                        y={barY - 2}
                         className="tl-marker-label"
-                        transform={labelTransform(px1 + 3)}
+                        transform={labelTransform(px1)}
                       >
                         {clsLabel}
                       </text>
@@ -254,7 +254,7 @@ export const PersonLane = React.memo(function PersonLane({
                         />
                       )}
                       {showMarkerLabels && (
-                        <text x={dx + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+                        <text x={dx} y={barY - 2} className="tl-marker-label">
                           {triLabel}
                         </text>
                       )}
@@ -316,7 +316,7 @@ export const PersonLane = React.memo(function PersonLane({
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
             {showMarkerLabels && (
-              <text x={px + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+              <text x={px} y={barY - 2} className="tl-marker-label">
                 {event.title}
               </text>
             )}
@@ -381,7 +381,7 @@ export const PersonLane = React.memo(function PersonLane({
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
             {showMarkerLabels && (
-              <text x={px + MARKER_RADIUS + 3} y={cy + 3} className="tl-marker-label">
+              <text x={px} y={barY - 2} className="tl-marker-label">
                 {le.title}
               </text>
             )}
