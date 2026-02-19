@@ -356,6 +356,7 @@ function TreeWorkspaceInner() {
   // Local node state that accepts both layout updates and drag changes
   const [nodes, setNodes] = useState<PersonNodeType[]>([]);
   const prevNodeIdsRef = useRef("");
+  const prevEdgeCountRef = useRef(0);
   const prevNodeCountRef = useRef(0);
 
   useEffect(() => {
@@ -363,8 +364,11 @@ function TreeWorkspaceInner() {
       .map((n) => n.id)
       .sort()
       .join(",");
-    const structureChanged = currentIds !== prevNodeIdsRef.current;
+    const nodesChanged = currentIds !== prevNodeIdsRef.current;
+    const edgesChanged = edges.length !== prevEdgeCountRef.current;
+    const structureChanged = nodesChanged || edgesChanged;
     prevNodeIdsRef.current = currentIds;
+    prevEdgeCountRef.current = edges.length;
 
     setNodes((prev) => {
       const prevMap = new Map(prev.map((n) => [n.id, n]));
@@ -379,7 +383,7 @@ function TreeWorkspaceInner() {
         return { ...n, position: existing.position, measured: existing.measured };
       });
     });
-  }, [layoutNodes]);
+  }, [layoutNodes, edges.length]);
 
   const onNodesChange: OnNodesChange<PersonNodeType> = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
