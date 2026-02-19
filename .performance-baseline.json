@@ -1,12 +1,12 @@
 {
   "api": {
-    "health_ms": 81,
-    "login_ms": 413,
-    "trees_ms": 84
+    "health_ms": 65,
+    "login_ms": 465,
+    "trees_ms": 79
   },
   "frontend": {
-    "bundle_size_kb": 405,
-    "ttfb_ms": 48,
+    "bundle_size_kb": 357,
+    "ttfb_ms": 57,
     "lighthouse_score": -1
   }
 }
