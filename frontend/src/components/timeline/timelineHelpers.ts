@@ -233,8 +233,9 @@ export function buildRowLayout(
   timelinePersons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
   availableHeight: number,
+  precomputedGenerations?: Map<string, number>,
 ): RowLayout {
-  const generations = computeGenerations(timelinePersons, relationships);
+  const generations = precomputedGenerations ?? computeGenerations(timelinePersons, relationships);
   const personsByGen = new Map<number, DecryptedPerson[]>();
 
   for (const person of timelinePersons.values()) {
@@ -349,8 +350,9 @@ export function buildColumnLayout(
   timelinePersons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
   availableWidth: number,
+  precomputedGenerations?: Map<string, number>,
 ): ColumnLayout {
-  const generations = computeGenerations(timelinePersons, relationships);
+  const generations = precomputedGenerations ?? computeGenerations(timelinePersons, relationships);
   const personsByGen = new Map<number, DecryptedPerson[]>();
 
   for (const person of timelinePersons.values()) {

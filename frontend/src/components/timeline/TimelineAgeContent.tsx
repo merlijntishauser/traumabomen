@@ -23,6 +23,7 @@ import {
   buildPersonDataMaps,
   COL_HEADER_HEIGHT,
   computeAgeDomain,
+  computeGenerations,
   filterTimelinePersons,
 } from "./timelineHelpers";
 
@@ -96,9 +97,14 @@ export function TimelineAgeContent({
     return filtered;
   }, [timelinePersons, filterMode, dims]);
 
+  const generations = useMemo(
+    () => computeGenerations(timelinePersons, relationships),
+    [timelinePersons, relationships],
+  );
+
   const { columns, sortedGens, genStarts, genWidths, totalWidth } = useMemo(
-    () => buildColumnLayout(effectivePersons, relationships, width),
-    [effectivePersons, relationships, width],
+    () => buildColumnLayout(effectivePersons, relationships, width, generations),
+    [effectivePersons, relationships, width, generations],
   );
 
   const { minAge, maxAge } = useMemo(() => computeAgeDomain(timelinePersons), [timelinePersons]);

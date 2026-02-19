@@ -21,6 +21,7 @@ import type { TooltipState } from "./TimelineTooltip";
 import {
   buildPersonDataMaps,
   buildRowLayout,
+  computeGenerations,
   computeTimeDomain,
   filterTimelinePersons,
   GEN_HEADER_HEIGHT,
@@ -99,9 +100,16 @@ export function TimelineYearsContent({
     return filtered;
   }, [timelinePersons, filterMode, dims]);
 
+  // Compute generations from the full person set so hidden persons
+  // don't cause their visible partners to shift generations
+  const generations = useMemo(
+    () => computeGenerations(timelinePersons, relationships),
+    [timelinePersons, relationships],
+  );
+
   const { rows, sortedGens, personsByGen, totalHeight } = useMemo(
-    () => buildRowLayout(effectivePersons, relationships, height),
-    [effectivePersons, relationships, height],
+    () => buildRowLayout(effectivePersons, relationships, height, generations),
+    [effectivePersons, relationships, height, generations],
   );
 
   const { minYear, maxYear } = useMemo(
