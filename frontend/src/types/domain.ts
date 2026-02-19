@@ -134,8 +134,7 @@ export enum LifeEventCategory {
   Career = "career",
   Relocation = "relocation",
   Health = "health",
-  StartedMedication = "started_medication",
-  StoppedMedication = "stopped_medication",
+  Medication = "medication",
   Other = "other",
 }
 

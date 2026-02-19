@@ -50,10 +50,18 @@
 .tl-filter-panel__quick-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-primary);
   margin-bottom: 4px;
+}
+
+.tl-filter-panel__quick-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding-left: 12px;
+  margin-right: 2px;
 }
 
 .tl-filter-panel__badge {
@@ -185,7 +193,7 @@
 
 .tl-filter-panel__pill {
   height: 24px;
-  padding: 0 8px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-primary);
   border-radius: 12px;
   background: transparent;

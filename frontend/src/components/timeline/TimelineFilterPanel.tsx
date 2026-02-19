@@ -215,6 +215,7 @@ export function TimelineFilterPanel({
       <div className="detail-panel__content">
         {/* Quick filter pills */}
         <div className="tl-filter-panel__quick-filters">
+          <span className="tl-filter-panel__quick-label">{t("timeline.quickFilterLabel")}</span>
           <button
             type="button"
             className={quickPillClass(isQuickTraumaActive)}
