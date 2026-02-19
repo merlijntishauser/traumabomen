@@ -595,6 +595,7 @@
   "demo.createButton": "Create demo tree",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximum 3 demo trees",
+  "demo.limitReachedHint": "You have reached the maximum of 3 demo trees. Delete one to create a new one.",
   "demo.creating": "Creating demo tree...",
 
   "welcome.title": "Welcome to Traumatrees",

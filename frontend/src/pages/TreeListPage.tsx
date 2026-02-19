@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, X } from "lucide-react";
+import { AlertTriangle, LogOut, X } from "lucide-react";
 import { type FormEvent, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -249,6 +249,13 @@ export default function TreeListPage() {
                 {t(T_CANCEL)}
               </button>
             </form>
+          )}
+
+          {demoTreeCount >= MAX_DEMO_TREES && (
+            <div className="tree-list-limit">
+              <AlertTriangle size={16} />
+              <span>{t("demo.limitReachedHint")}</span>
+            </div>
           )}
 
           {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}

@@ -595,6 +595,7 @@
   "demo.createButton": "Demoboom aanmaken",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximaal 3 demobomen",
+  "demo.limitReachedHint": "Je hebt het maximum van 3 demobomen bereikt. Verwijder er een om een nieuwe aan te maken.",
   "demo.creating": "Demoboom aanmaken...",
 
   "welcome.title": "Welkom bij Traumabomen",
