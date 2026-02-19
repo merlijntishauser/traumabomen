@@ -738,6 +738,152 @@ describe("AgePersonLane", () => {
     expect(onToggleEntitySelect).toHaveBeenCalledWith("trauma_event:e1");
   });
 
+  it("shows tooltip on diagnosis triangle hover", () => {
+    const onTooltip = vi.fn();
+    const props = makeBaseProps();
+    props.onTooltip = onTooltip;
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: "major_depressive",
+        status: "diagnosed",
+        diagnosis_year: 2005,
+        periods: [{ start_year: 2000, end_year: 2010 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const triangle = container.querySelector("path");
+    expect(triangle).toBeTruthy();
+    fireEvent.mouseEnter(triangle!);
+    expect(onTooltip).toHaveBeenCalledWith(expect.objectContaining({ visible: true }));
+  });
+
+  it("calls onClickMarker when classification strip is clicked", () => {
+    const onClickMarker = vi.fn();
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "suspected",
+        diagnosis_year: null,
+        periods: [{ start_year: 2000, end_year: 2010 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} onClickMarker={onClickMarker} mode="edit" />
+      </svg>,
+    );
+
+    const strip = container.querySelector("rect.tl-marker");
+    fireEvent.click(strip!);
+    expect(onClickMarker).toHaveBeenCalledWith({
+      personId: "p1",
+      entityType: "classification",
+      entityId: "c1",
+    });
+  });
+
+  it("calls onClickMarker when diagnosis triangle is clicked", () => {
+    const onClickMarker = vi.fn();
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "diagnosed",
+        diagnosis_year: 2005,
+        periods: [{ start_year: 2000, end_year: 2010 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} onClickMarker={onClickMarker} mode="edit" />
+      </svg>,
+    );
+
+    const triangle = container.querySelector("path");
+    expect(triangle).toBeTruthy();
+    fireEvent.click(triangle!);
+    expect(onClickMarker).toHaveBeenCalledWith({
+      personId: "p1",
+      entityType: "classification",
+      entityId: "c1",
+    });
+  });
+
+  it("applies counter-scale transform on markers when zoomK > 1", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} zoomK={2} />
+      </svg>,
+    );
+
+    const circle = container.querySelector("circle");
+    const markerG = circle?.parentElement;
+    const transform = markerG?.getAttribute("transform");
+    expect(transform).toBeTruthy();
+    expect(transform).toContain("scale(1,0.5)");
+  });
+
+  it("does not apply counter-scale transform when zoomK is 1", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} zoomK={1} />
+      </svg>,
+    );
+
+    const circle = container.querySelector("circle");
+    const markerG = circle?.parentElement;
+    expect(markerG?.getAttribute("transform")).toBeNull();
+  });
+
   it("does not call onClickMarker in annotate mode", () => {
     const onClickMarker = vi.fn();
     const onToggleEntitySelect = vi.fn();

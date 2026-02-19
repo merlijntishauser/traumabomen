@@ -437,5 +437,77 @@ describe("TimelineView", () => {
       const timeGroup = container.querySelector(".tl-time");
       expect(timeGroup).toBeTruthy();
     });
+
+    it("truncates long person names in age mode column headers", () => {
+      const longNamePerson = makePerson("p1", { name: "Alexander", birth_year: 1960 });
+      const shortNamePerson = makePerson("p2", { name: "Alice", birth_year: 1965 });
+      const props = {
+        ...makeEmptyProps(),
+        persons: new Map<string, DecryptedPerson>([
+          ["p1", longNamePerson],
+          ["p2", shortNamePerson],
+        ]),
+      };
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const personNames = container.querySelectorAll(".tl-col-person-name");
+      const texts = Array.from(personNames).map((el) => el.textContent);
+      expect(texts).toContain("Alex..");
+      expect(texts).toContain("Alice");
+    });
+
+    it("calls onSelectPerson with null when background is clicked in age mode", () => {
+      const p1 = makePerson("p1", { name: "Alice", birth_year: 1960 });
+      const props = {
+        ...makeEmptyProps(),
+        persons: new Map<string, DecryptedPerson>([["p1", p1]]),
+      };
+      const onSelectPerson = vi.fn();
+      const { container } = render(
+        <TimelineView {...props} layoutMode="age" onSelectPerson={onSelectPerson} />,
+      );
+      // The transparent background rect is the one with fill="transparent" outside the zoom group
+      const bgRects = container.querySelectorAll('rect[fill="transparent"]');
+      const bgRect = Array.from(bgRects).find((r) => !r.classList.contains("tl-lane-hitarea"));
+      bgRect?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      expect(onSelectPerson).toHaveBeenCalledWith(null);
+    });
+
+    it("renders horizontal gridlines when showGridlines is true in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" showGridlines />);
+      const ageLabels = container.querySelectorAll(".tl-age-axis-text");
+      // There should be at least one gridline (one per tick)
+      const lines = container.querySelectorAll("line");
+      expect(lines.length).toBeGreaterThanOrEqual(ageLabels.length);
+    });
+
+    it("does not render gridlines by default in age mode", () => {
+      const props = makePopulatedProps();
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      // Without gridlines, lines are only from axis ticks (none in age mode axis)
+      // The age mode axis uses text only, no tick lines
+      const bgGroup = container.querySelector(".tl-bg");
+      const gridLines = bgGroup?.querySelectorAll("line");
+      expect(gridLines?.length ?? 0).toBe(0);
+    });
+
+    it("applies dimmed class to non-selected person in age mode", () => {
+      const p1 = makePerson("p1", { name: "Alice", birth_year: 1960 });
+      const p2 = makePerson("p2", { name: "Bob", birth_year: 1958 });
+      const props = {
+        ...makeEmptyProps(),
+        persons: new Map<string, DecryptedPerson>([
+          ["p1", p1],
+          ["p2", p2],
+        ]),
+      };
+      const { container } = render(
+        <TimelineView {...props} layoutMode="age" selectedPersonId="p1" />,
+      );
+      const selectedLanes = container.querySelectorAll(".tl-lane--selected");
+      const dimmedLanes = container.querySelectorAll(".tl-lane--dimmed");
+      expect(selectedLanes.length).toBe(1);
+      expect(dimmedLanes.length).toBe(1);
+    });
   });
 });
