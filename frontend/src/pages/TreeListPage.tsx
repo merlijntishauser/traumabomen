@@ -62,8 +62,12 @@ export default function TreeListPage() {
       const responses = await getTrees();
       const trees: DecryptedTree[] = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<{ name: string }>(r.encrypted_data);
-          return { id: r.id, name: data.name, is_demo: r.is_demo };
+          try {
+            const data = await decrypt<{ name: string }>(r.encrypted_data);
+            return { id: r.id, name: data.name, is_demo: r.is_demo };
+          } catch {
+            return { id: r.id, name: t("tree.decryptionError"), is_demo: r.is_demo };
+          }
         }),
       );
       return trees;
