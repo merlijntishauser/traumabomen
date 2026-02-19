@@ -248,8 +248,8 @@ export function TimelineAgeContent({
               x2={totalWidth}
               y1={tick.y}
               y2={tick.y}
-              stroke={cssVar("--color-border-secondary")}
-              strokeOpacity={0.3}
+              stroke={cssVar("--color-text-muted")}
+              strokeOpacity={0.25}
             />
           ))}
       </g>

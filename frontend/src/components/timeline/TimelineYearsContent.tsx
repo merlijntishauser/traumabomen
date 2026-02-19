@@ -278,8 +278,8 @@ export function TimelineYearsContent({
             x2={tick.x}
             y1={0}
             y2={totalHeight}
-            stroke={cssVar("--color-border-secondary")}
-            strokeOpacity={0.3}
+            stroke={cssVar("--color-text-muted")}
+            strokeOpacity={0.25}
           />
         ))}
 
