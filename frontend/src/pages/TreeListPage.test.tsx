@@ -63,9 +63,13 @@ vi.mock("../lib/compactId", () => ({
   uuidToCompact: (id: string) => id.slice(0, 8),
 }));
 
+vi.mock("../lib/createDemoTree", () => ({
+  createDemoTree: vi.fn().mockResolvedValue("demo-tree-id"),
+}));
+
 // Control useQuery return value per test
 let mockQueryReturn: {
-  data: { id: string; name: string }[] | undefined;
+  data: { id: string; name: string; is_demo: boolean }[] | undefined;
   isLoading: boolean;
 };
 
@@ -123,7 +127,7 @@ describe("TreeListPage welcome card", () => {
 
   it("shows welcome card when trees exist but not dismissed", () => {
     mockQueryReturn = {
-      data: [{ id: "tree-1", name: "My Tree" }],
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
@@ -133,7 +137,7 @@ describe("TreeListPage welcome card", () => {
   it("hides welcome card when trees exist and dismissed", () => {
     localStorageStore[STORAGE_KEY] = "true";
     mockQueryReturn = {
-      data: [{ id: "tree-1", name: "My Tree" }],
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
@@ -149,7 +153,7 @@ describe("TreeListPage welcome card", () => {
 
   it("dismiss button sets localStorage and hides card when trees exist", () => {
     mockQueryReturn = {
-      data: [{ id: "tree-1", name: "My Tree" }],
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
@@ -168,7 +172,7 @@ describe("TreeListPage welcome card", () => {
 
   it("hides 'create tree' button when trees exist", () => {
     mockQueryReturn = {
-      data: [{ id: "tree-1", name: "My Tree" }],
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
@@ -188,5 +192,46 @@ describe("TreeListPage welcome card", () => {
     mockQueryReturn = { data: undefined, isLoading: true };
     renderPage();
     expect(screen.getByTestId("welcome-card")).toBeInTheDocument();
+  });
+});
+
+describe("TreeListPage demo tree", () => {
+  beforeEach(() => {
+    delete localStorageStore[STORAGE_KEY];
+    mockGetItem.mockClear();
+    mockSetItem.mockClear();
+  });
+
+  function renderPage() {
+    return render(<TreeListPage />);
+  }
+
+  it("renders demo tree button in toolbar", () => {
+    mockQueryReturn = { data: [], isLoading: false };
+    renderPage();
+    expect(screen.getByText("demo.createButton")).toBeInTheDocument();
+  });
+
+  it("shows demo badge on demo trees", () => {
+    mockQueryReturn = {
+      data: [
+        { id: "tree-1", name: "My Tree", is_demo: false },
+        { id: "tree-2", name: "Demo Tree", is_demo: true },
+      ],
+      isLoading: false,
+    };
+    localStorageStore[STORAGE_KEY] = "true";
+    renderPage();
+    expect(screen.getByText("demo.badge")).toBeInTheDocument();
+  });
+
+  it("does not show demo badge on non-demo trees", () => {
+    mockQueryReturn = {
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
+      isLoading: false,
+    };
+    localStorageStore[STORAGE_KEY] = "true";
+    renderPage();
+    expect(screen.queryByText("demo.badge")).not.toBeInTheDocument();
   });
 });

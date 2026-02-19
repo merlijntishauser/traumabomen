@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class TreeCreate(BaseModel):
     encrypted_data: str
+    is_demo: bool = False
 
 
 class TreeUpdate(BaseModel):
@@ -17,6 +18,7 @@ class TreeUpdate(BaseModel):
 class TreeResponse(BaseModel):
     id: uuid.UUID
     encrypted_data: str
+    is_demo: bool
     created_at: datetime
     updated_at: datetime
 

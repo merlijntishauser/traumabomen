@@ -60,6 +60,7 @@ export interface DeleteAccountRequest {
 // Trees
 export interface TreeCreate {
   encrypted_data: string;
+  is_demo?: boolean;
 }
 
 export interface TreeUpdate {
@@ -69,6 +70,7 @@ export interface TreeUpdate {
 export interface TreeResponse {
   id: string;
   encrypted_data: string;
+  is_demo: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -1,0 +1,375 @@
+{
+  "treeName": "Demo: Sandbox with fictional data",
+  "persons": [
+    {
+      "id": "demo-p1",
+      "name": "Margaret van Dijk",
+      "birth_year": 1935,
+      "death_year": 2012,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Grandmother, matriarch of the family. Lived through war as a child."
+    },
+    {
+      "id": "demo-p2",
+      "name": "Hendrik van Dijk",
+      "birth_year": 1932,
+      "death_year": 2005,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Grandfather. Factory worker, struggled with alcohol after the war."
+    },
+    {
+      "id": "demo-p3",
+      "name": "Anna van Dijk",
+      "birth_year": 1958,
+      "death_year": null,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Eldest daughter. Teacher."
+    },
+    {
+      "id": "demo-p4",
+      "name": "Willem Bakker",
+      "birth_year": 1955,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Anna's first husband."
+    },
+    {
+      "id": "demo-p5",
+      "name": "Pieter de Vries",
+      "birth_year": 1960,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Anna's second partner."
+    },
+    {
+      "id": "demo-p6",
+      "name": "Thomas van Dijk",
+      "birth_year": 1962,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Youngest son. Moved abroad for work."
+    },
+    {
+      "id": "demo-p7",
+      "name": "Sophie Bakker",
+      "birth_year": 1985,
+      "death_year": null,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Anna and Willem's daughter."
+    },
+    {
+      "id": "demo-p8",
+      "name": "Lucas Bakker",
+      "birth_year": 1988,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Anna and Willem's son."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "demo-r1",
+      "source_person_id": "demo-p2",
+      "target_person_id": "demo-p3",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r2",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p3",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r3",
+      "source_person_id": "demo-p2",
+      "target_person_id": "demo-p6",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r4",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p6",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r5",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p2",
+      "type": "partner",
+      "periods": [{ "start_year": 1954, "end_year": null, "status": "married" }]
+    },
+    {
+      "id": "demo-r6",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p4",
+      "type": "partner",
+      "periods": [
+        { "start_year": 1980, "end_year": 1995, "status": "married" },
+        { "start_year": 1995, "end_year": 1997, "status": "divorced" }
+      ]
+    },
+    {
+      "id": "demo-r7",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p5",
+      "type": "partner",
+      "periods": [{ "start_year": 2000, "end_year": null, "status": "together" }]
+    },
+    {
+      "id": "demo-r8",
+      "source_person_id": "demo-p5",
+      "target_person_id": "demo-p7",
+      "type": "step_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r9",
+      "source_person_id": "demo-p5",
+      "target_person_id": "demo-p8",
+      "type": "step_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r10",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p7",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r11",
+      "source_person_id": "demo-p4",
+      "target_person_id": "demo-p7",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r12",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p8",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r13",
+      "source_person_id": "demo-p4",
+      "target_person_id": "demo-p8",
+      "type": "biological_parent",
+      "periods": []
+    }
+  ],
+  "events": [
+    {
+      "id": "demo-e1",
+      "person_ids": ["demo-p1", "demo-p2"],
+      "title": "Bombing of the neighbourhood",
+      "description": "Both Margaret and Hendrik witnessed the bombing of their neighbourhood as children during WWII.",
+      "category": "war",
+      "approximate_date": "1944",
+      "severity": 9,
+      "tags": ["childhood", "WWII"]
+    },
+    {
+      "id": "demo-e2",
+      "person_ids": ["demo-p2"],
+      "title": "Alcohol dependency",
+      "description": "Hendrik developed alcohol dependency in his forties, likely as a coping mechanism for unprocessed war trauma.",
+      "category": "addiction",
+      "approximate_date": "1975",
+      "severity": 7,
+      "tags": ["coping", "substance"]
+    },
+    {
+      "id": "demo-e3",
+      "person_ids": ["demo-p3"],
+      "title": "Emotional neglect in childhood",
+      "description": "Anna experienced emotional neglect growing up due to her father's drinking and her mother's protective silence.",
+      "category": "abuse",
+      "approximate_date": "1965",
+      "severity": 6,
+      "tags": ["neglect", "childhood"]
+    },
+    {
+      "id": "demo-e4",
+      "person_ids": ["demo-p1"],
+      "title": "Death of Margaret's mother",
+      "description": "Margaret's mother died of tuberculosis when Margaret was 12, during the war.",
+      "category": "loss",
+      "approximate_date": "1947",
+      "severity": 8,
+      "tags": ["grief", "childhood"]
+    },
+    {
+      "id": "demo-e5",
+      "person_ids": ["demo-p6"],
+      "title": "Forced displacement",
+      "description": "Thomas was relocated for work against his preference, uprooting him from his support network.",
+      "category": "displacement",
+      "approximate_date": "1995",
+      "severity": 5,
+      "tags": ["relocation", "isolation"]
+    },
+    {
+      "id": "demo-e6",
+      "person_ids": ["demo-p8"],
+      "title": "Chronic illness diagnosis",
+      "description": "Lucas was diagnosed with a chronic autoimmune condition in his twenties.",
+      "category": "illness",
+      "approximate_date": "2012",
+      "severity": 6,
+      "tags": ["health", "chronic"]
+    },
+    {
+      "id": "demo-e7",
+      "person_ids": ["demo-p7"],
+      "title": "Financial hardship after parents' divorce",
+      "description": "Sophie experienced poverty as a teenager when her parents divorced and finances collapsed.",
+      "category": "poverty",
+      "approximate_date": "1997",
+      "severity": 5,
+      "tags": ["divorce", "adolescence"]
+    }
+  ],
+  "lifeEvents": [
+    {
+      "id": "demo-le1",
+      "person_ids": ["demo-p1", "demo-p2"],
+      "title": "Marriage",
+      "description": "Margaret and Hendrik married in a small ceremony.",
+      "category": "family",
+      "approximate_date": "1954",
+      "impact": 7,
+      "tags": ["wedding"]
+    },
+    {
+      "id": "demo-le2",
+      "person_ids": ["demo-p3"],
+      "title": "Teaching degree",
+      "description": "Anna completed her teaching degree, becoming the first in the family with higher education.",
+      "category": "education",
+      "approximate_date": "1980",
+      "impact": 8,
+      "tags": ["milestone"]
+    },
+    {
+      "id": "demo-le3",
+      "person_ids": ["demo-p6"],
+      "title": "International transfer",
+      "description": "Thomas accepted a job transfer abroad.",
+      "category": "career",
+      "approximate_date": "1995",
+      "impact": 7,
+      "tags": ["work"]
+    },
+    {
+      "id": "demo-le4",
+      "person_ids": ["demo-p7"],
+      "title": "Moved to the city",
+      "description": "Sophie moved to Amsterdam to study art.",
+      "category": "relocation",
+      "approximate_date": "2003",
+      "impact": 6,
+      "tags": ["independence"]
+    },
+    {
+      "id": "demo-le5",
+      "person_ids": ["demo-p8"],
+      "title": "Started medication",
+      "description": "Lucas started medication for his autoimmune condition.",
+      "category": "medication",
+      "approximate_date": "2013",
+      "impact": 5,
+      "tags": ["treatment"]
+    },
+    {
+      "id": "demo-le6",
+      "person_ids": ["demo-p3", "demo-p4"],
+      "title": "Divorce",
+      "description": "Anna and Willem's divorce after 15 years of marriage.",
+      "category": "family",
+      "approximate_date": "1997",
+      "impact": 8,
+      "tags": ["separation"]
+    }
+  ],
+  "classifications": [
+    {
+      "id": "demo-c1",
+      "person_ids": ["demo-p2"],
+      "dsm_category": "substance",
+      "dsm_subcategory": "alcohol_use",
+      "status": "diagnosed",
+      "diagnosis_year": 1978,
+      "periods": [{ "start_year": 1975, "end_year": 2005 }],
+      "notes": "Struggled with alcohol for decades, linked to war trauma."
+    },
+    {
+      "id": "demo-c2",
+      "person_ids": ["demo-p1"],
+      "dsm_category": "neurodevelopmental",
+      "dsm_subcategory": "autism",
+      "status": "suspected",
+      "diagnosis_year": null,
+      "periods": [{ "start_year": 1935, "end_year": 2012 }],
+      "notes": "Retrospectively suspected based on lifelong patterns of social difficulty and sensory sensitivity."
+    },
+    {
+      "id": "demo-c3",
+      "person_ids": ["demo-p7"],
+      "dsm_category": "neurodevelopmental",
+      "dsm_subcategory": "autism",
+      "status": "diagnosed",
+      "diagnosis_year": 2020,
+      "periods": [{ "start_year": 1985, "end_year": null }],
+      "notes": "Diagnosed as an adult. Recognized after learning about grandmother's suspected traits."
+    },
+    {
+      "id": "demo-c4",
+      "person_ids": ["demo-p3"],
+      "dsm_category": "depressive",
+      "dsm_subcategory": "major_depression",
+      "status": "diagnosed",
+      "diagnosis_year": 1996,
+      "periods": [{ "start_year": 1995, "end_year": 2000 }],
+      "notes": "Onset during the divorce period."
+    }
+  ],
+  "patterns": [
+    {
+      "id": "demo-pat1",
+      "name": "Cross-generational coping through substance use",
+      "description": "Hendrik's alcohol dependency and the family's pattern of avoidance may reflect unprocessed war trauma passed through emotional unavailability.",
+      "color": "#e06c75",
+      "person_ids": ["demo-p2", "demo-p3"],
+      "linked_entities": [
+        { "entity_type": "event", "entity_id": "demo-e1" },
+        { "entity_type": "event", "entity_id": "demo-e2" },
+        { "entity_type": "event", "entity_id": "demo-e3" },
+        { "entity_type": "classification", "entity_id": "demo-c1" }
+      ]
+    },
+    {
+      "id": "demo-pat2",
+      "name": "Autism across generations",
+      "description": "Margaret's suspected autism traits appear to have been passed to her granddaughter Sophie, who was formally diagnosed as an adult.",
+      "color": "#61afef",
+      "person_ids": ["demo-p1", "demo-p7"],
+      "linked_entities": [
+        { "entity_type": "classification", "entity_id": "demo-c2" },
+        { "entity_type": "classification", "entity_id": "demo-c3" }
+      ]
+    }
+  ]
+}

@@ -452,6 +452,8 @@
   "safety.onboarding.whatThisIsBody": "Traumatrees is a personal reflection tool. It is not therapy and not crisis support.",
   "safety.onboarding.whatThisMayBringUp": "What this may bring up",
   "safety.onboarding.whatThisMayBringUpBody": "Exploring family patterns can be emotionally charged. You set the pace. Pause or stop whenever you want.",
+  "safety.onboarding.tryDemo": "Try it with demo data",
+  "safety.onboarding.tryDemoBody": "Not sure where to start? Create a demo tree with fictional data to explore all features first.",
   "safety.onboarding.whatWeCannotSee": "What we cannot see",
   "safety.onboarding.whatWeCannotSeeBody": "Your data is encrypted before it leaves your device. The server sees no content.",
   "safety.onboarding.continue": "I understand, continue",
@@ -586,6 +588,11 @@
   "feedback.success": "Thank you for your feedback",
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
+
+  "demo.createButton": "Create demo tree",
+  "demo.badge": "Demo",
+  "demo.limitReached": "Maximum 3 demo trees",
+  "demo.creating": "Creating demo tree...",
 
   "welcome.title": "Welcome to Traumatrees",
   "welcome.body": "This is an early version of the app. Start by creating your first tree, and if anything feels off or you have ideas, we'd genuinely love to hear from you.",

@@ -18,7 +18,7 @@ async def create_tree(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TreeResponse:
-    tree = Tree(user_id=user.id, encrypted_data=body.encrypted_data)
+    tree = Tree(user_id=user.id, encrypted_data=body.encrypted_data, is_demo=body.is_demo)
     db.add(tree)
     await db.commit()
     await db.refresh(tree)
@@ -26,6 +26,7 @@ async def create_tree(
     return TreeResponse(
         id=tree.id,
         encrypted_data=tree.encrypted_data,
+        is_demo=tree.is_demo,
         created_at=tree.created_at,
         updated_at=tree.updated_at,
     )
@@ -42,6 +43,7 @@ async def list_trees(
         TreeResponse(
             id=t.id,
             encrypted_data=t.encrypted_data,
+            is_demo=t.is_demo,
             created_at=t.created_at,
             updated_at=t.updated_at,
         )
@@ -56,6 +58,7 @@ async def get_tree(
     return TreeResponse(
         id=tree.id,
         encrypted_data=tree.encrypted_data,
+        is_demo=tree.is_demo,
         created_at=tree.created_at,
         updated_at=tree.updated_at,
     )
@@ -73,6 +76,7 @@ async def update_tree(
     return TreeResponse(
         id=tree.id,
         encrypted_data=tree.encrypted_data,
+        is_demo=tree.is_demo,
         created_at=tree.created_at,
         updated_at=tree.updated_at,
     )

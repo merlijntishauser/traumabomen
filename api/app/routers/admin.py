@@ -193,7 +193,9 @@ def _bucket(count: int) -> str:
 async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
     # Get all tree IDs (excluding smoketest user)
     excluded = _excluded_user_ids()
-    tree_result = await db.execute(select(Tree.id).where(Tree.user_id.not_in(excluded)))
+    tree_result = await db.execute(
+        select(Tree.id).where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
+    )
     tree_ids = [row.id for row in tree_result.all()]
 
     if not tree_ids:
@@ -250,42 +252,42 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
         )
     ).scalar() or 0
 
-    # Users who own at least one tree
+    # Users who own at least one non-demo tree
     created_tree = (
         await db.execute(
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
-            .where(Tree.user_id.not_in(excluded))
+            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
         )
     ).scalar() or 0
 
-    # Users whose trees have at least one person
+    # Users whose non-demo trees have at least one person
     added_person = (
         await db.execute(
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(Person, Person.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded))
+            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
         )
     ).scalar() or 0
 
-    # Users whose trees have at least one relationship
+    # Users whose non-demo trees have at least one relationship
     added_relationship = (
         await db.execute(
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(Relationship, Relationship.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded))
+            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
         )
     ).scalar() or 0
 
-    # Users whose trees have at least one event
+    # Users whose non-demo trees have at least one event
     added_event = (
         await db.execute(
             select(func.count(distinct(Tree.user_id)))
             .select_from(Tree)
             .join(TraumaEvent, TraumaEvent.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded))
+            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
         )
     ).scalar() or 0
 
@@ -364,26 +366,31 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
     )
 
     # Subquery: entity counts per user (via trees)
+    non_demo = Tree.is_demo.is_(False)
     tree_person_sq = (
         select(Tree.user_id, func.count(Person.id).label("person_count"))
         .outerjoin(Person, Person.tree_id == Tree.id)
+        .where(non_demo)
         .group_by(Tree.user_id)
         .subquery()
     )
     tree_rel_sq = (
         select(Tree.user_id, func.count(Relationship.id).label("rel_count"))
         .outerjoin(Relationship, Relationship.tree_id == Tree.id)
+        .where(non_demo)
         .group_by(Tree.user_id)
         .subquery()
     )
     tree_event_sq = (
         select(Tree.user_id, func.count(TraumaEvent.id).label("event_count"))
         .outerjoin(TraumaEvent, TraumaEvent.tree_id == Tree.id)
+        .where(non_demo)
         .group_by(Tree.user_id)
         .subquery()
     )
     tree_count_sq = (
         select(Tree.user_id, func.count(Tree.id).label("tree_count"))
+        .where(non_demo)
         .group_by(Tree.user_id)
         .subquery()
     )

@@ -14,12 +14,13 @@ vi.mock("../lib/api", () => ({
 }));
 
 describe("OnboardingGate", () => {
-  it("renders all three information blocks", () => {
+  it("renders all four information blocks", () => {
     const onAcknowledged = vi.fn();
     render(<OnboardingGate onAcknowledged={onAcknowledged} />);
 
     expect(screen.getByText("safety.onboarding.whatThisIs")).toBeInTheDocument();
     expect(screen.getByText("safety.onboarding.whatThisMayBringUp")).toBeInTheDocument();
+    expect(screen.getByText("safety.onboarding.tryDemo")).toBeInTheDocument();
     expect(screen.getByText("safety.onboarding.whatWeCannotSee")).toBeInTheDocument();
   });
 

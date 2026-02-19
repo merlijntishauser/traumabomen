@@ -44,6 +44,11 @@ export function OnboardingGate({ onAcknowledged }: Props) {
         </div>
 
         <div className="onboarding-gate__block">
+          <h2 className="onboarding-gate__block-title">{t("safety.onboarding.tryDemo")}</h2>
+          <p className="onboarding-gate__block-body">{t("safety.onboarding.tryDemoBody")}</p>
+        </div>
+
+        <div className="onboarding-gate__block">
           <h2 className="onboarding-gate__block-title">{t("safety.onboarding.whatWeCannotSee")}</h2>
           <p className="onboarding-gate__block-body">
             {t("safety.onboarding.whatWeCannotSeeBody")}{" "}

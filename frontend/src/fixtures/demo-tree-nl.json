@@ -1,0 +1,375 @@
+{
+  "treeName": "Demo: Zandbak met fictieve gegevens",
+  "persons": [
+    {
+      "id": "demo-p1",
+      "name": "Margaret van Dijk",
+      "birth_year": 1935,
+      "death_year": 2012,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Grootmoeder, matriarch van de familie. Heeft als kind de oorlog meegemaakt."
+    },
+    {
+      "id": "demo-p2",
+      "name": "Hendrik van Dijk",
+      "birth_year": 1932,
+      "death_year": 2005,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Grootvader. Fabrieksarbeider, worstelde met alcohol na de oorlog."
+    },
+    {
+      "id": "demo-p3",
+      "name": "Anna van Dijk",
+      "birth_year": 1958,
+      "death_year": null,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Oudste dochter. Lerares."
+    },
+    {
+      "id": "demo-p4",
+      "name": "Willem Bakker",
+      "birth_year": 1955,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Anna's eerste echtgenoot."
+    },
+    {
+      "id": "demo-p5",
+      "name": "Pieter de Vries",
+      "birth_year": 1960,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Anna's tweede partner."
+    },
+    {
+      "id": "demo-p6",
+      "name": "Thomas van Dijk",
+      "birth_year": 1962,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Jongste zoon. Verhuisd naar het buitenland voor werk."
+    },
+    {
+      "id": "demo-p7",
+      "name": "Sophie Bakker",
+      "birth_year": 1985,
+      "death_year": null,
+      "gender": "female",
+      "is_adopted": false,
+      "notes": "Dochter van Anna en Willem."
+    },
+    {
+      "id": "demo-p8",
+      "name": "Lucas Bakker",
+      "birth_year": 1988,
+      "death_year": null,
+      "gender": "male",
+      "is_adopted": false,
+      "notes": "Zoon van Anna en Willem."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "demo-r1",
+      "source_person_id": "demo-p2",
+      "target_person_id": "demo-p3",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r2",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p3",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r3",
+      "source_person_id": "demo-p2",
+      "target_person_id": "demo-p6",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r4",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p6",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r5",
+      "source_person_id": "demo-p1",
+      "target_person_id": "demo-p2",
+      "type": "partner",
+      "periods": [{ "start_year": 1954, "end_year": null, "status": "married" }]
+    },
+    {
+      "id": "demo-r6",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p4",
+      "type": "partner",
+      "periods": [
+        { "start_year": 1980, "end_year": 1995, "status": "married" },
+        { "start_year": 1995, "end_year": 1997, "status": "divorced" }
+      ]
+    },
+    {
+      "id": "demo-r7",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p5",
+      "type": "partner",
+      "periods": [{ "start_year": 2000, "end_year": null, "status": "together" }]
+    },
+    {
+      "id": "demo-r8",
+      "source_person_id": "demo-p5",
+      "target_person_id": "demo-p7",
+      "type": "step_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r9",
+      "source_person_id": "demo-p5",
+      "target_person_id": "demo-p8",
+      "type": "step_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r10",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p7",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r11",
+      "source_person_id": "demo-p4",
+      "target_person_id": "demo-p7",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r12",
+      "source_person_id": "demo-p3",
+      "target_person_id": "demo-p8",
+      "type": "biological_parent",
+      "periods": []
+    },
+    {
+      "id": "demo-r13",
+      "source_person_id": "demo-p4",
+      "target_person_id": "demo-p8",
+      "type": "biological_parent",
+      "periods": []
+    }
+  ],
+  "events": [
+    {
+      "id": "demo-e1",
+      "person_ids": ["demo-p1", "demo-p2"],
+      "title": "Bombardement van de buurt",
+      "description": "Zowel Margaret als Hendrik waren getuige van het bombardement van hun buurt als kinderen tijdens WOII.",
+      "category": "war",
+      "approximate_date": "1944",
+      "severity": 9,
+      "tags": ["jeugd", "WOII"]
+    },
+    {
+      "id": "demo-e2",
+      "person_ids": ["demo-p2"],
+      "title": "Alcoholafhankelijkheid",
+      "description": "Hendrik ontwikkelde alcoholafhankelijkheid op zijn veertigste, waarschijnlijk als copingmechanisme voor onverwerkt oorlogstrauma.",
+      "category": "addiction",
+      "approximate_date": "1975",
+      "severity": 7,
+      "tags": ["coping", "middelen"]
+    },
+    {
+      "id": "demo-e3",
+      "person_ids": ["demo-p3"],
+      "title": "Emotionele verwaarlozing in de kindertijd",
+      "description": "Anna ervoer emotionele verwaarlozing tijdens haar jeugd door het drinken van haar vader en het beschermende zwijgen van haar moeder.",
+      "category": "abuse",
+      "approximate_date": "1965",
+      "severity": 6,
+      "tags": ["verwaarlozing", "jeugd"]
+    },
+    {
+      "id": "demo-e4",
+      "person_ids": ["demo-p1"],
+      "title": "Overlijden van Margarets moeder",
+      "description": "Margarets moeder overleed aan tuberculose toen Margaret 12 was, tijdens de oorlog.",
+      "category": "loss",
+      "approximate_date": "1947",
+      "severity": 8,
+      "tags": ["rouw", "jeugd"]
+    },
+    {
+      "id": "demo-e5",
+      "person_ids": ["demo-p6"],
+      "title": "Gedwongen verplaatsing",
+      "description": "Thomas werd tegen zijn voorkeur overgeplaatst voor werk, waardoor hij van zijn steunnetwerk werd losgerukt.",
+      "category": "displacement",
+      "approximate_date": "1995",
+      "severity": 5,
+      "tags": ["verhuizing", "isolatie"]
+    },
+    {
+      "id": "demo-e6",
+      "person_ids": ["demo-p8"],
+      "title": "Diagnose chronische ziekte",
+      "description": "Lucas kreeg op zijn twintigste de diagnose van een chronische auto-immuunziekte.",
+      "category": "illness",
+      "approximate_date": "2012",
+      "severity": 6,
+      "tags": ["gezondheid", "chronisch"]
+    },
+    {
+      "id": "demo-e7",
+      "person_ids": ["demo-p7"],
+      "title": "Financiele problemen na scheiding ouders",
+      "description": "Sophie ervoer armoede als tiener toen haar ouders scheidden en de financien instortten.",
+      "category": "poverty",
+      "approximate_date": "1997",
+      "severity": 5,
+      "tags": ["scheiding", "adolescentie"]
+    }
+  ],
+  "lifeEvents": [
+    {
+      "id": "demo-le1",
+      "person_ids": ["demo-p1", "demo-p2"],
+      "title": "Huwelijk",
+      "description": "Margaret en Hendrik trouwden in een kleine ceremonie.",
+      "category": "family",
+      "approximate_date": "1954",
+      "impact": 7,
+      "tags": ["bruiloft"]
+    },
+    {
+      "id": "demo-le2",
+      "person_ids": ["demo-p3"],
+      "title": "Onderwijsbevoegdheid",
+      "description": "Anna behaalde haar onderwijsbevoegdheid en werd de eerste in de familie met hoger onderwijs.",
+      "category": "education",
+      "approximate_date": "1980",
+      "impact": 8,
+      "tags": ["mijlpaal"]
+    },
+    {
+      "id": "demo-le3",
+      "person_ids": ["demo-p6"],
+      "title": "Internationale overplaatsing",
+      "description": "Thomas accepteerde een overplaatsing naar het buitenland.",
+      "category": "career",
+      "approximate_date": "1995",
+      "impact": 7,
+      "tags": ["werk"]
+    },
+    {
+      "id": "demo-le4",
+      "person_ids": ["demo-p7"],
+      "title": "Verhuisd naar de stad",
+      "description": "Sophie verhuisde naar Amsterdam om kunst te studeren.",
+      "category": "relocation",
+      "approximate_date": "2003",
+      "impact": 6,
+      "tags": ["zelfstandigheid"]
+    },
+    {
+      "id": "demo-le5",
+      "person_ids": ["demo-p8"],
+      "title": "Begonnen met medicatie",
+      "description": "Lucas begon met medicatie voor zijn auto-immuunziekte.",
+      "category": "medication",
+      "approximate_date": "2013",
+      "impact": 5,
+      "tags": ["behandeling"]
+    },
+    {
+      "id": "demo-le6",
+      "person_ids": ["demo-p3", "demo-p4"],
+      "title": "Scheiding",
+      "description": "De scheiding van Anna en Willem na 15 jaar huwelijk.",
+      "category": "family",
+      "approximate_date": "1997",
+      "impact": 8,
+      "tags": ["scheiding"]
+    }
+  ],
+  "classifications": [
+    {
+      "id": "demo-c1",
+      "person_ids": ["demo-p2"],
+      "dsm_category": "substance",
+      "dsm_subcategory": "alcohol_use",
+      "status": "diagnosed",
+      "diagnosis_year": 1978,
+      "periods": [{ "start_year": 1975, "end_year": 2005 }],
+      "notes": "Worstelde decennialang met alcohol, gerelateerd aan oorlogstrauma."
+    },
+    {
+      "id": "demo-c2",
+      "person_ids": ["demo-p1"],
+      "dsm_category": "neurodevelopmental",
+      "dsm_subcategory": "autism",
+      "status": "suspected",
+      "diagnosis_year": null,
+      "periods": [{ "start_year": 1935, "end_year": 2012 }],
+      "notes": "Retrospectief vermoed op basis van levenslange patronen van sociale moeite en sensorische gevoeligheid."
+    },
+    {
+      "id": "demo-c3",
+      "person_ids": ["demo-p7"],
+      "dsm_category": "neurodevelopmental",
+      "dsm_subcategory": "autism",
+      "status": "diagnosed",
+      "diagnosis_year": 2020,
+      "periods": [{ "start_year": 1985, "end_year": null }],
+      "notes": "Op volwassen leeftijd gediagnosticeerd. Herkend na het leren over de vermoede eigenschappen van grootmoeder."
+    },
+    {
+      "id": "demo-c4",
+      "person_ids": ["demo-p3"],
+      "dsm_category": "depressive",
+      "dsm_subcategory": "major_depression",
+      "status": "diagnosed",
+      "diagnosis_year": 1996,
+      "periods": [{ "start_year": 1995, "end_year": 2000 }],
+      "notes": "Ontstaan tijdens de scheidingsperiode."
+    }
+  ],
+  "patterns": [
+    {
+      "id": "demo-pat1",
+      "name": "Generatie-overstijgend coping door middelengebruik",
+      "description": "Hendriks alcoholafhankelijkheid en het patroon van vermijding in de familie weerspiegelen mogelijk onverwerkt oorlogstrauma, doorgegeven via emotionele onbeschikbaarheid.",
+      "color": "#e06c75",
+      "person_ids": ["demo-p2", "demo-p3"],
+      "linked_entities": [
+        { "entity_type": "event", "entity_id": "demo-e1" },
+        { "entity_type": "event", "entity_id": "demo-e2" },
+        { "entity_type": "event", "entity_id": "demo-e3" },
+        { "entity_type": "classification", "entity_id": "demo-c1" }
+      ]
+    },
+    {
+      "id": "demo-pat2",
+      "name": "Autisme door generaties heen",
+      "description": "De vermoede autismekenmerken van Margaret lijken te zijn doorgegeven aan haar kleindochter Sophie, die op volwassen leeftijd formeel is gediagnosticeerd.",
+      "color": "#61afef",
+      "person_ids": ["demo-p1", "demo-p7"],
+      "linked_entities": [
+        { "entity_type": "classification", "entity_id": "demo-c2" },
+        { "entity_type": "classification", "entity_id": "demo-c3" }
+      ]
+    }
+  ]
+}

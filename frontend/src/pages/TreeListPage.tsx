@@ -10,10 +10,12 @@ import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
 import { createTree, deleteTree, getIsAdmin, getTrees, updateTree } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
+import { createDemoTree } from "../lib/createDemoTree";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
 const WELCOME_DISMISSED_KEY = "traumabomen_welcome_dismissed";
+const MAX_DEMO_TREES = 3;
 
 const T_CANCEL = "common.cancel";
 const T_DELETE = "common.delete";
@@ -21,10 +23,11 @@ const T_DELETE = "common.delete";
 interface DecryptedTree {
   id: string;
   name: string;
+  is_demo: boolean;
 }
 
 export default function TreeListPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const logout = useLogout();
   const { encrypt, decrypt } = useEncryption();
@@ -60,12 +63,17 @@ export default function TreeListPage() {
       const trees: DecryptedTree[] = await Promise.all(
         responses.map(async (r) => {
           const data = await decrypt<{ name: string }>(r.encrypted_data);
-          return { id: r.id, name: data.name };
+          return { id: r.id, name: data.name, is_demo: r.is_demo };
         }),
       );
       return trees;
     },
   });
+
+  const demoTreeCount = useMemo(
+    () => (treesQuery.data ?? []).filter((t) => t.is_demo).length,
+    [treesQuery.data],
+  );
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -75,6 +83,14 @@ export default function TreeListPage() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
       navigate(`/trees/${uuidToCompact(response.id)}`);
+    },
+  });
+
+  const demoMutation = useMutation({
+    mutationFn: () => createDemoTree(encrypt, i18n.language),
+    onSuccess: (treeId) => {
+      queryClient.invalidateQueries({ queryKey: ["trees"] });
+      navigate(`/trees/${uuidToCompact(treeId)}`);
     },
   });
 
@@ -125,6 +141,15 @@ export default function TreeListPage() {
         <div className="tree-toolbar">
           <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
           <div className="tree-toolbar__spacer" />
+          <button
+            type="button"
+            className="tree-toolbar__btn"
+            onClick={() => demoMutation.mutate()}
+            disabled={demoMutation.isPending || demoTreeCount >= MAX_DEMO_TREES}
+            title={demoTreeCount >= MAX_DEMO_TREES ? t("demo.limitReached") : undefined}
+          >
+            {demoMutation.isPending ? t("demo.creating") : t("demo.createButton")}
+          </button>
           <button
             type="button"
             className="tree-toolbar__btn tree-toolbar__btn--primary"
@@ -281,6 +306,9 @@ export default function TreeListPage() {
                         to={`/trees/${uuidToCompact(tree.id)}`}
                       >
                         {tree.name}
+                        {tree.is_demo && (
+                          <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>
+                        )}
                       </Link>
                       <div className="tree-list-item__actions">
                         <button
