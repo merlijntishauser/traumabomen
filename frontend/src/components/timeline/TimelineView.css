@@ -131,6 +131,12 @@
   stroke: var(--color-lifebar-stroke);
 }
 
+/* Partner relationship label */
+.tl-partner-label {
+  font-family: var(--font-body);
+  pointer-events: none;
+}
+
 /* Selection ring around markers in annotate mode */
 .tl-selection-ring {
   fill: none;

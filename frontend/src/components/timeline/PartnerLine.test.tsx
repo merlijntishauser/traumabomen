@@ -2,7 +2,7 @@ import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PartnerStatus } from "../../types/domain";
 import { PartnerLine } from "./PartnerLine";
-import { ROW_HEIGHT } from "./timelineHelpers";
+import { BAR_HEIGHT, ROW_HEIGHT } from "./timelineHelpers";
 
 const defaultProps = {
   sourceName: "Alice",
@@ -30,82 +30,98 @@ function renderPartnerLine(overrides: Record<string, unknown> = {}) {
 }
 
 describe("PartnerLine", () => {
-  it("renders two lines per period (visible + hover target)", () => {
+  it("renders five lines per period (1 vertical + 2 horizontal + 2 hover targets)", () => {
     const { container } = renderPartnerLine();
-    const lines = container.querySelectorAll("line");
-    expect(lines).toHaveLength(2);
+    expect(container.querySelectorAll("line")).toHaveLength(5);
   });
 
-  it("renders four lines for two periods", () => {
+  it("renders ten lines for two periods", () => {
     const { container } = renderPartnerLine({
       periods: [
         { start_year: 1975, end_year: 1985, status: PartnerStatus.Married },
         { start_year: 1990, end_year: null, status: PartnerStatus.Together },
       ],
     });
-    const lines = container.querySelectorAll("line");
-    expect(lines).toHaveLength(4);
+    expect(container.querySelectorAll("line")).toHaveLength(10);
   });
 
-  it("positions lines at midpoint between partner rows", () => {
+  it("positions horizontal lines inside partner lanes below the life bar", () => {
     const { container } = renderPartnerLine();
-    const expectedMidY = (20 + ROW_HEIGHT / 2 + 56 + ROW_HEIGHT / 2) / 2;
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("y1")).toBe(String(expectedMidY));
-    expect(visibleLine.getAttribute("y2")).toBe(String(expectedMidY));
+    const barOffset = (ROW_HEIGHT - BAR_HEIGHT) / 2 + BAR_HEIGHT + 3;
+    const srcLineY = 20 + barOffset;
+    const tgtLineY = 56 + barOffset;
+    const lines = container.querySelectorAll("line");
+
+    // Vertical connector
+    expect(lines[0].getAttribute("y1")).toBe(String(srcLineY));
+    expect(lines[0].getAttribute("y2")).toBe(String(tgtLineY));
+
+    // Source horizontal line
+    expect(lines[1].getAttribute("y1")).toBe(String(srcLineY));
+    expect(lines[1].getAttribute("y2")).toBe(String(srcLineY));
+
+    // Target horizontal line
+    expect(lines[2].getAttribute("y1")).toBe(String(tgtLineY));
+    expect(lines[2].getAttribute("y2")).toBe(String(tgtLineY));
+  });
+
+  it("renders labels with partner names", () => {
+    const t = (key: string, opts?: Record<string, unknown>) =>
+      opts ? `${opts.status} ${opts.name}` : key;
+    const { container } = renderPartnerLine({ t });
+    const texts = container.querySelectorAll("text");
+    expect(texts).toHaveLength(2);
+    // Source label shows status + target name
+    expect(texts[0].textContent).toContain("Bob");
+    // Target label shows status + source name
+    expect(texts[1].textContent).toContain("Alice");
   });
 
   it("uses start_year and end_year for x coordinates", () => {
     const { container } = renderPartnerLine({
       periods: [{ start_year: 1975, end_year: 2000, status: PartnerStatus.Married }],
     });
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("x1")).toBe("1975");
-    expect(visibleLine.getAttribute("x2")).toBe("2000");
+    const horizontalLine = container.querySelectorAll("line")[1];
+    expect(horizontalLine.getAttribute("x1")).toBe("1975");
+    expect(horizontalLine.getAttribute("x2")).toBe("2000");
   });
 
   it("uses currentYear when end_year is null", () => {
     const { container } = renderPartnerLine();
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("x2")).toBe("2025");
+    const horizontalLine = container.querySelectorAll("line")[1];
+    expect(horizontalLine.getAttribute("x2")).toBe("2025");
   });
 
   it("renders dashed stroke for separated periods", () => {
     const { container } = renderPartnerLine({
       periods: [{ start_year: 1975, end_year: 1980, status: PartnerStatus.Separated }],
     });
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("stroke-dasharray")).toBe("6 3");
+    const horizontalLine = container.querySelectorAll("line")[1];
+    expect(horizontalLine.getAttribute("stroke-dasharray")).toBe("6 3");
   });
 
   it("renders dashed stroke for divorced periods", () => {
     const { container } = renderPartnerLine({
       periods: [{ start_year: 1975, end_year: 1985, status: PartnerStatus.Divorced }],
     });
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("stroke-dasharray")).toBe("6 3");
+    const horizontalLine = container.querySelectorAll("line")[1];
+    expect(horizontalLine.getAttribute("stroke-dasharray")).toBe("6 3");
   });
 
   it("renders solid stroke for together/married periods", () => {
     const { container } = renderPartnerLine({
       periods: [{ start_year: 1975, end_year: null, status: PartnerStatus.Together }],
     });
-    const visibleLine = container.querySelectorAll("line")[0];
-    expect(visibleLine.getAttribute("stroke-dasharray")).toBeNull();
-  });
-
-  it("hover target has transparent stroke and 12px width", () => {
-    const { container } = renderPartnerLine();
-    const hoverLine = container.querySelectorAll("line")[1];
-    expect(hoverLine.getAttribute("stroke")).toBe("transparent");
-    expect(hoverLine.getAttribute("stroke-width")).toBe("12");
+    const horizontalLine = container.querySelectorAll("line")[1];
+    expect(horizontalLine.getAttribute("stroke-dasharray")).toBeNull();
   });
 
   it("shows tooltip on hover target mouseenter", () => {
     const { container, props } = renderPartnerLine();
-    const hoverLine = container.querySelectorAll("line")[1];
+    // Hover targets are lines 3 and 4 (index 3, 4)
+    const hoverTarget = container.querySelectorAll("line")[3];
 
-    fireEvent.mouseEnter(hoverLine, { clientX: 200, clientY: 100 });
+    fireEvent.mouseEnter(hoverTarget, { clientX: 200, clientY: 100 });
 
     expect(props.onTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -120,9 +136,9 @@ describe("PartnerLine", () => {
 
   it("hides tooltip on mouseleave", () => {
     const { container, props } = renderPartnerLine();
-    const hoverLine = container.querySelectorAll("line")[1];
+    const hoverTarget = container.querySelectorAll("line")[3];
 
-    fireEvent.mouseLeave(hoverLine);
+    fireEvent.mouseLeave(hoverTarget);
 
     expect(props.onTooltip).toHaveBeenCalledWith(expect.objectContaining({ visible: false }));
   });
@@ -130,5 +146,6 @@ describe("PartnerLine", () => {
   it("renders nothing for empty periods array", () => {
     const { container } = renderPartnerLine({ periods: [] });
     expect(container.querySelectorAll("line")).toHaveLength(0);
+    expect(container.querySelectorAll("text")).toHaveLength(0);
   });
 });

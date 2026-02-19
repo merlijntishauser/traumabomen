@@ -344,6 +344,7 @@
   "timeline.showPartnerLines": "Partnerlijnen tonen",
   "timeline.showClassifications": "Classificatiestroken tonen",
   "timeline.showGridlines": "Rasterlijnen tonen",
+  "timeline.partnerLabel": "{{status}} {{name}}",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",
