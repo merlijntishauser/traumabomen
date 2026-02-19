@@ -152,8 +152,8 @@ export function TimelineYearsContent({
       key: string;
       sourceName: string;
       targetName: string;
-      sourceY: number;
-      targetY: number;
+      sourceY: number | null;
+      targetY: number | null;
       periods: DecryptedRelationship["periods"];
     }> = [];
 
@@ -161,14 +161,14 @@ export function TimelineYearsContent({
       if (rel.type !== RelationshipType.Partner) continue;
       const row1 = rowByPersonId.get(rel.source_person_id);
       const row2 = rowByPersonId.get(rel.target_person_id);
-      if (!row1 || !row2) continue;
+      if (!row1 && !row2) continue;
 
       result.push({
         key: rel.id,
         sourceName: persons.get(rel.source_person_id)?.name ?? "?",
         targetName: persons.get(rel.target_person_id)?.name ?? "?",
-        sourceY: row1.y,
-        targetY: row2.y,
+        sourceY: row1?.y ?? null,
+        targetY: row2?.y ?? null,
         periods: rel.periods,
       });
     }
@@ -358,6 +358,7 @@ export function TimelineYearsContent({
                 targetY={pl.targetY}
                 periods={pl.periods}
                 xScale={xScale}
+                zoomK={zoomK}
                 currentYear={currentYear}
                 cssVar={cssVar}
                 t={t}

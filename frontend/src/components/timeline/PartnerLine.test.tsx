@@ -52,17 +52,15 @@ describe("PartnerLine", () => {
     const tgtLineY = 56 + barOffset;
     const lines = container.querySelectorAll("line");
 
-    // Vertical connector
+    // Vertical connector (first line)
     expect(lines[0].getAttribute("y1")).toBe(String(srcLineY));
     expect(lines[0].getAttribute("y2")).toBe(String(tgtLineY));
 
-    // Source horizontal line
+    // Source horizontal line (second)
     expect(lines[1].getAttribute("y1")).toBe(String(srcLineY));
-    expect(lines[1].getAttribute("y2")).toBe(String(srcLineY));
 
-    // Target horizontal line
-    expect(lines[2].getAttribute("y1")).toBe(String(tgtLineY));
-    expect(lines[2].getAttribute("y2")).toBe(String(tgtLineY));
+    // Target horizontal line (fourth, after source hover target)
+    expect(lines[3].getAttribute("y1")).toBe(String(tgtLineY));
   });
 
   it("renders labels with partner names", () => {
@@ -118,8 +116,8 @@ describe("PartnerLine", () => {
 
   it("shows tooltip on hover target mouseenter", () => {
     const { container, props } = renderPartnerLine();
-    // Hover targets are lines 3 and 4 (index 3, 4)
-    const hoverTarget = container.querySelectorAll("line")[3];
+    // Hover targets: source at index 2, target at index 4
+    const hoverTarget = container.querySelectorAll("line")[2];
 
     fireEvent.mouseEnter(hoverTarget, { clientX: 200, clientY: 100 });
 
@@ -136,7 +134,7 @@ describe("PartnerLine", () => {
 
   it("hides tooltip on mouseleave", () => {
     const { container, props } = renderPartnerLine();
-    const hoverTarget = container.querySelectorAll("line")[3];
+    const hoverTarget = container.querySelectorAll("line")[2];
 
     fireEvent.mouseLeave(hoverTarget);
 
@@ -147,5 +145,23 @@ describe("PartnerLine", () => {
     const { container } = renderPartnerLine({ periods: [] });
     expect(container.querySelectorAll("line")).toHaveLength(0);
     expect(container.querySelectorAll("text")).toHaveLength(0);
+  });
+
+  it("renders only source line when target is hidden (targetY null)", () => {
+    const { container } = renderPartnerLine({ targetY: null });
+    // No vertical connector, no target line/hover: just source horizontal + hover = 2 lines, 1 text
+    expect(container.querySelectorAll("line")).toHaveLength(2);
+    expect(container.querySelectorAll("text")).toHaveLength(1);
+  });
+
+  it("renders only target line when source is hidden (sourceY null)", () => {
+    const { container } = renderPartnerLine({ sourceY: null });
+    expect(container.querySelectorAll("line")).toHaveLength(2);
+    expect(container.querySelectorAll("text")).toHaveLength(1);
+  });
+
+  it("renders nothing when both partners are hidden", () => {
+    const { container } = renderPartnerLine({ sourceY: null, targetY: null });
+    expect(container.querySelectorAll("line")).toHaveLength(0);
   });
 });
