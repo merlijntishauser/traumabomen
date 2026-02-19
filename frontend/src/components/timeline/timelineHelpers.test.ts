@@ -227,6 +227,95 @@ describe("computeGenerations", () => {
     expect(result.get("parent")).toBe(1);
     expect(result.get("child")).toBe(2);
   });
+
+  it("equalizes partner without parents to same generation as partner with parents", () => {
+    // Scenario: grandparent -> father (gen 1), father's 2nd wife has no parents in tree
+    const persons = personsMap(
+      makePerson("grandparent"),
+      makePerson("father"),
+      makePerson("2nd_wife"),
+      makePerson("child"),
+    );
+    const rels = relsMap(
+      makeRel("r1", RelationshipType.BiologicalParent, "grandparent", "father"),
+      makeRel("r2", RelationshipType.Partner, "father", "2nd_wife"),
+      makeRel("r3", RelationshipType.BiologicalParent, "father", "child"),
+    );
+    const result = computeGenerations(persons, rels);
+    expect(result.get("grandparent")).toBe(0);
+    expect(result.get("father")).toBe(1);
+    expect(result.get("2nd_wife")).toBe(1); // should match father, not gen 0
+    expect(result.get("child")).toBe(2);
+  });
+
+  it("equalizes 2nd wife with full family tree (grandparents, mother, children)", () => {
+    // Full scenario: grandparents -> father + mother -> child, father also has 2nd wife (no parents)
+    const persons = personsMap(
+      makePerson("gp1"),
+      makePerson("gp2"),
+      makePerson("father"),
+      makePerson("mother"),
+      makePerson("2nd_wife"),
+      makePerson("child"),
+    );
+    const rels = relsMap(
+      makeRel("r1", RelationshipType.BiologicalParent, "gp1", "father"),
+      makeRel("r2", RelationshipType.BiologicalParent, "gp2", "father"),
+      makeRel("r3", RelationshipType.Partner, "gp1", "gp2"),
+      makeRel("r4", RelationshipType.Partner, "father", "mother"),
+      makeRel("r5", RelationshipType.Partner, "father", "2nd_wife"),
+      makeRel("r6", RelationshipType.BiologicalParent, "father", "child"),
+      makeRel("r7", RelationshipType.BiologicalParent, "mother", "child"),
+    );
+    const result = computeGenerations(persons, rels);
+    expect(result.get("gp1")).toBe(0);
+    expect(result.get("gp2")).toBe(0);
+    expect(result.get("father")).toBe(1);
+    expect(result.get("mother")).toBe(1);
+    expect(result.get("2nd_wife")).toBe(1); // should match father
+    expect(result.get("child")).toBe(2);
+  });
+
+  it("equalizes step-parent partner to same generation", () => {
+    // 2nd wife is step-parent to child
+    const persons = personsMap(
+      makePerson("gp1"),
+      makePerson("father"),
+      makePerson("2nd_wife"),
+      makePerson("child"),
+    );
+    const rels = relsMap(
+      makeRel("r1", RelationshipType.BiologicalParent, "gp1", "father"),
+      makeRel("r2", RelationshipType.Partner, "father", "2nd_wife"),
+      makeRel("r3", RelationshipType.StepParent, "2nd_wife", "child"),
+      makeRel("r4", RelationshipType.BiologicalParent, "father", "child"),
+    );
+    const result = computeGenerations(persons, rels);
+    expect(result.get("gp1")).toBe(0);
+    expect(result.get("father")).toBe(1);
+    expect(result.get("2nd_wife")).toBe(1);
+    expect(result.get("child")).toBe(2);
+  });
+
+  it("equalizes co-parents via step-parent without explicit partner relationship", () => {
+    // 2nd wife is step-parent of child but has NO Partner relationship to father
+    const persons = personsMap(
+      makePerson("gp1"),
+      makePerson("father"),
+      makePerson("2nd_wife"),
+      makePerson("child"),
+    );
+    const rels = relsMap(
+      makeRel("r1", RelationshipType.BiologicalParent, "gp1", "father"),
+      makeRel("r2", RelationshipType.BiologicalParent, "father", "child"),
+      makeRel("r3", RelationshipType.StepParent, "2nd_wife", "child"),
+    );
+    const result = computeGenerations(persons, rels);
+    expect(result.get("gp1")).toBe(0);
+    expect(result.get("father")).toBe(1);
+    expect(result.get("2nd_wife")).toBe(1); // co-parent equalization
+    expect(result.get("child")).toBe(2);
+  });
 });
 
 // ---- filterTimelinePersons ----
