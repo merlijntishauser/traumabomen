@@ -145,6 +145,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
+  margin-bottom: 16px;
   font-size: 13px;
   color: var(--color-danger);
   background: var(--color-danger-bg);
