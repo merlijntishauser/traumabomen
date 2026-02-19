@@ -348,6 +348,7 @@
   "timeline.showClassifications": "Show classification strips",
   "timeline.showGridlines": "Show gridlines",
   "timeline.partnerLabel": "{{status}} {{name}}",
+  "timeline.summaryPresent": "present",
 
   "settings.title": "Settings",
   "settings.canvas": "Canvas",

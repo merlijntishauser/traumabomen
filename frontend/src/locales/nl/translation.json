@@ -348,6 +348,7 @@
   "timeline.showClassifications": "Classificatiestroken tonen",
   "timeline.showGridlines": "Rasterlijnen tonen",
   "timeline.partnerLabel": "{{status}} {{name}}",
+  "timeline.summaryPresent": "heden",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",

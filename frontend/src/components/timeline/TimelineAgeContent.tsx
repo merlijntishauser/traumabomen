@@ -176,9 +176,9 @@ export function TimelineAgeContent({
 
   const handleSelectPerson = useCallback(
     (personId: string) => {
-      onSelectPerson?.(personId);
+      onSelectPerson?.(personId === selectedPersonId ? null : personId);
     },
-    [onSelectPerson],
+    [onSelectPerson, selectedPersonId],
   );
 
   return (

@@ -203,7 +203,7 @@ export function TimelineFilterPanel({
             className={`tl-filter-panel__mode-toggle${filters.filterMode === "hide" ? " tl-filter-panel__mode-toggle--active" : ""}`}
             onClick={() => actions.setFilterMode(filters.filterMode === "dim" ? "hide" : "dim")}
           >
-            {filters.filterMode === "dim" ? t("timeline.filterDim") : t("timeline.filterHide")}
+            {filters.filterMode === "dim" ? t("timeline.filterHide") : t("timeline.filterDim")}
           </button>
           <button type="button" className="detail-panel__close" onClick={onClose}>
             {t("common.close")}

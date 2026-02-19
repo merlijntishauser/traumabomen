@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreatePatternMiniForm } from "../components/timeline/CreatePatternMiniForm";
 import type { MarkerClickInfo, TimelineMode } from "../components/timeline/PersonLane";
+import { PersonSummaryCard } from "../components/timeline/PersonSummaryCard";
 import { TimelineChipBar } from "../components/timeline/TimelineChipBar";
 import { TimelineFilterPanel } from "../components/timeline/TimelineFilterPanel";
 import { type LayoutMode, TimelineView } from "../components/timeline/TimelineView";
@@ -499,6 +500,16 @@ export default function TimelinePage() {
             showPartnerLines={timelineSettings.showPartnerLines}
             showClassifications={timelineSettings.showClassifications}
             showGridlines={timelineSettings.showGridlines}
+          />
+        )}
+
+        {mode === "explore" && selectedPerson && (
+          <PersonSummaryCard
+            person={selectedPerson}
+            events={selectedEvents}
+            lifeEvents={selectedLifeEvents}
+            classifications={selectedClassifications}
+            onClose={() => setSelectedPersonId(null)}
           />
         )}
 

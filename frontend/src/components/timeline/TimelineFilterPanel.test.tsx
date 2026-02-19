@@ -742,10 +742,10 @@ describe("TimelineFilterPanel", () => {
           onClose={vi.fn()}
         />,
       );
-      expect(screen.getByText("timeline.filterDim")).toBeTruthy();
+      expect(screen.getByText("timeline.filterHide")).toBeTruthy();
     });
 
-    it("shows hide text when filter mode is hide", () => {
+    it("shows dim text when filter mode is hide", () => {
       const actions = makeActions();
       const filtersHide: TimelineFilterState = {
         ...defaultFilters,
@@ -760,7 +760,7 @@ describe("TimelineFilterPanel", () => {
           onClose={vi.fn()}
         />,
       );
-      expect(screen.getByText("timeline.filterHide")).toBeTruthy();
+      expect(screen.getByText("timeline.filterDim")).toBeTruthy();
     });
 
     it("calls setFilterMode when toggle clicked", () => {
@@ -774,7 +774,7 @@ describe("TimelineFilterPanel", () => {
           onClose={vi.fn()}
         />,
       );
-      fireEvent.click(screen.getByText("timeline.filterDim"));
+      fireEvent.click(screen.getByText("timeline.filterHide"));
       expect(actions.setFilterMode).toHaveBeenCalledWith("hide");
     });
 
@@ -793,7 +793,7 @@ describe("TimelineFilterPanel", () => {
           onClose={vi.fn()}
         />,
       );
-      fireEvent.click(screen.getByText("timeline.filterHide"));
+      fireEvent.click(screen.getByText("timeline.filterDim"));
       expect(actions.setFilterMode).toHaveBeenCalledWith("dim");
     });
   });

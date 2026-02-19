@@ -270,3 +270,96 @@
 .tl-zoom-controls__btn:active {
   background: var(--color-accent-subtle);
 }
+
+/* Person summary card */
+.tl-summary-card {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 160px;
+  max-width: 240px;
+  z-index: 10;
+  box-shadow: var(--shadow-lg);
+}
+
+.tl-summary-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tl-summary-card__name {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 15px;
+  color: var(--color-accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-summary-card__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.tl-summary-card__close:hover {
+  color: var(--color-text-primary);
+}
+
+.tl-summary-card__years {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.tl-summary-card__age {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tl-summary-card__counts {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tl-summary-card__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-radius: 10px;
+}
+
+.tl-summary-card__count--trauma {
+  background: var(--color-trauma-loss);
+}
+
+.tl-summary-card__count--life {
+  background: var(--color-life-career);
+}
+
+.tl-summary-card__count--class {
+  background: var(--color-classification-diagnosed);
+}

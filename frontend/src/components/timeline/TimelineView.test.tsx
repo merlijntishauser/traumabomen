@@ -375,6 +375,18 @@ describe("TimelineView", () => {
       aliceLabel?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       expect(onSelectPerson).toHaveBeenCalledWith("p1");
     });
+
+    it("deselects person when clicking already selected person label", () => {
+      const props = makeTwoPersonProps();
+      const onSelectPerson = vi.fn();
+      const { container } = render(
+        <TimelineView {...props} selectedPersonId="p1" onSelectPerson={onSelectPerson} />,
+      );
+      const labels = container.querySelectorAll(".tl-person-label");
+      const aliceLabel = Array.from(labels).find((l) => l.textContent === "Alice");
+      aliceLabel?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      expect(onSelectPerson).toHaveBeenCalledWith(null);
+    });
   });
 
   describe("age mode", () => {
