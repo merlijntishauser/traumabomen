@@ -140,13 +140,13 @@
   height: 10px;
   background: var(--color-accent);
   border: 2px solid var(--color-node-border);
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .person-node .react-flow__handle:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-accent);
-  transform: scale(1.3);
+  box-shadow: 0 0 0 3px var(--color-accent-focus-ring);
 }
 
 /* Larger touch targets on touch devices */
