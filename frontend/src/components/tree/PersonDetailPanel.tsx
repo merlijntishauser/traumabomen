@@ -883,14 +883,22 @@ function ClassificationForm({
   }
 
   function handleSave() {
+    const parsedDiagnosisYear =
+      status === "diagnosed" && diagnosisYear ? parseInt(diagnosisYear, 10) : null;
+
+    // Auto-create a period from diagnosis year when no periods are set
+    const effectivePeriods =
+      periods.length === 0 && parsedDiagnosisYear != null
+        ? [{ start_year: parsedDiagnosisYear, end_year: null }]
+        : periods;
+
     onSave(
       {
         dsm_category: dsmCategory,
         dsm_subcategory: dsmSubcategory,
         status,
-        diagnosis_year:
-          status === "diagnosed" && diagnosisYear ? parseInt(diagnosisYear, 10) : null,
-        periods,
+        diagnosis_year: parsedDiagnosisYear,
+        periods: effectivePeriods,
         notes: notes || null,
       },
       Array.from(selectedPersonIds),
