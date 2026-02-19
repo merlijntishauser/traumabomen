@@ -13,7 +13,7 @@ import type {
 } from "../../hooks/useTreeData";
 import { getLifeEventColors } from "../../lib/lifeEventColors";
 import { getTraumaColors } from "../../lib/traumaColors";
-import { RelationshipType } from "../../types/domain";
+import { capPeriodsAtDeath, RelationshipType } from "../../types/domain";
 import { PartnerLine } from "./PartnerLine";
 import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
 import { TimelinePatternArcs } from "./TimelinePatternArcs";
@@ -178,13 +178,19 @@ export function TimelineYearsContent({
       const row2 = rowByPersonId.get(rel.target_person_id);
       if (!row1 && !row2) continue;
 
+      const sourcePerson = persons.get(rel.source_person_id);
+      const targetPerson = persons.get(rel.target_person_id);
+
       result.push({
         key: rel.id,
-        sourceName: persons.get(rel.source_person_id)?.name ?? "?",
-        targetName: persons.get(rel.target_person_id)?.name ?? "?",
+        sourceName: sourcePerson?.name ?? "?",
+        targetName: targetPerson?.name ?? "?",
         sourceY: row1?.y ?? null,
         targetY: row2?.y ?? null,
-        periods: rel.periods,
+        periods: capPeriodsAtDeath(rel.periods, {
+          source: sourcePerson?.death_year,
+          target: targetPerson?.death_year,
+        }),
       });
     }
 

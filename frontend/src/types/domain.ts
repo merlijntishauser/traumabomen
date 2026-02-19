@@ -65,12 +65,37 @@ function computeDivorceEndYear(
 }
 
 /**
+ * Cap relationship periods at the earliest death year of either partner.
+ *
+ * Removes periods that start after death and caps end_year for periods
+ * that extend beyond death. Periods already ending before death are unchanged.
+ */
+export function capPeriodsAtDeath(
+  periods: RelationshipPeriod[],
+  partnerDeathYears?: { source?: number | null; target?: number | null },
+): RelationshipPeriod[] {
+  const earliestDeath = computeEarliestDeath(partnerDeathYears);
+  if (earliestDeath == null) return periods;
+
+  return periods
+    .filter((p) => p.start_year <= earliestDeath)
+    .map((p) => {
+      if (p.end_year == null || p.end_year > earliestDeath) {
+        return { ...p, end_year: earliestDeath };
+      }
+      return p;
+    });
+}
+
+/**
  * Auto-manage "divorced" periods after ended marriages.
  *
  * On each save: strips previously auto-generated divorced periods (those
  * starting at a married period's end_year), then re-inserts them with
  * the correct end_year. The end_year is the earliest of: the next period's
  * start_year, either partner's death_year, or null (ongoing).
+ *
+ * Finally, caps all periods at the earliest death year of either partner.
  */
 export function withAutoDissolvedPeriods(
   periods: RelationshipPeriod[],
@@ -96,7 +121,7 @@ export function withAutoDissolvedPeriods(
     });
   }
 
-  return result;
+  return capPeriodsAtDeath(result, partnerDeathYears);
 }
 
 export interface Person {
