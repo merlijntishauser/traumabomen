@@ -23,9 +23,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
+    />
+    <link
       href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
   </head>
   <body data-1p-ignore>
     <div id="root"></div>
@@ -53,7 +66,7 @@
         }).observe(document, { childList: true, subtree: true });
       })();
     </script>
-    <script src="/argon2-bundled.min.js"></script>
+    <script defer src="/argon2-bundled.min.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

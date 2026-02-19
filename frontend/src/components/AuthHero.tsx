@@ -6,11 +6,13 @@ export function AuthHero({ variant = "default" }: { variant?: "default" | "unloc
         className="auth-hero__img auth-hero__img--dark"
         src={`/images/hero${suffix}-dark.jpg`}
         alt=""
+        decoding="async"
       />
       <img
         className="auth-hero__img auth-hero__img--light"
         src={`/images/hero${suffix}-light.jpg`}
         alt=""
+        decoding="async"
       />
     </div>
   );

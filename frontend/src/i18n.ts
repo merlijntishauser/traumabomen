@@ -1,8 +1,7 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import HttpBackend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
-import en from "./locales/en/translation.json";
-import nl from "./locales/nl/translation.json";
 
 const hostnameDetector = {
   name: "hostname",
@@ -18,14 +17,15 @@ const languageDetector = new LanguageDetector();
 languageDetector.addDetector(hostnameDetector);
 
 i18n
+  .use(HttpBackend)
   .use(languageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: { translation: en },
-      nl: { translation: nl },
-    },
     fallbackLng: "en",
+    supportedLngs: ["en", "nl"],
+    backend: {
+      loadPath: "/locales/{{lng}}/translation.json",
+    },
     detection: {
       order: ["hostname", "localStorage", "navigator"],
       caches: ["localStorage"],

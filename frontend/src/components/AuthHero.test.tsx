@@ -28,6 +28,14 @@ describe("AuthHero", () => {
     expect(images[1].getAttribute("src")).toBe("/images/hero-unlock-light.jpg");
   });
 
+  it("sets decoding=async on both images", () => {
+    const { container } = render(<AuthHero />);
+    const images = container.querySelectorAll("img");
+    for (const img of images) {
+      expect(img.getAttribute("decoding")).toBe("async");
+    }
+  });
+
   it("marks the container as aria-hidden", () => {
     const { container } = render(<AuthHero />);
     const hero = container.querySelector(".auth-hero");
