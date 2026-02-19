@@ -24,6 +24,7 @@ export function useTimelineZoom({
   const [zoomK, setZoomK] = useState(1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Keep React state in sync when scale changes (even without a mounted SVG)
   useEffect(() => {
     setRescaled(() => scale);
     setZoomK(1);
@@ -77,6 +78,15 @@ export function useTimelineZoom({
       });
 
     const svgSel = d3.select(svg);
+
+    // Reset D3 zoom state and DOM transform so React state (zoomK=1) stays in sync
+    // when the effect re-runs (e.g., due to scale/width/height changing)
+    svgSel.property("__zoom", d3.zoomIdentity);
+    const g = zoomGroupRef.current;
+    if (g) g.removeAttribute("transform");
+    setRescaled(() => scale);
+    setZoomK(1);
+
     svgSel.call(zoom);
 
     return () => {
