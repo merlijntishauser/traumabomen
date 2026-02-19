@@ -180,8 +180,12 @@ export function TimelineYearsContent({
       bands.push({ gen, y: bandY, height: bandHeight, isEven: i % 2 === 0 });
       bandY += bandHeight;
     }
+    // Extend last band to fill remaining viewport height
+    if (bands.length > 0 && bandY < totalHeight) {
+      bands[bands.length - 1].height += totalHeight - bandY;
+    }
     return bands;
-  }, [sortedGens, personsByGen]);
+  }, [sortedGens, personsByGen, totalHeight]);
 
   const handleBackgroundClick = useCallback(() => {
     onSelectPerson?.(null);

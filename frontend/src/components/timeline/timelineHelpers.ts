@@ -12,7 +12,7 @@ import { RelationshipType } from "../../types/domain";
 export const LABEL_WIDTH = 180;
 export const ROW_HEIGHT = 36;
 export const BAR_HEIGHT = 12;
-export const GEN_HEADER_HEIGHT = 20;
+export const GEN_HEADER_HEIGHT = 32;
 export const MARKER_RADIUS = 7;
 
 // Age mode constants

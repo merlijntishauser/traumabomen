@@ -213,6 +213,8 @@
 
 /* Workspace area for timeline panels */
 .timeline-workspace-area {
+  display: flex;
+  flex-direction: column;
   position: relative;
   flex: 1;
   overflow: hidden;
