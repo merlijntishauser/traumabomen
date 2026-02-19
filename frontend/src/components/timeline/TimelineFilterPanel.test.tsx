@@ -40,6 +40,7 @@ function makeActions(overrides: Partial<TimelineFilterActions> = {}): TimelineFi
     toggleTraumaCategory: vi.fn(),
     toggleLifeEventCategory: vi.fn(),
     toggleClassificationCategory: vi.fn(),
+    toggleClassificationSubcategory: vi.fn(),
     toggleClassificationStatus: vi.fn(),
     setTimeRange: vi.fn(),
     togglePatternFilter: vi.fn(),
@@ -67,6 +68,7 @@ const defaultFilters: TimelineFilterState = {
   traumaCategories: null,
   lifeEventCategories: null,
   classificationCategories: null,
+  classificationSubcategories: null,
   classificationStatus: null,
   timeRange: null,
   visiblePatterns: null,
@@ -371,7 +373,7 @@ describe("TimelineFilterPanel", () => {
     expect(screen.queryByText("dsm.personality")).toBeNull();
   });
 
-  it("shows subcategories for used classifications", () => {
+  it("shows subcategory checkboxes for used classifications", () => {
     const actions = makeActions();
     render(
       <TimelineFilterPanel
@@ -384,7 +386,11 @@ describe("TimelineFilterPanel", () => {
       />,
     );
     fireEvent.click(screen.getByText(/timeline.filterClassifications/));
-    expect(screen.getByText("dsm.sub.major_depression")).toBeTruthy();
+    const subLabel = screen.getByText("dsm.sub.major_depression");
+    expect(subLabel).toBeTruthy();
+    const checkbox = subLabel.parentElement!.querySelector("input")!;
+    fireEvent.click(checkbox);
+    expect(actions.toggleClassificationSubcategory).toHaveBeenCalledWith("major_depression");
   });
 
   it("hides classification section when no classifications used", () => {

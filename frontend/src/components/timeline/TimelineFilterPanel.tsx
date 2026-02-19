@@ -144,6 +144,13 @@ export function TimelineFilterPanel({
     return filters.classificationCategories === null || filters.classificationCategories.has(cat);
   }
 
+  function isClassificationSubcategoryActive(subcat: string): boolean {
+    return (
+      filters.classificationSubcategories === null ||
+      filters.classificationSubcategories.has(subcat)
+    );
+  }
+
   function isClassificationStatusActive(status: string): boolean {
     return (
       filters.classificationStatus === null ||
@@ -453,9 +460,17 @@ export function TimelineFilterPanel({
                         <span>{t(`dsm.${dsmCat.key}`)}</span>
                       </label>
                       {subs.map((sub) => (
-                        <span key={sub.key} className="tl-filter-panel__sub-item">
-                          {t(`dsm.sub.${sub.key}`)}
-                        </span>
+                        <label
+                          key={sub.key}
+                          className="tl-filter-panel__checkbox tl-filter-panel__checkbox--sub"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isClassificationSubcategoryActive(sub.key)}
+                            onChange={() => actions.toggleClassificationSubcategory(sub.key)}
+                          />
+                          <span>{t(`dsm.sub.${sub.key}`)}</span>
+                        </label>
                       ))}
                     </div>
                   );

@@ -65,6 +65,7 @@ const emptyFilters: TimelineFilterState = {
   traumaCategories: null,
   lifeEventCategories: null,
   classificationCategories: null,
+  classificationSubcategories: null,
   classificationStatus: null,
   timeRange: null,
   visiblePatterns: null,

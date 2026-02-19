@@ -17,6 +17,7 @@ export interface TimelineFilterState {
   traumaCategories: Set<TraumaCategory> | null;
   lifeEventCategories: Set<LifeEventCategory> | null;
   classificationCategories: Set<string> | null;
+  classificationSubcategories: Set<string> | null;
   classificationStatus: Set<ClassificationStatus> | null;
   timeRange: { min: number; max: number } | null;
   visiblePatterns: Set<string> | null;
@@ -30,6 +31,7 @@ export interface TimelineFilterActions {
   toggleTraumaCategory: (cat: TraumaCategory) => void;
   toggleLifeEventCategory: (cat: LifeEventCategory) => void;
   toggleClassificationCategory: (cat: string) => void;
+  toggleClassificationSubcategory: (subcat: string) => void;
   toggleClassificationStatus: (status: ClassificationStatus) => void;
   setTimeRange: (range: { min: number; max: number } | null) => void;
   togglePatternFilter: (patternId: string) => void;
@@ -115,10 +117,19 @@ function computeDimmedLifeEvents(
   return result;
 }
 
+function isSubcategoryFiltered(
+  subcategory: string | null,
+  allowedSubcategories: Set<string> | null,
+): boolean {
+  if (allowedSubcategories === null || subcategory === null) return false;
+  return !allowedSubcategories.has(subcategory);
+}
+
 function computeDimmedClassifications(
   classifications: Map<string, DecryptedClassification>,
   visiblePersonIds: Set<string> | null,
   classificationCategories: Set<string> | null,
+  classificationSubcategories: Set<string> | null,
   classificationStatus: Set<ClassificationStatus> | null,
 ): Set<string> {
   const result = new Set<string>();
@@ -126,6 +137,7 @@ function computeDimmedClassifications(
     if (
       isPersonDimmed(cls.person_ids, visiblePersonIds) ||
       isCategoryFiltered(cls.dsm_category, classificationCategories) ||
+      isSubcategoryFiltered(cls.dsm_subcategory, classificationSubcategories) ||
       isCategoryFiltered(cls.status, classificationStatus)
     ) {
       result.add(id);
@@ -205,6 +217,7 @@ export function computeDimSets(
     traumaCategories,
     lifeEventCategories,
     classificationCategories,
+    classificationSubcategories,
     classificationStatus,
     timeRange,
     visiblePatterns,
@@ -222,6 +235,7 @@ export function computeDimSets(
     classifications,
     visiblePersonIds,
     classificationCategories,
+    classificationSubcategories,
     classificationStatus,
   );
 
@@ -258,6 +272,8 @@ export function useTimelineFilters(
   const [classificationCategories, setClassificationCategories] = useState<Set<string> | null>(
     null,
   );
+  const [classificationSubcategories, setClassificationSubcategories] =
+    useState<Set<string> | null>(null);
   const [classificationStatus, setClassificationStatus] =
     useState<Set<ClassificationStatus> | null>(null);
   const [timeRange, setTimeRange] = useState<{ min: number; max: number } | null>(null);
@@ -270,6 +286,7 @@ export function useTimelineFilters(
       traumaCategories,
       lifeEventCategories,
       classificationCategories,
+      classificationSubcategories,
       classificationStatus,
       timeRange,
       visiblePatterns,
@@ -280,6 +297,7 @@ export function useTimelineFilters(
       traumaCategories,
       lifeEventCategories,
       classificationCategories,
+      classificationSubcategories,
       classificationStatus,
       timeRange,
       visiblePatterns,
@@ -386,6 +404,21 @@ export function useTimelineFilters(
     });
   }, []);
 
+  const toggleClassificationSubcategory = useCallback((subcat: string) => {
+    setClassificationSubcategories((prev) => {
+      if (prev === null) {
+        return new Set([subcat]);
+      }
+      const next = new Set(prev);
+      if (next.has(subcat)) {
+        next.delete(subcat);
+      } else {
+        next.add(subcat);
+      }
+      return next.size === 0 ? null : next;
+    });
+  }, []);
+
   const toggleClassificationStatusFn = useCallback((status: ClassificationStatus) => {
     setClassificationStatus((prev) => {
       if (prev === null) {
@@ -456,6 +489,7 @@ export function useTimelineFilters(
         setTraumaCategories(null);
         setLifeEventCategories(null);
         setClassificationCategories(null);
+        setClassificationSubcategories(null);
         setClassificationStatus(null);
         return;
       }
@@ -464,16 +498,19 @@ export function useTimelineFilters(
         setTraumaCategories(null);
         setLifeEventCategories(new Set());
         setClassificationCategories(new Set());
+        setClassificationSubcategories(null);
         setClassificationStatus(null);
       } else if (preset === "lifeEvents") {
         setTraumaCategories(new Set());
         setLifeEventCategories(null);
         setClassificationCategories(new Set());
+        setClassificationSubcategories(null);
         setClassificationStatus(null);
       } else if (preset === "classifications") {
         setTraumaCategories(new Set());
         setLifeEventCategories(new Set());
         setClassificationCategories(null);
+        setClassificationSubcategories(null);
         setClassificationStatus(null);
       }
     },
@@ -485,6 +522,7 @@ export function useTimelineFilters(
     setTraumaCategories(null);
     setLifeEventCategories(null);
     setClassificationCategories(null);
+    setClassificationSubcategories(null);
     setClassificationStatus(null);
     setTimeRange(null);
     setVisiblePatterns(null);
@@ -497,6 +535,7 @@ export function useTimelineFilters(
     if (traumaCategories !== null) count++;
     if (lifeEventCategories !== null) count++;
     if (classificationCategories !== null) count++;
+    if (classificationSubcategories !== null) count++;
     if (classificationStatus !== null) count++;
     if (timeRange !== null) count++;
     if (visiblePatterns !== null) count++;
@@ -506,6 +545,7 @@ export function useTimelineFilters(
     traumaCategories,
     lifeEventCategories,
     classificationCategories,
+    classificationSubcategories,
     classificationStatus,
     timeRange,
     visiblePatterns,
@@ -524,6 +564,7 @@ export function useTimelineFilters(
       toggleTraumaCategory,
       toggleLifeEventCategory,
       toggleClassificationCategory,
+      toggleClassificationSubcategory,
       toggleClassificationStatus: toggleClassificationStatusFn,
       setTimeRange: setTimeRangeFn,
       togglePatternFilter: togglePatternFilterFn,
@@ -539,6 +580,7 @@ export function useTimelineFilters(
       toggleTraumaCategory,
       toggleLifeEventCategory,
       toggleClassificationCategory,
+      toggleClassificationSubcategory,
       toggleClassificationStatusFn,
       setTimeRangeFn,
       togglePatternFilterFn,

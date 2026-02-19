@@ -133,11 +133,9 @@
   flex-shrink: 0;
 }
 
-.tl-filter-panel__sub-item {
-  display: block;
-  font-size: 11px;
-  color: var(--color-text-muted);
-  padding: 1px 0 1px 24px;
+.tl-filter-panel__checkbox--sub {
+  padding-left: 20px;
+  font-size: 12px;
 }
 
 .tl-filter-panel__sub-group {
