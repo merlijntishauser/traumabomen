@@ -85,6 +85,7 @@ export default function TimelinePage() {
   const mutations = useTreeMutations(treeId!);
 
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("years");
+  const [scrollMode, setScrollMode] = useState(false);
   const [mode, setMode] = useState<TimelineMode>("explore");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [focusedMarker, setFocusedMarker] = useState<MarkerClickInfo | null>(null);
@@ -323,6 +324,10 @@ export default function TimelinePage() {
     filterActions.togglePatternFilter(patternId);
   }
 
+  const handleToggleScrollMode = useCallback(() => {
+    setScrollMode((v) => !v);
+  }, []);
+
   // Annotate mode handlers
   const handleToggleEntitySelect = useCallback((key: string) => {
     setSelectedEntityKeys((prev) => {
@@ -528,6 +533,8 @@ export default function TimelinePage() {
             showClassifications={timelineSettings.showClassifications}
             showGridlines={timelineSettings.showGridlines}
             showMarkerLabels={timelineSettings.showMarkerLabels}
+            scrollMode={scrollMode}
+            onToggleScrollMode={handleToggleScrollMode}
           />
         )}
 

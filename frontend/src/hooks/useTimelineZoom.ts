@@ -9,6 +9,7 @@ interface UseTimelineZoomOptions {
   fixedOffset: number;
   width: number;
   height: number;
+  scrollMode?: boolean;
 }
 
 export interface TimelineZoomActions {
@@ -31,11 +32,14 @@ export function useTimelineZoom({
   fixedOffset,
   width,
   height,
+  scrollMode = false,
 }: UseTimelineZoomOptions): UseTimelineZoomResult {
   const [rescaled, setRescaled] = useState<d3.ScaleLinear<number, number>>(() => scale);
   const [zoomK, setZoomK] = useState(1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const scrollModeRef = useRef(scrollMode);
+  scrollModeRef.current = scrollMode;
 
   // Keep React state in sync when scale changes (even without a mounted SVG)
   useEffect(() => {
@@ -64,6 +68,10 @@ export function useTimelineZoom({
       .scaleExtent([0.5, 20])
       .translateExtent(translateExtent)
       .extent(translateExtent)
+      .filter((event: Event) => {
+        if (scrollModeRef.current && event.type === "wheel") return false;
+        return !(event as MouseEvent).button;
+      })
       .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
         const g = zoomGroupRef.current;
         if (g) {

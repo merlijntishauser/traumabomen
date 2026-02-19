@@ -351,6 +351,8 @@
   "timeline.showMarkerLabels": "Markeerlabels tonen",
   "timeline.partnerLabel": "{{status}} {{name}}",
   "timeline.summaryPresent": "heden",
+  "timeline.scrollMode": "Scrollmodus",
+  "timeline.zoomMode": "Zoommodus",
   "timeline.timeRangeHint": "Filtert gebeurtenismarkeringen op datum. Levensbalken en classificatiestroken worden niet beinvloed.",
 
   "settings.title": "Instellingen",

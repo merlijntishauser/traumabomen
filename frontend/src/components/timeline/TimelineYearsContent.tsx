@@ -56,6 +56,8 @@ interface TimelineYearsContentProps {
   showClassifications?: boolean;
   showGridlines?: boolean;
   showMarkerLabels?: boolean;
+  scrollMode?: boolean;
+  onToggleScrollMode?: () => void;
 }
 
 export function TimelineYearsContent({
@@ -84,6 +86,8 @@ export function TimelineYearsContent({
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
+  scrollMode,
+  onToggleScrollMode,
 }: TimelineYearsContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -150,6 +154,7 @@ export function TimelineYearsContent({
     fixedOffset: LABEL_WIDTH,
     width,
     height: totalHeight,
+    scrollMode,
   });
 
   const axisTicks = useMemo(() => {
@@ -392,7 +397,11 @@ export function TimelineYearsContent({
           </g>
         </g>
       </svg>
-      <TimelineZoomControls actions={zoomActions} />
+      <TimelineZoomControls
+        actions={zoomActions}
+        scrollMode={scrollMode}
+        onToggleScrollMode={onToggleScrollMode}
+      />
     </>
   );
 }

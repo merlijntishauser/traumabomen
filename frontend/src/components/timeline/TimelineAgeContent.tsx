@@ -54,6 +54,8 @@ interface TimelineAgeContentProps {
   showClassifications?: boolean;
   showGridlines?: boolean;
   showMarkerLabels?: boolean;
+  scrollMode?: boolean;
+  onToggleScrollMode?: () => void;
 }
 
 export function TimelineAgeContent({
@@ -81,6 +83,8 @@ export function TimelineAgeContent({
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
+  scrollMode,
+  onToggleScrollMode,
 }: TimelineAgeContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -143,6 +147,7 @@ export function TimelineAgeContent({
     fixedOffset: COL_HEADER_HEIGHT,
     width: totalWidth,
     height,
+    scrollMode,
   });
 
   // Age axis ticks
@@ -339,7 +344,11 @@ export function TimelineAgeContent({
           </g>
         </g>
       </svg>
-      <TimelineZoomControls actions={zoomActions} />
+      <TimelineZoomControls
+        actions={zoomActions}
+        scrollMode={scrollMode}
+        onToggleScrollMode={onToggleScrollMode}
+      />
     </>
   );
 }

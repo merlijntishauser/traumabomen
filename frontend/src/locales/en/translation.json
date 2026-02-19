@@ -351,6 +351,8 @@
   "timeline.showMarkerLabels": "Show marker labels",
   "timeline.partnerLabel": "{{status}} {{name}}",
   "timeline.summaryPresent": "present",
+  "timeline.scrollMode": "Scroll mode",
+  "timeline.zoomMode": "Zoom mode",
   "timeline.timeRangeHint": "Filters event markers by date. Lifebars and classification strips are not affected.",
 
   "settings.title": "Settings",

@@ -245,6 +245,33 @@ describe("useTimelineZoom", () => {
     document.body.removeChild(svg);
   });
 
+  it("accepts scrollMode option without errors", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    svg.appendChild(g);
+    document.body.appendChild(svg);
+
+    const scale = d3.scaleLinear().domain([1950, 2025]).range([180, 800]);
+
+    const { result, unmount } = renderHook(() =>
+      useTimelineZoom({
+        svgRef: { current: svg },
+        zoomGroupRef: { current: g },
+        scale,
+        fixedOffset: 180,
+        width: 800,
+        height: 400,
+        scrollMode: true,
+      }),
+    );
+
+    expect(result.current.rescaled.domain()).toEqual([1950, 2025]);
+    expect(() => act(() => result.current.zoomActions.zoomIn())).not.toThrow();
+
+    unmount();
+    document.body.removeChild(svg);
+  });
+
   it("zoom actions work with vertical direction", () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");

@@ -283,6 +283,16 @@
   background: var(--color-accent-subtle);
 }
 
+.tl-zoom-controls__btn--active {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.tl-zoom-controls__btn--active:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-text-inverse);
+}
+
 /* Person summary card */
 .tl-summary-card {
   position: absolute;

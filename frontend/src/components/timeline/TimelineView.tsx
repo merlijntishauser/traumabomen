@@ -42,6 +42,8 @@ interface TimelineViewProps {
   showClassifications?: boolean;
   showGridlines?: boolean;
   showMarkerLabels?: boolean;
+  scrollMode?: boolean;
+  onToggleScrollMode?: () => void;
 }
 
 export function TimelineView({
@@ -68,6 +70,8 @@ export function TimelineView({
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
+  scrollMode,
+  onToggleScrollMode,
 }: TimelineViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -134,6 +138,8 @@ export function TimelineView({
     showClassifications,
     showGridlines,
     showMarkerLabels,
+    scrollMode,
+    onToggleScrollMode,
   };
 
   return (
