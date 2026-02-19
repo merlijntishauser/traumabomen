@@ -12,6 +12,83 @@ import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
 
 export type TimelineMode = "explore" | "edit" | "annotate";
 
+export interface LabelEntry {
+  x: number;
+  w: number;
+  key: string;
+}
+
+export function collectClassificationLabelEntries(
+  classifications: DecryptedClassification[],
+  dims: DimSets | undefined,
+  filterMode: FilterMode,
+  xScale: (year: number) => number,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  charW: number,
+): LabelEntry[] {
+  const entries: LabelEntry[] = [];
+  for (const cls of classifications) {
+    if (dims?.dimmedClassificationIds.has(cls.id) && filterMode === "hide") continue;
+    if (cls.periods.length === 0) continue;
+    const px = xScale(cls.periods[0].start_year);
+    const sub = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
+    const txt = sub ?? t(`dsm.${cls.dsm_category}`);
+    entries.push({ x: px, w: txt.length * charW, key: `cs:${cls.id}` });
+
+    if (cls.status === "diagnosed" && cls.diagnosis_year != null) {
+      const dx = xScale(cls.diagnosis_year);
+      entries.push({ x: dx, w: txt.length * charW, key: `ct:${cls.id}` });
+    }
+  }
+  return entries;
+}
+
+export function collectDateLabelEntries(
+  items: ReadonlyArray<{ id: string; approximate_date: string; title: string }>,
+  dimmedIds: ReadonlySet<string> | undefined,
+  filterMode: FilterMode,
+  xScale: (year: number) => number,
+  charW: number,
+  keyPrefix: string,
+): LabelEntry[] {
+  const entries: LabelEntry[] = [];
+  for (const item of items) {
+    const yr = Number.parseInt(item.approximate_date, 10);
+    if (Number.isNaN(yr)) continue;
+    if (dimmedIds?.has(item.id) && filterMode === "hide") continue;
+    entries.push({ x: xScale(yr), w: item.title.length * charW, key: `${keyPrefix}:${item.id}` });
+  }
+  return entries;
+}
+
+export function stackLabels(
+  entries: LabelEntry[],
+  pad: number,
+  lineH: number,
+): Map<string, number> {
+  entries.sort((a, b) => a.x - b.x);
+  const offsets = new Map<string, number>();
+  const levels: number[] = [-Infinity];
+
+  for (const e of entries) {
+    let placed = false;
+    for (let i = 0; i < levels.length; i++) {
+      if (e.x >= levels[i] + pad) {
+        offsets.set(e.key, i * lineH);
+        levels[i] = e.x + e.w;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      offsets.set(e.key, levels.length * lineH);
+      levels.push(e.x + e.w);
+    }
+  }
+
+  return offsets;
+}
+
 export interface MarkerClickInfo {
   personId: string;
   entityType: "trauma_event" | "life_event" | "classification";
@@ -110,63 +187,28 @@ export const PersonLane = React.memo(function PersonLane({
   // Compute label y-offsets to prevent horizontal overlap (stacking up)
   const labelOffsets = (() => {
     if (!showMarkerLabels) return new Map<string, number>();
-
-    const CHAR_W = 6; // approximate char width at font-size 10
-    const LINE_H = 12;
-    const PAD = 4;
-    const entries: Array<{ x: number; w: number; key: string }> = [];
-
+    const CHAR_W = 6;
+    const charW = CHAR_W * inv;
+    const entries: LabelEntry[] = [];
     if (showClassifications && hasBirth) {
-      for (const cls of classifications) {
-        if (dims?.dimmedClassificationIds.has(cls.id) && filterMode === "hide") continue;
-        if (cls.periods.length === 0) continue;
-        const px = xScale(cls.periods[0].start_year);
-        const sub = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
-        const txt = sub ?? t(`dsm.${cls.dsm_category}`);
-        entries.push({ x: px, w: txt.length * CHAR_W * inv, key: `cs:${cls.id}` });
-
-        if (cls.status === "diagnosed" && cls.diagnosis_year != null) {
-          const dx = xScale(cls.diagnosis_year);
-          entries.push({ x: dx, w: txt.length * CHAR_W * inv, key: `ct:${cls.id}` });
-        }
-      }
+      entries.push(
+        ...collectClassificationLabelEntries(classifications, dims, filterMode, xScale, t, charW),
+      );
     }
-
-    for (const ev of events) {
-      const yr = Number.parseInt(ev.approximate_date, 10);
-      if (Number.isNaN(yr)) continue;
-      if (dims?.dimmedEventIds.has(ev.id) && filterMode === "hide") continue;
-      entries.push({ x: xScale(yr), w: ev.title.length * CHAR_W * inv, key: `t:${ev.id}` });
-    }
-
-    for (const le of lifeEvents) {
-      const yr = Number.parseInt(le.approximate_date, 10);
-      if (Number.isNaN(yr)) continue;
-      if (dims?.dimmedLifeEventIds.has(le.id) && filterMode === "hide") continue;
-      entries.push({ x: xScale(yr), w: le.title.length * CHAR_W * inv, key: `l:${le.id}` });
-    }
-
-    entries.sort((a, b) => a.x - b.x);
-    const offsets = new Map<string, number>();
-    const levels: number[] = [-Infinity];
-
-    for (const e of entries) {
-      let placed = false;
-      for (let i = 0; i < levels.length; i++) {
-        if (e.x >= levels[i] + PAD * inv) {
-          offsets.set(e.key, i * LINE_H);
-          levels[i] = e.x + e.w;
-          placed = true;
-          break;
-        }
-      }
-      if (!placed) {
-        offsets.set(e.key, levels.length * LINE_H);
-        levels.push(e.x + e.w);
-      }
-    }
-
-    return offsets;
+    entries.push(
+      ...collectDateLabelEntries(events, dims?.dimmedEventIds, filterMode, xScale, charW, "t"),
+    );
+    entries.push(
+      ...collectDateLabelEntries(
+        lifeEvents,
+        dims?.dimmedLifeEventIds,
+        filterMode,
+        xScale,
+        charW,
+        "l",
+      ),
+    );
+    return stackLabels(entries, 4 * inv, 12);
   })();
 
   const className = ["tl-lane", selected && "tl-lane--selected", dimmed && "tl-lane--dimmed"]

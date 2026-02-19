@@ -7,7 +7,7 @@ import type {
   DecryptedPerson,
 } from "../../hooks/useTreeData";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
-import { PersonLane } from "./PersonLane";
+import { type LabelEntry, PersonLane, stackLabels } from "./PersonLane";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
 
 function makePerson(id: string, overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
@@ -121,6 +121,50 @@ function renderLane(overrides: Record<string, unknown> = {}) {
     props,
   };
 }
+
+describe("stackLabels", () => {
+  it("returns empty map for no entries", () => {
+    const result = stackLabels([], 4, 12);
+    expect(result.size).toBe(0);
+  });
+
+  it("places non-overlapping entries all at offset 0", () => {
+    const entries: LabelEntry[] = [
+      { x: 0, w: 10, key: "a" },
+      { x: 20, w: 10, key: "b" },
+      { x: 40, w: 10, key: "c" },
+    ];
+    const result = stackLabels(entries, 4, 12);
+    expect(result.get("a")).toBe(0);
+    expect(result.get("b")).toBe(0);
+    expect(result.get("c")).toBe(0);
+  });
+
+  it("stacks overlapping entries to different levels", () => {
+    const entries: LabelEntry[] = [
+      { x: 0, w: 30, key: "a" },
+      { x: 10, w: 30, key: "b" },
+      { x: 20, w: 30, key: "c" },
+    ];
+    const result = stackLabels(entries, 4, 12);
+    expect(result.get("a")).toBe(0);
+    expect(result.get("b")).toBe(12);
+    expect(result.get("c")).toBe(24);
+  });
+
+  it("reuses levels once space is available", () => {
+    const entries: LabelEntry[] = [
+      { x: 0, w: 10, key: "a" },
+      { x: 5, w: 10, key: "b" },
+      { x: 20, w: 10, key: "c" },
+    ];
+    const result = stackLabels(entries, 4, 12);
+    expect(result.get("a")).toBe(0);
+    expect(result.get("b")).toBe(12);
+    // "c" at x=20 can reuse level 0 (a ends at x=10, 10+4=14 <= 20)
+    expect(result.get("c")).toBe(0);
+  });
+});
 
 describe("PersonLane", () => {
   describe("life bar", () => {
