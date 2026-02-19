@@ -48,14 +48,41 @@ export const PartnerLine = React.memo(function PartnerLine({
 
   if (srcLineY == null && tgtLineY == null) return null;
 
+  // Approximate character width at fontSize 10 (used to prevent label overlap)
+  const CHAR_WIDTH = 6;
+  const LABEL_PAD = 8;
+
+  // Pre-compute label data for all periods
+  const periodData = periods.map((period) => {
+    const px1 = xScale(period.start_year);
+    const px2 = xScale(period.end_year ?? currentYear);
+    const isDashed =
+      period.status === PartnerStatus.Separated || period.status === PartnerStatus.Divorced;
+    const statusLabel = t(`relationship.status.${period.status}`);
+    const srcLabel = t("timeline.partnerLabel", { status: statusLabel, name: targetName });
+    const tgtLabel = t("timeline.partnerLabel", { status: statusLabel, name: sourceName });
+    return { period, px1, px2, isDashed, statusLabel, srcLabel, tgtLabel };
+  });
+
+  // Compute label x positions, pushing right if they'd overlap the previous label
+  const srcLabelXs: number[] = [];
+  const tgtLabelXs: number[] = [];
+  let srcRightEdge = -Infinity;
+  let tgtRightEdge = -Infinity;
+  for (const d of periodData) {
+    const naturalX = d.px1 + 4;
+    const srcX = Math.max(naturalX, srcRightEdge + LABEL_PAD * inv);
+    const tgtX = Math.max(naturalX, tgtRightEdge + LABEL_PAD * inv);
+    srcLabelXs.push(srcX);
+    tgtLabelXs.push(tgtX);
+    srcRightEdge = srcX + d.srcLabel.length * CHAR_WIDTH * inv;
+    tgtRightEdge = tgtX + d.tgtLabel.length * CHAR_WIDTH * inv;
+  }
+
   return (
     <g>
-      {periods.map((period, i) => {
-        const px1 = xScale(period.start_year);
-        const px2 = xScale(period.end_year ?? currentYear);
-        const isDashed =
-          period.status === PartnerStatus.Separated || period.status === PartnerStatus.Divorced;
-        const statusLabel = t(`relationship.status.${period.status}`);
+      {periodData.map((d, i) => {
+        const { period, px1, px2, isDashed, statusLabel } = d;
         const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
         const strokeColor = cssVar("--color-edge-partner");
         const dashArray = isDashed ? "6 3" : undefined;
@@ -68,9 +95,6 @@ export const PartnerLine = React.memo(function PartnerLine({
         const showTooltip = (e: React.MouseEvent) => {
           onTooltip({ visible: true, x: e.clientX, y: e.clientY, lines: tooltipLines });
         };
-
-        const srcLabel = t("timeline.partnerLabel", { status: statusLabel, name: targetName });
-        const tgtLabel = t("timeline.partnerLabel", { status: statusLabel, name: sourceName });
 
         return (
           <g key={i}>
@@ -100,14 +124,14 @@ export const PartnerLine = React.memo(function PartnerLine({
                   strokeDasharray={dashArray}
                 />
                 <text
-                  x={px1 + 4}
+                  x={srcLabelXs[i]}
                   y={srcLineY - 3}
                   fill={strokeColor}
                   fontSize={10}
                   className="tl-partner-label"
-                  transform={labelTransform(px1)}
+                  transform={labelTransform(srcLabelXs[i])}
                 >
-                  {srcLabel}
+                  {d.srcLabel}
                 </text>
                 <line
                   x1={px1}
@@ -135,14 +159,14 @@ export const PartnerLine = React.memo(function PartnerLine({
                   strokeDasharray={dashArray}
                 />
                 <text
-                  x={px1 + 4}
+                  x={tgtLabelXs[i]}
                   y={tgtLineY - 3}
                   fill={strokeColor}
                   fontSize={10}
                   className="tl-partner-label"
-                  transform={labelTransform(px1)}
+                  transform={labelTransform(tgtLabelXs[i])}
                 >
-                  {tgtLabel}
+                  {d.tgtLabel}
                 </text>
                 <line
                   x1={px1}
