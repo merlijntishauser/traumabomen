@@ -3,7 +3,7 @@
   "persons": [
     {
       "id": "demo-p1",
-      "name": "Margaret van Dijk",
+      "name": "Dorothy Whitfield",
       "birth_year": 1935,
       "death_year": 2012,
       "gender": "female",
@@ -12,7 +12,7 @@
     },
     {
       "id": "demo-p2",
-      "name": "Hendrik van Dijk",
+      "name": "Harold Whitfield",
       "birth_year": 1932,
       "death_year": 2005,
       "gender": "male",
@@ -21,7 +21,7 @@
     },
     {
       "id": "demo-p3",
-      "name": "Anna van Dijk",
+      "name": "Catherine Whitfield",
       "birth_year": 1958,
       "death_year": null,
       "gender": "female",
@@ -30,25 +30,25 @@
     },
     {
       "id": "demo-p4",
-      "name": "Willem Bakker",
+      "name": "James Porter",
       "birth_year": 1955,
       "death_year": null,
       "gender": "male",
       "is_adopted": false,
-      "notes": "Anna's first husband."
+      "notes": "Catherine's first husband."
     },
     {
       "id": "demo-p5",
-      "name": "Pieter de Vries",
+      "name": "Robert Ellison",
       "birth_year": 1960,
       "death_year": null,
       "gender": "male",
       "is_adopted": false,
-      "notes": "Anna's second partner."
+      "notes": "Catherine's second partner."
     },
     {
       "id": "demo-p6",
-      "name": "Thomas van Dijk",
+      "name": "Thomas Whitfield",
       "birth_year": 1962,
       "death_year": null,
       "gender": "male",
@@ -57,21 +57,21 @@
     },
     {
       "id": "demo-p7",
-      "name": "Sophie Bakker",
+      "name": "Sophie Porter",
       "birth_year": 1985,
       "death_year": null,
       "gender": "female",
       "is_adopted": false,
-      "notes": "Anna and Willem's daughter."
+      "notes": "Catherine and James's daughter."
     },
     {
       "id": "demo-p8",
-      "name": "Lucas Bakker",
+      "name": "Lucas Porter",
       "birth_year": 1988,
       "death_year": null,
       "gender": "male",
       "is_adopted": false,
-      "notes": "Anna and Willem's son."
+      "notes": "Catherine and James's son."
     }
   ],
   "relationships": [
@@ -175,7 +175,7 @@
       "id": "demo-e1",
       "person_ids": ["demo-p1", "demo-p2"],
       "title": "Bombing of the neighbourhood",
-      "description": "Both Margaret and Hendrik witnessed the bombing of their neighbourhood as children during WWII.",
+      "description": "Both Dorothy and Harold witnessed the bombing of their neighbourhood as children during WWII.",
       "category": "war",
       "approximate_date": "1944",
       "severity": 9,
@@ -185,7 +185,7 @@
       "id": "demo-e2",
       "person_ids": ["demo-p2"],
       "title": "Alcohol dependency",
-      "description": "Hendrik developed alcohol dependency in his forties, likely as a coping mechanism for unprocessed war trauma.",
+      "description": "Harold developed alcohol dependency in his forties, likely as a coping mechanism for unprocessed war trauma.",
       "category": "addiction",
       "approximate_date": "1975",
       "severity": 7,
@@ -195,7 +195,7 @@
       "id": "demo-e3",
       "person_ids": ["demo-p3"],
       "title": "Emotional neglect in childhood",
-      "description": "Anna experienced emotional neglect growing up due to her father's drinking and her mother's protective silence.",
+      "description": "Catherine experienced emotional neglect growing up due to her father's drinking and her mother's protective silence.",
       "category": "abuse",
       "approximate_date": "1965",
       "severity": 6,
@@ -204,8 +204,8 @@
     {
       "id": "demo-e4",
       "person_ids": ["demo-p1"],
-      "title": "Death of Margaret's mother",
-      "description": "Margaret's mother died of tuberculosis when Margaret was 12, during the war.",
+      "title": "Death of Dorothy's mother",
+      "description": "Dorothy's mother died of tuberculosis when Dorothy was 12, during the war.",
       "category": "loss",
       "approximate_date": "1947",
       "severity": 8,
@@ -247,7 +247,7 @@
       "id": "demo-le1",
       "person_ids": ["demo-p1", "demo-p2"],
       "title": "Marriage",
-      "description": "Margaret and Hendrik married in a small ceremony.",
+      "description": "Dorothy and Harold married in a small ceremony.",
       "category": "family",
       "approximate_date": "1954",
       "impact": 7,
@@ -257,7 +257,7 @@
       "id": "demo-le2",
       "person_ids": ["demo-p3"],
       "title": "Teaching degree",
-      "description": "Anna completed her teaching degree, becoming the first in the family with higher education.",
+      "description": "Catherine completed her teaching degree, becoming the first in the family with higher education.",
       "category": "education",
       "approximate_date": "1980",
       "impact": 8,
@@ -277,7 +277,7 @@
       "id": "demo-le4",
       "person_ids": ["demo-p7"],
       "title": "Moved to the city",
-      "description": "Sophie moved to Amsterdam to study art.",
+      "description": "Sophie moved to London to study art.",
       "category": "relocation",
       "approximate_date": "2003",
       "impact": 6,
@@ -297,7 +297,7 @@
       "id": "demo-le6",
       "person_ids": ["demo-p3", "demo-p4"],
       "title": "Divorce",
-      "description": "Anna and Willem's divorce after 15 years of marriage.",
+      "description": "Catherine and James's divorce after 15 years of marriage.",
       "category": "family",
       "approximate_date": "1997",
       "impact": 8,
@@ -350,7 +350,7 @@
     {
       "id": "demo-pat1",
       "name": "Cross-generational coping through substance use",
-      "description": "Hendrik's alcohol dependency and the family's pattern of avoidance may reflect unprocessed war trauma passed through emotional unavailability.",
+      "description": "Harold's alcohol dependency and the family's pattern of avoidance may reflect unprocessed war trauma passed through emotional unavailability.",
       "color": "#e06c75",
       "person_ids": ["demo-p2", "demo-p3"],
       "linked_entities": [
@@ -363,7 +363,7 @@
     {
       "id": "demo-pat2",
       "name": "Autism across generations",
-      "description": "Margaret's suspected autism traits appear to have been passed to her granddaughter Sophie, who was formally diagnosed as an adult.",
+      "description": "Dorothy's suspected autism traits appear to have been passed to her granddaughter Sophie, who was formally diagnosed as an adult.",
       "color": "#61afef",
       "person_ids": ["demo-p1", "demo-p7"],
       "linked_entities": [
