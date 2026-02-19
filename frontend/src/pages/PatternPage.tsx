@@ -1,7 +1,8 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { PatternView } from "../components/PatternView";
+import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
-import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import "../components/tree/TreeCanvas.css";
@@ -9,9 +10,16 @@ import "../components/tree/TreeCanvas.css";
 export default function PatternPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
-  const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
   const { treeName, patterns, events, lifeEvents, classifications, persons, isLoading, error } =
     useTreeData(treeId!);
+
+  const patternViewTab = useMemo(
+    () => ({
+      label: t("pattern.patterns"),
+      content: <ThemeLanguageSettings />,
+    }),
+    [t],
+  );
 
   if (error) {
     return (
@@ -20,8 +28,7 @@ export default function PatternPage() {
           treeId={treeId!}
           treeName={treeName}
           activeView="patterns"
-          canvasSettings={canvasSettings}
-          onUpdateSettings={updateCanvasSettings}
+          viewTab={patternViewTab}
         />
         <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
       </div>
@@ -34,8 +41,7 @@ export default function PatternPage() {
         treeId={treeId!}
         treeName={treeName}
         activeView="patterns"
-        canvasSettings={canvasSettings}
-        onUpdateSettings={updateCanvasSettings}
+        viewTab={patternViewTab}
       />
 
       {isLoading ? (

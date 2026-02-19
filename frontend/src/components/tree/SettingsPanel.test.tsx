@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CanvasSettings } from "../../hooks/useCanvasSettings";
+import { CanvasSettingsContent } from "./CanvasSettingsContent";
 import { SettingsPanel } from "./SettingsPanel";
 
 // Dummy credentials for testing (not real passwords)
@@ -110,7 +111,11 @@ function renderPanel(
 ) {
   const onUpdate = overrides.onUpdate ?? vi.fn();
   const settings = overrides.settings ?? defaultSettings();
-  const result = render(<SettingsPanel settings={settings} onUpdate={onUpdate} />);
+  const viewTab = {
+    label: "settings.canvas",
+    content: <CanvasSettingsContent settings={settings} onUpdate={onUpdate} />,
+  };
+  const result = render(<SettingsPanel viewTab={viewTab} />);
   return { ...result, onUpdate, settings };
 }
 

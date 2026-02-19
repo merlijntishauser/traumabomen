@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, X } from "lucide-react";
-import { type FormEvent, useCallback, useState } from "react";
+import { type FormEvent, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { SettingsPanel } from "../components/tree/SettingsPanel";
+import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/EncryptionContext";
-import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useLogout } from "../hooks/useLogout";
 import { createTree, deleteTree, getIsAdmin, getTrees, updateTree } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
@@ -25,7 +25,6 @@ interface DecryptedTree {
 
 export default function TreeListPage() {
   const { t } = useTranslation();
-  const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
   const navigate = useNavigate();
   const logout = useLogout();
   const { encrypt, decrypt } = useEncryption();
@@ -40,6 +39,14 @@ export default function TreeListPage() {
     () => localStorage.getItem(WELCOME_DISMISSED_KEY) === "true",
   );
   const [showFeedback, setShowFeedback] = useState(false);
+
+  const treeListViewTab = useMemo(
+    () => ({
+      label: t("tree.myTrees"),
+      content: <ThemeLanguageSettings />,
+    }),
+    [t],
+  );
 
   const dismissWelcome = useCallback(() => {
     localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
@@ -126,11 +133,7 @@ export default function TreeListPage() {
           >
             {t("tree.create")}
           </button>
-          <SettingsPanel
-            settings={canvasSettings}
-            onUpdate={updateCanvasSettings}
-            className="tree-toolbar__icon-btn"
-          />
+          <SettingsPanel viewTab={treeListViewTab} className="tree-toolbar__icon-btn" />
           {getIsAdmin() && (
             <Link to="/admin" className="tree-toolbar__btn">
               Admin
@@ -142,7 +145,7 @@ export default function TreeListPage() {
             onClick={logout}
             aria-label={t("nav.logout")}
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
           </button>
         </div>
 

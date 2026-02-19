@@ -50,6 +50,9 @@ interface TimelineYearsContentProps {
   onToggleEntitySelect?: (key: string) => void;
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
+  showPartnerLines?: boolean;
+  showClassifications?: boolean;
+  showGridlines?: boolean;
 }
 
 export function TimelineYearsContent({
@@ -74,6 +77,9 @@ export function TimelineYearsContent({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
+  showPartnerLines = true,
+  showClassifications = true,
+  showGridlines = false,
 }: TimelineYearsContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -263,6 +269,20 @@ export function TimelineYearsContent({
         ))}
       </g>
 
+      {/* Vertical gridlines at year ticks */}
+      {showGridlines &&
+        axisTicks.map((tick) => (
+          <line
+            key={`grid-${tick.value}`}
+            x1={tick.x}
+            x2={tick.x}
+            y1={0}
+            y2={totalHeight}
+            stroke={cssVar("--color-border-secondary")}
+            strokeOpacity={0.3}
+          />
+        ))}
+
       {/* Transparent background rect for deselect on click */}
       <rect
         x={LABEL_WIDTH}
@@ -322,26 +342,28 @@ export function TimelineYearsContent({
                 filterMode={filterMode}
                 onSelectPerson={handleSelectPerson}
                 onClickMarker={onClickMarker}
+                showClassifications={showClassifications}
                 selectedEntityKeys={selectedEntityKeys}
                 onToggleEntitySelect={onToggleEntitySelect}
               />
             );
           })}
-          {partnerLines.map((pl) => (
-            <PartnerLine
-              key={pl.key}
-              sourceName={pl.sourceName}
-              targetName={pl.targetName}
-              sourceY={pl.sourceY}
-              targetY={pl.targetY}
-              periods={pl.periods}
-              xScale={xScale}
-              currentYear={currentYear}
-              cssVar={cssVar}
-              t={t}
-              onTooltip={onTooltip}
-            />
-          ))}
+          {showPartnerLines &&
+            partnerLines.map((pl) => (
+              <PartnerLine
+                key={pl.key}
+                sourceName={pl.sourceName}
+                targetName={pl.targetName}
+                sourceY={pl.sourceY}
+                targetY={pl.targetY}
+                periods={pl.periods}
+                xScale={xScale}
+                currentYear={currentYear}
+                cssVar={cssVar}
+                t={t}
+                onTooltip={onTooltip}
+              />
+            ))}
         </g>
       </g>
     </svg>

@@ -47,13 +47,6 @@ vi.mock("../contexts/EncryptionContext", () => ({
   }),
 }));
 
-vi.mock("../hooks/useCanvasSettings", () => ({
-  useCanvasSettings: () => ({
-    settings: {},
-    update: vi.fn(),
-  }),
-}));
-
 vi.mock("../hooks/useLogout", () => ({
   useLogout: () => vi.fn(),
 }));

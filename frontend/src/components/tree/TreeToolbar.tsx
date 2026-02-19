@@ -2,8 +2,8 @@ import { House, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import type { CanvasSettings } from "../../hooks/useCanvasSettings";
 import { useLogout } from "../../hooks/useLogout";
+import type { ViewTab } from "./SettingsPanel";
 import { SettingsPanel } from "./SettingsPanel";
 import type { ActiveView } from "./ViewTabs";
 import { ViewTabs } from "./ViewTabs";
@@ -12,19 +12,11 @@ interface TreeToolbarProps {
   treeId: string;
   treeName: string | null;
   activeView: ActiveView;
-  canvasSettings: CanvasSettings;
-  onUpdateSettings: (partial: Partial<CanvasSettings>) => void;
+  viewTab: ViewTab;
   children?: ReactNode;
 }
 
-export function TreeToolbar({
-  treeId,
-  treeName,
-  activeView,
-  canvasSettings,
-  onUpdateSettings,
-  children,
-}: TreeToolbarProps) {
+export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }: TreeToolbarProps) {
   const { t } = useTranslation();
   const logout = useLogout();
 
@@ -48,11 +40,7 @@ export function TreeToolbar({
         <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
           <House size={14} />
         </Link>
-        <SettingsPanel
-          settings={canvasSettings}
-          onUpdate={onUpdateSettings}
-          className="tree-toolbar__icon-btn"
-        />
+        <SettingsPanel viewTab={viewTab} className="tree-toolbar__icon-btn" />
         <button
           type="button"
           className="tree-toolbar__icon-btn"

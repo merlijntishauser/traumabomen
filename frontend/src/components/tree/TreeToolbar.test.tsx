@@ -28,31 +28,23 @@ vi.mock("./ViewTabs", () => ({
 }));
 
 const TREE_ID = "03f28958-029f-4663-82e3-4de766986d28";
-const defaultSettings = {
-  showGrid: false,
-  snapToGrid: false,
-  edgeStyle: "curved" as const,
-  showMarkers: true,
-  showMinimap: false,
+const defaultViewTab = {
+  label: "Canvas",
+  content: <div data-testid="view-tab-content">Canvas settings</div>,
 };
 
 function renderToolbar(overrides: Partial<Parameters<typeof TreeToolbar>[0]> = {}) {
-  const onUpdateSettings = vi.fn();
-  return {
-    onUpdateSettings,
-    ...render(
-      <MemoryRouter>
-        <TreeToolbar
-          treeId={TREE_ID}
-          treeName="My Tree"
-          activeView="canvas"
-          canvasSettings={defaultSettings}
-          onUpdateSettings={onUpdateSettings}
-          {...overrides}
-        />
-      </MemoryRouter>,
-    ),
-  };
+  return render(
+    <MemoryRouter>
+      <TreeToolbar
+        treeId={TREE_ID}
+        treeName="My Tree"
+        activeView="canvas"
+        viewTab={defaultViewTab}
+        {...overrides}
+      />
+    </MemoryRouter>,
+  );
 }
 
 describe("TreeToolbar", () => {

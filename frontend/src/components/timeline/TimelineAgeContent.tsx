@@ -48,6 +48,9 @@ interface TimelineAgeContentProps {
   onToggleEntitySelect?: (key: string) => void;
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
+  showPartnerLines?: boolean;
+  showClassifications?: boolean;
+  showGridlines?: boolean;
 }
 
 export function TimelineAgeContent({
@@ -72,6 +75,8 @@ export function TimelineAgeContent({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
+  showClassifications = true,
+  showGridlines = false,
 }: TimelineAgeContentProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
@@ -235,17 +240,18 @@ export function TimelineAgeContent({
         ))}
 
         {/* Horizontal grid lines at age ticks */}
-        {ageTicks.map((tick) => (
-          <line
-            key={`grid-${tick.value}`}
-            x1={AGE_LABEL_WIDTH}
-            x2={totalWidth}
-            y1={tick.y}
-            y2={tick.y}
-            stroke={cssVar("--color-border-secondary")}
-            strokeOpacity={0.3}
-          />
-        ))}
+        {showGridlines &&
+          ageTicks.map((tick) => (
+            <line
+              key={`grid-${tick.value}`}
+              x1={AGE_LABEL_WIDTH}
+              x2={totalWidth}
+              y1={tick.y}
+              y2={tick.y}
+              stroke={cssVar("--color-border-secondary")}
+              strokeOpacity={0.3}
+            />
+          ))}
       </g>
 
       {/* Transparent background rect for deselect on click */}
@@ -308,6 +314,7 @@ export function TimelineAgeContent({
                 filterMode={filterMode}
                 onSelectPerson={handleSelectPerson}
                 onClickMarker={onClickMarker}
+                showClassifications={showClassifications}
                 selectedEntityKeys={selectedEntityKeys}
                 onToggleEntitySelect={onToggleEntitySelect}
               />

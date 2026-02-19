@@ -437,6 +437,22 @@ describe("PersonLane", () => {
     });
   });
 
+  describe("showClassifications", () => {
+    it("hides classification strips when showClassifications is false", () => {
+      const classifications = [makeClassification("c1", ["a"])];
+      const { container } = renderLane({ classifications, showClassifications: false });
+      const strips = container.querySelectorAll("rect.tl-marker");
+      expect(strips).toHaveLength(0);
+    });
+
+    it("shows classification strips when showClassifications is true (default)", () => {
+      const classifications = [makeClassification("c1", ["a"])];
+      const { container } = renderLane({ classifications });
+      const strips = container.querySelectorAll("rect.tl-marker");
+      expect(strips).toHaveLength(1);
+    });
+  });
+
   describe("annotate mode", () => {
     it("uses crosshair cursor in annotate mode", () => {
       const { container } = renderLane({ mode: "annotate" });

@@ -38,6 +38,9 @@ interface TimelineViewProps {
   onToggleEntitySelect?: (key: string) => void;
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
+  showPartnerLines?: boolean;
+  showClassifications?: boolean;
+  showGridlines?: boolean;
 }
 
 export function TimelineView({
@@ -60,6 +63,9 @@ export function TimelineView({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
+  showPartnerLines = true,
+  showClassifications = true,
+  showGridlines = false,
 }: TimelineViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -122,6 +128,9 @@ export function TimelineView({
     onToggleEntitySelect,
     onPatternHover,
     onPatternClick,
+    showPartnerLines,
+    showClassifications,
+    showGridlines,
   };
 
   return (

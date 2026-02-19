@@ -506,6 +506,56 @@ describe("AgePersonLane", () => {
     expect(parentG?.getAttribute("opacity")).toBe("0.15");
   });
 
+  it("hides classification strips when showClassifications is false", () => {
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "suspected",
+        diagnosis_year: null,
+        periods: [{ start_year: 1990, end_year: 2005 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} showClassifications={false} />
+      </svg>,
+    );
+
+    const strips = container.querySelectorAll("rect.tl-marker");
+    expect(strips).toHaveLength(0);
+  });
+
+  it("shows classification strips when showClassifications is true (default)", () => {
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "suspected",
+        diagnosis_year: null,
+        periods: [{ start_year: 1990, end_year: 2005 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const strips = container.querySelectorAll("rect.tl-marker");
+    expect(strips).toHaveLength(1);
+  });
+
   it("renders annotate cursor in annotate mode", () => {
     const props = makeBaseProps();
     const { container } = render(

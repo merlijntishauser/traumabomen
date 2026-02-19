@@ -40,6 +40,7 @@ interface PersonLaneProps {
   filterMode?: FilterMode;
   onSelectPerson?: (personId: string) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  showClassifications?: boolean;
   selectedEntityKeys?: Set<string>;
   onToggleEntitySelect?: (key: string) => void;
 }
@@ -66,6 +67,7 @@ export const PersonLane = React.memo(function PersonLane({
   filterMode = "dim",
   onSelectPerson,
   onClickMarker,
+  showClassifications = true,
   selectedEntityKeys,
   onToggleEntitySelect,
 }: PersonLaneProps) {
@@ -132,7 +134,8 @@ export const PersonLane = React.memo(function PersonLane({
       )}
 
       {/* Classification strips */}
-      {hasBirth &&
+      {showClassifications &&
+        hasBirth &&
         classifications.map((cls, stripIdx) => {
           const clsColor = cssVar(
             cls.status === "diagnosed"

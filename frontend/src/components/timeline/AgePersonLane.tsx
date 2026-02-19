@@ -34,6 +34,7 @@ interface AgePersonLaneProps {
   filterMode?: FilterMode;
   onSelectPerson?: (personId: string) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  showClassifications?: boolean;
   selectedEntityKeys?: Set<string>;
   onToggleEntitySelect?: (key: string) => void;
 }
@@ -61,6 +62,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   filterMode = "dim",
   onSelectPerson,
   onClickMarker,
+  showClassifications = true,
   selectedEntityKeys,
   onToggleEntitySelect,
 }: AgePersonLaneProps) {
@@ -133,7 +135,8 @@ export const AgePersonLane = React.memo(function AgePersonLane({
       )}
 
       {/* Classification strips (vertical) */}
-      {hasBirth &&
+      {showClassifications &&
+        hasBirth &&
         classifications.map((cls, stripIdx) => {
           const clsColor = cssVar(
             cls.status === "diagnosed"

@@ -16,6 +16,7 @@ import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/BranchDecoration";
+import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
@@ -327,6 +328,14 @@ function TreeWorkspaceInner() {
   } = useTreeData(treeId!);
   const mutations = useTreeMutations(treeId!);
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
+
+  const canvasViewTab = useMemo(
+    () => ({
+      label: t("settings.canvas"),
+      content: <CanvasSettingsContent settings={canvasSettings} onUpdate={updateCanvasSettings} />,
+    }),
+    [t, canvasSettings, updateCanvasSettings],
+  );
 
   const layoutSettings = useMemo(
     () => ({ edgeStyle: canvasSettings.edgeStyle, showMarkers: canvasSettings.showMarkers }),
@@ -671,8 +680,7 @@ function TreeWorkspaceInner() {
           treeId={treeId!}
           treeName={treeName}
           activeView="canvas"
-          canvasSettings={canvasSettings}
-          onUpdateSettings={updateCanvasSettings}
+          viewTab={canvasViewTab}
         />
         <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
       </div>
@@ -681,13 +689,7 @@ function TreeWorkspaceInner() {
 
   return (
     <div className="tree-workspace">
-      <TreeToolbar
-        treeId={treeId!}
-        treeName={treeName}
-        activeView="canvas"
-        canvasSettings={canvasSettings}
-        onUpdateSettings={updateCanvasSettings}
-      >
+      <TreeToolbar treeId={treeId!} treeName={treeName} activeView="canvas" viewTab={canvasViewTab}>
         <button
           type="button"
           className="tree-toolbar__btn"

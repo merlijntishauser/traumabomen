@@ -1,11 +1,10 @@
-import { Moon, Settings, Sun } from "lucide-react";
+import { Settings } from "lucide-react";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useEncryption } from "../../contexts/EncryptionContext";
-import type { CanvasSettings, EdgeStyle } from "../../hooks/useCanvasSettings";
 import { useLogout } from "../../hooks/useLogout";
-import { useTheme } from "../../hooks/useTheme";
 import {
   changePassword,
   deleteAccount,
@@ -31,17 +30,18 @@ import {
 } from "../../lib/crypto";
 import "./SettingsPanel.css";
 
+export interface ViewTab {
+  label: string;
+  content: ReactNode;
+}
+
 interface Props {
-  settings: CanvasSettings;
-  onUpdate: (partial: Partial<CanvasSettings>) => void;
+  viewTab: ViewTab;
   className?: string;
 }
 
-const EDGE_STYLES: EdgeStyle[] = ["curved", "elbows", "straight"];
-
-export function SettingsPanel({ settings, onUpdate, className }: Props) {
-  const { t, i18n } = useTranslation();
-  const { theme, toggle: toggleTheme } = useTheme();
+export function SettingsPanel({ viewTab, className }: Props) {
+  const { t } = useTranslation();
   const { setKey, setPassphraseHash } = useEncryption();
   const logout = useLogout();
 
@@ -50,7 +50,7 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, right: 0 });
 
-  const [tab, setTab] = useState<"canvas" | "account">("canvas");
+  const [tab, setTab] = useState<"view" | "account">("view");
 
   // Password change state
   const [pwCurrent, setPwCurrent] = useState("");
@@ -311,10 +311,10 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
             <div className="settings-panel__tabs">
               <button
                 type="button"
-                className={`settings-panel__tab ${tab === "canvas" ? "settings-panel__tab--active" : ""}`}
-                onClick={() => setTab("canvas")}
+                className={`settings-panel__tab ${tab === "view" ? "settings-panel__tab--active" : ""}`}
+                onClick={() => setTab("view")}
               >
-                {t("settings.canvas")}
+                {viewTab.label}
               </button>
               <button
                 type="button"
@@ -326,130 +326,7 @@ export function SettingsPanel({ settings, onUpdate, className }: Props) {
             </div>
 
             <div className="settings-panel__content">
-              {tab === "canvas" && (
-                <>
-                  <div className="settings-panel__group">
-                    <span className="settings-panel__label">{t("canvas.gridSettings")}</span>
-                  </div>
-
-                  <label className="settings-panel__toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.showGrid}
-                      onChange={(e) => onUpdate({ showGrid: e.target.checked })}
-                    />
-                    <span>{t("canvas.showGrid")}</span>
-                  </label>
-
-                  <label className="settings-panel__toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.snapToGrid}
-                      onChange={(e) => onUpdate({ snapToGrid: e.target.checked })}
-                    />
-                    <span>{t("canvas.snapToGrid")}</span>
-                  </label>
-
-                  <div className="settings-panel__divider" />
-
-                  <div className="settings-panel__group">
-                    <span className="settings-panel__label">{t("canvas.edgeStyle")}</span>
-                    <div className="settings-panel__radios">
-                      {EDGE_STYLES.map((style) => (
-                        <label key={style} className="settings-panel__radio">
-                          <input
-                            type="radio"
-                            name="edgeStyle"
-                            value={style}
-                            checked={settings.edgeStyle === style}
-                            onChange={() => onUpdate({ edgeStyle: style })}
-                          />
-                          <span>{t(`canvas.edgeStyle.${style}`)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="settings-panel__divider" />
-
-                  <div className="settings-panel__group">
-                    <span className="settings-panel__label">{t("canvas.other")}</span>
-                  </div>
-
-                  <label className="settings-panel__toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.showMarkers}
-                      onChange={(e) => onUpdate({ showMarkers: e.target.checked })}
-                    />
-                    <span>{t("canvas.showMarkers")}</span>
-                  </label>
-
-                  <label className="settings-panel__toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.showMinimap}
-                      onChange={(e) => onUpdate({ showMinimap: e.target.checked })}
-                    />
-                    <span>{t("canvas.showMinimap")}</span>
-                  </label>
-
-                  <label className="settings-panel__toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.promptRelationship}
-                      onChange={(e) => onUpdate({ promptRelationship: e.target.checked })}
-                    />
-                    <span>{t("canvas.promptRelationship")}</span>
-                  </label>
-
-                  <div className="settings-panel__divider" />
-
-                  <div className="settings-panel__group">
-                    <span className="settings-panel__label">{t("settings.theme")}</span>
-                  </div>
-                  <div className="settings-panel__theme-row">
-                    <Sun size={14} className="settings-panel__theme-icon" />
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={theme === "dark"}
-                      aria-label={t("settings.theme")}
-                      className={`settings-panel__theme-switch ${theme === "dark" ? "settings-panel__theme-switch--dark" : ""}`}
-                      onClick={toggleTheme}
-                    >
-                      <span className="settings-panel__theme-knob" />
-                    </button>
-                    <Moon size={14} className="settings-panel__theme-icon" />
-                  </div>
-
-                  <div className="settings-panel__group">
-                    <span className="settings-panel__label">{t("settings.language")}</span>
-                    <div className="settings-panel__radios">
-                      <label className="settings-panel__radio">
-                        <input
-                          type="radio"
-                          name="language"
-                          value="en"
-                          checked={i18n.language === "en"}
-                          onChange={() => i18n.changeLanguage("en")}
-                        />
-                        <span>English</span>
-                      </label>
-                      <label className="settings-panel__radio">
-                        <input
-                          type="radio"
-                          name="language"
-                          value="nl"
-                          checked={i18n.language === "nl"}
-                          onChange={() => i18n.changeLanguage("nl")}
-                        />
-                        <span>Nederlands</span>
-                      </label>
-                    </div>
-                  </div>
-                </>
-              )}
+              {tab === "view" && viewTab.content}
 
               {tab === "account" && (
                 <>

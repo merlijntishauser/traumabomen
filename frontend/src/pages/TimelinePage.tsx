@@ -13,9 +13,10 @@ import {
 } from "../components/timeline/timelineHelpers";
 import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
+import { TimelineSettingsContent } from "../components/tree/TimelineSettingsContent";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
-import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useTimelineFilters } from "../hooks/useTimelineFilters";
+import { useTimelineSettings } from "../hooks/useTimelineSettings";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { useTreeMutations } from "../hooks/useTreeMutations";
@@ -56,7 +57,18 @@ function derivePersonIdsFromEntities(
 export default function TimelinePage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
-  const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
+  const { settings: timelineSettings, update: updateTimelineSettings } = useTimelineSettings();
+
+  const timelineViewTab = useMemo(
+    () => ({
+      label: t("settings.timeline"),
+      content: (
+        <TimelineSettingsContent settings={timelineSettings} onUpdate={updateTimelineSettings} />
+      ),
+    }),
+    [t, timelineSettings, updateTimelineSettings],
+  );
+
   const {
     treeName,
     persons,
@@ -356,8 +368,7 @@ export default function TimelinePage() {
           treeId={treeId!}
           treeName={treeName}
           activeView="timeline"
-          canvasSettings={canvasSettings}
-          onUpdateSettings={updateCanvasSettings}
+          viewTab={timelineViewTab}
         />
         <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
       </div>
@@ -370,8 +381,7 @@ export default function TimelinePage() {
         treeId={treeId!}
         treeName={treeName}
         activeView="timeline"
-        canvasSettings={canvasSettings}
-        onUpdateSettings={updateCanvasSettings}
+        viewTab={timelineViewTab}
       >
         {/* Layout mode segment control */}
         <div className="tree-toolbar__tabs">
@@ -486,6 +496,9 @@ export default function TimelinePage() {
             onToggleEntitySelect={handleToggleEntitySelect}
             onPatternHover={setHoveredPatternId}
             onPatternClick={handlePatternClick}
+            showPartnerLines={timelineSettings.showPartnerLines}
+            showClassifications={timelineSettings.showClassifications}
+            showGridlines={timelineSettings.showGridlines}
           />
         )}
 
