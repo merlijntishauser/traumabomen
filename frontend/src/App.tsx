@@ -29,8 +29,8 @@ const RELOAD_KEY = "traumabomen_chunk_reload";
 function lazyWithReload(importFn: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() =>
     importFn().catch(() => {
-      if (!sessionStorage.getItem(RELOAD_KEY)) {
-        // privacy-ok: non-sensitive reload flag
+      const alreadyReloaded = sessionStorage.getItem(RELOAD_KEY); // privacy-ok: non-sensitive reload flag
+      if (!alreadyReloaded) {
         sessionStorage.setItem(RELOAD_KEY, "1"); // privacy-ok
         window.location.reload();
         return new Promise<never>(() => {}); // never resolves; page is reloading
