@@ -201,7 +201,7 @@ describe("useTimelineFilters", () => {
     expect(result.current.dims.dimmedPersonIds.size).toBe(0);
   });
 
-  it("toggleTraumaCategory dims events of other categories", () => {
+  it("toggleTraumaCategory excludes that category and keeps others visible", () => {
     const { persons, events, lifeEvents, classifications } = buildMaps();
     const { result } = renderHook(() =>
       useTimelineFilters(persons, events, lifeEvents, classifications),
@@ -211,10 +211,10 @@ describe("useTimelineFilters", () => {
       result.current.actions.toggleTraumaCategory(TraumaCategory.Loss);
     });
 
-    // Only Loss is visible; Abuse and War should be dimmed
-    expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false); // Loss
-    expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true); // Abuse
-    expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true); // War
+    // Loss is unchecked; Abuse and War stay visible
+    expect(result.current.dims.dimmedEventIds.has("e1")).toBe(true); // Loss dimmed
+    expect(result.current.dims.dimmedEventIds.has("e2")).toBe(false); // Abuse visible
+    expect(result.current.dims.dimmedEventIds.has("e3")).toBe(false); // War visible
     expect(result.current.actions.activeFilterCount).toBe(1);
   });
 
@@ -235,7 +235,7 @@ describe("useTimelineFilters", () => {
     expect(result.current.dims.dimmedEventIds.size).toBe(0);
   });
 
-  it("toggleLifeEventCategory dims life events of other categories", () => {
+  it("toggleLifeEventCategory excludes that category and keeps others visible", () => {
     const { persons, events, lifeEvents, classifications } = buildMaps();
     const { result } = renderHook(() =>
       useTimelineFilters(persons, events, lifeEvents, classifications),
@@ -245,12 +245,13 @@ describe("useTimelineFilters", () => {
       result.current.actions.toggleLifeEventCategory(LifeEventCategory.Career);
     });
 
-    expect(result.current.dims.dimmedLifeEventIds.has("le1")).toBe(false); // Career
-    expect(result.current.dims.dimmedLifeEventIds.has("le2")).toBe(true); // Education
+    // Career unchecked; Education stays visible
+    expect(result.current.dims.dimmedLifeEventIds.has("le1")).toBe(true); // Career dimmed
+    expect(result.current.dims.dimmedLifeEventIds.has("le2")).toBe(false); // Education visible
     expect(result.current.actions.activeFilterCount).toBe(1);
   });
 
-  it("toggleClassificationCategory dims classifications of other categories", () => {
+  it("toggleClassificationCategory excludes that category and keeps others visible", () => {
     const { persons, events, lifeEvents, classifications } = buildMaps();
     const { result } = renderHook(() =>
       useTimelineFilters(persons, events, lifeEvents, classifications),
@@ -260,11 +261,12 @@ describe("useTimelineFilters", () => {
       result.current.actions.toggleClassificationCategory("anxiety");
     });
 
-    expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(false); // anxiety
-    expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(true); // depressive
+    // anxiety unchecked; depressive stays visible
+    expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(true); // anxiety dimmed
+    expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(false); // depressive visible
   });
 
-  it("toggleClassificationStatus dims classifications with other status", () => {
+  it("toggleClassificationStatus excludes that status and keeps others visible", () => {
     const { persons, events, lifeEvents, classifications } = buildMaps();
     const { result } = renderHook(() =>
       useTimelineFilters(persons, events, lifeEvents, classifications),
@@ -274,8 +276,9 @@ describe("useTimelineFilters", () => {
       result.current.actions.toggleClassificationStatus("diagnosed");
     });
 
-    expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(false); // diagnosed
-    expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(true); // suspected
+    // diagnosed unchecked; suspected stays visible
+    expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(true); // diagnosed dimmed
+    expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(false); // suspected visible
   });
 
   it("setTimeRange dims events outside range", () => {
@@ -351,16 +354,16 @@ describe("useTimelineFilters", () => {
     act(() => {
       // Hide p2
       result.current.actions.togglePerson("p2");
-      // Only show Loss category
+      // Uncheck Loss category (Abuse and War remain visible)
       result.current.actions.toggleTraumaCategory(TraumaCategory.Loss);
     });
 
-    // e1: Loss, p1 only -> person visible, category matches -> NOT dimmed
-    expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
-    // e2: Abuse, p2 only -> person dimmed AND category doesn't match -> dimmed
+    // e1: Loss, p1 only -> person visible, but category excluded -> dimmed
+    expect(result.current.dims.dimmedEventIds.has("e1")).toBe(true);
+    // e2: Abuse, p2 only -> person dimmed -> dimmed
     expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true);
-    // e3: War, p1+p2 -> p1 visible but category doesn't match -> dimmed
-    expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true);
+    // e3: War, p1+p2 -> p1 visible, category visible -> NOT dimmed
+    expect(result.current.dims.dimmedEventIds.has("e3")).toBe(false);
 
     expect(result.current.actions.activeFilterCount).toBe(2);
   });
@@ -508,14 +511,14 @@ describe("useTimelineFilters", () => {
       act(() => {
         // Pattern filter: only e1 and e2 linked
         result.current.actions.togglePatternFilter("pat1");
-        // Category filter: only Loss
+        // Category filter: uncheck Loss (Abuse and War remain visible)
         result.current.actions.toggleTraumaCategory(TraumaCategory.Loss);
       });
 
-      // e1: Loss, linked -> not dimmed by pattern, not dimmed by category
-      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
-      // e2: Abuse, linked -> not dimmed by pattern, but dimmed by category
-      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true);
+      // e1: Loss, linked -> not dimmed by pattern, but dimmed by category
+      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(true);
+      // e2: Abuse, linked -> not dimmed by pattern, category visible -> NOT dimmed
+      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(false);
       // e3: War, NOT linked -> dimmed by pattern
       expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true);
     });

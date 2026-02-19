@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import type { ClassificationStatus, LifeEventCategory, TraumaCategory } from "../types/domain";
+import { type ClassificationStatus, LifeEventCategory, TraumaCategory } from "../types/domain";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -7,6 +7,29 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
 } from "./useTreeData";
+
+const ALL_TRAUMA_CATS = new Set(Object.values(TraumaCategory));
+const ALL_LIFE_EVENT_CATS = new Set(Object.values(LifeEventCategory));
+const ALL_CLASSIFICATION_STATUSES = new Set<ClassificationStatus>(["suspected", "diagnosed"]);
+
+/** Toggle an item in a filter set. When null (all visible), unchecks the item. */
+function toggleInSet<T>(prev: Set<T> | null, item: T, allValues: Set<T>): Set<T> | null {
+  if (prev === null) {
+    // All currently visible; uncheck this one item
+    const next = new Set(allValues);
+    next.delete(item);
+    return next;
+  }
+  const next = new Set(prev);
+  if (next.has(item)) {
+    next.delete(item);
+  } else {
+    next.add(item);
+  }
+  // If all values restored, reset to null (unfiltered)
+  if (next.size >= allValues.size) return null;
+  return next.size === 0 ? new Set<T>() : next;
+}
 
 export type FilterMode = "dim" | "hide";
 
@@ -359,79 +382,78 @@ export function useTimelineFilters(
   );
 
   const toggleTraumaCategory = useCallback((cat: TraumaCategory) => {
-    setTraumaCategories((prev) => {
-      if (prev === null) {
-        // First toggle: show only this category
-        return new Set([cat]);
-      }
-      const next = new Set(prev);
-      if (next.has(cat)) {
-        next.delete(cat);
-      } else {
-        next.add(cat);
-      }
-      return next.size === 0 ? null : next;
-    });
+    setTraumaCategories((prev) => toggleInSet(prev, cat, ALL_TRAUMA_CATS));
   }, []);
 
   const toggleLifeEventCategory = useCallback((cat: LifeEventCategory) => {
-    setLifeEventCategories((prev) => {
-      if (prev === null) {
-        return new Set([cat]);
-      }
-      const next = new Set(prev);
-      if (next.has(cat)) {
-        next.delete(cat);
-      } else {
-        next.add(cat);
-      }
-      return next.size === 0 ? null : next;
-    });
+    setLifeEventCategories((prev) => toggleInSet(prev, cat, ALL_LIFE_EVENT_CATS));
   }, []);
 
-  const toggleClassificationCategory = useCallback((cat: string) => {
-    setClassificationCategories((prev) => {
-      if (prev === null) {
-        return new Set([cat]);
-      }
-      const next = new Set(prev);
-      if (next.has(cat)) {
-        next.delete(cat);
-      } else {
-        next.add(cat);
-      }
-      return next.size === 0 ? null : next;
-    });
-  }, []);
+  // For classifications/subcategories, the "all" set is dynamic (only used categories).
+  // We use a large placeholder set so unchecking works, and rely on the filter panel
+  // only showing used categories. When all are re-checked, size >= allValues resets to null.
+  const toggleClassificationCategory = useCallback(
+    (cat: string) => {
+      setClassificationCategories((prev) => {
+        if (prev === null) {
+          // All visible; uncheck this one
+          const allUsed = new Set<string>();
+          for (const [, cls] of classifications) allUsed.add(cls.dsm_category);
+          allUsed.delete(cat);
+          return allUsed.size === 0 ? new Set<string>() : allUsed;
+        }
+        const next = new Set(prev);
+        if (next.has(cat)) {
+          next.delete(cat);
+        } else {
+          next.add(cat);
+        }
+        // Check if all used categories are now selected
+        let allRestored = true;
+        for (const [, cls] of classifications) {
+          if (!next.has(cls.dsm_category)) {
+            allRestored = false;
+            break;
+          }
+        }
+        return allRestored ? null : next;
+      });
+    },
+    [classifications],
+  );
 
-  const toggleClassificationSubcategory = useCallback((subcat: string) => {
-    setClassificationSubcategories((prev) => {
-      if (prev === null) {
-        return new Set([subcat]);
-      }
-      const next = new Set(prev);
-      if (next.has(subcat)) {
-        next.delete(subcat);
-      } else {
-        next.add(subcat);
-      }
-      return next.size === 0 ? null : next;
-    });
-  }, []);
+  const toggleClassificationSubcategory = useCallback(
+    (subcat: string) => {
+      setClassificationSubcategories((prev) => {
+        if (prev === null) {
+          const allUsed = new Set<string>();
+          for (const [, cls] of classifications) {
+            if (cls.dsm_subcategory) allUsed.add(cls.dsm_subcategory);
+          }
+          allUsed.delete(subcat);
+          return allUsed.size === 0 ? new Set<string>() : allUsed;
+        }
+        const next = new Set(prev);
+        if (next.has(subcat)) {
+          next.delete(subcat);
+        } else {
+          next.add(subcat);
+        }
+        let allRestored = true;
+        for (const [, cls] of classifications) {
+          if (cls.dsm_subcategory && !next.has(cls.dsm_subcategory)) {
+            allRestored = false;
+            break;
+          }
+        }
+        return allRestored ? null : next;
+      });
+    },
+    [classifications],
+  );
 
   const toggleClassificationStatusFn = useCallback((status: ClassificationStatus) => {
-    setClassificationStatus((prev) => {
-      if (prev === null) {
-        return new Set([status]);
-      }
-      const next = new Set(prev);
-      if (next.has(status)) {
-        next.delete(status);
-      } else {
-        next.add(status);
-      }
-      return next.size === 0 ? null : next;
-    });
+    setClassificationStatus((prev) => toggleInSet(prev, status, ALL_CLASSIFICATION_STATUSES));
   }, []);
 
   const setTimeRangeFn = useCallback((range: { min: number; max: number } | null) => {
