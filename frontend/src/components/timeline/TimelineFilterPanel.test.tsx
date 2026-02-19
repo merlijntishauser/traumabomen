@@ -80,6 +80,11 @@ const persons = new Map<string, DecryptedPerson>([
 
 const timeDomain = { minYear: 1950, maxYear: 2025 };
 
+const sampleUsedClassifications = new Map<string, Set<string>>([
+  ["depressive", new Set(["major_depression"])],
+  ["anxiety", new Set()],
+]);
+
 describe("TimelineFilterPanel", () => {
   it("renders header with filters title", () => {
     const actions = makeActions();
@@ -301,6 +306,7 @@ describe("TimelineFilterPanel", () => {
         filters={defaultFilters}
         actions={actions}
         timeDomain={timeDomain}
+        usedClassifications={sampleUsedClassifications}
         onClose={vi.fn()}
       />,
     );
@@ -317,6 +323,7 @@ describe("TimelineFilterPanel", () => {
         filters={defaultFilters}
         actions={actions}
         timeDomain={timeDomain}
+        usedClassifications={sampleUsedClassifications}
         onClose={vi.fn()}
       />,
     );
@@ -336,6 +343,7 @@ describe("TimelineFilterPanel", () => {
         filters={defaultFilters}
         actions={actions}
         timeDomain={timeDomain}
+        usedClassifications={sampleUsedClassifications}
         onClose={vi.fn()}
       />,
     );
@@ -343,6 +351,85 @@ describe("TimelineFilterPanel", () => {
     const checkbox = screen.getByText("dsm.depressive").parentElement!.querySelector("input")!;
     fireEvent.click(checkbox);
     expect(actions.toggleClassificationCategory).toHaveBeenCalledWith("depressive");
+  });
+
+  it("only shows used DSM categories", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        usedClassifications={sampleUsedClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText(/timeline.filterClassifications/));
+    expect(screen.getByText("dsm.depressive")).toBeTruthy();
+    expect(screen.getByText("dsm.anxiety")).toBeTruthy();
+    expect(screen.queryByText("dsm.personality")).toBeNull();
+  });
+
+  it("shows subcategories for used classifications", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        usedClassifications={sampleUsedClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText(/timeline.filterClassifications/));
+    expect(screen.getByText("dsm.sub.major_depression")).toBeTruthy();
+  });
+
+  it("hides classification section when no classifications used", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        usedClassifications={new Map()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/timeline.filterClassifications/)).toBeNull();
+  });
+
+  it("hides trauma section when no trauma events used", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        usedTraumaCategories={new Set()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/timeline.filterTrauma/)).toBeNull();
+  });
+
+  it("hides life events section when no life events used", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        usedLifeEventCategories={new Set()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/timeline.filterLifeEvents/)).toBeNull();
   });
 
   it("shows time range inputs after expanding section", () => {

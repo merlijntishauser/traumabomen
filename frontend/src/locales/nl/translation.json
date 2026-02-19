@@ -350,6 +350,7 @@
   "timeline.showGridlines": "Rasterlijnen tonen",
   "timeline.partnerLabel": "{{status}} {{name}}",
   "timeline.summaryPresent": "heden",
+  "timeline.timeRangeHint": "Filtert gebeurtenismarkeringen op datum. Levensbalken en classificatiestroken worden niet beinvloed.",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",

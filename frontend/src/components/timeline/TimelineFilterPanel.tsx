@@ -8,9 +8,8 @@ import type { FilterGroup, SmartFilterGroups } from "../../lib/smartFilterGroups
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import "./TimelineFilterPanel.css";
 
-const TRAUMA_COUNT = Object.values(TraumaCategory).length;
-const LIFE_EVENT_COUNT = Object.values(LifeEventCategory).length;
-const DSM_KEYS = DSM_CATEGORIES.map((c) => c.key);
+const ALL_TRAUMA = Object.values(TraumaCategory);
+const ALL_LIFE_EVENTS = Object.values(LifeEventCategory);
 
 function isLayerEmpty(set: Set<unknown> | null): boolean {
   return set !== null && set.size === 0;
@@ -97,6 +96,9 @@ interface TimelineFilterPanelProps {
   timeDomain: { minYear: number; maxYear: number };
   patterns?: Map<string, DecryptedPattern>;
   groups?: SmartFilterGroups;
+  usedTraumaCategories?: Set<string>;
+  usedLifeEventCategories?: Set<string>;
+  usedClassifications?: Map<string, Set<string>>;
   onClose: () => void;
 }
 
@@ -107,6 +109,9 @@ export function TimelineFilterPanel({
   timeDomain,
   patterns,
   groups,
+  usedTraumaCategories,
+  usedLifeEventCategories,
+  usedClassifications,
   onClose,
 }: TimelineFilterPanelProps) {
   const { t } = useTranslation();
@@ -179,10 +184,21 @@ export function TimelineFilterPanel({
   const isQuickLifeEventsActive = isQuickPresetActive(filters, "lifeEvents");
   const isQuickClassificationsActive = isQuickPresetActive(filters, "classifications");
 
+  // Filter to used categories only
+  const traumaCats = usedTraumaCategories
+    ? ALL_TRAUMA.filter((c) => usedTraumaCategories.has(c))
+    : ALL_TRAUMA;
+  const lifeEventCats = usedLifeEventCategories
+    ? ALL_LIFE_EVENTS.filter((c) => usedLifeEventCategories.has(c))
+    : ALL_LIFE_EVENTS;
+  const classificationCats = usedClassifications
+    ? DSM_CATEGORIES.filter((c) => usedClassifications.has(c.key))
+    : [];
+
   // Section count badges
   const peopleBadge = computeBadge(filters.visiblePersonIds, persons.size, t);
-  const traumaBadge = computeBadge(filters.traumaCategories, TRAUMA_COUNT, t);
-  const lifeEventBadge = computeBadge(filters.lifeEventCategories, LIFE_EVENT_COUNT, t);
+  const traumaBadge = computeBadge(filters.traumaCategories, traumaCats.length, t);
+  const lifeEventBadge = computeBadge(filters.lifeEventCategories, lifeEventCats.length, t);
   const classificationsBadgeActive =
     filters.classificationCategories !== null || filters.classificationStatus !== null;
   const patternsBadge = patterns ? computeBadge(filters.visiblePatterns, patterns.size, t) : null;
@@ -314,123 +330,140 @@ export function TimelineFilterPanel({
         </section>
 
         {/* Trauma categories section */}
-        <section className="detail-panel__section">
-          <button
-            type="button"
-            className="detail-panel__section-toggle"
-            onClick={() => setTraumaOpen(!traumaOpen)}
-          >
-            {traumaOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTrauma")}
-            {traumaBadge && <span className="tl-filter-panel__badge">{traumaBadge}</span>}
-          </button>
-          {traumaOpen && (
-            <div className="detail-panel__section-body">
-              {Object.values(TraumaCategory).map((cat) => (
-                <label key={cat} className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isTraumaCategoryActive(cat)}
-                    onChange={() => actions.toggleTraumaCategory(cat)}
-                  />
-                  <span
-                    className="tl-filter-panel__color-dot"
-                    data-category={cat}
-                    style={{ background: `var(--color-trauma-${cat})` }}
-                  />
-                  <span>{t(`trauma.category.${cat}`)}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </section>
+        {traumaCats.length > 0 && (
+          <section className="detail-panel__section">
+            <button
+              type="button"
+              className="detail-panel__section-toggle"
+              onClick={() => setTraumaOpen(!traumaOpen)}
+            >
+              {traumaOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTrauma")}
+              {traumaBadge && <span className="tl-filter-panel__badge">{traumaBadge}</span>}
+            </button>
+            {traumaOpen && (
+              <div className="detail-panel__section-body">
+                {traumaCats.map((cat) => (
+                  <label key={cat} className="tl-filter-panel__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={isTraumaCategoryActive(cat)}
+                      onChange={() => actions.toggleTraumaCategory(cat)}
+                    />
+                    <span
+                      className="tl-filter-panel__color-dot"
+                      data-category={cat}
+                      style={{ background: `var(--color-trauma-${cat})` }}
+                    />
+                    <span>{t(`trauma.category.${cat}`)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Life event categories section */}
-        <section className="detail-panel__section">
-          <button
-            type="button"
-            className="detail-panel__section-toggle"
-            onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
-          >
-            {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterLifeEvents")}
-            {lifeEventBadge && <span className="tl-filter-panel__badge">{lifeEventBadge}</span>}
-          </button>
-          {lifeEventsOpen && (
-            <div className="detail-panel__section-body">
-              {Object.values(LifeEventCategory).map((cat) => (
-                <label key={cat} className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isLifeEventCategoryActive(cat)}
-                    onChange={() => actions.toggleLifeEventCategory(cat)}
-                  />
-                  <span
-                    className="tl-filter-panel__color-dot"
-                    data-category={cat}
-                    style={{ background: `var(--color-life-${cat})` }}
-                  />
-                  <span>{t(`lifeEvent.category.${cat}`)}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </section>
+        {lifeEventCats.length > 0 && (
+          <section className="detail-panel__section">
+            <button
+              type="button"
+              className="detail-panel__section-toggle"
+              onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
+            >
+              {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterLifeEvents")}
+              {lifeEventBadge && <span className="tl-filter-panel__badge">{lifeEventBadge}</span>}
+            </button>
+            {lifeEventsOpen && (
+              <div className="detail-panel__section-body">
+                {lifeEventCats.map((cat) => (
+                  <label key={cat} className="tl-filter-panel__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={isLifeEventCategoryActive(cat)}
+                      onChange={() => actions.toggleLifeEventCategory(cat)}
+                    />
+                    <span
+                      className="tl-filter-panel__color-dot"
+                      data-category={cat}
+                      style={{ background: `var(--color-life-${cat})` }}
+                    />
+                    <span>{t(`lifeEvent.category.${cat}`)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Classifications section */}
-        <section className="detail-panel__section">
-          <button
-            type="button"
-            className="detail-panel__section-toggle"
-            onClick={() => setClassificationsOpen(!classificationsOpen)}
-          >
-            {classificationsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterClassifications")}
-            {classificationsBadgeActive && (
-              <span className="tl-filter-panel__badge tl-filter-panel__badge--dot" />
-            )}
-          </button>
-          {classificationsOpen && (
-            <div className="detail-panel__section-body">
-              <div className="tl-filter-panel__sub-group">
-                <span className="tl-filter-panel__sub-label">
-                  {t("timeline.filterClassificationStatus")}
-                </span>
-                <label className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isClassificationStatusActive("suspected")}
-                    onChange={() => actions.toggleClassificationStatus("suspected")}
-                  />
-                  <span
-                    className="tl-filter-panel__color-dot"
-                    style={{ background: "var(--color-classification-suspected)" }}
-                  />
-                  <span>{t("classification.status.suspected")}</span>
-                </label>
-                <label className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isClassificationStatusActive("diagnosed")}
-                    onChange={() => actions.toggleClassificationStatus("diagnosed")}
-                  />
-                  <span
-                    className="tl-filter-panel__color-dot"
-                    style={{ background: "var(--color-classification-diagnosed)" }}
-                  />
-                  <span>{t("classification.status.diagnosed")}</span>
-                </label>
+        {classificationCats.length > 0 && (
+          <section className="detail-panel__section">
+            <button
+              type="button"
+              className="detail-panel__section-toggle"
+              onClick={() => setClassificationsOpen(!classificationsOpen)}
+            >
+              {classificationsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterClassifications")}
+              {classificationsBadgeActive && (
+                <span className="tl-filter-panel__badge tl-filter-panel__badge--dot" />
+              )}
+            </button>
+            {classificationsOpen && (
+              <div className="detail-panel__section-body">
+                <div className="tl-filter-panel__sub-group">
+                  <span className="tl-filter-panel__sub-label">
+                    {t("timeline.filterClassificationStatus")}
+                  </span>
+                  <label className="tl-filter-panel__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={isClassificationStatusActive("suspected")}
+                      onChange={() => actions.toggleClassificationStatus("suspected")}
+                    />
+                    <span
+                      className="tl-filter-panel__color-dot"
+                      style={{ background: "var(--color-classification-suspected)" }}
+                    />
+                    <span>{t("classification.status.suspected")}</span>
+                  </label>
+                  <label className="tl-filter-panel__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={isClassificationStatusActive("diagnosed")}
+                      onChange={() => actions.toggleClassificationStatus("diagnosed")}
+                    />
+                    <span
+                      className="tl-filter-panel__color-dot"
+                      style={{ background: "var(--color-classification-diagnosed)" }}
+                    />
+                    <span>{t("classification.status.diagnosed")}</span>
+                  </label>
+                </div>
+                {classificationCats.map((dsmCat) => {
+                  const usedSubs = usedClassifications?.get(dsmCat.key);
+                  const subs = dsmCat.subcategories?.filter((s) => usedSubs?.has(s.key)) ?? [];
+                  return (
+                    <div key={dsmCat.key}>
+                      <label className="tl-filter-panel__checkbox">
+                        <input
+                          type="checkbox"
+                          checked={isClassificationCategoryActive(dsmCat.key)}
+                          onChange={() => actions.toggleClassificationCategory(dsmCat.key)}
+                        />
+                        <span>{t(`dsm.${dsmCat.key}`)}</span>
+                      </label>
+                      {subs.map((sub) => (
+                        <span key={sub.key} className="tl-filter-panel__sub-item">
+                          {t(`dsm.sub.${sub.key}`)}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
-              {DSM_KEYS.map((catKey) => (
-                <label key={catKey} className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isClassificationCategoryActive(catKey)}
-                    onChange={() => actions.toggleClassificationCategory(catKey)}
-                  />
-                  <span>{t(`dsm.${catKey}`)}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        )}
 
         {/* Patterns section */}
         {patterns && patterns.size > 0 && (
@@ -480,6 +513,7 @@ export function TimelineFilterPanel({
           </button>
           {timeRangeOpen && (
             <div className="detail-panel__section-body">
+              <p className="tl-filter-panel__hint">{t("timeline.timeRangeHint")}</p>
               <div className="tl-filter-panel__time-range">
                 <label className="tl-filter-panel__time-field">
                   <span>{t("timeline.minYear")}</span>

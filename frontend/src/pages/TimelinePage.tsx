@@ -124,6 +124,27 @@ export default function TimelinePage() {
     [timelinePersons, relationships, generations],
   );
 
+  const usedTraumaCategories = useMemo(() => {
+    const cats = new Set<string>();
+    for (const e of events.values()) cats.add(e.category);
+    return cats;
+  }, [events]);
+
+  const usedLifeEventCategories = useMemo(() => {
+    const cats = new Set<string>();
+    for (const le of lifeEvents.values()) cats.add(le.category);
+    return cats;
+  }, [lifeEvents]);
+
+  const usedClassifications = useMemo(() => {
+    const cats = new Map<string, Set<string>>();
+    for (const c of classifications.values()) {
+      if (!cats.has(c.dsm_category)) cats.set(c.dsm_category, new Set());
+      if (c.dsm_subcategory) cats.get(c.dsm_category)!.add(c.dsm_subcategory);
+    }
+    return cats;
+  }, [classifications]);
+
   // Visible pattern IDs (show all when showPatterns is on, unless filter overrides)
   const visiblePatternIds = useMemo(() => {
     if (!showPatterns) return new Set<string>();
@@ -546,6 +567,9 @@ export default function TimelinePage() {
             timeDomain={timeDomain}
             patterns={patterns}
             groups={smartGroups}
+            usedTraumaCategories={usedTraumaCategories}
+            usedLifeEventCategories={usedLifeEventCategories}
+            usedClassifications={usedClassifications}
             onClose={() => setFilterPanelOpen(false)}
           />
         )}

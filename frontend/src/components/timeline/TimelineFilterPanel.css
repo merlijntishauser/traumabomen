@@ -133,6 +133,13 @@
   flex-shrink: 0;
 }
 
+.tl-filter-panel__sub-item {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 1px 0 1px 24px;
+}
+
 .tl-filter-panel__sub-group {
   margin-bottom: 10px;
   padding-bottom: 8px;
@@ -147,6 +154,12 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+}
+
+.tl-filter-panel__hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0 0 8px;
 }
 
 .tl-filter-panel__time-range {
