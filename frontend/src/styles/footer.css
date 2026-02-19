@@ -111,11 +111,11 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: 20px;
-  font-size: 9px;
+  height: 24px;
+  font-size: 10px;
   letter-spacing: 0.03em;
   color: var(--color-text-muted);
-  opacity: 0.6;
+  opacity: 0.75;
   border-top: 1px solid var(--color-border-secondary);
 }
 
