@@ -154,7 +154,7 @@ describe("TimelineFilterPanel", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("renders person checkboxes in people section (open by default)", () => {
+  it("hides individual person checkboxes by default", () => {
     const actions = makeActions();
     render(
       <TimelineFilterPanel
@@ -165,6 +165,23 @@ describe("TimelineFilterPanel", () => {
         onClose={vi.fn()}
       />,
     );
+    expect(screen.queryByText("Alice")).toBeNull();
+    expect(screen.queryByText("Bob")).toBeNull();
+    expect(screen.getByText(/timeline\.individualPersons/)).toBeTruthy();
+  });
+
+  it("renders person checkboxes after expanding individual persons", () => {
+    const actions = makeActions();
+    render(
+      <TimelineFilterPanel
+        persons={persons}
+        filters={defaultFilters}
+        actions={actions}
+        timeDomain={timeDomain}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText(/timeline\.individualPersons/));
     expect(screen.getByText("Alice")).toBeTruthy();
     expect(screen.getByText("Bob")).toBeTruthy();
   });
@@ -180,8 +197,8 @@ describe("TimelineFilterPanel", () => {
         onClose={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText(/timeline\.individualPersons/));
     const checkboxes = screen.getAllByRole("checkbox");
-    // First two checkboxes are person checkboxes
     fireEvent.click(checkboxes[0]);
     expect(actions.togglePerson).toHaveBeenCalledWith("p1");
   });
@@ -197,6 +214,7 @@ describe("TimelineFilterPanel", () => {
         onClose={vi.fn()}
       />,
     );
+    fireEvent.click(screen.getByText(/timeline\.individualPersons/));
     // All visible -> shows "Deselect all"
     fireEvent.click(screen.getByText("timeline.deselectAll"));
     expect(actions.toggleAllPersons).toHaveBeenCalledWith(false);

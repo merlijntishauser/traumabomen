@@ -89,6 +89,20 @@
   text-decoration: underline;
 }
 
+.tl-filter-panel__sub-toggle {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.tl-filter-panel__sub-toggle:hover {
+  color: var(--color-text-primary);
+}
+
 .tl-filter-panel__checkbox {
   display: flex;
   align-items: center;

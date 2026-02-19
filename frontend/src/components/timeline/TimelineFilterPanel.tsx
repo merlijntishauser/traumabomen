@@ -112,6 +112,7 @@ export function TimelineFilterPanel({
   const { t } = useTranslation();
 
   const [peopleOpen, setPeopleOpen] = useState(true);
+  const [peopleListOpen, setPeopleListOpen] = useState(false);
   const [traumaOpen, setTraumaOpen] = useState(false);
   const [lifeEventsOpen, setLifeEventsOpen] = useState(false);
   const [classificationsOpen, setClassificationsOpen] = useState(false);
@@ -277,25 +278,36 @@ export function TimelineFilterPanel({
                     />
                   </div>
                 )}
-              <div className="tl-filter-panel__toggle-all">
-                <button
-                  type="button"
-                  className="tl-filter-panel__toggle-btn"
-                  onClick={() => actions.toggleAllPersons(!allVisible)}
-                >
-                  {allVisible ? t("timeline.deselectAll") : t("timeline.selectAll")}
-                </button>
-              </div>
-              {Array.from(persons.entries()).map(([id, person]) => (
-                <label key={id} className="tl-filter-panel__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isPersonVisible(id)}
-                    onChange={() => actions.togglePerson(id)}
-                  />
-                  <span>{person.name}</span>
-                </label>
-              ))}
+              <button
+                type="button"
+                className="tl-filter-panel__sub-toggle"
+                onClick={() => setPeopleListOpen(!peopleListOpen)}
+              >
+                {peopleListOpen ? "\u25BC" : "\u25B6"} {t("timeline.individualPersons")}
+              </button>
+              {peopleListOpen && (
+                <>
+                  <div className="tl-filter-panel__toggle-all">
+                    <button
+                      type="button"
+                      className="tl-filter-panel__toggle-btn"
+                      onClick={() => actions.toggleAllPersons(!allVisible)}
+                    >
+                      {allVisible ? t("timeline.deselectAll") : t("timeline.selectAll")}
+                    </button>
+                  </div>
+                  {Array.from(persons.entries()).map(([id, person]) => (
+                    <label key={id} className="tl-filter-panel__checkbox">
+                      <input
+                        type="checkbox"
+                        checked={isPersonVisible(id)}
+                        onChange={() => actions.togglePerson(id)}
+                      />
+                      <span>{person.name}</span>
+                    </label>
+                  ))}
+                </>
+              )}
             </div>
           )}
         </section>
