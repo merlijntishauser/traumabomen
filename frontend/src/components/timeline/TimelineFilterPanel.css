@@ -52,7 +52,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding-bottom: 12px;
+  padding: 0 12px 12px;
   border-bottom: 1px solid var(--color-border-primary);
   margin-bottom: 4px;
 }
@@ -60,7 +60,6 @@
 .tl-filter-panel__quick-label {
   font-size: 11px;
   color: var(--color-text-muted);
-  padding-left: 12px;
   margin-right: 2px;
 }
 
