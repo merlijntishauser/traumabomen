@@ -102,6 +102,122 @@ interface TimelineFilterPanelProps {
   onClose: () => void;
 }
 
+function isFilterActive<T>(value: T, set: Set<T> | null): boolean {
+  return set === null || set.has(value);
+}
+
+function parseYearInput(
+  value: string,
+  setRange: (range: { min: number; max: number } | null) => void,
+  buildRange: (num: number) => { min: number; max: number },
+): void {
+  const num = Number.parseInt(value, 10);
+  if (Number.isNaN(num)) {
+    setRange(null);
+    return;
+  }
+  setRange(buildRange(num));
+}
+
+function computeUsedCategories(
+  usedTrauma?: Set<string>,
+  usedLife?: Set<string>,
+  usedCls?: Map<string, Set<string>>,
+) {
+  const traumaCats = usedTrauma ? ALL_TRAUMA.filter((c) => usedTrauma.has(c)) : ALL_TRAUMA;
+  const lifeEventCats = usedLife ? ALL_LIFE_EVENTS.filter((c) => usedLife.has(c)) : ALL_LIFE_EVENTS;
+  const classificationCats = usedCls ? DSM_CATEGORIES.filter((c) => usedCls.has(c.key)) : [];
+  return { traumaCats, lifeEventCats, classificationCats };
+}
+
+function computeModeToggle(filterMode: string, t: (key: string) => string) {
+  const isHide = filterMode === "hide";
+  return {
+    modeToggleClass: isHide
+      ? "tl-filter-panel__mode-toggle tl-filter-panel__mode-toggle--active"
+      : "tl-filter-panel__mode-toggle",
+    modeToggleLabel: t(isHide ? "timeline.filterDim" : "timeline.filterHide"),
+    nextMode: (isHide ? "dim" : "hide") as "dim" | "hide",
+  };
+}
+
+function ClassificationsBody({
+  classificationCats,
+  usedClassifications,
+  filters,
+  actions,
+  t,
+}: {
+  classificationCats: typeof DSM_CATEGORIES;
+  usedClassifications?: Map<string, Set<string>>;
+  filters: TimelineFilterState;
+  actions: TimelineFilterActions;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="detail-panel__section-body">
+      <div className="tl-filter-panel__sub-group">
+        <span className="tl-filter-panel__sub-label">
+          {t("timeline.filterClassificationStatus")}
+        </span>
+        <label className="tl-filter-panel__checkbox">
+          <input
+            type="checkbox"
+            checked={isFilterActive("suspected" as const, filters.classificationStatus)}
+            onChange={() => actions.toggleClassificationStatus("suspected")}
+          />
+          <span
+            className="tl-filter-panel__color-dot"
+            style={{ background: "var(--color-classification-suspected)" }}
+          />
+          <span>{t("classification.status.suspected")}</span>
+        </label>
+        <label className="tl-filter-panel__checkbox">
+          <input
+            type="checkbox"
+            checked={isFilterActive("diagnosed" as const, filters.classificationStatus)}
+            onChange={() => actions.toggleClassificationStatus("diagnosed")}
+          />
+          <span
+            className="tl-filter-panel__color-dot"
+            style={{ background: "var(--color-classification-diagnosed)" }}
+          />
+          <span>{t("classification.status.diagnosed")}</span>
+        </label>
+      </div>
+      {classificationCats.map((dsmCat) => {
+        const usedSubs = usedClassifications?.get(dsmCat.key);
+        const subs = dsmCat.subcategories?.filter((s) => usedSubs?.has(s.key)) ?? [];
+        return (
+          <div key={dsmCat.key}>
+            <label className="tl-filter-panel__checkbox">
+              <input
+                type="checkbox"
+                checked={isFilterActive(dsmCat.key, filters.classificationCategories)}
+                onChange={() => actions.toggleClassificationCategory(dsmCat.key)}
+              />
+              <span>{t(`dsm.${dsmCat.key}`)}</span>
+            </label>
+            {subs.map((sub) => (
+              <label
+                key={sub.key}
+                className="tl-filter-panel__checkbox tl-filter-panel__checkbox--sub"
+              >
+                <input
+                  type="checkbox"
+                  checked={isFilterActive(sub.key, filters.classificationSubcategories)}
+                  onChange={() => actions.toggleClassificationSubcategory(sub.key)}
+                />
+                <span>{t(`dsm.sub.${sub.key}`)}</span>
+              </label>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function TimelineFilterPanel({
   persons,
   filters,
@@ -128,56 +244,8 @@ export function TimelineFilterPanel({
   const allVisible =
     filters.visiblePersonIds === null || filters.visiblePersonIds.size === allPersonIds.length;
 
-  function isPersonVisible(personId: string): boolean {
-    return filters.visiblePersonIds === null || filters.visiblePersonIds.has(personId);
-  }
-
-  function isTraumaCategoryActive(cat: TraumaCategory): boolean {
-    return filters.traumaCategories === null || filters.traumaCategories.has(cat);
-  }
-
-  function isLifeEventCategoryActive(cat: LifeEventCategory): boolean {
-    return filters.lifeEventCategories === null || filters.lifeEventCategories.has(cat);
-  }
-
-  function isClassificationCategoryActive(cat: string): boolean {
-    return filters.classificationCategories === null || filters.classificationCategories.has(cat);
-  }
-
-  function isClassificationSubcategoryActive(subcat: string): boolean {
-    return (
-      filters.classificationSubcategories === null ||
-      filters.classificationSubcategories.has(subcat)
-    );
-  }
-
-  function isClassificationStatusActive(status: string): boolean {
-    return (
-      filters.classificationStatus === null ||
-      filters.classificationStatus.has(status as "suspected" | "diagnosed")
-    );
-  }
-
   const localMin = filters.timeRange?.min ?? timeDomain.minYear;
   const localMax = filters.timeRange?.max ?? timeDomain.maxYear;
-
-  function handleMinYearChange(value: string) {
-    const num = Number.parseInt(value, 10);
-    if (Number.isNaN(num)) {
-      actions.setTimeRange(null);
-      return;
-    }
-    actions.setTimeRange({ min: num, max: localMax });
-  }
-
-  function handleMaxYearChange(value: string) {
-    const num = Number.parseInt(value, 10);
-    if (Number.isNaN(num)) {
-      actions.setTimeRange(null);
-      return;
-    }
-    actions.setTimeRange({ min: localMin, max: num });
-  }
 
   function pillClass(group: FilterGroup): string {
     const active =
@@ -192,15 +260,11 @@ export function TimelineFilterPanel({
   const isQuickClassificationsActive = isQuickPresetActive(filters, "classifications");
 
   // Filter to used categories only
-  const traumaCats = usedTraumaCategories
-    ? ALL_TRAUMA.filter((c) => usedTraumaCategories.has(c))
-    : ALL_TRAUMA;
-  const lifeEventCats = usedLifeEventCategories
-    ? ALL_LIFE_EVENTS.filter((c) => usedLifeEventCategories.has(c))
-    : ALL_LIFE_EVENTS;
-  const classificationCats = usedClassifications
-    ? DSM_CATEGORIES.filter((c) => usedClassifications.has(c.key))
-    : [];
+  const { traumaCats, lifeEventCats, classificationCats } = computeUsedCategories(
+    usedTraumaCategories,
+    usedLifeEventCategories,
+    usedClassifications,
+  );
 
   // Section count badges
   const peopleBadge = computeBadge(filters.visiblePersonIds, persons.size, t);
@@ -211,6 +275,11 @@ export function TimelineFilterPanel({
   const patternsBadge = patterns ? computeBadge(filters.visiblePatterns, patterns.size, t) : null;
   const timeRangeBadge =
     filters.timeRange !== null ? `${filters.timeRange.min} - ${filters.timeRange.max}` : null;
+
+  const hasGroups =
+    groups !== undefined &&
+    (groups.demographic.length > 0 || groups.roles.length > 0 || groups.generations.length > 0);
+  const { modeToggleClass, modeToggleLabel, nextMode } = computeModeToggle(filters.filterMode, t);
 
   return (
     <div className="detail-panel tl-filter-panel">
@@ -224,10 +293,10 @@ export function TimelineFilterPanel({
           )}
           <button
             type="button"
-            className={`tl-filter-panel__mode-toggle${filters.filterMode === "hide" ? " tl-filter-panel__mode-toggle--active" : ""}`}
-            onClick={() => actions.setFilterMode(filters.filterMode === "dim" ? "hide" : "dim")}
+            className={modeToggleClass}
+            onClick={() => actions.setFilterMode(nextMode)}
           >
-            {filters.filterMode === "dim" ? t("timeline.filterHide") : t("timeline.filterDim")}
+            {modeToggleLabel}
           </button>
           <button type="button" className="detail-panel__close" onClick={onClose}>
             {t("common.close")}
@@ -274,34 +343,31 @@ export function TimelineFilterPanel({
           </button>
           {peopleOpen && (
             <div className="detail-panel__section-body">
-              {groups &&
-                (groups.demographic.length > 0 ||
-                  groups.roles.length > 0 ||
-                  groups.generations.length > 0) && (
-                  <div className="tl-filter-panel__groups">
-                    <GroupRow
-                      label={t("timeline.groupDemographic")}
-                      groups={groups.demographic}
-                      pillClass={pillClass}
-                      onToggle={actions.togglePersonGroup}
-                      t={t}
-                    />
-                    <GroupRow
-                      label={t("timeline.groupRoles")}
-                      groups={groups.roles}
-                      pillClass={pillClass}
-                      onToggle={actions.togglePersonGroup}
-                      t={t}
-                    />
-                    <GroupRow
-                      label={t("timeline.groupGenerations")}
-                      groups={groups.generations}
-                      pillClass={pillClass}
-                      onToggle={actions.togglePersonGroup}
-                      t={t}
-                    />
-                  </div>
-                )}
+              {hasGroups && (
+                <div className="tl-filter-panel__groups">
+                  <GroupRow
+                    label={t("timeline.groupDemographic")}
+                    groups={groups.demographic}
+                    pillClass={pillClass}
+                    onToggle={actions.togglePersonGroup}
+                    t={t}
+                  />
+                  <GroupRow
+                    label={t("timeline.groupRoles")}
+                    groups={groups.roles}
+                    pillClass={pillClass}
+                    onToggle={actions.togglePersonGroup}
+                    t={t}
+                  />
+                  <GroupRow
+                    label={t("timeline.groupGenerations")}
+                    groups={groups.generations}
+                    pillClass={pillClass}
+                    onToggle={actions.togglePersonGroup}
+                    t={t}
+                  />
+                </div>
+              )}
               <button
                 type="button"
                 className="tl-filter-panel__sub-toggle"
@@ -324,7 +390,7 @@ export function TimelineFilterPanel({
                     <label key={id} className="tl-filter-panel__checkbox">
                       <input
                         type="checkbox"
-                        checked={isPersonVisible(id)}
+                        checked={isFilterActive(id, filters.visiblePersonIds)}
                         onChange={() => actions.togglePerson(id)}
                       />
                       <span>{person.name}</span>
@@ -353,7 +419,7 @@ export function TimelineFilterPanel({
                   <label key={cat} className="tl-filter-panel__checkbox">
                     <input
                       type="checkbox"
-                      checked={isTraumaCategoryActive(cat)}
+                      checked={isFilterActive(cat, filters.traumaCategories)}
                       onChange={() => actions.toggleTraumaCategory(cat)}
                     />
                     <span
@@ -386,7 +452,7 @@ export function TimelineFilterPanel({
                   <label key={cat} className="tl-filter-panel__checkbox">
                     <input
                       type="checkbox"
-                      checked={isLifeEventCategoryActive(cat)}
+                      checked={isFilterActive(cat, filters.lifeEventCategories)}
                       onChange={() => actions.toggleLifeEventCategory(cat)}
                     />
                     <span
@@ -416,66 +482,13 @@ export function TimelineFilterPanel({
               )}
             </button>
             {classificationsOpen && (
-              <div className="detail-panel__section-body">
-                <div className="tl-filter-panel__sub-group">
-                  <span className="tl-filter-panel__sub-label">
-                    {t("timeline.filterClassificationStatus")}
-                  </span>
-                  <label className="tl-filter-panel__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={isClassificationStatusActive("suspected")}
-                      onChange={() => actions.toggleClassificationStatus("suspected")}
-                    />
-                    <span
-                      className="tl-filter-panel__color-dot"
-                      style={{ background: "var(--color-classification-suspected)" }}
-                    />
-                    <span>{t("classification.status.suspected")}</span>
-                  </label>
-                  <label className="tl-filter-panel__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={isClassificationStatusActive("diagnosed")}
-                      onChange={() => actions.toggleClassificationStatus("diagnosed")}
-                    />
-                    <span
-                      className="tl-filter-panel__color-dot"
-                      style={{ background: "var(--color-classification-diagnosed)" }}
-                    />
-                    <span>{t("classification.status.diagnosed")}</span>
-                  </label>
-                </div>
-                {classificationCats.map((dsmCat) => {
-                  const usedSubs = usedClassifications?.get(dsmCat.key);
-                  const subs = dsmCat.subcategories?.filter((s) => usedSubs?.has(s.key)) ?? [];
-                  return (
-                    <div key={dsmCat.key}>
-                      <label className="tl-filter-panel__checkbox">
-                        <input
-                          type="checkbox"
-                          checked={isClassificationCategoryActive(dsmCat.key)}
-                          onChange={() => actions.toggleClassificationCategory(dsmCat.key)}
-                        />
-                        <span>{t(`dsm.${dsmCat.key}`)}</span>
-                      </label>
-                      {subs.map((sub) => (
-                        <label
-                          key={sub.key}
-                          className="tl-filter-panel__checkbox tl-filter-panel__checkbox--sub"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isClassificationSubcategoryActive(sub.key)}
-                            onChange={() => actions.toggleClassificationSubcategory(sub.key)}
-                          />
-                          <span>{t(`dsm.sub.${sub.key}`)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
+              <ClassificationsBody
+                classificationCats={classificationCats}
+                usedClassifications={usedClassifications}
+                filters={filters}
+                actions={actions}
+                t={t}
+              />
             )}
           </section>
         )}
@@ -535,7 +548,12 @@ export function TimelineFilterPanel({
                   <input
                     type="number"
                     value={localMin}
-                    onChange={(e) => handleMinYearChange(e.target.value)}
+                    onChange={(e) =>
+                      parseYearInput(e.target.value, actions.setTimeRange, (num) => ({
+                        min: num,
+                        max: localMax,
+                      }))
+                    }
                     className="detail-panel__input"
                   />
                 </label>
@@ -544,7 +562,12 @@ export function TimelineFilterPanel({
                   <input
                     type="number"
                     value={localMax}
-                    onChange={(e) => handleMaxYearChange(e.target.value)}
+                    onChange={(e) =>
+                      parseYearInput(e.target.value, actions.setTimeRange, (num) => ({
+                        min: localMin,
+                        max: num,
+                      }))
+                    }
                     className="detail-panel__input"
                   />
                 </label>

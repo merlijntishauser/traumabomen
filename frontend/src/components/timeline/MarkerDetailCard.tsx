@@ -9,6 +9,8 @@ import type {
 } from "../../hooks/useTreeData";
 import type { MarkerClickInfo } from "./PersonLane";
 
+const CLOSE_LABEL_KEY = "common.close";
+
 interface MarkerDetailCardProps {
   info: MarkerClickInfo;
   persons: Map<string, DecryptedPerson>;
@@ -41,7 +43,7 @@ export const MarkerDetailCard = React.memo(function MarkerDetailCard({
             type="button"
             className="tl-summary-card__close"
             onClick={onClose}
-            aria-label={t("common.close")}
+            aria-label={t(CLOSE_LABEL_KEY)}
           >
             <X size={14} />
           </button>
@@ -69,7 +71,7 @@ export const MarkerDetailCard = React.memo(function MarkerDetailCard({
             type="button"
             className="tl-summary-card__close"
             onClick={onClose}
-            aria-label={t("common.close")}
+            aria-label={t(CLOSE_LABEL_KEY)}
           >
             <X size={14} />
           </button>
@@ -102,7 +104,7 @@ export const MarkerDetailCard = React.memo(function MarkerDetailCard({
           type="button"
           className="tl-summary-card__close"
           onClick={onClose}
-          aria-label={t("common.close")}
+          aria-label={t(CLOSE_LABEL_KEY)}
         >
           <X size={14} />
         </button>
