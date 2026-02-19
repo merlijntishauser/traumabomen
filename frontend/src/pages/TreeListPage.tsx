@@ -42,6 +42,7 @@ export default function TreeListPage() {
     () => localStorage.getItem(WELCOME_DISMISSED_KEY) === "true",
   );
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showDemoLimit, setShowDemoLimit] = useState(false);
 
   const treeListViewTab = useMemo(
     () => ({
@@ -148,9 +149,15 @@ export default function TreeListPage() {
           <button
             type="button"
             className="tree-toolbar__btn"
-            onClick={() => demoMutation.mutate()}
-            disabled={demoMutation.isPending || demoTreeCount >= MAX_DEMO_TREES}
-            title={demoTreeCount >= MAX_DEMO_TREES ? t("demo.limitReached") : undefined}
+            onClick={() => {
+              if (demoTreeCount >= MAX_DEMO_TREES) {
+                setShowDemoLimit(true);
+              } else {
+                setShowDemoLimit(false);
+                demoMutation.mutate();
+              }
+            }}
+            disabled={demoMutation.isPending}
           >
             {demoMutation.isPending ? t("demo.creating") : t("demo.createButton")}
           </button>
@@ -251,7 +258,7 @@ export default function TreeListPage() {
             </form>
           )}
 
-          {demoTreeCount >= MAX_DEMO_TREES && (
+          {showDemoLimit && demoTreeCount >= MAX_DEMO_TREES && (
             <div className="tree-list-limit">
               <AlertTriangle size={16} />
               <span>{t("demo.limitReachedHint")}</span>
