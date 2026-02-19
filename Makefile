@@ -1,3 +1,6 @@
+-include .env
+export
+
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e \
        bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet
 
