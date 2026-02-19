@@ -26,11 +26,13 @@
 .tl-person-label {
   font-size: 12px;
   fill: var(--color-text-primary);
+  letter-spacing: 0.5px;
 }
 
 .tl-axis-text {
   font-size: 11px;
   fill: var(--color-text-secondary);
+  letter-spacing: 1px;
 }
 
 .tl-marker {
