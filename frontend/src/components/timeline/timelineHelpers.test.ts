@@ -21,6 +21,7 @@ import {
   filterTimelinePersons,
   GEN_COL_GAP,
   LANE_WIDTH,
+  MAX_LANE_WIDTH,
 } from "./timelineHelpers";
 
 // ---- Test helpers ----
@@ -510,7 +511,9 @@ describe("buildColumnLayout", () => {
       makePerson("child", { birth_year: 1980 }),
     );
     const rels = relsMap(makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"));
-    const layout = buildColumnLayout(persons, rels, 800);
+    // Use a narrow width so lanes stay at LANE_WIDTH
+    const narrowWidth = AGE_LABEL_WIDTH + 2 * LANE_WIDTH + GEN_COL_GAP;
+    const layout = buildColumnLayout(persons, rels, narrowWidth);
 
     const gen0Start = layout.genStarts.get(0)!;
     const gen0Width = layout.genWidths.get(0)!;
@@ -536,6 +539,42 @@ describe("buildColumnLayout", () => {
     const persons = personsMap(makePerson("a"));
     const layout = buildColumnLayout(persons, new Map(), 2000);
     expect(layout.totalWidth).toBeGreaterThanOrEqual(2000);
+  });
+
+  it("widens lanes when container is wider than minimum content", () => {
+    const persons = personsMap(
+      makePerson("a", { birth_year: 1980 }),
+      makePerson("b", { birth_year: 1990 }),
+    );
+    // Minimum content: AGE_LABEL_WIDTH + 2 * LANE_WIDTH = 40 + 72 = 112 (single gen, no gap)
+    // With availableWidth=800, extra = 688, effectiveLane = min(120, 36+344) = 120
+    const layout = buildColumnLayout(persons, new Map(), 800);
+
+    expect(layout.columns[0].laneWidth).toBe(MAX_LANE_WIDTH);
+    expect(layout.columns[1].laneWidth).toBe(MAX_LANE_WIDTH);
+    // Columns should be positioned using widened lanes
+    expect(layout.columns[0].x).toBe(AGE_LABEL_WIDTH);
+    expect(layout.columns[1].x).toBe(AGE_LABEL_WIDTH + MAX_LANE_WIDTH);
+  });
+
+  it("caps lane width at MAX_LANE_WIDTH", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    // 1 person, very wide container
+    const layout = buildColumnLayout(persons, new Map(), 5000);
+
+    expect(layout.columns[0].laneWidth).toBe(MAX_LANE_WIDTH);
+  });
+
+  it("keeps LANE_WIDTH when container matches minimum content width", () => {
+    const persons = personsMap(
+      makePerson("a", { birth_year: 1980 }),
+      makePerson("b", { birth_year: 1990 }),
+    );
+    const minWidth = AGE_LABEL_WIDTH + 2 * LANE_WIDTH;
+    const layout = buildColumnLayout(persons, new Map(), minWidth);
+
+    expect(layout.columns[0].laneWidth).toBe(LANE_WIDTH);
+    expect(layout.columns[1].laneWidth).toBe(LANE_WIDTH);
   });
 });
 

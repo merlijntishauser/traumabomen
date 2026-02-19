@@ -119,7 +119,7 @@
 
 /* Age mode: person name in column header */
 .tl-col-person-name {
-  font-size: 10px;
+  font-size: 11px;
   fill: var(--color-text-secondary);
   text-anchor: middle;
 }

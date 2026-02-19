@@ -17,6 +17,7 @@ export const MARKER_RADIUS = 7;
 
 // Age mode constants
 export const LANE_WIDTH = 36;
+export const MAX_LANE_WIDTH = 120;
 export const GEN_COL_GAP = 24;
 export const AGE_LABEL_WIDTH = 40;
 export const COL_HEADER_HEIGHT = 52;
@@ -387,9 +388,24 @@ export function buildColumnLayout(
   const genWidths = new Map<number, number>();
   let currentX = AGE_LABEL_WIDTH;
 
+  // Count total persons and gaps to compute minimum content width
+  let totalPersonCount = 0;
+  for (const gen of sortedGens) {
+    totalPersonCount += personsByGen.get(gen)!.length;
+  }
+  const totalGapWidth = Math.max(0, sortedGens.length - 1) * GEN_COL_GAP;
+  const minContentWidth = AGE_LABEL_WIDTH + totalPersonCount * LANE_WIDTH + totalGapWidth;
+
+  // Widen lanes if container is wider than minimum content
+  let effectiveLaneWidth = LANE_WIDTH;
+  if (totalPersonCount > 0 && availableWidth > minContentWidth) {
+    const extraSpace = availableWidth - minContentWidth;
+    effectiveLaneWidth = Math.min(MAX_LANE_WIDTH, LANE_WIDTH + extraSpace / totalPersonCount);
+  }
+
   for (const gen of sortedGens) {
     const genPersons = personsByGen.get(gen)!;
-    const genWidth = genPersons.length * LANE_WIDTH;
+    const genWidth = genPersons.length * effectiveLaneWidth;
     genStarts.set(gen, currentX);
     genWidths.set(gen, genWidth);
 
@@ -397,8 +413,8 @@ export function buildColumnLayout(
       columns.push({
         person: genPersons[i],
         generation: gen,
-        x: currentX + i * LANE_WIDTH,
-        laneWidth: LANE_WIDTH,
+        x: currentX + i * effectiveLaneWidth,
+        laneWidth: effectiveLaneWidth,
       });
     }
 

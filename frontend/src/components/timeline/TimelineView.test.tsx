@@ -438,7 +438,9 @@ describe("TimelineView", () => {
       expect(timeGroup).toBeTruthy();
     });
 
-    it("truncates long person names in age mode column headers", () => {
+    it("shows full names when lanes are wide enough in age mode", () => {
+      // At 800px width with 2 persons, lanes widen to MAX_LANE_WIDTH (120px)
+      // which fits 17 chars (120/7), so 9-char "Alexander" is not truncated
       const longNamePerson = makePerson("p1", { name: "Alexander", birth_year: 1960 });
       const shortNamePerson = makePerson("p2", { name: "Alice", birth_year: 1965 });
       const props = {
@@ -451,8 +453,27 @@ describe("TimelineView", () => {
       const { container } = render(<TimelineView {...props} layoutMode="age" />);
       const personNames = container.querySelectorAll(".tl-col-person-name");
       const texts = Array.from(personNames).map((el) => el.textContent);
-      expect(texts).toContain("Alex..");
+      expect(texts).toContain("Alexander");
       expect(texts).toContain("Alice");
+    });
+
+    it("truncates names when lanes are narrow in age mode", () => {
+      // Create many persons so lanes stay narrow (LANE_WIDTH=36px)
+      // At 36px: maxChars = floor(36/7) = 5, so "Alexander" (9 chars) -> "Ale.."
+      const persons = new Map<string, DecryptedPerson>();
+      for (let i = 0; i < 30; i++) {
+        const p = makePerson(`p${i}`, { name: `Person${i}long`, birth_year: 1960 + i });
+        persons.set(p.id, p);
+      }
+      // Override one with a known name
+      const named = makePerson("px", { name: "Alexander", birth_year: 1955 });
+      persons.set("px", named);
+
+      const props = { ...makeEmptyProps(), persons };
+      const { container } = render(<TimelineView {...props} layoutMode="age" />);
+      const personNames = container.querySelectorAll(".tl-col-person-name");
+      const texts = Array.from(personNames).map((el) => el.textContent);
+      expect(texts).toContain("Ale..");
     });
 
     it("calls onSelectPerson with null when background is clicked in age mode", () => {

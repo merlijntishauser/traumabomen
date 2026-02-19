@@ -241,7 +241,13 @@ export function TimelineAgeContent({
                 style={{ cursor: "pointer" }}
                 onClick={() => handleSelectPerson(col.person.id)}
               >
-                {col.person.name.length > 5 ? `${col.person.name.slice(0, 4)}..` : col.person.name}
+                {(() => {
+                  const CHAR_W = 7;
+                  const maxChars = Math.max(3, Math.floor(col.laneWidth / CHAR_W));
+                  return col.person.name.length > maxChars
+                    ? `${col.person.name.slice(0, maxChars - 2)}..`
+                    : col.person.name;
+                })()}
               </text>
             );
           })}
