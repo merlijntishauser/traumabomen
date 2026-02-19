@@ -2,6 +2,7 @@ import { Calendar, Clock, Eye, EyeOff, Filter, Pencil, Search, Waypoints } from 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreatePatternMiniForm } from "../components/timeline/CreatePatternMiniForm";
+import { MarkerDetailCard } from "../components/timeline/MarkerDetailCard";
 import type { MarkerClickInfo, TimelineMode } from "../components/timeline/PersonLane";
 import { PersonSummaryCard } from "../components/timeline/PersonSummaryCard";
 import { TimelineChipBar } from "../components/timeline/TimelineChipBar";
@@ -86,6 +87,7 @@ export default function TimelinePage() {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("years");
   const [mode, setMode] = useState<TimelineMode>("explore");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [focusedMarker, setFocusedMarker] = useState<MarkerClickInfo | null>(null);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [initialSection, setInitialSection] = useState<PersonDetailSection>(null);
 
@@ -340,6 +342,7 @@ export default function TimelinePage() {
   const handleSelectPerson = useCallback(
     (personId: string | null) => {
       setSelectedPersonId(personId);
+      setFocusedMarker(null);
       if (personId && mode === "edit") {
         setInitialSection("person");
         setFilterPanelOpen(false);
@@ -350,7 +353,10 @@ export default function TimelinePage() {
 
   const handleClickMarker = useCallback(
     (info: MarkerClickInfo) => {
-      if (mode === "edit") {
+      if (mode === "explore") {
+        setFocusedMarker((prev) => (prev?.entityId === info.entityId ? null : info));
+        setSelectedPersonId(info.personId);
+      } else if (mode === "edit") {
         setSelectedPersonId(info.personId);
         setInitialSection(info.entityType);
         setFilterPanelOpen(false);
@@ -503,7 +509,18 @@ export default function TimelinePage() {
           />
         )}
 
-        {mode === "explore" && selectedPerson && (
+        {mode === "explore" && focusedMarker && (
+          <MarkerDetailCard
+            info={focusedMarker}
+            persons={persons}
+            events={events}
+            lifeEvents={lifeEvents}
+            classifications={classifications}
+            onClose={() => setFocusedMarker(null)}
+          />
+        )}
+
+        {mode === "explore" && !focusedMarker && selectedPerson && (
           <PersonSummaryCard
             person={selectedPerson}
             events={selectedEvents}

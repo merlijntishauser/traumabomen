@@ -367,3 +367,15 @@
 .tl-summary-card__count--class {
   background: var(--color-classification-diagnosed);
 }
+
+.tl-summary-card__detail {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tl-summary-card__person {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-style: italic;
+}
