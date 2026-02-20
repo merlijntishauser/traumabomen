@@ -1463,6 +1463,21 @@ describe("PersonDetailPanel", () => {
 
       expect(screen.getByText("lifeEvent.newEvent")).toBeInTheDocument();
     });
+
+    it("returns to card list when back button is clicked on life event sub-panel", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      await user.click(screen.getByText("Graduation"));
+
+      await user.click(screen.getByLabelText("common.close"));
+
+      expect(screen.getByText("Graduation")).toBeInTheDocument();
+      expect(screen.queryByText("lifeEvent.title")).not.toBeInTheDocument();
+    });
   });
 
   describe("classifications tab", () => {
@@ -1654,6 +1669,21 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("common.cancel"));
 
       expect(screen.getByText("classification.newClassification")).toBeInTheDocument();
+    });
+
+    it("returns to card list when back button is clicked on classification sub-panel", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [makeClassification()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
+      await user.click(screen.getByText("dsm.anxiety"));
+
+      await user.click(screen.getByLabelText("common.close"));
+
+      expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
+      expect(screen.queryByText("classification.category")).not.toBeInTheDocument();
     });
 
     it("switches to diagnosed status and shows diagnosis year", async () => {
