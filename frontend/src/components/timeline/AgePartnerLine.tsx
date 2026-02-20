@@ -92,26 +92,41 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
         const tgtY1 = ageScale(tgtStartAge);
         const tgtY2 = ageScale(tgtEndAge);
 
-        // Connector Y: use the average of both partners' start-age Y positions
+        // Connector Y: midpoint of the period, averaged between both partners
+        const srcMidY = (srcY1 + srcY2) / 2;
+        const tgtMidY = (tgtY1 + tgtY2) / 2;
         const connectorY =
           effectiveSrcBarX != null && effectiveTgtBarX != null
-            ? (srcY1 + tgtY1) / 2
-            : (srcY1 ?? tgtY1);
+            ? (srcMidY + tgtMidY) / 2
+            : (srcMidY ?? tgtMidY);
 
         return (
           <g key={`${period.start_year}-${period.status}`}>
             {/* Horizontal connector between partner columns */}
             {effectiveSrcBarX != null && effectiveTgtBarX != null && (
-              <line
-                x1={effectiveSrcBarX}
-                x2={effectiveTgtBarX}
-                y1={connectorY}
-                y2={connectorY}
-                stroke={strokeColor}
-                strokeWidth={1.5}
-                strokeDasharray={dashArray}
-                strokeOpacity={0.4}
-              />
+              <>
+                <line
+                  x1={effectiveSrcBarX}
+                  x2={effectiveTgtBarX}
+                  y1={connectorY}
+                  y2={connectorY}
+                  stroke={strokeColor}
+                  strokeWidth={2.5}
+                  strokeDasharray={dashArray}
+                  strokeOpacity={0.6}
+                />
+                <line
+                  x1={effectiveSrcBarX}
+                  x2={effectiveTgtBarX}
+                  y1={connectorY}
+                  y2={connectorY}
+                  stroke="transparent"
+                  strokeWidth={10}
+                  style={{ cursor: "pointer" }}
+                  onMouseEnter={showTooltip}
+                  onMouseLeave={hideTooltip}
+                />
+              </>
             )}
             {/* Source partner vertical bar */}
             {effectiveSrcBarX != null && (

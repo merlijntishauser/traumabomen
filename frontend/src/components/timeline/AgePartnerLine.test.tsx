@@ -32,19 +32,19 @@ function renderAgePartnerLine(overrides: Record<string, unknown> = {}) {
 }
 
 describe("AgePartnerLine", () => {
-  it("renders five lines per period (1 horizontal connector + 2 vertical bars + 2 hover targets)", () => {
+  it("renders six lines per period (connector + connector hover + 2 vertical bars + 2 bar hover targets)", () => {
     const { container } = renderAgePartnerLine();
-    expect(container.querySelectorAll("line")).toHaveLength(5);
+    expect(container.querySelectorAll("line")).toHaveLength(6);
   });
 
-  it("renders ten lines for two periods", () => {
+  it("renders twelve lines for two periods", () => {
     const { container } = renderAgePartnerLine({
       periods: [
         { start_year: 2000, end_year: 2010, status: PartnerStatus.Married },
         { start_year: 2015, end_year: null, status: PartnerStatus.Together },
       ],
     });
-    expect(container.querySelectorAll("line")).toHaveLength(10);
+    expect(container.querySelectorAll("line")).toHaveLength(12);
   });
 
   it("renders no text labels (tooltip-only)", () => {
@@ -57,10 +57,10 @@ describe("AgePartnerLine", () => {
       periods: [{ start_year: 2000, end_year: 2005, status: PartnerStatus.Separated }],
     });
     const lines = container.querySelectorAll("line");
-    // connector
+    // connector (index 0)
     expect(lines[0].getAttribute("stroke-dasharray")).toBe("6 3");
-    // source vertical bar
-    expect(lines[1].getAttribute("stroke-dasharray")).toBe("6 3");
+    // source vertical bar (index 2, after connector hover target)
+    expect(lines[2].getAttribute("stroke-dasharray")).toBe("6 3");
   });
 
   it("renders dashed stroke for divorced periods", () => {
@@ -68,7 +68,7 @@ describe("AgePartnerLine", () => {
       periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Divorced }],
     });
     const lines = container.querySelectorAll("line");
-    expect(lines[1].getAttribute("stroke-dasharray")).toBe("6 3");
+    expect(lines[2].getAttribute("stroke-dasharray")).toBe("6 3");
   });
 
   it("renders solid stroke for together/married periods", () => {
@@ -76,7 +76,7 @@ describe("AgePartnerLine", () => {
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
     });
     const lines = container.querySelectorAll("line");
-    expect(lines[1].getAttribute("stroke-dasharray")).toBeNull();
+    expect(lines[2].getAttribute("stroke-dasharray")).toBeNull();
   });
 
   it("uses ageScale to compute vertical positions from birth years", () => {
@@ -87,12 +87,12 @@ describe("AgePartnerLine", () => {
       birthYears: { source: 1980, target: 1982 },
     });
     const lines = container.querySelectorAll("line");
-    // Source vertical bar: start age = 2000-1980 = 20, end age = 2010-1980 = 30
-    const srcBar = lines[1];
+    // Source vertical bar (index 2): start age = 2000-1980 = 20, end age = 2010-1980 = 30
+    const srcBar = lines[2];
     expect(srcBar.getAttribute("y1")).toBe(String(ageScale(20)));
     expect(srcBar.getAttribute("y2")).toBe(String(ageScale(30)));
-    // Target vertical bar: start age = 2000-1982 = 18, end age = 2010-1982 = 28
-    const tgtBar = lines[3];
+    // Target vertical bar (index 4): start age = 2000-1982 = 18, end age = 2010-1982 = 28
+    const tgtBar = lines[4];
     expect(tgtBar.getAttribute("y1")).toBe(String(ageScale(18)));
     expect(tgtBar.getAttribute("y2")).toBe(String(ageScale(28)));
   });
@@ -105,15 +105,15 @@ describe("AgePartnerLine", () => {
       birthYears: { source: 1980, target: 1982 },
       currentYear: 2025,
     });
-    const srcBar = container.querySelectorAll("line")[1];
+    const srcBar = container.querySelectorAll("line")[2];
     // end age = 2025-1980 = 45
     expect(srcBar.getAttribute("y2")).toBe(String(ageScale(45)));
   });
 
-  it("shows tooltip on hover target mouseenter", () => {
+  it("shows tooltip on connector hover", () => {
     const { container, props } = renderAgePartnerLine();
-    // Hover targets: source at index 2, target at index 4
-    const hoverTarget = container.querySelectorAll("line")[2];
+    // Connector hover target is at index 1
+    const hoverTarget = container.querySelectorAll("line")[1];
 
     fireEvent.mouseEnter(hoverTarget, { clientX: 200, clientY: 100 });
 
@@ -128,9 +128,26 @@ describe("AgePartnerLine", () => {
     );
   });
 
+  it("shows tooltip on vertical bar hover", () => {
+    const { container, props } = renderAgePartnerLine();
+    // Source bar hover target is at index 3
+    const hoverTarget = container.querySelectorAll("line")[3];
+
+    fireEvent.mouseEnter(hoverTarget, { clientX: 200, clientY: 100 });
+
+    expect(props.onTooltip).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visible: true,
+        lines: expect.arrayContaining([
+          expect.objectContaining({ text: expect.stringContaining("Alice") }),
+        ]),
+      }),
+    );
+  });
+
   it("hides tooltip on mouseleave", () => {
     const { container, props } = renderAgePartnerLine();
-    const hoverTarget = container.querySelectorAll("line")[2];
+    const hoverTarget = container.querySelectorAll("line")[3];
 
     fireEvent.mouseLeave(hoverTarget);
 
