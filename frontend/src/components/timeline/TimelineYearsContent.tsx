@@ -277,6 +277,15 @@ export function TimelineYearsContent({
                 className={labelClassName}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleSelectPerson(row.person.id)}
+                onMouseEnter={(e) =>
+                  onTooltip({
+                    visible: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    lines: [{ text: row.person.name, bold: true }],
+                  })
+                }
+                onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
               >
                 {row.person.name}
               </text>

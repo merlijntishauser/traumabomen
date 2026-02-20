@@ -240,6 +240,15 @@ export function TimelineAgeContent({
                 className={labelClassName}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleSelectPerson(col.person.id)}
+                onMouseEnter={(e) =>
+                  onTooltip({
+                    visible: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    lines: [{ text: col.person.name, bold: true }],
+                  })
+                }
+                onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
               >
                 {(() => {
                   const CHAR_W = 7;
