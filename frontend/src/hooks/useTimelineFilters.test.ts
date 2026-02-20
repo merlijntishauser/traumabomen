@@ -266,6 +266,38 @@ describe("useTimelineFilters", () => {
     expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(false); // depressive visible
   });
 
+  it("toggleClassificationSubcategory excludes that subcategory", () => {
+    const classWithSubs = new Map<string, DecryptedClassification>([
+      [
+        "c1",
+        makeClassification("c1", ["p1"], {
+          dsm_category: "anxiety",
+          dsm_subcategory: "panic_disorder",
+          status: "diagnosed",
+        }),
+      ],
+      [
+        "c2",
+        makeClassification("c2", ["p2"], {
+          dsm_category: "anxiety",
+          dsm_subcategory: "social_anxiety",
+          status: "diagnosed",
+        }),
+      ],
+    ]);
+    const { persons, events, lifeEvents } = buildMaps();
+    const { result } = renderHook(() =>
+      useTimelineFilters(persons, events, lifeEvents, classWithSubs),
+    );
+
+    act(() => {
+      result.current.actions.toggleClassificationSubcategory("panic_disorder");
+    });
+
+    expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(true);
+    expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(false);
+  });
+
   it("toggleClassificationStatus excludes that status and keeps others visible", () => {
     const { persons, events, lifeEvents, classifications } = buildMaps();
     const { result } = renderHook(() =>
@@ -490,6 +522,35 @@ describe("useTimelineFilters", () => {
 
       expect(result.current.filters.visiblePatterns).toBeNull();
       expect(result.current.actions.activeFilterCount).toBe(0);
+    });
+
+    it("pattern filter dims life events and classifications not in visible patterns", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const patterns = new Map<string, DecryptedPattern>([
+        [
+          "pat1",
+          makePattern("pat1", [
+            { entity_type: "life_event", entity_id: "le1" },
+            { entity_type: "classification", entity_id: "c1" },
+          ]),
+        ],
+        ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e1" }])],
+      ]);
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+      );
+
+      act(() => {
+        result.current.actions.togglePatternFilter("pat2");
+      });
+
+      // pat2 hidden, pat1 visible -> le1 and c1 are linked to pat1 -> not dimmed
+      expect(result.current.dims.dimmedLifeEventIds.has("le1")).toBe(false);
+      expect(result.current.dims.dimmedClassificationIds.has("c1")).toBe(false);
+      // le2 is not linked to any visible pattern -> dimmed
+      expect(result.current.dims.dimmedLifeEventIds.has("le2")).toBe(true);
+      // c2 is not linked to any visible pattern -> dimmed
+      expect(result.current.dims.dimmedClassificationIds.has("c2")).toBe(true);
     });
 
     it("pattern filter combines with other filters", () => {

@@ -110,6 +110,22 @@ describe("FeedbackModal", () => {
     });
   });
 
+  it("switching category radio changes submitted category", async () => {
+    render(<FeedbackModal onClose={onClose} />);
+    const textarea = screen.getByLabelText("feedback.message");
+    fireEvent.change(textarea, { target: { value: "Bug report" } });
+
+    // Click "bug" category radio
+    const bugRadio = screen.getByRole("radio", { name: /feedback.categoryBug/ });
+    fireEvent.click(bugRadio);
+
+    fireEvent.click(screen.getByText("feedback.submit"));
+
+    await waitFor(() => {
+      expect(mockSubmitFeedback).toHaveBeenCalledWith(expect.objectContaining({ category: "bug" }));
+    });
+  });
+
   it("displays character counter", () => {
     render(<FeedbackModal onClose={onClose} />);
     expect(screen.getByText("0 / 2000")).toBeInTheDocument();

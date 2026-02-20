@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+  DecryptError,
   decrypt,
   decryptFromApi,
+  deriveKey,
   encrypt,
   encryptForApi,
   generateSalt,
@@ -134,5 +136,74 @@ describe("hashPassphrase", () => {
     const hash1 = await hashPassphrase("passphrase-one");
     const hash2 = await hashPassphrase("passphrase-two");
     expect(hash1).not.toBe(hash2);
+  });
+});
+
+describe("decrypt IV validation", () => {
+  it("throws DecryptError when IV has wrong length", async () => {
+    const key = await createTestKey();
+    // Create a blob with an IV that decodes to the wrong number of bytes (not 12)
+    // 8 random bytes encoded as base64 instead of the required 12
+    const shortIv = btoa(String.fromCharCode(...new Uint8Array(8)));
+    const blob = { iv: shortIv, ciphertext: btoa("dummy") };
+
+    await expect(decrypt(blob, key)).rejects.toThrow(DecryptError);
+    await expect(decrypt(blob, key)).rejects.toThrow("Invalid IV length: expected 12, got 8");
+  });
+
+  it("throws DecryptError when IV is too long", async () => {
+    const key = await createTestKey();
+    const longIv = btoa(String.fromCharCode(...new Uint8Array(16)));
+    const blob = { iv: longIv, ciphertext: btoa("dummy") };
+
+    await expect(decrypt(blob, key)).rejects.toThrow(DecryptError);
+    await expect(decrypt(blob, key)).rejects.toThrow("Invalid IV length: expected 12, got 16");
+  });
+});
+
+describe("deriveKey", () => {
+  const mockArgon2 = {
+    ArgonType: { Argon2d: 0 as const, Argon2i: 1 as const, Argon2id: 2 as const },
+    hash: vi.fn(),
+  };
+
+  beforeEach(() => {
+    (self as unknown as { argon2: typeof mockArgon2 }).argon2 = mockArgon2;
+    mockArgon2.hash.mockReset();
+  });
+
+  afterEach(() => {
+    delete (self as unknown as { argon2?: unknown }).argon2;
+  });
+
+  it("derives a CryptoKey from passphrase and salt", async () => {
+    const mockHash = new Uint8Array(32);
+    crypto.getRandomValues(mockHash);
+    mockArgon2.hash.mockResolvedValueOnce({ hash: mockHash, hashHex: "", encoded: "" });
+
+    const salt = generateSalt();
+    const key = await deriveKey("test-passphrase", salt);
+
+    expect(key).toBeDefined();
+    expect(key.algorithm).toEqual({ name: "AES-GCM", length: 256 });
+    expect(key.usages).toContain("encrypt");
+    expect(key.usages).toContain("decrypt");
+    expect(key.extractable).toBe(false);
+
+    expect(mockArgon2.hash).toHaveBeenCalledOnce();
+    const callArgs = mockArgon2.hash.mock.calls[0][0];
+    expect(callArgs.pass).toBe("test-passphrase");
+    expect(callArgs.time).toBe(3);
+    expect(callArgs.mem).toBe(65536);
+    expect(callArgs.hashLen).toBe(32);
+    expect(callArgs.parallelism).toBe(1);
+    expect(callArgs.type).toBe(2); // Argon2id
+  });
+
+  it("propagates errors from argon2", async () => {
+    mockArgon2.hash.mockRejectedValueOnce(new Error("argon2 failed"));
+
+    const salt = generateSalt();
+    await expect(deriveKey("test-passphrase", salt)).rejects.toThrow("argon2 failed");
   });
 });

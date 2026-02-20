@@ -50,8 +50,34 @@ vi.mock("../lib/api", () => ({
       }),
     },
   ]),
-  getLifeEvents: vi.fn().mockResolvedValue([]),
-  getClassifications: vi.fn().mockResolvedValue([]),
+  getLifeEvents: vi.fn().mockResolvedValue([
+    {
+      id: "le1",
+      person_ids: ["p1"],
+      encrypted_data: JSON.stringify({
+        title: "Graduated",
+        description: "Finished university",
+        category: "education",
+        approximate_date: "2002",
+        impact: 2,
+        tags: [],
+      }),
+    },
+  ]),
+  getClassifications: vi.fn().mockResolvedValue([
+    {
+      id: "cls1",
+      person_ids: ["p1"],
+      encrypted_data: JSON.stringify({
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "diagnosed",
+        diagnosis_year: 1995,
+        periods: [{ start_year: 1995, end_year: null }],
+        notes: null,
+      }),
+    },
+  ]),
   getPatterns: vi.fn().mockResolvedValue([
     {
       id: "pat1",
@@ -122,6 +148,28 @@ describe("useTreeData", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.events.size).toBe(1);
     expect(result.current.events.get("e1")?.title).toBe("Event");
+  });
+
+  it("decrypts and returns life events after loading", async () => {
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.lifeEvents.size).toBe(1);
+    const le = result.current.lifeEvents.get("le1");
+    expect(le?.title).toBe("Graduated");
+    expect(le?.person_ids).toEqual(["p1"]);
+  });
+
+  it("decrypts and returns classifications after loading", async () => {
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.classifications.size).toBe(1);
+    const cls = result.current.classifications.get("cls1");
+    expect(cls?.dsm_category).toBe("depressive");
+    expect(cls?.person_ids).toEqual(["p1"]);
   });
 
   it("decrypts and returns patterns after loading", async () => {

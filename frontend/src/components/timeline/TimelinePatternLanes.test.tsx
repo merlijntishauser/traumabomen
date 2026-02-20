@@ -126,6 +126,41 @@ describe("TimelinePatternLanes (horizontal)", () => {
     expect(container.querySelector("[data-testid='pattern-lanes']")).toBeNull();
   });
 
+  it("skips non-visible patterns in tints", () => {
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
+      ["pat2", makePattern("pat2", { person_ids: ["p2"], color: "#f472b6" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+        />
+      </svg>,
+    );
+    expect(container.querySelector("[data-testid='pattern-lane-pat1-p1']")).toBeTruthy();
+    expect(container.querySelector("[data-testid='pattern-lane-pat2-p2']")).toBeNull();
+  });
+
+  it("skips persons not in rows", () => {
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1", "unknown"], color: "#818cf8" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+        />
+      </svg>,
+    );
+    expect(container.querySelector("[data-testid='pattern-lane-pat1-p1']")).toBeTruthy();
+    expect(container.querySelector("[data-testid='pattern-lane-pat1-unknown']")).toBeNull();
+  });
+
   it("renders lane tints for involved persons", () => {
     const patterns = new Map([
       ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
@@ -331,6 +366,87 @@ describe("TimelinePatternLanes (vertical)", () => {
     const { container } = render(
       <svg>
         <TimelinePatternLanes {...baseProps} />
+      </svg>,
+    );
+    expect(container.querySelector("[data-testid='pattern-lanes']")).toBeNull();
+  });
+
+  it("calls onPatternHover on mouseenter/leave for vertical lanes", () => {
+    const onPatternHover = vi.fn();
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+          onPatternHover={onPatternHover}
+        />
+      </svg>,
+    );
+    const lane = container.querySelector("[data-testid='pattern-lane-pat1-p1']");
+    fireEvent.mouseEnter(lane!);
+    expect(onPatternHover).toHaveBeenCalledWith("pat1");
+    fireEvent.mouseLeave(lane!);
+    expect(onPatternHover).toHaveBeenCalledWith(null);
+  });
+
+  it("calls onPatternClick when vertical lane tint is clicked", () => {
+    const onPatternClick = vi.fn();
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+          onPatternClick={onPatternClick}
+        />
+      </svg>,
+    );
+    const lane = container.querySelector("[data-testid='pattern-lane-pat1-p1']");
+    fireEvent.click(lane!);
+    expect(onPatternClick).toHaveBeenCalledWith("pat1");
+  });
+
+  it("increases opacity on hover for vertical lanes", () => {
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+          hoveredPatternId="pat1"
+        />
+      </svg>,
+    );
+    const lane = container.querySelector("[data-testid='pattern-lane-pat1-p1']");
+    expect(lane?.getAttribute("fill-opacity")).toBe("0.14");
+  });
+});
+
+describe("TimelinePatternLanes (fallback)", () => {
+  it("returns null when direction is horizontal but no rows are provided", () => {
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+          hoveredPatternId={null}
+          onPatternHover={vi.fn()}
+          onPatternClick={vi.fn()}
+          direction="horizontal"
+        />
       </svg>,
     );
     expect(container.querySelector("[data-testid='pattern-lanes']")).toBeNull();

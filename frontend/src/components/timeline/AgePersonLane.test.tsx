@@ -8,6 +8,8 @@ import type {
 } from "../../hooks/useTreeData";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import { AgePersonLane } from "./AgePersonLane";
+import type { PatternRingsMap } from "./TimelinePatternLanes";
+import { MARKER_RADIUS } from "./timelineHelpers";
 
 // ---- Mocks ----
 
@@ -976,5 +978,275 @@ describe("AgePersonLane", () => {
 
     const circle = container.querySelector("circle");
     expect(circle?.closest("g[opacity]")?.getAttribute("opacity")).toBe("0.15");
+  });
+
+  it("renders pattern rings on trauma event markers", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const patternRings: PatternRingsMap = new Map([
+      [
+        "trauma_event:e1",
+        [
+          { patternId: "pat1", color: "#ff0000" },
+          { patternId: "pat2", color: "#00ff00" },
+        ],
+      ],
+    ]);
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} patternRings={patternRings} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-pattern-ring");
+    expect(rings).toHaveLength(2);
+    // First ring
+    expect(rings[0].getAttribute("stroke")).toBe("#ff0000");
+    expect(rings[0].getAttribute("r")).toBe(String(MARKER_RADIUS + 2));
+    // Second ring with increasing radius
+    expect(rings[1].getAttribute("stroke")).toBe("#00ff00");
+    expect(rings[1].getAttribute("r")).toBe(String(MARKER_RADIUS + 2 + 2));
+  });
+
+  it("renders pattern rings on life event markers", () => {
+    const props = makeBaseProps();
+    props.lifeEvents = [
+      {
+        id: "le1",
+        person_ids: ["p1"],
+        title: "Career move",
+        description: "",
+        category: LifeEventCategory.Career,
+        approximate_date: "1995",
+        impact: 3,
+        tags: [],
+      },
+    ];
+
+    const patternRings: PatternRingsMap = new Map([
+      [
+        "life_event:le1",
+        [
+          { patternId: "pat1", color: "#aa00aa" },
+          { patternId: "pat2", color: "#00aaaa" },
+        ],
+      ],
+    ]);
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} patternRings={patternRings} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-pattern-ring");
+    expect(rings).toHaveLength(2);
+    expect(rings[0].getAttribute("stroke")).toBe("#aa00aa");
+    expect(rings[0].getAttribute("r")).toBe(String(MARKER_RADIUS + 2));
+    expect(rings[1].getAttribute("stroke")).toBe("#00aaaa");
+    expect(rings[1].getAttribute("r")).toBe(String(MARKER_RADIUS + 2 + 2));
+  });
+
+  it("renders pattern rings on classification diagnosis triangle markers", () => {
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "diagnosed",
+        diagnosis_year: 2005,
+        periods: [{ start_year: 2000, end_year: 2010 }],
+        notes: null,
+      },
+    ];
+
+    const patternRings: PatternRingsMap = new Map([
+      [
+        "classification:c1",
+        [
+          { patternId: "pat1", color: "#1122cc" },
+          { patternId: "pat2", color: "#cc2211" },
+          { patternId: "pat3", color: "#33dd33" },
+        ],
+      ],
+    ]);
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} patternRings={patternRings} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-pattern-ring");
+    expect(rings).toHaveLength(3);
+    expect(rings[0].getAttribute("stroke")).toBe("#1122cc");
+    expect(rings[0].getAttribute("r")).toBe(String(MARKER_RADIUS + 2));
+    expect(rings[1].getAttribute("stroke")).toBe("#cc2211");
+    expect(rings[1].getAttribute("r")).toBe(String(MARKER_RADIUS + 2 + 2));
+    expect(rings[2].getAttribute("stroke")).toBe("#33dd33");
+    expect(rings[2].getAttribute("r")).toBe(String(MARKER_RADIUS + 2 + 4));
+  });
+
+  it("does not render pattern rings when patternRings is undefined", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-pattern-ring");
+    expect(rings).toHaveLength(0);
+  });
+
+  it("does not render pattern rings when entity has no matching rings", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+    ];
+
+    const patternRings: PatternRingsMap = new Map([
+      ["trauma_event:other_id", [{ patternId: "pat1", color: "#ff0000" }]],
+    ]);
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} patternRings={patternRings} />
+      </svg>,
+    );
+
+    const rings = container.querySelectorAll(".tl-pattern-ring");
+    expect(rings).toHaveLength(0);
+  });
+
+  it("hides trauma markers when dimmed and filterMode is hide", () => {
+    const props = makeBaseProps();
+    props.events = [
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        title: "Trauma",
+        description: "",
+        category: TraumaCategory.Loss,
+        approximate_date: "2000",
+        severity: 5,
+        tags: [],
+      },
+      {
+        id: "e2",
+        person_ids: ["p1"],
+        title: "Trauma 2",
+        description: "",
+        category: TraumaCategory.Abuse,
+        approximate_date: "2005",
+        severity: 3,
+        tags: [],
+      },
+    ];
+    props.dims = {
+      dimmedEventIds: new Set(["e1"]),
+      dimmedLifeEventIds: new Set(),
+      dimmedClassificationIds: new Set(),
+    };
+    props.filterMode = "hide";
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+    const circles = container.querySelectorAll("circle.tl-marker");
+    expect(circles).toHaveLength(1);
+  });
+
+  it("hides life event markers when dimmed and filterMode is hide", () => {
+    const props = makeBaseProps();
+    props.lifeEvents = [
+      {
+        id: "le1",
+        person_ids: ["p1"],
+        title: "Career",
+        description: "",
+        category: LifeEventCategory.Career,
+        approximate_date: "2005",
+        impact: 3,
+        tags: [],
+      },
+    ];
+    props.dims = {
+      dimmedEventIds: new Set(),
+      dimmedLifeEventIds: new Set(["le1"]),
+      dimmedClassificationIds: new Set(),
+    };
+    props.filterMode = "hide";
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+    const diamonds = container.querySelectorAll("rect[transform]");
+    expect(diamonds).toHaveLength(0);
+  });
+
+  it("skips life event markers with non-numeric dates", () => {
+    const props = makeBaseProps();
+    props.lifeEvents = [
+      {
+        id: "le1",
+        person_ids: ["p1"],
+        title: "Vague",
+        description: "",
+        category: LifeEventCategory.Career,
+        approximate_date: "circa 2000",
+        impact: 3,
+        tags: [],
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+    const diamonds = container.querySelectorAll("rect[transform]");
+    expect(diamonds).toHaveLength(0);
   });
 });

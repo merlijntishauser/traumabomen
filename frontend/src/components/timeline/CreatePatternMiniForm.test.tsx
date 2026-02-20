@@ -111,4 +111,17 @@ describe("CreatePatternMiniForm", () => {
     expect(dots[0].className).toContain("--selected");
     expect(dots[1].className).not.toContain("--selected");
   });
+
+  it("handleSubmit guards against empty name even if button click bypasses disabled", () => {
+    const onSubmit = vi.fn();
+    render(<CreatePatternMiniForm {...defaultProps} onSubmit={onSubmit} />);
+
+    // The create button is disabled when name is empty, but we force-dispatch
+    // a click event on the DOM element to exercise the guard in handleSubmit.
+    const createBtn = screen.getByText("timeline.createPattern");
+    createBtn.removeAttribute("disabled");
+    fireEvent.click(createBtn);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 });

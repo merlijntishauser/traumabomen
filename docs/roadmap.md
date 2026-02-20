@@ -6,14 +6,6 @@ The app is strong on mapping and visualization (tree canvas, timeline, DSM class
 
 Priority should shift toward features that turn the tree from a diagram into a living reflection tool. Resilience tracking and a reflection journal are the highest-impact additions for the core "personal reflection" use case. Infrastructure features (passkeys, auth modals) are valuable polish but secondary to the reflection mission.
 
-## Planned -- Beta readiness (immediate)
-
-### 1. Beta waitlist and user cap
-
-Configurable user cap (default 20) with email-only waitlist. When the cap is reached, new visitors join a waitlist by submitting their email. Admin approves from the dashboard, triggering an invitation email with a registration link. Controlled by `ENABLE_WAITLIST` and `MAX_ACTIVE_USERS` environment variables.
-
-See [design doc](plans/2026-02-17-beta-waitlist-design.md).
-
 ## Planned -- Reflection (high priority)
 
 ### 2. Resilience and strengths layer
@@ -54,17 +46,6 @@ Read-only overview page per tree that surfaces basic observations from what the 
 - Not AI analysis -- counting and grouping, presented as a reflection starting point
 
 ## Planned -- Features (medium priority)
-
-### 6. Timeline view refinement
-
-The timeline view needs significant work to become a useful reflection tool rather than just a data display.
-
-- Layout and spacing improvements for readability
-- Better visual hierarchy between generations
-- Pattern overlays on the timeline (connecting related events visually)
-- Interaction improvements (click-to-select, hover detail, zoom/pan)
-- Responsive behavior for different tree sizes
-- Visual connection between timeline markers and the canvas view
 
 ### 7. Care providers
 
@@ -111,6 +92,14 @@ See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
 ## Done
 
+### Beta waitlist and user cap
+
+Configurable user cap with email-only waitlist. Admin approves from dashboard, triggering invitation emails. Controlled by `ENABLE_WAITLIST` and `MAX_ACTIVE_USERS` environment variables. [Design doc](plans/2026-02-17-beta-waitlist-design.md).
+
+### Timeline view refinement
+
+Full timeline redesign: dual-axis modes (years and age), three interaction layers (explore, edit, annotate), comprehensive filtering with smart person groups, pattern visualization (lane tints, marker rings, inline labels), partner relationship lines, zoom/pan, marker labels, gridlines, and timeline-specific settings panel. [Design docs](plans/2026-02-18-timeline-redesign-design.md), [pattern redesign](plans/2026-02-20-timeline-pattern-redesign.md), [settings](plans/2026-02-19-timeline-settings-design.md).
+
 ### In-app feedback form
 
 Structured feedback (bug, feature, general) via modal in the footer. Stored in database, shown in admin dashboard with category badges, email notification to configurable address. Anonymous submission option. [Design doc](plans/2026-02-17-feedback-form-design.md).
@@ -137,8 +126,6 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Import from major genealogy software
 - List of mental health organizations per country
 - Questionnaires for family members (no account needed, answers feed into the tree)
-- canvas tools, zooming in/out, panning
-- filtering show/hide entity types
 
 ### Improvements
 - Unknown birth year with approximation (before year, or decade)

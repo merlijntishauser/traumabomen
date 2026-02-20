@@ -418,6 +418,67 @@ describe("PatternPanel", () => {
     );
   });
 
+  it("cancel button on existing pattern edit form collapses the form", () => {
+    const patterns = new Map<string, DecryptedPattern>([["pat1", mockPattern]]);
+    renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]) });
+
+    // Expand the pattern
+    fireEvent.click(screen.getByText("Test Pattern"));
+    expect(screen.getByTestId("pattern-name-input")).toBeInTheDocument();
+
+    // Click cancel
+    fireEvent.click(screen.getByText("common.cancel"));
+
+    // Edit form should be collapsed
+    expect(screen.queryByTestId("pattern-name-input")).not.toBeInTheDocument();
+  });
+
+  it("typing in the description textarea updates the value", () => {
+    const patterns = new Map<string, DecryptedPattern>([["pat1", mockPattern]]);
+    const props = renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]) });
+
+    // Expand the pattern
+    fireEvent.click(screen.getByText("Test Pattern"));
+
+    // Find the textarea (description field) and type in it
+    const textarea = screen.getByDisplayValue("A test");
+    fireEvent.change(textarea, { target: { value: "Updated description" } });
+    expect(textarea).toHaveValue("Updated description");
+
+    // Save and verify the description is included
+    fireEvent.click(screen.getByText("common.save"));
+    expect(props.onSave).toHaveBeenCalledWith(
+      "pat1",
+      expect.objectContaining({ description: "Updated description" }),
+      expect.any(Array),
+    );
+  });
+
+  it("selecting a different color swatch updates the pattern color", () => {
+    const patterns = new Map<string, DecryptedPattern>([["pat1", mockPattern]]);
+    const props = renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]) });
+
+    // Expand the pattern
+    fireEvent.click(screen.getByText("Test Pattern"));
+
+    // Find the color swatches and click a different one
+    const swatches = screen.getAllByRole("button", { name: /^#/ });
+    // Click a swatch that is NOT the current color (#818cf8)
+    const differentSwatch = swatches.find((s) => s.getAttribute("aria-label") !== "#818cf8");
+    expect(differentSwatch).toBeTruthy();
+    fireEvent.click(differentSwatch!);
+
+    // Save and verify the color changed
+    fireEvent.click(screen.getByText("common.save"));
+    expect(props.onSave).toHaveBeenCalledWith(
+      "pat1",
+      expect.objectContaining({
+        color: differentSwatch!.getAttribute("aria-label"),
+      }),
+      expect.any(Array),
+    );
+  });
+
   it("link picker shows life events and classifications", () => {
     const lifeEventsWithData = new Map<string, DecryptedLifeEvent>([
       [
@@ -481,5 +542,33 @@ describe("PatternPanel", () => {
     const linkSection = document.querySelector(".pattern-panel__link-section")!;
     expect(within(linkSection as HTMLElement).getByText("Relocated")).toBeInTheDocument();
     expect(within(linkSection as HTMLElement).getByText("dsm.anxiety")).toBeInTheDocument();
+  });
+
+  it("calls onHoverPattern on mouseenter/leave of pattern item", () => {
+    const onHoverPattern = vi.fn();
+    const patterns = new Map<string, DecryptedPattern>([[mockPattern.id, mockPattern]]);
+    renderPanel({
+      patterns,
+      visiblePatternIds: new Set([mockPattern.id]),
+      onHoverPattern,
+    });
+
+    const item = document.querySelector(".pattern-panel__item")!;
+    fireEvent.mouseEnter(item);
+    expect(onHoverPattern).toHaveBeenCalledWith(mockPattern.id);
+    fireEvent.mouseLeave(item);
+    expect(onHoverPattern).toHaveBeenCalledWith(null);
+  });
+
+  it("cancel button on new pattern form hides the form", () => {
+    renderPanel();
+
+    // Click "New pattern" button
+    fireEvent.click(screen.getByText("pattern.newPattern"));
+    expect(screen.getByTestId("pattern-name-input")).toBeInTheDocument();
+
+    // Click cancel
+    fireEvent.click(screen.getByText("common.cancel"));
+    expect(screen.queryByTestId("pattern-name-input")).not.toBeInTheDocument();
   });
 });

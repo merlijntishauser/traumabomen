@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
+  acknowledgeOnboarding,
   approveWaitlistEntry,
   changePassword,
   clearTokens,
@@ -40,6 +41,7 @@ import {
   getIsAdmin,
   getLifeEvent,
   getLifeEvents,
+  getOnboardingFlag,
   getPattern,
   getPatterns,
   getPerson,
@@ -263,6 +265,41 @@ describe("apiFetch behaviour", () => {
       expect((err as ApiError).status).toBe(409);
     }
   });
+
+  it("falls back to statusText when error response body is not valid JSON", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      statusText: "Bad Gateway",
+      json: () => Promise.reject(new SyntaxError("Unexpected token")),
+    });
+
+    try {
+      await getTrees();
+      expect.unreachable("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ApiError);
+      expect((err as ApiError).status).toBe(502);
+      expect((err as ApiError).detail).toBe("Bad Gateway");
+    }
+  });
+
+  it("uses statusText when error body JSON has no detail field", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockResponse({ message: "something else" }, 500));
+
+    try {
+      await getTrees();
+      expect.unreachable("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ApiError);
+      expect((err as ApiError).status).toBe(500);
+      // detail field is absent in the error body, so the nullish coalescing
+      // falls back to statusText
+      expect((err as ApiError).detail).toBe("Error");
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -388,6 +425,49 @@ describe("auth functions", () => {
 
   it("getIsAdmin returns false when no token exists", () => {
     expect(getIsAdmin()).toBe(false);
+  });
+
+  it("getIsAdmin returns false when token is malformed (not valid base64/JSON)", () => {
+    // A token that is not a valid JWT structure at all
+    setTokens("not-a-jwt", "ref");
+    expect(getIsAdmin()).toBe(false);
+  });
+
+  it("getIsAdmin returns false when token payload is not valid JSON", () => {
+    // Construct a token where the payload part is invalid base64/JSON
+    const header = btoa(JSON.stringify({ alg: "HS256" }));
+    setTokens(`${header}.!!!invalid-base64!!!.sig`, "ref");
+    expect(getIsAdmin()).toBe(false);
+  });
+
+  it("login stores onboarding flag from response", async () => {
+    const resp = {
+      access_token: "login-at",
+      refresh_token: "login-rt",
+      token_type: "bearer",
+      encryption_salt: "salt",
+      onboarding_safety_acknowledged: true,
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(resp));
+
+    await login({ email: "a@b.com", password: DUMMY_PASS });
+
+    expect(localStorage.getItem("traumabomen_onboarding_acknowledged")).toBe("true");
+  });
+
+  it("login stores onboarding flag as false when not acknowledged", async () => {
+    const resp = {
+      access_token: "login-at",
+      refresh_token: "login-rt",
+      token_type: "bearer",
+      encryption_salt: "salt",
+      onboarding_safety_acknowledged: false,
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(resp));
+
+    await login({ email: "a@b.com", password: DUMMY_PASS });
+
+    expect(localStorage.getItem("traumabomen_onboarding_acknowledged")).toBe("false");
   });
 });
 
@@ -1320,5 +1400,31 @@ describe("waitlist functions", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/admin/waitlist/capacity");
     expect(init.method).toBe("GET");
+  });
+
+  it("getOnboardingFlag returns true when localStorage value is 'true'", () => {
+    localStorage.setItem("traumabomen_onboarding_acknowledged", "true");
+    expect(getOnboardingFlag()).toBe(true);
+  });
+
+  it("getOnboardingFlag returns false when localStorage value is absent", () => {
+    localStorage.removeItem("traumabomen_onboarding_acknowledged");
+    expect(getOnboardingFlag()).toBe(false);
+  });
+
+  it("acknowledgeOnboarding calls PUT and sets onboarding flag", async () => {
+    localStorage.setItem("access_token", "test-token");
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    } as Response);
+
+    await acknowledgeOnboarding();
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/auth/onboarding",
+      expect.objectContaining({ method: "PUT" }),
+    );
+    expect(localStorage.getItem("traumabomen_onboarding_acknowledged")).toBe("true");
   });
 });

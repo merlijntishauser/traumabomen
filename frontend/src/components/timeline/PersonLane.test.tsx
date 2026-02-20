@@ -666,6 +666,55 @@ describe("PersonLane", () => {
       expect(onToggleEntitySelect).toHaveBeenCalledWith("trauma_event:e1");
     });
 
+    it("calls onToggleEntitySelect on life event diamond click in annotate mode", () => {
+      const onToggleEntitySelect = vi.fn();
+      const lifeEvents = [makeLifeEvent("le1", ["a"])];
+      const { container } = renderLane({
+        lifeEvents,
+        mode: "annotate",
+        onToggleEntitySelect,
+      });
+      const diamond = container.querySelector("rect[transform]")!;
+      fireEvent.click(diamond);
+      expect(onToggleEntitySelect).toHaveBeenCalledWith("life_event:le1");
+    });
+
+    it("calls onClickMarker on classification strip click in explore mode", () => {
+      const onClickMarker = vi.fn();
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          status: "diagnosed",
+          diagnosis_year: 2005,
+          periods: [{ start_year: 2000, end_year: 2010 }],
+        }),
+      ];
+      const { container } = renderLane({
+        classifications,
+        mode: "explore",
+        onClickMarker,
+      });
+      const strip = container.querySelector("rect.tl-marker")!;
+      fireEvent.click(strip);
+      expect(onClickMarker).toHaveBeenCalledWith(
+        expect.objectContaining({ entityType: "classification", entityId: "c1" }),
+      );
+    });
+
+    it("calls onClickMarker on life event diamond click in explore mode", () => {
+      const onClickMarker = vi.fn();
+      const lifeEvents = [makeLifeEvent("le1", ["a"])];
+      const { container } = renderLane({
+        lifeEvents,
+        mode: "explore",
+        onClickMarker,
+      });
+      const diamond = container.querySelector("rect[transform]")!;
+      fireEvent.click(diamond);
+      expect(onClickMarker).toHaveBeenCalledWith(
+        expect.objectContaining({ entityType: "life_event", entityId: "le1" }),
+      );
+    });
+
     it("does not call onClickMarker in annotate mode", () => {
       const onClickMarker = vi.fn();
       const events = [makeEvent("e1", ["a"])];
