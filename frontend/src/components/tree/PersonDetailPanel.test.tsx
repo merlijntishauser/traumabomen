@@ -127,6 +127,68 @@ describe("PersonDetailPanel", () => {
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Alice");
   });
 
+  it("renders birth and death years in header", () => {
+    const props = defaultProps();
+    props.person = makePerson({ birth_year: 1950, death_year: 2020 });
+    render(<PersonDetailPanel {...props} />);
+    expect(screen.getByText("1950 - 2020")).toBeInTheDocument();
+  });
+
+  it("renders birth year with dash when still alive", () => {
+    const props = defaultProps();
+    render(<PersonDetailPanel {...props} />);
+    expect(screen.getByText("1960 -")).toBeInTheDocument();
+  });
+
+  it("does not render years when birth year is null", () => {
+    const props = defaultProps();
+    props.person = makePerson({ birth_year: null });
+    render(<PersonDetailPanel {...props} />);
+    expect(screen.queryByText(/-/)).not.toBeInTheDocument();
+  });
+
+  it("renders tab bar with 5 tabs", () => {
+    render(<PersonDetailPanel {...defaultProps()} />);
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(5);
+  });
+
+  it("shows person tab as active by default", () => {
+    render(<PersonDetailPanel {...defaultProps()} />);
+    const personTab = screen.getByRole("tab", { name: /person.details/ });
+    expect(personTab).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("shows count badges on tabs with items", () => {
+    const props = defaultProps();
+    props.events = [makeEvent()];
+    props.lifeEvents = [makeLifeEvent()];
+    props.classifications = [makeClassification()];
+    const bob = makePerson({ id: "p2", name: "Bob" });
+    props.allPersons.set("p2", bob);
+    props.relationships = [makeRelationship()];
+    render(<PersonDetailPanel {...props} />);
+
+    // Relationships tab should show count 1
+    const relsTab = screen.getByRole("tab", { name: /relationship.relationships/ });
+    expect(relsTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
+
+    // Trauma tab should show count 1
+    const traumaTab = screen.getByRole("tab", { name: /trauma.events/ });
+    expect(traumaTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
+  });
+
+  it("maps initialSection to correct tab", () => {
+    const props = defaultProps();
+    props.events = [makeEvent()];
+    render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
+
+    const traumaTab = screen.getByRole("tab", { name: /trauma.events/ });
+    expect(traumaTab).toHaveAttribute("aria-selected", "true");
+    // Trauma content should be visible
+    expect(screen.getByText("Test Event")).toBeInTheDocument();
+  });
+
   it("calls onClose when close button is clicked", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
@@ -140,21 +202,21 @@ describe("PersonDetailPanel", () => {
     expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
   });
 
-  it("has relationships section collapsed by default", () => {
+  it("does not show relationship content when person tab is active", () => {
     const props = defaultProps();
     props.relationships = [makeRelationship()];
     render(<PersonDetailPanel {...props} />);
     expect(screen.queryByText("relationship.type.partner")).not.toBeInTheDocument();
   });
 
-  it("has events section collapsed by default", () => {
+  it("does not show trauma content when person tab is active", () => {
     const props = defaultProps();
     props.events = [makeEvent()];
     render(<PersonDetailPanel {...props} />);
     expect(screen.queryByText("Test Event")).not.toBeInTheDocument();
   });
 
-  it("toggles relationships section on click", async () => {
+  it("switches to relationships tab on click", async () => {
     const user = userEvent.setup();
     const bob = makePerson({ id: "p2", name: "Bob" });
     const props = defaultProps();
@@ -162,17 +224,17 @@ describe("PersonDetailPanel", () => {
     props.relationships = [makeRelationship()];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/relationship.relationships/));
+    await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
     expect(screen.getByText("Bob")).toBeInTheDocument();
   });
 
-  it("toggles events section on click", async () => {
+  it("switches to trauma tab on click", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
     props.events = [makeEvent()];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     expect(screen.getByText("Test Event")).toBeInTheDocument();
   });
 
@@ -207,7 +269,7 @@ describe("PersonDetailPanel", () => {
     const props = defaultProps();
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     await user.click(screen.getByText("trauma.newEvent"));
 
     expect(screen.getByText("trauma.title")).toBeInTheDocument();
@@ -218,7 +280,7 @@ describe("PersonDetailPanel", () => {
     const props = defaultProps();
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     await user.click(screen.getByText("trauma.newEvent"));
 
     const titleInput = screen.getByRole("textbox", { name: /trauma.title/i });
@@ -241,7 +303,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     await user.click(screen.getByText("common.edit"));
 
     const checkboxes = screen.getAllByRole("checkbox");
@@ -264,7 +326,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     await user.click(screen.getByText("common.edit"));
 
     const checkboxes = screen.getAllByRole("checkbox");
@@ -286,7 +348,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/trauma.events/));
+    await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
     await user.click(screen.getByText("common.edit"));
 
     // Both should be checked
@@ -382,12 +444,12 @@ describe("PersonDetailPanel", () => {
       expect(screen.getByDisplayValue("2010")).toBeInTheDocument();
     });
 
-    it("collapses person section on toggle click", async () => {
+    it("hides person form when switching to another tab", async () => {
       const user = userEvent.setup();
       render(<PersonDetailPanel {...defaultProps()} />);
 
       expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
-      await user.click(screen.getByText(/person.details/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.queryByDisplayValue("Alice")).not.toBeInTheDocument();
     });
   });
@@ -606,7 +668,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       const { container } = render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       const emptyMsg = container.querySelector(".detail-panel__empty");
       expect(emptyMsg).toBeTruthy();
       expect(emptyMsg?.textContent).toBe("---");
@@ -624,7 +686,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("relationship.type.exPartner")).toBeInTheDocument();
     });
 
@@ -642,7 +704,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("relationship.childOf.biological_parent")).toBeInTheDocument();
     });
 
@@ -660,7 +722,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("relationship.type.step_parent")).toBeInTheDocument();
     });
 
@@ -676,7 +738,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText(/relationship.status.married.*2000/)).toBeInTheDocument();
     });
 
@@ -692,7 +754,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("relationship.type.half_sibling")).toBeInTheDocument();
       expect(screen.getByText("Bob")).toBeInTheDocument();
       expect(screen.getByText(/relationship.viaParent/)).toBeInTheDocument();
@@ -717,7 +779,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("relationship.type.full_sibling")).toBeInTheDocument();
       expect(screen.getByText("Bob")).toBeInTheDocument();
     });
@@ -734,7 +796,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("Bob")).toBeInTheDocument();
       expect(screen.getByText("relationship.type.half_sibling")).toBeInTheDocument();
     });
@@ -746,7 +808,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       expect(screen.getByText("?")).toBeInTheDocument();
     });
   });
@@ -760,7 +822,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Period editor should be visible with status select
@@ -775,7 +837,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("common.save"));
 
@@ -798,7 +860,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -815,7 +877,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Should have 1 period (default), add another
@@ -850,7 +912,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Should see 2 remove buttons
@@ -878,7 +940,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       const statusSelect = screen.getByDisplayValue("relationship.status.together");
@@ -902,7 +964,7 @@ describe("PersonDetailPanel", () => {
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       expect(screen.queryByText("relationship.removePeriod")).not.toBeInTheDocument();
@@ -920,7 +982,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       const startYearInput = screen.getByDisplayValue("2000");
@@ -948,7 +1010,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Find the end year input within the period editor (next to the "common.endYear" label)
@@ -978,7 +1040,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/relationship.relationships/));
+      await user.click(screen.getByRole("tab", { name: /relationship.relationships/ }));
       await user.click(screen.getByText("common.edit"));
 
       const endYearInput = screen.getByDisplayValue("2010");
@@ -1002,7 +1064,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/trauma.events/));
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Form should be visible
@@ -1020,7 +1082,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/trauma.events/));
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
       await user.click(screen.getByText("trauma.newEvent"));
 
       expect(screen.getByText("trauma.title")).toBeInTheDocument();
@@ -1037,7 +1099,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/trauma.events/));
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
       await user.click(screen.getByText("common.edit"));
 
       // First click shows confirmation
@@ -1056,7 +1118,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ approximate_date: "1990" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/trauma.events/));
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
       expect(screen.getByText("1990")).toBeInTheDocument();
     });
 
@@ -1065,7 +1127,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/trauma.events/));
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
       await user.click(screen.getByText("trauma.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /trauma.title/i }), {
@@ -1101,21 +1163,126 @@ describe("PersonDetailPanel", () => {
     });
   });
 
-  describe("life events section", () => {
-    it("has life events section collapsed by default", () => {
+  describe("trauma event card display", () => {
+    it("shows category pill with translated category name", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ category: TraumaCategory.Abuse })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.getByText("trauma.category.abuse")).toBeInTheDocument();
+      const pill = screen.getByText("trauma.category.abuse");
+      expect(pill).toHaveClass("detail-panel__category-pill");
+    });
+
+    it("shows severity bar with correct filled count", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: 7 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      const severityBar = screen.getByLabelText("7/10");
+      expect(severityBar).toBeInTheDocument();
+      const dots = severityBar.querySelectorAll(".detail-panel__severity-dot");
+      expect(dots).toHaveLength(10);
+    });
+
+    it("does not show severity bar when severity is 0", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: 0 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("does not show severity bar when severity is undefined", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: undefined as unknown as number })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("shows date on the first row next to title", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ approximate_date: "1992" })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      const dateEl = screen.getByText("1992");
+      expect(dateEl).toHaveClass("detail-panel__event-card-date");
+    });
+  });
+
+  describe("life event card display", () => {
+    it("shows category pill with translated category name", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ category: LifeEventCategory.Education })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.getByText("lifeEvent.category.education")).toBeInTheDocument();
+      const pill = screen.getByText("lifeEvent.category.education");
+      expect(pill).toHaveClass("detail-panel__category-pill");
+    });
+
+    it("shows impact bar with correct filled count", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: 4 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      const impactBar = screen.getByLabelText("4/10");
+      expect(impactBar).toBeInTheDocument();
+      const dots = impactBar.querySelectorAll(".detail-panel__severity-dot");
+      expect(dots).toHaveLength(10);
+    });
+
+    it("does not show impact bar when impact is 0", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: 0 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("does not show impact bar when impact is null", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: null })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe("life events tab", () => {
+    it("does not show life event content when person tab is active", () => {
       const props = defaultProps();
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
       expect(screen.queryByText("Graduation")).not.toBeInTheDocument();
     });
 
-    it("toggles life events section on click", async () => {
+    it("shows life events when tab is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       expect(screen.getByText("Graduation")).toBeInTheDocument();
     });
 
@@ -1125,7 +1292,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ approximate_date: "2005" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       expect(screen.getByText("2005")).toBeInTheDocument();
     });
 
@@ -1134,7 +1301,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
@@ -1145,7 +1312,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
@@ -1165,7 +1332,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
@@ -1206,7 +1373,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Title should be pre-filled
@@ -1231,7 +1398,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1245,7 +1412,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("common.edit"));
 
       await user.click(screen.getByText("common.delete"));
@@ -1261,7 +1428,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/lifeEvent.events/));
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
       await user.click(screen.getByText("lifeEvent.newEvent"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1269,21 +1436,21 @@ describe("PersonDetailPanel", () => {
     });
   });
 
-  describe("classifications section", () => {
-    it("has classifications section collapsed by default", () => {
+  describe("classifications tab", () => {
+    it("does not show classification content when person tab is active", () => {
       const props = defaultProps();
       props.classifications = [makeClassification()];
       render(<PersonDetailPanel {...props} />);
       expect(screen.queryByText("dsm.anxiety")).not.toBeInTheDocument();
     });
 
-    it("toggles classifications section on click", async () => {
+    it("shows classifications when tab is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.classifications = [makeClassification()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
     });
 
@@ -1298,7 +1465,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       expect(screen.getByText(/classification.status.diagnosed.*2015/)).toBeInTheDocument();
     });
 
@@ -1313,7 +1480,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       expect(screen.getByText(/dsm.neurodevelopmental.*dsm.sub.adhd/)).toBeInTheDocument();
     });
 
@@ -1322,7 +1489,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       expect(screen.getByText("classification.category")).toBeInTheDocument();
@@ -1333,7 +1500,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       await user.click(screen.getByText("common.save"));
@@ -1354,7 +1521,7 @@ describe("PersonDetailPanel", () => {
       props.classifications = [makeClassification()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Form should be visible
@@ -1375,7 +1542,7 @@ describe("PersonDetailPanel", () => {
       props.classifications = [makeClassification()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1388,7 +1555,7 @@ describe("PersonDetailPanel", () => {
       props.classifications = [makeClassification()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("common.edit"));
 
       await user.click(screen.getByText("common.delete"));
@@ -1404,7 +1571,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1416,7 +1583,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Switch to diagnosed
@@ -1448,7 +1615,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       const notesTextarea = screen.getByRole("textbox", {
@@ -1469,7 +1636,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Add a period
@@ -1498,7 +1665,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Change category to depressive
@@ -1519,7 +1686,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // The select should contain subcategory options (e.g. ADHD under neurodevelopmental)
@@ -1534,7 +1701,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Type search text - since t() returns the key, search for "anxiety"
@@ -1553,7 +1720,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Add a period
@@ -1580,7 +1747,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Add a period
@@ -1612,7 +1779,7 @@ describe("PersonDetailPanel", () => {
       ];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("common.edit"));
 
       // Clear the end_year
@@ -1637,7 +1804,7 @@ describe("PersonDetailPanel", () => {
       props.allPersons.set("p2", bob);
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByText(/classification.classifications/));
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
       // Find and check Bob's checkbox
