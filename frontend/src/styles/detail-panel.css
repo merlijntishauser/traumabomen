@@ -54,3 +54,37 @@
   padding: 12px;
   border-top: 1px solid var(--color-border-primary);
 }
+
+/* Person link field */
+.detail-panel__person-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.detail-panel__person-link-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.detail-panel__person-link-names {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.detail-panel__person-link-expand {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.detail-panel__person-link-expand:hover {
+  text-decoration: underline;
+}
