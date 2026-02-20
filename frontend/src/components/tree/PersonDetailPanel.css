@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 440px;
+  width: 480px;
   height: 100%;
   background: var(--color-bg-secondary);
   border-left: 1px solid var(--color-border-primary);
@@ -50,6 +50,7 @@
   border-bottom: 1px solid var(--color-border-primary);
   background: var(--color-bg-secondary);
   padding: 0 8px;
+  overflow-x: auto;
 }
 
 .detail-panel__tab {
@@ -67,6 +68,8 @@
     color 0.15s ease,
     border-color 0.15s ease;
   position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .detail-panel__tab:hover {
