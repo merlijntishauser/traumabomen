@@ -16,7 +16,7 @@ import { getTraumaColors } from "../../lib/traumaColors";
 import { capPeriodsAtDeath, RelationshipType } from "../../types/domain";
 import { PartnerLine } from "./PartnerLine";
 import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
-import { TimelinePatternArcs } from "./TimelinePatternArcs";
+import { computePatternRings, TimelinePatternLanes } from "./TimelinePatternLanes";
 import type { TooltipState } from "./TimelineTooltip";
 import { TimelineZoomControls } from "./TimelineZoomControls";
 import {
@@ -142,6 +142,12 @@ export function TimelineYearsContent({
 
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
+
+  const patternRings = useMemo(
+    () =>
+      patterns && visiblePatternIds ? computePatternRings(patterns, visiblePatternIds) : undefined,
+    [patterns, visiblePatternIds],
+  );
 
   const {
     rescaled: rescaledX,
@@ -333,20 +339,15 @@ export function TimelineYearsContent({
         <g clipPath="url(#timeline-clip)">
           <g ref={zoomGroupRef} className="tl-time">
             {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-              <TimelinePatternArcs
+              <TimelinePatternLanes
                 patterns={patterns}
                 visiblePatternIds={visiblePatternIds}
-                events={events}
-                lifeEvents={lifeEvents}
-                classifications={classifications}
-                persons={persons}
-                direction="horizontal"
-                coordScale={xScale}
-                rows={rows}
-                totalHeight={totalHeight}
                 hoveredPatternId={hoveredPatternId ?? null}
                 onPatternHover={onPatternHover}
                 onPatternClick={onPatternClick}
+                direction="horizontal"
+                rows={rows}
+                rowHeight={ROW_HEIGHT}
               />
             )}
             {rows.map((row) => {
@@ -383,6 +384,7 @@ export function TimelineYearsContent({
                   showMarkerLabels={showMarkerLabels}
                   selectedEntityKeys={selectedEntityKeys}
                   onToggleEntitySelect={onToggleEntitySelect}
+                  patternRings={patternRings}
                 />
               );
             })}

@@ -17,7 +17,7 @@ import { capPeriodsAtDeath, type PartnerStatus, RelationshipType } from "../../t
 import { AgePartnerLine } from "./AgePartnerLine";
 import { AgePersonLane } from "./AgePersonLane";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
-import { TimelinePatternArcs } from "./TimelinePatternArcs";
+import { computePatternRings, TimelinePatternLanes } from "./TimelinePatternLanes";
 import type { TooltipState } from "./TimelineTooltip";
 import { TimelineZoomControls } from "./TimelineZoomControls";
 import {
@@ -137,6 +137,12 @@ export function TimelineAgeContent({
 
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
+
+  const patternRings = useMemo(
+    () =>
+      patterns && visiblePatternIds ? computePatternRings(patterns, visiblePatternIds) : undefined,
+    [patterns, visiblePatternIds],
+  );
 
   const partnerLines = useMemo(() => {
     const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
@@ -348,20 +354,15 @@ export function TimelineAgeContent({
         <g clipPath="url(#timeline-clip-age)">
           <g ref={zoomGroupRef} className="tl-time">
             {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-              <TimelinePatternArcs
+              <TimelinePatternLanes
                 patterns={patterns}
                 visiblePatternIds={visiblePatternIds}
-                events={events}
-                lifeEvents={lifeEvents}
-                classifications={classifications}
-                persons={persons}
-                direction="vertical"
-                coordScale={ageScale}
-                columns={columns}
-                totalWidth={totalWidth}
                 hoveredPatternId={hoveredPatternId ?? null}
                 onPatternHover={onPatternHover}
                 onPatternClick={onPatternClick}
+                direction="vertical"
+                columns={columns}
+                height={height}
               />
             )}
             {columns.map((col) => {
@@ -399,6 +400,7 @@ export function TimelineAgeContent({
                   showMarkerLabels={showMarkerLabels}
                   selectedEntityKeys={selectedEntityKeys}
                   onToggleEntitySelect={onToggleEntitySelect}
+                  patternRings={patternRings}
                 />
               );
             })}

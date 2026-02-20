@@ -7,6 +7,7 @@ import type {
   DecryptedPerson,
 } from "../../hooks/useTreeData";
 import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import type { PatternRingsMap } from "./TimelinePatternLanes";
 import type { TooltipLine } from "./timelineHelpers";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
 
@@ -125,6 +126,7 @@ interface PersonLaneProps {
   showMarkerLabels?: boolean;
   selectedEntityKeys?: Set<string>;
   onToggleEntitySelect?: (key: string) => void;
+  patternRings?: PatternRingsMap;
 }
 
 export const PersonLane = React.memo(function PersonLane({
@@ -153,6 +155,7 @@ export const PersonLane = React.memo(function PersonLane({
   showMarkerLabels = true,
   selectedEntityKeys,
   onToggleEntitySelect,
+  patternRings,
 }: PersonLaneProps) {
   const barY = y + (ROW_HEIGHT - BAR_HEIGHT) / 2;
   const cy = y + ROW_HEIGHT / 2;
@@ -361,6 +364,19 @@ export const PersonLane = React.memo(function PersonLane({
                           className="tl-selection-ring"
                         />
                       )}
+                      {patternRings?.get(`classification:${cls.id}`)?.map((ring, ri) => (
+                        <circle
+                          key={ring.patternId}
+                          cx={dx}
+                          cy={cy}
+                          r={MARKER_RADIUS + 2 + ri * 2}
+                          fill="none"
+                          stroke={ring.color}
+                          strokeWidth={1.5}
+                          strokeOpacity={0.7}
+                          className="tl-pattern-ring"
+                        />
+                      ))}
                       {showMarkerLabels && cls.diagnosis_year !== cls.periods[0]?.start_year && (
                         <text
                           x={dx}
@@ -427,6 +443,19 @@ export const PersonLane = React.memo(function PersonLane({
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
+            {patternRings?.get(`trauma_event:${event.id}`)?.map((ring, ri) => (
+              <circle
+                key={ring.patternId}
+                cx={px}
+                cy={cy}
+                r={MARKER_RADIUS + 2 + ri * 2}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                className="tl-pattern-ring"
+              />
+            ))}
             {showMarkerLabels && (
               <text
                 x={px}
@@ -496,6 +525,19 @@ export const PersonLane = React.memo(function PersonLane({
             {isEntitySelected && (
               <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
+            {patternRings?.get(`life_event:${le.id}`)?.map((ring, ri) => (
+              <circle
+                key={ring.patternId}
+                cx={px}
+                cy={cy}
+                r={MARKER_RADIUS + 2 + ri * 2}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                className="tl-pattern-ring"
+              />
+            ))}
             {showMarkerLabels && (
               <text
                 x={px}

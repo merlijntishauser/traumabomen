@@ -8,6 +8,7 @@ import type {
 } from "../../hooks/useTreeData";
 import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
+import type { PatternRingsMap } from "./TimelinePatternLanes";
 import type { TooltipLine } from "./timelineHelpers";
 import { BAR_HEIGHT, MARKER_RADIUS } from "./timelineHelpers";
 
@@ -38,6 +39,7 @@ interface AgePersonLaneProps {
   showMarkerLabels?: boolean;
   selectedEntityKeys?: Set<string>;
   onToggleEntitySelect?: (key: string) => void;
+  patternRings?: PatternRingsMap;
 }
 
 export const AgePersonLane = React.memo(function AgePersonLane({
@@ -67,6 +69,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   showMarkerLabels = true,
   selectedEntityKeys,
   onToggleEntitySelect,
+  patternRings,
 }: AgePersonLaneProps) {
   const hasBirth = person.birth_year != null;
   const birthYear = person.birth_year ?? 0;
@@ -253,6 +256,19 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                           className="tl-selection-ring"
                         />
                       )}
+                      {patternRings?.get(`classification:${cls.id}`)?.map((ring, ri) => (
+                        <circle
+                          key={ring.patternId}
+                          cx={cx}
+                          cy={diagY}
+                          r={MARKER_RADIUS + 2 + ri * 2}
+                          fill="none"
+                          stroke={ring.color}
+                          strokeWidth={1.5}
+                          strokeOpacity={0.7}
+                          className="tl-pattern-ring"
+                        />
+                      ))}
                       {showMarkerLabels && cls.diagnosis_year !== cls.periods[0]?.start_year && (
                         <text
                           x={cx}
@@ -319,6 +335,19 @@ export const AgePersonLane = React.memo(function AgePersonLane({
             {isEntitySelected && (
               <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
+            {patternRings?.get(`trauma_event:${event.id}`)?.map((ring, ri) => (
+              <circle
+                key={ring.patternId}
+                cx={cx}
+                cy={py}
+                r={MARKER_RADIUS + 2 + ri * 2}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                className="tl-pattern-ring"
+              />
+            ))}
             {showMarkerLabels && (
               <text
                 x={cx}
@@ -389,6 +418,19 @@ export const AgePersonLane = React.memo(function AgePersonLane({
             {isEntitySelected && (
               <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
             )}
+            {patternRings?.get(`life_event:${le.id}`)?.map((ring, ri) => (
+              <circle
+                key={ring.patternId}
+                cx={cx}
+                cy={py}
+                r={MARKER_RADIUS + 2 + ri * 2}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                className="tl-pattern-ring"
+              />
+            ))}
             {showMarkerLabels && (
               <text
                 x={cx}
