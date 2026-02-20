@@ -517,7 +517,7 @@ export default function TimelinePage() {
       )}
 
       {mode === "annotate" && selectedEntityKeys.size === 0 && (
-        <div className="tl-annotate-hint">{t("timeline.annotateHint")}</div>
+        <output className="tl-annotate-hint">{t("timeline.annotateHint")}</output>
       )}
 
       <div className="timeline-workspace-area">

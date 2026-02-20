@@ -36,6 +36,7 @@ interface TimelineSettings {
   showPartnerLines: boolean;    // default: true
   showClassifications: boolean; // default: true
   showGridlines: boolean;       // default: false
+  showMarkerLabels: boolean;    // default: false
 }
 ```
 
@@ -46,6 +47,7 @@ Persisted to `localStorage` under `traumabomen-timeline-settings`.
 - `showPartnerLines: false` skips `<PartnerLine>` components in `TimelineYearsContent`
 - `showClassifications: false` skips classification strips and diagnosis triangles in `PersonLane` and `AgePersonLane`
 - `showGridlines: true` renders vertical lines (years mode) or horizontal lines (age mode) at axis tick positions with `strokeOpacity: 0.15`
+- `showMarkerLabels: true` renders persistent text labels next to event markers showing the event title
 
 ### Settings flow
 

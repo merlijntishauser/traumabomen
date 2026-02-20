@@ -90,7 +90,7 @@ export const PartnerLine = React.memo(function PartnerLine({
         const dashArray = isDashed ? "6 3" : undefined;
 
         const tooltipLines: TooltipLine[] = [
-          { text: `${sourceName} \u2014 ${targetName}`, bold: true },
+          { text: `${sourceName} & ${targetName}`, bold: true },
           { text: `${statusLabel} ${yearRange}` },
         ];
 

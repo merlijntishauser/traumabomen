@@ -77,17 +77,21 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
     return tints;
   }, [patterns, visiblePatternIds]);
 
+  // Group tints by personId for combined labels (shared across both directions)
+  const tintsByPerson = useMemo(() => {
+    const grouped = new Map<string, LaneTint[]>();
+    for (const tint of laneTints) {
+      const list = grouped.get(tint.personId) ?? [];
+      list.push(tint);
+      grouped.set(tint.personId, list);
+    }
+    return grouped;
+  }, [laneTints]);
+
   if (laneTints.length === 0) return null;
 
   if (direction === "horizontal" && rows && rowHeight != null) {
     const rowByPersonId = new Map(rows.map((r) => [r.person.id, r]));
-    // Group tints by personId so we can render combined labels
-    const tintsByPerson = new Map<string, LaneTint[]>();
-    for (const tint of laneTints) {
-      const list = tintsByPerson.get(tint.personId) ?? [];
-      list.push(tint);
-      tintsByPerson.set(tint.personId, list);
-    }
     return (
       <g className="tl-pattern-lanes" data-testid="pattern-lanes">
         {laneTints.map((tint) => {
@@ -144,12 +148,6 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
 
   if (direction === "vertical" && columns && height != null) {
     const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
-    const tintsByPerson = new Map<string, LaneTint[]>();
-    for (const tint of laneTints) {
-      const list = tintsByPerson.get(tint.personId) ?? [];
-      list.push(tint);
-      tintsByPerson.set(tint.personId, list);
-    }
     return (
       <g className="tl-pattern-lanes" data-testid="pattern-lanes">
         {laneTints.map((tint) => {

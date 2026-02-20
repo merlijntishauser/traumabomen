@@ -31,10 +31,13 @@ Each linked entity marker gets a colored ring in the pattern's color.
 - **Multiple patterns on one marker**: rings stack outward (2px increments), capped at 2 visible rings
 - **Interaction**: hover shows pattern name in tooltip, click triggers `onPatternClick`
 
-### 3. Removed
+### 3. Lane labels
+
+Each person's lane shows the names of all visible patterns that include them, rendered as inline text near the bottom of the row (years view) or rotated along the column edge (age view). When multiple patterns share a person, names are joined with a middle dot separator, each in its own pattern color.
+
+### 4. Removed
 
 - `TimelinePatternArcs` component and its tests: deleted entirely
-- Pattern name labels on the timeline canvas: removed (pattern panel and tooltip serve this role)
 
 ## Interaction
 

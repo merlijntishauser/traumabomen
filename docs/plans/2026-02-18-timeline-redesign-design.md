@@ -156,8 +156,9 @@ Filters are organized as smart groups derived from the relationship graph, plus 
 
 ### Combining Filters
 
-- Multiple selections combine additively within a dimension (selecting "Mothers" + "Generation 1" shows all mothers AND all generation 1 persons).
-- Across dimensions, filters combine subtractively (selecting "Mothers" + "Abuse" shows abuse events for mothers only).
+- Multiple selections within the same category combine as a union (selecting "Mothers" + "Fathers" under Family Role shows all mothers AND fathers).
+- Selections across different categories combine as an intersection (selecting "Women" under Demographic + "Generation 1" under Generation shows only women who are also in generation 1).
+- Across dimensions (people + event types), filters combine subtractively (selecting "Mothers" + "Abuse" shows abuse events for mothers only).
 - Filtered-out items fade to 10% opacity rather than disappearing, preserving spatial context. A toggle switches between "dim" and "hide" modes.
 - Filtering is purely client-side (in-memory decrypted data), so response is instant.
 

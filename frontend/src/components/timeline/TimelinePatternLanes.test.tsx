@@ -304,6 +304,29 @@ describe("TimelinePatternLanes (vertical)", () => {
     expect(lane?.getAttribute("height")).toBe("500");
   });
 
+  it("renders multiple pattern names inline when they share a person", () => {
+    const patterns = new Map([
+      ["pat1", makePattern("pat1", { name: "Pattern A", person_ids: ["p1"], color: "#818cf8" })],
+      ["pat2", makePattern("pat2", { name: "Pattern B", person_ids: ["p1"], color: "#f472b6" })],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1", "pat2"])}
+        />
+      </svg>,
+    );
+    const spanA = container.querySelector("[data-testid='pattern-label-pat1-p1']");
+    const spanB = container.querySelector("[data-testid='pattern-label-pat2-p1']");
+    expect(spanA?.tagName).toBe("tspan");
+    expect(spanB?.tagName).toBe("tspan");
+    expect(spanA?.parentElement).toBe(spanB?.parentElement);
+    expect(spanA?.textContent).toBe("Pattern A");
+    expect(spanB?.textContent).toBe("Pattern B");
+  });
+
   it("renders nothing when no visible patterns", () => {
     const { container } = render(
       <svg>
