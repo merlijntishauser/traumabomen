@@ -356,6 +356,7 @@
   "timeline.scrollMode": "Scroll mode",
   "timeline.zoomMode": "Zoom mode",
   "timeline.timeRangeHint": "Filters event markers by date. Lifebars and classification strips are not affected.",
+  "timeline.annotateHint": "Click on event markers (circles, diamonds) to select them, then create a pattern",
 
   "settings.title": "Settings",
   "settings.canvas": "Canvas",

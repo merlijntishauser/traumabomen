@@ -19,6 +19,7 @@ interface PartnerLineProps {
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
+  onClick?: () => void;
 }
 
 export const PartnerLine = React.memo(function PartnerLine({
@@ -33,6 +34,7 @@ export const PartnerLine = React.memo(function PartnerLine({
   cssVar,
   t,
   onTooltip,
+  onClick,
 }: PartnerLineProps) {
   const barOffset = (ROW_HEIGHT - BAR_HEIGHT) / 2 + BAR_HEIGHT + 3;
   const srcLineY = sourceY != null ? sourceY + barOffset : null;
@@ -143,6 +145,7 @@ export const PartnerLine = React.memo(function PartnerLine({
                   style={{ cursor: "pointer" }}
                   onMouseEnter={showTooltip}
                   onMouseLeave={hideTooltip}
+                  onClick={onClick}
                 />
               </>
             )}
@@ -178,6 +181,7 @@ export const PartnerLine = React.memo(function PartnerLine({
                   style={{ cursor: "pointer" }}
                   onMouseEnter={showTooltip}
                   onMouseLeave={hideTooltip}
+                  onClick={onClick}
                 />
               </>
             )}

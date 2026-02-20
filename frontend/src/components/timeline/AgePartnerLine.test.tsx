@@ -174,4 +174,37 @@ describe("AgePartnerLine", () => {
     const { container } = renderAgePartnerLine({ sourceX: null, targetX: null });
     expect(container.querySelectorAll("line")).toHaveLength(0);
   });
+
+  it("calls onClick when connector hover target is clicked", () => {
+    const onClick = vi.fn();
+    const { container } = renderAgePartnerLine({ onClick });
+    // Connector hover target is at index 1
+    const hoverTarget = container.querySelectorAll("line")[1];
+    fireEvent.click(hoverTarget);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onClick when source bar hover target is clicked", () => {
+    const onClick = vi.fn();
+    const { container } = renderAgePartnerLine({ onClick });
+    // Source bar hover target is at index 3
+    const hoverTarget = container.querySelectorAll("line")[3];
+    fireEvent.click(hoverTarget);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onClick when target bar hover target is clicked", () => {
+    const onClick = vi.fn();
+    const { container } = renderAgePartnerLine({ onClick });
+    // Target bar hover target is at index 5
+    const hoverTarget = container.querySelectorAll("line")[5];
+    fireEvent.click(hoverTarget);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not error when onClick is not provided", () => {
+    const { container } = renderAgePartnerLine();
+    const hoverTarget = container.querySelectorAll("line")[1];
+    expect(() => fireEvent.click(hoverTarget)).not.toThrow();
+  });
 });

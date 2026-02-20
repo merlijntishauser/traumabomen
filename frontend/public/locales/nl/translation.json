@@ -356,6 +356,7 @@
   "timeline.scrollMode": "Scrollmodus",
   "timeline.zoomMode": "Zoommodus",
   "timeline.timeRangeHint": "Filtert gebeurtenismarkeringen op datum. Levensbalken en classificatiestroken worden niet beinvloed.",
+  "timeline.annotateHint": "Klik op markeringen (cirkels, ruiten) om ze te selecteren en een patroon te maken",
 
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",

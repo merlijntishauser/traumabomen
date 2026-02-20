@@ -236,6 +236,15 @@
   margin-top: 4px;
 }
 
+/* Annotate mode hint bar */
+.tl-annotate-hint {
+  padding: 6px 20px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
 /* Workspace area for timeline panels */
 .timeline-workspace-area {
   display: flex;

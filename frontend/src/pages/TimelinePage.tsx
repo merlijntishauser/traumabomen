@@ -359,6 +359,18 @@ export default function TimelinePage() {
     [selectedEntityKeys, events, lifeEvents, classifications, mutations],
   );
 
+  const handleClickPartnerLine = useCallback(
+    (relationshipId: string) => {
+      if (mode !== "edit") return;
+      const rel = relationships.get(relationshipId);
+      if (!rel) return;
+      setSelectedPersonId(rel.source_person_id);
+      setInitialSection("relationships");
+      setFilterPanelOpen(false);
+    },
+    [mode, relationships],
+  );
+
   const handlePatternClick = useCallback((patternId: string) => {
     setFocusedPatternId(patternId);
     setPatternPanelOpen(true);
@@ -504,6 +516,10 @@ export default function TimelinePage() {
         />
       )}
 
+      {mode === "annotate" && selectedEntityKeys.size === 0 && (
+        <div className="tl-annotate-hint">{t("timeline.annotateHint")}</div>
+      )}
+
       <div className="timeline-workspace-area">
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>
@@ -521,6 +537,7 @@ export default function TimelinePage() {
             layoutMode={layoutMode}
             onSelectPerson={handleSelectPerson}
             onClickMarker={handleClickMarker}
+            onClickPartnerLine={handleClickPartnerLine}
             patterns={patterns}
             visiblePatternIds={effectiveVisiblePatternIds}
             selectedEntityKeys={selectedEntityKeys}

@@ -164,4 +164,28 @@ describe("PartnerLine", () => {
     const { container } = renderPartnerLine({ sourceY: null, targetY: null });
     expect(container.querySelectorAll("line")).toHaveLength(0);
   });
+
+  it("calls onClick when source hover target is clicked", () => {
+    const onClick = vi.fn();
+    const { container } = renderPartnerLine({ onClick });
+    // Source hover target is at index 2
+    const hoverTarget = container.querySelectorAll("line")[2];
+    fireEvent.click(hoverTarget);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onClick when target hover target is clicked", () => {
+    const onClick = vi.fn();
+    const { container } = renderPartnerLine({ onClick });
+    // Target hover target is at index 4
+    const hoverTarget = container.querySelectorAll("line")[4];
+    fireEvent.click(hoverTarget);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not error when onClick is not provided", () => {
+    const { container } = renderPartnerLine();
+    const hoverTarget = container.querySelectorAll("line")[2];
+    expect(() => fireEvent.click(hoverTarget)).not.toThrow();
+  });
 });

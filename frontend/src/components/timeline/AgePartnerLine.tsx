@@ -21,6 +21,7 @@ interface AgePartnerLineProps {
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
+  onClick?: () => void;
 }
 
 const BAR_OFFSET_X = BAR_HEIGHT / 2 + 2;
@@ -39,6 +40,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
   cssVar,
   t,
   onTooltip,
+  onClick,
 }: AgePartnerLineProps) {
   const hideTooltip = useCallback(() => {
     onTooltip({ visible: false, x: 0, y: 0, lines: [] });
@@ -125,6 +127,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   style={{ cursor: "pointer" }}
                   onMouseEnter={showTooltip}
                   onMouseLeave={hideTooltip}
+                  onClick={onClick}
                 />
               </>
             )}
@@ -150,6 +153,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   style={{ cursor: "pointer" }}
                   onMouseEnter={showTooltip}
                   onMouseLeave={hideTooltip}
+                  onClick={onClick}
                 />
               </>
             )}
@@ -175,6 +179,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   style={{ cursor: "pointer" }}
                   onMouseEnter={showTooltip}
                   onMouseLeave={hideTooltip}
+                  onClick={onClick}
                 />
               </>
             )}

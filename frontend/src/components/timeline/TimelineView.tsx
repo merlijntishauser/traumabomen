@@ -31,6 +31,7 @@ interface TimelineViewProps {
   layoutMode?: LayoutMode;
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  onClickPartnerLine?: (relationshipId: string) => void;
   patterns?: Map<string, DecryptedPattern>;
   visiblePatternIds?: Set<string>;
   selectedEntityKeys?: Set<string>;
@@ -59,6 +60,7 @@ export function TimelineView({
   layoutMode = "years",
   onSelectPerson,
   onClickMarker,
+  onClickPartnerLine,
   patterns,
   visiblePatternIds,
   selectedEntityKeys,
@@ -126,6 +128,7 @@ export function TimelineView({
     filterMode,
     onSelectPerson,
     onClickMarker,
+    onClickPartnerLine,
     onTooltip,
     patterns,
     visiblePatternIds,

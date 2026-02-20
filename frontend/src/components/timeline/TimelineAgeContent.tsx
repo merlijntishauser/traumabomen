@@ -44,6 +44,7 @@ interface TimelineAgeContentProps {
   filterMode?: FilterMode;
   onSelectPerson?: (personId: string | null) => void;
   onClickMarker?: (info: MarkerClickInfo) => void;
+  onClickPartnerLine?: (relationshipId: string) => void;
   onTooltip: (state: TooltipState) => void;
   patterns?: Map<string, DecryptedPattern>;
   visiblePatternIds?: Set<string>;
@@ -74,6 +75,7 @@ export function TimelineAgeContent({
   filterMode = "dim",
   onSelectPerson,
   onClickMarker,
+  onClickPartnerLine,
   onTooltip,
   patterns,
   visiblePatternIds,
@@ -423,6 +425,7 @@ export function TimelineAgeContent({
                   cssVar={cssVar}
                   t={t}
                   onTooltip={onTooltip}
+                  onClick={onClickPartnerLine ? () => onClickPartnerLine(pl.key) : undefined}
                 />
               ))}
           </g>
