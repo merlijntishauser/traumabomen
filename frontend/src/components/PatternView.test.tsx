@@ -241,6 +241,40 @@ describe("PatternView", () => {
     expect(editLink.closest("a")?.getAttribute("href")).toBe("/trees/tree-123");
   });
 
+  it("shows life event entity on card", () => {
+    const lifeEventsWithData = new Map<string, DecryptedLifeEvent>([
+      [
+        "le1",
+        {
+          id: "le1",
+          title: "Moved abroad",
+          description: "",
+          category: "relocation" as DecryptedLifeEvent["category"],
+          approximate_date: "1995",
+          impact: 4,
+          tags: [],
+          person_ids: ["p2"],
+        },
+      ],
+    ]);
+
+    const pattern = makePattern({
+      linked_entities: [{ entity_type: "life_event", entity_id: "le1" }],
+      person_ids: ["p2"],
+    });
+
+    const props = {
+      ...defaultProps(),
+      patterns: new Map([["pat1", pattern]]),
+      lifeEvents: lifeEventsWithData,
+    };
+
+    render(<PatternView {...props} />);
+
+    expect(screen.getByText(/Moved abroad/)).toBeTruthy();
+    expect(screen.getByText(/Bob/)).toBeTruthy();
+  });
+
   it("shows classification entity on card", () => {
     const classificationsWithData = new Map<string, DecryptedClassification>([
       [

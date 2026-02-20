@@ -178,6 +178,46 @@ describe("TimelineChipBar", () => {
     expect(screen.getByText(/timeline.filterPeople: 1\/4/)).toBeTruthy();
   });
 
+  it("calls toggleAllPersons(true) when summary person chip removed", () => {
+    const actions = makeActions();
+    const manyPersons = new Map<string, DecryptedPerson>([
+      ["p1", makePerson("p1", "Alice")],
+      ["p2", makePerson("p2", "Bob")],
+      ["p3", makePerson("p3", "Carol")],
+      ["p4", makePerson("p4", "Dave")],
+    ]);
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      visiblePersonIds: new Set(["p1"]),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={manyPersons} />);
+    const removeBtn = screen.getByLabelText(/Remove timeline.filterPeople/);
+    fireEvent.click(removeBtn);
+    expect(actions.toggleAllPersons).toHaveBeenCalledWith(true);
+  });
+
+  it("calls toggleLifeEventCategory when life event chip removed", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      lifeEventCategories: new Set([LifeEventCategory.Career]),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    fireEvent.click(screen.getByLabelText("Remove lifeEvent.category.career"));
+    expect(actions.toggleLifeEventCategory).toHaveBeenCalledWith(LifeEventCategory.Career);
+  });
+
+  it("calls toggleClassificationStatus when status chip removed", () => {
+    const actions = makeActions();
+    const filters: TimelineFilterState = {
+      ...emptyFilters,
+      classificationStatus: new Set<"suspected" | "diagnosed">(["diagnosed"]),
+    };
+    render(<TimelineChipBar filters={filters} actions={actions} persons={persons} />);
+    fireEvent.click(screen.getByLabelText("Remove classification.status.diagnosed"));
+    expect(actions.toggleClassificationStatus).toHaveBeenCalledWith("diagnosed");
+  });
+
   it("shows classification status chips", () => {
     const actions = makeActions();
     const filters: TimelineFilterState = {
