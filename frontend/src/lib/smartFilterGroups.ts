@@ -16,6 +16,7 @@ export interface SmartFilterGroups {
 
 const PARENT_TYPES = new Set([
   RelationshipType.BiologicalParent,
+  RelationshipType.CoParent,
   RelationshipType.StepParent,
   RelationshipType.AdoptiveParent,
 ]);

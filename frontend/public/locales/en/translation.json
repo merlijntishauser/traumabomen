@@ -74,6 +74,7 @@
 
   "relationship.type": "Type",
   "relationship.type.biological_parent": "Biological parent",
+  "relationship.type.co_parent": "Co-parent",
   "relationship.type.step_parent": "Step-parent",
   "relationship.type.adoptive_parent": "Adoptive parent",
   "relationship.type.biological_sibling": "Biological sibling",

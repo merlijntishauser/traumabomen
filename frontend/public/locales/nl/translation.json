@@ -74,6 +74,7 @@
 
   "relationship.type": "Type",
   "relationship.type.biological_parent": "Biologische ouder",
+  "relationship.type.co_parent": "Meemoeder/vader",
   "relationship.type.step_parent": "Stief-ouder",
   "relationship.type.adoptive_parent": "Adoptie-ouder",
   "relationship.type.biological_sibling": "Biologische broer/zus",

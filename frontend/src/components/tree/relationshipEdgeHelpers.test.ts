@@ -168,6 +168,13 @@ describe("computeEdgeFlags", () => {
     }
   });
 
+  it("renders co-parent with solid line (not dashed)", () => {
+    const flags = computeEdgeFlags(makeData({ relationship: makeRel(RelationshipType.CoParent) }));
+    expect(flags.isDashed).toBe(false);
+    expect(flags.isPartner).toBe(false);
+    expect(flags.isFriend).toBe(false);
+  });
+
   it("identifies half-sibling", () => {
     const flags = computeEdgeFlags(
       makeData({ relationship: makeRel(RelationshipType.HalfSibling) }),

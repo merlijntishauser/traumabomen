@@ -1,5 +1,6 @@
 export enum RelationshipType {
   BiologicalParent = "biological_parent",
+  CoParent = "co_parent",
   StepParent = "step_parent",
   AdoptiveParent = "adoptive_parent",
   BiologicalSibling = "biological_sibling",

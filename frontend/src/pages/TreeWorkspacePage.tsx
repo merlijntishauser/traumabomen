@@ -97,6 +97,7 @@ const T_COMMON_CANCEL = "common.cancel";
 
 const DIRECTIONAL_TYPES = new Set([
   RelationshipType.BiologicalParent,
+  RelationshipType.CoParent,
   RelationshipType.StepParent,
   RelationshipType.AdoptiveParent,
 ]);

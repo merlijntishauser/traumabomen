@@ -53,6 +53,7 @@ export const NODE_HEIGHT = 80;
 
 export const PARENT_TYPES = new Set([
   RelationshipType.BiologicalParent,
+  RelationshipType.CoParent,
   RelationshipType.StepParent,
   RelationshipType.AdoptiveParent,
 ]);
