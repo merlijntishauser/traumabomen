@@ -131,10 +131,12 @@
   "tree.decryptionError": "Could not decrypt tree data. Please log in again.",
 
   "person.details": "Person details",
+  "person.tab": "Person",
   "person.newPerson": "New person",
   "person.confirmDelete": "Are you sure you want to delete this person? This will also remove their relationships.",
 
   "relationship.relationships": "Relationships",
+  "relationship.tab": "Relations",
   "relationship.type.full_sibling": "Full sibling",
   "relationship.type.half_sibling": "Half-sibling",
   "relationship.viaParent": "via {{name}}",
@@ -148,12 +150,14 @@
   "relationship.between": "Between",
 
   "trauma.events": "Trauma events",
+  "trauma.tab": "Trauma",
   "trauma.newEvent": "New event",
   "trauma.editEvent": "Edit event",
   "trauma.confirmDelete": "Are you sure you want to delete this event?",
   "trauma.linkedPersons": "Linked persons",
 
   "lifeEvent.events": "Life events",
+  "lifeEvent.tab": "Life",
   "lifeEvent.newEvent": "New life event",
   "lifeEvent.editEvent": "Edit life event",
   "lifeEvent.title": "Title",
@@ -173,6 +177,7 @@
   "lifeEvent.category.other": "Other",
 
   "classification.classifications": "Classifications",
+  "classification.tab": "DSM-5",
   "classification.newClassification": "New classification",
   "classification.editClassification": "Edit classification",
   "classification.category": "Category",

@@ -131,10 +131,12 @@
   "tree.decryptionError": "Kon boomgegevens niet ontsleutelen. Log opnieuw in.",
 
   "person.details": "Persoonsgegevens",
+  "person.tab": "Persoon",
   "person.newPerson": "Nieuwe persoon",
   "person.confirmDelete": "Weet je zeker dat je deze persoon wilt verwijderen? Dit verwijdert ook hun relaties.",
 
   "relationship.relationships": "Relaties",
+  "relationship.tab": "Relaties",
   "relationship.type.full_sibling": "Volle broer/zus",
   "relationship.type.half_sibling": "Halfbroer/-zus",
   "relationship.viaParent": "via {{name}}",
@@ -148,12 +150,14 @@
   "relationship.between": "Tussen",
 
   "trauma.events": "Traumagebeurtenissen",
+  "trauma.tab": "Trauma",
   "trauma.newEvent": "Nieuwe gebeurtenis",
   "trauma.editEvent": "Gebeurtenis bewerken",
   "trauma.confirmDelete": "Weet je zeker dat je deze gebeurtenis wilt verwijderen?",
   "trauma.linkedPersons": "Gekoppelde personen",
 
   "lifeEvent.events": "Levensgebeurtenissen",
+  "lifeEvent.tab": "Leven",
   "lifeEvent.newEvent": "Nieuwe levensgebeurtenis",
   "lifeEvent.editEvent": "Levensgebeurtenis bewerken",
   "lifeEvent.title": "Titel",
@@ -173,6 +177,7 @@
   "lifeEvent.category.other": "Overig",
 
   "classification.classifications": "Classificaties",
+  "classification.tab": "DSM-5",
   "classification.newClassification": "Nieuwe classificatie",
   "classification.editClassification": "Classificatie bewerken",
   "classification.category": "Categorie",
