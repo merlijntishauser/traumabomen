@@ -83,6 +83,7 @@
   "relationship.type.friend": "Friend",
   "relationship.type.exPartner": "Ex-partner",
   "relationship.childOf.biological_parent": "Biological child",
+  "relationship.childOf.co_parent": "Co-parent's child",
   "relationship.childOf.step_parent": "Step-child",
   "relationship.childOf.adoptive_parent": "Adoptive child",
   "relationship.source": "From",
