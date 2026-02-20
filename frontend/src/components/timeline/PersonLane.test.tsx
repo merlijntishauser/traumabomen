@@ -7,7 +7,8 @@ import type {
   DecryptedPerson,
 } from "../../hooks/useTreeData";
 import { LifeEventCategory, TraumaCategory } from "../../types/domain";
-import { type LabelEntry, PersonLane, stackLabels } from "./PersonLane";
+import { collectDateLabelEntries, type LabelEntry, PersonLane, stackLabels } from "./PersonLane";
+import type { PatternRingsMap } from "./TimelinePatternLanes";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
 
 function makePerson(id: string, overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
@@ -163,6 +164,53 @@ describe("stackLabels", () => {
     expect(result.get("b")).toBe(12);
     // "c" at x=20 can reuse level 0 (a ends at x=10, 10+4=14 <= 20)
     expect(result.get("c")).toBe(0);
+  });
+});
+
+describe("collectDateLabelEntries", () => {
+  const identity = (v: number) => v;
+
+  it("returns entries for items with numeric dates", () => {
+    const items = [
+      { id: "a", approximate_date: "2000", title: "Alpha" },
+      { id: "b", approximate_date: "2005", title: "Beta" },
+    ];
+    const result = collectDateLabelEntries(items, undefined, "dim", identity, 6, "t");
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ x: 2000, w: 5 * 6, key: "t:a" });
+    expect(result[1]).toEqual({ x: 2005, w: 4 * 6, key: "t:b" });
+  });
+
+  it("skips items whose id is in dimmedIds when filterMode is 'hide'", () => {
+    const items = [
+      { id: "a", approximate_date: "2000", title: "Alpha" },
+      { id: "b", approximate_date: "2005", title: "Beta" },
+      { id: "c", approximate_date: "2010", title: "Gamma" },
+    ];
+    const dimmedIds = new Set(["a", "c"]);
+    const result = collectDateLabelEntries(items, dimmedIds, "hide", identity, 6, "ev");
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe("ev:b");
+  });
+
+  it("keeps dimmed items when filterMode is 'dim' (not hide)", () => {
+    const items = [
+      { id: "a", approximate_date: "2000", title: "Alpha" },
+      { id: "b", approximate_date: "2005", title: "Beta" },
+    ];
+    const dimmedIds = new Set(["a"]);
+    const result = collectDateLabelEntries(items, dimmedIds, "dim", identity, 6, "t");
+    expect(result).toHaveLength(2);
+  });
+
+  it("skips items with non-numeric approximate_date", () => {
+    const items = [
+      { id: "a", approximate_date: "circa 2000", title: "Vague" },
+      { id: "b", approximate_date: "2005", title: "Exact" },
+    ];
+    const result = collectDateLabelEntries(items, undefined, "dim", identity, 6, "t");
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe("t:b");
   });
 });
 
@@ -629,6 +677,128 @@ describe("PersonLane", () => {
       const circle = container.querySelector("circle.tl-marker")!;
       fireEvent.click(circle);
       expect(onClickMarker).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("filterMode hide", () => {
+    it("does not render trauma markers for dimmed events when filterMode is hide", () => {
+      const events = [
+        makeEvent("e1", ["a"], { approximate_date: "1990" }),
+        makeEvent("e2", ["a"], { approximate_date: "1995" }),
+      ];
+      const dims = {
+        dimmedEventIds: new Set(["e1"]),
+        dimmedLifeEventIds: new Set<string>(),
+        dimmedClassificationIds: new Set<string>(),
+      };
+      const { container } = renderLane({ events, dims, filterMode: "hide" });
+      // Only e2 should be rendered (e1 is hidden)
+      const circles = container.querySelectorAll("circle.tl-marker");
+      expect(circles).toHaveLength(1);
+    });
+
+    it("does not render life event markers for dimmed life events when filterMode is hide", () => {
+      const lifeEvents = [
+        makeLifeEvent("le1", ["a"], { approximate_date: "1990" }),
+        makeLifeEvent("le2", ["a"], { approximate_date: "1995" }),
+      ];
+      const dims = {
+        dimmedEventIds: new Set<string>(),
+        dimmedLifeEventIds: new Set(["le1"]),
+        dimmedClassificationIds: new Set<string>(),
+      };
+      const { container } = renderLane({ lifeEvents, dims, filterMode: "hide" });
+      // Only le2 diamond should be rendered
+      const diamonds = container.querySelectorAll("rect[transform]");
+      expect(diamonds).toHaveLength(1);
+    });
+
+    it("omits labels for hidden items in collectDateLabelEntries", () => {
+      const events = [
+        makeEvent("e1", ["a"], { approximate_date: "1990" }),
+        makeEvent("e2", ["a"], { approximate_date: "1995" }),
+      ];
+      const dims = {
+        dimmedEventIds: new Set(["e1"]),
+        dimmedLifeEventIds: new Set<string>(),
+        dimmedClassificationIds: new Set<string>(),
+      };
+      const { container } = renderLane({ events, dims, filterMode: "hide" });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      // Only e2's label should appear (e1 is hidden)
+      expect(labels).toHaveLength(1);
+      expect(labels[0].textContent).toBe("Event e2");
+    });
+  });
+
+  describe("pattern rings", () => {
+    it("renders pattern rings on trauma event markers", () => {
+      const events = [makeEvent("e1", ["a"], { approximate_date: "1995" })];
+      const patternRings: PatternRingsMap = new Map([
+        [
+          "trauma_event:e1",
+          [
+            { patternId: "pat1", color: "#ff0000" },
+            { patternId: "pat2", color: "#00ff00" },
+          ],
+        ],
+      ]);
+      const { container } = renderLane({ events, patternRings });
+      const rings = container.querySelectorAll(".tl-pattern-ring");
+      expect(rings).toHaveLength(2);
+      expect(rings[0].getAttribute("stroke")).toBe("#ff0000");
+      expect(rings[1].getAttribute("stroke")).toBe("#00ff00");
+      // Verify radius increases per ring
+      const r0 = Number(rings[0].getAttribute("r"));
+      const r1 = Number(rings[1].getAttribute("r"));
+      expect(r0).toBe(MARKER_RADIUS + 2);
+      expect(r1).toBe(MARKER_RADIUS + 4);
+    });
+
+    it("renders pattern rings on life event markers", () => {
+      const lifeEvents = [makeLifeEvent("le1", ["a"], { approximate_date: "2005" })];
+      const patternRings: PatternRingsMap = new Map([
+        ["life_event:le1", [{ patternId: "pat1", color: "#0000ff" }]],
+      ]);
+      const { container } = renderLane({ lifeEvents, patternRings });
+      const rings = container.querySelectorAll(".tl-pattern-ring");
+      expect(rings).toHaveLength(1);
+      expect(rings[0].getAttribute("stroke")).toBe("#0000ff");
+      expect(rings[0].getAttribute("fill")).toBe("none");
+      expect(rings[0].getAttribute("r")).toBe(String(MARKER_RADIUS + 2));
+    });
+
+    it("renders pattern rings on classification diagnosis triangles", () => {
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          status: "diagnosed",
+          diagnosis_year: 2005,
+        }),
+      ];
+      const patternRings: PatternRingsMap = new Map([
+        ["classification:c1", [{ patternId: "pat1", color: "#ff00ff" }]],
+      ]);
+      const { container } = renderLane({ classifications, patternRings });
+      const rings = container.querySelectorAll(".tl-pattern-ring");
+      expect(rings).toHaveLength(1);
+      expect(rings[0].getAttribute("stroke")).toBe("#ff00ff");
+    });
+
+    it("does not render pattern rings when patternRings is undefined", () => {
+      const events = [makeEvent("e1", ["a"], { approximate_date: "1995" })];
+      const { container } = renderLane({ events, patternRings: undefined });
+      const rings = container.querySelectorAll(".tl-pattern-ring");
+      expect(rings).toHaveLength(0);
+    });
+
+    it("does not render pattern rings for markers with no matching entries", () => {
+      const events = [makeEvent("e1", ["a"], { approximate_date: "1995" })];
+      const patternRings: PatternRingsMap = new Map([
+        ["trauma_event:other-id", [{ patternId: "pat1", color: "#ff0000" }]],
+      ]);
+      const { container } = renderLane({ events, patternRings });
+      const rings = container.querySelectorAll(".tl-pattern-ring");
+      expect(rings).toHaveLength(0);
     });
   });
 });

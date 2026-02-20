@@ -368,6 +368,56 @@ describe("PatternPanel", () => {
     expect(screen.queryByText("dsm.neurodevelopmental")).not.toBeInTheDocument();
   });
 
+  it("derivePersonIds: saving a pattern with a classification entity derives person_ids from classification", () => {
+    const classificationsWithData = new Map<string, DecryptedClassification>([
+      [
+        "cls1",
+        {
+          id: "cls1",
+          dsm_category: "depressive",
+          dsm_subcategory: null,
+          status: "diagnosed",
+          diagnosis_year: 1985,
+          periods: [{ start_year: 1985, end_year: null }],
+          notes: null,
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+
+    const patternWithClassification: DecryptedPattern = {
+      id: "pat-cls",
+      name: "Classification Only Pattern",
+      description: "Tests classification branch",
+      color: "#818cf8",
+      linked_entities: [{ entity_type: "classification", entity_id: "cls1" }],
+      person_ids: ["p1"],
+    };
+
+    const patterns = new Map<string, DecryptedPattern>([["pat-cls", patternWithClassification]]);
+    const props = renderPanel({
+      patterns,
+      classifications: classificationsWithData,
+      visiblePatternIds: new Set(["pat-cls"]),
+    });
+
+    // Expand the pattern
+    fireEvent.click(screen.getByText("Classification Only Pattern"));
+
+    // Click save to trigger derivePersonIds with the classification entity
+    fireEvent.click(screen.getByText("common.save"));
+
+    // onSave should be called with person_ids derived from the classification
+    expect(props.onSave).toHaveBeenCalledWith(
+      "pat-cls",
+      expect.objectContaining({
+        name: "Classification Only Pattern",
+        linked_entities: [{ entity_type: "classification", entity_id: "cls1" }],
+      }),
+      ["p1"],
+    );
+  });
+
   it("link picker shows life events and classifications", () => {
     const lifeEventsWithData = new Map<string, DecryptedLifeEvent>([
       [
