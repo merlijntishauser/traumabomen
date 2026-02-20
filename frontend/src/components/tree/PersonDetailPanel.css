@@ -371,6 +371,18 @@ fieldset.detail-panel__field {
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.detail-panel__event-card:hover {
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__event-card-row {

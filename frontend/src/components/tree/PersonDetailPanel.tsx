@@ -31,6 +31,8 @@ import {
   TraumaCategory,
   withAutoDissolvedPeriods,
 } from "../../types/domain";
+import { EditSubPanel } from "./EditSubPanel";
+import { PersonLinkField } from "./PersonLinkField";
 import "./PersonDetailPanel.css";
 
 // Shared i18n keys used across multiple sub-forms
@@ -180,9 +182,8 @@ function SeverityBar({ value, color }: { value: number; color: string }) {
   return (
     <div className="detail-panel__severity-bar" role="img" aria-label={`${clamped}/10`}>
       {Array.from({ length: 10 }, (_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length visual dots
         <span
-          key={`severity-${i}`}
+          key={`sev-${i}`}
           className="detail-panel__severity-dot"
           style={{
             backgroundColor: i < clamped ? color : "var(--color-border-primary)",
@@ -579,118 +580,145 @@ export function PersonDetailPanel({
         )}
 
         {/* Relationships tab */}
-        {activeTab === "relationships" && (
-          <>
-            {relationships.length === 0 && inferredSiblings.length === 0 ? (
-              <p className="detail-panel__empty">---</p>
-            ) : (
-              <ul className="detail-panel__rel-list">
-                {relationships.map((rel) => {
-                  const isSource = rel.source_person_id === person.id;
-                  const otherId = isSource ? rel.target_person_id : rel.source_person_id;
-                  const otherPerson = allPersons.get(otherId);
-                  const isParentType =
-                    rel.type === RelationshipType.BiologicalParent ||
-                    rel.type === RelationshipType.StepParent ||
-                    rel.type === RelationshipType.AdoptiveParent;
-                  const isExPartner =
-                    rel.type === RelationshipType.Partner &&
-                    rel.periods.length > 0 &&
-                    rel.periods.every((p) => p.end_year != null);
-                  const typeLabel = isExPartner
-                    ? t("relationship.type.exPartner")
-                    : isParentType && isSource
-                      ? t(`relationship.childOf.${rel.type}`)
-                      : t(`relationship.type.${rel.type}`);
-                  return (
-                    <li key={rel.id} className="detail-panel__rel-item">
-                      <span className="detail-panel__rel-type">{typeLabel}</span>
-                      <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
-                      {rel.type === RelationshipType.Partner &&
-                        (editingRelId === rel.id ? (
-                          <PartnerPeriodEditor
-                            relationship={rel}
-                            sourceDeathYear={person.death_year}
-                            targetDeathYear={otherPerson?.death_year ?? null}
-                            onSave={(data) => {
-                              onSaveRelationship(rel.id, data);
-                              setEditingRelId(null);
-                            }}
-                            onCancel={() => setEditingRelId(null)}
-                          />
-                        ) : (
-                          <>
-                            {rel.periods.length > 0 && (
-                              <div className="detail-panel__rel-periods">
-                                {rel.periods.map((p) => (
-                                  <span
-                                    key={`${p.status}-${p.start_year}-${p.end_year}`}
-                                    className="detail-panel__period"
-                                  >
-                                    {t(`relationship.status.${p.status}`)}: {p.start_year}
-                                    {p.end_year ? ` - ${p.end_year}` : " -"}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <button
-                              type="button"
-                              className="detail-panel__btn--small"
-                              style={{ marginTop: 4 }}
-                              onClick={() => setEditingRelId(rel.id)}
-                            >
-                              {t(T_EDIT)}
-                            </button>
-                          </>
-                        ))}
-                    </li>
-                  );
-                })}
-                {inferredSiblings.map((sib) => {
-                  const otherId = sib.personAId === person.id ? sib.personBId : sib.personAId;
-                  const otherPerson = allPersons.get(otherId);
-                  const sharedParentNames = sib.sharedParentIds
-                    .map((id) => allPersons.get(id)?.name ?? "?")
-                    .join(", ");
-                  return (
-                    <li key={`inferred-${otherId}`} className="detail-panel__rel-item">
-                      <span className="detail-panel__rel-type">
-                        {t(`relationship.type.${sib.type}`)}
-                      </span>
-                      <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
-                      <span className="detail-panel__rel-via">
-                        {t("relationship.viaParent", { name: sharedParentNames })}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </>
-        )}
+        {activeTab === "relationships" &&
+          (relationships.length === 0 && inferredSiblings.length === 0 ? (
+            <p className="detail-panel__empty">---</p>
+          ) : (
+            <ul className="detail-panel__rel-list">
+              {relationships.map((rel) => {
+                const isSource = rel.source_person_id === person.id;
+                const otherId = isSource ? rel.target_person_id : rel.source_person_id;
+                const otherPerson = allPersons.get(otherId);
+                const isParentType =
+                  rel.type === RelationshipType.BiologicalParent ||
+                  rel.type === RelationshipType.StepParent ||
+                  rel.type === RelationshipType.AdoptiveParent;
+                const isExPartner =
+                  rel.type === RelationshipType.Partner &&
+                  rel.periods.length > 0 &&
+                  rel.periods.every((p) => p.end_year != null);
+                const typeLabel = isExPartner
+                  ? t("relationship.type.exPartner")
+                  : isParentType && isSource
+                    ? t(`relationship.childOf.${rel.type}`)
+                    : t(`relationship.type.${rel.type}`);
+                return (
+                  <li key={rel.id} className="detail-panel__rel-item">
+                    <span className="detail-panel__rel-type">{typeLabel}</span>
+                    <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
+                    {rel.type === RelationshipType.Partner &&
+                      (editingRelId === rel.id ? (
+                        <PartnerPeriodEditor
+                          relationship={rel}
+                          sourceDeathYear={person.death_year}
+                          targetDeathYear={otherPerson?.death_year ?? null}
+                          onSave={(data) => {
+                            onSaveRelationship(rel.id, data);
+                            setEditingRelId(null);
+                          }}
+                          onCancel={() => setEditingRelId(null)}
+                        />
+                      ) : (
+                        <>
+                          {rel.periods.length > 0 && (
+                            <div className="detail-panel__rel-periods">
+                              {rel.periods.map((p) => (
+                                <span
+                                  key={`${p.status}-${p.start_year}-${p.end_year}`}
+                                  className="detail-panel__period"
+                                >
+                                  {t(`relationship.status.${p.status}`)}: {p.start_year}
+                                  {p.end_year ? ` - ${p.end_year}` : " -"}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            className="detail-panel__btn--small"
+                            style={{ marginTop: 4 }}
+                            onClick={() => setEditingRelId(rel.id)}
+                          >
+                            {t(T_EDIT)}
+                          </button>
+                        </>
+                      ))}
+                  </li>
+                );
+              })}
+              {inferredSiblings.map((sib) => {
+                const otherId = sib.personAId === person.id ? sib.personBId : sib.personAId;
+                const otherPerson = allPersons.get(otherId);
+                const sharedParentNames = sib.sharedParentIds
+                  .map((id) => allPersons.get(id)?.name ?? "?")
+                  .join(", ");
+                return (
+                  <li key={`inferred-${otherId}`} className="detail-panel__rel-item">
+                    <span className="detail-panel__rel-type">
+                      {t(`relationship.type.${sib.type}`)}
+                    </span>
+                    <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
+                    <span className="detail-panel__rel-via">
+                      {t("relationship.viaParent", { name: sharedParentNames })}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ))}
 
         {/* Trauma events tab */}
-        {activeTab === "trauma" && (
-          <>
-            {events.map((event) =>
-              editingEventId === event.id ? (
-                <EventForm
+        {activeTab === "trauma" &&
+          (editingEventId || showNewEvent ? (
+            <EditSubPanel
+              title={
+                editingEventId
+                  ? (events.find((e) => e.id === editingEventId)?.title ?? t("trauma.editEvent"))
+                  : t("trauma.newEvent")
+              }
+              onBack={() => {
+                setEditingEventId(null);
+                setShowNewEvent(false);
+              }}
+            >
+              <EventForm
+                event={
+                  editingEventId ? (events.find((e) => e.id === editingEventId) ?? null) : null
+                }
+                allPersons={allPersons}
+                initialPersonIds={
+                  editingEventId
+                    ? (events.find((e) => e.id === editingEventId)?.person_ids ?? [person.id])
+                    : [person.id]
+                }
+                onSave={(data, personIds) => {
+                  onSaveEvent(editingEventId, data, personIds);
+                  setEditingEventId(null);
+                  setShowNewEvent(false);
+                }}
+                onCancel={() => {
+                  setEditingEventId(null);
+                  setShowNewEvent(false);
+                }}
+                onDelete={
+                  editingEventId
+                    ? () => {
+                        onDeleteEvent(editingEventId);
+                        setEditingEventId(null);
+                      }
+                    : undefined
+                }
+              />
+            </EditSubPanel>
+          ) : (
+            <>
+              {events.map((event) => (
+                <button
                   key={event.id}
-                  event={event}
-                  allPersons={allPersons}
-                  initialPersonIds={event.person_ids}
-                  onSave={(data, personIds) => {
-                    onSaveEvent(event.id, data, personIds);
-                    setEditingEventId(null);
-                  }}
-                  onCancel={() => setEditingEventId(null)}
-                  onDelete={() => {
-                    onDeleteEvent(event.id);
-                    setEditingEventId(null);
-                  }}
-                />
-              ) : (
-                <div key={event.id} className="detail-panel__event-card">
+                  type="button"
+                  className="detail-panel__event-card"
+                  onClick={() => setEditingEventId(event.id)}
+                >
                   <div className="detail-panel__event-card-row">
                     <span
                       className="detail-panel__event-card-dot"
@@ -704,13 +732,6 @@ export function PersonDetailPanel({
                         {event.approximate_date}
                       </span>
                     )}
-                    <button
-                      type="button"
-                      className="detail-panel__btn--small"
-                      onClick={() => setEditingEventId(event.id)}
-                    >
-                      {t(T_EDIT)}
-                    </button>
                   </div>
                   <div className="detail-panel__event-card-meta">
                     <span
@@ -726,22 +747,8 @@ export function PersonDetailPanel({
                       <SeverityBar value={event.severity} color={getTraumaColor(event.category)} />
                     )}
                   </div>
-                </div>
-              ),
-            )}
-
-            {showNewEvent ? (
-              <EventForm
-                event={null}
-                allPersons={allPersons}
-                initialPersonIds={[person.id]}
-                onSave={(data, personIds) => {
-                  onSaveEvent(null, data, personIds);
-                  setShowNewEvent(false);
-                }}
-                onCancel={() => setShowNewEvent(false)}
-              />
-            ) : (
+                </button>
+              ))}
               <button
                 type="button"
                 className="detail-panel__btn detail-panel__btn--secondary"
@@ -749,32 +756,66 @@ export function PersonDetailPanel({
               >
                 {t("trauma.newEvent")}
               </button>
-            )}
-          </>
-        )}
+            </>
+          ))}
 
         {/* Life events tab */}
-        {activeTab === "life" && (
-          <>
-            {lifeEvents.map((event) =>
-              editingLifeEventId === event.id ? (
-                <LifeEventForm
+        {activeTab === "life" &&
+          (editingLifeEventId || showNewLifeEvent ? (
+            <EditSubPanel
+              title={
+                editingLifeEventId
+                  ? (lifeEvents.find((e) => e.id === editingLifeEventId)?.title ??
+                    t("lifeEvent.editEvent"))
+                  : t("lifeEvent.newEvent")
+              }
+              onBack={() => {
+                setEditingLifeEventId(null);
+                setShowNewLifeEvent(false);
+              }}
+            >
+              <LifeEventForm
+                event={
+                  editingLifeEventId
+                    ? (lifeEvents.find((e) => e.id === editingLifeEventId) ?? null)
+                    : null
+                }
+                allPersons={allPersons}
+                initialPersonIds={
+                  editingLifeEventId
+                    ? (lifeEvents.find((e) => e.id === editingLifeEventId)?.person_ids ?? [
+                        person.id,
+                      ])
+                    : [person.id]
+                }
+                onSave={(data, personIds) => {
+                  onSaveLifeEvent(editingLifeEventId, data, personIds);
+                  setEditingLifeEventId(null);
+                  setShowNewLifeEvent(false);
+                }}
+                onCancel={() => {
+                  setEditingLifeEventId(null);
+                  setShowNewLifeEvent(false);
+                }}
+                onDelete={
+                  editingLifeEventId
+                    ? () => {
+                        onDeleteLifeEvent(editingLifeEventId);
+                        setEditingLifeEventId(null);
+                      }
+                    : undefined
+                }
+              />
+            </EditSubPanel>
+          ) : (
+            <>
+              {lifeEvents.map((event) => (
+                <button
                   key={event.id}
-                  event={event}
-                  allPersons={allPersons}
-                  initialPersonIds={event.person_ids}
-                  onSave={(data, personIds) => {
-                    onSaveLifeEvent(event.id, data, personIds);
-                    setEditingLifeEventId(null);
-                  }}
-                  onCancel={() => setEditingLifeEventId(null)}
-                  onDelete={() => {
-                    onDeleteLifeEvent(event.id);
-                    setEditingLifeEventId(null);
-                  }}
-                />
-              ) : (
-                <div key={event.id} className="detail-panel__event-card">
+                  type="button"
+                  className="detail-panel__event-card"
+                  onClick={() => setEditingLifeEventId(event.id)}
+                >
                   <div className="detail-panel__event-card-row">
                     <span
                       className="detail-panel__event-card-dot"
@@ -789,13 +830,6 @@ export function PersonDetailPanel({
                         {event.approximate_date}
                       </span>
                     )}
-                    <button
-                      type="button"
-                      className="detail-panel__btn--small"
-                      onClick={() => setEditingLifeEventId(event.id)}
-                    >
-                      {t(T_EDIT)}
-                    </button>
                   </div>
                   <div className="detail-panel__event-card-meta">
                     <span
@@ -811,22 +845,8 @@ export function PersonDetailPanel({
                       <SeverityBar value={event.impact} color={getLifeEventColor(event.category)} />
                     )}
                   </div>
-                </div>
-              ),
-            )}
-
-            {showNewLifeEvent ? (
-              <LifeEventForm
-                event={null}
-                allPersons={allPersons}
-                initialPersonIds={[person.id]}
-                onSave={(data, personIds) => {
-                  onSaveLifeEvent(null, data, personIds);
-                  setShowNewLifeEvent(false);
-                }}
-                onCancel={() => setShowNewLifeEvent(false)}
-              />
-            ) : (
+                </button>
+              ))}
               <button
                 type="button"
                 className="detail-panel__btn detail-panel__btn--secondary"
@@ -834,9 +854,8 @@ export function PersonDetailPanel({
               >
                 {t("lifeEvent.newEvent")}
               </button>
-            )}
-          </>
-        )}
+            </>
+          ))}
 
         {/* Classifications tab */}
         {activeTab === "classifications" && (
@@ -1220,12 +1239,6 @@ function LifeEventForm({
     () => new Set(initialPersonIds),
   );
 
-  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-
-  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
-
   function handleSave() {
     onSave(
       {
@@ -1292,19 +1305,11 @@ function LifeEventForm({
           placeholder="tag1, tag2"
         />
       </label>
-      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
-        <span>{t("lifeEvent.linkedPersons")}</span>
-        {sortedPersons.map((p) => (
-          <label key={p.id} className="detail-panel__field--checkbox">
-            <input
-              type="checkbox"
-              checked={selectedPersonIds.has(p.id)}
-              onChange={() => togglePerson(p.id)}
-            />
-            <span>{p.name}</span>
-          </label>
-        ))}
-      </fieldset>
+      <PersonLinkField
+        allPersons={allPersons}
+        selectedIds={selectedPersonIds}
+        onChange={setSelectedPersonIds}
+      />
       <div className="detail-panel__actions">
         <button
           type="button"
@@ -1364,12 +1369,6 @@ function EventForm({
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
-
-  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-
-  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
 
   function handleSave() {
     onSave(
@@ -1436,19 +1435,11 @@ function EventForm({
           placeholder="tag1, tag2"
         />
       </label>
-      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
-        <span>{t("trauma.linkedPersons")}</span>
-        {sortedPersons.map((p) => (
-          <label key={p.id} className="detail-panel__field--checkbox">
-            <input
-              type="checkbox"
-              checked={selectedPersonIds.has(p.id)}
-              onChange={() => togglePerson(p.id)}
-            />
-            <span>{p.name}</span>
-          </label>
-        ))}
-      </fieldset>
+      <PersonLinkField
+        allPersons={allPersons}
+        selectedIds={selectedPersonIds}
+        onChange={setSelectedPersonIds}
+      />
       <div className="detail-panel__actions">
         <button
           type="button"

@@ -304,12 +304,12 @@ describe("PersonDetailPanel", () => {
     render(<PersonDetailPanel {...props} />);
 
     await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
-    await user.click(screen.getByText("common.edit"));
+    await user.click(screen.getByText("Test Event"));
 
-    const checkboxes = screen.getAllByRole("checkbox");
-    const bobCheckbox = checkboxes.find((cb) => cb.closest("label")?.textContent?.includes("Bob"));
-    expect(bobCheckbox).toBeDefined();
-    await user.click(bobCheckbox!);
+    // Expand PersonLinkField and add Bob
+    await user.click(screen.getByText(/link/i));
+    const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
+    await user.click(bobCheckbox);
 
     await user.click(screen.getByText("common.save"));
 
@@ -327,15 +327,13 @@ describe("PersonDetailPanel", () => {
     render(<PersonDetailPanel {...props} />);
 
     await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
-    await user.click(screen.getByText("common.edit"));
+    await user.click(screen.getByText("Test Event"));
 
-    const checkboxes = screen.getAllByRole("checkbox");
-    const aliceCheckbox = checkboxes.find((cb) =>
-      cb.closest("label")?.textContent?.includes("Alice"),
-    );
-    expect(aliceCheckbox).toBeDefined();
+    // Expand PersonLinkField
+    await user.click(screen.getByText(/link/i));
+    const aliceCheckbox = screen.getByRole("checkbox", { name: "Alice" });
     expect(aliceCheckbox).toBeChecked();
-    await user.click(aliceCheckbox!);
+    await user.click(aliceCheckbox);
 
     expect(aliceCheckbox).toBeChecked();
   });
@@ -349,16 +347,15 @@ describe("PersonDetailPanel", () => {
     render(<PersonDetailPanel {...props} />);
 
     await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
-    await user.click(screen.getByText("common.edit"));
+    await user.click(screen.getByText("Test Event"));
 
-    // Both should be checked
-    const checkboxes = screen.getAllByRole("checkbox");
-    const bobCheckbox = checkboxes.find((cb) => cb.closest("label")?.textContent?.includes("Bob"));
-    expect(bobCheckbox).toBeDefined();
+    // Expand PersonLinkField
+    await user.click(screen.getByText(/link/i));
+    const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
     expect(bobCheckbox).toBeChecked();
 
     // Uncheck Bob
-    await user.click(bobCheckbox!);
+    await user.click(bobCheckbox);
     expect(bobCheckbox).not.toBeChecked();
 
     await user.click(screen.getByText("common.save"));
@@ -1058,14 +1055,46 @@ describe("PersonDetailPanel", () => {
   });
 
   describe("event form edge cases", () => {
-    it("cancels event editing", async () => {
+    it("opens sub-panel when event card is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("Test Event"));
+
+      // Sub-panel should be visible with form fields
+      expect(screen.getByText("trauma.title")).toBeInTheDocument();
+      // Back button should be present
+      expect(screen.getByLabelText("common.close")).toBeInTheDocument();
+    });
+
+    it("returns to card list when back button is clicked", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      await user.click(screen.getByText("Test Event"));
+
+      // Click back button
+      await user.click(screen.getByLabelText("common.close"));
+
+      // Should return to card list
+      expect(screen.queryByText("trauma.title")).not.toBeInTheDocument();
+      expect(screen.getByText("Test Event")).toBeInTheDocument();
+    });
+
+    it("cancels event editing via cancel button", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      await user.click(screen.getByText("Test Event"));
 
       // Form should be visible
       expect(screen.getByText("trauma.title")).toBeInTheDocument();
@@ -1100,7 +1129,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("Test Event"));
 
       // First click shows confirmation
       await user.click(screen.getByText("common.delete"));
@@ -1374,7 +1403,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("Graduation"));
 
       // Title should be pre-filled
       expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
@@ -1399,7 +1428,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("Graduation"));
       await user.click(screen.getByText("common.cancel"));
 
       // Should go back to display mode
@@ -1413,7 +1442,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("Graduation"));
 
       await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteLifeEvent).not.toHaveBeenCalled();

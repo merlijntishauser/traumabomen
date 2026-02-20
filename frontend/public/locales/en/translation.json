@@ -149,11 +149,13 @@
 
   "trauma.events": "Trauma events",
   "trauma.newEvent": "New event",
+  "trauma.editEvent": "Edit event",
   "trauma.confirmDelete": "Are you sure you want to delete this event?",
   "trauma.linkedPersons": "Linked persons",
 
   "lifeEvent.events": "Life events",
   "lifeEvent.newEvent": "New life event",
+  "lifeEvent.editEvent": "Edit life event",
   "lifeEvent.title": "Title",
   "lifeEvent.description": "Description",
   "lifeEvent.category": "Category",
