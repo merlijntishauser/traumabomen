@@ -271,6 +271,20 @@ export function TimelineAgeContent({
             </React.Fragment>
           ))}
 
+          {/* Pattern lane tints */}
+          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+            <TimelinePatternLanes
+              patterns={patterns}
+              visiblePatternIds={visiblePatternIds}
+              hoveredPatternId={hoveredPatternId ?? null}
+              onPatternHover={onPatternHover}
+              onPatternClick={onPatternClick}
+              direction="vertical"
+              columns={columns}
+              height={height}
+            />
+          )}
+
           {/* Person name labels in column headers */}
           {columns.map((col) => {
             const isSelected = selectedPersonId === col.person.id;
@@ -353,18 +367,6 @@ export function TimelineAgeContent({
         {/* Clipped age content */}
         <g clipPath="url(#timeline-clip-age)">
           <g ref={zoomGroupRef} className="tl-time">
-            {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-              <TimelinePatternLanes
-                patterns={patterns}
-                visiblePatternIds={visiblePatternIds}
-                hoveredPatternId={hoveredPatternId ?? null}
-                onPatternHover={onPatternHover}
-                onPatternClick={onPatternClick}
-                direction="vertical"
-                columns={columns}
-                height={height}
-              />
-            )}
             {columns.map((col) => {
               const isSelected = selectedPersonId === col.person.id;
               const isDimmed =

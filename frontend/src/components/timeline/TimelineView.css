@@ -166,6 +166,15 @@
   transition: fill-opacity 0.15s ease;
 }
 
+/* Pattern lane label */
+.tl-pattern-lane-label {
+  font-size: 9px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
 /* Pattern marker ring */
 .tl-pattern-ring {
   pointer-events: none;

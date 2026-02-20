@@ -144,6 +144,27 @@ describe("TimelinePatternLanes (horizontal)", () => {
     expect(lane?.getAttribute("fill-opacity")).toBe("0.08");
   });
 
+  it("renders pattern name label in each tinted lane", () => {
+    const patterns = new Map([
+      [
+        "pat1",
+        makePattern("pat1", { name: "Addiction cycle", person_ids: ["p1"], color: "#818cf8" }),
+      ],
+    ]);
+    const { container } = render(
+      <svg>
+        <TimelinePatternLanes
+          {...baseProps}
+          patterns={patterns}
+          visiblePatternIds={new Set(["pat1"])}
+        />
+      </svg>,
+    );
+    const label = container.querySelector("[data-testid='pattern-label-pat1-p1']");
+    expect(label).toBeTruthy();
+    expect(label?.textContent).toBe("Addiction cycle");
+  });
+
   it("does not render tint for persons not in pattern", () => {
     const patterns = new Map([
       ["pat1", makePattern("pat1", { person_ids: ["p1"], color: "#818cf8" })],

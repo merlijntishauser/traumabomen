@@ -262,6 +262,21 @@ export function TimelineYearsContent({
             </React.Fragment>
           ))}
 
+          {/* Pattern lane tints (below person labels, above bands) */}
+          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+            <TimelinePatternLanes
+              patterns={patterns}
+              visiblePatternIds={visiblePatternIds}
+              hoveredPatternId={hoveredPatternId ?? null}
+              onPatternHover={onPatternHover}
+              onPatternClick={onPatternClick}
+              direction="horizontal"
+              rows={rows}
+              rowHeight={ROW_HEIGHT}
+              labelX={24}
+            />
+          )}
+
           {/* Person name labels */}
           {rows.map((row) => {
             const isSelected = selectedPersonId === row.person.id;
@@ -338,18 +353,6 @@ export function TimelineYearsContent({
         {/* Clipped time content */}
         <g clipPath="url(#timeline-clip)">
           <g ref={zoomGroupRef} className="tl-time">
-            {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-              <TimelinePatternLanes
-                patterns={patterns}
-                visiblePatternIds={visiblePatternIds}
-                hoveredPatternId={hoveredPatternId ?? null}
-                onPatternHover={onPatternHover}
-                onPatternClick={onPatternClick}
-                direction="horizontal"
-                rows={rows}
-                rowHeight={ROW_HEIGHT}
-              />
-            )}
             {rows.map((row) => {
               const isSelected = selectedPersonId === row.person.id;
               const isDimmed =
