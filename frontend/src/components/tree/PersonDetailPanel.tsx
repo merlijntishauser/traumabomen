@@ -150,12 +150,37 @@ function AgeHint({
   return <span className="detail-panel__age-hint">{t(key, { age: hint.age })}</span>;
 }
 
+/** Format classification periods as a compact summary string. */
+function formatClassificationPeriods(
+  cls: {
+    periods: { start_year: number; end_year: number | null }[];
+    diagnosis_year: number | null;
+  },
+  t: (key: string) => string,
+): React.ReactNode {
+  if (cls.periods.length > 0) {
+    const parts = cls.periods.map((p) =>
+      p.end_year ? `${p.start_year}-${p.end_year}` : `${p.start_year}, ${t("common.ongoing")}`,
+    );
+    return <span className="detail-panel__period-summary">{parts.join("; ")}</span>;
+  }
+  if (cls.diagnosis_year) {
+    return (
+      <span className="detail-panel__period-summary">
+        {cls.diagnosis_year}, {t("common.ongoing")}
+      </span>
+    );
+  }
+  return null;
+}
+
 /** Mini-bar showing severity/impact as 10 small filled/empty blocks. */
 function SeverityBar({ value, color }: { value: number; color: string }) {
   const clamped = Math.max(0, Math.min(10, value));
   return (
-    <div className="detail-panel__severity-bar" aria-label={`${clamped}/10`}>
+    <div className="detail-panel__severity-bar" role="img" aria-label={`${clamped}/10`}>
       {Array.from({ length: 10 }, (_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length visual dots
         <span
           key={`severity-${i}`}
           className="detail-panel__severity-dot"
@@ -675,7 +700,9 @@ export function PersonDetailPanel({
                     />
                     <span className="detail-panel__event-card-title">{event.title}</span>
                     {event.approximate_date && (
-                      <span className="detail-panel__event-card-date">{event.approximate_date}</span>
+                      <span className="detail-panel__event-card-date">
+                        {event.approximate_date}
+                      </span>
                     )}
                     <button
                       type="button"
@@ -758,7 +785,9 @@ export function PersonDetailPanel({
                     />
                     <span className="detail-panel__event-card-title">{event.title}</span>
                     {event.approximate_date && (
-                      <span className="detail-panel__event-card-date">{event.approximate_date}</span>
+                      <span className="detail-panel__event-card-date">
+                        {event.approximate_date}
+                      </span>
                     )}
                     <button
                       type="button"
@@ -830,19 +859,20 @@ export function PersonDetailPanel({
                   }}
                 />
               ) : (
-                <div key={cls.id} className="detail-panel__event-item">
-                  <div className="detail-panel__event-header">
+                <div key={cls.id} className="detail-panel__event-card">
+                  <div className="detail-panel__event-card-row">
                     <span
-                      className="detail-panel__event-dot"
+                      className="detail-panel__event-card-dot"
                       style={{
                         backgroundColor: getClassificationColor(cls.status),
                         borderRadius: 0,
                         clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
                       }}
                     />
-                    <span className="detail-panel__event-title">
-                      {t(`dsm.${cls.dsm_category}`)}
-                      {cls.dsm_subcategory && ` - ${t(`dsm.sub.${cls.dsm_subcategory}`)}`}
+                    <span className="detail-panel__event-card-title">
+                      {cls.dsm_subcategory
+                        ? t(`dsm.sub.${cls.dsm_subcategory}`)
+                        : t(`dsm.${cls.dsm_category}`)}
                     </span>
                     <button
                       type="button"
@@ -852,9 +882,18 @@ export function PersonDetailPanel({
                       {t(T_EDIT)}
                     </button>
                   </div>
-                  <div className="detail-panel__event-date">
-                    {t(`classification.status.${cls.status}`)}
-                    {cls.diagnosis_year && ` (${cls.diagnosis_year})`}
+                  <div className="detail-panel__event-card-meta">
+                    <span
+                      className={`detail-panel__status-pill detail-panel__status-pill--${cls.status}`}
+                    >
+                      {t(`classification.status.${cls.status}`)}
+                    </span>
+                    {cls.dsm_subcategory && (
+                      <span className="detail-panel__classification-category">
+                        {t(`dsm.${cls.dsm_category}`)}
+                      </span>
+                    )}
+                    {formatClassificationPeriods(cls, t)}
                   </div>
                 </div>
               ),

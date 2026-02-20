@@ -1454,7 +1454,7 @@ describe("PersonDetailPanel", () => {
       expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
     });
 
-    it("shows classification status and diagnosis year", async () => {
+    it("shows classification status pill", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.classifications = [
@@ -1466,10 +1466,55 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      expect(screen.getByText(/classification.status.diagnosed.*2015/)).toBeInTheDocument();
+      const pill = screen.getByText("classification.status.diagnosed");
+      expect(pill).toHaveClass("detail-panel__status-pill");
+      expect(pill).toHaveClass("detail-panel__status-pill--diagnosed");
     });
 
-    it("shows classification with subcategory", async () => {
+    it("shows period summary from diagnosis year", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({
+          status: "diagnosed",
+          diagnosis_year: 2015,
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
+      expect(screen.getByText(/2015.*common\.ongoing/)).toBeInTheDocument();
+    });
+
+    it("shows period summary from explicit periods", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({
+          periods: [{ start_year: 2010, end_year: 2018 }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
+      expect(screen.getByText("2010-2018")).toBeInTheDocument();
+    });
+
+    it("shows ongoing period summary", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({
+          periods: [{ start_year: 2020, end_year: null }],
+        }),
+      ];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
+      expect(screen.getByText(/2020.*common\.ongoing/)).toBeInTheDocument();
+    });
+
+    it("shows subcategory as card title with category in meta", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.classifications = [
@@ -1481,7 +1526,11 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      expect(screen.getByText(/dsm.neurodevelopmental.*dsm.sub.adhd/)).toBeInTheDocument();
+      // Subcategory is the card title
+      const title = screen.getByText("dsm.sub.adhd");
+      expect(title).toHaveClass("detail-panel__event-card-title");
+      // Category shown in meta area
+      expect(screen.getByText("dsm.neurodevelopmental")).toBeInTheDocument();
     });
 
     it("opens new classification form", async () => {
