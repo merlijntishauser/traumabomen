@@ -258,6 +258,33 @@ describe("AgePersonLane", () => {
     expect(paths.length).toBe(1);
   });
 
+  it("does not duplicate label when diagnosis_year equals period start_year", () => {
+    const props = makeBaseProps();
+    props.classifications = [
+      {
+        id: "c1",
+        person_ids: ["p1"],
+        dsm_category: "depressive",
+        dsm_subcategory: null,
+        status: "diagnosed",
+        diagnosis_year: 2000,
+        periods: [{ start_year: 2000, end_year: 2010 }],
+        notes: null,
+      },
+    ];
+
+    const { container } = render(
+      <svg>
+        <AgePersonLane {...props} />
+      </svg>,
+    );
+
+    const labels = Array.from(container.querySelectorAll(".tl-marker-label")).filter(
+      (l) => l.textContent === "dsm.depressive",
+    );
+    expect(labels).toHaveLength(1);
+  });
+
   it("shows tooltip on trauma marker hover", () => {
     const onTooltip = vi.fn();
     const props = makeBaseProps();

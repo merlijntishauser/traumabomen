@@ -556,6 +556,23 @@ describe("PersonLane", () => {
       expect(triangleLabel).toBeTruthy();
     });
 
+    it("does not duplicate label when diagnosis_year equals period start_year", () => {
+      const classifications = [
+        makeClassification("c1", ["a"], {
+          status: "diagnosed",
+          diagnosis_year: 2000,
+          dsm_category: "anxiety",
+          dsm_subcategory: null,
+          periods: [{ start_year: 2000, end_year: null }],
+        }),
+      ];
+      const { container } = renderLane({ classifications });
+      const labels = Array.from(container.querySelectorAll(".tl-marker-label")).filter(
+        (l) => l.textContent === "dsm.anxiety",
+      );
+      expect(labels).toHaveLength(1);
+    });
+
     it("hides all marker labels when showMarkerLabels is false", () => {
       const events = [makeEvent("e1", ["a"])];
       const lifeEvents = [makeLifeEvent("le1", ["a"])];

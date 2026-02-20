@@ -35,7 +35,11 @@ export function collectClassificationLabelEntries(
     const txt = sub ?? t(`dsm.${cls.dsm_category}`);
     entries.push({ x: px, w: txt.length * charW, key: `cs:${cls.id}` });
 
-    if (cls.status === "diagnosed" && cls.diagnosis_year != null) {
+    if (
+      cls.status === "diagnosed" &&
+      cls.diagnosis_year != null &&
+      cls.diagnosis_year !== cls.periods[0].start_year
+    ) {
       const dx = xScale(cls.diagnosis_year);
       entries.push({ x: dx, w: txt.length * charW, key: `ct:${cls.id}` });
     }
@@ -357,7 +361,7 @@ export const PersonLane = React.memo(function PersonLane({
                           className="tl-selection-ring"
                         />
                       )}
-                      {showMarkerLabels && (
+                      {showMarkerLabels && cls.diagnosis_year !== cls.periods[0]?.start_year && (
                         <text
                           x={dx}
                           y={barY - 2 - (labelOffsets.get(`ct:${cls.id}`) ?? 0)}

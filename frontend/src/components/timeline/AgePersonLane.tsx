@@ -253,7 +253,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                           className="tl-selection-ring"
                         />
                       )}
-                      {showMarkerLabels && (
+                      {showMarkerLabels && cls.diagnosis_year !== cls.periods[0]?.start_year && (
                         <text
                           x={cx}
                           y={diagY - MARKER_RADIUS - 2}
