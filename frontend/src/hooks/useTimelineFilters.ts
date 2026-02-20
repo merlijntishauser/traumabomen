@@ -514,20 +514,33 @@ export function useTimelineFilters(
     setTimeRange(range);
   }, []);
 
-  const togglePatternFilterFn = useCallback((patternId: string) => {
-    setVisiblePatterns((prev) => {
-      if (prev === null) {
-        return new Set([patternId]);
-      }
-      const next = new Set(prev);
-      if (next.has(patternId)) {
-        next.delete(patternId);
-      } else {
-        next.add(patternId);
-      }
-      return next.size === 0 ? null : next;
-    });
-  }, []);
+  const allPatternIds = useMemo(
+    () => (patterns ? new Set(patterns.keys()) : new Set<string>()),
+    [patterns],
+  );
+
+  const togglePatternFilterFn = useCallback(
+    (patternId: string) => {
+      setVisiblePatterns((prev) => {
+        if (prev === null) {
+          // All visible: hide this one pattern
+          const next = new Set(allPatternIds);
+          next.delete(patternId);
+          return next.size === 0 ? new Set<string>() : next;
+        }
+        const next = new Set(prev);
+        if (next.has(patternId)) {
+          next.delete(patternId);
+        } else {
+          next.add(patternId);
+        }
+        // If all patterns restored, reset to null (unfiltered)
+        if (next.size >= allPatternIds.size) return null;
+        return next.size === 0 ? new Set<string>() : next;
+      });
+    },
+    [allPatternIds],
+  );
 
   const setFilterMode = useCallback((mode: FilterMode) => {
     setFilterModeState(mode);

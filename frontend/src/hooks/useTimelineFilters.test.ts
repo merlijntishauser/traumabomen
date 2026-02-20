@@ -418,7 +418,7 @@ describe("useTimelineFilters", () => {
       expect(result.current.filters.visiblePatterns).toBeNull();
     });
 
-    it("togglePatternFilter shows only linked entities", () => {
+    it("togglePatternFilter hides the toggled pattern", () => {
       const { persons, events, lifeEvents, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         [
@@ -428,6 +428,7 @@ describe("useTimelineFilters", () => {
             { entity_type: "life_event", entity_id: "le1" },
           ]),
         ],
+        ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e2" }])],
       ]);
       const { result } = renderHook(() =>
         useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
@@ -437,18 +438,16 @@ describe("useTimelineFilters", () => {
         result.current.actions.togglePatternFilter("pat1");
       });
 
+      // pat1 hidden, pat2 still visible
       expect(result.current.filters.visiblePatterns).not.toBeNull();
-      expect(result.current.filters.visiblePatterns!.has("pat1")).toBe(true);
+      expect(result.current.filters.visiblePatterns!.has("pat1")).toBe(false);
+      expect(result.current.filters.visiblePatterns!.has("pat2")).toBe(true);
       expect(result.current.actions.activeFilterCount).toBe(1);
 
-      // e1 is linked to pat1 -> not dimmed
-      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(false);
-      // e2 is NOT linked to pat1 -> dimmed
-      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(true);
-      // le1 is linked -> not dimmed
-      expect(result.current.dims.dimmedLifeEventIds.has("le1")).toBe(false);
-      // le2 is NOT linked -> dimmed
-      expect(result.current.dims.dimmedLifeEventIds.has("le2")).toBe(true);
+      // e2 is linked to visible pat2 -> not dimmed
+      expect(result.current.dims.dimmedEventIds.has("e2")).toBe(false);
+      // e1 is only linked to hidden pat1 -> dimmed by pattern filter
+      expect(result.current.dims.dimmedEventIds.has("e1")).toBe(true);
     });
 
     it("togglePatternFilter twice resets to null", () => {
@@ -503,23 +502,24 @@ describe("useTimelineFilters", () => {
             { entity_type: "trauma_event", entity_id: "e2" },
           ]),
         ],
+        ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e3" }])],
       ]);
       const { result } = renderHook(() =>
         useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
       );
 
       act(() => {
-        // Pattern filter: only e1 and e2 linked
-        result.current.actions.togglePatternFilter("pat1");
+        // Hide pat2 -> only pat1 visible (e1 and e2 linked)
+        result.current.actions.togglePatternFilter("pat2");
         // Category filter: uncheck Loss (Abuse and War remain visible)
         result.current.actions.toggleTraumaCategory(TraumaCategory.Loss);
       });
 
-      // e1: Loss, linked -> not dimmed by pattern, but dimmed by category
+      // e1: Loss, linked to visible pat1 -> not dimmed by pattern, but dimmed by category
       expect(result.current.dims.dimmedEventIds.has("e1")).toBe(true);
-      // e2: Abuse, linked -> not dimmed by pattern, category visible -> NOT dimmed
+      // e2: Abuse, linked to visible pat1 -> not dimmed by pattern, category visible -> NOT dimmed
       expect(result.current.dims.dimmedEventIds.has("e2")).toBe(false);
-      // e3: War, NOT linked -> dimmed by pattern
+      // e3: War, linked to hidden pat2 -> dimmed by pattern
       expect(result.current.dims.dimmedEventIds.has("e3")).toBe(true);
     });
   });
