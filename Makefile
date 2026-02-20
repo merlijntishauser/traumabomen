@@ -112,9 +112,10 @@ ratchet: ## Update coverage baseline to current values
 	docker compose exec api uv run pytest --cov=app --cov-report=json -q
 	docker compose exec frontend npx vitest run --coverage
 	@PY=$$(docker compose exec api python3 -c "import json; d=json.load(open('coverage.json')); print(int(d['totals']['percent_covered']))"); \
-	TS=$$(docker compose exec frontend node -e "const d=require('./coverage/coverage-summary.json'); console.log(Math.floor(d.total.statements.pct))"); \
-	echo "{\"python\": $$PY, \"typescript\": $$TS}" > .coverage-baseline.json; \
-	echo "Updated baseline: python=$$PY% typescript=$$TS%"
+	TS_STMT=$$(docker compose exec frontend node -e "const d=require('./coverage/coverage-summary.json'); console.log(Math.floor(d.total.statements.pct))"); \
+	TS_LINE=$$(docker compose exec frontend node -e "const d=require('./coverage/coverage-summary.json'); console.log(Math.floor(d.total.lines.pct))"); \
+	echo "{\"python\": $$PY, \"typescript_statements\": $$TS_STMT, \"typescript_lines\": $$TS_LINE}" > .coverage-baseline.json; \
+	echo "Updated baseline: python=$$PY% typescript statements=$$TS_STMT% lines=$$TS_LINE%"
 
 # --- Performance ---
 
