@@ -13,6 +13,8 @@ import type {
 } from "../../hooks/useTreeData";
 import { getLifeEventColors } from "../../lib/lifeEventColors";
 import { getTraumaColors } from "../../lib/traumaColors";
+import { capPeriodsAtDeath, type PartnerStatus, RelationshipType } from "../../types/domain";
+import { AgePartnerLine } from "./AgePartnerLine";
 import { AgePersonLane } from "./AgePersonLane";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
 import { TimelinePatternArcs } from "./TimelinePatternArcs";
@@ -80,6 +82,7 @@ export function TimelineAgeContent({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
+  showPartnerLines = true,
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
@@ -134,6 +137,49 @@ export function TimelineAgeContent({
 
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
+
+  const partnerLines = useMemo(() => {
+    const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
+    const result: Array<{
+      key: string;
+      sourceName: string;
+      targetName: string;
+      sourceX: number | null;
+      targetX: number | null;
+      sourceLaneWidth: number;
+      targetLaneWidth: number;
+      periods: Array<{ start_year: number; end_year: number | null; status: PartnerStatus }>;
+      birthYears: { source: number; target: number };
+    }> = [];
+
+    for (const rel of relationships.values()) {
+      if (rel.type !== RelationshipType.Partner) continue;
+      const col1 = colByPersonId.get(rel.source_person_id);
+      const col2 = colByPersonId.get(rel.target_person_id);
+      if (!col1 && !col2) continue;
+
+      const sourcePerson = persons.get(rel.source_person_id);
+      const targetPerson = persons.get(rel.target_person_id);
+      if (sourcePerson?.birth_year == null || targetPerson?.birth_year == null) continue;
+
+      result.push({
+        key: rel.id,
+        sourceName: sourcePerson.name ?? "?",
+        targetName: targetPerson.name ?? "?",
+        sourceX: col1?.x ?? null,
+        targetX: col2?.x ?? null,
+        sourceLaneWidth: col1?.laneWidth ?? 0,
+        targetLaneWidth: col2?.laneWidth ?? 0,
+        periods: capPeriodsAtDeath(rel.periods, {
+          source: sourcePerson.death_year,
+          target: targetPerson.death_year,
+        }),
+        birthYears: { source: sourcePerson.birth_year, target: targetPerson.birth_year },
+      });
+    }
+
+    return result;
+  }, [columns, relationships, persons]);
 
   const {
     rescaled: rescaledAge,
@@ -356,6 +402,25 @@ export function TimelineAgeContent({
                 />
               );
             })}
+            {showPartnerLines &&
+              partnerLines.map((pl) => (
+                <AgePartnerLine
+                  key={pl.key}
+                  sourceName={pl.sourceName}
+                  targetName={pl.targetName}
+                  sourceX={pl.sourceX}
+                  targetX={pl.targetX}
+                  sourceLaneWidth={pl.sourceLaneWidth}
+                  targetLaneWidth={pl.targetLaneWidth}
+                  periods={pl.periods}
+                  ageScale={ageScale}
+                  birthYears={pl.birthYears}
+                  currentYear={currentYear}
+                  cssVar={cssVar}
+                  t={t}
+                  onTooltip={onTooltip}
+                />
+              ))}
           </g>
         </g>
       </svg>
