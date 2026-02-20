@@ -195,23 +195,6 @@ function SeverityBar({ value, color }: { value: number; color: string }) {
   );
 }
 
-/** Toggle a person in a Set, preventing removal of the last person. */
-function togglePersonInSet(
-  personId: string,
-  setter: React.Dispatch<React.SetStateAction<Set<string>>>,
-) {
-  setter((prev) => {
-    if (prev.has(personId) && prev.size <= 1) return prev;
-    const next = new Set(prev);
-    if (next.has(personId)) {
-      next.delete(personId);
-    } else {
-      next.add(personId);
-    }
-    return next;
-  });
-}
-
 export type PersonDetailSection =
   | "person"
   | "relationships"
@@ -858,27 +841,66 @@ export function PersonDetailPanel({
           ))}
 
         {/* Classifications tab */}
-        {activeTab === "classifications" && (
-          <>
-            {classifications.map((cls) =>
-              editingClassificationId === cls.id ? (
-                <ClassificationForm
+        {activeTab === "classifications" &&
+          (editingClassificationId || showNewClassification ? (
+            <EditSubPanel
+              title={
+                editingClassificationId
+                  ? (() => {
+                      const cls = classifications.find((c) => c.id === editingClassificationId);
+                      if (!cls) return t("classification.editClassification");
+                      return cls.dsm_subcategory
+                        ? t(`dsm.sub.${cls.dsm_subcategory}`)
+                        : t(`dsm.${cls.dsm_category}`);
+                    })()
+                  : t("classification.newClassification")
+              }
+              onBack={() => {
+                setEditingClassificationId(null);
+                setShowNewClassification(false);
+              }}
+            >
+              <ClassificationForm
+                classification={
+                  editingClassificationId
+                    ? (classifications.find((c) => c.id === editingClassificationId) ?? null)
+                    : null
+                }
+                allPersons={allPersons}
+                initialPersonIds={
+                  editingClassificationId
+                    ? (classifications.find((c) => c.id === editingClassificationId)
+                        ?.person_ids ?? [person.id])
+                    : [person.id]
+                }
+                onSave={(data, personIds) => {
+                  onSaveClassification(editingClassificationId, data, personIds);
+                  setEditingClassificationId(null);
+                  setShowNewClassification(false);
+                }}
+                onCancel={() => {
+                  setEditingClassificationId(null);
+                  setShowNewClassification(false);
+                }}
+                onDelete={
+                  editingClassificationId
+                    ? () => {
+                        onDeleteClassification(editingClassificationId);
+                        setEditingClassificationId(null);
+                      }
+                    : undefined
+                }
+              />
+            </EditSubPanel>
+          ) : (
+            <>
+              {classifications.map((cls) => (
+                <button
                   key={cls.id}
-                  classification={cls}
-                  allPersons={allPersons}
-                  initialPersonIds={cls.person_ids}
-                  onSave={(data, personIds) => {
-                    onSaveClassification(cls.id, data, personIds);
-                    setEditingClassificationId(null);
-                  }}
-                  onCancel={() => setEditingClassificationId(null)}
-                  onDelete={() => {
-                    onDeleteClassification(cls.id);
-                    setEditingClassificationId(null);
-                  }}
-                />
-              ) : (
-                <div key={cls.id} className="detail-panel__event-card">
+                  type="button"
+                  className="detail-panel__event-card"
+                  onClick={() => setEditingClassificationId(cls.id)}
+                >
                   <div className="detail-panel__event-card-row">
                     <span
                       className="detail-panel__event-card-dot"
@@ -893,13 +915,6 @@ export function PersonDetailPanel({
                         ? t(`dsm.sub.${cls.dsm_subcategory}`)
                         : t(`dsm.${cls.dsm_category}`)}
                     </span>
-                    <button
-                      type="button"
-                      className="detail-panel__btn--small"
-                      onClick={() => setEditingClassificationId(cls.id)}
-                    >
-                      {t(T_EDIT)}
-                    </button>
                   </div>
                   <div className="detail-panel__event-card-meta">
                     <span
@@ -914,22 +929,8 @@ export function PersonDetailPanel({
                     )}
                     {formatClassificationPeriods(cls, t)}
                   </div>
-                </div>
-              ),
-            )}
-
-            {showNewClassification ? (
-              <ClassificationForm
-                classification={null}
-                allPersons={allPersons}
-                initialPersonIds={[person.id]}
-                onSave={(data, personIds) => {
-                  onSaveClassification(null, data, personIds);
-                  setShowNewClassification(false);
-                }}
-                onCancel={() => setShowNewClassification(false)}
-              />
-            ) : (
+                </button>
+              ))}
               <button
                 type="button"
                 className="detail-panel__btn detail-panel__btn--secondary"
@@ -937,9 +938,8 @@ export function PersonDetailPanel({
               >
                 {t("classification.newClassification")}
               </button>
-            )}
-          </>
-        )}
+            </>
+          ))}
       </div>
     </div>
   );
@@ -1004,12 +1004,6 @@ function ClassificationForm({
       return null;
     }).filter((cat): cat is DsmCategory => cat !== null);
   }, [categorySearch, t]);
-
-  const sortedPersons = Array.from(allPersons.values()).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-
-  const togglePerson = (personId: string) => togglePersonInSet(personId, setSelectedPersonIds);
 
   function addPeriod() {
     setPeriods((prev) => [...prev, { start_year: new Date().getFullYear(), end_year: null }]);
@@ -1164,19 +1158,11 @@ function ClassificationForm({
         <span>{t("classification.notes")}</span>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
       </label>
-      <fieldset className="detail-panel__field detail-panel__person-checkboxes">
-        <span>{t("classification.linkedPersons")}</span>
-        {sortedPersons.map((p) => (
-          <label key={p.id} className="detail-panel__field--checkbox">
-            <input
-              type="checkbox"
-              checked={selectedPersonIds.has(p.id)}
-              onChange={() => togglePerson(p.id)}
-            />
-            <span>{p.name}</span>
-          </label>
-        ))}
-      </fieldset>
+      <PersonLinkField
+        allPersons={allPersons}
+        selectedIds={selectedPersonIds}
+        onChange={setSelectedPersonIds}
+      />
       <div className="detail-panel__actions">
         <button
           type="button"

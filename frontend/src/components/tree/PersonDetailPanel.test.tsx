@@ -1600,9 +1600,9 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("dsm.anxiety"));
 
-      // Form should be visible
+      // Form should be visible in sub-panel
       expect(screen.getByText("classification.category")).toBeInTheDocument();
 
       await user.click(screen.getByText("common.save"));
@@ -1621,7 +1621,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("dsm.anxiety"));
       await user.click(screen.getByText("common.cancel"));
 
       expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
@@ -1634,7 +1634,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("dsm.anxiety"));
 
       await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteClassification).not.toHaveBeenCalled();
@@ -1858,7 +1858,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
-      await user.click(screen.getByText("common.edit"));
+      await user.click(screen.getByText("dsm.anxiety"));
 
       // Clear the end_year
       const endYearInput = screen.getByDisplayValue("2020");
@@ -1885,13 +1885,10 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByRole("tab", { name: /classification.classifications/ }));
       await user.click(screen.getByText("classification.newClassification"));
 
-      // Find and check Bob's checkbox
-      const checkboxes = screen.getAllByRole("checkbox");
-      const bobCheckbox = checkboxes.find((cb) =>
-        cb.closest("label")?.textContent?.includes("Bob"),
-      );
-      expect(bobCheckbox).toBeDefined();
-      await user.click(bobCheckbox!);
+      // Expand PersonLinkField and add Bob
+      await user.click(screen.getByText(/link/i));
+      const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
+      await user.click(bobCheckbox);
 
       await user.click(screen.getByText("common.save"));
 
