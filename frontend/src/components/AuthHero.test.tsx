@@ -36,6 +36,16 @@ describe("AuthHero", () => {
     }
   });
 
+  it("wraps each image in a picture element with webp source", () => {
+    const { container } = render(<AuthHero />);
+    const pictures = container.querySelectorAll("picture");
+    expect(pictures).toHaveLength(2);
+    const sources = container.querySelectorAll("source[type='image/webp']");
+    expect(sources).toHaveLength(2);
+    expect(sources[0].getAttribute("srcset")).toBe("/images/hero-dark.webp");
+    expect(sources[1].getAttribute("srcset")).toBe("/images/hero-light.webp");
+  });
+
   it("marks the container as aria-hidden", () => {
     const { container } = render(<AuthHero />);
     const hero = container.querySelector(".auth-hero");
