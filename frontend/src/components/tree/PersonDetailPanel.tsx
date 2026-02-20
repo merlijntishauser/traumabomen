@@ -150,6 +150,25 @@ function AgeHint({
   return <span className="detail-panel__age-hint">{t(key, { age: hint.age })}</span>;
 }
 
+/** Mini-bar showing severity/impact as 10 small filled/empty blocks. */
+function SeverityBar({ value, color }: { value: number; color: string }) {
+  const clamped = Math.max(0, Math.min(10, value));
+  return (
+    <div className="detail-panel__severity-bar" aria-label={`${clamped}/10`}>
+      {Array.from({ length: 10 }, (_, i) => (
+        <span
+          key={`severity-${i}`}
+          className="detail-panel__severity-dot"
+          style={{
+            backgroundColor: i < clamped ? color : "var(--color-border-primary)",
+            opacity: i < clamped ? 1 : 0.3,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Toggle a person in a Set, preventing removal of the last person. */
 function togglePersonInSet(
   personId: string,
@@ -646,15 +665,18 @@ export function PersonDetailPanel({
                   }}
                 />
               ) : (
-                <div key={event.id} className="detail-panel__event-item">
-                  <div className="detail-panel__event-header">
+                <div key={event.id} className="detail-panel__event-card">
+                  <div className="detail-panel__event-card-row">
                     <span
-                      className="detail-panel__event-dot"
+                      className="detail-panel__event-card-dot"
                       style={{
                         backgroundColor: getTraumaColor(event.category),
                       }}
                     />
-                    <span className="detail-panel__event-title">{event.title}</span>
+                    <span className="detail-panel__event-card-title">{event.title}</span>
+                    {event.approximate_date && (
+                      <span className="detail-panel__event-card-date">{event.approximate_date}</span>
+                    )}
                     <button
                       type="button"
                       className="detail-panel__btn--small"
@@ -663,9 +685,20 @@ export function PersonDetailPanel({
                       {t(T_EDIT)}
                     </button>
                   </div>
-                  {event.approximate_date && (
-                    <div className="detail-panel__event-date">{event.approximate_date}</div>
-                  )}
+                  <div className="detail-panel__event-card-meta">
+                    <span
+                      className="detail-panel__category-pill"
+                      style={{
+                        backgroundColor: `${getTraumaColor(event.category)}26`,
+                        color: getTraumaColor(event.category),
+                      }}
+                    >
+                      {t(`trauma.category.${event.category}`)}
+                    </span>
+                    {event.severity != null && event.severity > 0 && (
+                      <SeverityBar value={event.severity} color={getTraumaColor(event.category)} />
+                    )}
+                  </div>
                 </div>
               ),
             )}
@@ -714,16 +747,19 @@ export function PersonDetailPanel({
                   }}
                 />
               ) : (
-                <div key={event.id} className="detail-panel__event-item">
-                  <div className="detail-panel__event-header">
+                <div key={event.id} className="detail-panel__event-card">
+                  <div className="detail-panel__event-card-row">
                     <span
-                      className="detail-panel__event-dot"
+                      className="detail-panel__event-card-dot"
                       style={{
                         backgroundColor: getLifeEventColor(event.category),
                         borderRadius: 2,
                       }}
                     />
-                    <span className="detail-panel__event-title">{event.title}</span>
+                    <span className="detail-panel__event-card-title">{event.title}</span>
+                    {event.approximate_date && (
+                      <span className="detail-panel__event-card-date">{event.approximate_date}</span>
+                    )}
                     <button
                       type="button"
                       className="detail-panel__btn--small"
@@ -732,9 +768,20 @@ export function PersonDetailPanel({
                       {t(T_EDIT)}
                     </button>
                   </div>
-                  {event.approximate_date && (
-                    <div className="detail-panel__event-date">{event.approximate_date}</div>
-                  )}
+                  <div className="detail-panel__event-card-meta">
+                    <span
+                      className="detail-panel__category-pill"
+                      style={{
+                        backgroundColor: `${getLifeEventColor(event.category)}26`,
+                        color: getLifeEventColor(event.category),
+                      }}
+                    >
+                      {t(`lifeEvent.category.${event.category}`)}
+                    </span>
+                    {event.impact != null && event.impact > 0 && (
+                      <SeverityBar value={event.impact} color={getLifeEventColor(event.category)} />
+                    )}
+                  </div>
                 </div>
               ),
             )}

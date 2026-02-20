@@ -1163,6 +1163,111 @@ describe("PersonDetailPanel", () => {
     });
   });
 
+  describe("trauma event card display", () => {
+    it("shows category pill with translated category name", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ category: TraumaCategory.Abuse })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.getByText("trauma.category.abuse")).toBeInTheDocument();
+      const pill = screen.getByText("trauma.category.abuse");
+      expect(pill).toHaveClass("detail-panel__category-pill");
+    });
+
+    it("shows severity bar with correct filled count", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: 7 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      const severityBar = screen.getByLabelText("7/10");
+      expect(severityBar).toBeInTheDocument();
+      const dots = severityBar.querySelectorAll(".detail-panel__severity-dot");
+      expect(dots).toHaveLength(10);
+    });
+
+    it("does not show severity bar when severity is 0", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: 0 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("does not show severity bar when severity is undefined", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ severity: undefined as unknown as number })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("shows date on the first row next to title", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ approximate_date: "1992" })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /trauma.events/ }));
+      const dateEl = screen.getByText("1992");
+      expect(dateEl).toHaveClass("detail-panel__event-card-date");
+    });
+  });
+
+  describe("life event card display", () => {
+    it("shows category pill with translated category name", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ category: LifeEventCategory.Education })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.getByText("lifeEvent.category.education")).toBeInTheDocument();
+      const pill = screen.getByText("lifeEvent.category.education");
+      expect(pill).toHaveClass("detail-panel__category-pill");
+    });
+
+    it("shows impact bar with correct filled count", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: 4 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      const impactBar = screen.getByLabelText("4/10");
+      expect(impactBar).toBeInTheDocument();
+      const dots = impactBar.querySelectorAll(".detail-panel__severity-dot");
+      expect(dots).toHaveLength(10);
+    });
+
+    it("does not show impact bar when impact is 0", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: 0 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+
+    it("does not show impact bar when impact is null", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ impact: null })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /lifeEvent.events/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+    });
+  });
+
   describe("life events tab", () => {
     it("does not show life event content when person tab is active", () => {
       const props = defaultProps();
