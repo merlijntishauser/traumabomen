@@ -81,6 +81,13 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
 
   if (direction === "horizontal" && rows && rowHeight != null) {
     const rowByPersonId = new Map(rows.map((r) => [r.person.id, r]));
+    // Group tints by personId so we can render combined labels
+    const tintsByPerson = new Map<string, LaneTint[]>();
+    for (const tint of laneTints) {
+      const list = tintsByPerson.get(tint.personId) ?? [];
+      list.push(tint);
+      tintsByPerson.set(tint.personId, list);
+    }
     return (
       <g className="tl-pattern-lanes" data-testid="pattern-lanes">
         {laneTints.map((tint) => {
@@ -88,31 +95,47 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
           if (!row) return null;
           const isHovered = hoveredPatternId === tint.patternId;
           return (
-            <g key={`${tint.patternId}-${tint.personId}`}>
-              <rect
-                x={0}
-                y={row.y}
-                width="100%"
-                height={rowHeight}
-                fill={tint.color}
-                fillOpacity={isHovered ? 0.14 : 0.08}
-                className="tl-pattern-lane"
-                data-testid={`pattern-lane-${tint.patternId}-${tint.personId}`}
-                onMouseEnter={() => onPatternHover(tint.patternId)}
-                onMouseLeave={() => onPatternHover(null)}
-                onClick={() => onPatternClick(tint.patternId)}
-              />
-              <text
-                x={labelX}
-                y={row.y + rowHeight - 4}
-                fill={tint.color}
-                opacity={isHovered ? 0.9 : 0.5}
-                className="tl-pattern-lane-label"
-                data-testid={`pattern-label-${tint.patternId}-${tint.personId}`}
-              >
-                {tint.patternName}
-              </text>
-            </g>
+            <rect
+              key={`${tint.patternId}-${tint.personId}`}
+              x={0}
+              y={row.y}
+              width="100%"
+              height={rowHeight}
+              fill={tint.color}
+              fillOpacity={isHovered ? 0.14 : 0.08}
+              className="tl-pattern-lane"
+              data-testid={`pattern-lane-${tint.patternId}-${tint.personId}`}
+              onMouseEnter={() => onPatternHover(tint.patternId)}
+              onMouseLeave={() => onPatternHover(null)}
+              onClick={() => onPatternClick(tint.patternId)}
+            />
+          );
+        })}
+        {Array.from(tintsByPerson.entries()).map(([personId, tints]) => {
+          const row = rowByPersonId.get(personId);
+          if (!row) return null;
+          const anyHovered = tints.some((t) => hoveredPatternId === t.patternId);
+          return (
+            <text
+              key={`label-${personId}`}
+              x={labelX}
+              y={row.y + rowHeight - 4}
+              opacity={anyHovered ? 0.9 : 0.5}
+              className="tl-pattern-lane-label"
+              data-testid={`pattern-label-${personId}`}
+            >
+              {tints.map((tint, i) => (
+                <React.Fragment key={tint.patternId}>
+                  {i > 0 && " \u00B7 "}
+                  <tspan
+                    fill={tint.color}
+                    data-testid={`pattern-label-${tint.patternId}-${tint.personId}`}
+                  >
+                    {tint.patternName}
+                  </tspan>
+                </React.Fragment>
+              ))}
+            </text>
           );
         })}
       </g>
@@ -121,6 +144,12 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
 
   if (direction === "vertical" && columns && height != null) {
     const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
+    const tintsByPerson = new Map<string, LaneTint[]>();
+    for (const tint of laneTints) {
+      const list = tintsByPerson.get(tint.personId) ?? [];
+      list.push(tint);
+      tintsByPerson.set(tint.personId, list);
+    }
     return (
       <g className="tl-pattern-lanes" data-testid="pattern-lanes">
         {laneTints.map((tint) => {
@@ -128,34 +157,51 @@ export const TimelinePatternLanes = React.memo(function TimelinePatternLanes({
           if (!col) return null;
           const isHovered = hoveredPatternId === tint.patternId;
           return (
-            <g key={`${tint.patternId}-${tint.personId}`}>
-              <rect
-                x={col.x}
-                y={0}
-                width={col.laneWidth}
-                height={height}
-                fill={tint.color}
-                fillOpacity={isHovered ? 0.14 : 0.08}
-                className="tl-pattern-lane"
-                data-testid={`pattern-lane-${tint.patternId}-${tint.personId}`}
-                onMouseEnter={() => onPatternHover(tint.patternId)}
-                onMouseLeave={() => onPatternHover(null)}
-                onClick={() => onPatternClick(tint.patternId)}
-              />
-              <text
-                x={col.x + col.laneWidth - 3}
-                y={44}
-                fill={tint.color}
-                opacity={isHovered ? 0.9 : 0.5}
-                className="tl-pattern-lane-label"
-                textAnchor="start"
-                dominantBaseline="hanging"
-                transform={`rotate(90, ${col.x + col.laneWidth - 3}, 44)`}
-                data-testid={`pattern-label-${tint.patternId}-${tint.personId}`}
-              >
-                {tint.patternName}
-              </text>
-            </g>
+            <rect
+              key={`${tint.patternId}-${tint.personId}`}
+              x={col.x}
+              y={0}
+              width={col.laneWidth}
+              height={height}
+              fill={tint.color}
+              fillOpacity={isHovered ? 0.14 : 0.08}
+              className="tl-pattern-lane"
+              data-testid={`pattern-lane-${tint.patternId}-${tint.personId}`}
+              onMouseEnter={() => onPatternHover(tint.patternId)}
+              onMouseLeave={() => onPatternHover(null)}
+              onClick={() => onPatternClick(tint.patternId)}
+            />
+          );
+        })}
+        {Array.from(tintsByPerson.entries()).map(([personId, tints]) => {
+          const col = colByPersonId.get(personId);
+          if (!col) return null;
+          const anyHovered = tints.some((t) => hoveredPatternId === t.patternId);
+          const lx = col.x + col.laneWidth - 3;
+          return (
+            <text
+              key={`label-${personId}`}
+              x={lx}
+              y={44}
+              opacity={anyHovered ? 0.9 : 0.5}
+              className="tl-pattern-lane-label"
+              textAnchor="start"
+              dominantBaseline="hanging"
+              transform={`rotate(90, ${lx}, 44)`}
+              data-testid={`pattern-label-${personId}`}
+            >
+              {tints.map((tint, i) => (
+                <React.Fragment key={tint.patternId}>
+                  {i > 0 && " \u00B7 "}
+                  <tspan
+                    fill={tint.color}
+                    data-testid={`pattern-label-${tint.patternId}-${tint.personId}`}
+                  >
+                    {tint.patternName}
+                  </tspan>
+                </React.Fragment>
+              ))}
+            </text>
           );
         })}
       </g>
