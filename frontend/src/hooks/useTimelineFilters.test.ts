@@ -532,7 +532,7 @@ describe("useTimelineFilters", () => {
       );
 
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1", "p2"]));
       });
 
       expect(result.current.filters.visiblePersonIds).not.toBeNull();
@@ -541,75 +541,139 @@ describe("useTimelineFilters", () => {
       expect(result.current.filters.visiblePersonIds!.has("p3")).toBe(false);
     });
 
-    it("adds second group members (union)", () => {
+    it("unions groups within same category", () => {
       const { persons, events, lifeEvents, classifications } = buildMaps();
       const { result } = renderHook(() =>
         useTimelineFilters(persons, events, lifeEvents, classifications),
       );
 
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1"]));
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1"]));
       });
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p2"]));
+        result.current.actions.togglePersonGroup("gender:male", new Set(["p2"]));
+      });
+
+      // Same category (gender) -> union: p1 + p2
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
+    });
+
+    it("removes group when toggled again", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1", "p2"]));
+      });
+      // Toggle same group off
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1", "p2"]));
+      });
+
+      // No active groups -> resets to null
+      expect(result.current.filters.visiblePersonIds).toBeNull();
+    });
+
+    it("intersects groups across different categories", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      // Category "gender": p1, p2
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1", "p2"]));
+      });
+      // Category "gen": p1, p3
+      act(() => {
+        result.current.actions.togglePersonGroup("gen:0", new Set(["p1", "p3"]));
+      });
+
+      // Intersection: only p1 (in both gender:female AND gen:0)
+      expect(result.current.filters.visiblePersonIds).not.toBeNull();
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(false);
+      expect(result.current.filters.visiblePersonIds!.has("p3")).toBe(false);
+    });
+
+    it("union within category, intersect across categories", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      // Category "gender": female={p1}, male={p2} -> union = {p1, p2}
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1"]));
+      });
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:male", new Set(["p2"]));
+      });
+      // Category "gen": gen0={p2, p3}
+      act(() => {
+        result.current.actions.togglePersonGroup("gen:0", new Set(["p2", "p3"]));
+      });
+
+      // gender union = {p1, p2}, gen union = {p2, p3}, intersection = {p2}
+      expect(result.current.filters.visiblePersonIds).not.toBeNull();
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(false);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p3")).toBe(false);
+    });
+
+    it("removing cross-category group restores broader visibility", () => {
+      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { result } = renderHook(() =>
+        useTimelineFilters(persons, events, lifeEvents, classifications),
+      );
+
+      act(() => {
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1", "p2"]));
+      });
+      act(() => {
+        result.current.actions.togglePersonGroup("gen:0", new Set(["p1"]));
+      });
+
+      // Intersection = {p1}
+      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
+      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(false);
+
+      // Remove gen:0 -> only gender:female left -> {p1, p2}
+      act(() => {
+        result.current.actions.togglePersonGroup("gen:0", new Set(["p1"]));
       });
 
       expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
       expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
     });
 
-    it("removes group when all members are already visible", () => {
+    it("tracks activeGroupKeys", () => {
       const { persons, events, lifeEvents, classifications } = buildMaps();
       const { result } = renderHook(() =>
         useTimelineFilters(persons, events, lifeEvents, classifications),
       );
 
-      act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
-      });
-      // Now p1 and p2 are visible. Toggle same group -> removes them
-      act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
-      });
-
-      // Both removed, set becomes empty -> resets to null
-      expect(result.current.filters.visiblePersonIds).toBeNull();
-    });
-
-    it("removing a partial group adds the missing members", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
-      const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
-      );
+      expect(result.current.filters.activeGroupKeys.size).toBe(0);
 
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1"]));
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1"]));
       });
-      // Now only p1 visible. Toggle group [p1, p2] -> not all in set -> adds all
+      expect(result.current.filters.activeGroupKeys.has("gender:female")).toBe(true);
+
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1", "p2"]));
+        result.current.actions.togglePersonGroup("gen:0", new Set(["p1", "p2"]));
       });
+      expect(result.current.filters.activeGroupKeys.has("gender:female")).toBe(true);
+      expect(result.current.filters.activeGroupKeys.has("gen:0")).toBe(true);
 
-      expect(result.current.filters.visiblePersonIds!.has("p1")).toBe(true);
-      expect(result.current.filters.visiblePersonIds!.has("p2")).toBe(true);
-    });
-
-    it("resets to null when adding makes all persons visible", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
-      const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
-      );
-
-      // Start by selecting p1 only
       act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p1"]));
+        result.current.actions.togglePersonGroup("gender:female", new Set(["p1"]));
       });
-      // Add remaining persons
-      act(() => {
-        result.current.actions.togglePersonGroup(new Set(["p2", "p3"]));
-      });
-
-      expect(result.current.filters.visiblePersonIds).toBeNull();
+      expect(result.current.filters.activeGroupKeys.has("gender:female")).toBe(false);
+      expect(result.current.filters.activeGroupKeys.has("gen:0")).toBe(true);
     });
   });
 

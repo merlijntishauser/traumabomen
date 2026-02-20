@@ -65,6 +65,7 @@ function makePattern(id: string, name: string): DecryptedPattern {
 
 const defaultFilters: TimelineFilterState = {
   visiblePersonIds: null,
+  activeGroupKeys: new Set<string>(),
   traumaCategories: null,
   lifeEventCategories: null,
   classificationCategories: null,
@@ -631,16 +632,17 @@ describe("TimelineFilterPanel", () => {
       expect(activePills.length).toBe(allPills.length);
     });
 
-    it("marks group pill as inactive when not all members visible", () => {
+    it("marks group pill as inactive when its key is not in activeGroupKeys", () => {
       const actions = makeActions();
-      const filtersWithPerson: TimelineFilterState = {
+      const filtersWithGroups: TimelineFilterState = {
         ...defaultFilters,
         visiblePersonIds: new Set(["p1"]),
+        activeGroupKeys: new Set(["gender:female"]),
       };
       render(
         <TimelineFilterPanel
           persons={persons}
-          filters={filtersWithPerson}
+          filters={filtersWithGroups}
           actions={actions}
           timeDomain={timeDomain}
           groups={sampleGroups}
@@ -648,11 +650,11 @@ describe("TimelineFilterPanel", () => {
         />,
       );
 
-      // "Men" group has p2 which is not visible
+      // "Men" group key is not in activeGroupKeys
       const menPill = screen.getByText("timeline.group.men (1)");
       expect(menPill.classList.contains("tl-filter-panel__pill--active")).toBe(false);
 
-      // "Women" group has p1 which is visible
+      // "Women" group key is in activeGroupKeys
       const womenPill = screen.getByText("timeline.group.women (1)");
       expect(womenPill.classList.contains("tl-filter-panel__pill--active")).toBe(true);
     });
@@ -671,7 +673,7 @@ describe("TimelineFilterPanel", () => {
       );
 
       fireEvent.click(screen.getByText("timeline.group.women (1)"));
-      expect(actions.togglePersonGroup).toHaveBeenCalledWith(new Set(["p1"]));
+      expect(actions.togglePersonGroup).toHaveBeenCalledWith("gender:female", new Set(["p1"]));
     });
 
     it("does not render groups section when no groups provided", () => {

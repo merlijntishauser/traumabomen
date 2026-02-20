@@ -66,7 +66,7 @@ function GroupRow({
   label: string;
   groups: FilterGroup[];
   pillClass: (g: FilterGroup) => string;
-  onToggle: (personIds: Set<string>) => void;
+  onToggle: (groupKey: string, personIds: Set<string>) => void;
   t: (key: string) => string;
 }) {
   if (rowGroups.length === 0) return null;
@@ -79,7 +79,7 @@ function GroupRow({
             key={g.key}
             type="button"
             className={pillClassFn(g)}
-            onClick={() => onToggle(g.personIds)}
+            onClick={() => onToggle(g.key, g.personIds)}
           >
             {g.labelKey.startsWith("Gen ") ? g.labelKey : t(g.labelKey)} ({g.personIds.size})
           </button>
@@ -248,9 +248,7 @@ export function TimelineFilterPanel({
   const localMax = filters.timeRange?.max ?? timeDomain.maxYear;
 
   function pillClass(group: FilterGroup): string {
-    const active =
-      filters.visiblePersonIds === null ||
-      [...group.personIds].every((id) => filters.visiblePersonIds!.has(id));
+    const active = filters.activeGroupKeys.size === 0 || filters.activeGroupKeys.has(group.key);
     return active ? PILL_ACTIVE : PILL_BASE;
   }
 

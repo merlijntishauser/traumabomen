@@ -37,6 +37,7 @@ export type QuickFilterPreset = "trauma" | "lifeEvents" | "classifications";
 
 export interface TimelineFilterState {
   visiblePersonIds: Set<string> | null;
+  activeGroupKeys: Set<string>;
   traumaCategories: Set<TraumaCategory> | null;
   lifeEventCategories: Set<LifeEventCategory> | null;
   classificationCategories: Set<string> | null;
@@ -50,7 +51,7 @@ export interface TimelineFilterState {
 export interface TimelineFilterActions {
   togglePerson: (personId: string) => void;
   toggleAllPersons: (visible: boolean) => void;
-  togglePersonGroup: (personIds: Set<string>) => void;
+  togglePersonGroup: (groupKey: string, personIds: Set<string>) => void;
   toggleTraumaCategory: (cat: TraumaCategory) => void;
   toggleLifeEventCategory: (cat: LifeEventCategory) => void;
   toggleClassificationCategory: (cat: string) => void;
@@ -280,6 +281,46 @@ export function computeDimSets(
   return { dimmedPersonIds, dimmedEventIds, dimmedLifeEventIds, dimmedClassificationIds };
 }
 
+/** Extract category from a group key, e.g. "gender:female" -> "gender" */
+function groupCategory(groupKey: string): string {
+  const idx = groupKey.indexOf(":");
+  return idx === -1 ? groupKey : groupKey.slice(0, idx);
+}
+
+/** Derive visiblePersonIds by intersecting per-category union sets. */
+function deriveVisibleFromGroups(activeGroupData: Map<string, Set<string>>): Set<string> | null {
+  if (activeGroupData.size === 0) return null;
+
+  // Build per-category unions
+  const categoryUnions = new Map<string, Set<string>>();
+  for (const [groupKey, personIds] of activeGroupData) {
+    const cat = groupCategory(groupKey);
+    const existing = categoryUnions.get(cat);
+    if (existing) {
+      for (const id of personIds) existing.add(id);
+    } else {
+      categoryUnions.set(cat, new Set(personIds));
+    }
+  }
+
+  // Intersect across categories
+  let result: Set<string> | null = null;
+  for (const ids of categoryUnions.values()) {
+    if (result === null) {
+      result = new Set(ids);
+    } else {
+      const intersection = new Set<string>();
+      for (const id of result) {
+        if (ids.has(id)) intersection.add(id);
+      }
+      result = intersection;
+    }
+  }
+  return result;
+}
+
+const EMPTY_GROUP_KEYS = new Set<string>();
+
 export function useTimelineFilters(
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,
@@ -287,7 +328,11 @@ export function useTimelineFilters(
   classifications: Map<string, DecryptedClassification>,
   patterns?: Map<string, DecryptedPattern>,
 ): { filters: TimelineFilterState; actions: TimelineFilterActions; dims: DimSets } {
-  const [visiblePersonIds, setVisiblePersonIds] = useState<Set<string> | null>(null);
+  // Group-based filtering: groupKey -> personIds for each active group
+  const [activeGroupData, setActiveGroupData] = useState<Map<string, Set<string>>>(new Map());
+  // Individual person overrides (set when user manually toggles individual checkboxes)
+  const [customPersonIds, setCustomPersonIds] = useState<Set<string> | null>(null);
+
   const [traumaCategories, setTraumaCategories] = useState<Set<TraumaCategory> | null>(null);
   const [lifeEventCategories, setLifeEventCategories] = useState<Set<LifeEventCategory> | null>(
     null,
@@ -303,9 +348,21 @@ export function useTimelineFilters(
   const [visiblePatterns, setVisiblePatterns] = useState<Set<string> | null>(null);
   const [filterMode, setFilterModeState] = useState<FilterMode>("dim");
 
+  // Derive visiblePersonIds: customPersonIds takes precedence, otherwise derive from groups
+  const visiblePersonIds = useMemo(() => {
+    if (customPersonIds !== null) return customPersonIds;
+    return deriveVisibleFromGroups(activeGroupData);
+  }, [activeGroupData, customPersonIds]);
+
+  const activeGroupKeys = useMemo(() => {
+    if (activeGroupData.size === 0) return EMPTY_GROUP_KEYS;
+    return new Set(activeGroupData.keys());
+  }, [activeGroupData]);
+
   const filters: TimelineFilterState = useMemo(
     () => ({
       visiblePersonIds,
+      activeGroupKeys,
       traumaCategories,
       lifeEventCategories,
       classificationCategories,
@@ -317,6 +374,7 @@ export function useTimelineFilters(
     }),
     [
       visiblePersonIds,
+      activeGroupKeys,
       traumaCategories,
       lifeEventCategories,
       classificationCategories,
@@ -332,54 +390,50 @@ export function useTimelineFilters(
 
   const togglePersonFn = useCallback(
     (personId: string) => {
-      setVisiblePersonIds((prev) => {
-        if (prev === null) {
-          // Currently all visible; hide this one person
+      // Collapse group state into flat customPersonIds, then toggle
+      setCustomPersonIds((prev) => {
+        const current = prev ?? deriveVisibleFromGroups(activeGroupData);
+        if (current === null) {
+          // All visible: hide this one person
           const next = new Set(allPersonIds);
           next.delete(personId);
           return next;
         }
-        const next = new Set(prev);
+        const next = new Set(current);
         if (next.has(personId)) {
           next.delete(personId);
         } else {
           next.add(personId);
         }
-        // If all persons are now visible again, reset to null
         if (next.size === allPersonIds.size) return null;
         return next;
       });
+      // Clear group data since we're now in custom mode
+      setActiveGroupData(new Map());
     },
-    [allPersonIds],
+    [allPersonIds, activeGroupData],
   );
 
   const toggleAllPersons = useCallback((visible: boolean) => {
-    if (visible) {
-      setVisiblePersonIds(null);
-    } else {
-      setVisiblePersonIds(new Set());
-    }
+    setActiveGroupData(new Map());
+    setCustomPersonIds(visible ? null : new Set());
   }, []);
 
-  const togglePersonGroupFn = useCallback(
-    (groupPersonIds: Set<string>) => {
-      setVisiblePersonIds((prev) => {
-        if (prev === null) {
-          return new Set(groupPersonIds);
-        }
-        const allInSet = [...groupPersonIds].every((id) => prev.has(id));
-        const next = new Set(prev);
-        if (allInSet) {
-          for (const id of groupPersonIds) next.delete(id);
-          return next.size === 0 ? null : next;
-        }
-        for (const id of groupPersonIds) next.add(id);
-        if (next.size === allPersonIds.size) return null;
-        return next;
-      });
-    },
-    [allPersonIds],
-  );
+  const togglePersonGroupFn = useCallback((groupKey: string, groupPersonIds: Set<string>) => {
+    // Clear any custom overrides when using group toggles
+    setCustomPersonIds(null);
+    setActiveGroupData((prev) => {
+      const next = new Map(prev);
+      if (next.has(groupKey)) {
+        // Toggle off: remove this group
+        next.delete(groupKey);
+      } else {
+        // Toggle on: add this group
+        next.set(groupKey, groupPersonIds);
+      }
+      return next;
+    });
+  }, []);
 
   const toggleTraumaCategory = useCallback((cat: TraumaCategory) => {
     setTraumaCategories((prev) => toggleInSet(prev, cat, ALL_TRAUMA_CATS));
@@ -540,7 +594,8 @@ export function useTimelineFilters(
   );
 
   const resetAll = useCallback(() => {
-    setVisiblePersonIds(null);
+    setActiveGroupData(new Map());
+    setCustomPersonIds(null);
     setTraumaCategories(null);
     setLifeEventCategories(null);
     setClassificationCategories(null);
