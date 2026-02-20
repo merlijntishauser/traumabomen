@@ -310,7 +310,7 @@
 
 .tl-summary-card__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
@@ -320,9 +320,6 @@
   font-weight: 300;
   font-size: 15px;
   color: var(--color-accent);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .tl-summary-card__close {

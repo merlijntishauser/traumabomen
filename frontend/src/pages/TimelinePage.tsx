@@ -381,7 +381,6 @@ export default function TimelinePage() {
     (info: MarkerClickInfo) => {
       if (mode === "explore") {
         setFocusedMarker((prev) => (prev?.entityId === info.entityId ? null : info));
-        setSelectedPersonId(info.personId);
       } else if (mode === "edit") {
         setSelectedPersonId(info.personId);
         setInitialSection(info.entityType);
