@@ -31,6 +31,15 @@ function toggleInSet<T>(prev: Set<T> | null, item: T, allValues: Set<T>): Set<T>
   return next.size === 0 ? new Set<T>() : next;
 }
 
+/** Toggle an item in a dynamically-derived filter set (e.g. classification categories). */
+function toggleInDynamicSet(
+  prev: Set<string> | null,
+  item: string,
+  allUsedValues: Set<string>,
+): Set<string> | null {
+  return toggleInSet(prev ?? allUsedValues, item, allUsedValues) ?? null;
+}
+
 export type FilterMode = "dim" | "hide";
 
 export type QuickFilterPreset = "trauma" | "lifeEvents" | "classifications";
@@ -287,36 +296,54 @@ function groupCategory(groupKey: string): string {
   return idx === -1 ? groupKey : groupKey.slice(0, idx);
 }
 
+/** Merge personIds into the union set for a category. */
+function mergeIntoCategory(
+  unions: Map<string, Set<string>>,
+  cat: string,
+  personIds: Set<string>,
+): void {
+  const existing = unions.get(cat);
+  if (existing) {
+    for (const id of personIds) existing.add(id);
+  } else {
+    unions.set(cat, new Set(personIds));
+  }
+}
+
+/** Intersect two sets, returning only elements present in both. */
+function intersectSets(a: Set<string>, b: Set<string>): Set<string> {
+  return new Set(Array.from(a).filter((id) => b.has(id)));
+}
+
 /** Derive visiblePersonIds by intersecting per-category union sets. */
 function deriveVisibleFromGroups(activeGroupData: Map<string, Set<string>>): Set<string> | null {
   if (activeGroupData.size === 0) return null;
 
-  // Build per-category unions
   const categoryUnions = new Map<string, Set<string>>();
   for (const [groupKey, personIds] of activeGroupData) {
-    const cat = groupCategory(groupKey);
-    const existing = categoryUnions.get(cat);
-    if (existing) {
-      for (const id of personIds) existing.add(id);
-    } else {
-      categoryUnions.set(cat, new Set(personIds));
-    }
+    mergeIntoCategory(categoryUnions, groupCategory(groupKey), personIds);
   }
 
-  // Intersect across categories
-  let result: Set<string> | null = null;
-  for (const ids of categoryUnions.values()) {
-    if (result === null) {
-      result = new Set(ids);
-    } else {
-      const intersection = new Set<string>();
-      for (const id of result) {
-        if (ids.has(id)) intersection.add(id);
-      }
-      result = intersection;
-    }
-  }
-  return result;
+  return Array.from(categoryUnions.values()).reduce<Set<string> | null>(
+    (result, ids) => (result === null ? new Set(ids) : intersectSets(result, ids)),
+    null,
+  );
+}
+
+/** Check if a quick filter preset is currently active (its layer unfiltered, others fully off). */
+function isQuickFilterActive(
+  preset: QuickFilterPreset,
+  traumaCats: Set<TraumaCategory> | null,
+  lifeEventCats: Set<LifeEventCategory> | null,
+  classificationCats: Set<string> | null,
+): boolean {
+  const layers: Record<QuickFilterPreset, Set<unknown> | null> = {
+    trauma: traumaCats,
+    lifeEvents: lifeEventCats,
+    classifications: classificationCats,
+  };
+  if (layers[preset] !== null) return false;
+  return Object.entries(layers).every(([k, v]) => k === preset || (v !== null && v.size === 0));
 }
 
 const EMPTY_GROUP_KEYS = new Set<string>();
@@ -390,25 +417,10 @@ export function useTimelineFilters(
 
   const togglePersonFn = useCallback(
     (personId: string) => {
-      // Collapse group state into flat customPersonIds, then toggle
       setCustomPersonIds((prev) => {
         const current = prev ?? deriveVisibleFromGroups(activeGroupData);
-        if (current === null) {
-          // All visible: hide this one person
-          const next = new Set(allPersonIds);
-          next.delete(personId);
-          return next;
-        }
-        const next = new Set(current);
-        if (next.has(personId)) {
-          next.delete(personId);
-        } else {
-          next.add(personId);
-        }
-        if (next.size === allPersonIds.size) return null;
-        return next;
+        return toggleInDynamicSet(current, personId, allPersonIds);
       });
-      // Clear group data since we're now in custom mode
       setActiveGroupData(new Map());
     },
     [allPersonIds, activeGroupData],
@@ -443,67 +455,35 @@ export function useTimelineFilters(
     setLifeEventCategories((prev) => toggleInSet(prev, cat, ALL_LIFE_EVENT_CATS));
   }, []);
 
-  // For classifications/subcategories, the "all" set is dynamic (only used categories).
-  // We use a large placeholder set so unchecking works, and rely on the filter panel
-  // only showing used categories. When all are re-checked, size >= allValues resets to null.
+  const allUsedCategories = useMemo(
+    () => new Set(Array.from(classifications.values(), (cls) => cls.dsm_category)),
+    [classifications],
+  );
+
+  const allUsedSubcategories = useMemo(
+    () =>
+      new Set(
+        Array.from(classifications.values())
+          .map((cls) => cls.dsm_subcategory)
+          .filter((s): s is string => s !== null),
+      ),
+    [classifications],
+  );
+
   const toggleClassificationCategory = useCallback(
     (cat: string) => {
-      setClassificationCategories((prev) => {
-        if (prev === null) {
-          // All visible; uncheck this one
-          const allUsed = new Set<string>();
-          for (const [, cls] of classifications) allUsed.add(cls.dsm_category);
-          allUsed.delete(cat);
-          return allUsed.size === 0 ? new Set<string>() : allUsed;
-        }
-        const next = new Set(prev);
-        if (next.has(cat)) {
-          next.delete(cat);
-        } else {
-          next.add(cat);
-        }
-        // Check if all used categories are now selected
-        let allRestored = true;
-        for (const [, cls] of classifications) {
-          if (!next.has(cls.dsm_category)) {
-            allRestored = false;
-            break;
-          }
-        }
-        return allRestored ? null : next;
-      });
+      setClassificationCategories((prev) => toggleInDynamicSet(prev, cat, allUsedCategories));
     },
-    [classifications],
+    [allUsedCategories],
   );
 
   const toggleClassificationSubcategory = useCallback(
     (subcat: string) => {
-      setClassificationSubcategories((prev) => {
-        if (prev === null) {
-          const allUsed = new Set<string>();
-          for (const [, cls] of classifications) {
-            if (cls.dsm_subcategory) allUsed.add(cls.dsm_subcategory);
-          }
-          allUsed.delete(subcat);
-          return allUsed.size === 0 ? new Set<string>() : allUsed;
-        }
-        const next = new Set(prev);
-        if (next.has(subcat)) {
-          next.delete(subcat);
-        } else {
-          next.add(subcat);
-        }
-        let allRestored = true;
-        for (const [, cls] of classifications) {
-          if (cls.dsm_subcategory && !next.has(cls.dsm_subcategory)) {
-            allRestored = false;
-            break;
-          }
-        }
-        return allRestored ? null : next;
-      });
+      setClassificationSubcategories((prev) =>
+        toggleInDynamicSet(prev, subcat, allUsedSubcategories),
+      );
     },
-    [classifications],
+    [allUsedSubcategories],
   );
 
   const toggleClassificationStatusFn = useCallback((status: ClassificationStatus) => {
@@ -521,23 +501,7 @@ export function useTimelineFilters(
 
   const togglePatternFilterFn = useCallback(
     (patternId: string) => {
-      setVisiblePatterns((prev) => {
-        if (prev === null) {
-          // All visible: hide this one pattern
-          const next = new Set(allPatternIds);
-          next.delete(patternId);
-          return next.size === 0 ? new Set<string>() : next;
-        }
-        const next = new Set(prev);
-        if (next.has(patternId)) {
-          next.delete(patternId);
-        } else {
-          next.add(patternId);
-        }
-        // If all patterns restored, reset to null (unfiltered)
-        if (next.size >= allPatternIds.size) return null;
-        return next.size === 0 ? new Set<string>() : next;
-      });
+      setVisiblePatterns((prev) => toggleInDynamicSet(prev, patternId, allPatternIds));
     },
     [allPatternIds],
   );
@@ -548,60 +512,17 @@ export function useTimelineFilters(
 
   const applyQuickFilter = useCallback(
     (preset: QuickFilterPreset) => {
-      // Check if preset is already active (its layer unfiltered, others fully off)
-      const isTraumaActive =
-        traumaCategories === null &&
-        lifeEventCategories !== null &&
-        lifeEventCategories.size === 0 &&
-        classificationCategories !== null &&
-        classificationCategories.size === 0;
-      const isLifeEventsActive =
-        lifeEventCategories === null &&
-        traumaCategories !== null &&
-        traumaCategories.size === 0 &&
-        classificationCategories !== null &&
-        classificationCategories.size === 0;
-      const isClassificationsActive =
-        classificationCategories === null &&
-        traumaCategories !== null &&
-        traumaCategories.size === 0 &&
-        lifeEventCategories !== null &&
-        lifeEventCategories.size === 0;
-
-      const isAlreadyActive =
-        (preset === "trauma" && isTraumaActive) ||
-        (preset === "lifeEvents" && isLifeEventsActive) ||
-        (preset === "classifications" && isClassificationsActive);
-
-      if (isAlreadyActive) {
-        // Toggle off: reset category filters
-        setTraumaCategories(null);
-        setLifeEventCategories(null);
-        setClassificationCategories(null);
-        setClassificationSubcategories(null);
-        setClassificationStatus(null);
-        return;
-      }
-
-      if (preset === "trauma") {
-        setTraumaCategories(null);
-        setLifeEventCategories(new Set());
-        setClassificationCategories(new Set());
-        setClassificationSubcategories(null);
-        setClassificationStatus(null);
-      } else if (preset === "lifeEvents") {
-        setTraumaCategories(new Set());
-        setLifeEventCategories(null);
-        setClassificationCategories(new Set());
-        setClassificationSubcategories(null);
-        setClassificationStatus(null);
-      } else if (preset === "classifications") {
-        setTraumaCategories(new Set());
-        setLifeEventCategories(new Set());
-        setClassificationCategories(null);
-        setClassificationSubcategories(null);
-        setClassificationStatus(null);
-      }
+      const alreadyActive = isQuickFilterActive(
+        preset,
+        traumaCategories,
+        lifeEventCategories,
+        classificationCategories,
+      );
+      setTraumaCategories(alreadyActive || preset === "trauma" ? null : new Set());
+      setLifeEventCategories(alreadyActive || preset === "lifeEvents" ? null : new Set());
+      setClassificationCategories(alreadyActive || preset === "classifications" ? null : new Set());
+      setClassificationSubcategories(null);
+      setClassificationStatus(null);
     },
     [traumaCategories, lifeEventCategories, classificationCategories],
   );
@@ -619,27 +540,29 @@ export function useTimelineFilters(
     setFilterModeState("dim");
   }, []);
 
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (visiblePersonIds !== null) count++;
-    if (traumaCategories !== null) count++;
-    if (lifeEventCategories !== null) count++;
-    if (classificationCategories !== null) count++;
-    if (classificationSubcategories !== null) count++;
-    if (classificationStatus !== null) count++;
-    if (timeRange !== null) count++;
-    if (visiblePatterns !== null) count++;
-    return count;
-  }, [
-    visiblePersonIds,
-    traumaCategories,
-    lifeEventCategories,
-    classificationCategories,
-    classificationSubcategories,
-    classificationStatus,
-    timeRange,
-    visiblePatterns,
-  ]);
+  const activeFilterCount = useMemo(
+    () =>
+      [
+        visiblePersonIds,
+        traumaCategories,
+        lifeEventCategories,
+        classificationCategories,
+        classificationSubcategories,
+        classificationStatus,
+        timeRange,
+        visiblePatterns,
+      ].filter((v) => v !== null).length,
+    [
+      visiblePersonIds,
+      traumaCategories,
+      lifeEventCategories,
+      classificationCategories,
+      classificationSubcategories,
+      classificationStatus,
+      timeRange,
+      visiblePatterns,
+    ],
+  );
 
   const dims = useMemo(
     () => computeDimSets(filters, persons, events, lifeEvents, classifications, patterns),
