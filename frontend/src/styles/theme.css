@@ -47,10 +47,10 @@
   /* Trauma categories */
   --color-trauma-loss: #818cf8;
   --color-trauma-abuse: #f87171;
-  --color-trauma-addiction: #fb923c;
+  --color-trauma-addiction: #fbbf24;
   --color-trauma-war: #a8a29e;
-  --color-trauma-displacement: #facc15;
-  --color-trauma-illness: #4ade80;
+  --color-trauma-displacement: #e879f9;
+  --color-trauma-illness: #22d3ee;
   --color-trauma-poverty: #a78bfa;
 
   /* Classification status */
@@ -146,10 +146,10 @@
 
   --color-trauma-loss: #6366f1;
   --color-trauma-abuse: #ef4444;
-  --color-trauma-addiction: #f97316;
+  --color-trauma-addiction: #d97706;
   --color-trauma-war: #78716c;
-  --color-trauma-displacement: #ca8a04;
-  --color-trauma-illness: #16a34a;
+  --color-trauma-displacement: #c026d3;
+  --color-trauma-illness: #0891b2;
   --color-trauma-poverty: #7c3aed;
 
   --color-classification-suspected: #d97706;
