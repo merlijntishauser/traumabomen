@@ -47,10 +47,10 @@
   /* Trauma categories */
   --color-trauma-loss: #818cf8;
   --color-trauma-abuse: #f87171;
-  --color-trauma-addiction: #fb923c;
+  --color-trauma-addiction: #fbbf24;
   --color-trauma-war: #a8a29e;
-  --color-trauma-displacement: #facc15;
-  --color-trauma-illness: #4ade80;
+  --color-trauma-displacement: #e879f9;
+  --color-trauma-illness: #22d3ee;
   --color-trauma-poverty: #a78bfa;
 
   /* Classification status */
@@ -60,10 +60,10 @@
   /* Life event categories */
   --color-life-family: #60a5fa;
   --color-life-education: #a78bfa;
-  --color-life-career: #f59e0b;
-  --color-life-relocation: #34d399;
+  --color-life-career: #fbbf24;
+  --color-life-relocation: #2dd4bf;
   --color-life-health: #f472b6;
-  --color-life-medication: #2dd4bf;
+  --color-life-medication: #22d3ee;
   --color-life-other: #94a3b8;
 
   /* Pattern colors */
@@ -146,10 +146,10 @@
 
   --color-trauma-loss: #6366f1;
   --color-trauma-abuse: #ef4444;
-  --color-trauma-addiction: #f97316;
+  --color-trauma-addiction: #d97706;
   --color-trauma-war: #78716c;
-  --color-trauma-displacement: #ca8a04;
-  --color-trauma-illness: #16a34a;
+  --color-trauma-displacement: #c026d3;
+  --color-trauma-illness: #0891b2;
   --color-trauma-poverty: #7c3aed;
 
   --color-classification-suspected: #d97706;
@@ -158,9 +158,9 @@
   --color-life-family: #3b82f6;
   --color-life-education: #7c3aed;
   --color-life-career: #d97706;
-  --color-life-relocation: #059669;
+  --color-life-relocation: #0d9488;
   --color-life-health: #db2777;
-  --color-life-medication: #0d9488;
+  --color-life-medication: #0891b2;
   --color-life-other: #64748b;
 
   /* Pattern colors */

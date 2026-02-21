@@ -37,9 +37,9 @@ export function getTraumaColors(): Record<TraumaCategory, string> {
 export const TRAUMA_COLORS: Record<TraumaCategory, string> = {
   [TraumaCategory.Loss]: "#818cf8",
   [TraumaCategory.Abuse]: "#f87171",
-  [TraumaCategory.Addiction]: "#fb923c",
+  [TraumaCategory.Addiction]: "#fbbf24",
   [TraumaCategory.War]: "#a8a29e",
-  [TraumaCategory.Displacement]: "#facc15",
-  [TraumaCategory.Illness]: "#4ade80",
+  [TraumaCategory.Displacement]: "#e879f9",
+  [TraumaCategory.Illness]: "#22d3ee",
   [TraumaCategory.Poverty]: "#a78bfa",
 };

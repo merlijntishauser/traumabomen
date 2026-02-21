@@ -10,9 +10,16 @@ import "./PersonNode.css";
 
 const MAX_VISIBLE_BADGES = 8;
 
+function badgeInitial(label: string): string {
+  return label.charAt(0).toUpperCase();
+}
+
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
   const { person, events, lifeEvents = [], classifications = [], isFriendOnly } = data;
+  const showTraumaInitials = events.length > 1;
+  const showLifeInitials = lifeEvents.length > 1;
+  const showClassInitials = classifications.length > 1;
 
   const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
   const age = formatAge(
@@ -87,9 +94,11 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               data-badge-id={event.id}
             >
               <span
-                className="person-node__badge"
+                className={`person-node__badge${showTraumaInitials ? " person-node__badge--with-initial" : ""}`}
                 style={{ backgroundColor: getTraumaColor(event.category) }}
-              />
+              >
+                {showTraumaInitials && badgeInitial(t(`trauma.category.${event.category}`))}
+              </span>
               <span className="person-node__tooltip">
                 <span className="person-node__tooltip-title">
                   <span
@@ -119,9 +128,11 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               data-badge-id={event.id}
             >
               <span
-                className="person-node__badge person-node__badge--life"
+                className={`person-node__badge person-node__badge--life${showLifeInitials ? " person-node__badge--with-initial" : ""}`}
                 style={{ backgroundColor: getLifeEventColor(event.category) }}
-              />
+              >
+                {showLifeInitials && badgeInitial(t(`lifeEvent.category.${event.category}`))}
+              </span>
               <span className="person-node__tooltip">
                 <span className="person-node__tooltip-title">
                   <span
@@ -153,9 +164,11 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
                 data-badge-id={cls.id}
               >
                 <span
-                  className="person-node__badge person-node__badge--classification"
+                  className={`person-node__badge person-node__badge--classification${showClassInitials ? " person-node__badge--with-initial" : ""}`}
                   style={{ backgroundColor: getClassificationColor(cls.status) }}
-                />
+                >
+                  {showClassInitials && badgeInitial(t(`classification.status.${cls.status}`))}
+                </span>
                 <span className="person-node__tooltip">
                   <span className="person-node__tooltip-title">
                     <span

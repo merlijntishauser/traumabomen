@@ -37,9 +37,9 @@ export function getLifeEventColors(): Record<LifeEventCategory, string> {
 export const LIFE_EVENT_COLORS: Record<LifeEventCategory, string> = {
   [LifeEventCategory.Family]: "#60a5fa",
   [LifeEventCategory.Education]: "#a78bfa",
-  [LifeEventCategory.Career]: "#f59e0b",
-  [LifeEventCategory.Relocation]: "#34d399",
+  [LifeEventCategory.Career]: "#fbbf24",
+  [LifeEventCategory.Relocation]: "#2dd4bf",
   [LifeEventCategory.Health]: "#f472b6",
-  [LifeEventCategory.Medication]: "#2dd4bf",
+  [LifeEventCategory.Medication]: "#22d3ee",
   [LifeEventCategory.Other]: "#94a3b8",
 };
