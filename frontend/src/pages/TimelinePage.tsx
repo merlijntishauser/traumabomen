@@ -32,6 +32,7 @@ import type {
   Person,
   RelationshipData,
   TraumaEvent,
+  TurningPoint,
 } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
@@ -77,6 +78,7 @@ export default function TimelinePage() {
     relationships,
     events,
     lifeEvents,
+    turningPoints,
     classifications,
     patterns,
     isLoading,
@@ -190,6 +192,16 @@ export default function TimelinePage() {
     [selectedPersonId, lifeEvents],
   );
 
+  const selectedTurningPoints = useMemo(
+    () =>
+      selectedPersonId
+        ? Array.from(turningPoints.values()).filter((tp) =>
+            tp.person_ids.includes(selectedPersonId),
+          )
+        : [],
+    [selectedPersonId, turningPoints],
+  );
+
   const selectedClassifications = useMemo(
     () =>
       selectedPersonId
@@ -288,6 +300,22 @@ export default function TimelinePage() {
 
   function handleDeleteLifeEvent(lifeEventId: string) {
     mutations.deleteLifeEvent.mutate(lifeEventId);
+  }
+
+  function handleSaveTurningPoint(
+    turningPointId: string | null,
+    data: TurningPoint,
+    personIds: string[],
+  ) {
+    if (turningPointId) {
+      mutations.updateTurningPoint.mutate({ turningPointId, personIds, data });
+    } else {
+      mutations.createTurningPoint.mutate({ personIds, data });
+    }
+  }
+
+  function handleDeleteTurningPoint(turningPointId: string) {
+    mutations.deleteTurningPoint.mutate(turningPointId);
   }
 
   function handleSaveClassification(
@@ -626,6 +654,7 @@ export default function TimelinePage() {
             inferredSiblings={selectedInferredSiblings}
             events={selectedEvents}
             lifeEvents={selectedLifeEvents}
+            turningPoints={selectedTurningPoints}
             classifications={selectedClassifications}
             allPersons={persons}
             initialSection={initialSection}
@@ -636,6 +665,8 @@ export default function TimelinePage() {
             onDeleteEvent={handleDeleteEvent}
             onSaveLifeEvent={handleSaveLifeEvent}
             onDeleteLifeEvent={handleDeleteLifeEvent}
+            onSaveTurningPoint={handleSaveTurningPoint}
+            onDeleteTurningPoint={handleDeleteTurningPoint}
             onSaveClassification={handleSaveClassification}
             onDeleteClassification={handleDeleteClassification}
             onClose={() => setSelectedPersonId(null)}

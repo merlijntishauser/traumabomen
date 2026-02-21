@@ -197,6 +197,11 @@
   "turningPoint.category.recovery": "Recovery",
   "turningPoint.category.achievement": "Achievement",
   "turningPoint.category.positive_change": "Positive change",
+  "turningPoint.tab": "Turning",
+  "turningPoint.newEvent": "New turning point",
+  "turningPoint.editEvent": "Edit turning point",
+  "turningPoint.datePlaceholder": "e.g. 1985",
+  "turningPoint.tagsPlaceholder": "tag1, tag2",
   "turningPoint.confirmDelete": "Click again to confirm",
 
   "classification.classifications": "Classifications",

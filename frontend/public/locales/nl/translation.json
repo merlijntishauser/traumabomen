@@ -197,6 +197,11 @@
   "turningPoint.category.recovery": "Herstel",
   "turningPoint.category.achievement": "Prestatie",
   "turningPoint.category.positive_change": "Positieve verandering",
+  "turningPoint.tab": "Keer",
+  "turningPoint.newEvent": "Nieuw keerpunt",
+  "turningPoint.editEvent": "Keerpunt bewerken",
+  "turningPoint.datePlaceholder": "bijv. 1985",
+  "turningPoint.tagsPlaceholder": "label1, label2",
   "turningPoint.confirmDelete": "Klik nogmaals om te bevestigen",
 
   "classification.classifications": "Classificaties",

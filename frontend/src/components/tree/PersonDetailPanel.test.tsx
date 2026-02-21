@@ -7,12 +7,14 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import {
   LifeEventCategory,
   PartnerStatus,
   RelationshipType,
   TraumaCategory,
+  TurningPointCategory,
 } from "../../types/domain";
 import { PersonDetailPanel } from "./PersonDetailPanel";
 
@@ -85,6 +87,20 @@ function makeClassification(
   };
 }
 
+function makeTurningPoint(overrides: Partial<DecryptedTurningPoint> = {}): DecryptedTurningPoint {
+  return {
+    id: "tp1",
+    title: "Therapy Start",
+    description: "Started therapy",
+    category: TurningPointCategory.Recovery,
+    approximate_date: "2010",
+    significance: 8,
+    tags: ["healing"],
+    person_ids: ["p1"],
+    ...overrides,
+  };
+}
+
 function makeRelationship(overrides: Partial<DecryptedRelationship> = {}): DecryptedRelationship {
   return {
     id: "r1",
@@ -108,6 +124,7 @@ const defaultProps = () => ({
   }[],
   events: [] as DecryptedEvent[],
   lifeEvents: [] as DecryptedLifeEvent[],
+  turningPoints: [] as DecryptedTurningPoint[],
   classifications: [] as DecryptedClassification[],
   allPersons: new Map([["p1", makePerson()]]),
   onSavePerson: vi.fn(),
@@ -117,6 +134,8 @@ const defaultProps = () => ({
   onDeleteEvent: vi.fn(),
   onSaveLifeEvent: vi.fn(),
   onDeleteLifeEvent: vi.fn(),
+  onSaveTurningPoint: vi.fn(),
+  onDeleteTurningPoint: vi.fn(),
   onSaveClassification: vi.fn(),
   onDeleteClassification: vi.fn(),
   onClose: vi.fn(),
@@ -148,10 +167,10 @@ describe("PersonDetailPanel", () => {
     expect(screen.queryByText(/-/)).not.toBeInTheDocument();
   });
 
-  it("renders tab bar with 5 tabs", () => {
+  it("renders tab bar with 6 tabs", () => {
     render(<PersonDetailPanel {...defaultProps()} />);
     const tabs = screen.getAllByRole("tab");
-    expect(tabs).toHaveLength(5);
+    expect(tabs).toHaveLength(6);
   });
 
   it("shows person tab as active by default", () => {
@@ -1512,6 +1531,195 @@ describe("PersonDetailPanel", () => {
 
       expect(screen.getByText("Graduation")).toBeInTheDocument();
       expect(screen.queryByText("lifeEvent.title")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("turning points tab", () => {
+    it("does not show turning point content when person tab is active", () => {
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+      expect(screen.queryByText("Therapy Start")).not.toBeInTheDocument();
+    });
+
+    it("shows turning points when tab is clicked", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
+    });
+
+    it("shows turning point approximate date", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint({ approximate_date: "2015" })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      expect(screen.getByText("2015")).toBeInTheDocument();
+    });
+
+    it("shows turning point count badge on tab", () => {
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+
+      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      expect(tab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
+    });
+
+    it("opens new turning point form", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("turningPoint.newEvent"));
+
+      expect(screen.getByText("turningPoint.titleField")).toBeInTheDocument();
+    });
+
+    it("saves new turning point with null id", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("turningPoint.newEvent"));
+
+      fireEvent.change(screen.getByRole("textbox", { name: /turningPoint.titleField/i }), {
+        target: { value: "Started Meditation" },
+      });
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveTurningPoint).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({ title: "Started Meditation" }),
+        expect.arrayContaining(["p1"]),
+      );
+    });
+
+    it("edits existing turning point", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("Therapy Start"));
+
+      expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
+
+      const titleInput = screen.getByDisplayValue("Therapy Start");
+      fireEvent.change(titleInput, { target: { value: "Group Therapy" } });
+
+      await user.click(screen.getByText("common.save"));
+
+      expect(props.onSaveTurningPoint).toHaveBeenCalledWith(
+        "tp1",
+        expect.objectContaining({ title: "Group Therapy" }),
+        expect.arrayContaining(["p1"]),
+      );
+    });
+
+    it("cancels turning point editing", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("Therapy Start"));
+      await user.click(screen.getByText("common.cancel"));
+
+      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
+    });
+
+    it("deletes turning point with two-click confirmation", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("Therapy Start"));
+
+      await user.click(screen.getByText("common.delete"));
+      expect(props.onDeleteTurningPoint).not.toHaveBeenCalled();
+      expect(screen.getByText("turningPoint.confirmDelete")).toBeInTheDocument();
+
+      await user.click(screen.getByText("turningPoint.confirmDelete"));
+      expect(props.onDeleteTurningPoint).toHaveBeenCalledWith("tp1");
+    });
+
+    it("cancels new turning point form", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await user.click(screen.getByText("turningPoint.newEvent"));
+      await user.click(screen.getByText("common.cancel"));
+
+      expect(screen.getByText("turningPoint.newEvent")).toBeInTheDocument();
+    });
+
+    it("maps turning_point initialSection to turning tab", () => {
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint()];
+      render(<PersonDetailPanel {...props} initialSection="turning_point" />);
+
+      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      expect(tab).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
+    });
+
+    it("opens turning point edit form when initialEntityId is provided", () => {
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint({ id: "tp1" })];
+      render(<PersonDetailPanel {...props} initialSection="turning_point" initialEntityId="tp1" />);
+
+      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      expect(tab).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
+    });
+
+    it("shows category pill with translated category name", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint({ category: TurningPointCategory.Achievement })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      expect(screen.getByText("turningPoint.category.achievement")).toBeInTheDocument();
+      const pill = screen.getByText("turningPoint.category.achievement");
+      expect(pill).toHaveClass("detail-panel__category-pill");
+    });
+
+    it("shows significance bar with correct filled count", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint({ significance: 6 })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      const sigBar = screen.getByLabelText("6/10");
+      expect(sigBar).toBeInTheDocument();
+      const dots = sigBar.querySelectorAll(".detail-panel__severity-dot");
+      expect(dots).toHaveLength(10);
+    });
+
+    it("does not show significance bar when significance is null", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.turningPoints = [makeTurningPoint({ significance: null })];
+      render(<PersonDetailPanel {...props} />);
+
+      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
   });
 

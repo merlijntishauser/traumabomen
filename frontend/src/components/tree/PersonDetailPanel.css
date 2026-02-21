@@ -431,6 +431,11 @@ fieldset.detail-panel__field {
   flex-shrink: 0;
 }
 
+.detail-panel__event-card-dot--turning-point {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
 .detail-panel__event-card-title {
   flex: 1;
   font-size: 13px;

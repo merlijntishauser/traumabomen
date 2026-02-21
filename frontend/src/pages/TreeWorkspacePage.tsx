@@ -42,6 +42,7 @@ import type {
   Person,
   RelationshipData,
   TraumaEvent,
+  TurningPoint,
 } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
@@ -633,6 +634,22 @@ function TreeWorkspaceInner() {
     mutations.deleteLifeEvent.mutate(lifeEventId);
   }
 
+  function handleSaveTurningPoint(
+    turningPointId: string | null,
+    data: TurningPoint,
+    personIds: string[],
+  ) {
+    if (turningPointId) {
+      mutations.updateTurningPoint.mutate({ turningPointId, personIds, data });
+    } else {
+      mutations.createTurningPoint.mutate({ personIds, data });
+    }
+  }
+
+  function handleDeleteTurningPoint(turningPointId: string) {
+    mutations.deleteTurningPoint.mutate(turningPointId);
+  }
+
   function handleSaveClassification(
     classificationId: string | null,
     data: Classification,
@@ -790,6 +807,10 @@ function TreeWorkspaceInner() {
     ? Array.from(lifeEvents.values()).filter((e) => e.person_ids.includes(selectedPersonId))
     : [];
 
+  const selectedTurningPoints = selectedPersonId
+    ? Array.from(turningPoints.values()).filter((tp) => tp.person_ids.includes(selectedPersonId))
+    : [];
+
   const selectedClassifications = selectedPersonId
     ? Array.from(classifications.values()).filter((c) => c.person_ids.includes(selectedPersonId))
     : [];
@@ -912,6 +933,7 @@ function TreeWorkspaceInner() {
             inferredSiblings={selectedInferredSiblings}
             events={selectedEvents}
             lifeEvents={selectedLifeEvents}
+            turningPoints={selectedTurningPoints}
             classifications={selectedClassifications}
             allPersons={persons}
             initialSection={initialSection}
@@ -923,6 +945,8 @@ function TreeWorkspaceInner() {
             onDeleteEvent={handleDeleteEvent}
             onSaveLifeEvent={handleSaveLifeEvent}
             onDeleteLifeEvent={handleDeleteLifeEvent}
+            onSaveTurningPoint={handleSaveTurningPoint}
+            onDeleteTurningPoint={handleDeleteTurningPoint}
             onSaveClassification={handleSaveClassification}
             onDeleteClassification={handleDeleteClassification}
             onClose={() => setSelectedPersonId(null)}

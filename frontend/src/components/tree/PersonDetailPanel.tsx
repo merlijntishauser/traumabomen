@@ -1,4 +1,4 @@
-import { Circle, GitFork, Square, Triangle, User } from "lucide-react";
+import { Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -7,6 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
 import type {
@@ -15,12 +16,14 @@ import type {
   Person,
   RelationshipData,
   TraumaEvent,
+  TurningPoint,
 } from "../../types/domain";
 import { ClassificationsTab } from "./ClassificationsTab";
 import { LifeEventsTab } from "./LifeEventsTab";
 import { PersonTab } from "./PersonTab";
 import { RelationshipsTab } from "./RelationshipsTab";
 import { TraumaEventsTab } from "./TraumaEventsTab";
+import { TurningPointsTab } from "./TurningPointsTab";
 import "./PersonDetailPanel.css";
 
 export type PersonDetailSection =
@@ -28,10 +31,17 @@ export type PersonDetailSection =
   | "relationships"
   | "trauma_event"
   | "life_event"
+  | "turning_point"
   | "classification"
   | null;
 
-export type DetailTab = "person" | "relationships" | "trauma" | "life" | "classifications";
+export type DetailTab =
+  | "person"
+  | "relationships"
+  | "trauma"
+  | "life"
+  | "turning"
+  | "classifications";
 
 const TAB_CLASS = "detail-panel__tab";
 const TAB_ACTIVE_CLASS = `${TAB_CLASS} ${TAB_CLASS}--active`;
@@ -50,6 +60,8 @@ function sectionToTab(section: PersonDetailSection): DetailTab {
       return "trauma";
     case "life_event":
       return "life";
+    case "turning_point":
+      return "turning";
     case "classification":
       return "classifications";
     default:
@@ -63,6 +75,7 @@ interface PersonDetailPanelProps {
   inferredSiblings: InferredSibling[];
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  turningPoints: DecryptedTurningPoint[];
   classifications: DecryptedClassification[];
   allPersons: Map<string, DecryptedPerson>;
   initialSection?: PersonDetailSection;
@@ -74,6 +87,12 @@ interface PersonDetailPanelProps {
   onDeleteEvent: (eventId: string) => void;
   onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
   onDeleteLifeEvent: (lifeEventId: string) => void;
+  onSaveTurningPoint: (
+    turningPointId: string | null,
+    data: TurningPoint,
+    personIds: string[],
+  ) => void;
+  onDeleteTurningPoint: (turningPointId: string) => void;
   onSaveClassification: (
     classificationId: string | null,
     data: Classification,
@@ -89,6 +108,7 @@ export function PersonDetailPanel({
   inferredSiblings,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   allPersons,
   initialSection,
@@ -100,6 +120,8 @@ export function PersonDetailPanel({
   onDeleteEvent,
   onSaveLifeEvent,
   onDeleteLifeEvent,
+  onSaveTurningPoint,
+  onDeleteTurningPoint,
   onSaveClassification,
   onDeleteClassification,
   onClose,
@@ -185,6 +207,19 @@ export function PersonDetailPanel({
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === "turning"}
+          className={tabClassName(activeTab === "turning")}
+          onClick={() => setActiveTab("turning")}
+        >
+          <Star size={14} />
+          {t("turningPoint.tab")}
+          {turningPoints.length > 0 && (
+            <span className="detail-panel__tab-badge">{turningPoints.length}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === "classifications"}
           className={tabClassName(activeTab === "classifications")}
           onClick={() => setActiveTab("classifications")}
@@ -228,6 +263,16 @@ export function PersonDetailPanel({
             onSaveLifeEvent={onSaveLifeEvent}
             onDeleteLifeEvent={onDeleteLifeEvent}
             initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
+          />
+        )}
+        {activeTab === "turning" && (
+          <TurningPointsTab
+            person={person}
+            turningPoints={turningPoints}
+            allPersons={allPersons}
+            onSaveTurningPoint={onSaveTurningPoint}
+            onDeleteTurningPoint={onDeleteTurningPoint}
+            initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
           />
         )}
         {activeTab === "classifications" && (
