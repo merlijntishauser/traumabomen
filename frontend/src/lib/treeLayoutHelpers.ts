@@ -229,6 +229,7 @@ export function layoutDagreGraph(
   persons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
   friendOnlyIds: Set<string>,
+  inferredSiblings?: InferredSibling[],
 ): DagreResult {
   const g = new dagre.graphlib.Graph();
   g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
@@ -252,11 +253,22 @@ export function layoutDagreGraph(
     }
   }
 
+  // Add inferred siblings so they share the same rank
+  if (inferredSiblings) {
+    for (const sib of inferredSiblings) {
+      if (g.hasNode(sib.personAId) && g.hasNode(sib.personBId)) {
+        g.setEdge(sib.personAId, sib.personBId, { minlen: 0 });
+      }
+    }
+  }
+
   dagre.layout(g);
 
   for (const [aId, bId] of partnerPairs) {
     alignPartnerPair(g, aId, bId);
   }
+
+  resolveOverlaps(g);
 
   return { graph: g, partnerPairs };
 }
@@ -272,6 +284,51 @@ function alignPartnerPair(g: dagre.graphlib.Graph, aId: string, bId: string): vo
     const mid = (a.x + b.x) / 2;
     a.x = mid - (NODE_WIDTH / 2 + 10);
     b.x = mid + (NODE_WIDTH / 2 + 10);
+  }
+}
+
+/**
+ * After partner alignment, some nodes may overlap. Group nodes by approximate
+ * Y (same rank), sort by X, and push apart any that are too close.
+ */
+function resolveOverlaps(g: dagre.graphlib.Graph): void {
+  const nodeIds = g.nodes();
+  if (nodeIds.length === 0) return;
+
+  const yTolerance = NODE_HEIGHT / 2;
+  const minXGap = NODE_WIDTH + 20;
+
+  // Group nodes by approximate Y rank
+  const ranks: Map<number, string[]> = new Map();
+  for (const id of nodeIds) {
+    const node = g.node(id);
+    if (!node) continue;
+    let assigned = false;
+    for (const [rankY, members] of ranks) {
+      if (Math.abs(node.y - rankY) <= yTolerance) {
+        members.push(id);
+        assigned = true;
+        break;
+      }
+    }
+    if (!assigned) {
+      ranks.set(node.y, [id]);
+    }
+  }
+
+  // Within each rank, sort by X and push apart overlapping nodes
+  for (const members of ranks.values()) {
+    if (members.length < 2) continue;
+    members.sort((a, b) => (g.node(a)?.x ?? 0) - (g.node(b)?.x ?? 0));
+    for (let i = 1; i < members.length; i++) {
+      const prev = g.node(members[i - 1]);
+      const curr = g.node(members[i]);
+      if (!prev || !curr) continue;
+      const gap = curr.x - prev.x;
+      if (gap < minXGap) {
+        curr.x = prev.x + minXGap;
+      }
+    }
   }
 }
 

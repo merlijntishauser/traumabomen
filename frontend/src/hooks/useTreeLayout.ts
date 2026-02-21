@@ -71,7 +71,8 @@ function _computeLayout(
 
   const friendOnlyIds = findFriendOnlyIds(persons, relationships);
   const { bioParentsOf, coupleChildren } = buildBioParentData(relationships);
-  const { graph } = layoutDagreGraph(persons, relationships, friendOnlyIds);
+  const inferred = inferSiblings(relationships);
+  const { graph } = layoutDagreGraph(persons, relationships, friendOnlyIds, inferred);
   const friendPositions = positionFriendNodes(persons, relationships, friendOnlyIds, graph);
   const lookups = buildEntityLookups(events, lifeEvents, classifications);
   const { nodes, nodeCenter } = buildPersonNodes(
@@ -89,7 +90,6 @@ function _computeLayout(
     persons,
   );
   const { childCoupleColor, useCoupleColors } = computeCoupleColors(bioParentsOf);
-  const inferred = inferSiblings(relationships);
   const edges = buildRelationshipEdges({
     relationships,
     persons,
