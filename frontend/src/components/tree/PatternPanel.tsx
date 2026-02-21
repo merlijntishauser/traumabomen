@@ -13,6 +13,51 @@ import { getPatternColor, PATTERN_COLORS } from "../../lib/patternColors";
 import type { LinkedEntity, Pattern } from "../../types/domain";
 import "./PatternPanel.css";
 
+function resolveLinkedEntity(
+  le: LinkedEntity,
+  events: Map<string, DecryptedEvent>,
+  lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
+  classifications: Map<string, DecryptedClassification>,
+  persons: Map<string, DecryptedPerson>,
+  t: (key: string) => string,
+): { label: string; personName: string; personId: string } {
+  const entityMaps: Record<string, Map<string, { title?: string; person_ids: string[] }>> = {
+    trauma_event: events,
+    life_event: lifeEvents,
+    turning_point: turningPoints,
+  };
+
+  const map = entityMaps[le.entity_type];
+  if (map) {
+    const entity = map.get(le.entity_id);
+    const label = (entity as { title?: string } | undefined)?.title ?? "?";
+    const pid = entity?.person_ids[0];
+    return {
+      label,
+      personName: pid ? (persons.get(pid)?.name ?? "") : "",
+      personId: pid ?? "",
+    };
+  }
+
+  if (le.entity_type === "classification") {
+    const cls = classifications.get(le.entity_id);
+    const label = cls
+      ? cls.dsm_subcategory
+        ? t(`dsm.sub.${cls.dsm_subcategory}`)
+        : t(`dsm.${cls.dsm_category}`)
+      : "?";
+    const pid = cls?.person_ids[0];
+    return {
+      label,
+      personName: pid ? (persons.get(pid)?.name ?? "") : "",
+      personId: pid ?? "",
+    };
+  }
+
+  return { label: "?", personName: "", personId: "" };
+}
+
 interface PatternPanelProps {
   patterns: Map<string, DecryptedPattern>;
   events: Map<string, DecryptedEvent>;
@@ -301,47 +346,16 @@ function PatternEditForm({
 
   const entityInfos: EntityInfo[] = useMemo(() => {
     return linkedEntities.map((le) => {
-      let label = "";
-      let personName = "";
-      let personId = "";
-      if (le.entity_type === "trauma_event") {
-        const ev = events.get(le.entity_id);
-        label = ev?.title ?? "?";
-        const pid = ev?.person_ids[0];
-        if (pid) {
-          personName = persons.get(pid)?.name ?? "";
-          personId = pid;
-        }
-      } else if (le.entity_type === "life_event") {
-        const ev = lifeEvents.get(le.entity_id);
-        label = ev?.title ?? "?";
-        const pid = ev?.person_ids[0];
-        if (pid) {
-          personName = persons.get(pid)?.name ?? "";
-          personId = pid;
-        }
-      } else if (le.entity_type === "turning_point") {
-        const tp = turningPoints.get(le.entity_id);
-        label = tp?.title ?? "?";
-        const pid = tp?.person_ids[0];
-        if (pid) {
-          personName = persons.get(pid)?.name ?? "";
-          personId = pid;
-        }
-      } else if (le.entity_type === "classification") {
-        const cls = classifications.get(le.entity_id);
-        label = cls
-          ? cls.dsm_subcategory
-            ? t(`dsm.sub.${cls.dsm_subcategory}`)
-            : t(`dsm.${cls.dsm_category}`)
-          : "?";
-        const pid = cls?.person_ids[0];
-        if (pid) {
-          personName = persons.get(pid)?.name ?? "";
-          personId = pid;
-        }
-      }
-      return { entity: le, label, personName, personId };
+      const resolved = resolveLinkedEntity(
+        le,
+        events,
+        lifeEvents,
+        turningPoints,
+        classifications,
+        persons,
+        t,
+      );
+      return { entity: le, ...resolved };
     });
   }, [linkedEntities, events, lifeEvents, turningPoints, classifications, persons, t]);
 

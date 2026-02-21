@@ -228,6 +228,35 @@ export function buildBioParentData(
 }
 
 /** Build dagre graph, add nodes and edges, run layout, then align partners. */
+/** Add relationship edges to the Dagre graph. Returns partner pairs (not added as edges). */
+function addRelationshipEdges(
+  g: dagre.graphlib.Graph,
+  relationships: Map<string, DecryptedRelationship>,
+  inferredSiblings?: InferredSibling[],
+): [string, string][] {
+  const partnerPairs: [string, string][] = [];
+
+  for (const rel of relationships.values()) {
+    if (PARENT_TYPES.has(rel.type)) {
+      g.setEdge(rel.source_person_id, rel.target_person_id);
+    } else if (SIBLING_TYPES.has(rel.type)) {
+      g.setEdge(rel.source_person_id, rel.target_person_id, { minlen: 0 });
+    } else if (rel.type === RelationshipType.Partner) {
+      partnerPairs.push([rel.source_person_id, rel.target_person_id]);
+    }
+  }
+
+  if (inferredSiblings) {
+    for (const sib of inferredSiblings) {
+      if (g.hasNode(sib.personAId) && g.hasNode(sib.personBId)) {
+        g.setEdge(sib.personAId, sib.personBId, { minlen: 0 });
+      }
+    }
+  }
+
+  return partnerPairs;
+}
+
 export function layoutDagreGraph(
   persons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
@@ -244,26 +273,7 @@ export function layoutDagreGraph(
     }
   }
 
-  const partnerPairs: [string, string][] = [];
-
-  for (const rel of relationships.values()) {
-    if (PARENT_TYPES.has(rel.type)) {
-      g.setEdge(rel.source_person_id, rel.target_person_id);
-    } else if (SIBLING_TYPES.has(rel.type)) {
-      g.setEdge(rel.source_person_id, rel.target_person_id, { minlen: 0 });
-    } else if (rel.type === RelationshipType.Partner) {
-      partnerPairs.push([rel.source_person_id, rel.target_person_id]);
-    }
-  }
-
-  // Add inferred siblings so they share the same rank
-  if (inferredSiblings) {
-    for (const sib of inferredSiblings) {
-      if (g.hasNode(sib.personAId) && g.hasNode(sib.personBId)) {
-        g.setEdge(sib.personAId, sib.personBId, { minlen: 0 });
-      }
-    }
-  }
+  const partnerPairs = addRelationshipEdges(g, relationships, inferredSiblings);
 
   dagre.layout(g);
 
@@ -294,16 +304,10 @@ function alignPartnerPair(g: dagre.graphlib.Graph, aId: string, bId: string): vo
  * After partner alignment, some nodes may overlap. Group nodes by approximate
  * Y (same rank), sort by X, and push apart any that are too close.
  */
-function resolveOverlaps(g: dagre.graphlib.Graph): void {
-  const nodeIds = g.nodes();
-  if (nodeIds.length === 0) return;
-
-  const yTolerance = NODE_HEIGHT / 2;
-  const minXGap = NODE_WIDTH + 20;
-
-  // Group nodes by approximate Y rank
+/** Group node IDs by approximate Y coordinate (same visual rank). */
+function groupNodesByRank(g: dagre.graphlib.Graph, yTolerance: number): Map<number, string[]> {
   const ranks: Map<number, string[]> = new Map();
-  for (const id of nodeIds) {
+  for (const id of g.nodes()) {
     const node = g.node(id);
     if (!node) continue;
     let assigned = false;
@@ -318,8 +322,15 @@ function resolveOverlaps(g: dagre.graphlib.Graph): void {
       ranks.set(node.y, [id]);
     }
   }
+  return ranks;
+}
 
-  // Within each rank, sort by X and push apart overlapping nodes
+function resolveOverlaps(g: dagre.graphlib.Graph): void {
+  if (g.nodes().length === 0) return;
+
+  const minXGap = NODE_WIDTH + 20;
+  const ranks = groupNodesByRank(g, NODE_HEIGHT / 2);
+
   for (const members of ranks.values()) {
     if (members.length < 2) continue;
     members.sort((a, b) => (g.node(a)?.x ?? 0) - (g.node(b)?.x ?? 0));
@@ -327,8 +338,7 @@ function resolveOverlaps(g: dagre.graphlib.Graph): void {
       const prev = g.node(members[i - 1]);
       const curr = g.node(members[i]);
       if (!prev || !curr) continue;
-      const gap = curr.x - prev.x;
-      if (gap < minXGap) {
+      if (curr.x - prev.x < minXGap) {
         curr.x = prev.x + minXGap;
       }
     }
@@ -403,6 +413,22 @@ export function positionFriendNodes(
   return friendPositions;
 }
 
+/** Group entities by person ID using each entity's person_ids array. */
+function groupByPerson<T extends { person_ids: string[] }>(
+  entities?: Map<string, T>,
+): Map<string, T[]> {
+  const result = new Map<string, T[]>();
+  if (!entities) return result;
+  for (const entity of entities.values()) {
+    for (const personId of entity.person_ids) {
+      const existing = result.get(personId) ?? [];
+      existing.push(entity);
+      result.set(personId, existing);
+    }
+  }
+  return result;
+}
+
 /** Build per-person lookups for events, life events, turning points, and classifications. */
 export function buildEntityLookups(
   events: Map<string, DecryptedEvent>,
@@ -410,49 +436,12 @@ export function buildEntityLookups(
   classifications?: Map<string, DecryptedClassification>,
   turningPoints?: Map<string, DecryptedTurningPoint>,
 ): EntityLookups {
-  const eventsByPerson = new Map<string, DecryptedEvent[]>();
-  for (const event of events.values()) {
-    for (const personId of event.person_ids) {
-      const existing = eventsByPerson.get(personId) ?? [];
-      existing.push(event);
-      eventsByPerson.set(personId, existing);
-    }
-  }
-
-  const lifeEventsByPerson = new Map<string, DecryptedLifeEvent[]>();
-  if (lifeEvents) {
-    for (const le of lifeEvents.values()) {
-      for (const personId of le.person_ids) {
-        const existing = lifeEventsByPerson.get(personId) ?? [];
-        existing.push(le);
-        lifeEventsByPerson.set(personId, existing);
-      }
-    }
-  }
-
-  const turningPointsByPerson = new Map<string, DecryptedTurningPoint[]>();
-  if (turningPoints) {
-    for (const tp of turningPoints.values()) {
-      for (const personId of tp.person_ids) {
-        const existing = turningPointsByPerson.get(personId) ?? [];
-        existing.push(tp);
-        turningPointsByPerson.set(personId, existing);
-      }
-    }
-  }
-
-  const classificationsByPerson = new Map<string, DecryptedClassification[]>();
-  if (classifications) {
-    for (const cls of classifications.values()) {
-      for (const personId of cls.person_ids) {
-        const existing = classificationsByPerson.get(personId) ?? [];
-        existing.push(cls);
-        classificationsByPerson.set(personId, existing);
-      }
-    }
-  }
-
-  return { eventsByPerson, lifeEventsByPerson, turningPointsByPerson, classificationsByPerson };
+  return {
+    eventsByPerson: groupByPerson(events),
+    lifeEventsByPerson: groupByPerson(lifeEvents),
+    turningPointsByPerson: groupByPerson(turningPoints),
+    classificationsByPerson: groupByPerson(classifications),
+  };
 }
 
 /** Resolve the position of a single person node. */
