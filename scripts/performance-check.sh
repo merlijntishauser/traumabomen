@@ -140,12 +140,15 @@ measure_lighthouse() {
   elif command -v docker &>/dev/null; then
     # Docker fallback (local dev without lighthouse/chrome installed)
     docker run --rm \
+      --platform linux/amd64 \
+      -v /tmp:/tmp \
       femtopixel/google-lighthouse \
       "$url" \
         --only-categories=performance \
         --output=json \
-        "--chrome-flags=--headless --no-sandbox --disable-gpu" \
-        --quiet > "$tmpfile" 2>/dev/null || true
+        "--output-path=$tmpfile" \
+        "--chrome-flags=--headless --no-sandbox --disable-gpu --disable-dev-shm-usage" \
+        --quiet 2>/dev/null || true
   else
     echo "-1"
     return
