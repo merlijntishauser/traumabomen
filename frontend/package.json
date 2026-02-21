@@ -32,7 +32,7 @@
     "minimatch": "^10.2.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.15",
+    "@biomejs/biome": "^2.4.4",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.49.0",
     "@testing-library/jest-dom": "^6.6.0",
