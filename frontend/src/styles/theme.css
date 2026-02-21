@@ -66,6 +66,13 @@
   --color-life-medication: #22d3ee;
   --color-life-other: #94a3b8;
 
+  /* Turning point categories */
+  --color-tp-cycle-breaking: #34d399;
+  --color-tp-protective-relationship: #60a5fa;
+  --color-tp-recovery: #a78bfa;
+  --color-tp-achievement: #fbbf24;
+  --color-tp-positive-change: #2dd4bf;
+
   /* Pattern colors */
   --color-pattern-0: #818cf8;
   --color-pattern-1: #f472b6;
@@ -162,6 +169,12 @@
   --color-life-health: #db2777;
   --color-life-medication: #0891b2;
   --color-life-other: #64748b;
+
+  --color-tp-cycle-breaking: #059669;
+  --color-tp-protective-relationship: #2563eb;
+  --color-tp-recovery: #7c3aed;
+  --color-tp-achievement: #d97706;
+  --color-tp-positive-change: #0d9488;
 
   /* Pattern colors */
   --color-pattern-0: #6366f1;

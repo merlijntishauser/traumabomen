@@ -174,6 +174,23 @@ export interface LifeEvent {
   tags: string[];
 }
 
+export enum TurningPointCategory {
+  CycleBreaking = "cycle_breaking",
+  ProtectiveRelationship = "protective_relationship",
+  Recovery = "recovery",
+  Achievement = "achievement",
+  PositiveChange = "positive_change",
+}
+
+export interface TurningPoint {
+  title: string;
+  description: string;
+  category: TurningPointCategory;
+  approximate_date: string;
+  significance: number | null;
+  tags: string[];
+}
+
 export type ClassificationStatus = "suspected" | "diagnosed";
 
 export interface ClassificationPeriod {

@@ -38,6 +38,9 @@ import type {
   TreeCreate,
   TreeResponse,
   TreeUpdate,
+  TurningPointCreate,
+  TurningPointResponse,
+  TurningPointUpdate,
   UpdateSaltRequest,
   UsageStats,
   UserListStats,
@@ -410,6 +413,39 @@ export function updateLifeEvent(
 
 export function deleteLifeEvent(treeId: string, lifeEventId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
+    method: "DELETE",
+  });
+}
+
+// Turning Points
+
+export function getTurningPoints(treeId: string): Promise<TurningPointResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/turning-points`);
+}
+
+export function createTurningPoint(
+  treeId: string,
+  data: TurningPointCreate,
+): Promise<TurningPointResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/turning-points`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export function updateTurningPoint(
+  treeId: string,
+  turningPointId: string,
+  data: TurningPointUpdate,
+): Promise<TurningPointResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/turning-points/${turningPointId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+export function deleteTurningPoint(treeId: string, turningPointId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/turning-points/${turningPointId}`, {
     method: "DELETE",
   });
 }

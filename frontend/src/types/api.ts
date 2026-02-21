@@ -151,6 +151,25 @@ export interface LifeEventResponse {
   updated_at: string;
 }
 
+// Turning Points
+export interface TurningPointCreate {
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface TurningPointUpdate {
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
+export interface TurningPointResponse {
+  id: string;
+  person_ids: string[];
+  encrypted_data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Classifications
 export interface ClassificationCreate {
   person_ids: string[];
