@@ -385,6 +385,8 @@ function TreeWorkspaceInner() {
   const prevNodeIdsRef = useRef("");
   const prevEdgeCountRef = useRef(0);
   const prevNodeCountRef = useRef(0);
+  const layoutRevisionRef = useRef(0);
+  const prevLayoutRevisionRef = useRef(0);
 
   useEffect(() => {
     const currentIds = layoutNodes
@@ -393,9 +395,11 @@ function TreeWorkspaceInner() {
       .join(",");
     const nodesChanged = currentIds !== prevNodeIdsRef.current;
     const edgesChanged = edges.length !== prevEdgeCountRef.current;
-    const structureChanged = nodesChanged || edgesChanged;
+    const layoutRevisionChanged = layoutRevisionRef.current !== prevLayoutRevisionRef.current;
+    const structureChanged = nodesChanged || edgesChanged || layoutRevisionChanged;
     prevNodeIdsRef.current = currentIds;
     prevEdgeCountRef.current = edges.length;
+    prevLayoutRevisionRef.current = layoutRevisionRef.current;
 
     setNodes((prev) => {
       const prevMap = new Map(prev.map((n) => [n.id, n]));
@@ -680,6 +684,9 @@ function TreeWorkspaceInner() {
     }
     pushPositionSnapshot(snapshot);
 
+    // Force the layout sync effect to accept new positions
+    layoutRevisionRef.current += 1;
+
     // Enable transition animation on nodes
     setAnimatingLayout(true);
     setTimeout(() => setAnimatingLayout(false), 350);
@@ -708,6 +715,9 @@ function TreeWorkspaceInner() {
   const handleUndo = useCallback(() => {
     const snapshot = popPositionSnapshot();
     if (!snapshot) return;
+
+    // Force the layout sync effect to accept new positions
+    layoutRevisionRef.current += 1;
 
     setAnimatingLayout(true);
     setTimeout(() => setAnimatingLayout(false), 350);
