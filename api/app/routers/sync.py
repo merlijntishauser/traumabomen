@@ -13,6 +13,7 @@ from app.models.pattern import Pattern, PatternPerson
 from app.models.person import Person
 from app.models.relationship import Relationship
 from app.models.tree import Tree
+from app.models.turning_point import TurningPoint, TurningPointPerson
 from app.routers.crud_helpers import validate_persons_in_tree
 from app.schemas.sync import SyncRequest, SyncResponse
 
@@ -49,6 +50,9 @@ async def _phase_deletes(
         Classification, body.classifications_delete, tree.id, db
     )
     resp.events_deleted = await _delete_by_tree(TraumaEvent, body.events_delete, tree.id, db)
+    resp.turning_points_deleted = await _delete_by_tree(
+        TurningPoint, body.turning_points_delete, tree.id, db
+    )
     resp.patterns_deleted = await _delete_by_tree(Pattern, body.patterns_delete, tree.id, db)
     resp.persons_deleted = await _delete_by_tree(Person, body.persons_delete, tree.id, db)
     await db.flush()
@@ -62,6 +66,8 @@ def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
         all_ids.extend(item.person_ids)
     for item in body.classifications_create:
         all_ids.extend(item.person_ids)
+    for item in body.turning_points_create:
+        all_ids.extend(item.person_ids)
     for item in body.patterns_create:
         all_ids.extend(item.person_ids)
     return all_ids
@@ -74,6 +80,9 @@ def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) 
     for item, cls_id in zip(body.classifications_create, resp.classifications_created):
         for pid in item.person_ids:
             db.add(ClassificationPerson(classification_id=cls_id, person_id=pid))
+    for item, tp_id in zip(body.turning_points_create, resp.turning_points_created):
+        for pid in item.person_ids:
+            db.add(TurningPointPerson(turning_point_id=tp_id, person_id=pid))
     for item, pat_id in zip(body.patterns_create, resp.patterns_created):
         for pid in item.person_ids:
             db.add(PatternPerson(pattern_id=pat_id, person_id=pid))
@@ -121,6 +130,9 @@ async def _phase_creates(
     resp.classifications_created = _create_encrypted_entities(
         Classification, body.classifications_create, tree.id, db
     )
+    resp.turning_points_created = _create_encrypted_entities(
+        TurningPoint, body.turning_points_create, tree.id, db
+    )
     resp.patterns_created = _create_encrypted_entities(Pattern, body.patterns_create, tree.id, db)
 
     await db.flush()
@@ -153,6 +165,15 @@ async def _phase_updates(
         ClassificationPerson,
         "classification_id",
         "Classification",
+        tree,
+        db,
+    )
+    resp.turning_points_updated = await _update_entities_with_persons(
+        body.turning_points_update,
+        TurningPoint,
+        TurningPointPerson,
+        "turning_point_id",
+        "TurningPoint",
         tree,
         db,
     )

@@ -424,6 +424,73 @@ class TestSyncClassifications:
         assert resp.status_code == 422
 
 
+class TestSyncTurningPoints:
+    @pytest.mark.asyncio
+    async def test_create_turning_point(self, client, headers, tree, person):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "turning_points_create": [{"person_ids": [person["id"]], "encrypted_data": "tp1"}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()["turning_points_created"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_update_turning_point(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "turning_points_create": [{"person_ids": [person["id"]], "encrypted_data": "old"}],
+            },
+            headers=headers,
+        )
+        tp_id = create.json()["turning_points_created"][0]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "turning_points_update": [{"id": tp_id, "encrypted_data": "new"}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["turning_points_updated"] == 1
+
+    @pytest.mark.asyncio
+    async def test_delete_turning_point(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "turning_points_create": [{"person_ids": [person["id"]], "encrypted_data": "tp"}],
+            },
+            headers=headers,
+        )
+        tp_id = create.json()["turning_points_created"][0]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"turning_points_delete": [{"id": tp_id}]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["turning_points_deleted"] == 1
+
+    @pytest.mark.asyncio
+    async def test_create_turning_point_invalid_person(self, client, headers, tree):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "turning_points_create": [
+                    {"person_ids": [str(uuid.uuid4())], "encrypted_data": "tp"}
+                ],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 422
+
+
 class TestSyncFullCycle:
     @pytest.mark.asyncio
     async def test_create_update_delete_in_one_call(self, client, headers, tree, person):
