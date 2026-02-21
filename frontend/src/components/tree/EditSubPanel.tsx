@@ -42,7 +42,7 @@ export function EditSubPanel({
           onClick={onBack}
           aria-label={t("common.close")}
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} />
         </button>
         <span className="detail-panel__sub-title">{title}</span>
       </div>

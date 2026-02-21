@@ -33,6 +33,7 @@
   font-family: var(--font-heading);
   font-weight: 300;
   font-size: 18px;
+  line-height: 1.4;
   color: var(--color-accent);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -212,6 +213,19 @@ fieldset.detail-panel__field {
   outline: none;
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+}
+
+.detail-panel__field input[type="range"] {
+  height: auto;
+  border: none;
+  padding: 4px 0;
+  background: transparent;
+  accent-color: var(--color-accent);
+}
+
+.detail-panel__field input[type="range"]:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .detail-panel__field--checkbox {

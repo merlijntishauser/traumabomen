@@ -8,11 +8,7 @@ interface PersonLinkFieldProps {
   onChange: (newIds: Set<string>) => void;
 }
 
-export function PersonLinkField({
-  allPersons,
-  selectedIds,
-  onChange,
-}: PersonLinkFieldProps) {
+export function PersonLinkField({ allPersons, selectedIds, onChange }: PersonLinkFieldProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
@@ -21,9 +17,7 @@ export function PersonLinkField({
     .filter(Boolean)
     .join(", ");
 
-  const sortedPersons = [...allPersons.values()].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
+  const sortedPersons = [...allPersons.values()].sort((a, b) => a.name.localeCompare(b.name));
 
   function handleToggle(personId: string) {
     if (selectedIds.has(personId) && selectedIds.size <= 1) return;
@@ -36,14 +30,16 @@ export function PersonLinkField({
     onChange(next);
   }
 
+  const showNames = selectedIds.size > 1;
+
   return (
     <div className="detail-panel__person-link">
       <div className="detail-panel__person-link-summary">
-        <span className="detail-panel__person-link-names">{selectedNames}</span>
+        {showNames && <span className="detail-panel__person-link-names">{selectedNames}</span>}
         <button
           type="button"
-          className="detail-panel__person-link-expand"
-          onClick={() => setExpanded(true)}
+          className="detail-panel__btn detail-panel__btn--small"
+          onClick={() => setExpanded(!expanded)}
         >
           {t("pattern.linkEntity")}
         </button>

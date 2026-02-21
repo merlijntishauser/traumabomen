@@ -95,18 +95,19 @@ function LifeEventForm({
           type="text"
           value={approximateDate}
           onChange={(e) => setApproximateDate(e.target.value)}
-          placeholder="e.g. 1985"
+          placeholder={t("lifeEvent.datePlaceholder")}
         />
       </label>
       <label className="detail-panel__field">
-        <span>{t("lifeEvent.impact")} (1-10)</span>
+        <span>
+          {t("lifeEvent.impact")} ({impact})
+        </span>
         <input
-          type="number"
+          type="range"
           min="1"
           max="10"
           value={impact}
           onChange={(e) => setImpact(e.target.value)}
-          placeholder="---"
         />
       </label>
       <label className="detail-panel__field">
@@ -115,7 +116,7 @@ function LifeEventForm({
           type="text"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
-          placeholder="tag1, tag2"
+          placeholder={t("lifeEvent.tagsPlaceholder")}
         />
       </label>
       <PersonLinkField

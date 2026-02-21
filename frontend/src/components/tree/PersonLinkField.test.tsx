@@ -31,12 +31,12 @@ const allPersons = new Map<string, DecryptedPerson>([
 ]);
 
 describe("PersonLinkField", () => {
-  it("shows single linked person name in collapsed state", () => {
+  it("hides person name when only one person selected", () => {
     render(
       <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={vi.fn()} />,
     );
 
-    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
   });
 
   it("shows multiple linked person names in collapsed state", () => {
@@ -49,6 +49,18 @@ describe("PersonLinkField", () => {
     );
 
     expect(screen.getByText("Alice, Bob")).toBeInTheDocument();
+  });
+
+  it("collapses checkboxes when button clicked again", () => {
+    render(
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={vi.fn()} />,
+    );
+
+    fireEvent.click(screen.getByText("pattern.linkEntity"));
+    expect(screen.getByRole("checkbox", { name: "Alice" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("pattern.linkEntity"));
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 
   it("expands to show checkboxes when expand button clicked", () => {

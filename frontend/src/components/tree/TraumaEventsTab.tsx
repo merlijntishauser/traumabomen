@@ -222,13 +222,15 @@ function EventForm({
           type="text"
           value={approximateDate}
           onChange={(e) => setApproximateDate(e.target.value)}
-          placeholder="e.g. 1985"
+          placeholder={t("trauma.datePlaceholder")}
         />
       </label>
       <label className="detail-panel__field">
-        <span>{t("trauma.severity")} (1-10)</span>
+        <span>
+          {t("trauma.severity")} ({severity})
+        </span>
         <input
-          type="number"
+          type="range"
           min="1"
           max="10"
           value={severity}
@@ -241,7 +243,7 @@ function EventForm({
           type="text"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
-          placeholder="tag1, tag2"
+          placeholder={t("trauma.tagsPlaceholder")}
         />
       </label>
       <PersonLinkField
