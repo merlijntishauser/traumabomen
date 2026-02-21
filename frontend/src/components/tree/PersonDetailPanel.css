@@ -48,8 +48,8 @@
 .detail-panel__tabs {
   display: flex;
   border-bottom: 1px solid var(--color-border-primary);
-  background: var(--color-bg-secondary);
-  padding: 0 8px;
+  background: var(--color-bg-primary);
+  padding: 0;
   overflow-x: auto;
 }
 
@@ -59,6 +59,7 @@
   gap: 4px;
   padding: 8px 12px;
   border: none;
+  border-right: 1px solid var(--color-border-secondary);
   background: none;
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -66,19 +67,26 @@
   border-bottom: 2px solid transparent;
   transition:
     color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    background 0.15s ease;
   position: relative;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+.detail-panel__tab:last-child {
+  border-right: none;
+}
+
 .detail-panel__tab:hover {
   color: var(--color-text-primary);
+  background: var(--color-bg-hover);
 }
 
 .detail-panel__tab--active {
   color: var(--color-accent);
   border-bottom-color: var(--color-accent);
+  background: var(--color-bg-secondary);
 }
 
 .detail-panel__tab-badge {
@@ -189,6 +197,13 @@ fieldset.detail-panel__field {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
+}
+
+.detail-panel__field input[type="text"],
+.detail-panel__field input[type="number"],
+.detail-panel__field select {
+  height: 34px;
+  box-sizing: border-box;
 }
 
 .detail-panel__field input:focus,
@@ -528,8 +543,13 @@ fieldset.detail-panel__field {
 }
 
 .detail-panel__age-hint {
-  font-size: 12px;
-  color: var(--color-text-muted);
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  margin-top: 4px;
 }
 
 .detail-panel__date-row {
@@ -539,4 +559,38 @@ fieldset.detail-panel__field {
 
 .detail-panel__date-row .detail-panel__field {
   flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.detail-panel__date-row .detail-panel__field:first-child {
+  max-width: 120px;
+}
+
+.detail-panel__field-group {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.detail-panel__field-group-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.detail-panel__field-group-footer .detail-panel__field {
+  margin-bottom: 0;
+}
+
+.detail-panel__field-inline {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+.detail-panel__field-inline > .detail-panel__field {
+  margin-bottom: 0;
 }

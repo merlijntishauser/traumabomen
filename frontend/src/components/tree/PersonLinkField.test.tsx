@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { PersonLinkField } from "./PersonLinkField";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
+import { PersonLinkField } from "./PersonLinkField";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (k: string) => k }),
@@ -17,6 +17,7 @@ function makePerson(id: string, name: string): DecryptedPerson {
     death_year: null,
     death_month: null,
     death_day: null,
+    cause_of_death: null,
     gender: "unknown",
     is_adopted: false,
     notes: null,
@@ -32,11 +33,7 @@ const allPersons = new Map<string, DecryptedPerson>([
 describe("PersonLinkField", () => {
   it("shows single linked person name in collapsed state", () => {
     render(
-      <PersonLinkField
-        allPersons={allPersons}
-        selectedIds={new Set(["a"])}
-        onChange={vi.fn()}
-      />,
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={vi.fn()} />,
     );
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -56,11 +53,7 @@ describe("PersonLinkField", () => {
 
   it("expands to show checkboxes when expand button clicked", () => {
     render(
-      <PersonLinkField
-        allPersons={allPersons}
-        selectedIds={new Set(["a"])}
-        onChange={vi.fn()}
-      />,
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={vi.fn()} />,
     );
 
     fireEvent.click(screen.getByText("pattern.linkEntity"));
@@ -73,11 +66,7 @@ describe("PersonLinkField", () => {
   it("calls onChange when a person checkbox is toggled (adds person)", () => {
     const onChange = vi.fn();
     render(
-      <PersonLinkField
-        allPersons={allPersons}
-        selectedIds={new Set(["a"])}
-        onChange={onChange}
-      />,
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={onChange} />,
     );
 
     fireEvent.click(screen.getByText("pattern.linkEntity"));
@@ -111,11 +100,7 @@ describe("PersonLinkField", () => {
   it("prevents unchecking the last person (onChange not called)", () => {
     const onChange = vi.fn();
     render(
-      <PersonLinkField
-        allPersons={allPersons}
-        selectedIds={new Set(["a"])}
-        onChange={onChange}
-      />,
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={onChange} />,
     );
 
     fireEvent.click(screen.getByText("pattern.linkEntity"));
@@ -126,11 +111,7 @@ describe("PersonLinkField", () => {
 
   it("does not show checkboxes in collapsed state", () => {
     render(
-      <PersonLinkField
-        allPersons={allPersons}
-        selectedIds={new Set(["a"])}
-        onChange={vi.fn()}
-      />,
+      <PersonLinkField allPersons={allPersons} selectedIds={new Set(["a"])} onChange={vi.fn()} />,
     );
 
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();

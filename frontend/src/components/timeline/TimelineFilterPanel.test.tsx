@@ -21,6 +21,7 @@ function makePerson(id: string, name: string): DecryptedPerson {
     death_year: null,
     death_month: null,
     death_day: null,
+    cause_of_death: null,
     gender: "other",
     is_adopted: false,
     notes: null,

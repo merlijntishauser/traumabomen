@@ -172,6 +172,7 @@ export async function createDemoTree(
         name: p.name,
         birth_year: p.birth_year,
         death_year: p.death_year,
+        cause_of_death: null,
         gender: p.gender,
         is_adopted: p.is_adopted,
         notes: p.notes,

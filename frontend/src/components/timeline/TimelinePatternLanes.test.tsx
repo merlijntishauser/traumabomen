@@ -19,6 +19,7 @@ function makePerson(id: string, birthYear = 1980): DecryptedPerson {
     death_year: null,
     death_month: null,
     death_day: null,
+    cause_of_death: null,
     gender: "unknown",
     is_adopted: false,
     notes: null,

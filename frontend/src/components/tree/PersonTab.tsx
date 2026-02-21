@@ -42,40 +42,56 @@ function computeAgeHint(
   return { age, isDead: dy != null };
 }
 
-function DateRow({
-  year,
+function DateFields({
+  yearLabel,
+  yearValue,
   monthLabel,
   dayLabel,
   month,
   day,
   monthNames,
+  onYearChange,
   onMonthChange,
   onDayChange,
+  yearPlaceholder,
 }: {
-  year: string;
+  yearLabel: string;
+  yearValue: string;
   monthLabel: string;
   dayLabel: string;
   month: string;
   day: string;
   monthNames: string[];
+  onYearChange: (value: string) => void;
   onMonthChange: (value: string) => void;
   onDayChange: (value: string) => void;
+  yearPlaceholder?: string;
 }) {
-  if (!year) return null;
   return (
     <div className="detail-panel__date-row">
       <label className="detail-panel__field">
-        <span>{monthLabel}</span>
-        <select value={month} onChange={(e) => onMonthChange(e.target.value)}>
-          <option value="">---</option>
-          {monthNames.map((name, i) => (
-            <option key={name} value={String(i + 1)}>
-              {name}
-            </option>
-          ))}
-        </select>
+        <span>{yearLabel}</span>
+        <input
+          type="number"
+          value={yearValue}
+          onChange={(e) => onYearChange(e.target.value)}
+          placeholder={yearPlaceholder}
+        />
       </label>
-      {month && (
+      {yearValue && (
+        <label className="detail-panel__field">
+          <span>{monthLabel}</span>
+          <select value={month} onChange={(e) => onMonthChange(e.target.value)}>
+            <option value="">---</option>
+            {monthNames.map((name, i) => (
+              <option key={name} value={String(i + 1)}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {yearValue && month && (
         <label className="detail-panel__field">
           <span>{dayLabel}</span>
           <select value={day} onChange={(e) => onDayChange(e.target.value)}>
@@ -136,6 +152,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
   const [deathYear, setDeathYear] = useState(toStr(person.death_year));
   const [deathMonth, setDeathMonth] = useState(toStr(person.death_month));
   const [deathDay, setDeathDay] = useState(toStr(person.death_day));
+  const [causeOfDeath, setCauseOfDeath] = useState(person.cause_of_death ?? "");
   const [gender, setGender] = useState(person.gender);
   const [isAdopted, setIsAdopted] = useState(person.is_adopted);
   const [notes, setNotes] = useState(person.notes ?? "");
@@ -150,6 +167,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
     setDeathYear(toStr(person.death_year));
     setDeathMonth(toStr(person.death_month));
     setDeathDay(toStr(person.death_day));
+    setCauseOfDeath(person.cause_of_death ?? "");
     setGender(person.gender);
     setIsAdopted(person.is_adopted);
     setNotes(person.notes ?? "");
@@ -158,6 +176,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
     person.birth_year,
     person.birth_month,
     person.birth_day,
+    person.cause_of_death,
     person.death_year,
     person.death_month,
     person.death_day,
@@ -199,6 +218,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
       death_year: parseOptionalInt(deathYear),
       death_month: parseOptionalInt(deathMonth),
       death_day: parseOptionalInt(deathDay),
+      cause_of_death: causeOfDeath || null,
       gender,
       is_adopted: isAdopted,
       notes: notes || null,
@@ -215,72 +235,78 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
 
   return (
     <>
-      <label className="detail-panel__field">
-        <span>{t("person.name")}</span>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("person.birthYear")}</span>
-        <input
-          type="number"
-          value={birthYear}
-          onChange={(e) => handleBirthYearChange(e.target.value)}
+      <div className="detail-panel__field-inline">
+        <label className="detail-panel__field" style={{ flex: 1 }}>
+          <span>{t("person.name")}</span>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="detail-panel__field">
+          <span>{t("person.gender")}</span>
+          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <option value="male">{t("person.male")}</option>
+            <option value="female">{t("person.female")}</option>
+            <option value="other">{t("person.other")}</option>
+          </select>
+        </label>
+      </div>
+      <div className="detail-panel__field-group">
+        <DateFields
+          yearLabel={t("person.birthYear")}
+          yearValue={birthYear}
+          monthLabel={t("person.birthMonth")}
+          dayLabel={t("person.birthDay")}
+          month={birthMonth}
+          day={birthDay}
+          monthNames={monthNames}
+          onYearChange={handleBirthYearChange}
+          onMonthChange={handleBirthMonthChange}
+          onDayChange={setBirthDay}
         />
-        <AgeHint
-          birthYear={birthYear}
-          deathYear={deathYear}
-          birthMonth={birthMonth}
-          birthDay={birthDay}
-          deathMonth={deathMonth}
-          deathDay={deathDay}
-          t={t}
+        <div className="detail-panel__field-group-footer">
+          <AgeHint
+            birthYear={birthYear}
+            deathYear={deathYear}
+            birthMonth={birthMonth}
+            birthDay={birthDay}
+            deathMonth={deathMonth}
+            deathDay={deathDay}
+            t={t}
+          />
+          <label className="detail-panel__field detail-panel__field--checkbox">
+            <input
+              type="checkbox"
+              checked={isAdopted}
+              onChange={(e) => setIsAdopted(e.target.checked)}
+            />
+            <span>{t("person.isAdopted")}</span>
+          </label>
+        </div>
+      </div>
+      <div className="detail-panel__field-group">
+        <DateFields
+          yearLabel={t("person.deathYear")}
+          yearValue={deathYear}
+          monthLabel={t("person.deathMonth")}
+          dayLabel={t("person.deathDay")}
+          month={deathMonth}
+          day={deathDay}
+          monthNames={monthNames}
+          onYearChange={handleDeathYearChange}
+          onMonthChange={handleDeathMonthChange}
+          onDayChange={setDeathDay}
+          yearPlaceholder="---"
         />
-      </label>
-      <DateRow
-        year={birthYear}
-        monthLabel={t("person.birthMonth")}
-        dayLabel={t("person.birthDay")}
-        month={birthMonth}
-        day={birthDay}
-        monthNames={monthNames}
-        onMonthChange={handleBirthMonthChange}
-        onDayChange={setBirthDay}
-      />
-      <label className="detail-panel__field">
-        <span>{t("person.deathYear")}</span>
-        <input
-          type="number"
-          value={deathYear}
-          onChange={(e) => handleDeathYearChange(e.target.value)}
-          placeholder="---"
-        />
-      </label>
-      <DateRow
-        year={deathYear}
-        monthLabel={t("person.deathMonth")}
-        dayLabel={t("person.deathDay")}
-        month={deathMonth}
-        day={deathDay}
-        monthNames={monthNames}
-        onMonthChange={handleDeathMonthChange}
-        onDayChange={setDeathDay}
-      />
-      <label className="detail-panel__field">
-        <span>{t("person.gender")}</span>
-        <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="male">{t("person.male")}</option>
-          <option value="female">{t("person.female")}</option>
-          <option value="other">{t("person.other")}</option>
-        </select>
-      </label>
-      <label className="detail-panel__field detail-panel__field--checkbox">
-        <input
-          type="checkbox"
-          checked={isAdopted}
-          onChange={(e) => setIsAdopted(e.target.checked)}
-        />
-        <span>{t("person.isAdopted")}</span>
-      </label>
+        {deathYear && (
+          <label className="detail-panel__field" style={{ marginTop: 8 }}>
+            <span>{t("person.causeOfDeath")}</span>
+            <input
+              type="text"
+              value={causeOfDeath}
+              onChange={(e) => setCauseOfDeath(e.target.value)}
+            />
+          </label>
+        )}
+      </div>
       <label className="detail-panel__field">
         <span>{t("person.notes")}</span>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />

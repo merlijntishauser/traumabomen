@@ -63,6 +63,7 @@
   "person.deathYear": "Sterfjaar",
   "person.deathMonth": "Maand",
   "person.deathDay": "Dag",
+  "person.causeOfDeath": "Doodsoorzaak",
   "person.gender": "Geslacht",
   "person.isAdopted": "Geadopteerd",
   "person.notes": "Notities",

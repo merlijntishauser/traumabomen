@@ -20,6 +20,7 @@ function makePerson(id: string, overrides: Partial<DecryptedPerson> = {}): Decry
     death_year: null,
     death_month: null,
     death_day: null,
+    cause_of_death: null,
     gender: "other",
     is_adopted: false,
     notes: null,

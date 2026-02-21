@@ -46,6 +46,7 @@ function makePerson(
     death_year: null,
     death_month: null,
     death_day: null,
+    cause_of_death: null,
     gender: "female",
     is_adopted: false,
     notes: null,

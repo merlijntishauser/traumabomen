@@ -133,6 +133,7 @@ export interface Person {
   death_year: number | null;
   death_month: number | null;
   death_day: number | null;
+  cause_of_death: string | null;
   gender: string;
   is_adopted: boolean;
   notes: string | null;

@@ -63,6 +63,7 @@
   "person.deathYear": "Death year",
   "person.deathMonth": "Month",
   "person.deathDay": "Day",
+  "person.causeOfDeath": "Cause of death",
   "person.gender": "Gender",
   "person.isAdopted": "Adopted",
   "person.notes": "Notes",
