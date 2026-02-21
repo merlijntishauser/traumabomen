@@ -141,6 +141,14 @@ const defaultProps = () => ({
   onClose: vi.fn(),
 });
 
+async function openEventsTab(
+  user: ReturnType<typeof userEvent.setup>,
+  subTab: "trauma.tab" | "lifeEvent.tab" | "turningPoint.tab",
+) {
+  await user.click(screen.getByRole("tab", { name: /events.tab/ }));
+  await user.click(screen.getByText(subTab));
+}
+
 describe("PersonDetailPanel", () => {
   it("renders person name in header", () => {
     render(<PersonDetailPanel {...defaultProps()} />);
@@ -167,10 +175,10 @@ describe("PersonDetailPanel", () => {
     expect(screen.queryByText(/-/)).not.toBeInTheDocument();
   });
 
-  it("renders tab bar with 6 tabs", () => {
+  it("renders tab bar with 4 tabs", () => {
     render(<PersonDetailPanel {...defaultProps()} />);
     const tabs = screen.getAllByRole("tab");
-    expect(tabs).toHaveLength(6);
+    expect(tabs).toHaveLength(4);
   });
 
   it("shows person tab as active by default", () => {
@@ -193,9 +201,9 @@ describe("PersonDetailPanel", () => {
     const relsTab = screen.getByRole("tab", { name: /relationship.tab/ });
     expect(relsTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
 
-    // Trauma tab should show count 1
-    const traumaTab = screen.getByRole("tab", { name: /trauma.tab/ });
-    expect(traumaTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
+    // Events tab should show combined count of trauma + life + turning points = 2
+    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+    expect(eventsTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("2");
   });
 
   it("maps initialSection to correct tab", () => {
@@ -203,8 +211,8 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent()];
     render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
 
-    const traumaTab = screen.getByRole("tab", { name: /trauma.tab/ });
-    expect(traumaTab).toHaveAttribute("aria-selected", "true");
+    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+    expect(eventsTab).toHaveAttribute("aria-selected", "true");
     // Trauma content should be visible
     expect(screen.getByText("Test Event")).toBeInTheDocument();
   });
@@ -214,9 +222,9 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ id: "e1" })];
     render(<PersonDetailPanel {...props} initialSection="trauma_event" initialEntityId="e1" />);
 
-    // Should be on trauma tab with edit form open
-    const traumaTab = screen.getByRole("tab", { name: /trauma.tab/ });
-    expect(traumaTab).toHaveAttribute("aria-selected", "true");
+    // Should be on events tab with edit form open
+    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+    expect(eventsTab).toHaveAttribute("aria-selected", "true");
     // Edit form should be visible (not the card list)
     expect(screen.getByText("trauma.title")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Test Event")).toBeInTheDocument();
@@ -227,8 +235,8 @@ describe("PersonDetailPanel", () => {
     props.lifeEvents = [makeLifeEvent({ id: "le1" })];
     render(<PersonDetailPanel {...props} initialSection="life_event" initialEntityId="le1" />);
 
-    const lifeTab = screen.getByRole("tab", { name: /lifeEvent.tab/ });
-    expect(lifeTab).toHaveAttribute("aria-selected", "true");
+    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+    expect(eventsTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
   });
@@ -288,7 +296,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent()];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     expect(screen.getByText("Test Event")).toBeInTheDocument();
   });
 
@@ -323,7 +331,7 @@ describe("PersonDetailPanel", () => {
     const props = defaultProps();
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     await user.click(screen.getByText("trauma.newEvent"));
 
     expect(screen.getByText("trauma.title")).toBeInTheDocument();
@@ -334,7 +342,7 @@ describe("PersonDetailPanel", () => {
     const props = defaultProps();
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     await user.click(screen.getByText("trauma.newEvent"));
 
     const titleInput = screen.getByRole("textbox", { name: /trauma.title/i });
@@ -357,7 +365,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     await user.click(screen.getByText("Test Event"));
 
     // Expand PersonLinkField and add Bob
@@ -380,7 +388,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     await user.click(screen.getByText("Test Event"));
 
     // Expand PersonLinkField
@@ -400,7 +408,7 @@ describe("PersonDetailPanel", () => {
     props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
     render(<PersonDetailPanel {...props} />);
 
-    await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+    await openEventsTab(user, "trauma.tab");
     await user.click(screen.getByText("Test Event"));
 
     // Expand PersonLinkField
@@ -1115,7 +1123,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("Test Event"));
 
       // Sub-panel should be visible with form fields
@@ -1130,7 +1138,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("Test Event"));
 
       // Click back button
@@ -1147,7 +1155,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("Test Event"));
 
       // Form should be visible
@@ -1165,7 +1173,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("trauma.newEvent"));
 
       expect(screen.getByText("trauma.title")).toBeInTheDocument();
@@ -1182,7 +1190,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("Test Event"));
 
       // First click shows confirmation
@@ -1201,7 +1209,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ approximate_date: "1990" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       expect(screen.getByText("1990")).toBeInTheDocument();
     });
 
@@ -1210,7 +1218,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       await user.click(screen.getByText("trauma.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /trauma.title/i }), {
@@ -1253,7 +1261,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ category: TraumaCategory.Abuse })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       expect(screen.getByText("trauma.category.abuse")).toBeInTheDocument();
       const pill = screen.getByText("trauma.category.abuse");
       expect(pill).toHaveClass("detail-panel__category-pill");
@@ -1265,7 +1273,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ severity: 7 })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       const severityBar = screen.getByLabelText("7/10");
       expect(severityBar).toBeInTheDocument();
       const dots = severityBar.querySelectorAll(".detail-panel__severity-dot");
@@ -1278,7 +1286,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ severity: 0 })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
 
@@ -1288,7 +1296,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ severity: undefined as unknown as number })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
 
@@ -1298,7 +1306,7 @@ describe("PersonDetailPanel", () => {
       props.events = [makeEvent({ approximate_date: "1992" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /trauma.tab/ }));
+      await openEventsTab(user, "trauma.tab");
       const dateEl = screen.getByText("1992");
       expect(dateEl).toHaveClass("detail-panel__event-card-date");
     });
@@ -1311,7 +1319,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ category: LifeEventCategory.Education })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       expect(screen.getByText("lifeEvent.category.education")).toBeInTheDocument();
       const pill = screen.getByText("lifeEvent.category.education");
       expect(pill).toHaveClass("detail-panel__category-pill");
@@ -1323,7 +1331,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ impact: 4 })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       const impactBar = screen.getByLabelText("4/10");
       expect(impactBar).toBeInTheDocument();
       const dots = impactBar.querySelectorAll(".detail-panel__severity-dot");
@@ -1336,7 +1344,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ impact: 0 })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
 
@@ -1346,7 +1354,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ impact: null })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
   });
@@ -1365,7 +1373,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       expect(screen.getByText("Graduation")).toBeInTheDocument();
     });
 
@@ -1375,7 +1383,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent({ approximate_date: "2005" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       expect(screen.getByText("2005")).toBeInTheDocument();
     });
 
@@ -1384,7 +1392,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
@@ -1395,7 +1403,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
@@ -1415,7 +1423,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
@@ -1456,7 +1464,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("Graduation"));
 
       // Title should be pre-filled
@@ -1481,7 +1489,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("Graduation"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1495,7 +1503,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("Graduation"));
 
       await user.click(screen.getByText("common.delete"));
@@ -1511,7 +1519,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("lifeEvent.newEvent"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1524,7 +1532,7 @@ describe("PersonDetailPanel", () => {
       props.lifeEvents = [makeLifeEvent()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /lifeEvent.tab/ }));
+      await openEventsTab(user, "lifeEvent.tab");
       await user.click(screen.getByText("Graduation"));
 
       await user.click(screen.getByLabelText("common.close"));
@@ -1548,7 +1556,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       expect(screen.getByText("Therapy Start")).toBeInTheDocument();
     });
 
@@ -1558,16 +1566,16 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint({ approximate_date: "2015" })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       expect(screen.getByText("2015")).toBeInTheDocument();
     });
 
-    it("shows turning point count badge on tab", () => {
+    it("shows turning point count badge on events tab", () => {
       const props = defaultProps();
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} />);
 
-      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      const tab = screen.getByRole("tab", { name: /events.tab/ });
       expect(tab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
     });
 
@@ -1576,7 +1584,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("turningPoint.newEvent"));
 
       expect(screen.getByText("turningPoint.titleField")).toBeInTheDocument();
@@ -1587,7 +1595,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("turningPoint.newEvent"));
 
       fireEvent.change(screen.getByRole("textbox", { name: /turningPoint.titleField/i }), {
@@ -1608,7 +1616,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("Therapy Start"));
 
       expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
@@ -1631,7 +1639,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("Therapy Start"));
       await user.click(screen.getByText("common.cancel"));
 
@@ -1644,7 +1652,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("Therapy Start"));
 
       await user.click(screen.getByText("common.delete"));
@@ -1660,19 +1668,19 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       await user.click(screen.getByText("turningPoint.newEvent"));
       await user.click(screen.getByText("common.cancel"));
 
       expect(screen.getByText("turningPoint.newEvent")).toBeInTheDocument();
     });
 
-    it("maps turning_point initialSection to turning tab", () => {
+    it("maps turning_point initialSection to events tab", () => {
       const props = defaultProps();
       props.turningPoints = [makeTurningPoint()];
       render(<PersonDetailPanel {...props} initialSection="turning_point" />);
 
-      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      const tab = screen.getByRole("tab", { name: /events.tab/ });
       expect(tab).toHaveAttribute("aria-selected", "true");
       expect(screen.getByText("Therapy Start")).toBeInTheDocument();
     });
@@ -1682,7 +1690,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint({ id: "tp1" })];
       render(<PersonDetailPanel {...props} initialSection="turning_point" initialEntityId="tp1" />);
 
-      const tab = screen.getByRole("tab", { name: /turningPoint.tab/ });
+      const tab = screen.getByRole("tab", { name: /events.tab/ });
       expect(tab).toHaveAttribute("aria-selected", "true");
       expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
     });
@@ -1693,7 +1701,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint({ category: TurningPointCategory.Achievement })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       expect(screen.getByText("turningPoint.category.achievement")).toBeInTheDocument();
       const pill = screen.getByText("turningPoint.category.achievement");
       expect(pill).toHaveClass("detail-panel__category-pill");
@@ -1705,7 +1713,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint({ significance: 6 })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       const sigBar = screen.getByLabelText("6/10");
       expect(sigBar).toBeInTheDocument();
       const dots = sigBar.querySelectorAll(".detail-panel__severity-dot");
@@ -1718,7 +1726,7 @@ describe("PersonDetailPanel", () => {
       props.turningPoints = [makeTurningPoint({ significance: null })];
       render(<PersonDetailPanel {...props} />);
 
-      await user.click(screen.getByRole("tab", { name: /turningPoint.tab/ }));
+      await openEventsTab(user, "turningPoint.tab");
       expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
     });
   });

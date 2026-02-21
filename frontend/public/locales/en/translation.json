@@ -153,6 +153,7 @@
   "relationship.confirmDelete": "Are you sure you want to delete this relationship?",
   "relationship.between": "Between",
 
+  "events.tab": "Events",
   "trauma.events": "Trauma events",
   "trauma.tab": "Trauma",
   "trauma.newEvent": "New event",

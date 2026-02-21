@@ -1,4 +1,4 @@
-import { Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
+import { CalendarDays, Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -35,19 +35,21 @@ export type PersonDetailSection =
   | "classification"
   | null;
 
-export type DetailTab =
-  | "person"
-  | "relationships"
-  | "trauma"
-  | "life"
-  | "turning"
-  | "classifications";
+export type DetailTab = "person" | "relationships" | "events" | "classifications";
+
+type EventSubTab = "trauma" | "life" | "turning";
 
 const TAB_CLASS = "detail-panel__tab";
 const TAB_ACTIVE_CLASS = `${TAB_CLASS} ${TAB_CLASS}--active`;
+const SEG_CLASS = "detail-panel__segment";
+const SEG_ACTIVE_CLASS = `${SEG_CLASS} ${SEG_CLASS}--active`;
 
 function tabClassName(isActive: boolean): string {
   return isActive ? TAB_ACTIVE_CLASS : TAB_CLASS;
+}
+
+function segClassName(isActive: boolean): string {
+  return isActive ? SEG_ACTIVE_CLASS : SEG_CLASS;
 }
 
 function sectionToTab(section: PersonDetailSection): DetailTab {
@@ -57,15 +59,26 @@ function sectionToTab(section: PersonDetailSection): DetailTab {
     case "relationships":
       return "relationships";
     case "trauma_event":
+    case "life_event":
+    case "turning_point":
+      return "events";
+    case "classification":
+      return "classifications";
+    default:
+      return "person";
+  }
+}
+
+function sectionToEventSubTab(section: PersonDetailSection): EventSubTab | null {
+  switch (section) {
+    case "trauma_event":
       return "trauma";
     case "life_event":
       return "life";
     case "turning_point":
       return "turning";
-    case "classification":
-      return "classifications";
     default:
-      return "person";
+      return null;
   }
 }
 
@@ -128,14 +141,20 @@ export function PersonDetailPanel({
 }: PersonDetailPanelProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<DetailTab>(sectionToTab(initialSection ?? null));
+  const [eventSubTab, setEventSubTab] = useState<EventSubTab>(
+    sectionToEventSubTab(initialSection ?? null) ?? "trauma",
+  );
 
   useEffect(() => {
     if (initialSection) {
       setActiveTab(sectionToTab(initialSection));
+      const sub = sectionToEventSubTab(initialSection);
+      if (sub) setEventSubTab(sub);
     }
   }, [initialSection]);
 
   const relsCount = relationships.length + inferredSiblings.length;
+  const eventsCount = events.length + lifeEvents.length + turningPoints.length;
 
   function formatYears(): string {
     const by = person.birth_year;
@@ -183,39 +202,13 @@ export function PersonDetailPanel({
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === "trauma"}
-          className={tabClassName(activeTab === "trauma")}
-          onClick={() => setActiveTab("trauma")}
+          aria-selected={activeTab === "events"}
+          className={tabClassName(activeTab === "events")}
+          onClick={() => setActiveTab("events")}
         >
-          <Circle size={14} />
-          {t("trauma.tab")}
-          {events.length > 0 && <span className="detail-panel__tab-badge">{events.length}</span>}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "life"}
-          className={tabClassName(activeTab === "life")}
-          onClick={() => setActiveTab("life")}
-        >
-          <Square size={14} />
-          {t("lifeEvent.tab")}
-          {lifeEvents.length > 0 && (
-            <span className="detail-panel__tab-badge">{lifeEvents.length}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "turning"}
-          className={tabClassName(activeTab === "turning")}
-          onClick={() => setActiveTab("turning")}
-        >
-          <Star size={14} />
-          {t("turningPoint.tab")}
-          {turningPoints.length > 0 && (
-            <span className="detail-panel__tab-badge">{turningPoints.length}</span>
-          )}
+          <CalendarDays size={14} />
+          {t("events.tab")}
+          {eventsCount > 0 && <span className="detail-panel__tab-badge">{eventsCount}</span>}
         </button>
         <button
           type="button"
@@ -245,35 +238,65 @@ export function PersonDetailPanel({
             onSaveRelationship={onSaveRelationship}
           />
         )}
-        {activeTab === "trauma" && (
-          <TraumaEventsTab
-            person={person}
-            events={events}
-            allPersons={allPersons}
-            onSaveEvent={onSaveEvent}
-            onDeleteEvent={onDeleteEvent}
-            initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
-          />
-        )}
-        {activeTab === "life" && (
-          <LifeEventsTab
-            person={person}
-            lifeEvents={lifeEvents}
-            allPersons={allPersons}
-            onSaveLifeEvent={onSaveLifeEvent}
-            onDeleteLifeEvent={onDeleteLifeEvent}
-            initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
-          />
-        )}
-        {activeTab === "turning" && (
-          <TurningPointsTab
-            person={person}
-            turningPoints={turningPoints}
-            allPersons={allPersons}
-            onSaveTurningPoint={onSaveTurningPoint}
-            onDeleteTurningPoint={onDeleteTurningPoint}
-            initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
-          />
+        {activeTab === "events" && (
+          <>
+            <div className="detail-panel__segment-control">
+              <button
+                type="button"
+                className={segClassName(eventSubTab === "trauma")}
+                onClick={() => setEventSubTab("trauma")}
+              >
+                <Circle size={10} />
+                {t("trauma.tab")}
+              </button>
+              <button
+                type="button"
+                className={segClassName(eventSubTab === "life")}
+                onClick={() => setEventSubTab("life")}
+              >
+                <Square size={10} />
+                {t("lifeEvent.tab")}
+              </button>
+              <button
+                type="button"
+                className={segClassName(eventSubTab === "turning")}
+                onClick={() => setEventSubTab("turning")}
+              >
+                <Star size={10} />
+                {t("turningPoint.tab")}
+              </button>
+            </div>
+            {eventSubTab === "trauma" && (
+              <TraumaEventsTab
+                person={person}
+                events={events}
+                allPersons={allPersons}
+                onSaveEvent={onSaveEvent}
+                onDeleteEvent={onDeleteEvent}
+                initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
+              />
+            )}
+            {eventSubTab === "life" && (
+              <LifeEventsTab
+                person={person}
+                lifeEvents={lifeEvents}
+                allPersons={allPersons}
+                onSaveLifeEvent={onSaveLifeEvent}
+                onDeleteLifeEvent={onDeleteLifeEvent}
+                initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
+              />
+            )}
+            {eventSubTab === "turning" && (
+              <TurningPointsTab
+                person={person}
+                turningPoints={turningPoints}
+                allPersons={allPersons}
+                onSaveTurningPoint={onSaveTurningPoint}
+                onDeleteTurningPoint={onDeleteTurningPoint}
+                initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
+              />
+            )}
+          </>
         )}
         {activeTab === "classifications" && (
           <ClassificationsTab
