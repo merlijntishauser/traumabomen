@@ -60,10 +60,10 @@
   /* Life event categories */
   --color-life-family: #60a5fa;
   --color-life-education: #a78bfa;
-  --color-life-career: #f59e0b;
-  --color-life-relocation: #34d399;
+  --color-life-career: #fbbf24;
+  --color-life-relocation: #2dd4bf;
   --color-life-health: #f472b6;
-  --color-life-medication: #2dd4bf;
+  --color-life-medication: #22d3ee;
   --color-life-other: #94a3b8;
 
   /* Pattern colors */
@@ -158,9 +158,9 @@
   --color-life-family: #3b82f6;
   --color-life-education: #7c3aed;
   --color-life-career: #d97706;
-  --color-life-relocation: #059669;
+  --color-life-relocation: #0d9488;
   --color-life-health: #db2777;
-  --color-life-medication: #0d9488;
+  --color-life-medication: #0891b2;
   --color-life-other: #64748b;
 
   /* Pattern colors */
