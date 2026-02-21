@@ -140,6 +140,7 @@ privacy-scan: ## Scan for leaked secrets and PII
 # --- Setup ---
 
 setup: ## Install dependencies and pre-commit hooks
+	git config --unset-all core.hooksPath 2>/dev/null || true
 	pre-commit install
 	cd frontend && npm install
 	docker compose exec api uv sync --extra dev 2>/dev/null || true
