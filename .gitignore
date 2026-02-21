@@ -17,6 +17,7 @@ build/
 .idea/
 .vscode/
 .claude/
+.worktrees/
 *.swp
 *.swo
 *~
