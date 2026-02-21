@@ -9,6 +9,7 @@ import { getTraumaColor } from "../../lib/traumaColors";
 import "./PersonNode.css";
 
 const MAX_VISIBLE_BADGES = 8;
+const BADGE_INITIAL_CLASS = " person-node__badge--with-initial";
 
 function badgeInitial(label: string): string {
   return label.charAt(0).toUpperCase();
@@ -94,7 +95,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               data-badge-id={event.id}
             >
               <span
-                className={`person-node__badge${showTraumaInitials ? " person-node__badge--with-initial" : ""}`}
+                className={`person-node__badge${showTraumaInitials ? BADGE_INITIAL_CLASS : ""}`}
                 style={{ backgroundColor: getTraumaColor(event.category) }}
               >
                 {showTraumaInitials && badgeInitial(t(`trauma.category.${event.category}`))}
@@ -128,7 +129,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
               data-badge-id={event.id}
             >
               <span
-                className={`person-node__badge person-node__badge--life${showLifeInitials ? " person-node__badge--with-initial" : ""}`}
+                className={`person-node__badge person-node__badge--life${showLifeInitials ? BADGE_INITIAL_CLASS : ""}`}
                 style={{ backgroundColor: getLifeEventColor(event.category) }}
               >
                 {showLifeInitials && badgeInitial(t(`lifeEvent.category.${event.category}`))}
@@ -164,7 +165,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
                 data-badge-id={cls.id}
               >
                 <span
-                  className={`person-node__badge person-node__badge--classification${showClassInitials ? " person-node__badge--with-initial" : ""}`}
+                  className={`person-node__badge person-node__badge--classification${showClassInitials ? BADGE_INITIAL_CLASS : ""}`}
                   style={{ backgroundColor: getClassificationColor(cls.status) }}
                 >
                   {showClassInitials && badgeInitial(t(`classification.status.${cls.status}`))}
