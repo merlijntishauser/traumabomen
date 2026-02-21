@@ -11,7 +11,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
-import { LayoutGrid, TreePine, UserPlus, Waypoints } from "lucide-react";
+import { LayoutGrid, TreePine, Undo2, UserPlus, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
@@ -26,6 +26,8 @@ import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPa
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
+import type { PositionSnapshot } from "../hooks/usePositionHistory";
+import { usePositionHistory } from "../hooks/usePositionHistory";
 import type { DecryptedPerson } from "../hooks/useTreeData";
 import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
@@ -332,6 +334,8 @@ function TreeWorkspaceInner() {
   } = useTreeData(treeId!);
   const mutations = useTreeMutations(treeId!);
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
+  const { canUndo, push: pushPositionSnapshot, pop: popPositionSnapshot } = usePositionHistory();
+  const [animatingLayout, setAnimatingLayout] = useState(false);
 
   const canvasViewTab = useMemo(
     () => ({
@@ -487,6 +491,16 @@ function TreeWorkspaceInner() {
       setPendingConnection(connection);
     },
     [relationships],
+  );
+
+  const handleNodeDragStart = useCallback(
+    (_: React.MouseEvent, node: PersonNodeType) => {
+      const person = persons.get(node.id);
+      if (!person) return;
+      const snapshot: PositionSnapshot = new Map([[node.id, person.position]]);
+      pushPositionSnapshot(snapshot);
+    },
+    [persons, pushPositionSnapshot],
   );
 
   const handleNodeDragStop = useCallback(
@@ -659,6 +673,17 @@ function TreeWorkspaceInner() {
     const pinnedPersons = Array.from(persons.values()).filter((p) => p.position);
     if (pinnedPersons.length === 0) return;
 
+    // Save current positions for undo
+    const snapshot: PositionSnapshot = new Map();
+    for (const p of persons.values()) {
+      snapshot.set(p.id, p.position);
+    }
+    pushPositionSnapshot(snapshot);
+
+    // Enable transition animation on nodes
+    setAnimatingLayout(true);
+    setTimeout(() => setAnimatingLayout(false), 350);
+
     // Optimistic: clear all positions in cache
     queryClient.setQueryData(
       treeQueryKeys.persons(treeId!),
@@ -679,6 +704,61 @@ function TreeWorkspaceInner() {
       mutations.updatePerson.mutate({ personId: id, data });
     }
   }
+
+  const handleUndo = useCallback(() => {
+    const snapshot = popPositionSnapshot();
+    if (!snapshot) return;
+
+    setAnimatingLayout(true);
+    setTimeout(() => setAnimatingLayout(false), 350);
+
+    // Optimistic: restore positions in cache
+    queryClient.setQueryData(
+      treeQueryKeys.persons(treeId!),
+      (old: Map<string, DecryptedPerson> | undefined) => {
+        if (!old) return old;
+        const next = new Map(old);
+        for (const [personId, position] of snapshot) {
+          const person = next.get(personId);
+          if (!person) continue;
+          if (position) {
+            next.set(personId, { ...person, position });
+          } else {
+            const restored = { ...person };
+            delete restored.position;
+            next.set(personId, restored);
+          }
+        }
+        return next;
+      },
+    );
+
+    // Persist each changed position
+    for (const [personId, position] of snapshot) {
+      const person = persons.get(personId);
+      if (!person) continue;
+      const { id, ...data } = person;
+      delete data.position;
+      mutations.updatePerson.mutate({
+        personId: id,
+        data: position ? { ...data, position } : data,
+      });
+    }
+  }, [popPositionSnapshot, queryClient, treeId, persons, mutations.updatePerson]);
+
+  // Keyboard shortcut: Cmd/Ctrl+Z for undo
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        e.preventDefault();
+        handleUndo();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo]);
 
   const selectedPerson = selectedPersonId ? persons.get(selectedPersonId) : null;
 
@@ -748,6 +828,15 @@ function TreeWorkspaceInner() {
         <button
           type="button"
           className="tree-toolbar__btn"
+          onClick={handleUndo}
+          disabled={!canUndo}
+          title={t("tree.undo")}
+        >
+          <Undo2 size={14} />
+        </button>
+        <button
+          type="button"
+          className="tree-toolbar__btn"
           onClick={() => setPatternPanelOpen((v) => !v)}
         >
           <Waypoints size={14} />
@@ -762,12 +851,14 @@ function TreeWorkspaceInner() {
         ) : (
           <>
             <ReactFlow
+              className={animatingLayout ? "layout-animating" : undefined}
               nodes={nodes}
               edges={edges}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               onNodesChange={onNodesChange}
               onNodeClick={onNodeClick}
+              onNodeDragStart={handleNodeDragStart}
               onNodeDragStop={handleNodeDragStop}
               onPaneClick={onPaneClick}
               onEdgeClick={onEdgeClick}

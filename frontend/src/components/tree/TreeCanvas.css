@@ -228,6 +228,11 @@
   background: var(--color-bg-secondary);
 }
 
+/* Layout animation -- applied temporarily during auto-layout / undo */
+.layout-animating .react-flow__node {
+  transition: transform 0.3s ease-out;
+}
+
 /* Empty canvas state */
 .tree-canvas-empty {
   position: absolute;

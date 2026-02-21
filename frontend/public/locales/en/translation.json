@@ -50,6 +50,7 @@
   "tree.addEvent": "Add event",
   "tree.timeline": "Timeline",
   "tree.autoLayout": "Auto-layout",
+  "tree.undo": "Undo",
   "tree.canvas": "Canvas",
   "tree.canvasEmpty": "Your tree is empty",
   "tree.canvasEmptyHint": "Add your first family member to start building your tree.",

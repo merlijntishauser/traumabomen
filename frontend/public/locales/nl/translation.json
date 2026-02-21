@@ -50,6 +50,7 @@
   "tree.addEvent": "Gebeurtenis toevoegen",
   "tree.timeline": "Tijdlijn",
   "tree.autoLayout": "Automatische indeling",
+  "tree.undo": "Ongedaan maken",
   "tree.canvas": "Boomweergave",
   "tree.canvasEmpty": "Je boom is nog leeg",
   "tree.canvasEmptyHint": "Voeg je eerste familielid toe om je stamboom op te bouwen.",
