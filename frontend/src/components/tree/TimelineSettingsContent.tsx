@@ -29,6 +29,7 @@ export function TimelineSettingsContent({ settings, onUpdate }: Props) {
         <input
           type="checkbox"
           checked={settings.showPartnerLabels}
+          disabled={!settings.showPartnerLines}
           onChange={(e) => onUpdate({ showPartnerLabels: e.target.checked })}
         />
         <span>{t("timeline.showPartnerLabels")}</span>

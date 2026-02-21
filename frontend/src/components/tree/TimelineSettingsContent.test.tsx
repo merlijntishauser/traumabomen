@@ -63,6 +63,18 @@ describe("TimelineSettingsContent", () => {
     expect(onUpdate).toHaveBeenCalledWith({ showPartnerLabels: false });
   });
 
+  it("disables showPartnerLabels when showPartnerLines is off", () => {
+    renderComponent({ showPartnerLines: false });
+    const checkbox = screen.getByRole("checkbox", { name: "timeline.showPartnerLabels" });
+    expect(checkbox).toBeDisabled();
+  });
+
+  it("enables showPartnerLabels when showPartnerLines is on", () => {
+    renderComponent({ showPartnerLines: true });
+    const checkbox = screen.getByRole("checkbox", { name: "timeline.showPartnerLabels" });
+    expect(checkbox).toBeEnabled();
+  });
+
   it("calls onUpdate when showClassifications is toggled", async () => {
     const { onUpdate } = renderComponent({ showClassifications: false });
     const checkbox = screen.getByRole("checkbox", { name: "timeline.showClassifications" });
