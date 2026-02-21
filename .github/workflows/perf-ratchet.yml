@@ -1,0 +1,42 @@
+name: Ratchet CI performance baseline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Install Lighthouse
+        run: |
+          npm install -g lighthouse
+          npx puppeteer browsers install chrome
+
+      - name: Run performance check
+        env:
+          SMOKETEST_EMAIL: ${{ secrets.SMOKETEST_EMAIL }}
+          SMOKETEST_PASSWORD: ${{ secrets.SMOKETEST_PASSWORD }}
+        run: |
+          CHROME_PATH=$(find /home/runner/.cache/puppeteer -name chrome -type f | head -1)
+          export CHROME_PATH
+          ./scripts/performance-check.sh https://www.traumatrees.org
+
+      - name: Update CI baseline
+        run: |
+          cp .performance-current.json .performance-baseline.ci.json
+          if git diff --quiet .performance-baseline.ci.json; then
+            echo "CI baseline unchanged"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .performance-baseline.ci.json
+            git commit -m "Update CI performance baseline"
+            git push
+          fi
