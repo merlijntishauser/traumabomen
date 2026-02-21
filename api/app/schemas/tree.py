@@ -65,85 +65,82 @@ class RelationshipResponse(BaseModel):
     updated_at: datetime
 
 
-# --- TraumaEvent ---
+# --- Linked entity base classes ---
 
 
-class EventCreate(BaseModel):
+class _LinkedEntityCreate(BaseModel):
     person_ids: list[uuid.UUID]
     encrypted_data: str
 
 
-class EventUpdate(BaseModel):
+class _LinkedEntityUpdate(BaseModel):
     person_ids: list[uuid.UUID] | None = None
     encrypted_data: str | None = None
 
 
-class EventResponse(BaseModel):
+class _LinkedEntityResponse(BaseModel):
     id: uuid.UUID
     person_ids: list[uuid.UUID]
     encrypted_data: str
     created_at: datetime
     updated_at: datetime
+
+
+# --- TraumaEvent ---
+
+
+class EventCreate(_LinkedEntityCreate):
+    pass
+
+
+class EventUpdate(_LinkedEntityUpdate):
+    pass
+
+
+class EventResponse(_LinkedEntityResponse):
+    pass
 
 
 # --- LifeEvent ---
 
 
-class LifeEventCreate(BaseModel):
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
+class LifeEventCreate(_LinkedEntityCreate):
+    pass
 
 
-class LifeEventUpdate(BaseModel):
-    person_ids: list[uuid.UUID] | None = None
-    encrypted_data: str | None = None
+class LifeEventUpdate(_LinkedEntityUpdate):
+    pass
 
 
-class LifeEventResponse(BaseModel):
-    id: uuid.UUID
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
-    created_at: datetime
-    updated_at: datetime
+class LifeEventResponse(_LinkedEntityResponse):
+    pass
 
 
 # --- Classification ---
 
 
-class ClassificationCreate(BaseModel):
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
+class ClassificationCreate(_LinkedEntityCreate):
+    pass
 
 
-class ClassificationUpdate(BaseModel):
-    person_ids: list[uuid.UUID] | None = None
-    encrypted_data: str | None = None
+class ClassificationUpdate(_LinkedEntityUpdate):
+    pass
 
 
-class ClassificationResponse(BaseModel):
-    id: uuid.UUID
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
-    created_at: datetime
-    updated_at: datetime
+class ClassificationResponse(_LinkedEntityResponse):
+    pass
 
 
 # --- Pattern ---
 
 
-class PatternCreate(BaseModel):
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
+class PatternCreate(_LinkedEntityCreate):
+    pass
 
 
-class PatternUpdate(BaseModel):
-    person_ids: list[uuid.UUID] | None = None
-    encrypted_data: str | None = None
+class PatternUpdate(_LinkedEntityUpdate):
+    pass
 
 
-class PatternResponse(BaseModel):
-    id: uuid.UUID
-    person_ids: list[uuid.UUID]
-    encrypted_data: str
-    created_at: datetime
-    updated_at: datetime
+class PatternResponse(_LinkedEntityResponse):
+    pass
