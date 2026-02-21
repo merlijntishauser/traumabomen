@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
 import { getClassificationColor } from "../../lib/classificationColors";
@@ -50,6 +50,7 @@ interface ClassificationsTabProps {
     personIds: string[],
   ) => void;
   onDeleteClassification: (classificationId: string) => void;
+  initialEditId?: string;
 }
 
 export function ClassificationsTab({
@@ -58,11 +59,21 @@ export function ClassificationsTab({
   allPersons,
   onSaveClassification,
   onDeleteClassification,
+  initialEditId,
 }: ClassificationsTabProps) {
   const { t } = useTranslation();
 
-  const [editingClassificationId, setEditingClassificationId] = useState<string | null>(null);
+  const [editingClassificationId, setEditingClassificationId] = useState<string | null>(
+    initialEditId ?? null,
+  );
   const [showNewClassification, setShowNewClassification] = useState(false);
+
+  useEffect(() => {
+    if (initialEditId) {
+      setEditingClassificationId(initialEditId);
+      setShowNewClassification(false);
+    }
+  }, [initialEditId]);
 
   if (editingClassificationId || showNewClassification) {
     return (

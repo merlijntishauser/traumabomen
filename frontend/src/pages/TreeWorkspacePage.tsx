@@ -20,7 +20,7 @@ import { BranchDecoration } from "../components/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import { PatternPanel } from "../components/tree/PatternPanel";
-import { PersonDetailPanel } from "../components/tree/PersonDetailPanel";
+import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
@@ -311,6 +311,8 @@ function TreeWorkspaceInner() {
   );
   const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
   const [relationshipPromptPersonId, setRelationshipPromptPersonId] = useState<string | null>(null);
+  const [initialSection, setInitialSection] = useState<PersonDetailSection>(null);
+  const [initialEntityId, setInitialEntityId] = useState<string | null>(null);
 
   const effectiveVisiblePatternIds = useMemo(() => {
     if (!hoveredPatternId || visiblePatternIds.has(hoveredPatternId)) return visiblePatternIds;
@@ -425,10 +427,18 @@ function TreeWorkspaceInner() {
     }
   }, [selectedPersonId, relationshipPromptPersonId]);
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: PersonNodeType) => {
+  const onNodeClick = useCallback((event: React.MouseEvent, node: PersonNodeType) => {
+    const badge = (event.target as HTMLElement).closest("[data-badge-type]") as HTMLElement | null;
     setSelectedPersonId(node.id);
     setSelectedEdgeId(null);
     setPatternPanelOpen(false);
+    if (badge) {
+      setInitialSection(badge.dataset.badgeType as PersonDetailSection);
+      setInitialEntityId(badge.dataset.badgeId!);
+    } else {
+      setInitialSection(null);
+      setInitialEntityId(null);
+    }
   }, []);
 
   const onPaneClick = useCallback(() => {
@@ -780,6 +790,8 @@ function TreeWorkspaceInner() {
             lifeEvents={selectedLifeEvents}
             classifications={selectedClassifications}
             allPersons={persons}
+            initialSection={initialSection}
+            initialEntityId={initialEntityId ?? undefined}
             onSavePerson={handleSavePerson}
             onDeletePerson={handleDeletePerson}
             onSaveRelationship={handleSaveRelationship}

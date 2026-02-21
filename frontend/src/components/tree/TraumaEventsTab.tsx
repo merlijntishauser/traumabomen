@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { getTraumaColor } from "../../lib/traumaColors";
@@ -37,6 +37,7 @@ interface TraumaEventsTabProps {
   allPersons: Map<string, DecryptedPerson>;
   onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
   onDeleteEvent: (eventId: string) => void;
+  initialEditId?: string;
 }
 
 export function TraumaEventsTab({
@@ -45,10 +46,18 @@ export function TraumaEventsTab({
   allPersons,
   onSaveEvent,
   onDeleteEvent,
+  initialEditId,
 }: TraumaEventsTabProps) {
   const { t } = useTranslation();
-  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editingEventId, setEditingEventId] = useState<string | null>(initialEditId ?? null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+
+  useEffect(() => {
+    if (initialEditId) {
+      setEditingEventId(initialEditId);
+      setShowNewEvent(false);
+    }
+  }, [initialEditId]);
 
   if (editingEventId || showNewEvent) {
     return (

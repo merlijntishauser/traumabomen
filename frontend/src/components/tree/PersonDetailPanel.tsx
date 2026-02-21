@@ -1,5 +1,5 @@
 import { Circle, GitFork, Square, Triangle, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -33,6 +33,13 @@ export type PersonDetailSection =
 
 export type DetailTab = "person" | "relationships" | "trauma" | "life" | "classifications";
 
+const TAB_CLASS = "detail-panel__tab";
+const TAB_ACTIVE_CLASS = `${TAB_CLASS} ${TAB_CLASS}--active`;
+
+function tabClassName(isActive: boolean): string {
+  return isActive ? TAB_ACTIVE_CLASS : TAB_CLASS;
+}
+
 function sectionToTab(section: PersonDetailSection): DetailTab {
   switch (section) {
     case "person":
@@ -59,6 +66,7 @@ interface PersonDetailPanelProps {
   classifications: DecryptedClassification[];
   allPersons: Map<string, DecryptedPerson>;
   initialSection?: PersonDetailSection;
+  initialEntityId?: string;
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
@@ -84,6 +92,7 @@ export function PersonDetailPanel({
   classifications,
   allPersons,
   initialSection,
+  initialEntityId,
   onSavePerson,
   onDeletePerson,
   onSaveRelationship,
@@ -97,6 +106,12 @@ export function PersonDetailPanel({
 }: PersonDetailPanelProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<DetailTab>(sectionToTab(initialSection ?? null));
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveTab(sectionToTab(initialSection));
+    }
+  }, [initialSection]);
 
   const relsCount = relationships.length + inferredSiblings.length;
 
@@ -126,7 +141,7 @@ export function PersonDetailPanel({
           type="button"
           role="tab"
           aria-selected={activeTab === "person"}
-          className={`detail-panel__tab${activeTab === "person" ? " detail-panel__tab--active" : ""}`}
+          className={tabClassName(activeTab === "person")}
           onClick={() => setActiveTab("person")}
         >
           <User size={14} />
@@ -136,7 +151,7 @@ export function PersonDetailPanel({
           type="button"
           role="tab"
           aria-selected={activeTab === "relationships"}
-          className={`detail-panel__tab${activeTab === "relationships" ? " detail-panel__tab--active" : ""}`}
+          className={tabClassName(activeTab === "relationships")}
           onClick={() => setActiveTab("relationships")}
         >
           <GitFork size={14} />
@@ -147,7 +162,7 @@ export function PersonDetailPanel({
           type="button"
           role="tab"
           aria-selected={activeTab === "trauma"}
-          className={`detail-panel__tab${activeTab === "trauma" ? " detail-panel__tab--active" : ""}`}
+          className={tabClassName(activeTab === "trauma")}
           onClick={() => setActiveTab("trauma")}
         >
           <Circle size={14} />
@@ -158,7 +173,7 @@ export function PersonDetailPanel({
           type="button"
           role="tab"
           aria-selected={activeTab === "life"}
-          className={`detail-panel__tab${activeTab === "life" ? " detail-panel__tab--active" : ""}`}
+          className={tabClassName(activeTab === "life")}
           onClick={() => setActiveTab("life")}
         >
           <Square size={14} />
@@ -171,7 +186,7 @@ export function PersonDetailPanel({
           type="button"
           role="tab"
           aria-selected={activeTab === "classifications"}
-          className={`detail-panel__tab${activeTab === "classifications" ? " detail-panel__tab--active" : ""}`}
+          className={tabClassName(activeTab === "classifications")}
           onClick={() => setActiveTab("classifications")}
         >
           <Triangle size={14} />
@@ -202,6 +217,7 @@ export function PersonDetailPanel({
             allPersons={allPersons}
             onSaveEvent={onSaveEvent}
             onDeleteEvent={onDeleteEvent}
+            initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
           />
         )}
         {activeTab === "life" && (
@@ -211,6 +227,7 @@ export function PersonDetailPanel({
             allPersons={allPersons}
             onSaveLifeEvent={onSaveLifeEvent}
             onDeleteLifeEvent={onDeleteLifeEvent}
+            initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
           />
         )}
         {activeTab === "classifications" && (
@@ -220,6 +237,7 @@ export function PersonDetailPanel({
             allPersons={allPersons}
             onSaveClassification={onSaveClassification}
             onDeleteClassification={onDeleteClassification}
+            initialEditId={initialSection === "classification" ? initialEntityId : undefined}
           />
         )}
       </div>

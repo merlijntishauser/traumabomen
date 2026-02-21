@@ -346,6 +346,33 @@ describe("PersonNode", () => {
     expect(container.querySelector(".person-node__badge-overflow")).not.toBeInTheDocument();
   });
 
+  it("adds data-badge-type and data-badge-id to trauma event badges", () => {
+    const events = [makeEvent({ id: "e1", category: TraumaCategory.Loss })];
+    const { container } = renderNode(makePerson(), { events });
+
+    const wrap = container.querySelector(".person-node__badge-wrap");
+    expect(wrap).toHaveAttribute("data-badge-type", "trauma_event");
+    expect(wrap).toHaveAttribute("data-badge-id", "e1");
+  });
+
+  it("adds data-badge-type and data-badge-id to life event badges", () => {
+    const lifeEvents = [makeLifeEvent({ id: "le1", category: LifeEventCategory.Family })];
+    const { container } = renderNode(makePerson(), { lifeEvents });
+
+    const wrap = container.querySelector(".person-node__badge-wrap");
+    expect(wrap).toHaveAttribute("data-badge-type", "life_event");
+    expect(wrap).toHaveAttribute("data-badge-id", "le1");
+  });
+
+  it("adds data-badge-type and data-badge-id to classification badges", () => {
+    const classifications = [makeClassification({ id: "c1", status: "diagnosed" })];
+    const { container } = renderNode(makePerson(), { classifications });
+
+    const wrap = container.querySelector(".person-node__badge-wrap");
+    expect(wrap).toHaveAttribute("data-badge-type", "classification");
+    expect(wrap).toHaveAttribute("data-badge-id", "c1");
+  });
+
   it("limits life event badges based on remaining slots after trauma events", () => {
     const events = Array.from({ length: 7 }, (_, i) =>
       makeEvent({ id: `e${i}`, category: TraumaCategory.Loss }),

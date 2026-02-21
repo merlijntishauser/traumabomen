@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
@@ -18,6 +18,7 @@ interface LifeEventsTabProps {
   allPersons: Map<string, DecryptedPerson>;
   onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
   onDeleteLifeEvent: (lifeEventId: string) => void;
+  initialEditId?: string;
 }
 
 interface LifeEventFormProps {
@@ -159,10 +160,20 @@ export function LifeEventsTab({
   allPersons,
   onSaveLifeEvent,
   onDeleteLifeEvent,
+  initialEditId,
 }: LifeEventsTabProps) {
   const { t } = useTranslation();
-  const [editingLifeEventId, setEditingLifeEventId] = useState<string | null>(null);
+  const [editingLifeEventId, setEditingLifeEventId] = useState<string | null>(
+    initialEditId ?? null,
+  );
   const [showNewLifeEvent, setShowNewLifeEvent] = useState(false);
+
+  useEffect(() => {
+    if (initialEditId) {
+      setEditingLifeEventId(initialEditId);
+      setShowNewLifeEvent(false);
+    }
+  }, [initialEditId]);
 
   if (editingLifeEventId || showNewLifeEvent) {
     return (

@@ -189,6 +189,40 @@ describe("PersonDetailPanel", () => {
     expect(screen.getByText("Test Event")).toBeInTheDocument();
   });
 
+  it("opens trauma event edit form when initialEntityId is provided", () => {
+    const props = defaultProps();
+    props.events = [makeEvent({ id: "e1" })];
+    render(<PersonDetailPanel {...props} initialSection="trauma_event" initialEntityId="e1" />);
+
+    // Should be on trauma tab with edit form open
+    const traumaTab = screen.getByRole("tab", { name: /trauma.tab/ });
+    expect(traumaTab).toHaveAttribute("aria-selected", "true");
+    // Edit form should be visible (not the card list)
+    expect(screen.getByText("trauma.title")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Test Event")).toBeInTheDocument();
+  });
+
+  it("opens life event edit form when initialEntityId is provided", () => {
+    const props = defaultProps();
+    props.lifeEvents = [makeLifeEvent({ id: "le1" })];
+    render(<PersonDetailPanel {...props} initialSection="life_event" initialEntityId="le1" />);
+
+    const lifeTab = screen.getByRole("tab", { name: /lifeEvent.tab/ });
+    expect(lifeTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
+  });
+
+  it("opens classification edit form when initialEntityId is provided", () => {
+    const props = defaultProps();
+    props.classifications = [makeClassification({ id: "cls1" })];
+    render(<PersonDetailPanel {...props} initialSection="classification" initialEntityId="cls1" />);
+
+    const clsTab = screen.getByRole("tab", { name: /classification.tab/ });
+    expect(clsTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("classification.category")).toBeInTheDocument();
+  });
+
   it("calls onClose when close button is clicked", async () => {
     const user = userEvent.setup();
     const props = defaultProps();

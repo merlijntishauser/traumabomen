@@ -80,7 +80,12 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
       {(events.length > 0 || lifeEvents.length > 0 || classifications.length > 0) && (
         <div className="person-node__badges">
           {events.slice(0, MAX_VISIBLE_BADGES).map((event) => (
-            <span key={event.id} className="person-node__badge-wrap">
+            <span
+              key={event.id}
+              className="person-node__badge-wrap"
+              data-badge-type="trauma_event"
+              data-badge-id={event.id}
+            >
               <span
                 className="person-node__badge"
                 style={{ backgroundColor: getTraumaColor(event.category) }}
@@ -107,7 +112,12 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
             </span>
           ))}
           {lifeEvents.slice(0, Math.max(0, MAX_VISIBLE_BADGES - events.length)).map((event) => (
-            <span key={event.id} className="person-node__badge-wrap">
+            <span
+              key={event.id}
+              className="person-node__badge-wrap"
+              data-badge-type="life_event"
+              data-badge-id={event.id}
+            >
               <span
                 className="person-node__badge person-node__badge--life"
                 style={{ backgroundColor: getLifeEventColor(event.category) }}
@@ -136,7 +146,12 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
           {classifications
             .slice(0, Math.max(0, MAX_VISIBLE_BADGES - events.length - lifeEvents.length))
             .map((cls) => (
-              <span key={cls.id} className="person-node__badge-wrap">
+              <span
+                key={cls.id}
+                className="person-node__badge-wrap"
+                data-badge-type="classification"
+                data-badge-id={cls.id}
+              >
                 <span
                   className="person-node__badge person-node__badge--classification"
                   style={{ backgroundColor: getClassificationColor(cls.status) }}
