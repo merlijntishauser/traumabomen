@@ -5,10 +5,12 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { LIFE_EVENT_COLORS } from "../../lib/lifeEventColors";
 import { TRAUMA_COLORS } from "../../lib/traumaColors";
-import { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import { TURNING_POINT_COLORS } from "../../lib/turningPointColors";
+import { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import { PersonNode } from "./PersonNode";
 
 vi.mock("react-i18next", () => ({
@@ -85,10 +87,25 @@ function makeClassification(
   };
 }
 
+function makeTurningPoint(overrides: Partial<DecryptedTurningPoint> = {}): DecryptedTurningPoint {
+  return {
+    id: "tp1",
+    title: "Turning Point 1",
+    description: "desc",
+    category: TurningPointCategory.Recovery,
+    approximate_date: "2010",
+    significance: 8,
+    tags: [],
+    person_ids: ["p1"],
+    ...overrides,
+  };
+}
+
 interface RenderOptions {
   events?: DecryptedEvent[];
   lifeEvents?: DecryptedLifeEvent[];
   classifications?: DecryptedClassification[];
+  turningPoints?: DecryptedTurningPoint[];
   selected?: boolean;
   isFriendOnly?: boolean;
 }
@@ -98,12 +115,13 @@ function renderNode(person: DecryptedPerson, opts: RenderOptions = {}) {
     events = [],
     lifeEvents = [],
     classifications = [],
+    turningPoints = [],
     selected = false,
     isFriendOnly = false,
   } = opts;
   const props = {
     id: person.id,
-    data: { person, events, lifeEvents, classifications, isFriendOnly },
+    data: { person, events, lifeEvents, classifications, turningPoints, isFriendOnly },
     selected,
     type: "person",
     isConnectable: true,
@@ -442,5 +460,81 @@ describe("PersonNode", () => {
     const badges = container.querySelectorAll(".person-node__badge--classification");
     expect(badges[0].textContent).toBeTruthy();
     expect(badges[1].textContent).toBeTruthy();
+  });
+
+  it("renders turning point badges with star shape class", () => {
+    const turningPoints = [
+      makeTurningPoint({ id: "tp1", category: TurningPointCategory.Recovery }),
+      makeTurningPoint({ id: "tp2", category: TurningPointCategory.Achievement }),
+    ];
+    const { container } = renderNode(makePerson(), { turningPoints });
+
+    const badges = container.querySelectorAll(".person-node__badge--turning-point");
+    expect(badges).toHaveLength(2);
+    expect(badges[0]).toHaveStyle({
+      backgroundColor: TURNING_POINT_COLORS[TurningPointCategory.Recovery],
+    });
+    expect(badges[1]).toHaveStyle({
+      backgroundColor: TURNING_POINT_COLORS[TurningPointCategory.Achievement],
+    });
+  });
+
+  it("adds data-badge-type and data-badge-id to turning point badges", () => {
+    const turningPoints = [makeTurningPoint({ id: "tp1" })];
+    const { container } = renderNode(makePerson(), { turningPoints });
+
+    const wraps = container.querySelectorAll('[data-badge-type="turning_point"]');
+    expect(wraps).toHaveLength(1);
+    expect(wraps[0]).toHaveAttribute("data-badge-id", "tp1");
+  });
+
+  it("renders turning point tooltip with category, date, and significance", () => {
+    const turningPoints = [
+      makeTurningPoint({
+        title: "Broke the cycle",
+        category: TurningPointCategory.CycleBreaking,
+        approximate_date: "2015",
+        significance: 9,
+      }),
+    ];
+    renderNode(makePerson(), { turningPoints });
+    expect(screen.getByText("Broke the cycle")).toBeInTheDocument();
+    expect(screen.getByText("turningPoint.category.cycle_breaking")).toBeInTheDocument();
+    expect(screen.getByText("2015")).toBeInTheDocument();
+    expect(screen.getByText(/turningPoint\.significance.*9\/10/)).toBeInTheDocument();
+  });
+
+  it("shows initial on turning point badges when multiple exist", () => {
+    const turningPoints = [
+      makeTurningPoint({ id: "tp1", category: TurningPointCategory.Recovery }),
+      makeTurningPoint({ id: "tp2", category: TurningPointCategory.Achievement }),
+    ];
+    const { container } = renderNode(makePerson(), { turningPoints });
+
+    const badges = container.querySelectorAll(".person-node__badge--turning-point");
+    expect(badges[0].textContent).toBeTruthy();
+    expect(badges[1].textContent).toBeTruthy();
+  });
+
+  it("does not show initial when only one turning point badge exists", () => {
+    const turningPoints = [makeTurningPoint({ id: "tp1" })];
+    const { container } = renderNode(makePerson(), { turningPoints });
+
+    const badge = container.querySelector(".person-node__badge--turning-point");
+    expect(badge?.textContent).toBe("");
+  });
+
+  it("includes turning points in overflow count", () => {
+    const events = Array.from({ length: 6 }, (_, i) =>
+      makeEvent({ id: `e${i}`, category: TraumaCategory.Loss }),
+    );
+    const turningPoints = Array.from({ length: 3 }, (_, i) =>
+      makeTurningPoint({ id: `tp${i}`, category: TurningPointCategory.Recovery }),
+    );
+    const { container } = renderNode(makePerson(), { events, turningPoints });
+
+    const overflow = container.querySelector(".person-node__badge-overflow");
+    expect(overflow).toBeInTheDocument();
+    expect(overflow?.textContent).toBe("+1");
   });
 });

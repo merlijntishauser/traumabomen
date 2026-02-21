@@ -20,6 +20,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "./useTreeData";
 
 // Re-export types and constants so existing consumers don't break
@@ -40,6 +41,7 @@ export function useTreeLayout(
   lifeEvents?: Map<string, DecryptedLifeEvent>,
   canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
+  turningPoints?: Map<string, DecryptedTurningPoint>,
 ): ReturnType<typeof _computeLayout> {
   return useMemo(
     () =>
@@ -51,8 +53,18 @@ export function useTreeLayout(
         lifeEvents,
         canvasSettings,
         classifications,
+        turningPoints,
       ),
-    [persons, relationships, events, selectedPersonId, lifeEvents, canvasSettings, classifications],
+    [
+      persons,
+      relationships,
+      events,
+      selectedPersonId,
+      lifeEvents,
+      canvasSettings,
+      classifications,
+      turningPoints,
+    ],
   );
 }
 
@@ -64,6 +76,7 @@ function _computeLayout(
   lifeEvents?: Map<string, DecryptedLifeEvent>,
   canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
+  turningPoints?: Map<string, DecryptedTurningPoint>,
 ) {
   if (persons.size === 0) {
     return { nodes: [], edges: [] };
@@ -74,7 +87,7 @@ function _computeLayout(
   const inferred = inferSiblings(relationships);
   const { graph } = layoutDagreGraph(persons, relationships, friendOnlyIds, inferred);
   const friendPositions = positionFriendNodes(persons, relationships, friendOnlyIds, graph);
-  const lookups = buildEntityLookups(events, lifeEvents, classifications);
+  const lookups = buildEntityLookups(events, lifeEvents, classifications, turningPoints);
   const { nodes, nodeCenter } = buildPersonNodes(
     persons,
     graph,

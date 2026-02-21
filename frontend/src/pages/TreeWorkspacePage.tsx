@@ -327,6 +327,7 @@ function TreeWorkspaceInner() {
     relationships,
     events,
     lifeEvents,
+    turningPoints,
     classifications,
     patterns,
     isLoading,
@@ -361,6 +362,7 @@ function TreeWorkspaceInner() {
     lifeEvents,
     layoutSettings,
     classifications,
+    turningPoints,
   );
 
   const edges = useMemo(

@@ -6,6 +6,7 @@ import { formatAge } from "../../lib/age";
 import { getClassificationColor } from "../../lib/classificationColors";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import { getTraumaColor } from "../../lib/traumaColors";
+import { getTurningPointColor } from "../../lib/turningPointColors";
 import "./PersonNode.css";
 
 const MAX_VISIBLE_BADGES = 8;
@@ -17,10 +18,18 @@ function badgeInitial(label: string): string {
 
 function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeData }) {
   const { t } = useTranslation();
-  const { person, events, lifeEvents = [], classifications = [], isFriendOnly } = data;
+  const {
+    person,
+    events,
+    lifeEvents = [],
+    classifications = [],
+    turningPoints = [],
+    isFriendOnly,
+  } = data;
   const showTraumaInitials = events.length > 1;
   const showLifeInitials = lifeEvents.length > 1;
   const showClassInitials = classifications.length > 1;
+  const showTpInitials = turningPoints.length > 1;
 
   const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
   const age = formatAge(
@@ -85,7 +94,10 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
           <span className="person-node__adopted"> ({t("person.isAdopted").toLowerCase()})</span>
         )}
       </div>
-      {(events.length > 0 || lifeEvents.length > 0 || classifications.length > 0) && (
+      {(events.length > 0 ||
+        lifeEvents.length > 0 ||
+        classifications.length > 0 ||
+        turningPoints.length > 0) && (
         <div className="person-node__badges">
           {events.slice(0, MAX_VISIBLE_BADGES).map((event) => (
             <span
@@ -186,9 +198,56 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
                 </span>
               </span>
             ))}
-          {events.length + lifeEvents.length + classifications.length > MAX_VISIBLE_BADGES && (
+          {turningPoints
+            .slice(
+              0,
+              Math.max(
+                0,
+                MAX_VISIBLE_BADGES - events.length - lifeEvents.length - classifications.length,
+              ),
+            )
+            .map((tp) => (
+              <span
+                key={tp.id}
+                className="person-node__badge-wrap"
+                data-badge-type="turning_point"
+                data-badge-id={tp.id}
+              >
+                <span
+                  className={`person-node__badge person-node__badge--turning-point${showTpInitials ? BADGE_INITIAL_CLASS : ""}`}
+                  style={{ backgroundColor: getTurningPointColor(tp.category) }}
+                >
+                  {showTpInitials && badgeInitial(t(`turningPoint.category.${tp.category}`))}
+                </span>
+                <span className="person-node__tooltip">
+                  <span className="person-node__tooltip-title">
+                    <span
+                      className="person-node__tooltip-dot person-node__tooltip-dot--turning-point"
+                      style={{ backgroundColor: getTurningPointColor(tp.category) }}
+                    />
+                    {tp.title}
+                  </span>
+                  <span className="person-node__tooltip-meta">
+                    <span>{t(`turningPoint.category.${tp.category}`)}</span>
+                    {tp.approximate_date && <span>{tp.approximate_date}</span>}
+                    {tp.significance && (
+                      <span>
+                        {t("turningPoint.significance")}: {tp.significance}/10
+                      </span>
+                    )}
+                  </span>
+                </span>
+              </span>
+            ))}
+          {events.length + lifeEvents.length + classifications.length + turningPoints.length >
+            MAX_VISIBLE_BADGES && (
             <span className="person-node__badge-overflow">
-              +{events.length + lifeEvents.length + classifications.length - MAX_VISIBLE_BADGES}
+              +
+              {events.length +
+                lifeEvents.length +
+                classifications.length +
+                turningPoints.length -
+                MAX_VISIBLE_BADGES}
             </span>
           )}
         </div>

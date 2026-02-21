@@ -7,6 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../hooks/useTreeData";
 import { RelationshipType } from "../types/domain";
 import type { InferredSibling } from "./inferSiblings";
@@ -18,6 +19,7 @@ export interface PersonNodeData extends Record<string, unknown> {
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
   classifications: DecryptedClassification[];
+  turningPoints: DecryptedTurningPoint[];
   isFriendOnly?: boolean;
 }
 
@@ -98,6 +100,7 @@ export interface DagreResult {
 export interface EntityLookups {
   eventsByPerson: Map<string, DecryptedEvent[]>;
   lifeEventsByPerson: Map<string, DecryptedLifeEvent[]>;
+  turningPointsByPerson: Map<string, DecryptedTurningPoint[]>;
   classificationsByPerson: Map<string, DecryptedClassification[]>;
 }
 
@@ -400,11 +403,12 @@ export function positionFriendNodes(
   return friendPositions;
 }
 
-/** Build per-person lookups for events, life events, and classifications. */
+/** Build per-person lookups for events, life events, turning points, and classifications. */
 export function buildEntityLookups(
   events: Map<string, DecryptedEvent>,
   lifeEvents?: Map<string, DecryptedLifeEvent>,
   classifications?: Map<string, DecryptedClassification>,
+  turningPoints?: Map<string, DecryptedTurningPoint>,
 ): EntityLookups {
   const eventsByPerson = new Map<string, DecryptedEvent[]>();
   for (const event of events.values()) {
@@ -426,6 +430,17 @@ export function buildEntityLookups(
     }
   }
 
+  const turningPointsByPerson = new Map<string, DecryptedTurningPoint[]>();
+  if (turningPoints) {
+    for (const tp of turningPoints.values()) {
+      for (const personId of tp.person_ids) {
+        const existing = turningPointsByPerson.get(personId) ?? [];
+        existing.push(tp);
+        turningPointsByPerson.set(personId, existing);
+      }
+    }
+  }
+
   const classificationsByPerson = new Map<string, DecryptedClassification[]>();
   if (classifications) {
     for (const cls of classifications.values()) {
@@ -437,7 +452,7 @@ export function buildEntityLookups(
     }
   }
 
-  return { eventsByPerson, lifeEventsByPerson, classificationsByPerson };
+  return { eventsByPerson, lifeEventsByPerson, turningPointsByPerson, classificationsByPerson };
 }
 
 /** Resolve the position of a single person node. */
@@ -494,6 +509,7 @@ export function buildPersonNodes(
         events: lookups.eventsByPerson.get(person.id) ?? [],
         lifeEvents: lookups.lifeEventsByPerson.get(person.id) ?? [],
         classifications: lookups.classificationsByPerson.get(person.id) ?? [],
+        turningPoints: lookups.turningPointsByPerson.get(person.id) ?? [],
         isFriendOnly: isFriendOnly || undefined,
       },
       selected: person.id === selectedPersonId,

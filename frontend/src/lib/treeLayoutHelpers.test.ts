@@ -6,8 +6,14 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../hooks/useTreeData";
-import { LifeEventCategory, RelationshipType, TraumaCategory } from "../types/domain";
+import {
+  LifeEventCategory,
+  RelationshipType,
+  TraumaCategory,
+  TurningPointCategory,
+} from "../types/domain";
 import {
   adjustEdgeOverlaps,
   assignMarkerShapes,
@@ -254,6 +260,7 @@ describe("buildEntityLookups", () => {
     const result = buildEntityLookups(new Map());
     expect(result.eventsByPerson.size).toBe(0);
     expect(result.lifeEventsByPerson.size).toBe(0);
+    expect(result.turningPointsByPerson.size).toBe(0);
     expect(result.classificationsByPerson.size).toBe(0);
   });
 
@@ -291,7 +298,7 @@ describe("buildEntityLookups", () => {
     expect(result.eventsByPerson.get("p2")?.length).toBe(1);
   });
 
-  it("handles all three entity types", () => {
+  it("handles all four entity types", () => {
     const events = new Map<string, DecryptedEvent>([
       [
         "e1",
@@ -337,10 +344,60 @@ describe("buildEntityLookups", () => {
         },
       ],
     ]);
-    const result = buildEntityLookups(events, lifeEvents, classifications);
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      [
+        "tp1",
+        {
+          id: "tp1",
+          title: "TP",
+          description: "",
+          category: TurningPointCategory.Recovery,
+          approximate_date: "2010",
+          significance: 8,
+          tags: [],
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+    const result = buildEntityLookups(events, lifeEvents, classifications, turningPoints);
     expect(result.eventsByPerson.get("p1")?.length).toBe(1);
     expect(result.lifeEventsByPerson.get("p1")?.length).toBe(1);
+    expect(result.turningPointsByPerson.get("p1")?.length).toBe(1);
     expect(result.classificationsByPerson.get("p1")?.length).toBe(1);
+  });
+
+  it("groups turning points by person", () => {
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      [
+        "tp1",
+        {
+          id: "tp1",
+          title: "TP1",
+          description: "",
+          category: TurningPointCategory.CycleBreaking,
+          approximate_date: "2000",
+          significance: 7,
+          tags: [],
+          person_ids: ["p1"],
+        },
+      ],
+      [
+        "tp2",
+        {
+          id: "tp2",
+          title: "TP2",
+          description: "",
+          category: TurningPointCategory.Achievement,
+          approximate_date: "2005",
+          significance: 9,
+          tags: [],
+          person_ids: ["p1", "p2"],
+        },
+      ],
+    ]);
+    const result = buildEntityLookups(new Map(), undefined, undefined, turningPoints);
+    expect(result.turningPointsByPerson.get("p1")?.length).toBe(2);
+    expect(result.turningPointsByPerson.get("p2")?.length).toBe(1);
   });
 });
 
@@ -1005,7 +1062,7 @@ describe("buildPersonNodes additional cases", () => {
     expect(result.nodes[0].selected).toBe(false);
   });
 
-  it("attaches events, lifeEvents, and classifications to nodes", () => {
+  it("attaches events, lifeEvents, turningPoints, and classifications to nodes", () => {
     const persons = new Map([["p1", makePerson("p1", "Alice")]]);
     const events = new Map<string, DecryptedEvent>([
       [
@@ -1052,11 +1109,27 @@ describe("buildPersonNodes additional cases", () => {
         },
       ],
     ]);
-    const lookups = buildEntityLookups(events, lifeEvents, classifications);
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      [
+        "tp1",
+        {
+          id: "tp1",
+          title: "TP",
+          description: "",
+          category: TurningPointCategory.Recovery,
+          approximate_date: "2010",
+          significance: 8,
+          tags: [],
+          person_ids: ["p1"],
+        },
+      ],
+    ]);
+    const lookups = buildEntityLookups(events, lifeEvents, classifications, turningPoints);
     const { graph } = layoutDagreGraph(persons, new Map(), new Set());
     const result = buildPersonNodes(persons, graph, new Set(), new Map(), lookups, null);
     expect(result.nodes[0].data.events).toHaveLength(1);
     expect(result.nodes[0].data.lifeEvents).toHaveLength(1);
+    expect(result.nodes[0].data.turningPoints).toHaveLength(1);
     expect(result.nodes[0].data.classifications).toHaveLength(1);
   });
 });
