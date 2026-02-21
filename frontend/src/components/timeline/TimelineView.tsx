@@ -40,6 +40,7 @@ interface TimelineViewProps {
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
   showPartnerLines?: boolean;
+  showPartnerLabels?: boolean;
   showClassifications?: boolean;
   showGridlines?: boolean;
   showMarkerLabels?: boolean;
@@ -69,6 +70,7 @@ export function TimelineView({
   onPatternHover,
   onPatternClick,
   showPartnerLines = true,
+  showPartnerLabels = true,
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
@@ -138,6 +140,7 @@ export function TimelineView({
     onPatternHover,
     onPatternClick,
     showPartnerLines,
+    showPartnerLabels,
     showClassifications,
     showGridlines,
     showMarkerLabels,

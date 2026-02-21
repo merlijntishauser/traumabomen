@@ -28,6 +28,15 @@ export function TimelineSettingsContent({ settings, onUpdate }: Props) {
       <label className="settings-panel__toggle">
         <input
           type="checkbox"
+          checked={settings.showPartnerLabels}
+          onChange={(e) => onUpdate({ showPartnerLabels: e.target.checked })}
+        />
+        <span>{t("timeline.showPartnerLabels")}</span>
+      </label>
+
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
           checked={settings.showClassifications}
           onChange={(e) => onUpdate({ showClassifications: e.target.checked })}
         />

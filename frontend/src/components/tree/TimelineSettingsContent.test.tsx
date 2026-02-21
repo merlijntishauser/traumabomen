@@ -14,6 +14,7 @@ vi.mock("./ThemeLanguageSettings", () => ({
 
 const DEFAULT_SETTINGS: TimelineSettings = {
   showPartnerLines: true,
+  showPartnerLabels: true,
   showClassifications: true,
   showGridlines: false,
   showMarkerLabels: true,
@@ -26,20 +27,23 @@ function renderComponent(overrides: Partial<TimelineSettings> = {}, onUpdate = v
 }
 
 describe("TimelineSettingsContent", () => {
-  it("renders all four toggle checkboxes with correct initial state", () => {
+  it("renders all five toggle checkboxes with correct initial state", () => {
     renderComponent({
       showPartnerLines: true,
+      showPartnerLabels: false,
       showClassifications: false,
       showGridlines: true,
       showMarkerLabels: false,
     });
 
     const partnerLines = screen.getByRole("checkbox", { name: "timeline.showPartnerLines" });
+    const partnerLabels = screen.getByRole("checkbox", { name: "timeline.showPartnerLabels" });
     const classifications = screen.getByRole("checkbox", { name: "timeline.showClassifications" });
     const gridlines = screen.getByRole("checkbox", { name: "timeline.showGridlines" });
     const markerLabels = screen.getByRole("checkbox", { name: "timeline.showMarkerLabels" });
 
     expect(partnerLines).toBeChecked();
+    expect(partnerLabels).not.toBeChecked();
     expect(classifications).not.toBeChecked();
     expect(gridlines).toBeChecked();
     expect(markerLabels).not.toBeChecked();
@@ -50,6 +54,13 @@ describe("TimelineSettingsContent", () => {
     const checkbox = screen.getByRole("checkbox", { name: "timeline.showPartnerLines" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showPartnerLines: false });
+  });
+
+  it("calls onUpdate when showPartnerLabels is toggled", async () => {
+    const { onUpdate } = renderComponent({ showPartnerLabels: true });
+    const checkbox = screen.getByRole("checkbox", { name: "timeline.showPartnerLabels" });
+    await userEvent.click(checkbox);
+    expect(onUpdate).toHaveBeenCalledWith({ showPartnerLabels: false });
   });
 
   it("calls onUpdate when showClassifications is toggled", async () => {

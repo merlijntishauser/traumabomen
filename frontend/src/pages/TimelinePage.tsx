@@ -546,6 +546,7 @@ export default function TimelinePage() {
             onPatternHover={setHoveredPatternId}
             onPatternClick={handlePatternClick}
             showPartnerLines={timelineSettings.showPartnerLines}
+            showPartnerLabels={timelineSettings.showPartnerLabels}
             showClassifications={timelineSettings.showClassifications}
             showGridlines={timelineSettings.showGridlines}
             showMarkerLabels={timelineSettings.showMarkerLabels}

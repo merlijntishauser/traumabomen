@@ -362,6 +362,7 @@
   "timeline.filterBadge": "{{active}} of {{total}}",
   "timeline.viewSettings": "View settings",
   "timeline.showPartnerLines": "Show partner lines",
+  "timeline.showPartnerLabels": "Show partner labels",
   "timeline.showClassifications": "Show classification strips",
   "timeline.showGridlines": "Show gridlines",
   "timeline.showMarkerLabels": "Show marker labels",

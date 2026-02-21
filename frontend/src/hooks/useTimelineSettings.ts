@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 export interface TimelineSettings {
   showPartnerLines: boolean;
+  showPartnerLabels: boolean;
   showClassifications: boolean;
   showGridlines: boolean;
   showMarkerLabels: boolean;
@@ -9,6 +10,7 @@ export interface TimelineSettings {
 
 const DEFAULTS: TimelineSettings = {
   showPartnerLines: true,
+  showPartnerLabels: true,
   showClassifications: true,
   showGridlines: false,
   showMarkerLabels: true,

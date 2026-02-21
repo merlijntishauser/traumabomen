@@ -362,6 +362,7 @@
   "timeline.filterBadge": "{{active}} van {{total}}",
   "timeline.viewSettings": "Weergave-instellingen",
   "timeline.showPartnerLines": "Partnerlijnen tonen",
+  "timeline.showPartnerLabels": "Partnerlabels tonen",
   "timeline.showClassifications": "Classificatiestroken tonen",
   "timeline.showGridlines": "Rasterlijnen tonen",
   "timeline.showMarkerLabels": "Markeerlabels tonen",

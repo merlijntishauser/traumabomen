@@ -54,6 +54,7 @@ interface TimelineYearsContentProps {
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
   showPartnerLines?: boolean;
+  showPartnerLabels?: boolean;
   showClassifications?: boolean;
   showGridlines?: boolean;
   showMarkerLabels?: boolean;
@@ -85,6 +86,7 @@ export function TimelineYearsContent({
   onPatternHover,
   onPatternClick,
   showPartnerLines = true,
+  showPartnerLabels = true,
   showClassifications = true,
   showGridlines = false,
   showMarkerLabels = true,
@@ -409,6 +411,7 @@ export function TimelineYearsContent({
                   t={t}
                   onTooltip={onTooltip}
                   onClick={onClickPartnerLine ? () => onClickPartnerLine(pl.key) : undefined}
+                  showLabels={showPartnerLabels}
                 />
               ))}
           </g>

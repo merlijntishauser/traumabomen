@@ -22,6 +22,8 @@ interface AgePartnerLineProps {
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
   onClick?: () => void;
+  showLabels?: boolean;
+  zoomK?: number;
 }
 
 const BAR_OFFSET_X = BAR_HEIGHT / 2 + 2;
@@ -41,10 +43,20 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
   t,
   onTooltip,
   onClick,
+  showLabels = true,
+  zoomK = 1,
 }: AgePartnerLineProps) {
   const hideTooltip = useCallback(() => {
     onTooltip({ visible: false, x: 0, y: 0, lines: [] });
   }, [onTooltip]);
+
+  // Counter-scale: neutralize the parent zoom group's vertical scale on labels
+  const inv = 1 / zoomK;
+  const labelTransform = (x: number, py: number) => {
+    const rotate = `rotate(-90, ${x}, ${py})`;
+    if (zoomK === 1) return rotate;
+    return `translate(0,${py}) scale(1,${inv}) translate(0,${-py}) ${rotate}`;
+  };
 
   if (sourceX == null && targetX == null) return null;
 
@@ -160,17 +172,22 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
-                <text
-                  x={effectiveSrcBarX + srcLabelOffsetX}
-                  y={(srcY1 + srcY2) / 2}
-                  fill={strokeColor}
-                  fontSize={10}
-                  textAnchor="middle"
-                  className="tl-partner-label"
-                  transform={`rotate(-90, ${effectiveSrcBarX + srcLabelOffsetX}, ${(srcY1 + srcY2) / 2})`}
-                >
-                  {srcLabel}
-                </text>
+                {showLabels && (
+                  <text
+                    x={effectiveSrcBarX + srcLabelOffsetX}
+                    y={(srcY1 + srcY2) / 2}
+                    fill={strokeColor}
+                    fontSize={10}
+                    textAnchor="middle"
+                    className="tl-partner-label"
+                    transform={labelTransform(
+                      effectiveSrcBarX + srcLabelOffsetX,
+                      (srcY1 + srcY2) / 2,
+                    )}
+                  >
+                    {srcLabel}
+                  </text>
+                )}
                 <line
                   x1={effectiveSrcBarX}
                   x2={effectiveSrcBarX}
@@ -197,17 +214,22 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
-                <text
-                  x={effectiveTgtBarX + tgtLabelOffsetX}
-                  y={(tgtY1 + tgtY2) / 2}
-                  fill={strokeColor}
-                  fontSize={10}
-                  textAnchor="middle"
-                  className="tl-partner-label"
-                  transform={`rotate(-90, ${effectiveTgtBarX + tgtLabelOffsetX}, ${(tgtY1 + tgtY2) / 2})`}
-                >
-                  {tgtLabel}
-                </text>
+                {showLabels && (
+                  <text
+                    x={effectiveTgtBarX + tgtLabelOffsetX}
+                    y={(tgtY1 + tgtY2) / 2}
+                    fill={strokeColor}
+                    fontSize={10}
+                    textAnchor="middle"
+                    className="tl-partner-label"
+                    transform={labelTransform(
+                      effectiveTgtBarX + tgtLabelOffsetX,
+                      (tgtY1 + tgtY2) / 2,
+                    )}
+                  >
+                    {tgtLabel}
+                  </text>
+                )}
                 <line
                   x1={effectiveTgtBarX}
                   x2={effectiveTgtBarX}

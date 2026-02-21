@@ -20,6 +20,7 @@ interface PartnerLineProps {
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
   onClick?: () => void;
+  showLabels?: boolean;
 }
 
 export const PartnerLine = React.memo(function PartnerLine({
@@ -35,6 +36,7 @@ export const PartnerLine = React.memo(function PartnerLine({
   t,
   onTooltip,
   onClick,
+  showLabels = true,
 }: PartnerLineProps) {
   const barOffset = (ROW_HEIGHT - BAR_HEIGHT) / 2 + BAR_HEIGHT + 3;
   const srcLineY = sourceY != null ? sourceY + barOffset : null;
@@ -125,16 +127,18 @@ export const PartnerLine = React.memo(function PartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
-                <text
-                  x={srcLabelXs[i]}
-                  y={srcLineY - 3}
-                  fill={strokeColor}
-                  fontSize={10}
-                  className="tl-partner-label"
-                  transform={labelTransform(srcLabelXs[i])}
-                >
-                  {d.srcLabel}
-                </text>
+                {showLabels && (
+                  <text
+                    x={srcLabelXs[i]}
+                    y={srcLineY - 3}
+                    fill={strokeColor}
+                    fontSize={10}
+                    className="tl-partner-label"
+                    transform={labelTransform(srcLabelXs[i])}
+                  >
+                    {d.srcLabel}
+                  </text>
+                )}
                 <line
                   x1={px1}
                   x2={px2}
@@ -161,16 +165,18 @@ export const PartnerLine = React.memo(function PartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
-                <text
-                  x={tgtLabelXs[i]}
-                  y={tgtLineY - 3}
-                  fill={strokeColor}
-                  fontSize={10}
-                  className="tl-partner-label"
-                  transform={labelTransform(tgtLabelXs[i])}
-                >
-                  {d.tgtLabel}
-                </text>
+                {showLabels && (
+                  <text
+                    x={tgtLabelXs[i]}
+                    y={tgtLineY - 3}
+                    fill={strokeColor}
+                    fontSize={10}
+                    className="tl-partner-label"
+                    transform={labelTransform(tgtLabelXs[i])}
+                  >
+                    {d.tgtLabel}
+                  </text>
+                )}
                 <line
                   x1={px1}
                   x2={px2}

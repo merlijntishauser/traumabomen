@@ -83,6 +83,22 @@ describe("AgePartnerLine", () => {
     expect(container.querySelectorAll("text.tl-partner-label")).toHaveLength(4);
   });
 
+  it("hides labels when showLabels is false", () => {
+    const { container } = renderAgePartnerLine({ showLabels: false });
+    expect(container.querySelectorAll("text.tl-partner-label")).toHaveLength(0);
+  });
+
+  it("applies counter-scale transform when zoomK is not 1", () => {
+    const { container } = renderAgePartnerLine({ zoomK: 2 });
+    const labels = container.querySelectorAll("text.tl-partner-label");
+    expect(labels).toHaveLength(2);
+    for (const label of labels) {
+      const transform = label.getAttribute("transform");
+      expect(transform).toMatch(/scale\(1,0\.5\)/);
+      expect(transform).toMatch(/rotate\(-90/);
+    }
+  });
+
   it("renders dashed stroke for separated periods", () => {
     const { container } = renderAgePartnerLine({
       periods: [{ start_year: 2000, end_year: 2005, status: PartnerStatus.Separated }],

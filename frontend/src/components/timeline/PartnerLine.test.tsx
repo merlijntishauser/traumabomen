@@ -75,6 +75,11 @@ describe("PartnerLine", () => {
     expect(texts[1].textContent).toContain("Alice");
   });
 
+  it("hides labels when showLabels is false", () => {
+    const { container } = renderPartnerLine({ showLabels: false });
+    expect(container.querySelectorAll("text")).toHaveLength(0);
+  });
+
   it("uses start_year and end_year for x coordinates", () => {
     const { container } = renderPartnerLine({
       periods: [{ start_year: 1975, end_year: 2000, status: PartnerStatus.Married }],

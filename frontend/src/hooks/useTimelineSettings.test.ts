@@ -38,6 +38,7 @@ describe("useTimelineSettings", () => {
     const { result } = renderHook(() => useTimelineSettings());
     expect(result.current.settings).toEqual({
       showPartnerLines: true,
+      showPartnerLabels: true,
       showClassifications: true,
       showGridlines: false,
       showMarkerLabels: true,
@@ -47,6 +48,7 @@ describe("useTimelineSettings", () => {
   it("loads saved settings from localStorage", () => {
     const saved = {
       showPartnerLines: false,
+      showPartnerLabels: false,
       showClassifications: false,
       showGridlines: true,
       showMarkerLabels: false,
@@ -63,6 +65,7 @@ describe("useTimelineSettings", () => {
     const { result } = renderHook(() => useTimelineSettings());
     expect(result.current.settings.showGridlines).toBe(true);
     expect(result.current.settings.showPartnerLines).toBe(true);
+    expect(result.current.settings.showPartnerLabels).toBe(true);
     expect(result.current.settings.showClassifications).toBe(true);
     expect(result.current.settings.showMarkerLabels).toBe(true);
   });
@@ -88,6 +91,7 @@ describe("useTimelineSettings", () => {
     const { result } = renderHook(() => useTimelineSettings());
     expect(result.current.settings).toEqual({
       showPartnerLines: true,
+      showPartnerLabels: true,
       showClassifications: true,
       showGridlines: false,
       showMarkerLabels: true,
