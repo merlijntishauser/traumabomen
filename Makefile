@@ -124,8 +124,13 @@ perf-check: ## Run performance checks against production
 
 perf-ratchet: ## Update performance baseline to current production values
 	@bash scripts/performance-check.sh https://www.traumatrees.org
-	@cp .performance-current.json .performance-baseline.json
-	@echo "Performance baseline updated."
+	@if [ "$${CI:-false}" = "true" ]; then \
+		cp .performance-current.json .performance-baseline.ci.json; \
+		echo "CI performance baseline updated."; \
+	else \
+		cp .performance-current.json .performance-baseline.json; \
+		echo "Local performance baseline updated."; \
+	fi
 
 # --- Security ---
 

@@ -19,7 +19,11 @@ BASE_URL="${1:?Usage: $0 <base-url>}"
 API_URL="${BASE_URL}/api"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BASELINE_FILE="$ROOT_DIR/.performance-baseline.json"
+if [ "${CI:-false}" = "true" ]; then
+  BASELINE_FILE="$ROOT_DIR/.performance-baseline.ci.json"
+else
+  BASELINE_FILE="$ROOT_DIR/.performance-baseline.json"
+fi
 CURRENT_FILE="$ROOT_DIR/.performance-current.json"
 
 # Populated after authentication
