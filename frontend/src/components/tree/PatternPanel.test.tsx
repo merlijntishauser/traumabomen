@@ -6,6 +6,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { PatternPanel } from "./PatternPanel";
 
@@ -53,6 +54,7 @@ const mockEvents = new Map<string, DecryptedEvent>([
 ]);
 
 const mockLifeEvents = new Map<string, DecryptedLifeEvent>();
+const mockTurningPoints = new Map<string, DecryptedTurningPoint>();
 const mockClassifications = new Map<string, DecryptedClassification>();
 
 const mockPattern: DecryptedPattern = {
@@ -69,6 +71,7 @@ function renderPanel(overrides: Partial<Parameters<typeof PatternPanel>[0]> = {}
     patterns: new Map<string, DecryptedPattern>(),
     events: mockEvents,
     lifeEvents: mockLifeEvents,
+    turningPoints: mockTurningPoints,
     classifications: mockClassifications,
     persons: mockPersons,
     visiblePatternIds: new Set<string>(),

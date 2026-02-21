@@ -12,6 +12,7 @@ vi.mock("./api", () => ({
   }),
   syncTree: vi.fn().mockResolvedValue({}),
   createLifeEvent: vi.fn().mockResolvedValue({}),
+  createTurningPoint: vi.fn().mockResolvedValue({}),
 }));
 
 const FIXTURE: DemoFixture = {
@@ -69,6 +70,18 @@ const FIXTURE: DemoFixture = {
       tags: [],
     },
   ],
+  turningPoints: [
+    {
+      id: "demo-tp1",
+      person_ids: ["demo-p1"],
+      title: "Sought therapy",
+      description: "Began therapy",
+      category: "cycle_breaking",
+      approximate_date: "1990",
+      significance: 8,
+      tags: [],
+    },
+  ],
   classifications: [
     {
       id: "demo-c1",
@@ -110,14 +123,15 @@ describe("buildIdMap", () => {
     uuidCounter = 0;
     const idMap = buildIdMap(FIXTURE);
 
-    // 2 persons + 1 relationship + 1 event + 1 lifeEvent + 1 classification + 1 pattern = 7
-    expect(idMap.size).toBe(7);
+    // 2 persons + 1 relationship + 1 event + 1 lifeEvent + 1 turningPoint + 1 classification + 1 pattern = 8
+    expect(idMap.size).toBe(8);
 
     expect(idMap.has("demo-p1")).toBe(true);
     expect(idMap.has("demo-p2")).toBe(true);
     expect(idMap.has("demo-r1")).toBe(true);
     expect(idMap.has("demo-e1")).toBe(true);
     expect(idMap.has("demo-le1")).toBe(true);
+    expect(idMap.has("demo-tp1")).toBe(true);
     expect(idMap.has("demo-c1")).toBe(true);
     expect(idMap.has("demo-pat1")).toBe(true);
   });
@@ -221,6 +235,7 @@ describe("createDemoTree", () => {
   let mockCreateTree: ReturnType<typeof vi.fn>;
   let mockSyncTree: ReturnType<typeof vi.fn>;
   let mockCreateLifeEvent: ReturnType<typeof vi.fn>;
+  let mockCreateTurningPoint: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     uuidCounter = 0;
@@ -228,9 +243,11 @@ describe("createDemoTree", () => {
     mockCreateTree = api.createTree as ReturnType<typeof vi.fn>;
     mockSyncTree = api.syncTree as ReturnType<typeof vi.fn>;
     mockCreateLifeEvent = api.createLifeEvent as ReturnType<typeof vi.fn>;
+    mockCreateTurningPoint = api.createTurningPoint as ReturnType<typeof vi.fn>;
     mockCreateTree.mockClear();
     mockSyncTree.mockClear();
     mockCreateLifeEvent.mockClear();
+    mockCreateTurningPoint.mockClear();
   });
 
   it("creates a tree with is_demo flag and encrypts the tree name", async () => {
@@ -276,6 +293,20 @@ describe("createDemoTree", () => {
     expect(mockCreateLifeEvent.mock.calls.length).toBeGreaterThanOrEqual(1);
     // All calls should use the new tree ID
     for (const call of mockCreateLifeEvent.mock.calls) {
+      expect(call[0]).toBe("new-tree-id");
+    }
+  });
+
+  it("creates turning points individually via createTurningPoint", async () => {
+    const encrypt = vi.fn().mockResolvedValue("encrypted-blob");
+
+    await createDemoTree(encrypt, "en");
+
+    // The en fixture has 2 turning points
+    expect(mockCreateTurningPoint).toHaveBeenCalled();
+    expect(mockCreateTurningPoint.mock.calls.length).toBeGreaterThanOrEqual(1);
+    // All calls should use the new tree ID
+    for (const call of mockCreateTurningPoint.mock.calls) {
       expect(call[0]).toBe("new-tree-id");
     }
   });

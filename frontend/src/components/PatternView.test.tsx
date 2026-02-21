@@ -6,6 +6,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../hooks/useTreeData";
 
 // ---- Mocks ----
@@ -87,6 +88,7 @@ const mockEvents = new Map<string, DecryptedEvent>([
 ]);
 
 const mockLifeEvents = new Map<string, DecryptedLifeEvent>();
+const mockTurningPoints = new Map<string, DecryptedTurningPoint>();
 const mockClassifications = new Map<string, DecryptedClassification>();
 
 function makePattern(overrides: Partial<DecryptedPattern> = {}): DecryptedPattern {
@@ -107,6 +109,7 @@ function defaultProps() {
     patterns: new Map<string, DecryptedPattern>(),
     events: mockEvents,
     lifeEvents: mockLifeEvents,
+    turningPoints: mockTurningPoints,
     classifications: mockClassifications,
     persons: mockPersons,
   };

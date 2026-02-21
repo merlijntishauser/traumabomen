@@ -1,5 +1,5 @@
 import type { SyncRequest } from "../types/api";
-import { createLifeEvent, createTree, syncTree } from "./api";
+import { createLifeEvent, createTree, createTurningPoint, syncTree } from "./api";
 
 interface FixturePerson {
   id: string;
@@ -47,6 +47,17 @@ interface FixtureLifeEvent {
   tags: string[];
 }
 
+interface FixtureTurningPoint {
+  id: string;
+  person_ids: string[];
+  title: string;
+  description: string;
+  category: string;
+  approximate_date: string;
+  significance: number;
+  tags: string[];
+}
+
 interface FixtureClassification {
   id: string;
   person_ids: string[];
@@ -78,6 +89,7 @@ export interface DemoFixture {
   relationships: FixtureRelationship[];
   events: FixtureEvent[];
   lifeEvents: FixtureLifeEvent[];
+  turningPoints: FixtureTurningPoint[];
   classifications: FixtureClassification[];
   patterns: FixturePattern[];
 }
@@ -96,6 +108,9 @@ export function buildIdMap(fixture: DemoFixture): Map<string, string> {
   }
   for (const le of fixture.lifeEvents) {
     idMap.set(le.id, crypto.randomUUID());
+  }
+  for (const tp of fixture.turningPoints) {
+    idMap.set(tp.id, crypto.randomUUID());
   }
   for (const c of fixture.classifications) {
     idMap.set(c.id, crypto.randomUUID());
@@ -208,6 +223,17 @@ export async function createDemoTree(
       });
       encryptedEntities.set(le.id, encrypted);
     }),
+    ...fixture.turningPoints.map(async (tp) => {
+      const encrypted = await encrypt({
+        title: tp.title,
+        description: tp.description,
+        category: tp.category,
+        approximate_date: tp.approximate_date,
+        significance: tp.significance,
+        tags: tp.tags,
+      });
+      encryptedEntities.set(tp.id, encrypted);
+    }),
     ...fixture.classifications.map(async (c) => {
       const encrypted = await encrypt({
         dsm_category: c.dsm_category,
@@ -242,6 +268,14 @@ export async function createDemoTree(
     await createLifeEvent(treeId, {
       person_ids: remapIds(le.person_ids, idMap),
       encrypted_data: encryptedEntities.get(le.id)!,
+    });
+  }
+
+  // Turning points are not in the sync endpoint; create them individually
+  for (const tp of fixture.turningPoints) {
+    await createTurningPoint(treeId, {
+      person_ids: remapIds(tp.person_ids, idMap),
+      encrypted_data: encryptedEntities.get(tp.id)!,
     });
   }
 

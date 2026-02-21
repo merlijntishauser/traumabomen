@@ -764,8 +764,10 @@ describe("PersonLane", () => {
         makeEvent("e2", ["a"], { approximate_date: "1995" }),
       ];
       const dims = {
+        dimmedPersonIds: new Set<string>(),
         dimmedEventIds: new Set(["e1"]),
         dimmedLifeEventIds: new Set<string>(),
+        dimmedTurningPointIds: new Set<string>(),
         dimmedClassificationIds: new Set<string>(),
       };
       const { container } = renderLane({ events, dims, filterMode: "hide" });
@@ -780,8 +782,10 @@ describe("PersonLane", () => {
         makeLifeEvent("le2", ["a"], { approximate_date: "1995" }),
       ];
       const dims = {
+        dimmedPersonIds: new Set<string>(),
         dimmedEventIds: new Set<string>(),
         dimmedLifeEventIds: new Set(["le1"]),
+        dimmedTurningPointIds: new Set<string>(),
         dimmedClassificationIds: new Set<string>(),
       };
       const { container } = renderLane({ lifeEvents, dims, filterMode: "hide" });
@@ -796,8 +800,10 @@ describe("PersonLane", () => {
         makeEvent("e2", ["a"], { approximate_date: "1995" }),
       ];
       const dims = {
+        dimmedPersonIds: new Set<string>(),
         dimmedEventIds: new Set(["e1"]),
         dimmedLifeEventIds: new Set<string>(),
+        dimmedTurningPointIds: new Set<string>(),
         dimmedClassificationIds: new Set<string>(),
       };
       const { container } = renderLane({ events, dims, filterMode: "hide" });

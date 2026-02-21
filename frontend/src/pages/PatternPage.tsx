@@ -10,8 +10,17 @@ import "../components/tree/TreeCanvas.css";
 export default function PatternPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
-  const { treeName, patterns, events, lifeEvents, classifications, persons, isLoading, error } =
-    useTreeData(treeId!);
+  const {
+    treeName,
+    patterns,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    persons,
+    isLoading,
+    error,
+  } = useTreeData(treeId!);
 
   const patternViewTab = useMemo(
     () => ({
@@ -52,6 +61,7 @@ export default function PatternPage() {
           patterns={patterns}
           events={events}
           lifeEvents={lifeEvents}
+          turningPoints={turningPoints}
           classifications={classifications}
           persons={persons}
         />

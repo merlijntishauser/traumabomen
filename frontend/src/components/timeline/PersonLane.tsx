@@ -221,7 +221,14 @@ export const PersonLane = React.memo(function PersonLane({
       ),
     );
     entries.push(
-      ...collectDateLabelEntries(turningPoints, undefined, filterMode, xScale, charW, "tp"),
+      ...collectDateLabelEntries(
+        turningPoints,
+        dims?.dimmedTurningPointIds,
+        filterMode,
+        xScale,
+        charW,
+        "tp",
+      ),
     );
     return stackLabels(entries, 4 * inv, 12);
   })();
@@ -502,10 +509,16 @@ export const PersonLane = React.memo(function PersonLane({
           }
           lines.push({ text: linkedNames });
 
+          const isMarkerDimmed = dims?.dimmedTurningPointIds.has(tp.id);
+          if (isMarkerDimmed && filterMode === "hide") return null;
           const isEntitySelected = selectedEntityKeys?.has(`turning_point:${tp.id}`);
 
           return (
-            <g key={tp.id} transform={markerTransform(px)}>
+            <g
+              key={tp.id}
+              transform={markerTransform(px)}
+              opacity={isMarkerDimmed ? 0.15 : undefined}
+            >
               <path
                 d={starPath}
                 fill={turningPointColors[tp.category]}

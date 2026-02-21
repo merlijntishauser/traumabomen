@@ -7,6 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { getPatternColor, PATTERN_COLORS } from "../../lib/patternColors";
 import type { LinkedEntity, Pattern } from "../../types/domain";
@@ -16,6 +17,7 @@ interface PatternPanelProps {
   patterns: Map<string, DecryptedPattern>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
   visiblePatternIds: Set<string>;
@@ -43,6 +45,7 @@ interface PersonEntityGroup {
 function buildPersonEntityGroups(
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
   persons: Map<string, DecryptedPerson>,
   t: (key: string) => string,
@@ -63,6 +66,9 @@ function buildPersonEntityGroups(
   for (const [id, ev] of lifeEvents) {
     for (const pid of ev.person_ids) addEntry(pid, "life_event", id, ev.title);
   }
+  for (const [id, tp] of turningPoints) {
+    for (const pid of tp.person_ids) addEntry(pid, "turning_point", id, tp.title);
+  }
   for (const [id, cls] of classifications) {
     const label = cls.dsm_subcategory
       ? t(`dsm.sub.${cls.dsm_subcategory}`)
@@ -81,6 +87,7 @@ function derivePersonIds(
   linkedEntities: LinkedEntity[],
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
 ): string[] {
   const ids = new Set<string>();
@@ -90,6 +97,8 @@ function derivePersonIds(
       personIds = events.get(le.entity_id)?.person_ids ?? [];
     } else if (le.entity_type === "life_event") {
       personIds = lifeEvents.get(le.entity_id)?.person_ids ?? [];
+    } else if (le.entity_type === "turning_point") {
+      personIds = turningPoints.get(le.entity_id)?.person_ids ?? [];
     } else if (le.entity_type === "classification") {
       personIds = classifications.get(le.entity_id)?.person_ids ?? [];
     }
@@ -102,6 +111,7 @@ export function PatternPanel({
   patterns,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   persons,
   visiblePatternIds,
@@ -128,12 +138,18 @@ export function PatternPanel({
 
   const handleSave = useCallback(
     (patternId: string | null, data: Pattern) => {
-      const personIds = derivePersonIds(data.linked_entities, events, lifeEvents, classifications);
+      const personIds = derivePersonIds(
+        data.linked_entities,
+        events,
+        lifeEvents,
+        turningPoints,
+        classifications,
+      );
       onSave(patternId, data, personIds);
       setEditingNew(false);
       setExpandedId(null);
     },
-    [events, lifeEvents, classifications, onSave],
+    [events, lifeEvents, turningPoints, classifications, onSave],
   );
 
   const handleDelete = useCallback(
@@ -171,6 +187,7 @@ export function PatternPanel({
               pattern={null}
               events={events}
               lifeEvents={lifeEvents}
+              turningPoints={turningPoints}
               classifications={classifications}
               persons={persons}
               onSave={(data) => handleSave(null, data)}
@@ -229,6 +246,7 @@ export function PatternPanel({
                 pattern={pattern}
                 events={events}
                 lifeEvents={lifeEvents}
+                turningPoints={turningPoints}
                 classifications={classifications}
                 persons={persons}
                 onSave={(data) => handleSave(pattern.id, data)}
@@ -247,6 +265,7 @@ interface PatternEditFormProps {
   pattern: DecryptedPattern | null;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
   onSave: (data: Pattern) => void;
@@ -258,6 +277,7 @@ function PatternEditForm({
   pattern,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   persons,
   onSave,
@@ -300,6 +320,14 @@ function PatternEditForm({
           personName = persons.get(pid)?.name ?? "";
           personId = pid;
         }
+      } else if (le.entity_type === "turning_point") {
+        const tp = turningPoints.get(le.entity_id);
+        label = tp?.title ?? "?";
+        const pid = tp?.person_ids[0];
+        if (pid) {
+          personName = persons.get(pid)?.name ?? "";
+          personId = pid;
+        }
       } else if (le.entity_type === "classification") {
         const cls = classifications.get(le.entity_id);
         label = cls
@@ -315,11 +343,11 @@ function PatternEditForm({
       }
       return { entity: le, label, personName, personId };
     });
-  }, [linkedEntities, events, lifeEvents, classifications, persons, t]);
+  }, [linkedEntities, events, lifeEvents, turningPoints, classifications, persons, t]);
 
   const personEntityGroups = useMemo(
-    () => buildPersonEntityGroups(events, lifeEvents, classifications, persons, t),
-    [events, lifeEvents, classifications, persons, t],
+    () => buildPersonEntityGroups(events, lifeEvents, turningPoints, classifications, persons, t),
+    [events, lifeEvents, turningPoints, classifications, persons, t],
   );
 
   function handleAddEntity(type: LinkedEntity["entity_type"], id: string) {
@@ -391,7 +419,9 @@ function PatternEditForm({
                     ? "trauma"
                     : info.entity.entity_type === "life_event"
                       ? "life"
-                      : "classification"
+                      : info.entity.entity_type === "turning_point"
+                        ? "turning-point"
+                        : "classification"
                 }`}
               />
               <span className="pattern-panel__entity-label">{info.label}</span>
@@ -439,7 +469,9 @@ function PatternEditForm({
                             ? "trauma"
                             : entity.type === "life_event"
                               ? "life"
-                              : "classification"
+                              : entity.type === "turning_point"
+                                ? "turning-point"
+                                : "classification"
                         }`}
                       />
                       <span>{entity.label}</span>

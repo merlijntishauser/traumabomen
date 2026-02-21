@@ -8,6 +8,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "./useTreeData";
 
 function makePerson(id: string, overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
@@ -97,18 +98,19 @@ function buildMaps() {
     ["le1", makeLifeEvent("le1", ["p1"], LifeEventCategory.Career, "2000")],
     ["le2", makeLifeEvent("le2", ["p3"], LifeEventCategory.Education, "1998")],
   ]);
+  const turningPoints = new Map<string, DecryptedTurningPoint>();
   const classifications = new Map<string, DecryptedClassification>([
     ["c1", makeClassification("c1", ["p1"], { dsm_category: "anxiety", status: "diagnosed" })],
     ["c2", makeClassification("c2", ["p2"], { dsm_category: "depressive", status: "suspected" })],
   ]);
-  return { persons, events, lifeEvents, classifications };
+  return { persons, events, lifeEvents, turningPoints, classifications };
 }
 
 describe("useTimelineFilters", () => {
   it("starts with all filters null and zero active count", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     expect(result.current.filters.visiblePersonIds).toBeNull();
@@ -121,9 +123,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("produces empty dim sets when no filters active", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     expect(result.current.dims.dimmedPersonIds.size).toBe(0);
@@ -133,9 +135,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("togglePerson hides one person and dims their events", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -164,9 +166,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("togglePerson back to visible resets to null when all visible", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -183,9 +185,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggleAllPersons deselects and selects all", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -203,9 +205,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggleTraumaCategory excludes that category and keeps others visible", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -220,9 +222,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggling same trauma category twice resets to null", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -237,9 +239,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggleLifeEventCategory excludes that category and keeps others visible", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -253,9 +255,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggleClassificationCategory excludes that category and keeps others visible", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -286,9 +288,9 @@ describe("useTimelineFilters", () => {
         }),
       ],
     ]);
-    const { persons, events, lifeEvents } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classWithSubs),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classWithSubs),
     );
 
     act(() => {
@@ -300,9 +302,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("toggleClassificationStatus excludes that status and keeps others visible", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -315,9 +317,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("setTimeRange dims events outside range", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -339,9 +341,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("setTimeRange to null clears time filter", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -356,9 +358,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("resetAll clears all filters", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -379,9 +381,9 @@ describe("useTimelineFilters", () => {
   });
 
   it("multiple filter dimensions combine (person + category)", () => {
-    const { persons, events, lifeEvents, classifications } = buildMaps();
+    const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -407,10 +409,11 @@ describe("useTimelineFilters", () => {
       ["e1", makeEvent("e1", ["p1"], TraumaCategory.Loss, "early 2000s")],
     ]);
     const lifeEvents = new Map<string, DecryptedLifeEvent>();
+    const turningPoints = new Map<string, DecryptedTurningPoint>();
     const classifications = new Map<string, DecryptedClassification>();
 
     const { result } = renderHook(() =>
-      useTimelineFilters(persons, events, lifeEvents, classifications),
+      useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
     );
 
     act(() => {
@@ -425,7 +428,7 @@ describe("useTimelineFilters", () => {
     function makePattern(
       id: string,
       linkedEntities: {
-        entity_type: "trauma_event" | "life_event" | "classification";
+        entity_type: "trauma_event" | "life_event" | "turning_point" | "classification";
         entity_id: string;
       }[],
     ): DecryptedPattern {
@@ -440,19 +443,19 @@ describe("useTimelineFilters", () => {
     }
 
     it("starts with visiblePatterns null", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       expect(result.current.filters.visiblePatterns).toBeNull();
     });
 
     it("togglePatternFilter hides the toggled pattern", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         [
           "pat1",
@@ -464,7 +467,7 @@ describe("useTimelineFilters", () => {
         ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e2" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       act(() => {
@@ -484,12 +487,12 @@ describe("useTimelineFilters", () => {
     });
 
     it("togglePatternFilter twice resets to null", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       act(() => {
@@ -504,12 +507,12 @@ describe("useTimelineFilters", () => {
     });
 
     it("resetAll also clears pattern filter", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         ["pat1", makePattern("pat1", [{ entity_type: "trauma_event", entity_id: "e1" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       act(() => {
@@ -526,7 +529,7 @@ describe("useTimelineFilters", () => {
     });
 
     it("pattern filter dims life events and classifications not in visible patterns", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         [
           "pat1",
@@ -538,7 +541,7 @@ describe("useTimelineFilters", () => {
         ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e1" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       act(() => {
@@ -555,7 +558,7 @@ describe("useTimelineFilters", () => {
     });
 
     it("pattern filter combines with other filters", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const patterns = new Map<string, DecryptedPattern>([
         [
           "pat1",
@@ -567,7 +570,7 @@ describe("useTimelineFilters", () => {
         ["pat2", makePattern("pat2", [{ entity_type: "trauma_event", entity_id: "e3" }])],
       ]);
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications, patterns),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns),
       );
 
       act(() => {
@@ -588,9 +591,9 @@ describe("useTimelineFilters", () => {
 
   describe("togglePersonGroup", () => {
     it("from null (all visible) sets to group members only", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -604,9 +607,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("unions groups within same category", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -622,9 +625,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("removes group when toggled again", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -640,9 +643,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("intersects groups across different categories", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       // Category "gender": p1, p2
@@ -662,9 +665,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("union within category, intersect across categories", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       // Category "gender": female={p1}, male={p2} -> union = {p1, p2}
@@ -687,9 +690,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("removing cross-category group restores broader visibility", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -713,9 +716,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("tracks activeGroupKeys", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       expect(result.current.filters.activeGroupKeys.size).toBe(0);
@@ -741,18 +744,18 @@ describe("useTimelineFilters", () => {
 
   describe("filterMode", () => {
     it("defaults to dim", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       expect(result.current.filters.filterMode).toBe("dim");
     });
 
     it("setFilterMode changes mode", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -763,9 +766,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("resetAll resets filterMode to dim", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -782,9 +785,9 @@ describe("useTimelineFilters", () => {
 
   describe("applyQuickFilter", () => {
     it("trauma preset clears life events and classifications", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -799,9 +802,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("lifeEvents preset clears trauma and classifications", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -816,9 +819,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("classifications preset clears trauma and life events", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {
@@ -833,9 +836,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("toggling active preset resets all category filters", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       // Apply trauma preset
@@ -854,9 +857,9 @@ describe("useTimelineFilters", () => {
     });
 
     it("switching from one preset to another", () => {
-      const { persons, events, lifeEvents, classifications } = buildMaps();
+      const { persons, events, lifeEvents, turningPoints, classifications } = buildMaps();
       const { result } = renderHook(() =>
-        useTimelineFilters(persons, events, lifeEvents, classifications),
+        useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications),
       );
 
       act(() => {

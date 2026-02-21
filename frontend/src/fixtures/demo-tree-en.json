@@ -304,6 +304,28 @@
       "tags": ["separation"]
     }
   ],
+  "turningPoints": [
+    {
+      "id": "demo-tp1",
+      "person_ids": ["demo-p3"],
+      "title": "Sought therapy for childhood trauma",
+      "description": "Catherine began therapy to address the emotional neglect she experienced growing up, breaking the family pattern of silence.",
+      "category": "cycle_breaking",
+      "approximate_date": "1998",
+      "significance": 9,
+      "tags": ["therapy", "healing"]
+    },
+    {
+      "id": "demo-tp2",
+      "person_ids": ["demo-p7"],
+      "title": "First in family to attend university",
+      "description": "Sophie became the first person in the family to pursue higher education, studying art in London.",
+      "category": "achievement",
+      "approximate_date": "2003",
+      "significance": 8,
+      "tags": ["education", "milestone"]
+    }
+  ],
   "classifications": [
     {
       "id": "demo-c1",
@@ -357,7 +379,8 @@
         { "entity_type": "event", "entity_id": "demo-e1" },
         { "entity_type": "event", "entity_id": "demo-e2" },
         { "entity_type": "event", "entity_id": "demo-e3" },
-        { "entity_type": "classification", "entity_id": "demo-c1" }
+        { "entity_type": "classification", "entity_id": "demo-c1" },
+        { "entity_type": "turning_point", "entity_id": "demo-tp1" }
       ]
     },
     {

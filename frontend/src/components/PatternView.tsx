@@ -7,6 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../hooks/useTreeData";
 import { uuidToCompact } from "../lib/compactId";
 import { getPatternColor } from "../lib/patternColors";
@@ -17,13 +18,14 @@ interface PatternViewProps {
   patterns: Map<string, DecryptedPattern>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
 }
 
 interface EntityDisplay {
   id: string;
-  type: "trauma" | "life" | "classification";
+  type: "trauma" | "life" | "turning-point" | "classification";
   label: string;
   personName: string;
 }
@@ -32,6 +34,7 @@ function getEntityDisplays(
   pattern: DecryptedPattern,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
   persons: Map<string, DecryptedPerson>,
   t: (key: string, opts?: Record<string, string>) => string,
@@ -46,6 +49,16 @@ function getEntityDisplays(
       const ev = lifeEvents.get(le.entity_id);
       const personName = ev?.person_ids[0] ? (persons.get(ev.person_ids[0])?.name ?? "") : "";
       return { id: le.entity_id, type: "life" as const, label: ev?.title ?? "?", personName };
+    }
+    if (le.entity_type === "turning_point") {
+      const tp = turningPoints.get(le.entity_id);
+      const personName = tp?.person_ids[0] ? (persons.get(tp.person_ids[0])?.name ?? "") : "";
+      return {
+        id: le.entity_id,
+        type: "turning-point" as const,
+        label: tp?.title ?? "?",
+        personName,
+      };
     }
     const cls = classifications.get(le.entity_id);
     const personName = cls?.person_ids[0] ? (persons.get(cls.person_ids[0])?.name ?? "") : "";
@@ -84,6 +97,7 @@ export function PatternView({
   patterns,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   persons,
 }: PatternViewProps) {
@@ -114,6 +128,7 @@ export function PatternView({
             pattern={expandedPattern}
             events={events}
             lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
             classifications={classifications}
             persons={persons}
             treeId={treeId}
@@ -127,6 +142,7 @@ export function PatternView({
             pattern,
             events,
             lifeEvents,
+            turningPoints,
             classifications,
             persons,
             t,
@@ -189,6 +205,7 @@ function PatternDetail({
   pattern,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   persons,
   treeId,
@@ -197,13 +214,22 @@ function PatternDetail({
   pattern: DecryptedPattern;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
   treeId: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const displays = getEntityDisplays(pattern, events, lifeEvents, classifications, persons, t);
+  const displays = getEntityDisplays(
+    pattern,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    persons,
+    t,
+  );
 
   return (
     <div className="pattern-view__detail">

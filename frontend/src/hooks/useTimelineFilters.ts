@@ -6,6 +6,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPattern,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "./useTreeData";
 
 const ALL_TRAUMA_CATS = new Set(Object.values(TraumaCategory));
@@ -78,6 +79,7 @@ export interface DimSets {
   dimmedPersonIds: Set<string>;
   dimmedEventIds: Set<string>;
   dimmedLifeEventIds: Set<string>;
+  dimmedTurningPointIds: Set<string>;
   dimmedClassificationIds: Set<string>;
 }
 
@@ -150,6 +152,23 @@ function computeDimmedLifeEvents(
   return result;
 }
 
+function computeDimmedTurningPoints(
+  turningPoints: Map<string, DecryptedTurningPoint>,
+  visiblePersonIds: Set<string> | null,
+  timeRange: { min: number; max: number } | null,
+): Set<string> {
+  const result = new Set<string>();
+  for (const [id, tp] of turningPoints) {
+    if (
+      isPersonDimmed(tp.person_ids, visiblePersonIds) ||
+      isOutsideTimeRange(tp.approximate_date, timeRange)
+    ) {
+      result.add(id);
+    }
+  }
+  return result;
+}
+
 function isSubcategoryFiltered(
   subcategory: string | null,
   allowedSubcategories: Set<string> | null,
@@ -183,17 +202,24 @@ const EMPTY_DIMS: DimSets = {
   dimmedPersonIds: EMPTY_SET,
   dimmedEventIds: EMPTY_SET,
   dimmedLifeEventIds: EMPTY_SET,
+  dimmedTurningPointIds: EMPTY_SET,
   dimmedClassificationIds: EMPTY_SET,
 };
 
 function computePatternEntityIds(
   visiblePatterns: Set<string> | null,
   patterns?: Map<string, DecryptedPattern>,
-): { eventIds: Set<string>; lifeEventIds: Set<string>; classificationIds: Set<string> } | null {
+): {
+  eventIds: Set<string>;
+  lifeEventIds: Set<string>;
+  turningPointIds: Set<string>;
+  classificationIds: Set<string>;
+} | null {
   if (visiblePatterns === null || !patterns) return null;
 
   const eventIds = new Set<string>();
   const lifeEventIds = new Set<string>();
+  const turningPointIds = new Set<string>();
   const classificationIds = new Set<string>();
 
   for (const patternId of visiblePatterns) {
@@ -202,11 +228,12 @@ function computePatternEntityIds(
     for (const le of pattern.linked_entities) {
       if (le.entity_type === "trauma_event") eventIds.add(le.entity_id);
       else if (le.entity_type === "life_event") lifeEventIds.add(le.entity_id);
+      else if (le.entity_type === "turning_point") turningPointIds.add(le.entity_id);
       else if (le.entity_type === "classification") classificationIds.add(le.entity_id);
     }
   }
 
-  return { eventIds, lifeEventIds, classificationIds };
+  return { eventIds, lifeEventIds, turningPointIds, classificationIds };
 }
 
 function applyPatternDimming(
@@ -214,9 +241,11 @@ function applyPatternDimming(
   patterns: Map<string, DecryptedPattern> | undefined,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
   dimmedEventIds: Set<string>,
   dimmedLifeEventIds: Set<string>,
+  dimmedTurningPointIds: Set<string>,
   dimmedClassificationIds: Set<string>,
 ): void {
   const patternEntities = computePatternEntityIds(visiblePatterns, patterns);
@@ -227,6 +256,9 @@ function applyPatternDimming(
   }
   for (const [id] of lifeEvents) {
     if (!patternEntities.lifeEventIds.has(id)) dimmedLifeEventIds.add(id);
+  }
+  for (const [id] of turningPoints) {
+    if (!patternEntities.turningPointIds.has(id)) dimmedTurningPointIds.add(id);
   }
   for (const [id] of classifications) {
     if (!patternEntities.classificationIds.has(id)) dimmedClassificationIds.add(id);
@@ -242,6 +274,7 @@ export function computeDimSets(
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
   patterns?: Map<string, DecryptedPattern>,
 ): DimSets {
@@ -264,6 +297,11 @@ export function computeDimSets(
     lifeEventCategories,
     timeRange,
   );
+  const dimmedTurningPointIds = computeDimmedTurningPoints(
+    turningPoints,
+    visiblePersonIds,
+    timeRange,
+  );
   const dimmedClassificationIds = computeDimmedClassifications(
     classifications,
     visiblePersonIds,
@@ -277,17 +315,33 @@ export function computeDimSets(
     patterns,
     events,
     lifeEvents,
+    turningPoints,
     classifications,
     dimmedEventIds,
     dimmedLifeEventIds,
+    dimmedTurningPointIds,
     dimmedClassificationIds,
   );
 
-  if (isAllEmpty(dimmedPersonIds, dimmedEventIds, dimmedLifeEventIds, dimmedClassificationIds)) {
+  if (
+    isAllEmpty(
+      dimmedPersonIds,
+      dimmedEventIds,
+      dimmedLifeEventIds,
+      dimmedTurningPointIds,
+      dimmedClassificationIds,
+    )
+  ) {
     return EMPTY_DIMS;
   }
 
-  return { dimmedPersonIds, dimmedEventIds, dimmedLifeEventIds, dimmedClassificationIds };
+  return {
+    dimmedPersonIds,
+    dimmedEventIds,
+    dimmedLifeEventIds,
+    dimmedTurningPointIds,
+    dimmedClassificationIds,
+  };
 }
 
 /** Extract category from a group key, e.g. "gender:female" -> "gender" */
@@ -352,6 +406,7 @@ export function useTimelineFilters(
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
   classifications: Map<string, DecryptedClassification>,
   patterns?: Map<string, DecryptedPattern>,
 ): { filters: TimelineFilterState; actions: TimelineFilterActions; dims: DimSets } {
@@ -565,8 +620,17 @@ export function useTimelineFilters(
   );
 
   const dims = useMemo(
-    () => computeDimSets(filters, persons, events, lifeEvents, classifications, patterns),
-    [filters, persons, events, lifeEvents, classifications, patterns],
+    () =>
+      computeDimSets(
+        filters,
+        persons,
+        events,
+        lifeEvents,
+        turningPoints,
+        classifications,
+        patterns,
+      ),
+    [filters, persons, events, lifeEvents, turningPoints, classifications, patterns],
   );
 
   const actions: TimelineFilterActions = useMemo(

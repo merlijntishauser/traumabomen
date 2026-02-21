@@ -614,6 +614,7 @@ describe("AgePersonLane", () => {
             dimmedPersonIds: new Set(),
             dimmedEventIds: new Set(),
             dimmedLifeEventIds: new Set(),
+            dimmedTurningPointIds: new Set(),
             dimmedClassificationIds: new Set(["c1"]),
           }}
         />
@@ -972,6 +973,7 @@ describe("AgePersonLane", () => {
             dimmedPersonIds: new Set(),
             dimmedEventIds: new Set(["e1"]),
             dimmedLifeEventIds: new Set(),
+            dimmedTurningPointIds: new Set(),
             dimmedClassificationIds: new Set(),
           }}
         />
@@ -1183,8 +1185,10 @@ describe("AgePersonLane", () => {
       },
     ];
     props.dims = {
+      dimmedPersonIds: new Set(),
       dimmedEventIds: new Set(["e1"]),
       dimmedLifeEventIds: new Set(),
+      dimmedTurningPointIds: new Set(),
       dimmedClassificationIds: new Set(),
     };
     props.filterMode = "hide";
@@ -1213,8 +1217,10 @@ describe("AgePersonLane", () => {
       },
     ];
     props.dims = {
+      dimmedPersonIds: new Set(),
       dimmedEventIds: new Set(),
       dimmedLifeEventIds: new Set(["le1"]),
+      dimmedTurningPointIds: new Set(),
       dimmedClassificationIds: new Set(),
     };
     props.filterMode = "hide";

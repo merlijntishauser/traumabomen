@@ -378,6 +378,18 @@ export interface SyncClassificationUpdate {
   encrypted_data?: string;
 }
 
+export interface SyncTurningPointCreate {
+  id?: string;
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface SyncTurningPointUpdate {
+  id: string;
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
 export interface SyncPatternCreate {
   id?: string;
   person_ids: string[];
@@ -407,6 +419,9 @@ export interface SyncRequest {
   classifications_create?: SyncClassificationCreate[];
   classifications_update?: SyncClassificationUpdate[];
   classifications_delete?: SyncDelete[];
+  turning_points_create?: SyncTurningPointCreate[];
+  turning_points_update?: SyncTurningPointUpdate[];
+  turning_points_delete?: SyncDelete[];
   patterns_create?: SyncPatternCreate[];
   patterns_update?: SyncPatternUpdate[];
   patterns_delete?: SyncDelete[];
@@ -417,15 +432,18 @@ export interface SyncResponse {
   relationships_created: string[];
   events_created: string[];
   classifications_created: string[];
+  turning_points_created: string[];
   patterns_created: string[];
   persons_updated: number;
   relationships_updated: number;
   events_updated: number;
   classifications_updated: number;
+  turning_points_updated: number;
   patterns_updated: number;
   persons_deleted: number;
   relationships_deleted: number;
   events_deleted: number;
   classifications_deleted: number;
+  turning_points_deleted: number;
   patterns_deleted: number;
 }

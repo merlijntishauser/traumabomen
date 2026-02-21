@@ -105,7 +105,7 @@ export default function TimelinePage() {
     filters,
     actions: filterActions,
     dims,
-  } = useTimelineFilters(persons, events, lifeEvents, classifications, patterns);
+  } = useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns);
 
   // Compute time domain for filter panel
   const timelinePersons = useMemo(
@@ -634,6 +634,7 @@ export default function TimelinePage() {
             patterns={patterns}
             events={events}
             lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
             classifications={classifications}
             persons={persons}
             visiblePatternIds={effectiveVisiblePatternIds}

@@ -392,10 +392,16 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           }
           lines.push({ text: linkedNames });
 
+          const isMarkerDimmed = dims?.dimmedTurningPointIds.has(tp.id);
+          if (isMarkerDimmed && filterMode === "hide") return null;
           const isEntitySelected = selectedEntityKeys?.has(`turning_point:${tp.id}`);
 
           return (
-            <g key={tp.id} transform={markerTransform(py)}>
+            <g
+              key={tp.id}
+              transform={markerTransform(py)}
+              opacity={isMarkerDimmed ? 0.15 : undefined}
+            >
               <path
                 d={starPath}
                 fill={turningPointColors[tp.category]}

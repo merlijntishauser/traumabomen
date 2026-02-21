@@ -126,6 +126,10 @@
   background: var(--color-accent);
 }
 
+.pattern-view__card-entity-dot--turning-point {
+  background: var(--color-turning-point, #10b981);
+}
+
 .pattern-view__card-entity-dot--classification {
   background: var(--color-warning, #f59e0b);
 }

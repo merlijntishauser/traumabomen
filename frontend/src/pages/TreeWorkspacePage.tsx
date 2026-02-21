@@ -968,6 +968,7 @@ function TreeWorkspaceInner() {
             patterns={patterns}
             events={events}
             lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
             classifications={classifications}
             persons={persons}
             visiblePatternIds={visiblePatternIds}

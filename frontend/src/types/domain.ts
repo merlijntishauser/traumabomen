@@ -208,7 +208,7 @@ export interface Classification {
 }
 
 export interface LinkedEntity {
-  entity_type: "trauma_event" | "life_event" | "classification";
+  entity_type: "trauma_event" | "life_event" | "turning_point" | "classification";
   entity_id: string;
 }
 
