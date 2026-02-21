@@ -391,4 +391,56 @@ describe("PersonNode", () => {
     expect(traumaBadges).toHaveLength(7);
     expect(lifeBadges).toHaveLength(1);
   });
+
+  it("shows category initial on trauma badges when multiple trauma events exist", () => {
+    const events = [
+      makeEvent({ id: "e1", category: TraumaCategory.Loss, title: "E1" }),
+      makeEvent({ id: "e2", category: TraumaCategory.Abuse, title: "E2" }),
+    ];
+    const { container } = renderNode(makePerson(), { events });
+
+    const badges = container.querySelectorAll(".person-node__badge");
+    expect(badges[0].textContent).toBeTruthy();
+    expect(badges[1].textContent).toBeTruthy();
+  });
+
+  it("does not show initial on trauma badge when only one trauma event exists", () => {
+    const events = [makeEvent({ id: "e1", category: TraumaCategory.Loss })];
+    const { container } = renderNode(makePerson(), { events });
+
+    const badge = container.querySelector(".person-node__badge");
+    expect(badge?.textContent).toBe("");
+  });
+
+  it("shows initial on life event badges when multiple life events exist", () => {
+    const lifeEvents = [
+      makeLifeEvent({ id: "le1", category: LifeEventCategory.Family }),
+      makeLifeEvent({ id: "le2", category: LifeEventCategory.Career }),
+    ];
+    const { container } = renderNode(makePerson(), { lifeEvents });
+
+    const badges = container.querySelectorAll(".person-node__badge--life");
+    expect(badges[0].textContent).toBeTruthy();
+    expect(badges[1].textContent).toBeTruthy();
+  });
+
+  it("does not show initial when only one life event badge exists", () => {
+    const lifeEvents = [makeLifeEvent({ id: "le1" })];
+    const { container } = renderNode(makePerson(), { lifeEvents });
+
+    const badge = container.querySelector(".person-node__badge--life");
+    expect(badge?.textContent).toBe("");
+  });
+
+  it("shows initial on classification badges when multiple exist", () => {
+    const classifications = [
+      makeClassification({ id: "c1", status: "diagnosed" }),
+      makeClassification({ id: "c2", status: "suspected" }),
+    ];
+    const { container } = renderNode(makePerson(), { classifications });
+
+    const badges = container.querySelectorAll(".person-node__badge--classification");
+    expect(badges[0].textContent).toBeTruthy();
+    expect(badges[1].textContent).toBeTruthy();
+  });
 });
