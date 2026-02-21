@@ -1,3 +1,4 @@
+import { Circle, GitFork, Square, Triangle, User } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -128,6 +129,7 @@ export function PersonDetailPanel({
           className={`detail-panel__tab${activeTab === "person" ? " detail-panel__tab--active" : ""}`}
           onClick={() => setActiveTab("person")}
         >
+          <User size={14} />
           {t("person.tab")}
         </button>
         <button
@@ -137,6 +139,7 @@ export function PersonDetailPanel({
           className={`detail-panel__tab${activeTab === "relationships" ? " detail-panel__tab--active" : ""}`}
           onClick={() => setActiveTab("relationships")}
         >
+          <GitFork size={14} />
           {t("relationship.tab")}
           {relsCount > 0 && <span className="detail-panel__tab-badge">{relsCount}</span>}
         </button>
@@ -147,6 +150,7 @@ export function PersonDetailPanel({
           className={`detail-panel__tab${activeTab === "trauma" ? " detail-panel__tab--active" : ""}`}
           onClick={() => setActiveTab("trauma")}
         >
+          <Circle size={14} />
           {t("trauma.tab")}
           {events.length > 0 && <span className="detail-panel__tab-badge">{events.length}</span>}
         </button>
@@ -157,6 +161,7 @@ export function PersonDetailPanel({
           className={`detail-panel__tab${activeTab === "life" ? " detail-panel__tab--active" : ""}`}
           onClick={() => setActiveTab("life")}
         >
+          <Square size={14} />
           {t("lifeEvent.tab")}
           {lifeEvents.length > 0 && (
             <span className="detail-panel__tab-badge">{lifeEvents.length}</span>
@@ -169,6 +174,7 @@ export function PersonDetailPanel({
           className={`detail-panel__tab${activeTab === "classifications" ? " detail-panel__tab--active" : ""}`}
           onClick={() => setActiveTab("classifications")}
         >
+          <Triangle size={14} />
           {t("classification.tab")}
           {classifications.length > 0 && (
             <span className="detail-panel__tab-badge">{classifications.length}</span>
