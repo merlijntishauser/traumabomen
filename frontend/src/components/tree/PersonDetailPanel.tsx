@@ -248,6 +248,9 @@ export function PersonDetailPanel({
               >
                 <Circle size={10} />
                 {t("trauma.tab")}
+                {events.length > 0 && (
+                  <span className="detail-panel__segment-badge">{events.length}</span>
+                )}
               </button>
               <button
                 type="button"
@@ -256,6 +259,9 @@ export function PersonDetailPanel({
               >
                 <Square size={10} />
                 {t("lifeEvent.tab")}
+                {lifeEvents.length > 0 && (
+                  <span className="detail-panel__segment-badge">{lifeEvents.length}</span>
+                )}
               </button>
               <button
                 type="button"
@@ -264,6 +270,9 @@ export function PersonDetailPanel({
               >
                 <Star size={10} />
                 {t("turningPoint.tab")}
+                {turningPoints.length > 0 && (
+                  <span className="detail-panel__segment-badge">{turningPoints.length}</span>
+                )}
               </button>
             </div>
             {eventSubTab === "trauma" && (
