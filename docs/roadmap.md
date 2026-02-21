@@ -1,32 +1,41 @@
 # Roadmap
 
-## Assessment
+## Assessment (February 2026)
 
-The app is strong on mapping and visualization (tree canvas, timeline, DSM classifications) but thin on the reflection and sense-making side. There is great data entry, but limited tools to help users actually process what they have entered. The current feature set is deficit-focused (trauma events, classifications, severity scores) without an explicit resilience or strengths layer.
+The core product is solid: tree canvas, timeline, DSM classifications, pattern editor, life events, trauma events, zero-knowledge encryption, safety envelope. Quality infrastructure is excellent (97% frontend / 98% backend coverage with ratcheting, CodeQL, Nuclei, ZAP, privacy scanner, Lighthouse). CI/CD is mature with automated testing, multi-stage Docker builds, and post-deploy verification.
 
-Priority should shift toward features that turn the tree from a diagram into a living reflection tool. Resilience tracking and a reflection journal are the highest-impact additions for the core "personal reflection" use case. Infrastructure features (passkeys, auth modals) are valuable polish but secondary to the reflection mission.
+Two strategic gaps remain:
 
-## Planned -- Reflection (high priority)
+**1. Reflection gap.** The app is strong on mapping and visualization but thin on sense-making. There is great data entry, but limited tools to help users process what they have entered. The feature set is deficit-focused (trauma events, classifications, severity scores) without resilience or strengths. For practitioners like Mark Wolynn ("It Didn't Start with You"), the tool tells only half the story without a way to map cycle-breaking, healing, and protective factors.
 
-### 2. Resilience and strengths layer
+**2. Scaling gap.** The app is configured for a private beta (20-user cap, no rate limiting, blocking email, no error tracking). Infrastructure can handle 100+ users with configuration changes, but several hardening items must land first.
 
-Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen.
+Priority: reflection features first (they define the product), then scaling hardening (gates wider adoption).
+
+## Planned: Reflection (high priority)
+
+These features turn the tree from a diagram into a living reflection tool. The resilience layer is the single most important addition for practitioner credibility.
+
+### 1. Resilience and strengths layer
+
+Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen. Without this, the tool risks feeling like a pathology catalog.
 
 - New event type: "Turning point" or "Resilience event"
 - Own color on canvas badges and timeline markers
 - Categories: cycle-breaking, protective relationship, recovery, achievement, positive change
 - Keeps the tool from feeling purely pathology-oriented
+- Minimal viable version: a single "Turning point" event type with its own badge color
 
-### 3. Reflection journal
+### 2. Reflection journal
 
-Per-tree journal with timestamped entries. Not a generic diary -- entries that can optionally link to specific persons, events, patterns, or classifications.
+Per-tree journal with timestamped entries. Not a generic diary; entries that can optionally link to specific persons, events, patterns, or classifications. The connective tissue between the data and the meaning.
 
 - Chronological list in a slide-out panel or dedicated view
 - Optional entity linking ("Today I realized my grandmother's displacement mirrors my own feeling of never belonging")
 - Rich text or markdown for longer entries
-- The connective tissue between the data and the meaning
+- Encrypted client-side like all other content
 
-### 4. Guided reflection prompts
+### 3. Guided reflection prompts
 
 Small curated library of optional prompts that help users explore their tree more deeply. Available as starting points for journal entries.
 
@@ -34,20 +43,57 @@ Small curated library of optional prompts that help users explore their tree mor
 - "What event had the most ripple effects across generations?"
 - "Are there strengths or resilience patterns, not just trauma?"
 - "What patterns do you notice repeating?"
-- Static, curated -- not AI-generated
+- Static, curated; not AI-generated
 
-### 5. Personal insights summary
+### 4. Personal insights summary
 
 Read-only overview page per tree that surfaces basic observations from what the user already entered.
 
 - "3 generations affected by addiction"
 - "Loss events cluster around ages 30-40"
 - "2 persons share the same classification"
-- Not AI analysis -- counting and grouping, presented as a reflection starting point
+- Not AI analysis; counting and grouping, presented as a reflection starting point
 
-## Planned -- Features (medium priority)
+## Planned: Scaling hardening (high priority)
 
-### 7. Care providers
+Required before growing beyond the current 20-user beta. These are infrastructure essentials, not polish.
+
+### 5. API rate limiting
+
+Login, registration, and all endpoints are currently unthrottled. A single bad actor could brute-force auth or DoS the API.
+
+- Rate limiting middleware (slowapi or custom) on auth endpoints at minimum
+- Progressive backoff on failed login attempts
+- Consider tarpitting scheme for login brute-force
+- Global request throttle as a safety net
+
+### 6. Production error tracking
+
+At 20 users, Cloud Run logs are sufficient. At 100+, aggregated error alerts are essential.
+
+- Integrate Sentry (or equivalent) for both frontend and backend
+- Alert on error rate spikes
+- Track encryption-related failures separately (passphrase errors, decryption failures)
+
+### 7. User data export
+
+Users have no way to back up their tree. Combined with "passphrase lost = data lost", this is a real risk at scale.
+
+- Encrypted JSON export (download encrypted blob that can be re-imported)
+- Or plaintext export with explicit user confirmation ("this will create an unencrypted file")
+- Foundation for future GEDCOM export
+
+### 8. Async email sending
+
+Registration endpoint blocks on SMTP connection. Under load, this causes request timeouts and poor user experience.
+
+- Move email sending to background task (threading, or task queue)
+- Verification, waitlist approval, and feedback notification emails
+- Graceful degradation: registration succeeds even if email send fails
+
+## Planned: Features (medium priority)
+
+### 9. Care providers
 
 Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
 
@@ -59,17 +105,17 @@ Track mental health professionals and institutes as their own nodes on the canva
 
 See [design doc](plans/2026-02-15-care-providers-design.md).
 
-### 8. Canvas annotations
+### 10. Canvas annotations
 
 Free-text sticky notes or arrows that users can place directly on the canvas between nodes. Sometimes the insight is spatial. Lighter than the pattern editor.
 
-### 9. Wellbeing check-in
+### 11. Wellbeing check-in
 
 Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
 
-## Planned -- Infrastructure (lower priority)
+## Planned: Infrastructure (lower priority)
 
-### 10. Passphrase hints and auth modals
+### 12. Passphrase hints and auth modals
 
 User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
 
@@ -79,7 +125,7 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
-### 11. Passkey authentication
+### 13. Passkey authentication
 
 Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
 
@@ -89,6 +135,23 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 - **Prompt**: one-time post-login banner encouraging passkey setup
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
+
+### 14. Cloud Run scaling configuration
+
+Current settings are conservative for beta. Adjust before wider rollout.
+
+- Increase `MAX_ACTIVE_USERS` from 20 to 200+
+- Increase Cloud Run max-instances from 4 to 8-16
+- Set min-instances to 1 (eliminates 5-10s cold start latency)
+- Increase DB connection pool: `pool_size=10, max_overflow=20`
+
+### 15. Client-side virtualization
+
+Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline and event lists.
+
+- Windowing library (react-window or similar) for timeline and long lists
+- Viewport-aware rendering for React Flow canvas (already partially handled by @xyflow/react)
+- Consider lazy-loading event details in PersonDetailPanel
 
 ## Done
 
@@ -137,6 +200,8 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Optional pet support
 - Better loading/working notifications
 - Swagger for FastAPI (dev only)
-- Rate-limiting on login (tarpitting scheme)
 - More debug info on email sending
-- saved views... 
+- Saved views
+- Cloud Monitoring dashboards (API latency, error rates, DB connections)
+- Read replicas for analytics queries (admin dashboard)
+- CDN for frontend assets if serving globally
