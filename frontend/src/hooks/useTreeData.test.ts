@@ -78,6 +78,20 @@ vi.mock("../lib/api", () => ({
       }),
     },
   ]),
+  getTurningPoints: vi.fn().mockResolvedValue([
+    {
+      id: "tp1",
+      person_ids: ["p1"],
+      encrypted_data: JSON.stringify({
+        title: "Broke the cycle",
+        description: "Sought therapy",
+        category: "cycle_breaking",
+        approximate_date: "2010",
+        significance: 4,
+        tags: [],
+      }),
+    },
+  ]),
   getPatterns: vi.fn().mockResolvedValue([
     {
       id: "pat1",
@@ -109,6 +123,7 @@ describe("useTreeData", () => {
     expect(result.current.relationships.size).toBe(0);
     expect(result.current.events.size).toBe(0);
     expect(result.current.lifeEvents.size).toBe(0);
+    expect(result.current.turningPoints.size).toBe(0);
     expect(result.current.classifications.size).toBe(0);
     expect(result.current.patterns.size).toBe(0);
     expect(result.current.isLoading).toBe(true);
@@ -161,6 +176,17 @@ describe("useTreeData", () => {
     expect(le?.person_ids).toEqual(["p1"]);
   });
 
+  it("decrypts and returns turning points after loading", async () => {
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.turningPoints.size).toBe(1);
+    const tp = result.current.turningPoints.get("tp1");
+    expect(tp?.title).toBe("Broke the cycle");
+    expect(tp?.person_ids).toEqual(["p1"]);
+  });
+
   it("decrypts and returns classifications after loading", async () => {
     const { result } = renderHook(() => useTreeData("tree1"), {
       wrapper: createWrapper(),
@@ -197,6 +223,7 @@ describe("treeQueryKeys", () => {
     expect(treeQueryKeys.relationships("abc")).toEqual(["trees", "abc", "relationships"]);
     expect(treeQueryKeys.events("abc")).toEqual(["trees", "abc", "events"]);
     expect(treeQueryKeys.lifeEvents("abc")).toEqual(["trees", "abc", "lifeEvents"]);
+    expect(treeQueryKeys.turningPoints("abc")).toEqual(["trees", "abc", "turningPoints"]);
     expect(treeQueryKeys.classifications("abc")).toEqual(["trees", "abc", "classifications"]);
     expect(treeQueryKeys.patterns("abc")).toEqual(["trees", "abc", "patterns"]);
   });

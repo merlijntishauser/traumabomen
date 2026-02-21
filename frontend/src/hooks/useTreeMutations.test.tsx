@@ -196,7 +196,7 @@ describe("person mutations", () => {
     expect(mockedApi.deletePerson).toHaveBeenCalledWith(TREE_ID, "p-1");
   });
 
-  it("deletePerson invalidates 6 query keys on success", async () => {
+  it("deletePerson invalidates 7 query keys on success", async () => {
     mockedApi.deletePerson.mockResolvedValue(undefined);
 
     const wrapper = createWrapper();
@@ -221,13 +221,16 @@ describe("person mutations", () => {
       queryKey: ["trees", TREE_ID, "lifeEvents"],
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "turningPoints"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "classifications"],
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "patterns"],
     });
-    // Exactly 6 invalidation calls
-    expect(invalidateSpy).toHaveBeenCalledTimes(6);
+    // Exactly 7 invalidation calls
+    expect(invalidateSpy).toHaveBeenCalledTimes(7);
   });
 });
 
@@ -1034,6 +1037,335 @@ describe("life event mutations", () => {
 
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "lifeEvents"],
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Turning Points
+// ---------------------------------------------------------------------------
+describe("turning point mutations", () => {
+  const turningPointData = {
+    title: "Broke the cycle",
+    description: "Sought therapy",
+    category: "cycle_breaking" as const,
+    approximate_date: "2010",
+    significance: 4,
+    tags: [],
+  };
+
+  it("createTurningPoint encrypts data then calls api.createTurningPoint", async () => {
+    mockedApi.createTurningPoint.mockResolvedValue({
+      id: "tp-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.createTurningPoint.mutateAsync({
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData);
+    expect(mockedApi.createTurningPoint).toHaveBeenCalledWith(TREE_ID, {
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("createTurningPoint invalidates turningPoints query key on success", async () => {
+    mockedApi.createTurningPoint.mockResolvedValue({
+      id: "tp-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.createTurningPoint.mutateAsync({
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "turningPoints"],
+    });
+  });
+
+  it("updateTurningPoint encrypts data then calls api.updateTurningPoint", async () => {
+    mockedApi.updateTurningPoint.mockResolvedValue({
+      id: "tp-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.updateTurningPoint.mutateAsync({
+        turningPointId: "tp-1",
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData);
+    expect(mockedApi.updateTurningPoint).toHaveBeenCalledWith(TREE_ID, "tp-1", {
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("updateTurningPoint performs optimistic update via onMutate", async () => {
+    const existingTurningPoints = new Map([
+      [
+        "tp-1",
+        {
+          id: "tp-1",
+          person_ids: ["p-1"],
+          title: "Old Title",
+          description: "old",
+          category: "recovery" as const,
+          approximate_date: "2005",
+          significance: 2,
+          tags: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateTurningPoint.mutate({
+        turningPointId: "tp-1",
+        personIds: ["p-1", "p-3"],
+        data: turningPointData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>([
+        "trees",
+        TREE_ID,
+        "turningPoints",
+      ]);
+      const entry = cached?.get("tp-1") as Record<string, unknown> | undefined;
+      expect(entry?.title).toBe("Broke the cycle");
+      expect(entry?.person_ids).toEqual(["p-1", "p-3"]);
+    });
+  });
+
+  it("updateTurningPoint onMutate handles empty cache gracefully", async () => {
+    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateTurningPoint.mutate({
+        turningPointId: "tp-1",
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData(["trees", TREE_ID, "turningPoints"]);
+      expect(cached).toBeUndefined();
+    });
+  });
+
+  it("updateTurningPoint onMutate skips unknown entity ID", async () => {
+    const existingTurningPoints = new Map([
+      [
+        "tp-other",
+        {
+          id: "tp-other",
+          person_ids: ["p-1"],
+          title: "Other TP",
+          description: "other",
+          category: "recovery" as const,
+          approximate_date: "2005",
+          significance: 2,
+          tags: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    act(() => {
+      result.current.updateTurningPoint.mutate({
+        turningPointId: "tp-nonexistent",
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>([
+        "trees",
+        TREE_ID,
+        "turningPoints",
+      ]);
+      expect(cached?.size).toBe(1);
+      expect(cached?.has("tp-other")).toBe(true);
+      expect(cached?.has("tp-nonexistent")).toBe(false);
+    });
+  });
+
+  it("updateTurningPoint rolls back on error via onError", async () => {
+    const existingTurningPoints = new Map([
+      [
+        "tp-1",
+        {
+          id: "tp-1",
+          person_ids: ["p-1"],
+          title: "Original TP",
+          description: "orig",
+          category: "recovery" as const,
+          approximate_date: "2005",
+          significance: 2,
+          tags: [],
+        },
+      ],
+    ]);
+
+    mockedApi.updateTurningPoint.mockRejectedValue(new Error("network error"));
+
+    const wrapper = createWrapper();
+    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updateTurningPoint.mutateAsync({
+          turningPointId: "tp-1",
+          personIds: ["p-1"],
+          data: turningPointData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Map<string, unknown>>([
+        "trees",
+        TREE_ID,
+        "turningPoints",
+      ]);
+      const entry = cached?.get("tp-1") as Record<string, unknown> | undefined;
+      expect(entry?.title).toBe("Original TP");
+    });
+  });
+
+  it("updateTurningPoint onError without previous context is a no-op", async () => {
+    mockedApi.updateTurningPoint.mockRejectedValue(new Error("fail"));
+
+    const wrapper = createWrapper();
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.updateTurningPoint.mutateAsync({
+          turningPointId: "tp-1",
+          personIds: ["p-1"],
+          data: turningPointData,
+        });
+      } catch {
+        // expected
+      }
+    });
+
+    const cached = queryClient.getQueryData(["trees", TREE_ID, "turningPoints"]);
+    expect(cached).toBeUndefined();
+  });
+
+  it("updateTurningPoint invalidates turningPoints query on settled", async () => {
+    mockedApi.updateTurningPoint.mockResolvedValue({
+      id: "tp-1",
+      tree_id: TREE_ID,
+      person_ids: ["p-1"],
+      encrypted_data: "encrypted-blob",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.updateTurningPoint.mutateAsync({
+        turningPointId: "tp-1",
+        personIds: ["p-1"],
+        data: turningPointData,
+      });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "turningPoints"],
+    });
+  });
+
+  it("deleteTurningPoint calls api.deleteTurningPoint without encryption", async () => {
+    mockedApi.deleteTurningPoint.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.deleteTurningPoint.mutateAsync("tp-1");
+    });
+
+    expect(mockEncrypt).not.toHaveBeenCalled();
+    expect(mockedApi.deleteTurningPoint).toHaveBeenCalledWith(TREE_ID, "tp-1");
+  });
+
+  it("deleteTurningPoint invalidates turningPoints query key on success", async () => {
+    mockedApi.deleteTurningPoint.mockResolvedValue(undefined);
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.deleteTurningPoint.mutateAsync("tp-1");
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "turningPoints"],
     });
   });
 });

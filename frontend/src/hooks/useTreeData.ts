@@ -8,6 +8,7 @@ import {
   getPersons,
   getRelationships,
   getTree,
+  getTurningPoints,
 } from "../lib/api";
 import type {
   Classification,
@@ -16,6 +17,7 @@ import type {
   Person,
   RelationshipData,
   TraumaEvent,
+  TurningPoint,
 } from "../types/domain";
 
 export interface DecryptedPerson extends Person {
@@ -38,6 +40,11 @@ export interface DecryptedLifeEvent extends LifeEvent {
   person_ids: string[];
 }
 
+export interface DecryptedTurningPoint extends TurningPoint {
+  id: string;
+  person_ids: string[];
+}
+
 export interface DecryptedClassification extends Classification {
   id: string;
   person_ids: string[];
@@ -54,6 +61,7 @@ export const treeQueryKeys = {
   relationships: (treeId: string) => ["trees", treeId, "relationships"] as const,
   events: (treeId: string) => ["trees", treeId, "events"] as const,
   lifeEvents: (treeId: string) => ["trees", treeId, "lifeEvents"] as const,
+  turningPoints: (treeId: string) => ["trees", treeId, "turningPoints"] as const,
   classifications: (treeId: string) => ["trees", treeId, "classifications"] as const,
   patterns: (treeId: string) => ["trees", treeId, "patterns"] as const,
 };
@@ -62,6 +70,7 @@ const EMPTY_PERSONS = new Map<string, DecryptedPerson>();
 const EMPTY_RELATIONSHIPS = new Map<string, DecryptedRelationship>();
 const EMPTY_EVENTS = new Map<string, DecryptedEvent>();
 const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
+const EMPTY_TURNING_POINTS = new Map<string, DecryptedTurningPoint>();
 const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
 const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
 
@@ -157,6 +166,24 @@ export function useTreeData(treeId: string) {
     enabled: hasKey,
   });
 
+  const turningPointsQuery = useQuery({
+    queryKey: treeQueryKeys.turningPoints(treeId),
+    queryFn: async () => {
+      const responses = await getTurningPoints(treeId);
+      const entries = await Promise.all(
+        responses.map(async (r) => {
+          const data = await decrypt<TurningPoint>(r.encrypted_data);
+          return [
+            r.id,
+            { ...data, id: r.id, person_ids: r.person_ids } as DecryptedTurningPoint,
+          ] as const;
+        }),
+      );
+      return new Map(entries);
+    },
+    enabled: hasKey,
+  });
+
   const classificationsQuery = useQuery({
     queryKey: treeQueryKeys.classifications(treeId),
     queryFn: async () => {
@@ -199,6 +226,7 @@ export function useTreeData(treeId: string) {
     relationships: relationshipsQuery.data ?? EMPTY_RELATIONSHIPS,
     events: eventsQuery.data ?? EMPTY_EVENTS,
     lifeEvents: lifeEventsQuery.data ?? EMPTY_LIFE_EVENTS,
+    turningPoints: turningPointsQuery.data ?? EMPTY_TURNING_POINTS,
     classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
     patterns: patternsQuery.data ?? EMPTY_PATTERNS,
     isLoading:
@@ -206,6 +234,7 @@ export function useTreeData(treeId: string) {
       relationshipsQuery.isLoading ||
       eventsQuery.isLoading ||
       lifeEventsQuery.isLoading ||
+      turningPointsQuery.isLoading ||
       classificationsQuery.isLoading ||
       patternsQuery.isLoading,
     error:
@@ -213,6 +242,7 @@ export function useTreeData(treeId: string) {
       relationshipsQuery.error ||
       eventsQuery.error ||
       lifeEventsQuery.error ||
+      turningPointsQuery.error ||
       classificationsQuery.error ||
       patternsQuery.error,
   };

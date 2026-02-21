@@ -7,18 +7,21 @@ import {
   createPattern,
   createPerson,
   createRelationship,
+  createTurningPoint,
   deleteClassification,
   deleteEvent,
   deleteLifeEvent,
   deletePattern,
   deletePerson,
   deleteRelationship,
+  deleteTurningPoint,
   updateClassification,
   updateEvent,
   updateLifeEvent,
   updatePattern,
   updatePerson,
   updateRelationship,
+  updateTurningPoint,
 } from "../lib/api";
 import type {
   Classification,
@@ -27,12 +30,14 @@ import type {
   Person,
   RelationshipData,
   TraumaEvent,
+  TurningPoint,
 } from "../types/domain";
 import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPattern,
+  DecryptedTurningPoint,
 } from "./useTreeData";
 import { treeQueryKeys } from "./useTreeData";
 
@@ -80,6 +85,9 @@ export function useTreeMutations(treeId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.lifeEvents(treeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.turningPoints(treeId),
       });
       queryClient.invalidateQueries({
         queryKey: treeQueryKeys.classifications(treeId),
@@ -275,6 +283,72 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const createTurningPointMutation = useMutation({
+    mutationFn: async ({ personIds, data }: { personIds: string[]; data: TurningPoint }) => {
+      const encrypted_data = await encrypt(data);
+      return createTurningPoint(treeId, { person_ids: personIds, encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.turningPoints(treeId),
+      });
+    },
+  });
+
+  const updateTurningPointMutation = useMutation({
+    mutationFn: async ({
+      turningPointId,
+      personIds,
+      data,
+    }: {
+      turningPointId: string;
+      personIds: string[];
+      data: TurningPoint;
+    }) => {
+      const encrypted_data = await encrypt(data);
+      return updateTurningPoint(treeId, turningPointId, {
+        person_ids: personIds,
+        encrypted_data,
+      });
+    },
+    onMutate: async ({ turningPointId, personIds, data }) => {
+      await queryClient.cancelQueries({ queryKey: treeQueryKeys.turningPoints(treeId) });
+      const previous = queryClient.getQueryData<Map<string, DecryptedTurningPoint>>(
+        treeQueryKeys.turningPoints(treeId),
+      );
+      if (previous) {
+        const updated = new Map(previous);
+        const existing = updated.get(turningPointId);
+        if (existing) {
+          updated.set(turningPointId, { ...existing, ...data, person_ids: personIds });
+        }
+        queryClient.setQueryData(treeQueryKeys.turningPoints(treeId), updated);
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(treeQueryKeys.turningPoints(treeId), context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.turningPoints(treeId),
+      });
+    },
+  });
+
+  const deleteTurningPointMutation = useMutation({
+    mutationFn: async (turningPointId: string) => {
+      return deleteTurningPoint(treeId, turningPointId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.turningPoints(treeId),
+      });
+    },
+  });
+
   const createClassificationMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: Classification }) => {
       const encrypted_data = await encrypt(data);
@@ -420,6 +494,9 @@ export function useTreeMutations(treeId: string) {
     createLifeEvent: createLifeEventMutation,
     updateLifeEvent: updateLifeEventMutation,
     deleteLifeEvent: deleteLifeEventMutation,
+    createTurningPoint: createTurningPointMutation,
+    updateTurningPoint: updateTurningPointMutation,
+    deleteTurningPoint: deleteTurningPointMutation,
     createClassification: createClassificationMutation,
     updateClassification: updateClassificationMutation,
     deleteClassification: deleteClassificationMutation,
