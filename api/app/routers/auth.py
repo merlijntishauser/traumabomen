@@ -86,6 +86,15 @@ async def _validate_invite_token(token: str, email: str, db: AsyncSession) -> Wa
     return entry
 
 
+async def _finalize_registration(
+    user: User, waitlist_entry: WaitlistEntry | None, db: AsyncSession
+) -> None:
+    db.add(user)
+    if waitlist_entry:
+        waitlist_entry.status = WaitlistStatus.registered.value
+    await db.commit()
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     body: RegisterRequest,
@@ -117,24 +126,18 @@ async def register(
             email_verification_expires_at=datetime.now(UTC)
             + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS),
         )
-        db.add(user)
-        if waitlist_entry:
-            waitlist_entry.status = WaitlistStatus.registered.value
-        await db.commit()
+        await _finalize_registration(user, waitlist_entry, db)
 
         send_verification_email(email, token, settings)
         return RegisterResponse(message="verification_email_sent")
 
     user = User(
-        email=body.email,
+        email=email,
         hashed_password=hash_password(body.password),
         encryption_salt=body.encryption_salt,
         email_verified=True,
     )
-    db.add(user)
-    if waitlist_entry:
-        waitlist_entry.status = WaitlistStatus.registered.value
-    await db.commit()
+    await _finalize_registration(user, waitlist_entry, db)
     await db.refresh(user)
 
     return _build_token_response(user, settings)
