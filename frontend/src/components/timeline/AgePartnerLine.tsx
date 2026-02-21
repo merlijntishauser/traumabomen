@@ -27,6 +27,106 @@ interface AgePartnerLineProps {
 }
 
 const BAR_OFFSET_X = BAR_HEIGHT / 2 + 2;
+const LABEL_OFFSET = 8;
+
+function computeBarPositions(
+  sourceX: number | null,
+  targetX: number | null,
+  sourceLaneWidth: number,
+  targetLaneWidth: number,
+) {
+  const srcIsLeft = sourceX != null && targetX != null && sourceX < targetX;
+  const bothVisible = sourceX != null && targetX != null;
+
+  const srcBarX =
+    sourceX != null
+      ? srcIsLeft
+        ? sourceX + sourceLaneWidth - BAR_OFFSET_X
+        : sourceX + BAR_OFFSET_X
+      : null;
+  const tgtBarX =
+    targetX != null
+      ? srcIsLeft
+        ? targetX + BAR_OFFSET_X
+        : targetX + targetLaneWidth - BAR_OFFSET_X
+      : null;
+
+  const srcLabelOffsetX = bothVisible ? (srcIsLeft ? -LABEL_OFFSET : LABEL_OFFSET) : -LABEL_OFFSET;
+  const tgtLabelOffsetX = bothVisible ? (srcIsLeft ? LABEL_OFFSET : -LABEL_OFFSET) : -LABEL_OFFSET;
+
+  return { srcBarX, tgtBarX, srcLabelOffsetX, tgtLabelOffsetX };
+}
+
+interface VerticalBarProps {
+  barX: number;
+  y1: number;
+  y2: number;
+  strokeColor: string;
+  dashArray: string | undefined;
+  label: string;
+  labelOffsetX: number;
+  labelTransform: (x: number, py: number) => string;
+  showLabels: boolean;
+  showTooltip: (e: React.MouseEvent) => void;
+  hideTooltip: () => void;
+  onClick?: () => void;
+}
+
+function VerticalBar({
+  barX,
+  y1,
+  y2,
+  strokeColor,
+  dashArray,
+  label,
+  labelOffsetX,
+  labelTransform,
+  showLabels,
+  showTooltip,
+  hideTooltip,
+  onClick,
+}: VerticalBarProps) {
+  const midY = (y1 + y2) / 2;
+  const labelX = barX + labelOffsetX;
+  return (
+    <>
+      <line
+        x1={barX}
+        x2={barX}
+        y1={y1}
+        y2={y2}
+        stroke={strokeColor}
+        strokeWidth={2}
+        strokeDasharray={dashArray}
+      />
+      {showLabels && (
+        <text
+          x={labelX}
+          y={midY}
+          fill={strokeColor}
+          fontSize={10}
+          textAnchor="middle"
+          className="tl-partner-label"
+          transform={labelTransform(labelX, midY)}
+        >
+          {label}
+        </text>
+      )}
+      <line
+        x1={barX}
+        x2={barX}
+        y1={y1}
+        y2={y2}
+        stroke="transparent"
+        strokeWidth={10}
+        style={{ cursor: "pointer" }}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onClick={onClick}
+      />
+    </>
+  );
+}
 
 export const AgePartnerLine = React.memo(function AgePartnerLine({
   sourceName,
@@ -60,36 +160,12 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
 
   if (sourceX == null && targetX == null) return null;
 
-  // Position the bar at the inner edge of each partner's lane (facing the other partner).
-  // If source is to the left of target, source bar goes on right edge, target on left edge, and vice versa.
-  const srcIsLeft = sourceX != null && targetX != null && sourceX < targetX;
-  const effectiveSrcBarX =
-    sourceX != null
-      ? srcIsLeft
-        ? sourceX + sourceLaneWidth - BAR_OFFSET_X
-        : sourceX + BAR_OFFSET_X
-      : null;
-  const effectiveTgtBarX =
-    targetX != null
-      ? srcIsLeft
-        ? targetX + BAR_OFFSET_X
-        : targetX + targetLaneWidth - BAR_OFFSET_X
-      : null;
-
-  // Label offset: place on the outer side of each bar (away from partner)
-  const LABEL_OFFSET = 8;
-  const srcLabelOffsetX =
-    effectiveSrcBarX != null && effectiveTgtBarX != null
-      ? srcIsLeft
-        ? -LABEL_OFFSET
-        : LABEL_OFFSET
-      : -LABEL_OFFSET;
-  const tgtLabelOffsetX =
-    effectiveSrcBarX != null && effectiveTgtBarX != null
-      ? srcIsLeft
-        ? LABEL_OFFSET
-        : -LABEL_OFFSET
-      : -LABEL_OFFSET;
+  const {
+    srcBarX: effectiveSrcBarX,
+    tgtBarX: effectiveTgtBarX,
+    srcLabelOffsetX,
+    tgtLabelOffsetX,
+  } = computeBarPositions(sourceX, targetX, sourceLaneWidth, targetLaneWidth);
 
   return (
     <g>
@@ -162,87 +238,37 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
             )}
             {/* Source partner vertical bar + label */}
             {effectiveSrcBarX != null && (
-              <>
-                <line
-                  x1={effectiveSrcBarX}
-                  x2={effectiveSrcBarX}
-                  y1={srcY1}
-                  y2={srcY2}
-                  stroke={strokeColor}
-                  strokeWidth={2}
-                  strokeDasharray={dashArray}
-                />
-                {showLabels && (
-                  <text
-                    x={effectiveSrcBarX + srcLabelOffsetX}
-                    y={(srcY1 + srcY2) / 2}
-                    fill={strokeColor}
-                    fontSize={10}
-                    textAnchor="middle"
-                    className="tl-partner-label"
-                    transform={labelTransform(
-                      effectiveSrcBarX + srcLabelOffsetX,
-                      (srcY1 + srcY2) / 2,
-                    )}
-                  >
-                    {srcLabel}
-                  </text>
-                )}
-                <line
-                  x1={effectiveSrcBarX}
-                  x2={effectiveSrcBarX}
-                  y1={srcY1}
-                  y2={srcY2}
-                  stroke="transparent"
-                  strokeWidth={10}
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={showTooltip}
-                  onMouseLeave={hideTooltip}
-                  onClick={onClick}
-                />
-              </>
+              <VerticalBar
+                barX={effectiveSrcBarX}
+                y1={srcY1}
+                y2={srcY2}
+                strokeColor={strokeColor}
+                dashArray={dashArray}
+                label={srcLabel}
+                labelOffsetX={srcLabelOffsetX}
+                labelTransform={labelTransform}
+                showLabels={showLabels}
+                showTooltip={showTooltip}
+                hideTooltip={hideTooltip}
+                onClick={onClick}
+              />
             )}
             {/* Target partner vertical bar + label */}
             {effectiveTgtBarX != null && (
-              <>
-                <line
-                  x1={effectiveTgtBarX}
-                  x2={effectiveTgtBarX}
-                  y1={tgtY1}
-                  y2={tgtY2}
-                  stroke={strokeColor}
-                  strokeWidth={2}
-                  strokeDasharray={dashArray}
-                />
-                {showLabels && (
-                  <text
-                    x={effectiveTgtBarX + tgtLabelOffsetX}
-                    y={(tgtY1 + tgtY2) / 2}
-                    fill={strokeColor}
-                    fontSize={10}
-                    textAnchor="middle"
-                    className="tl-partner-label"
-                    transform={labelTransform(
-                      effectiveTgtBarX + tgtLabelOffsetX,
-                      (tgtY1 + tgtY2) / 2,
-                    )}
-                  >
-                    {tgtLabel}
-                  </text>
-                )}
-                <line
-                  x1={effectiveTgtBarX}
-                  x2={effectiveTgtBarX}
-                  y1={tgtY1}
-                  y2={tgtY2}
-                  stroke="transparent"
-                  strokeWidth={10}
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={showTooltip}
-                  onMouseLeave={hideTooltip}
-                  onClick={onClick}
-                />
-              </>
+              <VerticalBar
+                barX={effectiveTgtBarX}
+                y1={tgtY1}
+                y2={tgtY2}
+                strokeColor={strokeColor}
+                dashArray={dashArray}
+                label={tgtLabel}
+                labelOffsetX={tgtLabelOffsetX}
+                labelTransform={labelTransform}
+                showLabels={showLabels}
+                showTooltip={showTooltip}
+                hideTooltip={hideTooltip}
+                onClick={onClick}
+              />
             )}
           </g>
         );
