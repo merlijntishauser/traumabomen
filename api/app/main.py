@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers.admin import router as admin_router
+from app.routers.admin_feedback import router as admin_feedback_router
+from app.routers.admin_stats import router as admin_stats_router
 from app.routers.auth import router as auth_router
 from app.routers.classifications import router as classifications_router
 from app.routers.events import router as events_router
@@ -24,7 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(admin_router)
+app.include_router(admin_feedback_router)
+app.include_router(admin_stats_router)
 app.include_router(auth_router)
 app.include_router(trees_router)
 app.include_router(persons_router)
