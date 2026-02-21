@@ -5,8 +5,9 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import type { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
 import type { TooltipLine } from "./timelineHelpers";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
@@ -96,7 +97,7 @@ export function stackLabels(
 
 export interface MarkerClickInfo {
   personId: string;
-  entityType: "trauma_event" | "life_event" | "classification";
+  entityType: "trauma_event" | "life_event" | "turning_point" | "classification";
   entityId: string;
 }
 
@@ -108,10 +109,12 @@ interface PersonLaneProps {
   currentYear: number;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  turningPoints?: DecryptedTurningPoint[];
   classifications: DecryptedClassification[];
   persons: Map<string, DecryptedPerson>;
   traumaColors: Record<TraumaCategory, string>;
   lifeEventColors: Record<LifeEventCategory, string>;
+  turningPointColors?: Record<TurningPointCategory, string>;
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
@@ -137,10 +140,12 @@ export const PersonLane = React.memo(function PersonLane({
   currentYear,
   events,
   lifeEvents,
+  turningPoints = [],
   classifications,
   persons,
   traumaColors,
   lifeEventColors,
+  turningPointColors,
   cssVar,
   t,
   onTooltip,
@@ -214,6 +219,9 @@ export const PersonLane = React.memo(function PersonLane({
         charW,
         "l",
       ),
+    );
+    entries.push(
+      ...collectDateLabelEntries(turningPoints, undefined, filterMode, xScale, charW, "tp"),
     );
     return stackLabels(entries, 4 * inv, 12);
   })();
@@ -468,6 +476,81 @@ export const PersonLane = React.memo(function PersonLane({
           </g>
         );
       })}
+
+      {/* Turning point markers (stars) */}
+      {turningPointColors &&
+        turningPoints.map((tp) => {
+          const year = Number.parseInt(tp.approximate_date, 10);
+          if (Number.isNaN(year)) return null;
+
+          const px = xScale(year);
+          const r = MARKER_RADIUS;
+          const starPath = `M${px},${cy - r} L${px + r * 0.22},${cy - r * 0.31} L${px + r * 0.95},${cy - r * 0.31} L${px + r * 0.36},${cy + r * 0.12} L${px + r * 0.59},${cy + r * 0.81} L${px},${cy + r * 0.38} L${px - r * 0.59},${cy + r * 0.81} L${px - r * 0.36},${cy + r * 0.12} L${px - r * 0.95},${cy - r * 0.31} L${px - r * 0.22},${cy - r * 0.31} Z`;
+
+          const linkedNames = tp.person_ids
+            .map((pid) => persons.get(pid)?.name)
+            .filter(Boolean)
+            .join(", ");
+
+          const lines: TooltipLine[] = [
+            { text: tp.title, bold: true },
+            { text: t(`turningPoint.category.${tp.category}`) },
+            { text: tp.approximate_date },
+          ];
+          if (tp.significance != null) {
+            lines.push({ text: t("timeline.significance", { value: tp.significance }) });
+          }
+          lines.push({ text: linkedNames });
+
+          const isEntitySelected = selectedEntityKeys?.has(`turning_point:${tp.id}`);
+
+          return (
+            <g key={tp.id} transform={markerTransform(px)}>
+              <path
+                d={starPath}
+                fill={turningPointColors[tp.category]}
+                stroke={canvasStroke}
+                strokeWidth={1.5}
+                className="tl-marker tl-marker--star"
+                onClick={(e) => handleMarkerClick("turning_point", tp.id, e)}
+                onMouseEnter={(e) => {
+                  onTooltip({
+                    visible: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    lines,
+                  });
+                }}
+                onMouseLeave={hideTooltip}
+              />
+              {isEntitySelected && (
+                <circle cx={px} cy={cy} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              )}
+              {patternRings?.get(`turning_point:${tp.id}`)?.map((ring, ri) => (
+                <circle
+                  key={ring.patternId}
+                  cx={px}
+                  cy={cy}
+                  r={MARKER_RADIUS + 2 + ri * 2}
+                  fill="none"
+                  stroke={ring.color}
+                  strokeWidth={1.5}
+                  strokeOpacity={0.7}
+                  className="tl-pattern-ring"
+                />
+              ))}
+              {showMarkerLabels && (
+                <text
+                  x={px}
+                  y={barY - 2 - (labelOffsets.get(`tp:${tp.id}`) ?? 0)}
+                  className="tl-marker-label"
+                >
+                  {tp.title}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
       {/* Life event markers (diamonds) */}
       {lifeEvents.map((le) => {

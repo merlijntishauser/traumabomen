@@ -5,8 +5,9 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import { collectDateLabelEntries, type LabelEntry, PersonLane, stackLabels } from "./PersonLane";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
@@ -82,6 +83,32 @@ function makeClassification(
     ...overrides,
   };
 }
+
+function makeTurningPoint(
+  id: string,
+  personIds: string[],
+  overrides: Partial<DecryptedTurningPoint> = {},
+): DecryptedTurningPoint {
+  return {
+    id,
+    person_ids: personIds,
+    title: `TurningPoint ${id}`,
+    description: "",
+    category: TurningPointCategory.Recovery,
+    approximate_date: "2000",
+    significance: null,
+    tags: [],
+    ...overrides,
+  };
+}
+
+const defaultTurningPointColors = {
+  [TurningPointCategory.CycleBreaking]: "#34d399",
+  [TurningPointCategory.ProtectiveRelationship]: "#60a5fa",
+  [TurningPointCategory.Recovery]: "#a78bfa",
+  [TurningPointCategory.Achievement]: "#fbbf24",
+  [TurningPointCategory.PositiveChange]: "#2dd4bf",
+} as Record<TurningPointCategory, string>;
 
 const defaultProps = {
   currentYear: 2025,
@@ -849,6 +876,174 @@ describe("PersonLane", () => {
       const { container } = renderLane({ events, patternRings });
       const rings = container.querySelectorAll(".tl-pattern-ring");
       expect(rings).toHaveLength(0);
+    });
+  });
+
+  describe("turning point markers", () => {
+    it("renders star path for turning points", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const stars = container.querySelectorAll("path.tl-marker--star");
+      expect(stars).toHaveLength(1);
+    });
+
+    it("uses correct turning point color", () => {
+      const turningPoints = [
+        makeTurningPoint("tp1", ["a"], { category: TurningPointCategory.Recovery }),
+      ];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      expect(star.getAttribute("fill")).toBe("#a78bfa");
+    });
+
+    it("skips turning points with non-numeric dates", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"], { approximate_date: "circa 2000" })];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      expect(container.querySelectorAll("path.tl-marker--star")).toHaveLength(0);
+    });
+
+    it("does not render turning points when turningPointColors is undefined", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const { container } = renderLane({ turningPoints, turningPointColors: undefined });
+      expect(container.querySelectorAll("path.tl-marker--star")).toHaveLength(0);
+    });
+
+    it("shows tooltip on mouseenter", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"], { title: "Broke the cycle" })];
+      const { container, props } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.mouseEnter(star, { clientX: 100, clientY: 200 });
+      expect(props.onTooltip).toHaveBeenCalledWith(
+        expect.objectContaining({
+          visible: true,
+          lines: expect.arrayContaining([
+            expect.objectContaining({ text: "Broke the cycle", bold: true }),
+          ]),
+        }),
+      );
+    });
+
+    it("hides tooltip on mouseleave", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const { container, props } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.mouseLeave(star);
+      expect(props.onTooltip).toHaveBeenCalledWith(expect.objectContaining({ visible: false }));
+    });
+
+    it("includes significance in tooltip when present", () => {
+      const turningPoints = [
+        makeTurningPoint("tp1", ["a"], { title: "Recovery", significance: 8 }),
+      ];
+      const { container, props } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.mouseEnter(star, { clientX: 0, clientY: 0 });
+      const call = props.onTooltip.mock.calls.find(
+        (c: Array<{ visible: boolean }>) => c[0].visible,
+      );
+      const lines = call[0].lines.map((l: { text: string }) => l.text);
+      expect(lines).toContain("timeline.significance");
+    });
+
+    it("excludes significance from tooltip when null", () => {
+      const turningPoints = [
+        makeTurningPoint("tp1", ["a"], { title: "Recovery", significance: null }),
+      ];
+      const { container, props } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.mouseEnter(star, { clientX: 0, clientY: 0 });
+      const call = props.onTooltip.mock.calls.find(
+        (c: Array<{ visible: boolean }>) => c[0].visible,
+      );
+      const lines = call[0].lines.map((l: { text: string }) => l.text);
+      expect(lines).not.toContain("timeline.significance");
+    });
+
+    it("calls onClickMarker on star click in explore mode", () => {
+      const onClickMarker = vi.fn();
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+        mode: "explore",
+        onClickMarker,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.click(star);
+      expect(onClickMarker).toHaveBeenCalledWith(
+        expect.objectContaining({ entityType: "turning_point", entityId: "tp1" }),
+      );
+    });
+
+    it("calls onToggleEntitySelect on star click in annotate mode", () => {
+      const onToggleEntitySelect = vi.fn();
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+        mode: "annotate",
+        onToggleEntitySelect,
+      });
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.click(star);
+      expect(onToggleEntitySelect).toHaveBeenCalledWith("turning_point:tp1");
+    });
+
+    it("renders selection ring when entity is selected", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"])];
+      const selectedEntityKeys = new Set(["turning_point:tp1"]);
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+        selectedEntityKeys,
+      });
+      const rings = container.querySelectorAll(".tl-selection-ring");
+      expect(rings).toHaveLength(1);
+    });
+
+    it("renders marker label when showMarkerLabels is true", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"], { title: "Broke the cycle" })];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+        showMarkerLabels: true,
+      });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels.length).toBeGreaterThanOrEqual(1);
+      const tpLabel = Array.from(labels).find((l) => l.textContent === "Broke the cycle");
+      expect(tpLabel).toBeTruthy();
+    });
+
+    it("hides marker label when showMarkerLabels is false", () => {
+      const turningPoints = [makeTurningPoint("tp1", ["a"], { title: "Broke the cycle" })];
+      const { container } = renderLane({
+        turningPoints,
+        turningPointColors: defaultTurningPointColors,
+        showMarkerLabels: false,
+      });
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels).toHaveLength(0);
     });
   });
 });

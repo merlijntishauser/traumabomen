@@ -6,6 +6,7 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { MarkerClickInfo } from "./PersonLane";
 
@@ -16,6 +17,7 @@ interface MarkerDetailCardProps {
   persons: Map<string, DecryptedPerson>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints?: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   onClose: () => void;
 }
@@ -25,6 +27,7 @@ export const MarkerDetailCard = React.memo(function MarkerDetailCard({
   persons,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   onClose,
 }: MarkerDetailCardProps) {
@@ -81,6 +84,34 @@ export const MarkerDetailCard = React.memo(function MarkerDetailCard({
         {le.impact != null && le.impact > 0 && (
           <div className="tl-summary-card__detail">
             {t("timeline.impact", { value: le.impact })}
+          </div>
+        )}
+        <div className="tl-summary-card__person">{personName}</div>
+      </div>
+    );
+  }
+
+  if (info.entityType === "turning_point") {
+    const tp = turningPoints?.get(info.entityId);
+    if (!tp) return null;
+    return (
+      <div className="tl-summary-card">
+        <div className="tl-summary-card__header">
+          <span className="tl-summary-card__name">{tp.title}</span>
+          <button
+            type="button"
+            className="tl-summary-card__close"
+            onClick={onClose}
+            aria-label={t(CLOSE_LABEL_KEY)}
+          >
+            <X size={14} />
+          </button>
+        </div>
+        <div className="tl-summary-card__years">{t(`turningPoint.category.${tp.category}`)}</div>
+        <div className="tl-summary-card__detail">{tp.approximate_date}</div>
+        {tp.significance != null && tp.significance > 0 && (
+          <div className="tl-summary-card__detail">
+            {t("timeline.significance", { value: tp.significance })}
           </div>
         )}
         <div className="tl-summary-card__person">{personName}</div>

@@ -5,8 +5,9 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import { AgePersonLane } from "./AgePersonLane";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
 import { MARKER_RADIUS } from "./timelineHelpers";
@@ -1249,5 +1250,170 @@ describe("AgePersonLane", () => {
     );
     const diamonds = container.querySelectorAll("rect[transform]");
     expect(diamonds).toHaveLength(0);
+  });
+
+  describe("turning point markers", () => {
+    const defaultTurningPointColors = {
+      [TurningPointCategory.CycleBreaking]: "#34d399",
+      [TurningPointCategory.ProtectiveRelationship]: "#60a5fa",
+      [TurningPointCategory.Recovery]: "#a78bfa",
+      [TurningPointCategory.Achievement]: "#fbbf24",
+      [TurningPointCategory.PositiveChange]: "#2dd4bf",
+    } as Record<TurningPointCategory, string>;
+
+    function makeTurningPoint(
+      id: string,
+      personIds: string[],
+      overrides: Partial<DecryptedTurningPoint> = {},
+    ): DecryptedTurningPoint {
+      return {
+        id,
+        person_ids: personIds,
+        title: `TurningPoint ${id}`,
+        description: "",
+        category: TurningPointCategory.Recovery,
+        approximate_date: "2000",
+        significance: null,
+        tags: [],
+        ...overrides,
+      };
+    }
+
+    it("renders star path for turning points", () => {
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"])];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+          />
+        </svg>,
+      );
+      const stars = container.querySelectorAll("path.tl-marker--star");
+      expect(stars).toHaveLength(1);
+    });
+
+    it("uses correct turning point color", () => {
+      const props = makeBaseProps();
+      const turningPoints = [
+        makeTurningPoint("tp1", ["p1"], { category: TurningPointCategory.Achievement }),
+      ];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+          />
+        </svg>,
+      );
+      const star = container.querySelector("path.tl-marker--star")!;
+      expect(star.getAttribute("fill")).toBe("#fbbf24");
+    });
+
+    it("skips turning points with non-numeric dates", () => {
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"], { approximate_date: "unknown" })];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+          />
+        </svg>,
+      );
+      expect(container.querySelectorAll("path.tl-marker--star")).toHaveLength(0);
+    });
+
+    it("does not render turning points when turningPointColors is undefined", () => {
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"])];
+      const { container } = render(
+        <svg>
+          <AgePersonLane {...props} turningPoints={turningPoints} />
+        </svg>,
+      );
+      expect(container.querySelectorAll("path.tl-marker--star")).toHaveLength(0);
+    });
+
+    it("shows tooltip on turning point hover", () => {
+      const onTooltip = vi.fn();
+      const props = makeBaseProps();
+      props.onTooltip = onTooltip;
+      const turningPoints = [makeTurningPoint("tp1", ["p1"], { title: "Broke the cycle" })];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+          />
+        </svg>,
+      );
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.mouseEnter(star);
+      expect(onTooltip).toHaveBeenCalledWith(expect.objectContaining({ visible: true }));
+    });
+
+    it("calls onClickMarker when turning point is clicked", () => {
+      const onClickMarker = vi.fn();
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"])];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+            onClickMarker={onClickMarker}
+            mode="edit"
+          />
+        </svg>,
+      );
+      const star = container.querySelector("path.tl-marker--star")!;
+      fireEvent.click(star);
+      expect(onClickMarker).toHaveBeenCalledWith({
+        personId: "p1",
+        entityType: "turning_point",
+        entityId: "tp1",
+      });
+    });
+
+    it("renders marker label by default", () => {
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"], { title: "Broke the cycle" })];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+          />
+        </svg>,
+      );
+      const labels = container.querySelectorAll(".tl-marker-label");
+      const tpLabel = Array.from(labels).find((l) => l.textContent === "Broke the cycle");
+      expect(tpLabel).toBeTruthy();
+    });
+
+    it("hides marker label when showMarkerLabels is false", () => {
+      const props = makeBaseProps();
+      const turningPoints = [makeTurningPoint("tp1", ["p1"], { title: "Broke the cycle" })];
+      const { container } = render(
+        <svg>
+          <AgePersonLane
+            {...props}
+            turningPoints={turningPoints}
+            turningPointColors={defaultTurningPointColors}
+            showMarkerLabels={false}
+          />
+        </svg>,
+      );
+      const labels = container.querySelectorAll(".tl-marker-label");
+      expect(labels).toHaveLength(0);
+    });
   });
 });

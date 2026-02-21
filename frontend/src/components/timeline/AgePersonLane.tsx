@@ -5,8 +5,9 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import type { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import type { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
 import type { TooltipLine } from "./timelineHelpers";
@@ -21,10 +22,12 @@ interface AgePersonLaneProps {
   currentYear: number;
   events: DecryptedEvent[];
   lifeEvents: DecryptedLifeEvent[];
+  turningPoints?: DecryptedTurningPoint[];
   classifications: DecryptedClassification[];
   persons: Map<string, DecryptedPerson>;
   traumaColors: Record<TraumaCategory, string>;
   lifeEventColors: Record<LifeEventCategory, string>;
+  turningPointColors?: Record<TurningPointCategory, string>;
   cssVar: (name: string) => string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   onTooltip: (state: { visible: boolean; x: number; y: number; lines: TooltipLine[] }) => void;
@@ -51,10 +54,12 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   currentYear,
   events,
   lifeEvents,
+  turningPoints = [],
   classifications,
   persons,
   traumaColors,
   lifeEventColors,
+  turningPointColors,
   cssVar,
   t,
   onTooltip,
@@ -361,6 +366,82 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           </g>
         );
       })}
+
+      {/* Turning point markers (stars) */}
+      {turningPointColors &&
+        turningPoints.map((tp) => {
+          const year = Number.parseInt(tp.approximate_date, 10);
+          if (Number.isNaN(year)) return null;
+
+          const py = scaledAge(year);
+          const r = MARKER_RADIUS;
+          const starPath = `M${cx},${py - r} L${cx + r * 0.22},${py - r * 0.31} L${cx + r * 0.95},${py - r * 0.31} L${cx + r * 0.36},${py + r * 0.12} L${cx + r * 0.59},${py + r * 0.81} L${cx},${py + r * 0.38} L${cx - r * 0.59},${py + r * 0.81} L${cx - r * 0.36},${py + r * 0.12} L${cx - r * 0.95},${py - r * 0.31} L${cx - r * 0.22},${py - r * 0.31} Z`;
+
+          const linkedNames = tp.person_ids
+            .map((pid) => persons.get(pid)?.name)
+            .filter(Boolean)
+            .join(", ");
+
+          const lines: TooltipLine[] = [
+            { text: tp.title, bold: true },
+            { text: t(`turningPoint.category.${tp.category}`) },
+            { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
+          ];
+          if (tp.significance != null) {
+            lines.push({ text: t("timeline.significance", { value: tp.significance }) });
+          }
+          lines.push({ text: linkedNames });
+
+          const isEntitySelected = selectedEntityKeys?.has(`turning_point:${tp.id}`);
+
+          return (
+            <g key={tp.id} transform={markerTransform(py)}>
+              <path
+                d={starPath}
+                fill={turningPointColors[tp.category]}
+                stroke={canvasStroke}
+                strokeWidth={1.5}
+                className="tl-marker tl-marker--star"
+                onClick={(e) => handleMarkerClick("turning_point", tp.id, e)}
+                onMouseEnter={(e) => {
+                  onTooltip({
+                    visible: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    lines,
+                  });
+                }}
+                onMouseLeave={hideTooltip}
+              />
+              {isEntitySelected && (
+                <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
+              )}
+              {patternRings?.get(`turning_point:${tp.id}`)?.map((ring, ri) => (
+                <circle
+                  key={ring.patternId}
+                  cx={cx}
+                  cy={py}
+                  r={MARKER_RADIUS + 2 + ri * 2}
+                  fill="none"
+                  stroke={ring.color}
+                  strokeWidth={1.5}
+                  strokeOpacity={0.7}
+                  className="tl-pattern-ring"
+                />
+              ))}
+              {showMarkerLabels && (
+                <text
+                  x={cx}
+                  y={py - MARKER_RADIUS - 2}
+                  className="tl-marker-label"
+                  textAnchor="middle"
+                >
+                  {tp.title}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
       {/* Life event markers (diamonds) */}
       {lifeEvents.map((le) => {

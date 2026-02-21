@@ -10,9 +10,11 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { getLifeEventColors } from "../../lib/lifeEventColors";
 import { getTraumaColors } from "../../lib/traumaColors";
+import { getTurningPointColors } from "../../lib/turningPointColors";
 import { capPeriodsAtDeath, type PartnerStatus, RelationshipType } from "../../types/domain";
 import { AgePartnerLine } from "./AgePartnerLine";
 import { AgePersonLane } from "./AgePersonLane";
@@ -35,6 +37,7 @@ interface TimelineAgeContentProps {
   relationships: Map<string, DecryptedRelationship>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints?: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   width: number;
   height: number;
@@ -67,6 +70,7 @@ export function TimelineAgeContent({
   relationships,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   width,
   height,
@@ -131,8 +135,8 @@ export function TimelineAgeContent({
   );
 
   const personDataMaps = useMemo(
-    () => buildPersonDataMaps(events, lifeEvents, classifications),
-    [events, lifeEvents, classifications],
+    () => buildPersonDataMaps(events, lifeEvents, classifications, turningPoints),
+    [events, lifeEvents, classifications, turningPoints],
   );
 
   const cssVar = useCallback((name: string) => {
@@ -141,6 +145,7 @@ export function TimelineAgeContent({
 
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
+  const turningPointColors = useMemo(() => getTurningPointColors(), []);
 
   const patternRings = useMemo(
     () =>
@@ -388,10 +393,12 @@ export function TimelineAgeContent({
                   currentYear={currentYear}
                   events={personDataMaps.eventsByPerson.get(col.person.id) ?? []}
                   lifeEvents={personDataMaps.lifeEventsByPerson.get(col.person.id) ?? []}
+                  turningPoints={personDataMaps.turningPointsByPerson.get(col.person.id) ?? []}
                   classifications={personDataMaps.classificationsByPerson.get(col.person.id) ?? []}
                   persons={persons}
                   traumaColors={traumaColors}
                   lifeEventColors={lifeEventColors}
+                  turningPointColors={turningPointColors}
                   cssVar={cssVar}
                   t={t}
                   onTooltip={onTooltip}

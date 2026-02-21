@@ -113,8 +113,8 @@ export default function TimelinePage() {
     [persons, relationships],
   );
   const timeDomain = useMemo(
-    () => computeTimeDomain(timelinePersons, events, lifeEvents),
-    [timelinePersons, events, lifeEvents],
+    () => computeTimeDomain(timelinePersons, events, lifeEvents, turningPoints),
+    [timelinePersons, events, lifeEvents, turningPoints],
   );
 
   const generations = useMemo(
@@ -557,6 +557,7 @@ export default function TimelinePage() {
             relationships={relationships}
             events={events}
             lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
             classifications={classifications}
             mode={mode}
             selectedPersonId={selectedPersonId}
@@ -589,6 +590,7 @@ export default function TimelinePage() {
             persons={persons}
             events={events}
             lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
             classifications={classifications}
             onClose={() => setFocusedMarker(null)}
           />

@@ -8,6 +8,7 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { BranchDecoration } from "../BranchDecoration";
 import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
@@ -23,6 +24,7 @@ interface TimelineViewProps {
   relationships: Map<string, DecryptedRelationship>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints?: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   mode?: TimelineMode;
   selectedPersonId?: string | null;
@@ -53,6 +55,7 @@ export function TimelineView({
   relationships,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   mode = "explore",
   selectedPersonId = null,
@@ -121,6 +124,7 @@ export function TimelineView({
     relationships,
     events,
     lifeEvents,
+    turningPoints,
     classifications,
     width,
     height,

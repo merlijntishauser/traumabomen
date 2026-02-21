@@ -332,6 +332,7 @@
 
   "timeline.generation": "Generation {{number}}",
   "timeline.severity": "Severity: {{value}}",
+  "timeline.significance": "Significance: {{value}}",
   "timeline.impact": "Impact: {{value}}",
   "timeline.noData": "No data to display. Add persons and events in the tree view.",
   "timeline.zoomIn": "Zoom in",

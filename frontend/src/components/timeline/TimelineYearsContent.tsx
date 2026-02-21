@@ -10,9 +10,11 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { getLifeEventColors } from "../../lib/lifeEventColors";
 import { getTraumaColors } from "../../lib/traumaColors";
+import { getTurningPointColors } from "../../lib/turningPointColors";
 import { capPeriodsAtDeath, RelationshipType } from "../../types/domain";
 import { PartnerLine } from "./PartnerLine";
 import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
@@ -35,6 +37,7 @@ interface TimelineYearsContentProps {
   relationships: Map<string, DecryptedRelationship>;
   events: Map<string, DecryptedEvent>;
   lifeEvents: Map<string, DecryptedLifeEvent>;
+  turningPoints?: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   width: number;
   height: number;
@@ -67,6 +70,7 @@ export function TimelineYearsContent({
   relationships,
   events,
   lifeEvents,
+  turningPoints,
   classifications,
   width,
   height,
@@ -124,8 +128,8 @@ export function TimelineYearsContent({
   );
 
   const { minYear, maxYear } = useMemo(
-    () => computeTimeDomain(timelinePersons, events, lifeEvents),
-    [timelinePersons, events, lifeEvents],
+    () => computeTimeDomain(timelinePersons, events, lifeEvents, turningPoints),
+    [timelinePersons, events, lifeEvents, turningPoints],
   );
 
   const currentYear = useMemo(() => new Date().getFullYear(), []);
@@ -136,8 +140,8 @@ export function TimelineYearsContent({
   );
 
   const personDataMaps = useMemo(
-    () => buildPersonDataMaps(events, lifeEvents, classifications),
-    [events, lifeEvents, classifications],
+    () => buildPersonDataMaps(events, lifeEvents, classifications, turningPoints),
+    [events, lifeEvents, classifications, turningPoints],
   );
 
   const cssVar = useCallback((name: string) => {
@@ -146,6 +150,7 @@ export function TimelineYearsContent({
 
   const traumaColors = useMemo(() => getTraumaColors(), []);
   const lifeEventColors = useMemo(() => getLifeEventColors(), []);
+  const turningPointColors = useMemo(() => getTurningPointColors(), []);
 
   const patternRings = useMemo(
     () =>
@@ -373,10 +378,12 @@ export function TimelineYearsContent({
                   currentYear={currentYear}
                   events={personDataMaps.eventsByPerson.get(row.person.id) ?? []}
                   lifeEvents={personDataMaps.lifeEventsByPerson.get(row.person.id) ?? []}
+                  turningPoints={personDataMaps.turningPointsByPerson.get(row.person.id) ?? []}
                   classifications={personDataMaps.classificationsByPerson.get(row.person.id) ?? []}
                   persons={persons}
                   traumaColors={traumaColors}
                   lifeEventColors={lifeEventColors}
+                  turningPointColors={turningPointColors}
                   cssVar={cssVar}
                   t={t}
                   onTooltip={onTooltip}

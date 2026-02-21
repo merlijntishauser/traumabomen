@@ -5,8 +5,14 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { LifeEventCategory, RelationshipType, TraumaCategory } from "../../types/domain";
+import {
+  LifeEventCategory,
+  RelationshipType,
+  TraumaCategory,
+  TurningPointCategory,
+} from "../../types/domain";
 import {
   AGE_LABEL_WIDTH,
   assignBaseGenerations,
@@ -118,6 +124,24 @@ function makeClassification(
     diagnosis_year: null,
     periods: [{ start_year: 2000, end_year: 2010 }],
     notes: null,
+    ...overrides,
+  };
+}
+
+function makeTurningPoint(
+  id: string,
+  personIds: string[],
+  overrides: Partial<DecryptedTurningPoint> = {},
+): DecryptedTurningPoint {
+  return {
+    id,
+    person_ids: personIds,
+    title: `TurningPoint ${id}`,
+    description: "",
+    category: TurningPointCategory.Recovery,
+    approximate_date: "2000",
+    significance: null,
+    tags: [],
     ...overrides,
   };
 }
@@ -415,6 +439,21 @@ describe("computeTimeDomain", () => {
     const { minYear } = computeTimeDomain(persons, new Map(), lifeEvents);
     expect(minYear).toBe(1915); // 1920 - 5
   });
+
+  it("extends range for turning points", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      ["tp1", makeTurningPoint("tp1", ["a"], { approximate_date: "1910" })],
+    ]);
+    const { minYear } = computeTimeDomain(persons, new Map(), new Map(), turningPoints);
+    expect(minYear).toBe(1905); // 1910 - 5
+  });
+
+  it("works without turning points argument (backward compatible)", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const { minYear } = computeTimeDomain(persons, new Map(), new Map());
+    expect(minYear).toBe(1975); // 1980 - 5
+  });
 });
 
 // ---- buildPersonDataMaps ----
@@ -472,6 +511,34 @@ describe("buildPersonDataMaps", () => {
     expect(result.eventsByPerson.get("b")).toBeUndefined();
     expect(result.lifeEventsByPerson.get("a")).toBeUndefined();
     expect(result.classificationsByPerson.get("a")).toBeUndefined();
+  });
+
+  it("returns empty turningPointsByPerson when no turning points provided", () => {
+    const result = buildPersonDataMaps(new Map(), new Map(), new Map());
+    expect(result.turningPointsByPerson.size).toBe(0);
+  });
+
+  it("groups turning points by person id", () => {
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      ["tp1", makeTurningPoint("tp1", ["a"])],
+      ["tp2", makeTurningPoint("tp2", ["a", "b"])],
+    ]);
+    const result = buildPersonDataMaps(new Map(), new Map(), new Map(), turningPoints);
+    expect(result.turningPointsByPerson.get("a")).toHaveLength(2);
+    expect(result.turningPointsByPerson.get("b")).toHaveLength(1);
+  });
+
+  it("handles multi-person turning points correctly", () => {
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      ["tp1", makeTurningPoint("tp1", ["a", "b", "c"])],
+    ]);
+    const result = buildPersonDataMaps(new Map(), new Map(), new Map(), turningPoints);
+    expect(result.turningPointsByPerson.get("a")).toHaveLength(1);
+    expect(result.turningPointsByPerson.get("b")).toHaveLength(1);
+    expect(result.turningPointsByPerson.get("c")).toHaveLength(1);
+    expect(result.turningPointsByPerson.get("a")![0]).toBe(
+      result.turningPointsByPerson.get("b")![0],
+    );
   });
 });
 

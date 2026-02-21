@@ -4,6 +4,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
 
@@ -62,6 +63,7 @@ export interface PersonDataMaps {
   eventsByPerson: Map<string, DecryptedEvent[]>;
   lifeEventsByPerson: Map<string, DecryptedLifeEvent[]>;
   classificationsByPerson: Map<string, DecryptedClassification[]>;
+  turningPointsByPerson: Map<string, DecryptedTurningPoint[]>;
 }
 
 // ---- Generation computation ----
@@ -288,6 +290,7 @@ export function computeTimeDomain(
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints?: Map<string, DecryptedTurningPoint>,
 ): { minYear: number; maxYear: number } {
   const currentYear = new Date().getFullYear();
   let minYear = currentYear;
@@ -316,6 +319,16 @@ export function computeTimeDomain(
     }
   }
 
+  if (turningPoints) {
+    for (const tp of turningPoints.values()) {
+      const year = parseInt(tp.approximate_date, 10);
+      if (!Number.isNaN(year)) {
+        minYear = Math.min(minYear, year);
+        maxYear = Math.max(maxYear, year);
+      }
+    }
+  }
+
   return { minYear: minYear - 5, maxYear: maxYear + 5 };
 }
 
@@ -325,6 +338,7 @@ export function buildPersonDataMaps(
   events: Map<string, DecryptedEvent>,
   lifeEvents: Map<string, DecryptedLifeEvent>,
   classifications: Map<string, DecryptedClassification>,
+  turningPoints?: Map<string, DecryptedTurningPoint>,
 ): PersonDataMaps {
   const eventsByPerson = new Map<string, DecryptedEvent[]>();
   for (const event of events.values()) {
@@ -353,7 +367,18 @@ export function buildPersonDataMaps(
     }
   }
 
-  return { eventsByPerson, lifeEventsByPerson, classificationsByPerson };
+  const turningPointsByPerson = new Map<string, DecryptedTurningPoint[]>();
+  if (turningPoints) {
+    for (const tp of turningPoints.values()) {
+      for (const pid of tp.person_ids) {
+        const existing = turningPointsByPerson.get(pid) ?? [];
+        existing.push(tp);
+        turningPointsByPerson.set(pid, existing);
+      }
+    }
+  }
+
+  return { eventsByPerson, lifeEventsByPerson, classificationsByPerson, turningPointsByPerson };
 }
 
 // ---- Column layout (age mode) ----
