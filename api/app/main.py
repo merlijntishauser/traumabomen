@@ -13,6 +13,7 @@ from app.routers.persons import router as persons_router
 from app.routers.relationships import router as relationships_router
 from app.routers.sync import router as sync_router
 from app.routers.trees import router as trees_router
+from app.routers.turning_points import router as turning_points_router
 from app.routers.waitlist import router as waitlist_router
 
 app = FastAPI(title="Traumabomen API")
@@ -37,6 +38,7 @@ app.include_router(life_events_router)
 app.include_router(classifications_router)
 app.include_router(patterns_router)
 app.include_router(sync_router)
+app.include_router(turning_points_router)
 app.include_router(waitlist_router)
 
 

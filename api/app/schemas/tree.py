@@ -116,6 +116,21 @@ class LifeEventResponse(_LinkedEntityResponse):
     pass
 
 
+# --- TurningPoint ---
+
+
+class TurningPointCreate(_LinkedEntityCreate):
+    pass
+
+
+class TurningPointUpdate(_LinkedEntityUpdate):
+    pass
+
+
+class TurningPointResponse(_LinkedEntityResponse):
+    pass
+
+
 # --- Classification ---
 
 
