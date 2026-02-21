@@ -1413,7 +1413,7 @@ describe("waitlist functions", () => {
   });
 
   it("acknowledgeOnboarding calls PUT and sets onboarding flag", async () => {
-    localStorage.setItem("access_token", "test-token");
+    localStorage.setItem("access_token", "test-token"); // privacy-ok: test fixture
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({}),
