@@ -59,6 +59,48 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
       <div className="settings-panel__divider" />
 
       <div className="settings-panel__group">
+        <span className="settings-panel__label">{t("canvas.relationshipVisibility")}</span>
+      </div>
+
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showParentEdges}
+          onChange={(e) => onUpdate({ showParentEdges: e.target.checked })}
+        />
+        <span>{t("canvas.showParentEdges")}</span>
+      </label>
+
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showPartnerEdges}
+          onChange={(e) => onUpdate({ showPartnerEdges: e.target.checked })}
+        />
+        <span>{t("canvas.showPartnerEdges")}</span>
+      </label>
+
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showSiblingEdges}
+          onChange={(e) => onUpdate({ showSiblingEdges: e.target.checked })}
+        />
+        <span>{t("canvas.showSiblingEdges")}</span>
+      </label>
+
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showFriendEdges}
+          onChange={(e) => onUpdate({ showFriendEdges: e.target.checked })}
+        />
+        <span>{t("canvas.showFriendEdges")}</span>
+      </label>
+
+      <div className="settings-panel__divider" />
+
+      <div className="settings-panel__group">
         <span className="settings-panel__label">{t("canvas.other")}</span>
       </div>
 

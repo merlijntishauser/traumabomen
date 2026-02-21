@@ -12,7 +12,8 @@ import {
   layoutDagreGraph,
   positionFriendNodes,
 } from "../lib/treeLayoutHelpers";
-import type { EdgeStyle } from "./useCanvasSettings";
+import { RelationshipType } from "../types/domain";
+import type { CanvasSettings } from "./useCanvasSettings";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -37,7 +38,7 @@ export function useTreeLayout(
   events: Map<string, DecryptedEvent>,
   selectedPersonId: string | null,
   lifeEvents?: Map<string, DecryptedLifeEvent>,
-  canvasSettings?: { edgeStyle: EdgeStyle; showMarkers: boolean },
+  canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
 ): ReturnType<typeof _computeLayout> {
   return useMemo(
@@ -61,7 +62,7 @@ function _computeLayout(
   events: Map<string, DecryptedEvent>,
   selectedPersonId: string | null,
   lifeEvents?: Map<string, DecryptedLifeEvent>,
-  canvasSettings?: { edgeStyle: EdgeStyle; showMarkers: boolean },
+  canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
 ) {
   if (persons.size === 0) {
@@ -103,4 +104,45 @@ function _computeLayout(
   adjustEdgeOverlaps(edges, nodeCenter, canvasSettings?.showMarkers !== false);
 
   return { nodes, edges };
+}
+
+const EDGE_VISIBILITY_MAP: Record<
+  string,
+  keyof Pick<
+    CanvasSettings,
+    "showParentEdges" | "showPartnerEdges" | "showSiblingEdges" | "showFriendEdges"
+  >
+> = {
+  [RelationshipType.BiologicalParent]: "showParentEdges",
+  [RelationshipType.CoParent]: "showParentEdges",
+  [RelationshipType.StepParent]: "showParentEdges",
+  [RelationshipType.AdoptiveParent]: "showParentEdges",
+  [RelationshipType.Partner]: "showPartnerEdges",
+  [RelationshipType.BiologicalSibling]: "showSiblingEdges",
+  [RelationshipType.StepSibling]: "showSiblingEdges",
+  [RelationshipType.HalfSibling]: "showSiblingEdges",
+  [RelationshipType.Friend]: "showFriendEdges",
+};
+
+export function filterEdgesByVisibility(
+  edges: ReturnType<typeof buildRelationshipEdges>,
+  settings?: Pick<
+    CanvasSettings,
+    "showParentEdges" | "showPartnerEdges" | "showSiblingEdges" | "showFriendEdges"
+  >,
+): ReturnType<typeof buildRelationshipEdges> {
+  if (!settings) return edges;
+
+  return edges.filter((edge) => {
+    const rel = edge.data?.relationship;
+    if (rel) {
+      const settingKey = EDGE_VISIBILITY_MAP[rel.type];
+      return settingKey ? settings[settingKey] !== false : true;
+    }
+    // Inferred sibling edges
+    if (edge.data?.inferredType) {
+      return settings.showSiblingEdges !== false;
+    }
+    return true;
+  });
 }

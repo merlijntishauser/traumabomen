@@ -30,7 +30,7 @@ import type { DecryptedPerson } from "../hooks/useTreeData";
 import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
-import { useTreeLayout } from "../hooks/useTreeLayout";
+import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { inferSiblings } from "../lib/inferSiblings";
 import type {
@@ -342,11 +342,14 @@ function TreeWorkspaceInner() {
   );
 
   const layoutSettings = useMemo(
-    () => ({ edgeStyle: canvasSettings.edgeStyle, showMarkers: canvasSettings.showMarkers }),
+    () => ({
+      edgeStyle: canvasSettings.edgeStyle,
+      showMarkers: canvasSettings.showMarkers,
+    }),
     [canvasSettings.edgeStyle, canvasSettings.showMarkers],
   );
 
-  const { nodes: layoutNodes, edges } = useTreeLayout(
+  const { nodes: layoutNodes, edges: allEdges } = useTreeLayout(
     persons,
     relationships,
     events,
@@ -354,6 +357,23 @@ function TreeWorkspaceInner() {
     lifeEvents,
     layoutSettings,
     classifications,
+  );
+
+  const edges = useMemo(
+    () =>
+      filterEdgesByVisibility(allEdges, {
+        showParentEdges: canvasSettings.showParentEdges,
+        showPartnerEdges: canvasSettings.showPartnerEdges,
+        showSiblingEdges: canvasSettings.showSiblingEdges,
+        showFriendEdges: canvasSettings.showFriendEdges,
+      }),
+    [
+      allEdges,
+      canvasSettings.showParentEdges,
+      canvasSettings.showPartnerEdges,
+      canvasSettings.showSiblingEdges,
+      canvasSettings.showFriendEdges,
+    ],
   );
 
   // Local node state that accepts both layout updates and drag changes

@@ -9,6 +9,10 @@ export interface CanvasSettings {
   showMarkers: boolean;
   showMinimap: boolean;
   promptRelationship: boolean;
+  showParentEdges: boolean;
+  showPartnerEdges: boolean;
+  showSiblingEdges: boolean;
+  showFriendEdges: boolean;
 }
 
 const DEFAULTS: CanvasSettings = {
@@ -18,6 +22,10 @@ const DEFAULTS: CanvasSettings = {
   showMarkers: true,
   showMinimap: false,
   promptRelationship: true,
+  showParentEdges: true,
+  showPartnerEdges: true,
+  showSiblingEdges: true,
+  showFriendEdges: true,
 };
 
 const STORAGE_KEY = "traumabomen-canvas-settings";

@@ -44,6 +44,10 @@ describe("useCanvasSettings", () => {
       showMarkers: true,
       showMinimap: false,
       promptRelationship: true,
+      showParentEdges: true,
+      showPartnerEdges: true,
+      showSiblingEdges: true,
+      showFriendEdges: true,
     });
   });
 
@@ -55,6 +59,10 @@ describe("useCanvasSettings", () => {
       showMarkers: false,
       showMinimap: true,
       promptRelationship: false,
+      showParentEdges: false,
+      showPartnerEdges: true,
+      showSiblingEdges: false,
+      showFriendEdges: true,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
 
@@ -97,6 +105,10 @@ describe("useCanvasSettings", () => {
       showMarkers: true,
       showMinimap: false,
       promptRelationship: true,
+      showParentEdges: true,
+      showPartnerEdges: true,
+      showSiblingEdges: true,
+      showFriendEdges: true,
     });
   });
 
