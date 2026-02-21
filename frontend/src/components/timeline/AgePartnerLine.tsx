@@ -64,6 +64,21 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
         : targetX + targetLaneWidth - BAR_OFFSET_X
       : null;
 
+  // Label offset: place on the outer side of each bar (away from partner)
+  const LABEL_OFFSET = 8;
+  const srcLabelOffsetX =
+    effectiveSrcBarX != null && effectiveTgtBarX != null
+      ? srcIsLeft
+        ? -LABEL_OFFSET
+        : LABEL_OFFSET
+      : -LABEL_OFFSET;
+  const tgtLabelOffsetX =
+    effectiveSrcBarX != null && effectiveTgtBarX != null
+      ? srcIsLeft
+        ? LABEL_OFFSET
+        : -LABEL_OFFSET
+      : -LABEL_OFFSET;
+
   return (
     <g>
       {periods.map((period) => {
@@ -73,6 +88,8 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
         const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
         const strokeColor = cssVar("--color-edge-partner");
         const dashArray = isDashed ? "6 3" : undefined;
+        const srcLabel = t("timeline.partnerLabel", { status: statusLabel, name: targetName });
+        const tgtLabel = t("timeline.partnerLabel", { status: statusLabel, name: sourceName });
 
         const tooltipLines: TooltipLine[] = [
           { text: `${sourceName} & ${targetName}`, bold: true },
@@ -131,7 +148,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                 />
               </>
             )}
-            {/* Source partner vertical bar */}
+            {/* Source partner vertical bar + label */}
             {effectiveSrcBarX != null && (
               <>
                 <line
@@ -143,6 +160,17 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
+                <text
+                  x={effectiveSrcBarX + srcLabelOffsetX}
+                  y={(srcY1 + srcY2) / 2}
+                  fill={strokeColor}
+                  fontSize={10}
+                  textAnchor="middle"
+                  className="tl-partner-label"
+                  transform={`rotate(-90, ${effectiveSrcBarX + srcLabelOffsetX}, ${(srcY1 + srcY2) / 2})`}
+                >
+                  {srcLabel}
+                </text>
                 <line
                   x1={effectiveSrcBarX}
                   x2={effectiveSrcBarX}
@@ -157,7 +185,7 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                 />
               </>
             )}
-            {/* Target partner vertical bar */}
+            {/* Target partner vertical bar + label */}
             {effectiveTgtBarX != null && (
               <>
                 <line
@@ -169,6 +197,17 @@ export const AgePartnerLine = React.memo(function AgePartnerLine({
                   strokeWidth={2}
                   strokeDasharray={dashArray}
                 />
+                <text
+                  x={effectiveTgtBarX + tgtLabelOffsetX}
+                  y={(tgtY1 + tgtY2) / 2}
+                  fill={strokeColor}
+                  fontSize={10}
+                  textAnchor="middle"
+                  className="tl-partner-label"
+                  transform={`rotate(-90, ${effectiveTgtBarX + tgtLabelOffsetX}, ${(tgtY1 + tgtY2) / 2})`}
+                >
+                  {tgtLabel}
+                </text>
                 <line
                   x1={effectiveTgtBarX}
                   x2={effectiveTgtBarX}

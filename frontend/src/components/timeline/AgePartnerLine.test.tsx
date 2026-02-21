@@ -47,9 +47,40 @@ describe("AgePartnerLine", () => {
     expect(container.querySelectorAll("line")).toHaveLength(12);
   });
 
-  it("renders no text labels (tooltip-only)", () => {
+  it("renders two rotated labels per period (one per partner) when both visible", () => {
     const { container } = renderAgePartnerLine();
-    expect(container.querySelectorAll("text")).toHaveLength(0);
+    const labels = container.querySelectorAll("text.tl-partner-label");
+    expect(labels).toHaveLength(2);
+    // Both labels should be rotated -90 degrees
+    for (const label of labels) {
+      expect(label.getAttribute("transform")).toMatch(/rotate\(-90/);
+      expect(label.getAttribute("font-size")).toBe("10");
+      expect(label.getAttribute("text-anchor")).toBe("middle");
+    }
+  });
+
+  it("renders one label when only source partner is visible", () => {
+    const { container } = renderAgePartnerLine({ targetX: null });
+    const labels = container.querySelectorAll("text.tl-partner-label");
+    expect(labels).toHaveLength(1);
+    expect(labels[0].textContent).toBe("timeline.partnerLabel");
+  });
+
+  it("renders one label when only target partner is visible", () => {
+    const { container } = renderAgePartnerLine({ sourceX: null });
+    const labels = container.querySelectorAll("text.tl-partner-label");
+    expect(labels).toHaveLength(1);
+    expect(labels[0].textContent).toBe("timeline.partnerLabel");
+  });
+
+  it("renders four labels for two periods when both partners visible", () => {
+    const { container } = renderAgePartnerLine({
+      periods: [
+        { start_year: 2000, end_year: 2010, status: PartnerStatus.Married },
+        { start_year: 2015, end_year: null, status: PartnerStatus.Together },
+      ],
+    });
+    expect(container.querySelectorAll("text.tl-partner-label")).toHaveLength(4);
   });
 
   it("renders dashed stroke for separated periods", () => {
