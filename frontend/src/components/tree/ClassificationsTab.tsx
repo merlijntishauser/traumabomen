@@ -13,7 +13,6 @@ import { PersonLinkField } from "./PersonLinkField";
 
 // Shared i18n keys used across sub-forms
 const T_SAVE = "common.save";
-const T_CANCEL = "common.cancel";
 const T_DELETE = "common.delete";
 
 /** Format classification periods as a compact summary string. */
@@ -113,10 +112,6 @@ export function ClassificationsTab({
             setEditingClassificationId(null);
             setShowNewClassification(false);
           }}
-          onCancel={() => {
-            setEditingClassificationId(null);
-            setShowNewClassification(false);
-          }}
           onDelete={
             editingClassificationId
               ? () => {
@@ -183,7 +178,6 @@ interface ClassificationFormProps {
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
   onSave: (data: Classification, personIds: string[]) => void;
-  onCancel: () => void;
   onDelete?: () => void;
 }
 
@@ -192,7 +186,6 @@ function ClassificationForm({
   allPersons,
   initialPersonIds,
   onSave,
-  onCancel,
   onDelete,
 }: ClassificationFormProps) {
   const { t } = useTranslation();
@@ -403,9 +396,6 @@ function ClassificationForm({
           onClick={handleSave}
         >
           {t(T_SAVE)}
-        </button>
-        <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t(T_CANCEL)}
         </button>
         {onDelete && (
           <button

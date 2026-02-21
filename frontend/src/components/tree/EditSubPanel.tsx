@@ -1,4 +1,3 @@
-import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,15 +35,15 @@ export function EditSubPanel({
   return (
     <div className="detail-panel__sub-panel">
       <div className="detail-panel__sub-header">
+        <span className="detail-panel__sub-title">{title}</span>
         <button
           type="button"
-          className="detail-panel__sub-back"
+          className="detail-panel__close"
           onClick={onBack}
           aria-label={t("common.close")}
         >
-          <ArrowLeft size={14} />
+          {t("common.cancel")}
         </button>
-        <span className="detail-panel__sub-title">{title}</span>
       </div>
 
       <div className="detail-panel__sub-body">{children}</div>

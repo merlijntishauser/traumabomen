@@ -9,7 +9,6 @@ import { PersonLinkField } from "./PersonLinkField";
 
 // Shared i18n keys
 const T_SAVE = "common.save";
-const T_CANCEL = "common.cancel";
 const T_DELETE = "common.delete";
 
 /** Mini-bar showing severity/impact as 10 small filled/empty blocks. */
@@ -85,10 +84,6 @@ export function TraumaEventsTab({
             setEditingEventId(null);
             setShowNewEvent(false);
           }}
-          onCancel={() => {
-            setEditingEventId(null);
-            setShowNewEvent(false);
-          }}
           onDelete={
             editingEventId
               ? () => {
@@ -155,18 +150,10 @@ interface EventFormProps {
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
   onSave: (data: TraumaEvent, personIds: string[]) => void;
-  onCancel: () => void;
   onDelete?: () => void;
 }
 
-function EventForm({
-  event,
-  allPersons,
-  initialPersonIds,
-  onSave,
-  onCancel,
-  onDelete,
-}: EventFormProps) {
+function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: EventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(event?.title ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
@@ -258,9 +245,6 @@ function EventForm({
           onClick={handleSave}
         >
           {t(T_SAVE)}
-        </button>
-        <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t(T_CANCEL)}
         </button>
         {onDelete && (
           <button

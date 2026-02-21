@@ -9,7 +9,6 @@ import { PersonLinkField } from "./PersonLinkField";
 import { SeverityBar } from "./TraumaEventsTab";
 
 const T_SAVE = "common.save";
-const T_CANCEL = "common.cancel";
 const T_DELETE = "common.delete";
 
 interface LifeEventsTabProps {
@@ -26,7 +25,6 @@ interface LifeEventFormProps {
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
   onSave: (data: LifeEvent, personIds: string[]) => void;
-  onCancel: () => void;
   onDelete?: () => void;
 }
 
@@ -35,7 +33,6 @@ function LifeEventForm({
   allPersons,
   initialPersonIds,
   onSave,
-  onCancel,
   onDelete,
 }: LifeEventFormProps) {
   const { t } = useTranslation();
@@ -132,9 +129,6 @@ function LifeEventForm({
         >
           {t(T_SAVE)}
         </button>
-        <button type="button" className="detail-panel__btn" onClick={onCancel}>
-          {t(T_CANCEL)}
-        </button>
         {onDelete && (
           <button
             type="button"
@@ -204,10 +198,6 @@ export function LifeEventsTab({
           }
           onSave={(data, personIds) => {
             onSaveLifeEvent(editingLifeEventId, data, personIds);
-            setEditingLifeEventId(null);
-            setShowNewLifeEvent(false);
-          }}
-          onCancel={() => {
             setEditingLifeEventId(null);
             setShowNewLifeEvent(false);
           }}
