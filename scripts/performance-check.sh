@@ -117,29 +117,39 @@ measure_bundle_size() {
 }
 
 measure_lighthouse() {
-  if ! command -v lighthouse &>/dev/null; then
-    echo "-1"
-    return
-  fi
-
   local url="$1"
   local tmpfile
   tmpfile=$(mktemp /tmp/lh-XXXXXX.json)
 
-  local chrome_flags="--headless --no-sandbox --disable-gpu"
-  local lh_args=(
-    "$url"
-    --only-categories=performance
-    --output=json
-    "--output-path=$tmpfile"
-    "--chrome-flags=$chrome_flags"
-    --quiet
-  )
-  if [ -n "${CHROME_PATH:-}" ]; then
-    lh_args+=("--chrome-path=$CHROME_PATH")
-  fi
+  if command -v lighthouse &>/dev/null; then
+    # Native lighthouse (CI or local install)
+    local chrome_flags="--headless --no-sandbox --disable-gpu"
+    local lh_args=(
+      "$url"
+      --only-categories=performance
+      --output=json
+      "--output-path=$tmpfile"
+      "--chrome-flags=$chrome_flags"
+      --quiet
+    )
+    if [ -n "${CHROME_PATH:-}" ]; then
+      lh_args+=("--chrome-path=$CHROME_PATH")
+    fi
+    lighthouse "${lh_args[@]}" 2>/dev/null || true
 
-  lighthouse "${lh_args[@]}" 2>/dev/null || true
+  elif command -v docker &>/dev/null; then
+    # Docker fallback (local dev without lighthouse/chrome installed)
+    docker run --rm \
+      femtopixel/google-lighthouse \
+      "$url" \
+        --only-categories=performance \
+        --output=json \
+        "--chrome-flags=--headless --no-sandbox --disable-gpu" \
+        --quiet > "$tmpfile" 2>/dev/null || true
+  else
+    echo "-1"
+    return
+  fi
 
   if [ -f "$tmpfile" ] && [ -s "$tmpfile" ]; then
     local score
