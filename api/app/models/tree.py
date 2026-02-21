@@ -41,3 +41,6 @@ class Tree(Base):
     patterns: Mapped[list[Pattern]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    turning_points: Mapped[list[TurningPoint]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )

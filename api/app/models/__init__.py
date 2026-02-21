@@ -7,6 +7,7 @@ from app.models.pattern import Pattern, PatternPerson
 from app.models.person import Person
 from app.models.relationship import Relationship
 from app.models.tree import Tree
+from app.models.turning_point import TurningPoint, TurningPointPerson
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry
 
@@ -23,6 +24,8 @@ __all__ = [
     "ClassificationPerson",
     "Pattern",
     "PatternPerson",
+    "TurningPoint",
+    "TurningPointPerson",
     "LoginEvent",
     "Feedback",
     "WaitlistEntry",
