@@ -165,28 +165,30 @@
 /* Account tab */
 
 .settings-panel__section {
-  padding: 8px 14px;
+  padding: 6px 14px;
 }
 
 .settings-panel__section-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
+  font-family: var(--font-body);
+  font-style: normal;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
 
 .settings-panel__input {
   display: block;
   width: 100%;
-  padding: 6px 8px;
-  margin-bottom: 6px;
+  padding: 5px 8px;
+  margin-bottom: 4px;
   font-size: 13px;
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
+  border-radius: 3px;
   box-sizing: border-box;
 }
 
@@ -196,13 +198,14 @@
 }
 
 .settings-panel__btn {
-  padding: 5px 12px;
+  margin-top: 2px;
+  padding: 4px 14px;
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-primary);
   background: var(--color-bg-hover);
   border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
+  border-radius: 3px;
   cursor: pointer;
   transition: var(--transition-colors);
 }
@@ -232,9 +235,9 @@
 }
 
 .settings-panel__warning {
-  font-size: 12px;
+  font-size: 11px;
   color: #d97706;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   line-height: 1.4;
 }
 
@@ -243,8 +246,8 @@
 }
 
 .settings-panel__message {
-  font-size: 12px;
-  margin-bottom: 6px;
+  font-size: 11px;
+  margin-bottom: 4px;
   line-height: 1.4;
 }
 
@@ -257,11 +260,11 @@
 }
 
 .settings-panel__progress {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-accent);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .settings-panel__delete-confirm {
-  margin-top: 8px;
+  margin-top: 4px;
 }
