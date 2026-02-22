@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: CanvasSettings = {
   showMarkers: true,
   showMinimap: false,
   promptRelationship: true,
+  showReflectionPrompts: true,
   showParentEdges: true,
   showPartnerEdges: true,
   showSiblingEdges: true,
@@ -71,6 +72,20 @@ describe("CanvasSettingsContent", () => {
     const checkbox = screen.getByRole("checkbox", { name: "canvas.showFriendEdges" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showFriendEdges: false });
+  });
+
+  it("renders showReflectionPrompts toggle checked by default", () => {
+    renderComponent();
+    expect(screen.getByRole("checkbox", { name: "canvas.showReflectionPrompts" })).toBeChecked();
+  });
+
+  it("calls onUpdate when showReflectionPrompts is toggled", async () => {
+    const { onUpdate } = renderComponent({ showReflectionPrompts: true });
+    const checkbox = screen.getByRole("checkbox", {
+      name: "canvas.showReflectionPrompts",
+    });
+    await userEvent.click(checkbox);
+    expect(onUpdate).toHaveBeenCalledWith({ showReflectionPrompts: false });
   });
 
   it("reflects unchecked state when visibility is off", () => {

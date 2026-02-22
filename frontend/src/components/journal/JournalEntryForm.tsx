@@ -29,6 +29,7 @@ interface JournalEntryFormProps {
   onDelete?: () => void;
   onCancel: () => void;
   initialPrompt?: string;
+  initialLinkedRef?: JournalLinkedRef;
 }
 
 const CHIP_COLORS: Record<JournalLinkedRef["entity_type"], string> = {
@@ -101,13 +102,14 @@ export function JournalEntryForm({
   onDelete,
   onCancel,
   initialPrompt,
+  initialLinkedRef,
 }: JournalEntryFormProps) {
   const { t } = useTranslation();
   const isNew = entry === null;
 
   const [text, setText] = useState(entry?.text ?? initialPrompt ?? "");
   const [linkedEntities, setLinkedEntities] = useState<JournalLinkedRef[]>(
-    entry?.linked_entities ?? [],
+    entry?.linked_entities ?? (initialLinkedRef ? [initialLinkedRef] : []),
   );
   const [mode, setMode] = useState<FormMode>("write");
   const [showPicker, setShowPicker] = useState(false);

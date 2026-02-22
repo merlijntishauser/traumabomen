@@ -1,5 +1,5 @@
 import { CalendarDays, Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -10,8 +10,10 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
+import { getPersonPrompt } from "../../lib/reflectionPrompts";
 import type {
   Classification,
+  JournalLinkedRef,
   LifeEvent,
   Person,
   RelationshipData,
@@ -113,6 +115,8 @@ interface PersonDetailPanelProps {
   ) => void;
   onDeleteClassification: (classificationId: string) => void;
   onClose: () => void;
+  showReflectionPrompts?: boolean;
+  onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
 }
 
 export function PersonDetailPanel({
@@ -138,6 +142,8 @@ export function PersonDetailPanel({
   onSaveClassification,
   onDeleteClassification,
   onClose,
+  showReflectionPrompts,
+  onOpenJournal,
 }: PersonDetailPanelProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<DetailTab>(sectionToTab(initialSection ?? null));
@@ -152,6 +158,10 @@ export function PersonDetailPanel({
       if (sub) setEventSubTab(sub);
     }
   }, [initialSection]);
+
+  // Stable prompt per person (re-rolls when selecting a different person)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per person
+  const personPrompt = useMemo(() => getPersonPrompt(t, person.name), [person.id]);
 
   const relsCount = relationships.length + inferredSiblings.length;
   const eventsCount = events.length + lifeEvents.length + turningPoints.length;
@@ -176,6 +186,18 @@ export function PersonDetailPanel({
           {t("common.close")}
         </button>
       </div>
+
+      {showReflectionPrompts && onOpenJournal && (
+        <button
+          type="button"
+          className="detail-panel__prompt"
+          onClick={() =>
+            onOpenJournal(personPrompt, { entity_type: "person", entity_id: person.id })
+          }
+        >
+          {personPrompt}
+        </button>
+      )}
 
       <div className="detail-panel__tabs" role="tablist">
         <button

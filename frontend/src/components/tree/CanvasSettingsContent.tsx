@@ -131,6 +131,15 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
         <span>{t("canvas.promptRelationship")}</span>
       </label>
 
+      <label className="settings-panel__toggle">
+        <input
+          type="checkbox"
+          checked={settings.showReflectionPrompts}
+          onChange={(e) => onUpdate({ showReflectionPrompts: e.target.checked })}
+        />
+        <span>{t("canvas.showReflectionPrompts")}</span>
+      </label>
+
       <div className="settings-panel__divider" />
 
       <ThemeLanguageSettings />

@@ -11,6 +11,8 @@ import type {
 } from "../hooks/useTreeData";
 import { uuidToCompact } from "../lib/compactId";
 import { getPatternColor } from "../lib/patternColors";
+import { getPatternPrompt } from "../lib/reflectionPrompts";
+import type { JournalLinkedRef } from "../types/domain";
 import "./PatternView.css";
 
 interface PatternViewProps {
@@ -21,6 +23,8 @@ interface PatternViewProps {
   turningPoints: Map<string, DecryptedTurningPoint>;
   classifications: Map<string, DecryptedClassification>;
   persons: Map<string, DecryptedPerson>;
+  showReflectionPrompts?: boolean;
+  onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
 }
 
 interface EntityDisplay {
@@ -100,6 +104,8 @@ export function PatternView({
   turningPoints,
   classifications,
   persons,
+  showReflectionPrompts,
+  onOpenJournal,
 }: PatternViewProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -133,6 +139,8 @@ export function PatternView({
             persons={persons}
             treeId={treeId}
             onClose={() => setExpandedId(null)}
+            showReflectionPrompts={showReflectionPrompts}
+            onOpenJournal={onOpenJournal}
           />
         )}
 
@@ -210,6 +218,8 @@ function PatternDetail({
   persons,
   treeId,
   onClose,
+  showReflectionPrompts,
+  onOpenJournal,
 }: {
   pattern: DecryptedPattern;
   events: Map<string, DecryptedEvent>;
@@ -219,8 +229,14 @@ function PatternDetail({
   persons: Map<string, DecryptedPerson>;
   treeId: string;
   onClose: () => void;
+  showReflectionPrompts?: boolean;
+  onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
 }) {
   const { t } = useTranslation();
+
+  // Stable prompt per pattern (re-rolls when selecting a different pattern)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per pattern
+  const patternPrompt = useMemo(() => getPatternPrompt(t), [pattern.id]);
   const displays = getEntityDisplays(
     pattern,
     events,
@@ -246,6 +262,18 @@ function PatternDetail({
 
       {pattern.description && (
         <div className="pattern-view__detail-desc">{pattern.description}</div>
+      )}
+
+      {showReflectionPrompts && onOpenJournal && (
+        <button
+          type="button"
+          className="detail-panel__prompt"
+          onClick={() =>
+            onOpenJournal(patternPrompt, { entity_type: "pattern", entity_id: pattern.id })
+          }
+        >
+          {patternPrompt}
+        </button>
       )}
 
       <div className="pattern-view__detail-entities">

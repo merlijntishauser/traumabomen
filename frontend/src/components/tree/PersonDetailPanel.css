@@ -46,6 +46,30 @@
   color: var(--color-text-secondary);
 }
 
+/* Reflection prompt */
+.detail-panel__prompt {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  margin: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--color-border-primary);
+  font-size: 12px;
+  font-style: italic;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition-colors);
+}
+
+.detail-panel__prompt:hover {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-hover);
+}
+
 /* Tab bar */
 .detail-panel__tabs {
   display: flex;

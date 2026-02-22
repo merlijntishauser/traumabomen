@@ -9,7 +9,7 @@ import type {
   DecryptedPerson,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import type { JournalEntry } from "../../types/domain";
+import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
 import { JournalEntryList } from "./JournalEntryList";
 import "./Journal.css";
 
@@ -25,6 +25,7 @@ interface JournalPanelProps {
   onDelete: (entryId: string) => void;
   onClose: () => void;
   initialPrompt?: string;
+  initialLinkedRef?: JournalLinkedRef;
 }
 
 export function JournalPanel({
@@ -39,6 +40,7 @@ export function JournalPanel({
   onDelete,
   onClose,
   initialPrompt,
+  initialLinkedRef,
 }: JournalPanelProps) {
   const { t } = useTranslation();
 
@@ -71,6 +73,7 @@ export function JournalPanel({
           onSave={onSave}
           onDelete={onDelete}
           initialPrompt={initialPrompt}
+          initialLinkedRef={initialLinkedRef}
         />
       </div>
     </div>

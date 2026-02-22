@@ -28,6 +28,7 @@ import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { TimelineSettingsContent } from "../components/tree/TimelineSettingsContent";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useTimelineFilters } from "../hooks/useTimelineFilters";
 import { useTimelineSettings } from "../hooks/useTimelineSettings";
 import { useTreeData } from "../hooks/useTreeData";
@@ -38,6 +39,7 @@ import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
 import type {
   Classification,
   JournalEntry,
+  JournalLinkedRef,
   LifeEvent,
   LinkedEntity,
   Pattern,
@@ -117,6 +119,11 @@ export default function TimelinePage() {
   // Journal state
   const [journalPanelOpen, setJournalPanelOpen] = useState(false);
   const [journalInitialPrompt, setJournalInitialPrompt] = useState("");
+  const [journalInitialLinkedRef, setJournalInitialLinkedRef] = useState<
+    JournalLinkedRef | undefined
+  >(undefined);
+
+  const { settings: canvasSettings } = useCanvasSettings();
 
   const {
     filters,
@@ -579,6 +586,7 @@ export default function TimelinePage() {
           onClick={() => {
             setJournalPanelOpen((v) => !v);
             setJournalInitialPrompt("");
+            setJournalInitialLinkedRef(undefined);
           }}
         >
           <BookOpen size={14} />
@@ -714,6 +722,7 @@ export default function TimelinePage() {
             onDelete={handleDeleteJournalEntry}
             onClose={() => setJournalPanelOpen(false)}
             initialPrompt={journalInitialPrompt}
+            initialLinkedRef={journalInitialLinkedRef}
           />
         )}
 
@@ -740,6 +749,12 @@ export default function TimelinePage() {
             onSaveClassification={handleSaveClassification}
             onDeleteClassification={handleDeleteClassification}
             onClose={() => setSelectedPersonId(null)}
+            showReflectionPrompts={canvasSettings.showReflectionPrompts}
+            onOpenJournal={(prompt, linkedRef) => {
+              setJournalInitialPrompt(prompt);
+              setJournalInitialLinkedRef(linkedRef);
+              setJournalPanelOpen(true);
+            }}
           />
         )}
       </div>

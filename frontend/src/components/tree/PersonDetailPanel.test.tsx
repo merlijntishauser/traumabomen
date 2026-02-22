@@ -25,6 +25,10 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+vi.mock("../../lib/reflectionPrompts", () => ({
+  getPersonPrompt: (_t: unknown, name: string) => `Reflect on ${name}`,
+}));
+
 function makePerson(overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
   return {
     id: "p1",
@@ -2178,6 +2182,43 @@ describe("PersonDetailPanel", () => {
         expect.any(Object),
         expect.arrayContaining(["p1", "p2"]),
       );
+    });
+  });
+
+  describe("reflection prompt", () => {
+    it("renders reflection prompt when showReflectionPrompts is true", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} showReflectionPrompts={true} onOpenJournal={vi.fn()} />);
+      expect(screen.getByText("Reflect on Alice")).toBeInTheDocument();
+    });
+
+    it("does not render reflection prompt when showReflectionPrompts is false", () => {
+      const props = defaultProps();
+      render(
+        <PersonDetailPanel {...props} showReflectionPrompts={false} onOpenJournal={vi.fn()} />,
+      );
+      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
+    });
+
+    it("does not render reflection prompt when onOpenJournal is not provided", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} showReflectionPrompts={true} />);
+      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
+    });
+
+    it("calls onOpenJournal with prompt and person ref when prompt is clicked", async () => {
+      const user = userEvent.setup();
+      const onOpenJournal = vi.fn();
+      const props = defaultProps();
+      render(
+        <PersonDetailPanel {...props} showReflectionPrompts={true} onOpenJournal={onOpenJournal} />,
+      );
+
+      await user.click(screen.getByText("Reflect on Alice"));
+      expect(onOpenJournal).toHaveBeenCalledWith("Reflect on Alice", {
+        entity_type: "person",
+        entity_id: "p1",
+      });
     });
   });
 });

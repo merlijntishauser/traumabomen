@@ -23,6 +23,7 @@ import { PatternConnectors } from "../components/tree/PatternConnectors";
 import { PatternPanel } from "../components/tree/PatternPanel";
 import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
+import { ReflectionNudge } from "../components/tree/ReflectionNudge";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
@@ -313,6 +314,9 @@ function TreeWorkspaceInner() {
   const [patternPanelOpen, setPatternPanelOpen] = useState(!!openPatternId);
   const [journalPanelOpen, setJournalPanelOpen] = useState(false);
   const [journalInitialPrompt, setJournalInitialPrompt] = useState("");
+  const [journalInitialLinkedRef, setJournalInitialLinkedRef] = useState<
+    import("../types/domain").JournalLinkedRef | undefined
+  >(undefined);
   const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(
     openPatternId ? new Set([openPatternId]) : new Set(),
   );
@@ -899,6 +903,7 @@ function TreeWorkspaceInner() {
           onClick={() => {
             setJournalPanelOpen((v) => !v);
             setJournalInitialPrompt("");
+            setJournalInitialLinkedRef(undefined);
           }}
         >
           <BookOpen size={14} />
@@ -941,6 +946,15 @@ function TreeWorkspaceInner() {
               visiblePatternIds={effectiveVisiblePatternIds}
               onPatternClick={() => setPatternPanelOpen(true)}
             />
+            {canvasSettings.showReflectionPrompts && !journalPanelOpen && persons.size > 0 && (
+              <ReflectionNudge
+                onOpenJournal={(prompt) => {
+                  setJournalInitialPrompt(prompt);
+                  setJournalInitialLinkedRef(undefined);
+                  setJournalPanelOpen(true);
+                }}
+              />
+            )}
             {!isLoading && persons.size === 0 && (
               <div className="tree-canvas-empty">
                 <TreePine size={32} strokeWidth={1.5} color="var(--color-text-muted)" />
@@ -979,6 +993,12 @@ function TreeWorkspaceInner() {
             onSaveClassification={handleSaveClassification}
             onDeleteClassification={handleDeleteClassification}
             onClose={() => setSelectedPersonId(null)}
+            showReflectionPrompts={canvasSettings.showReflectionPrompts}
+            onOpenJournal={(prompt, linkedRef) => {
+              setJournalInitialPrompt(prompt);
+              setJournalInitialLinkedRef(linkedRef);
+              setJournalPanelOpen(true);
+            }}
           />
         )}
 
@@ -1023,6 +1043,7 @@ function TreeWorkspaceInner() {
             onDelete={handleDeleteJournalEntry}
             onClose={() => setJournalPanelOpen(false)}
             initialPrompt={journalInitialPrompt}
+            initialLinkedRef={journalInitialLinkedRef}
           />
         )}
       </div>

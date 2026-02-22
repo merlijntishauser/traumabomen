@@ -419,6 +419,61 @@
   }
 }
 
+/* Reflection nudge banner */
+.reflection-nudge {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 600px;
+  animation: relationship-prompt-in 0.25s ease-out;
+}
+
+.reflection-nudge__text {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.reflection-nudge__btn {
+  padding: 5px 12px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-colors);
+}
+
+.reflection-nudge__btn:hover {
+  background: var(--color-accent-hover);
+}
+
+.reflection-nudge__dismiss {
+  padding: 2px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.reflection-nudge__dismiss:hover {
+  color: var(--color-text-primary);
+}
+
 .relationship-popover {
   position: fixed;
   top: 0;

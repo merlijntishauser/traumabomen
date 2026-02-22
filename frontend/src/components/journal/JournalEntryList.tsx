@@ -10,7 +10,7 @@ import type {
   DecryptedPerson,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import type { JournalEntry } from "../../types/domain";
+import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
 import { JournalEntryForm } from "./JournalEntryForm";
 import "./Journal.css";
 
@@ -27,6 +27,7 @@ interface JournalEntryListProps {
   onSave: (entryId: string | null, data: JournalEntry) => void;
   onDelete: (entryId: string) => void;
   initialPrompt?: string;
+  initialLinkedRef?: JournalLinkedRef;
 }
 
 function formatRelativeTime(
@@ -72,6 +73,7 @@ export function JournalEntryList({
   onSave,
   onDelete,
   initialPrompt,
+  initialLinkedRef,
 }: JournalEntryListProps) {
   const { t } = useTranslation();
   const [editingId, setEditingId] = useState<string | null | "new">(null);
@@ -120,6 +122,7 @@ export function JournalEntryList({
           onDelete={editingId !== "new" ? handleDelete : undefined}
           onCancel={handleCancel}
           initialPrompt={editingId === "new" ? initialPrompt : undefined}
+          initialLinkedRef={editingId === "new" ? initialLinkedRef : undefined}
         />
       )}
 

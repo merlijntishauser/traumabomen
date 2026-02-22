@@ -9,6 +9,7 @@ export interface CanvasSettings {
   showMarkers: boolean;
   showMinimap: boolean;
   promptRelationship: boolean;
+  showReflectionPrompts: boolean;
   showParentEdges: boolean;
   showPartnerEdges: boolean;
   showSiblingEdges: boolean;
@@ -22,6 +23,7 @@ const DEFAULTS: CanvasSettings = {
   showMarkers: true,
   showMinimap: false,
   promptRelationship: true,
+  showReflectionPrompts: true,
   showParentEdges: true,
   showPartnerEdges: true,
   showSiblingEdges: true,
