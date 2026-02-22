@@ -87,6 +87,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
   const canvasStroke = cssVar("--color-bg-canvas");
 
   const ageOf = (year: number) => year - birthYear;
+  const ageLabel = (year: number) => `${t("timeline.ageAxis")}: ${ageOf(year)}`;
   const scaledAge = (year: number) => yScale(ageOf(year));
   // Counter-scale: neutralize the parent zoom group's vertical scale on point markers
   const inv = 1 / zoomK;
@@ -329,7 +330,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
                   lines: [
                     { text: event.title, bold: true },
                     { text: t(`trauma.category.${event.category}`) },
-                    { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
+                    { text: ageLabel(year) },
                     { text: t("timeline.severity", { value: event.severity }) },
                     { text: linkedNames },
                   ],
@@ -385,7 +386,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
           const lines: TooltipLine[] = [
             { text: tp.title, bold: true },
             { text: t(`turningPoint.category.${tp.category}`) },
-            { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
+            { text: ageLabel(year) },
           ];
           if (tp.significance != null) {
             lines.push({ text: t("timeline.significance", { value: tp.significance }) });
@@ -464,7 +465,7 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         const lines: TooltipLine[] = [
           { text: le.title, bold: true },
           { text: t(`lifeEvent.category.${le.category}`) },
-          { text: `${t("timeline.ageAxis")}: ${ageOf(year)}` },
+          { text: ageLabel(year) },
         ];
         if (le.impact != null) {
           lines.push({ text: t("timeline.impact", { value: le.impact }) });
