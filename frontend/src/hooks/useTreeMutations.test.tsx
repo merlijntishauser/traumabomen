@@ -2010,3 +2010,139 @@ describe("pattern mutations", () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Journal Entries
+// ---------------------------------------------------------------------------
+describe("journal entry mutations", () => {
+  const journalData = {
+    text: "My reflection",
+    linked_entities: [{ entity_type: "person" as const, entity_id: "p-1" }],
+  };
+
+  it("createJournalEntry encrypts data then calls api.createJournalEntry", async () => {
+    mockedApi.createJournalEntry.mockResolvedValue({
+      id: "j-1",
+      encrypted_data: "encrypted-blob",
+      created_at: "2025-01-01T00:00:00Z",
+      updated_at: "2025-01-01T00:00:00Z",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.createJournalEntry.mutateAsync(journalData);
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(journalData);
+    expect(mockedApi.createJournalEntry).toHaveBeenCalledWith(TREE_ID, {
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("createJournalEntry invalidates journalEntries query key on success", async () => {
+    mockedApi.createJournalEntry.mockResolvedValue({
+      id: "j-1",
+      encrypted_data: "encrypted-blob",
+      created_at: "2025-01-01T00:00:00Z",
+      updated_at: "2025-01-01T00:00:00Z",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.createJournalEntry.mutateAsync(journalData);
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "journalEntries"],
+    });
+  });
+
+  it("updateJournalEntry encrypts data then calls api.updateJournalEntry", async () => {
+    mockedApi.updateJournalEntry.mockResolvedValue({
+      id: "j-1",
+      encrypted_data: "encrypted-blob",
+      created_at: "2025-01-01T00:00:00Z",
+      updated_at: "2025-01-01T00:00:00Z",
+    });
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.updateJournalEntry.mutateAsync({
+        entryId: "j-1",
+        data: journalData,
+      });
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledWith(journalData);
+    expect(mockedApi.updateJournalEntry).toHaveBeenCalledWith(TREE_ID, "j-1", {
+      encrypted_data: "encrypted-blob",
+    });
+  });
+
+  it("updateJournalEntry invalidates journalEntries query key on success", async () => {
+    mockedApi.updateJournalEntry.mockResolvedValue({
+      id: "j-1",
+      encrypted_data: "encrypted-blob",
+      created_at: "2025-01-01T00:00:00Z",
+      updated_at: "2025-01-01T00:00:00Z",
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.updateJournalEntry.mutateAsync({
+        entryId: "j-1",
+        data: journalData,
+      });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "journalEntries"],
+    });
+  });
+
+  it("deleteJournalEntry calls api.deleteJournalEntry without encryption", async () => {
+    mockedApi.deleteJournalEntry.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.deleteJournalEntry.mutateAsync("j-1");
+    });
+
+    expect(mockEncrypt).not.toHaveBeenCalled();
+    expect(mockedApi.deleteJournalEntry).toHaveBeenCalledWith(TREE_ID, "j-1");
+  });
+
+  it("deleteJournalEntry invalidates journalEntries query key on success", async () => {
+    mockedApi.deleteJournalEntry.mockResolvedValue(undefined);
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    await act(async () => {
+      await result.current.deleteJournalEntry.mutateAsync("j-1");
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "journalEntries"],
+    });
+  });
+});

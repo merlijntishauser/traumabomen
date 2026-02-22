@@ -3,6 +3,7 @@ import { useEncryption } from "../contexts/EncryptionContext";
 import {
   createClassification,
   createEvent,
+  createJournalEntry,
   createLifeEvent,
   createPattern,
   createPerson,
@@ -10,6 +11,7 @@ import {
   createTurningPoint,
   deleteClassification,
   deleteEvent,
+  deleteJournalEntry,
   deleteLifeEvent,
   deletePattern,
   deletePerson,
@@ -17,6 +19,7 @@ import {
   deleteTurningPoint,
   updateClassification,
   updateEvent,
+  updateJournalEntry,
   updateLifeEvent,
   updatePattern,
   updatePerson,
@@ -25,6 +28,7 @@ import {
 } from "../lib/api";
 import type {
   Classification,
+  JournalEntry,
   LifeEvent,
   Pattern,
   Person,
@@ -481,6 +485,41 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const createJournalEntryMutation = useMutation({
+    mutationFn: async (data: JournalEntry) => {
+      const encrypted_data = await encrypt(data);
+      return createJournalEntry(treeId, { encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.journalEntries(treeId),
+      });
+    },
+  });
+
+  const updateJournalEntryMutation = useMutation({
+    mutationFn: async ({ entryId, data }: { entryId: string; data: JournalEntry }) => {
+      const encrypted_data = await encrypt(data);
+      return updateJournalEntry(treeId, entryId, { encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.journalEntries(treeId),
+      });
+    },
+  });
+
+  const deleteJournalEntryMutation = useMutation({
+    mutationFn: async (entryId: string) => {
+      return deleteJournalEntry(treeId, entryId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: treeQueryKeys.journalEntries(treeId),
+      });
+    },
+  });
+
   return {
     createPerson: createPersonMutation,
     updatePerson: updatePersonMutation,
@@ -503,5 +542,8 @@ export function useTreeMutations(treeId: string) {
     createPattern: createPatternMutation,
     updatePattern: updatePatternMutation,
     deletePattern: deletePatternMutation,
+    createJournalEntry: createJournalEntryMutation,
+    updateJournalEntry: updateJournalEntryMutation,
+    deleteJournalEntry: deleteJournalEntryMutation,
   };
 }

@@ -104,6 +104,17 @@ vi.mock("../lib/api", () => ({
       }),
     },
   ]),
+  getJournalEntries: vi.fn().mockResolvedValue([
+    {
+      id: "j1",
+      encrypted_data: JSON.stringify({
+        text: "My first reflection",
+        linked_entities: [],
+      }),
+      created_at: "2025-01-01T00:00:00Z",
+      updated_at: "2025-01-01T00:00:00Z",
+    },
+  ]),
 }));
 
 function createWrapper() {
@@ -126,6 +137,7 @@ describe("useTreeData", () => {
     expect(result.current.turningPoints.size).toBe(0);
     expect(result.current.classifications.size).toBe(0);
     expect(result.current.patterns.size).toBe(0);
+    expect(result.current.journalEntries.size).toBe(0);
     expect(result.current.isLoading).toBe(true);
   });
 
@@ -207,6 +219,17 @@ describe("useTreeData", () => {
     expect(result.current.patterns.get("pat1")?.name).toBe("Test Pattern");
   });
 
+  it("decrypts and returns journal entries after loading", async () => {
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.journalEntries.size).toBe(1);
+    const entry = result.current.journalEntries.get("j1");
+    expect(entry?.text).toBe("My first reflection");
+    expect(entry?.created_at).toBe("2025-01-01T00:00:00Z");
+  });
+
   it("returns no error on success", async () => {
     const { result } = renderHook(() => useTreeData("tree1"), {
       wrapper: createWrapper(),
@@ -226,5 +249,6 @@ describe("treeQueryKeys", () => {
     expect(treeQueryKeys.turningPoints("abc")).toEqual(["trees", "abc", "turningPoints"]);
     expect(treeQueryKeys.classifications("abc")).toEqual(["trees", "abc", "classifications"]);
     expect(treeQueryKeys.patterns("abc")).toEqual(["trees", "abc", "patterns"]);
+    expect(treeQueryKeys.journalEntries("abc")).toEqual(["trees", "abc", "journalEntries"]);
   });
 });

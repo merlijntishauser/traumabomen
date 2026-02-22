@@ -191,6 +191,22 @@ export interface TurningPoint {
   tags: string[];
 }
 
+export interface JournalLinkedRef {
+  entity_type:
+    | "person"
+    | "trauma_event"
+    | "life_event"
+    | "turning_point"
+    | "classification"
+    | "pattern";
+  entity_id: string;
+}
+
+export interface JournalEntry {
+  text: string;
+  linked_entities: JournalLinkedRef[];
+}
+
 export type ClassificationStatus = "suspected" | "diagnosed";
 
 export interface ClassificationPeriod {

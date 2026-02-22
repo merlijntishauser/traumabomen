@@ -3,6 +3,7 @@ import { useEncryption } from "../contexts/EncryptionContext";
 import {
   getClassifications,
   getEvents,
+  getJournalEntries,
   getLifeEvents,
   getPatterns,
   getPersons,
@@ -12,6 +13,7 @@ import {
 } from "../lib/api";
 import type {
   Classification,
+  JournalEntry,
   LifeEvent,
   Pattern,
   Person,
@@ -55,6 +57,12 @@ export interface DecryptedPattern extends Pattern {
   person_ids: string[];
 }
 
+export interface DecryptedJournalEntry extends JournalEntry {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,
@@ -64,6 +72,7 @@ export const treeQueryKeys = {
   turningPoints: (treeId: string) => ["trees", treeId, "turningPoints"] as const,
   classifications: (treeId: string) => ["trees", treeId, "classifications"] as const,
   patterns: (treeId: string) => ["trees", treeId, "patterns"] as const,
+  journalEntries: (treeId: string) => ["trees", treeId, "journalEntries"] as const,
 };
 
 const EMPTY_PERSONS = new Map<string, DecryptedPerson>();
@@ -73,6 +82,7 @@ const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
 const EMPTY_TURNING_POINTS = new Map<string, DecryptedTurningPoint>();
 const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
 const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
+const EMPTY_JOURNAL_ENTRIES = new Map<string, DecryptedJournalEntry>();
 
 export function useTreeData(treeId: string) {
   const { decrypt, key } = useEncryption();
@@ -220,6 +230,29 @@ export function useTreeData(treeId: string) {
     enabled: hasKey,
   });
 
+  const journalEntriesQuery = useQuery({
+    queryKey: treeQueryKeys.journalEntries(treeId),
+    queryFn: async () => {
+      const responses = await getJournalEntries(treeId);
+      const entries = await Promise.all(
+        responses.map(async (r) => {
+          const data = await decrypt<JournalEntry>(r.encrypted_data);
+          return [
+            r.id,
+            {
+              ...data,
+              id: r.id,
+              created_at: r.created_at,
+              updated_at: r.updated_at,
+            } as DecryptedJournalEntry,
+          ] as const;
+        }),
+      );
+      return new Map(entries);
+    },
+    enabled: hasKey,
+  });
+
   return {
     treeName: treeQuery.data ?? null,
     persons: personsQuery.data ?? EMPTY_PERSONS,
@@ -229,6 +262,7 @@ export function useTreeData(treeId: string) {
     turningPoints: turningPointsQuery.data ?? EMPTY_TURNING_POINTS,
     classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
     patterns: patternsQuery.data ?? EMPTY_PATTERNS,
+    journalEntries: journalEntriesQuery.data ?? EMPTY_JOURNAL_ENTRIES,
     isLoading:
       personsQuery.isLoading ||
       relationshipsQuery.isLoading ||
@@ -236,7 +270,8 @@ export function useTreeData(treeId: string) {
       lifeEventsQuery.isLoading ||
       turningPointsQuery.isLoading ||
       classificationsQuery.isLoading ||
-      patternsQuery.isLoading,
+      patternsQuery.isLoading ||
+      journalEntriesQuery.isLoading,
     error:
       personsQuery.error ||
       relationshipsQuery.error ||
@@ -244,6 +279,7 @@ export function useTreeData(treeId: string) {
       lifeEventsQuery.error ||
       turningPointsQuery.error ||
       classificationsQuery.error ||
-      patternsQuery.error,
+      patternsQuery.error ||
+      journalEntriesQuery.error,
   };
 }

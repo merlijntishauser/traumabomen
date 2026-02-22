@@ -12,6 +12,9 @@ import type {
   FeedbackItem,
   FunnelStats,
   GrowthStats,
+  JournalEntryCreate,
+  JournalEntryResponse,
+  JournalEntryUpdate,
   LifeEventCreate,
   LifeEventResponse,
   LifeEventUpdate,
@@ -446,6 +449,39 @@ export function updateTurningPoint(
 
 export function deleteTurningPoint(treeId: string, turningPointId: string): Promise<void> {
   return apiFetchWithRetry(`/trees/${treeId}/turning-points/${turningPointId}`, {
+    method: "DELETE",
+  });
+}
+
+// Journal
+
+export function getJournalEntries(treeId: string): Promise<JournalEntryResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/journal`);
+}
+
+export function createJournalEntry(
+  treeId: string,
+  data: JournalEntryCreate,
+): Promise<JournalEntryResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/journal`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export function updateJournalEntry(
+  treeId: string,
+  entryId: string,
+  data: JournalEntryUpdate,
+): Promise<JournalEntryResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/journal/${entryId}`, {
+    method: "PUT",
+    body: data,
+  });
+}
+
+export function deleteJournalEntry(treeId: string, entryId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/journal/${entryId}`, {
     method: "DELETE",
   });
 }

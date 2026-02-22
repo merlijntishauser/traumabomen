@@ -170,6 +170,22 @@ export interface TurningPointResponse {
   updated_at: string;
 }
 
+// Journal
+export interface JournalEntryCreate {
+  encrypted_data: string;
+}
+
+export interface JournalEntryUpdate {
+  encrypted_data: string;
+}
+
+export interface JournalEntryResponse {
+  id: string;
+  encrypted_data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Classifications
 export interface ClassificationCreate {
   person_ids: string[];
