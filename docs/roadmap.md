@@ -16,15 +16,7 @@ Priority: reflection features first (they define the product), then scaling hard
 
 These features turn the tree from a diagram into a living reflection tool. The resilience layer is the single most important addition for practitioner credibility.
 
-### 1. Resilience and strengths layer
-
-Balance the deficit focus with a way to map resilience: who broke a cycle, what protective factors existed, where did healing happen. Without this, the tool risks feeling like a pathology catalog.
-
-- New event type: "Turning point" or "Resilience event"
-- Own color on canvas badges and timeline markers
-- Categories: cycle-breaking, protective relationship, recovery, achievement, positive change
-- Keeps the tool from feeling purely pathology-oriented
-- Minimal viable version: a single "Turning point" event type with its own badge color
+### ~~1. Resilience and strengths layer~~ (done)
 
 ### 2. Reflection journal
 
@@ -170,6 +162,10 @@ Structured feedback (bug, feature, general) via modal in the footer. Stored in d
 ### Pattern editor
 
 Annotation layer linking trauma events, life events, and classifications across generations to mark recurring themes. Metaball contour visualization on the canvas, theme-aware colors, hover preview from panel, dedicated pattern view with edit-on-canvas navigation. [Design doc](plans/2026-02-16-pattern-editor-design.md).
+
+### Resilience and strengths layer
+
+New "Turning Point" event type for mapping resilience: cycle-breaking, protective relationships, recovery, achievement, positive change. Star-shaped badges on canvas, star markers on timeline, full CRUD in detail panel (grouped under Events tab with trauma and life events), pattern linking, demo tree entries, bulk sync support. [Design doc](plans/2026-02-21-resilience-layer-design.md).
 
 ### Safety envelope
 
