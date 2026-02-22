@@ -1,10 +1,10 @@
 import type { LucideIcon } from "lucide-react";
-import { GanttChart, Network, Waypoints } from "lucide-react";
+import { BookOpen, GanttChart, Network, Waypoints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { uuidToCompact } from "../../lib/compactId";
 
-export type ActiveView = "canvas" | "timeline" | "patterns";
+export type ActiveView = "canvas" | "timeline" | "patterns" | "journal";
 
 interface ViewTabsProps {
   treeId: string;
@@ -15,6 +15,7 @@ const TAB_ICONS: Record<ActiveView, LucideIcon> = {
   canvas: Network,
   timeline: GanttChart,
   patterns: Waypoints,
+  journal: BookOpen,
 };
 
 export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
@@ -25,6 +26,7 @@ export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
     { view: "canvas", label: t("tree.canvas"), to: `/trees/${compactId}` },
     { view: "timeline", label: t("tree.timeline"), to: `/trees/${compactId}/timeline` },
     { view: "patterns", label: t("pattern.patterns"), to: `/trees/${compactId}/patterns` },
+    { view: "journal", label: t("journal.tab"), to: `/trees/${compactId}/journal` },
   ];
 
   return (

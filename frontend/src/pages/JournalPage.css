@@ -1,0 +1,21 @@
+.journal-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100vw;
+  background: var(--color-bg-primary);
+}
+
+.journal-page__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.journal-page__inner {
+  width: 100%;
+  max-width: 800px;
+}
