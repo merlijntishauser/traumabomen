@@ -23,7 +23,7 @@ const DEFAULTS: CanvasSettings = {
   showMarkers: true,
   showMinimap: false,
   promptRelationship: true,
-  showReflectionPrompts: true,
+  showReflectionPrompts: false,
   showParentEdges: true,
   showPartnerEdges: true,
   showSiblingEdges: true,
