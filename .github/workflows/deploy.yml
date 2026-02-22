@@ -16,7 +16,29 @@ permissions:
   issues: write
 
 jobs:
+  ci-check:
+    name: Verify CI passed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI status for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA="${{ github.sha }}"
+          echo "Checking CI status for commit $SHA..."
+          CONCLUSION=$(gh api \
+            "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+            --jq '.check_runs[] | select(.name == "Test frontend" or .name == "Test backend") | .conclusion' \
+            | sort -u)
+          echo "CI conclusions: $CONCLUSION"
+          if echo "$CONCLUSION" | grep -qv "success"; then
+            echo "CI has not passed for this commit. Aborting deploy."
+            exit 1
+          fi
+          echo "CI passed."
+
   build-api:
+    needs: [ci-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -44,6 +66,7 @@ jobs:
           docker push ${{ env.IMAGE_PREFIX }}/api:latest
 
   build-frontend:
+    needs: [ci-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
