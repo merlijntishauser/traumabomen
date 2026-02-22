@@ -1,6 +1,17 @@
-import { Calendar, Clock, Eye, EyeOff, Filter, Pencil, Search, Waypoints } from "lucide-react";
+import {
+  BookOpen,
+  Calendar,
+  Clock,
+  Eye,
+  EyeOff,
+  Filter,
+  Pencil,
+  Search,
+  Waypoints,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { JournalPanel } from "../components/journal/JournalPanel";
 import { CreatePatternMiniForm } from "../components/timeline/CreatePatternMiniForm";
 import { MarkerDetailCard } from "../components/timeline/MarkerDetailCard";
 import type { MarkerClickInfo, TimelineMode } from "../components/timeline/PersonLane";
@@ -26,6 +37,7 @@ import { inferSiblings } from "../lib/inferSiblings";
 import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
 import type {
   Classification,
+  JournalEntry,
   LifeEvent,
   LinkedEntity,
   Pattern,
@@ -81,6 +93,7 @@ export default function TimelinePage() {
     turningPoints,
     classifications,
     patterns,
+    journalEntries,
     isLoading,
     error,
   } = useTreeData(treeId!);
@@ -100,6 +113,10 @@ export default function TimelinePage() {
   const [showPatterns, setShowPatterns] = useState(true);
   const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
   const [focusedPatternId, setFocusedPatternId] = useState<string | null>(null);
+
+  // Journal state
+  const [journalPanelOpen, setJournalPanelOpen] = useState(false);
+  const [journalInitialPrompt, setJournalInitialPrompt] = useState("");
 
   const {
     filters,
@@ -240,6 +257,10 @@ export default function TimelinePage() {
           setSelectedEntityKeys(new Set());
           return;
         }
+        if (journalPanelOpen) {
+          setJournalPanelOpen(false);
+          return;
+        }
         if (patternPanelOpen) {
           setPatternPanelOpen(false);
           setFocusedPatternId(null);
@@ -260,7 +281,14 @@ export default function TimelinePage() {
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedEntityKeys, patternPanelOpen, selectedPersonId, filterPanelOpen, mode]);
+  }, [
+    selectedEntityKeys,
+    journalPanelOpen,
+    patternPanelOpen,
+    selectedPersonId,
+    filterPanelOpen,
+    mode,
+  ]);
 
   // Mutation handlers (same pattern as TreeWorkspacePage)
   function handleSavePerson(data: Person) {
@@ -345,6 +373,18 @@ export default function TimelinePage() {
 
   function handleDeletePattern(patternId: string) {
     mutations.deletePattern.mutate(patternId);
+  }
+
+  function handleSaveJournalEntry(entryId: string | null, data: JournalEntry) {
+    if (entryId) {
+      mutations.updateJournalEntry.mutate({ entryId, data });
+    } else {
+      mutations.createJournalEntry.mutate(data);
+    }
+  }
+
+  function handleDeleteJournalEntry(entryId: string) {
+    mutations.deleteJournalEntry.mutate(entryId);
   }
 
   function handleTogglePatternVisibility(patternId: string) {
@@ -533,6 +573,17 @@ export default function TimelinePage() {
             <span className="tl-filter-badge">{filterActions.activeFilterCount}</span>
           )}
         </button>
+        <button
+          type="button"
+          className="tree-toolbar__btn"
+          onClick={() => {
+            setJournalPanelOpen((v) => !v);
+            setJournalInitialPrompt("");
+          }}
+        >
+          <BookOpen size={14} />
+          {t("journal.tab")}
+        </button>
       </TreeToolbar>
 
       {filterActions.activeFilterCount > 0 && (
@@ -647,6 +698,22 @@ export default function TimelinePage() {
             }}
             onHoverPattern={setHoveredPatternId}
             initialExpandedId={focusedPatternId}
+          />
+        )}
+
+        {journalPanelOpen && (
+          <JournalPanel
+            journalEntries={journalEntries}
+            persons={persons}
+            events={events}
+            lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
+            classifications={classifications}
+            patterns={patterns}
+            onSave={handleSaveJournalEntry}
+            onDelete={handleDeleteJournalEntry}
+            onClose={() => setJournalPanelOpen(false)}
+            initialPrompt={journalInitialPrompt}
           />
         )}
 
