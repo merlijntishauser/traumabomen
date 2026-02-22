@@ -54,7 +54,21 @@ const mockEvents = new Map<string, DecryptedEvent>([
 ]);
 
 const mockLifeEvents = new Map<string, DecryptedLifeEvent>();
-const mockTurningPoints = new Map<string, DecryptedTurningPoint>();
+const mockTurningPoints = new Map<string, DecryptedTurningPoint>([
+  [
+    "tp1",
+    {
+      id: "tp1",
+      title: "Broke the cycle",
+      description: "Sought therapy",
+      category: "cycle_breaking" as DecryptedTurningPoint["category"],
+      approximate_date: "1998",
+      significance: 8,
+      tags: [],
+      person_ids: ["p1"],
+    },
+  ],
+]);
 const mockClassifications = new Map<string, DecryptedClassification>();
 
 const mockPattern: DecryptedPattern = {
@@ -330,6 +344,56 @@ describe("PatternPanel", () => {
     expect(screen.getByText("dsm.depressive")).toBeInTheDocument();
     // The person name should appear on the chip
     expect(screen.getByText("Alice")).toBeInTheDocument();
+  });
+
+  it("resolves turning point entity info", () => {
+    const patternWithTp: DecryptedPattern = {
+      id: "pat4",
+      name: "Resilience Pattern",
+      description: "",
+      color: "#818cf8",
+      linked_entities: [{ entity_type: "turning_point", entity_id: "tp1" }],
+      person_ids: ["p1"],
+    };
+
+    const patterns = new Map<string, DecryptedPattern>([["pat4", patternWithTp]]);
+    renderPanel({
+      patterns,
+      visiblePatternIds: new Set(["pat4"]),
+    });
+
+    fireEvent.click(screen.getByText("Resilience Pattern"));
+
+    expect(screen.getByText("Broke the cycle")).toBeInTheDocument();
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+  });
+
+  it("entity picker shows turning points and linking them triggers save with person IDs", () => {
+    const onSave = vi.fn();
+    const patterns = new Map<string, DecryptedPattern>([
+      ["pat1", { ...mockPattern, linked_entities: [], person_ids: [] }],
+    ]);
+    renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]), onSave });
+
+    fireEvent.click(screen.getByText("Test Pattern"));
+    fireEvent.click(screen.getByText("pattern.linkEntity"));
+
+    const linkSection = document.querySelector(".pattern-panel__link-section")!;
+    expect(within(linkSection as HTMLElement).getByText("Broke the cycle")).toBeInTheDocument();
+
+    // Link the turning point
+    fireEvent.click(within(linkSection as HTMLElement).getByText("Broke the cycle"));
+
+    // Save the pattern
+    fireEvent.click(screen.getByText("common.save"));
+
+    expect(onSave).toHaveBeenCalledWith(
+      "pat1",
+      expect.objectContaining({
+        linked_entities: [{ entity_type: "turning_point", entity_id: "tp1" }],
+      }),
+      expect.arrayContaining(["p1"]),
+    );
   });
 
   it("shows subcategory label when classification has a subcategory", () => {

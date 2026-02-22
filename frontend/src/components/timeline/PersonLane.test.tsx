@@ -1052,4 +1052,15 @@ describe("PersonLane", () => {
       expect(labels).toHaveLength(0);
     });
   });
+
+  describe("lane interaction", () => {
+    it("calls onSelectPerson when lane hitarea is clicked", () => {
+      const onSelectPerson = vi.fn();
+      const { container } = renderLane({ onSelectPerson });
+      const hitarea = container.querySelector(".tl-lane-hitarea");
+      expect(hitarea).not.toBeNull();
+      fireEvent.click(hitarea!);
+      expect(onSelectPerson).toHaveBeenCalledWith("a");
+    });
+  });
 });

@@ -485,4 +485,41 @@ describe("RelationshipDetailPanel", () => {
       active_period: null,
     });
   });
+
+  it("calls onSaveRelationship when relationship type is changed", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const props = { ...defaultProps(), onSaveRelationship: onSave };
+    render(<RelationshipDetailPanel {...props} />);
+
+    const select = screen.getByRole("combobox", { name: "relationship.type" });
+    await user.selectOptions(select, RelationshipType.StepParent);
+
+    expect(onSave).toHaveBeenCalledWith(
+      "r1",
+      expect.objectContaining({ type: RelationshipType.StepParent, periods: [] }),
+    );
+  });
+
+  it("clears periods when changing from partner to non-partner type", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const props = {
+      ...defaultProps(),
+      relationship: makeRelationship({
+        type: RelationshipType.Partner,
+        periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
+      }),
+      onSaveRelationship: onSave,
+    };
+    render(<RelationshipDetailPanel {...props} />);
+
+    const select = screen.getByRole("combobox", { name: "relationship.type" });
+    await user.selectOptions(select, RelationshipType.BiologicalParent);
+
+    expect(onSave).toHaveBeenCalledWith(
+      "r1",
+      expect.objectContaining({ type: RelationshipType.BiologicalParent, periods: [] }),
+    );
+  });
 });

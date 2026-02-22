@@ -88,7 +88,21 @@ const mockEvents = new Map<string, DecryptedEvent>([
 ]);
 
 const mockLifeEvents = new Map<string, DecryptedLifeEvent>();
-const mockTurningPoints = new Map<string, DecryptedTurningPoint>();
+const mockTurningPoints = new Map<string, DecryptedTurningPoint>([
+  [
+    "tp1",
+    {
+      id: "tp1",
+      title: "Broke the cycle",
+      description: "Sought therapy",
+      category: "cycle_breaking" as DecryptedTurningPoint["category"],
+      approximate_date: "1998",
+      significance: 8,
+      tags: [],
+      person_ids: ["p1"],
+    },
+  ],
+]);
 const mockClassifications = new Map<string, DecryptedClassification>();
 
 function makePattern(overrides: Partial<DecryptedPattern> = {}): DecryptedPattern {
@@ -313,6 +327,23 @@ describe("PatternView", () => {
     // The classification label should appear (t() returns the key, so "dsm.depressive")
     expect(screen.getByText(/dsm\.depressive/)).toBeTruthy();
     // The person name should appear alongside
+    expect(screen.getByText(/Alice/)).toBeTruthy();
+  });
+
+  it("shows turning point entity on card", () => {
+    const pattern = makePattern({
+      linked_entities: [{ entity_type: "turning_point", entity_id: "tp1" }],
+      person_ids: ["p1"],
+    });
+
+    const props = {
+      ...defaultProps(),
+      patterns: new Map([["pat1", pattern]]),
+    };
+
+    render(<PatternView {...props} />);
+
+    expect(screen.getByText(/Broke the cycle/)).toBeTruthy();
     expect(screen.getByText(/Alice/)).toBeTruthy();
   });
 

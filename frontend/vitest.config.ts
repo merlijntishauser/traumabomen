@@ -18,6 +18,7 @@ export default defineConfig({
         "**/*.d.ts",
         "e2e/**",
         "src/test/**",
+        "src/types/**",
         "src/i18n.ts",
         "src/main.tsx",
         "src/App.tsx",

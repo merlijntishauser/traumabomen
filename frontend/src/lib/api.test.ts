@@ -12,6 +12,7 @@ import {
   createPerson,
   createRelationship,
   createTree,
+  createTurningPoint,
   deleteAccount,
   deleteClassification,
   deleteEvent,
@@ -21,6 +22,7 @@ import {
   deletePerson,
   deleteRelationship,
   deleteTree,
+  deleteTurningPoint,
   deleteWaitlistEntry,
   getAccessToken,
   getAdminActivity,
@@ -51,6 +53,7 @@ import {
   getRelationships,
   getTree,
   getTrees,
+  getTurningPoints,
   joinWaitlist,
   login,
   logout,
@@ -68,6 +71,7 @@ import {
   updateRelationship,
   updateSalt,
   updateTree,
+  updateTurningPoint,
   verifyEmail,
 } from "./api";
 
@@ -1426,5 +1430,59 @@ describe("waitlist functions", () => {
       expect.objectContaining({ method: "PUT" }),
     );
     expect(localStorage.getItem("traumabomen_onboarding_acknowledged")).toBe("true");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Turning point functions
+// ---------------------------------------------------------------------------
+
+describe("turning point functions", () => {
+  it("getTurningPoints sends GET to /trees/{treeId}/turning-points", async () => {
+    setTokens("tok", "ref");
+    const tps = [{ id: "tp1", encrypted_data: "enc" }];
+    mockFetch.mockResolvedValueOnce(mockResponse(tps));
+
+    const result = await getTurningPoints("tree-1");
+
+    expect(mockFetch.mock.calls[0][0]).toBe("/api/trees/tree-1/turning-points");
+    expect(result).toEqual(tps);
+  });
+
+  it("createTurningPoint sends POST to /trees/{treeId}/turning-points", async () => {
+    setTokens("tok", "ref");
+    const body = { person_ids: ["p1"], encrypted_data: "enc" };
+    mockFetch.mockResolvedValueOnce(mockResponse({ id: "tp1", ...body }));
+
+    await createTurningPoint("tree-1", body);
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/turning-points");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual(body);
+  });
+
+  it("updateTurningPoint sends PUT to /trees/{treeId}/turning-points/{tpId}", async () => {
+    setTokens("tok", "ref");
+    const data = { encrypted_data: "updated" };
+    mockFetch.mockResolvedValueOnce(mockResponse({ id: "tp1", ...data }));
+
+    await updateTurningPoint("tree-1", "tp1", data);
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/turning-points/tp1");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(init.body)).toEqual(data);
+  });
+
+  it("deleteTurningPoint sends DELETE to /trees/{treeId}/turning-points/{tpId}", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await deleteTurningPoint("tree-1", "tp1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/trees/tree-1/turning-points/tp1");
+    expect(init.method).toBe("DELETE");
   });
 });
