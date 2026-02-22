@@ -582,15 +582,15 @@ export default function TimelinePage() {
         </button>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className={`tree-toolbar__icon-btn${journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => {
             setJournalPanelOpen((v) => !v);
             setJournalInitialPrompt("");
             setJournalInitialLinkedRef(undefined);
           }}
+          aria-label={t("journal.tab")}
         >
           <BookOpen size={14} />
-          {t("journal.tab")}
         </button>
       </TreeToolbar>
 

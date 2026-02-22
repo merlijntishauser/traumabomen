@@ -864,50 +864,50 @@ function TreeWorkspaceInner() {
       <TreeToolbar treeId={treeId!} treeName={treeName} activeView="canvas" viewTab={canvasViewTab}>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className="tree-toolbar__icon-btn"
           onClick={handleAddPerson}
           disabled={mutations.createPerson.isPending}
+          aria-label={t("tree.addPerson")}
         >
           <UserPlus size={14} />
-          {t("tree.addPerson")}
         </button>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className="tree-toolbar__icon-btn"
           onClick={handleAutoLayout}
           disabled={!hasPinnedNodes}
+          aria-label={t("tree.autoLayout")}
         >
           <LayoutGrid size={14} />
-          {t("tree.autoLayout")}
         </button>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className="tree-toolbar__icon-btn"
           onClick={handleUndo}
           disabled={!canUndo}
-          title={t("tree.undo")}
+          aria-label={t("tree.undo")}
         >
           <Undo2 size={14} />
         </button>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className={`tree-toolbar__icon-btn${patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => setPatternPanelOpen((v) => !v)}
+          aria-label={t("pattern.editPatterns")}
         >
           <Waypoints size={14} />
-          {t("pattern.editPatterns")}
         </button>
         <button
           type="button"
-          className="tree-toolbar__btn"
+          className={`tree-toolbar__icon-btn${journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => {
             setJournalPanelOpen((v) => !v);
             setJournalInitialPrompt("");
             setJournalInitialLinkedRef(undefined);
           }}
+          aria-label={t("journal.tab")}
         >
           <BookOpen size={14} />
-          {t("journal.tab")}
         </button>
       </TreeToolbar>
 
