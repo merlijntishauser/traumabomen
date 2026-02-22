@@ -51,7 +51,7 @@ function formatRelativeTime(
 function stripMarkdown(text: string): string {
   return text
     .replace(/[#*_~`>]/g, "")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]{1,500})\]\([^)]{1,2000}\)/g, "$1")
     .replace(/\n+/g, " ")
     .trim();
 }

@@ -18,24 +18,9 @@ These features turn the tree from a diagram into a living reflection tool. The r
 
 ### ~~1. Resilience and strengths layer~~ (done)
 
-### 2. Reflection journal
+### ~~2. Reflection journal~~ (done)
 
-Per-tree journal with timestamped entries. Not a generic diary; entries that can optionally link to specific persons, events, patterns, or classifications. The connective tissue between the data and the meaning.
-
-- Chronological list in a slide-out panel or dedicated view
-- Optional entity linking ("Today I realized my grandmother's displacement mirrors my own feeling of never belonging")
-- Rich text or markdown for longer entries
-- Encrypted client-side like all other content
-
-### 3. Guided reflection prompts
-
-Small curated library of optional prompts that help users explore their tree more deeply. Available as starting points for journal entries.
-
-- "Who in your family tree do you most identify with, and why?"
-- "What event had the most ripple effects across generations?"
-- "Are there strengths or resilience patterns, not just trauma?"
-- "What patterns do you notice repeating?"
-- Static, curated; not AI-generated
+### ~~3. Guided reflection prompts~~ (done)
 
 ### 4. Personal insights summary
 
