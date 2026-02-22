@@ -72,6 +72,7 @@ jobs:
 
   test-fe:
     name: Test frontend
+    needs: [lint-fe, typecheck-fe]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -88,6 +89,7 @@ jobs:
 
   test-be:
     name: Test backend
+    needs: [lint-be, typecheck-be]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -120,6 +122,7 @@ jobs:
 
   quality-be:
     name: Quality gate (backend)
+    needs: [lint-be, typecheck-be]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -158,6 +161,7 @@ jobs:
 
   quality-fe:
     name: Quality gate (frontend)
+    needs: [lint-fe, typecheck-fe]
     runs-on: ubuntu-latest
     defaults:
       run:
