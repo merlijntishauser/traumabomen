@@ -18,23 +18,25 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
         <span className="settings-panel__label">{t("canvas.gridSettings")}</span>
       </div>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showGrid}
-          onChange={(e) => onUpdate({ showGrid: e.target.checked })}
-        />
-        <span>{t("canvas.showGrid")}</span>
-      </label>
+      <div className="settings-panel__toggle-grid">
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showGrid}
+            onChange={(e) => onUpdate({ showGrid: e.target.checked })}
+          />
+          <span>{t("canvas.showGrid")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.snapToGrid}
-          onChange={(e) => onUpdate({ snapToGrid: e.target.checked })}
-        />
-        <span>{t("canvas.snapToGrid")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.snapToGrid}
+            onChange={(e) => onUpdate({ snapToGrid: e.target.checked })}
+          />
+          <span>{t("canvas.snapToGrid")}</span>
+        </label>
+      </div>
 
       <div className="settings-panel__divider" />
 
@@ -62,41 +64,43 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
         <span className="settings-panel__label">{t("canvas.relationshipVisibility")}</span>
       </div>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showParentEdges}
-          onChange={(e) => onUpdate({ showParentEdges: e.target.checked })}
-        />
-        <span>{t("canvas.showParentEdges")}</span>
-      </label>
+      <div className="settings-panel__toggle-grid">
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showParentEdges}
+            onChange={(e) => onUpdate({ showParentEdges: e.target.checked })}
+          />
+          <span>{t("canvas.showParentEdges")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showPartnerEdges}
-          onChange={(e) => onUpdate({ showPartnerEdges: e.target.checked })}
-        />
-        <span>{t("canvas.showPartnerEdges")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showPartnerEdges}
+            onChange={(e) => onUpdate({ showPartnerEdges: e.target.checked })}
+          />
+          <span>{t("canvas.showPartnerEdges")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showSiblingEdges}
-          onChange={(e) => onUpdate({ showSiblingEdges: e.target.checked })}
-        />
-        <span>{t("canvas.showSiblingEdges")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showSiblingEdges}
+            onChange={(e) => onUpdate({ showSiblingEdges: e.target.checked })}
+          />
+          <span>{t("canvas.showSiblingEdges")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showFriendEdges}
-          onChange={(e) => onUpdate({ showFriendEdges: e.target.checked })}
-        />
-        <span>{t("canvas.showFriendEdges")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showFriendEdges}
+            onChange={(e) => onUpdate({ showFriendEdges: e.target.checked })}
+          />
+          <span>{t("canvas.showFriendEdges")}</span>
+        </label>
+      </div>
 
       <div className="settings-panel__divider" />
 
@@ -104,41 +108,43 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
         <span className="settings-panel__label">{t("canvas.other")}</span>
       </div>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showMarkers}
-          onChange={(e) => onUpdate({ showMarkers: e.target.checked })}
-        />
-        <span>{t("canvas.showMarkers")}</span>
-      </label>
+      <div className="settings-panel__toggle-grid">
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showMarkers}
+            onChange={(e) => onUpdate({ showMarkers: e.target.checked })}
+          />
+          <span>{t("canvas.showMarkers")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showMinimap}
-          onChange={(e) => onUpdate({ showMinimap: e.target.checked })}
-        />
-        <span>{t("canvas.showMinimap")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showMinimap}
+            onChange={(e) => onUpdate({ showMinimap: e.target.checked })}
+          />
+          <span>{t("canvas.showMinimap")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.promptRelationship}
-          onChange={(e) => onUpdate({ promptRelationship: e.target.checked })}
-        />
-        <span>{t("canvas.promptRelationship")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.promptRelationship}
+            onChange={(e) => onUpdate({ promptRelationship: e.target.checked })}
+          />
+          <span>{t("canvas.promptRelationship")}</span>
+        </label>
 
-      <label className="settings-panel__toggle">
-        <input
-          type="checkbox"
-          checked={settings.showReflectionPrompts}
-          onChange={(e) => onUpdate({ showReflectionPrompts: e.target.checked })}
-        />
-        <span>{t("canvas.showReflectionPrompts")}</span>
-      </label>
+        <label className="settings-panel__toggle">
+          <input
+            type="checkbox"
+            checked={settings.showReflectionPrompts}
+            onChange={(e) => onUpdate({ showReflectionPrompts: e.target.checked })}
+          />
+          <span>{t("canvas.showReflectionPrompts")}</span>
+        </label>
+      </div>
 
       <div className="settings-panel__divider" />
 

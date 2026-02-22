@@ -45,14 +45,14 @@
 }
 
 .settings-panel__content {
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 .settings-panel__toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: 3px 14px;
   font-size: 13px;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -68,14 +68,19 @@
   cursor: pointer;
 }
 
+.settings-panel__toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .settings-panel__divider {
   height: 1px;
-  margin: 4px 0;
+  margin: 3px 0;
   background: var(--color-border-primary);
 }
 
 .settings-panel__group {
-  padding: 4px 14px;
+  padding: 3px 14px 1px;
 }
 
 .settings-panel__label {
@@ -85,12 +90,11 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .settings-panel__radios {
   display: flex;
-  flex-direction: column;
   gap: 2px;
 }
 
@@ -98,7 +102,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 0;
+  padding: 2px 8px 2px 0;
   font-size: 13px;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -107,6 +111,7 @@
 .settings-panel__radio input[type="radio"] {
   accent-color: var(--color-accent);
   cursor: pointer;
+  margin: 0;
 }
 
 /* Theme switch */
