@@ -1,6 +1,7 @@
 from app.models.classification import Classification, ClassificationPerson
 from app.models.event import EventPerson, TraumaEvent
 from app.models.feedback import Feedback
+from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.login_event import LoginEvent
 from app.models.pattern import Pattern, PatternPerson
@@ -26,6 +27,7 @@ __all__ = [
     "PatternPerson",
     "TurningPoint",
     "TurningPointPerson",
+    "JournalEntry",
     "LoginEvent",
     "Feedback",
     "WaitlistEntry",

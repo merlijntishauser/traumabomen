@@ -44,3 +44,6 @@ class Tree(Base):
     turning_points: Mapped[list[TurningPoint]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    journal_entries: Mapped[list[JournalEntry]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )
