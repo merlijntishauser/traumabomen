@@ -131,6 +131,24 @@ class TurningPointResponse(_LinkedEntityResponse):
     pass
 
 
+# --- JournalEntry ---
+
+
+class JournalEntryCreate(BaseModel):
+    encrypted_data: str
+
+
+class JournalEntryUpdate(BaseModel):
+    encrypted_data: str
+
+
+class JournalEntryResponse(BaseModel):
+    id: uuid.UUID
+    encrypted_data: str
+    created_at: datetime
+    updated_at: datetime
+
+
 # --- Classification ---
 
 
