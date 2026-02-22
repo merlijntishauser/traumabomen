@@ -39,10 +39,12 @@ Required before growing beyond the current 20-user beta. These are infrastructur
 
 Login, registration, and all endpoints are currently unthrottled. A single bad actor could brute-force auth or DoS the API.
 
-- Rate limiting middleware (slowapi or custom) on auth endpoints at minimum
-- Progressive backoff on failed login attempts
-- Consider tarpitting scheme for login brute-force
-- Global request throttle as a safety net
+- Nginx rate limiting: strict on login/register (5 req/min), general on auth (20 req/min), global safety net (120 req/min)
+- Application-layer progressive backoff with tarpitting on failed logins (in-memory tracking by IP and email)
+- Lockout after 10 failed attempts (15 min), auto-expiry after 30 min
+- Future: per-user rate limiting, Redis for multi-instance, CAPTCHA, admin dashboard for rate limit events
+
+See [design doc](plans/2026-02-22-api-rate-limiting-design.md).
 
 ### 6. Production error tracking
 
