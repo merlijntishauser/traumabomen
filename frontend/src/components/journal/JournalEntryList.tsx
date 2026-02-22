@@ -1,6 +1,7 @@
 import { BookOpen, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import Markdown from "react-markdown";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -10,11 +11,12 @@ import type {
   DecryptedPerson,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
+import { getChipColor, resolveChipLabel } from "../../lib/journalChips";
 import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
 import { JournalEntryForm } from "./JournalEntryForm";
 import "./Journal.css";
 
-const PREVIEW_LENGTH = 120;
+const MAX_CHIPS = 4;
 
 interface JournalEntryListProps {
   entries: DecryptedJournalEntry[];
@@ -46,20 +48,6 @@ function formatRelativeTime(
     return t("journal.hoursAgo", { count: diffHours });
   }
   return date.toLocaleDateString();
-}
-
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/[#*_~`>]/g, "")
-    .replace(/\[([^\]]{1,500})\]\([^)]{1,2000}\)/g, "$1")
-    .replace(/\n+/g, " ")
-    .trim();
-}
-
-function truncate(text: string, maxLength: number): string {
-  const stripped = stripMarkdown(text);
-  if (stripped.length <= maxLength) return stripped;
-  return `${stripped.slice(0, maxLength)}...`;
 }
 
 export function JournalEntryList({
@@ -134,25 +122,60 @@ export function JournalEntryList({
       )}
 
       {entries.map((entry) => (
-        <button
+        // biome-ignore lint/a11y/useSemanticElements: card contains block-level markdown (h1, p, div) which is invalid inside <button>
+        <div
           key={entry.id}
-          type="button"
           className="journal-list__card"
           onClick={() => setEditingId(entry.id)}
           data-testid={`journal-card-${entry.id}`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setEditingId(entry.id);
+            }
+          }}
         >
-          <div className="journal-list__card-header">
-            <span className="journal-list__card-time">
-              {formatRelativeTime(entry.created_at, t)}
-            </span>
-            {entry.linked_entities.length > 0 && (
-              <span className="journal-list__card-links">
-                {t("journal.linkedCount", { count: entry.linked_entities.length })}
-              </span>
-            )}
+          <span className="journal-list__card-time">{formatRelativeTime(entry.created_at, t)}</span>
+
+          <div className="journal-list__card-markdown">
+            <Markdown>{entry.text}</Markdown>
           </div>
-          <p className="journal-list__card-preview">{truncate(entry.text, PREVIEW_LENGTH)}</p>
-        </button>
+
+          {entry.linked_entities.length > 0 && (
+            <div className="journal-list__card-chips">
+              <span className="journal-list__chip-label">{t("journal.linkedPersons")}</span>
+              {entry.linked_entities.slice(0, MAX_CHIPS).map((ref) => (
+                <span
+                  key={`${ref.entity_type}-${ref.entity_id}`}
+                  className="journal-list__chip"
+                  style={{
+                    backgroundColor: `${getChipColor(ref, patterns)}20`,
+                    borderColor: `${getChipColor(ref, patterns)}40`,
+                    color: getChipColor(ref, patterns),
+                  }}
+                >
+                  {resolveChipLabel(
+                    ref,
+                    t,
+                    persons,
+                    events,
+                    lifeEvents,
+                    turningPoints,
+                    classifications,
+                    patterns,
+                  )}
+                </span>
+              ))}
+              {entry.linked_entities.length > MAX_CHIPS && (
+                <span className="journal-list__chip-more">
+                  +{entry.linked_entities.length - MAX_CHIPS}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

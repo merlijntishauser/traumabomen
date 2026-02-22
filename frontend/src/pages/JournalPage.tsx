@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { JournalDecoration } from "../components/journal/JournalDecoration";
 import { JournalEntryList } from "../components/journal/JournalEntryList";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
@@ -82,6 +83,7 @@ export default function JournalPage() {
         <div style={{ padding: 20 }}>{t("common.loading")}</div>
       ) : (
         <div className="journal-page">
+          <JournalDecoration />
           <div className="journal-page__content">
             <div className="journal-page__inner">
               <JournalEntryList

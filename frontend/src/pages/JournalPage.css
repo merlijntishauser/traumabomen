@@ -5,6 +5,7 @@
   min-height: 0;
   width: 100vw;
   background: var(--color-bg-primary);
+  position: relative;
 }
 
 .journal-page__content {
@@ -13,9 +14,22 @@
   padding: 24px;
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .journal-page__inner {
   width: 100%;
   max-width: 800px;
+}
+
+/* Notebook-page decoration */
+.journal-decoration {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--color-accent);
 }

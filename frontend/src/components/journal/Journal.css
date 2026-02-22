@@ -89,8 +89,8 @@
 .journal-list__card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 12px 14px;
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -107,36 +107,131 @@
   background: var(--color-bg-hover);
 }
 
-.journal-list__card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .journal-list__card-time {
   font-size: 11px;
   color: var(--color-text-muted);
 }
 
-.journal-list__card-links {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
-  font-weight: 500;
+/* --- Markdown preview in card --- */
+.journal-list__card-markdown {
+  position: relative;
+  max-height: 120px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
 }
 
-.journal-list__card-preview {
+.journal-list__card-markdown::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--color-bg-tertiary));
+  pointer-events: none;
+}
+
+.journal-list__card:hover .journal-list__card-markdown::after {
+  background: linear-gradient(to bottom, transparent, var(--color-bg-hover));
+}
+
+.journal-list__card-markdown h1,
+.journal-list__card-markdown h2,
+.journal-list__card-markdown h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-heading);
+  color: var(--color-text-primary);
+}
+
+.journal-list__card-markdown h1 {
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.journal-list__card-markdown h2 {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.journal-list__card-markdown h3 {
   font-size: 13px;
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.4;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  font-weight: 400;
+}
+
+.journal-list__card-markdown p {
+  margin: 0 0 6px;
+}
+
+.journal-list__card-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.journal-list__card-markdown strong {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.journal-list__card-markdown em {
+  font-style: italic;
+}
+
+.journal-list__card-markdown ul,
+.journal-list__card-markdown ol {
+  margin: 2px 0 6px;
+  padding-left: 18px;
+}
+
+.journal-list__card-markdown li {
+  margin-bottom: 1px;
+}
+
+.journal-list__card-markdown blockquote {
+  margin: 4px 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--color-border-primary);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.journal-list__card-markdown code {
+  font-size: 12px;
+  padding: 1px 4px;
+  background: var(--color-bg-secondary);
+  border-radius: 3px;
+}
+
+/* --- Entity chips in card --- */
+.journal-list__card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+  align-items: center;
+}
+
+.journal-list__chip-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.journal-list__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.journal-list__chip-more {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  align-self: center;
 }
 
 /* --- Entry form --- */

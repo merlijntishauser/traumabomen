@@ -217,6 +217,7 @@
   "journal.write": "Write",
   "journal.linkEntity": "Link entity",
   "journal.linkedEntities": "Linked entities",
+  "journal.linkedPersons": "Linked persons",
   "journal.inspiration": "Need inspiration?",
   "journal.textPlaceholder": "Write your reflection here...",
   "journal.entityType.person": "People",

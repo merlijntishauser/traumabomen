@@ -217,6 +217,7 @@
   "journal.write": "Schrijven",
   "journal.linkEntity": "Entiteit koppelen",
   "journal.linkedEntities": "Gekoppelde entiteiten",
+  "journal.linkedPersons": "Gekoppelde personen",
   "journal.inspiration": "Inspiratie nodig?",
   "journal.textPlaceholder": "Schrijf hier je reflectie...",
   "journal.entityType.person": "Personen",

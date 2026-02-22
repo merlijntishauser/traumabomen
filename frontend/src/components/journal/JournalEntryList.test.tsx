@@ -29,6 +29,26 @@ vi.mock("../../lib/reflectionPrompts", () => ({
   getRandomJournalPrompts: () => ["Prompt 1", "Prompt 2", "Prompt 3"],
 }));
 
+const personsMap = new Map<string, DecryptedPerson>([
+  [
+    "p1",
+    {
+      id: "p1",
+      name: "Alice",
+      birth_year: 1950,
+      birth_month: null,
+      birth_day: null,
+      death_year: null,
+      death_month: null,
+      death_day: null,
+      cause_of_death: null,
+      gender: "female",
+      is_adopted: false,
+      notes: null,
+    },
+  ],
+]);
+
 const emptyMaps = {
   persons: new Map<string, DecryptedPerson>(),
   events: new Map<string, DecryptedEvent>(),
@@ -78,7 +98,7 @@ describe("JournalEntryList", () => {
     expect(screen.getByText("journal.empty")).toBeInTheDocument();
   });
 
-  it("renders entry cards with preview text and relative time", () => {
+  it("renders entry cards with markdown preview and relative time", () => {
     renderList({ entries: [mockEntry, mockEntryOld] });
 
     // Should NOT show empty state
@@ -88,22 +108,32 @@ describe("JournalEntryList", () => {
     expect(screen.getByTestId("journal-card-j1")).toBeInTheDocument();
     expect(screen.getByTestId("journal-card-j2")).toBeInTheDocument();
 
-    // Preview text visible
-    expect(
-      screen.getByText("This is my first journal entry about the family tree."),
-    ).toBeInTheDocument();
+    // Markdown rendered (via mock that renders text in a div)
+    const markdowns = screen.getAllByTestId("markdown");
+    expect(markdowns.length).toBe(2);
+    expect(markdowns[0]).toHaveTextContent(mockEntry.text);
   });
 
-  it("shows linked entity count on cards with links", () => {
+  it("shows linked entity chips with resolved names and label", () => {
+    renderList({ entries: [mockEntry], persons: personsMap });
+
+    // Should show the "linked persons" prefix label
+    expect(screen.getByText("journal.linkedPersons")).toBeInTheDocument();
+    // Should show the person name as a chip
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+  });
+
+  it("shows entity id as fallback when entity not found", () => {
     renderList({ entries: [mockEntry] });
 
-    // mockEntry has 1 linked entity
-    expect(screen.getByText("journal.linkedCount (1)")).toBeInTheDocument();
+    // No person in the map, should show the entity id
+    expect(screen.getByText("p1")).toBeInTheDocument();
   });
 
-  it("does not show linked count for entries without linked entities", () => {
+  it("does not show chips for entries without linked entities", () => {
     renderList({ entries: [mockEntryOld] });
-    expect(screen.queryByText(/journal\.linkedCount/)).not.toBeInTheDocument();
+    const card = screen.getByTestId("journal-card-j2");
+    expect(card.querySelector(".journal-list__card-chips")).not.toBeInTheDocument();
   });
 
   it("clicking 'New entry' opens the form", () => {
@@ -112,7 +142,6 @@ describe("JournalEntryList", () => {
     fireEvent.click(screen.getByText("journal.newEntry"));
 
     expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
-    // Empty state should be hidden when form is open
   });
 
   it("clicking a card opens the form for that entry", () => {
