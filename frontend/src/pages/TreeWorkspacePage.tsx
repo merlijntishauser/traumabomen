@@ -871,24 +871,26 @@ function TreeWorkspaceInner() {
         >
           <UserPlus size={14} />
         </button>
-        <button
-          type="button"
-          className="tree-toolbar__icon-btn"
-          onClick={handleAutoLayout}
-          disabled={!hasPinnedNodes}
-          aria-label={t("tree.autoLayout")}
-        >
-          <LayoutGrid size={14} />
-        </button>
-        <button
-          type="button"
-          className="tree-toolbar__icon-btn"
-          onClick={handleUndo}
-          disabled={!canUndo}
-          aria-label={t("tree.undo")}
-        >
-          <Undo2 size={14} />
-        </button>
+        <div className="tree-toolbar__btn-group">
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={handleAutoLayout}
+            disabled={!hasPinnedNodes}
+            aria-label={t("tree.autoLayout")}
+          >
+            <LayoutGrid size={14} />
+          </button>
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            aria-label={t("tree.undo")}
+          >
+            <Undo2 size={14} />
+          </button>
+        </div>
         <button
           type="button"
           className={`tree-toolbar__icon-btn${patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}

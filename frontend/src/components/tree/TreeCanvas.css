@@ -137,6 +137,23 @@
   color: var(--color-text-inverse);
 }
 
+.tree-toolbar__btn-group {
+  display: inline-flex;
+}
+
+.tree-toolbar__btn-group .tree-toolbar__icon-btn {
+  border-radius: 0;
+}
+
+.tree-toolbar__btn-group .tree-toolbar__icon-btn:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.tree-toolbar__btn-group .tree-toolbar__icon-btn:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: none;
+}
+
 .tree-toolbar__icon-btn {
   position: relative;
   display: inline-flex;
