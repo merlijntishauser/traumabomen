@@ -20,22 +20,59 @@ jobs:
     name: Verify CI passed
     runs-on: ubuntu-latest
     steps:
-      - name: Check CI status for this commit
+      - name: Wait for CI and verify it passed
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           SHA="${{ github.sha }}"
-          echo "Checking CI status for commit $SHA..."
-          CONCLUSION=$(gh api \
-            "repos/${{ github.repository }}/commits/$SHA/check-runs" \
-            --jq '.check_runs[] | select(.name == "Test frontend" or .name == "Test backend") | .conclusion' \
-            | sort -u)
-          echo "CI conclusions: $CONCLUSION"
-          if echo "$CONCLUSION" | grep -qv "success"; then
-            echo "CI has not passed for this commit. Aborting deploy."
-            exit 1
-          fi
-          echo "CI passed."
+          REQUIRED_CHECKS=("Test frontend" "Test backend")
+          MAX_WAIT=300  # 5 minutes
+          POLL_INTERVAL=15
+          ELAPSED=0
+
+          echo "Waiting for CI checks on commit $SHA..."
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            ALL_DONE=true
+            ALL_SUCCESS=true
+
+            for CHECK_NAME in "${REQUIRED_CHECKS[@]}"; do
+              STATUS=$(gh api \
+                "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+                --jq ".check_runs[] | select(.name == \"$CHECK_NAME\") | .status" \
+                | head -1)
+              CONCLUSION=$(gh api \
+                "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+                --jq ".check_runs[] | select(.name == \"$CHECK_NAME\") | .conclusion" \
+                | head -1)
+
+              if [ -z "$STATUS" ]; then
+                echo "  $CHECK_NAME: not found yet"
+                ALL_DONE=false
+              elif [ "$STATUS" != "completed" ]; then
+                echo "  $CHECK_NAME: $STATUS"
+                ALL_DONE=false
+              elif [ "$CONCLUSION" != "success" ]; then
+                echo "  $CHECK_NAME: $CONCLUSION"
+                echo "::error::CI check '$CHECK_NAME' failed with conclusion: $CONCLUSION"
+                exit 1
+              else
+                echo "  $CHECK_NAME: passed"
+              fi
+            done
+
+            if $ALL_DONE; then
+              echo "All CI checks passed."
+              exit 0
+            fi
+
+            ELAPSED=$((ELAPSED + POLL_INTERVAL))
+            echo "Waiting ${POLL_INTERVAL}s... (${ELAPSED}s / ${MAX_WAIT}s)"
+            sleep $POLL_INTERVAL
+          done
+
+          echo "::error::Timed out waiting for CI checks after ${MAX_WAIT}s"
+          exit 1
 
   build-api:
     needs: [ci-check]
