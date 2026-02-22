@@ -89,13 +89,11 @@
 .journal-list__card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
+  border-left: 3px solid transparent;
   cursor: pointer;
-  transition: background 0.15s ease;
-  border: none;
+  transition: border-color 0.15s ease;
   width: 100%;
   text-align: left;
   font-family: inherit;
@@ -104,12 +102,30 @@
 }
 
 .journal-list__card:hover {
-  background: var(--color-bg-hover);
+  border-left-color: var(--color-accent);
+}
+
+.journal-list__card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* --- Card header --- */
+.journal-list__card-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .journal-list__card-time {
   font-size: 11px;
   color: var(--color-text-muted);
+}
+
+/* --- Card body --- */
+.journal-list__card-body {
+  padding: 10px 14px;
 }
 
 /* --- Markdown preview in card --- */
@@ -131,10 +147,6 @@
   height: 36px;
   background: linear-gradient(to bottom, transparent, var(--color-bg-tertiary));
   pointer-events: none;
-}
-
-.journal-list__card:hover .journal-list__card-markdown::after {
-  background: linear-gradient(to bottom, transparent, var(--color-bg-hover));
 }
 
 .journal-list__card-markdown h1,
@@ -202,19 +214,27 @@
   border-radius: 3px;
 }
 
+/* --- Card footer --- */
+.journal-list__card-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px 8px;
+  border-top: 1px solid var(--color-border-secondary);
+}
+
 /* --- Entity chips in card --- */
 .journal-list__card-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 2px;
   align-items: center;
 }
 
 .journal-list__chip-label {
   font-size: 10px;
   color: var(--color-text-muted);
-  margin-right: 2px;
+  white-space: nowrap;
 }
 
 .journal-list__chip {

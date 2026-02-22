@@ -133,7 +133,7 @@ describe("JournalEntryList", () => {
   it("does not show chips for entries without linked entities", () => {
     renderList({ entries: [mockEntryOld] });
     const card = screen.getByTestId("journal-card-j2");
-    expect(card.querySelector(".journal-list__card-chips")).not.toBeInTheDocument();
+    expect(card.querySelector(".journal-list__card-footer")).not.toBeInTheDocument();
   });
 
   it("clicking 'New entry' opens the form", () => {

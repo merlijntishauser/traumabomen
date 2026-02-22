@@ -137,42 +137,50 @@ export function JournalEntryList({
             }
           }}
         >
-          <span className="journal-list__card-time">{formatRelativeTime(entry.created_at, t)}</span>
+          <div className="journal-list__card-header">
+            <span className="journal-list__card-time">
+              {formatRelativeTime(entry.created_at, t)}
+            </span>
+          </div>
 
-          <div className="journal-list__card-markdown">
-            <Markdown>{entry.text}</Markdown>
+          <div className="journal-list__card-body">
+            <div className="journal-list__card-markdown">
+              <Markdown>{entry.text}</Markdown>
+            </div>
           </div>
 
           {entry.linked_entities.length > 0 && (
-            <div className="journal-list__card-chips">
+            <div className="journal-list__card-footer">
               <span className="journal-list__chip-label">{t("journal.linkedPersons")}</span>
-              {entry.linked_entities.slice(0, MAX_CHIPS).map((ref) => (
-                <span
-                  key={`${ref.entity_type}-${ref.entity_id}`}
-                  className="journal-list__chip"
-                  style={{
-                    backgroundColor: `${getChipColor(ref, patterns)}20`,
-                    borderColor: `${getChipColor(ref, patterns)}40`,
-                    color: getChipColor(ref, patterns),
-                  }}
-                >
-                  {resolveChipLabel(
-                    ref,
-                    t,
-                    persons,
-                    events,
-                    lifeEvents,
-                    turningPoints,
-                    classifications,
-                    patterns,
-                  )}
-                </span>
-              ))}
-              {entry.linked_entities.length > MAX_CHIPS && (
-                <span className="journal-list__chip-more">
-                  +{entry.linked_entities.length - MAX_CHIPS}
-                </span>
-              )}
+              <div className="journal-list__card-chips">
+                {entry.linked_entities.slice(0, MAX_CHIPS).map((ref) => (
+                  <span
+                    key={`${ref.entity_type}-${ref.entity_id}`}
+                    className="journal-list__chip"
+                    style={{
+                      backgroundColor: `${getChipColor(ref, patterns)}20`,
+                      borderColor: `${getChipColor(ref, patterns)}40`,
+                      color: getChipColor(ref, patterns),
+                    }}
+                  >
+                    {resolveChipLabel(
+                      ref,
+                      t,
+                      persons,
+                      events,
+                      lifeEvents,
+                      turningPoints,
+                      classifications,
+                      patterns,
+                    )}
+                  </span>
+                ))}
+                {entry.linked_entities.length > MAX_CHIPS && (
+                  <span className="journal-list__chip-more">
+                    +{entry.linked_entities.length - MAX_CHIPS}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
