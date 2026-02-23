@@ -192,6 +192,44 @@ describe("JournalEntryList", () => {
     expect(screen.queryByTestId("journal-entry-form")).not.toBeInTheDocument();
   });
 
+  it("formats time as 'just now' for entries less than 1 hour old", () => {
+    const recentEntry: DecryptedJournalEntry = {
+      id: "j-recent",
+      text: "Very recent entry",
+      linked_entities: [],
+      created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+      updated_at: new Date().toISOString(),
+    };
+    renderList({ entries: [recentEntry] });
+
+    expect(screen.getByText("journal.justNow")).toBeInTheDocument();
+  });
+
+  it("opens form when pressing Enter on a card", () => {
+    renderList({ entries: [mockEntry] });
+
+    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: "Enter" });
+
+    expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
+    expect(screen.getByTestId("journal-textarea")).toHaveValue(mockEntry.text);
+  });
+
+  it("opens form when pressing Space on a card", () => {
+    renderList({ entries: [mockEntry] });
+
+    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: " " });
+
+    expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
+  });
+
+  it("ignores other keys on a card", () => {
+    renderList({ entries: [mockEntry] });
+
+    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: "Tab" });
+
+    expect(screen.queryByTestId("journal-entry-form")).not.toBeInTheDocument();
+  });
+
   it("delete flow on existing entry calls onDelete", () => {
     const props = renderList({ entries: [mockEntry] });
 
