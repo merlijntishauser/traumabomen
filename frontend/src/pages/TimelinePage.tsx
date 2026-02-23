@@ -71,6 +71,9 @@ function derivePersonIdsFromEntities(
   return Array.from(ids);
 }
 
+const ICON_BTN = "tree-toolbar__icon-btn";
+const ICON_BTN_ACTIVE = `${ICON_BTN} ${ICON_BTN}--active`;
+
 export default function TimelinePage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
@@ -563,7 +566,7 @@ export default function TimelinePage() {
 
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${showPatterns ? " tree-toolbar__icon-btn--active" : ""}`}
+          className={showPatterns ? ICON_BTN_ACTIVE : ICON_BTN}
           onClick={() => setShowPatterns((v) => !v)}
           aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
         >
@@ -571,7 +574,7 @@ export default function TimelinePage() {
         </button>
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${filterPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
+          className={filterPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
           onClick={() => setFilterPanelOpen((v) => !v)}
           aria-label={t("timeline.filter")}
         >
@@ -582,7 +585,7 @@ export default function TimelinePage() {
         </button>
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
+          className={journalPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
           onClick={() => {
             setJournalPanelOpen((v) => !v);
             setJournalInitialPrompt("");
