@@ -15,20 +15,6 @@ from app.rate_limiter import (
 )
 
 
-@pytest.fixture(autouse=True)
-def _clear_rate_limiter_state():
-    """Reset rate limiter state between tests."""
-    import app.rate_limiter as rl
-
-    _by_ip.clear()
-    _by_email.clear()
-    rl._check_counter = 0
-    yield
-    _by_ip.clear()
-    _by_email.clear()
-    rl._check_counter = 0
-
-
 class TestRecordFailure:
     async def test_records_ip_and_email_counters(self):
         record_failure("1.2.3.4", "user@example.com")

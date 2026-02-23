@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,7 @@ from app.email import send_verification_email
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
+from app.rate_limiter import check_and_tarpit, clear, record_failure
 from app.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
@@ -145,17 +146,25 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
+    request: Request,
     body: LoginRequest,
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
+    ip = request.client.host if request.client else "unknown"
     email = body.email.strip().lower()
+
+    await check_and_tarpit(ip, email)
+
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if user is None or not verify_password(body.password, user.hashed_password):
+        record_failure(ip, email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
         )
+
+    clear(ip, email)
 
     if not user.email_verified:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified")
