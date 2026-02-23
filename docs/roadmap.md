@@ -8,7 +8,7 @@ Two strategic gaps remain:
 
 **1. Reflection gap.** The app is strong on mapping and visualization but thin on sense-making. There is great data entry, but limited tools to help users process what they have entered. The feature set is deficit-focused (trauma events, classifications, severity scores) without resilience or strengths. For practitioners like Mark Wolynn ("It Didn't Start with You"), the tool tells only half the story without a way to map cycle-breaking, healing, and protective factors.
 
-**2. Scaling gap.** The app is configured for a private beta (20-user cap, no rate limiting, blocking email, no error tracking). Infrastructure can handle 100+ users with configuration changes, but several hardening items must land first.
+**2. Scaling gap.** The app is configured for a private beta (20-user cap, blocking email, no error tracking). Rate limiting is in place; remaining hardening items must land before wider adoption.
 
 Priority: reflection features first (they define the product), then scaling hardening (gates wider adoption).
 
@@ -35,16 +35,7 @@ Read-only overview page per tree that surfaces basic observations from what the 
 
 Required before growing beyond the current 20-user beta. These are infrastructure essentials, not polish.
 
-### 5. API rate limiting
-
-Login, registration, and all endpoints are currently unthrottled. A single bad actor could brute-force auth or DoS the API.
-
-- Nginx rate limiting: strict on login/register (5 req/min), general on auth (20 req/min), global safety net (120 req/min)
-- Application-layer progressive backoff with tarpitting on failed logins (in-memory tracking by IP and email)
-- Lockout after 10 failed attempts (15 min), auto-expiry after 30 min
-- Future: per-user rate limiting, Redis for multi-instance, CAPTCHA, admin dashboard for rate limit events
-
-See [design doc](plans/2026-02-22-api-rate-limiting-design.md).
+### ~~5. API rate limiting~~ (done)
 
 ### 6. Production error tracking
 
@@ -153,6 +144,10 @@ Annotation layer linking trauma events, life events, and classifications across 
 ### Resilience and strengths layer
 
 New "Turning Point" event type for mapping resilience: cycle-breaking, protective relationships, recovery, achievement, positive change. Star-shaped badges on canvas, star markers on timeline, full CRUD in detail panel (grouped under Events tab with trauma and life events), pattern linking, demo tree entries, bulk sync support. [Design doc](plans/2026-02-21-resilience-layer-design.md).
+
+### API rate limiting
+
+Two-layer rate limiting: nginx (strict 5/min on login/register, general 20/min on auth, global 120/min) and application-layer progressive backoff on failed logins (tarpitting at 4+ attempts, lockout at 10, 30-min auto-expiry). In-memory tracking by IP and email with log injection protection. [Design doc](plans/2026-02-22-api-rate-limiting-design.md), [implementation plan](plans/2026-02-23-api-rate-limiting-plan.md).
 
 ### Safety envelope
 
