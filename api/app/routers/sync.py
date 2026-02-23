@@ -59,33 +59,41 @@ async def _phase_deletes(
 
 
 def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
-    all_ids: list[uuid.UUID] = []
+    ids: list[uuid.UUID] = []
     for item in body.relationships_create:
-        all_ids.extend([item.source_person_id, item.target_person_id])
-    for item in body.events_create:
-        all_ids.extend(item.person_ids)
-    for item in body.classifications_create:
-        all_ids.extend(item.person_ids)
-    for item in body.turning_points_create:
-        all_ids.extend(item.person_ids)
-    for item in body.patterns_create:
-        all_ids.extend(item.person_ids)
-    return all_ids
+        ids.extend([item.source_person_id, item.target_person_id])
+    for entity_list in (
+        body.events_create,
+        body.classifications_create,
+        body.turning_points_create,
+        body.patterns_create,
+    ):
+        for item in entity_list:
+            ids.extend(item.person_ids)
+    return ids
 
 
 def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) -> None:
-    for item, event_id in zip(body.events_create, resp.events_created):
-        for pid in item.person_ids:
-            db.add(EventPerson(event_id=event_id, person_id=pid))
-    for item, cls_id in zip(body.classifications_create, resp.classifications_created):
-        for pid in item.person_ids:
-            db.add(ClassificationPerson(classification_id=cls_id, person_id=pid))
-    for item, tp_id in zip(body.turning_points_create, resp.turning_points_created):
-        for pid in item.person_ids:
-            db.add(TurningPointPerson(turning_point_id=tp_id, person_id=pid))
-    for item, pat_id in zip(body.patterns_create, resp.patterns_created):
-        for pid in item.person_ids:
-            db.add(PatternPerson(pattern_id=pat_id, person_id=pid))
+    specs = (
+        (body.events_create, resp.events_created, EventPerson, "event_id"),
+        (
+            body.classifications_create,
+            resp.classifications_created,
+            ClassificationPerson,
+            "classification_id",
+        ),
+        (
+            body.turning_points_create,
+            resp.turning_points_created,
+            TurningPointPerson,
+            "turning_point_id",
+        ),
+        (body.patterns_create, resp.patterns_created, PatternPerson, "pattern_id"),
+    )
+    for items, entity_ids, junction_cls, fk_name in specs:
+        for item, entity_id in zip(items, entity_ids):
+            for pid in item.person_ids:
+                db.add(junction_cls(**{fk_name: entity_id, "person_id": pid}))
 
 
 def _create_encrypted_entities(
@@ -139,19 +147,28 @@ async def _phase_creates(
     _add_junction_rows(body, resp, db)
 
 
+async def _fetch_entity(
+    model: type,
+    entity_id: uuid.UUID,
+    tree_id: uuid.UUID,
+    label: str,
+    db: AsyncSession,  # type: ignore[type-arg]
+):
+    """Load an entity by id and tree_id, or raise 404."""
+    result = await db.execute(select(model).where(model.id == entity_id, model.tree_id == tree_id))
+    entity = result.scalar_one_or_none()
+    if entity is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"{label} {entity_id} not found"
+        )
+    return entity
+
+
 async def _phase_updates(
     body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
 ) -> None:
     for item in body.persons_update:
-        result = await db.execute(
-            select(Person).where(Person.id == item.id, Person.tree_id == tree.id)
-        )
-        person = result.scalar_one_or_none()
-        if person is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Person {item.id} not found",
-            )
+        person = await _fetch_entity(Person, item.id, tree.id, "Person", db)
         person.encrypted_data = item.encrypted_data
         resp.persons_updated += 1
 
@@ -186,24 +203,32 @@ async def _update_relationships(
     body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
 ) -> None:
     for item in body.relationships_update:
-        result = await db.execute(
-            select(Relationship).where(Relationship.id == item.id, Relationship.tree_id == tree.id)
-        )
-        rel = result.scalar_one_or_none()
-        if rel is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Relationship {item.id} not found",
-            )
-        if item.source_person_id is not None:
-            await validate_persons_in_tree([item.source_person_id], tree.id, db)
-            rel.source_person_id = item.source_person_id
-        if item.target_person_id is not None:
-            await validate_persons_in_tree([item.target_person_id], tree.id, db)
-            rel.target_person_id = item.target_person_id
+        rel = await _fetch_entity(Relationship, item.id, tree.id, "Relationship", db)
+        for attr in ("source_person_id", "target_person_id"):
+            new_val = getattr(item, attr)
+            if new_val is not None:
+                await validate_persons_in_tree([new_val], tree.id, db)
+                setattr(rel, attr, new_val)
         if item.encrypted_data is not None:
             rel.encrypted_data = item.encrypted_data
         resp.relationships_updated += 1
+
+
+async def _replace_person_links(
+    entity,
+    person_ids: list[uuid.UUID],
+    junction_model: type,
+    junction_fk: str,
+    tree_id: uuid.UUID,
+    db: AsyncSession,  # type: ignore[type-arg]
+) -> None:
+    """Replace all person junction rows for an entity."""
+    await validate_persons_in_tree(person_ids, tree_id, db)
+    await db.refresh(entity, ["person_links"])
+    entity.person_links.clear()
+    await db.flush()
+    for pid in person_ids:
+        db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
 
 
 async def _update_entities_with_persons(
@@ -217,24 +242,13 @@ async def _update_entities_with_persons(
 ) -> int:
     count = 0
     for item in items:
-        result = await db.execute(
-            select(model).where(model.id == item.id, model.tree_id == tree.id)
-        )
-        entity = result.scalar_one_or_none()
-        if entity is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"{entity_label} {item.id} not found",
-            )
+        entity = await _fetch_entity(model, item.id, tree.id, entity_label, db)
         if item.encrypted_data is not None:
             entity.encrypted_data = item.encrypted_data
         if item.person_ids is not None:
-            await validate_persons_in_tree(item.person_ids, tree.id, db)
-            await db.refresh(entity, ["person_links"])
-            entity.person_links.clear()
-            await db.flush()
-            for pid in item.person_ids:
-                db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
+            await _replace_person_links(
+                entity, item.person_ids, junction_model, junction_fk, tree.id, db
+            )
         count += 1
     return count
 
