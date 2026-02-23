@@ -53,13 +53,7 @@ Users have no way to back up their tree. Combined with "passphrase lost = data l
 - Or plaintext export with explicit user confirmation ("this will create an unencrypted file")
 - Foundation for future GEDCOM export
 
-### 8. Async email sending
-
-Registration endpoint blocks on SMTP connection. Under load, this causes request timeouts and poor user experience.
-
-- Move email sending to background task (threading, or task queue)
-- Verification, waitlist approval, and feedback notification emails
-- Graceful degradation: registration succeeds even if email send fails
+### ~~8. Async email sending~~ (done)
 
 ## Planned: Features (medium priority)
 
@@ -144,6 +138,10 @@ Annotation layer linking trauma events, life events, and classifications across 
 ### Resilience and strengths layer
 
 New "Turning Point" event type for mapping resilience: cycle-breaking, protective relationships, recovery, achievement, positive change. Star-shaped badges on canvas, star markers on timeline, full CRUD in detail panel (grouped under Events tab with trauma and life events), pattern linking, demo tree entries, bulk sync support. [Design doc](plans/2026-02-21-resilience-layer-design.md).
+
+### Async email sending
+
+Centralized `send_email_background` helper wraps all email-sending functions in daemon threads with one retry after 5 seconds. Registration and resend-verification no longer block on SMTP; waitlist approval and feedback gained retry logic. Graceful degradation: endpoints return success immediately, user has "resend" button as fallback. [Design doc](plans/2026-02-23-async-email-design.md).
 
 ### API rate limiting
 
