@@ -81,45 +81,45 @@ def clear(ip: str, email: str) -> None:
 def _cleanup() -> None:
     """Evict entries older than EXPIRY_MINUTES."""
     cutoff = datetime.now(UTC) - timedelta(minutes=EXPIRY_MINUTES)
+    for store in (_by_ip, _by_email):
+        expired = [k for k, v in store.items() if v.last_attempt < cutoff]
+        for k in expired:
+            del store[k]
 
-    expired_ips = [ip for ip, rec in _by_ip.items() if rec.last_attempt < cutoff]
-    for ip in expired_ips:
-        del _by_ip[ip]
 
-    expired_emails = [email for email, rec in _by_email.items() if rec.last_attempt < cutoff]
-    for email in expired_emails:
-        del _by_email[email]
+def _worst_attempts(ip: str, email: str) -> int:
+    """Return the higher of the IP and email attempt counts."""
+    ip_count = _by_ip[ip].attempts if ip in _by_ip else 0
+    email_count = _by_email[email].attempts if email in _by_email else 0
+    return max(ip_count, email_count)
+
+
+def _tarpit_delay(attempts: int) -> int:
+    """Return tarpit delay in seconds for the given attempt count (0 = no delay)."""
+    if attempts >= 7:
+        return 30
+    if attempts >= 4:
+        return 5
+    return 0
 
 
 async def check_and_tarpit(ip: str, email: str) -> None:
     """Check attempt counts and apply tarpit delay or lockout.
-
-    Looks up the worse of the IP and email counters.
-    Runs periodic cleanup every CLEANUP_INTERVAL calls.
 
     Raises:
         HTTPException: 429 if the attempt count reaches lockout threshold.
     """
     global _check_counter
     _check_counter += 1
-
     if _check_counter >= CLEANUP_INTERVAL:
         _cleanup()
         _check_counter = 0
 
-    ip_rec = _by_ip.get(ip)
-    email_rec = _by_email.get(email)
-
-    ip_attempts = ip_rec.attempts if ip_rec else 0
-    email_attempts = email_rec.attempts if email_rec else 0
-    worst = max(ip_attempts, email_attempts)
+    worst = _worst_attempts(ip, email)
 
     if worst >= 10:
         logger.warning(
-            "Login lockout: ip=%s email=%s attempts=%d",
-            _redact_ip(ip),
-            _redact_email(email),
-            worst,
+            "Login lockout: ip=%s email=%s attempts=%d", _redact_ip(ip), _redact_email(email), worst
         )
         raise HTTPException(
             status_code=429,
@@ -127,19 +127,13 @@ async def check_and_tarpit(ip: str, email: str) -> None:
             headers={"Retry-After": str(LOCKOUT_RETRY_AFTER)},
         )
 
-    if worst >= 7:
+    delay = _tarpit_delay(worst)
+    if delay:
         logger.warning(
-            "Login tarpit (30s): ip=%s email=%s attempts=%d",
+            "Login tarpit (%ds): ip=%s email=%s attempts=%d",
+            delay,
             _redact_ip(ip),
             _redact_email(email),
             worst,
         )
-        await asyncio.sleep(30)
-    elif worst >= 4:
-        logger.warning(
-            "Login tarpit (5s): ip=%s email=%s attempts=%d",
-            _redact_ip(ip),
-            _redact_email(email),
-            worst,
-        )
-        await asyncio.sleep(5)
+        await asyncio.sleep(delay)
