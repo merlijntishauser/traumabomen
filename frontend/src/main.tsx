@@ -7,6 +7,18 @@ import "./styles/theme.css";
 import "./i18n";
 import App from "./App";
 
+function stripSensitiveBreadcrumbs(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
+  for (const crumb of event.breadcrumbs ?? []) {
+    if (!crumb.data || typeof crumb.data !== "object") continue;
+    for (const key of Object.keys(crumb.data)) {
+      if (key.includes("encrypt") || key.includes("passphrase")) {
+        (crumb.data as Record<string, unknown>)[key] = "[filtered]";
+      }
+    }
+  }
+  return event;
+}
+
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
 if (sentryDsn) {
   Sentry.init({
@@ -16,20 +28,7 @@ if (sentryDsn) {
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
     sendDefaultPii: false,
-    beforeSend(event: Sentry.ErrorEvent) {
-      if (event.breadcrumbs) {
-        for (const crumb of event.breadcrumbs) {
-          if (crumb.data && typeof crumb.data === "object") {
-            for (const key of Object.keys(crumb.data)) {
-              if (key.includes("encrypt") || key.includes("passphrase")) {
-                (crumb.data as Record<string, unknown>)[key] = "[filtered]";
-              }
-            }
-          }
-        }
-      }
-      return event;
-    },
+    beforeSend: stripSensitiveBreadcrumbs,
   });
 }
 
