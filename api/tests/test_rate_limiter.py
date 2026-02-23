@@ -9,10 +9,26 @@ from fastapi import HTTPException
 from app.rate_limiter import (
     _by_email,
     _by_ip,
+    _redact_email,
+    _redact_ip,
     check_and_tarpit,
     clear,
     record_failure,
 )
+
+
+class TestRedaction:
+    def test_redact_ipv4(self):
+        assert _redact_ip("1.2.3.4") == "1.2.3.x"
+
+    def test_redact_ip_no_dots(self):
+        assert _redact_ip("localhost") == "x"
+
+    def test_redact_email_normal(self):
+        assert _redact_email("user@example.com") == "*@example.com"
+
+    def test_redact_email_no_at(self):
+        assert _redact_email("invalid") == "*@unknown"
 
 
 class TestRecordFailure:
