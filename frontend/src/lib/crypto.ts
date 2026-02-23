@@ -1,10 +1,33 @@
 import type { EncryptedBlob } from "../types/domain";
 import argon2 from "./argon2";
 
-export class DecryptError extends Error {
+export class CryptoError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CryptoError";
+  }
+}
+
+export class DecryptError extends CryptoError {
   constructor(message = "Failed to decrypt data. Wrong passphrase or corrupted data.") {
     super(message);
     this.name = "DecryptError";
+  }
+}
+
+export class KeyDerivationError extends CryptoError {
+  declare cause: unknown;
+  constructor(cause?: unknown) {
+    super("Failed to derive encryption key.");
+    this.name = "KeyDerivationError";
+    this.cause = cause;
+  }
+}
+
+export class PassphraseError extends CryptoError {
+  constructor() {
+    super("Incorrect passphrase.");
+    this.name = "PassphraseError";
   }
 }
 
@@ -40,15 +63,20 @@ export function generateSalt(): string {
 export async function deriveKey(passphrase: string, salt: string): Promise<CryptoKey> {
   const saltBytes = fromBase64(salt);
 
-  const result = await argon2.hash({
-    pass: passphrase,
-    salt: saltBytes,
-    time: ARGON2_TIME_COST,
-    mem: ARGON2_MEMORY_COST,
-    hashLen: ARGON2_HASH_LENGTH,
-    parallelism: ARGON2_PARALLELISM,
-    type: argon2.ArgonType.Argon2id,
-  });
+  let result: { hash: ArrayLike<number> };
+  try {
+    result = await argon2.hash({
+      pass: passphrase,
+      salt: saltBytes,
+      time: ARGON2_TIME_COST,
+      mem: ARGON2_MEMORY_COST,
+      hashLen: ARGON2_HASH_LENGTH,
+      parallelism: ARGON2_PARALLELISM,
+      type: argon2.ArgonType.Argon2id,
+    });
+  } catch (error) {
+    throw new KeyDerivationError(error);
+  }
 
   return crypto.subtle.importKey(
     "raw",

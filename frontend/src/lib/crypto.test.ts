@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  CryptoError,
   DecryptError,
   decrypt,
   decryptFromApi,
@@ -8,6 +9,8 @@ import {
   encryptForApi,
   generateSalt,
   hashPassphrase,
+  KeyDerivationError,
+  PassphraseError,
 } from "./crypto";
 
 async function createTestKey(): Promise<CryptoKey> {
@@ -200,10 +203,47 @@ describe("deriveKey", () => {
     expect(callArgs.type).toBe(2); // Argon2id
   });
 
-  it("propagates errors from argon2", async () => {
-    mockArgon2.hash.mockRejectedValueOnce(new Error("argon2 failed"));
+  it("wraps argon2 errors as KeyDerivationError", async () => {
+    const cause = new Error("argon2 failed");
+    mockArgon2.hash.mockRejectedValueOnce(cause);
 
     const salt = generateSalt();
-    await expect(deriveKey("test-passphrase", salt)).rejects.toThrow("argon2 failed");
+    const error = await deriveKey("test-passphrase", salt).catch((e) => e);
+    expect(error).toBeInstanceOf(KeyDerivationError);
+    expect(error).toBeInstanceOf(CryptoError);
+    expect(error.cause).toBe(cause);
+  });
+});
+
+describe("CryptoError hierarchy", () => {
+  it("DecryptError is a CryptoError", () => {
+    const error = new DecryptError();
+    expect(error).toBeInstanceOf(CryptoError);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("DecryptError");
+  });
+
+  it("KeyDerivationError is a CryptoError", () => {
+    const cause = new Error("WASM failure");
+    const error = new KeyDerivationError(cause);
+    expect(error).toBeInstanceOf(CryptoError);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("KeyDerivationError");
+    expect(error.cause).toBe(cause);
+    expect(error.message).toBe("Failed to derive encryption key.");
+  });
+
+  it("PassphraseError is a CryptoError", () => {
+    const error = new PassphraseError();
+    expect(error).toBeInstanceOf(CryptoError);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("PassphraseError");
+    expect(error.message).toBe("Incorrect passphrase.");
+  });
+
+  it("CryptoError is not a DecryptError", () => {
+    const error = new CryptoError("generic");
+    expect(error).not.toBeInstanceOf(DecryptError);
+    expect(error.name).toBe("CryptoError");
   });
 });

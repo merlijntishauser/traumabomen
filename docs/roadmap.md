@@ -37,13 +37,7 @@ Required before growing beyond the current 20-user beta. These are infrastructur
 
 ### ~~5. API rate limiting~~ (done)
 
-### 6. Production error tracking
-
-At 20 users, Cloud Run logs are sufficient. At 100+, aggregated error alerts are essential.
-
-- Integrate Sentry (or equivalent) for both frontend and backend
-- Alert on error rate spikes
-- Track encryption-related failures separately (passphrase errors, decryption failures)
+### ~~6. Production error tracking~~ (done)
 
 ### 7. User data export
 
@@ -142,6 +136,10 @@ New "Turning Point" event type for mapping resilience: cycle-breaking, protectiv
 ### Async email sending
 
 Centralized `send_email_background` helper wraps all email-sending functions in daemon threads with one retry after 5 seconds. Registration and resend-verification no longer block on SMTP; waitlist approval and feedback gained retry logic. Graceful degradation: endpoints return success immediately, user has "resend" button as fallback. [Design doc](plans/2026-02-23-async-email-design.md).
+
+### Production error tracking
+
+Sentry integration for both FastAPI backend (`sentry-sdk[fastapi]`) and React frontend (`@sentry/react`). Custom crypto error hierarchy (`CryptoError` base with `DecryptError`, `KeyDerivationError`, `PassphraseError`) for encryption failure tracking. Privacy safeguards: no PII, encrypted data stripped from request context, hashed user IDs. Source maps uploaded via `@sentry/vite-plugin` during production build. Error boundary with user-friendly fallback. [Design doc](plans/2026-02-23-error-tracking-design.md).
 
 ### API rate limiting
 

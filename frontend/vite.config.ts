@@ -1,5 +1,6 @@
-import { type Plugin, defineConfig } from "vite";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import react from "@vitejs/plugin-react";
+import { type Plugin, defineConfig } from "vite";
 
 /** Replace __OG_*__ placeholders in index.html during dev only (nginx does this in prod). */
 function devHtmlPlaceholders(): Plugin {
@@ -18,8 +19,18 @@ function devHtmlPlaceholders(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), devHtmlPlaceholders()],
+  plugins: [
+    react(),
+    devHtmlPlaceholders(),
+    sentryVitePlugin({
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      disable: !process.env.SENTRY_AUTH_TOKEN,
+    }),
+  ],
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {

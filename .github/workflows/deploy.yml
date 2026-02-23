@@ -119,8 +119,18 @@ jobs:
         run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
 
       - name: Build and push frontend image
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           docker build --target production \
+            --build-arg VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
+            --build-arg VITE_SENTRY_ENVIRONMENT=production \
+            --build-arg VITE_SENTRY_RELEASE=${{ github.sha }} \
+            --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
+            --build-arg SENTRY_ORG=${{ secrets.SENTRY_ORG }} \
+            --build-arg SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }} \
             -t ${{ env.IMAGE_PREFIX }}/frontend:${{ github.ref_name }} \
             -t ${{ env.IMAGE_PREFIX }}/frontend:latest \
             ./frontend
@@ -163,7 +173,8 @@ jobs:
               SMTP_HOST=smtp-host:latest,\
               SMTP_PORT=smtp-port:latest,\
               SMTP_USER=smtp-user:latest,\
-              SMTP_PASSWORD=smtp-password:latest" \
+              SMTP_PASSWORD=smtp-password:latest,\
+              SENTRY_DSN=sentry-dsn:latest" \
             --set-env-vars="\
               JWT_ALGORITHM=HS256,\
               REQUIRE_EMAIL_VERIFICATION=true,\
@@ -172,7 +183,9 @@ jobs:
               SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }},\
               ENABLE_WAITLIST=true,\
               MAX_ACTIVE_USERS=20,\
-              FEEDBACK_EMAIL=feedback@traumatrees.org" \
+              FEEDBACK_EMAIL=feedback@traumatrees.org,\
+              SENTRY_ENVIRONMENT=production,\
+              SENTRY_RELEASE=${{ github.sha }}" \
             --min-instances=0 \
             --max-instances=4 \
             --memory=256Mi \

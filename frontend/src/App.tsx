@@ -1,5 +1,7 @@
+import * as Sentry from "@sentry/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
 import { LockScreen } from "./components/LockScreen";
@@ -46,6 +48,33 @@ const JournalPage = lazyWithReload(() => import("./pages/JournalPage"));
 const PatternPage = lazyWithReload(() => import("./pages/PatternPage"));
 const TimelinePage = lazyWithReload(() => import("./pages/TimelinePage"));
 const TreeWorkspacePage = lazyWithReload(() => import("./pages/TreeWorkspacePage"));
+
+export function ErrorFallback() {
+  const { t } = useTranslation();
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "60vh",
+        padding: "2rem",
+        textAlign: "center",
+      }}
+    >
+      <h1 style={{ fontFamily: "var(--font-heading)", marginBottom: "1rem" }}>
+        {t("error.title", "Something went wrong")}
+      </h1>
+      <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>
+        {t("error.description", "An unexpected error occurred. Please reload the page.")}
+      </p>
+      <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+        {t("error.reload", "Reload page")}
+      </button>
+    </div>
+  );
+}
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { key } = useEncryption();
@@ -200,8 +229,10 @@ export default function App() {
   sessionStorage.removeItem(RELOAD_KEY); // privacy-ok
 
   return (
-    <EncryptionProvider>
-      <AppContent />
-    </EncryptionProvider>
+    <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+      <EncryptionProvider>
+        <AppContent />
+      </EncryptionProvider>
+    </Sentry.ErrorBoundary>
   );
 }

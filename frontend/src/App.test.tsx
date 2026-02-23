@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { OnboardingGuard } from "./App";
+import { ErrorFallback, OnboardingGuard } from "./App";
 
 let mockKey: CryptoKey | null = null;
 let mockAccessToken: string | null = null;
@@ -22,6 +23,30 @@ vi.mock("react-i18next", () => ({
     i18n: { language: "en" },
   }),
 }));
+
+describe("ErrorFallback", () => {
+  it("renders error message and reload button", () => {
+    render(<ErrorFallback />);
+
+    expect(screen.getByText("error.title")).toBeInTheDocument();
+    expect(screen.getByText("error.description")).toBeInTheDocument();
+    expect(screen.getByText("error.reload")).toBeInTheDocument();
+  });
+
+  it("reload button calls window.location.reload", async () => {
+    const user = userEvent.setup();
+    const reloadMock = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, reload: reloadMock },
+      writable: true,
+    });
+
+    render(<ErrorFallback />);
+    await user.click(screen.getByText("error.reload"));
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+  });
+});
 
 describe("OnboardingGuard", () => {
   it("shows children when not authenticated", () => {

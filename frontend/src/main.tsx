@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
@@ -5,6 +6,32 @@ import { BrowserRouter } from "react-router-dom";
 import "./styles/theme.css";
 import "./i18n";
 import App from "./App";
+
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || "development",
+    release: import.meta.env.VITE_SENTRY_RELEASE,
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 0.1,
+    sendDefaultPii: false,
+    beforeSend(event: Sentry.ErrorEvent) {
+      if (event.breadcrumbs) {
+        for (const crumb of event.breadcrumbs) {
+          if (crumb.data && typeof crumb.data === "object") {
+            for (const key of Object.keys(crumb.data)) {
+              if (key.includes("encrypt") || key.includes("passphrase")) {
+                (crumb.data as Record<string, unknown>)[key] = "[filtered]";
+              }
+            }
+          }
+        }
+      }
+      return event;
+    },
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
