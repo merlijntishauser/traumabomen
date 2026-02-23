@@ -51,6 +51,24 @@ def _period_start(period: str) -> datetime:
     return now - timedelta(days=30)
 
 
+async def _count_signups_since(since: datetime, excluded: Select, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count())
+        .select_from(User)
+        .where(User.created_at >= since, User.id.not_in(excluded))
+    )
+    return result.scalar() or 0
+
+
+async def _count_active_since(since: datetime, excluded: Select, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count(distinct(LoginEvent.user_id))).where(
+            LoginEvent.logged_at >= since, LoginEvent.user_id.not_in(excluded)
+        )
+    )
+    return result.scalar() or 0
+
+
 @router.get("/stats/overview", response_model=OverviewStats)
 async def overview_stats(db: AsyncSession = Depends(get_db)) -> OverviewStats:
     excluded = _excluded_user_ids()
@@ -69,21 +87,8 @@ async def overview_stats(db: AsyncSession = Depends(get_db)) -> OverviewStats:
     active: dict[str, int] = {}
     for period in ("day", "week", "month"):
         since = _period_start(period)
-        signups[period] = (
-            await db.execute(
-                select(func.count())
-                .select_from(User)
-                .where(User.created_at >= since, User.id.not_in(excluded))
-            )
-        ).scalar() or 0
-        active[period] = (
-            await db.execute(
-                select(func.count(distinct(LoginEvent.user_id))).where(
-                    LoginEvent.logged_at >= since,
-                    LoginEvent.user_id.not_in(excluded),
-                )
-            )
-        ).scalar() or 0
+        signups[period] = await _count_signups_since(since, excluded, db)
+        active[period] = await _count_active_since(since, excluded, db)
 
     return OverviewStats(
         total_users=total,
@@ -115,6 +120,19 @@ def _group_users_into_cohorts(users: Sequence[Any]) -> dict[str, list[str]]:
     return cohort_users
 
 
+def _retention_percentages(
+    uids: list[str], active_weeks: dict[str, set[int]], max_weeks: int
+) -> list[float]:
+    signup_count = len(uids)
+    if not signup_count:
+        return [0.0] * max_weeks
+    retention: list[float] = []
+    for w in range(max_weeks):
+        active_count = sum(1 for uid in uids if w in active_weeks.get(uid, set()))
+        retention.append(round(active_count / signup_count * 100, 1))
+    return retention
+
+
 def _compute_cohort_rows(
     cohort_users: dict[str, list[str]],
     active_weeks: dict[str, set[int]],
@@ -124,15 +142,10 @@ def _compute_cohort_rows(
     cohorts: list[CohortRow] = []
     for week_key in sorted(cohort_users.keys()):
         uids = cohort_users[week_key]
-        signup_count = len(uids)
         cohort_start = datetime.strptime(week_key, "%Y-%m-%d").replace(tzinfo=UTC)
         max_weeks = min(weeks, (now - cohort_start).days // 7 + 1)
-        retention: list[float] = []
-        for w in range(max_weeks):
-            active_count = sum(1 for uid in uids if w in active_weeks.get(uid, set()))
-            pct = round(active_count / signup_count * 100, 1) if signup_count else 0
-            retention.append(pct)
-        cohorts.append(CohortRow(week=week_key, signup_count=signup_count, retention=retention))
+        retention = _retention_percentages(uids, active_weeks, max_weeks)
+        cohorts.append(CohortRow(week=week_key, signup_count=len(uids), retention=retention))
     return cohorts
 
 
@@ -171,17 +184,19 @@ async def retention_stats(
     return RetentionStats(cohorts=cohorts)
 
 
+_BUCKET_THRESHOLDS = (
+    (0, "zero"),
+    (2, "one_two"),
+    (5, "three_five"),
+    (10, "six_ten"),
+    (20, "eleven_twenty"),
+)
+
+
 def _bucket(count: int) -> str:
-    if count == 0:
-        return "zero"
-    if count <= 2:
-        return "one_two"
-    if count <= 5:
-        return "three_five"
-    if count <= 10:
-        return "six_ten"
-    if count <= 20:
-        return "eleven_twenty"
+    for threshold, label in _BUCKET_THRESHOLDS:
+        if count <= threshold:
+            return label
     return "twenty_plus"
 
 
@@ -234,6 +249,17 @@ async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
     )
 
 
+async def _count_users_with_entity(
+    entity_model: type | None, excluded: Select, db: AsyncSession
+) -> int:
+    """Count distinct users owning non-demo trees, optionally joined with an entity model."""
+    query = select(func.count(distinct(Tree.user_id))).select_from(Tree)
+    if entity_model is not None:
+        query = query.join(entity_model, entity_model.tree_id == Tree.id)  # type: ignore[attr-defined]
+    query = query.where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
+    return (await db.execute(query)).scalar() or 0
+
+
 @router.get("/stats/funnel", response_model=FunnelStats)
 async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
     excluded = _excluded_user_ids()
@@ -248,52 +274,13 @@ async def funnel_stats(db: AsyncSession = Depends(get_db)) -> FunnelStats:
         )
     ).scalar() or 0
 
-    # Users who own at least one non-demo tree
-    created_tree = (
-        await db.execute(
-            select(func.count(distinct(Tree.user_id)))
-            .select_from(Tree)
-            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
-        )
-    ).scalar() or 0
-
-    # Users whose non-demo trees have at least one person
-    added_person = (
-        await db.execute(
-            select(func.count(distinct(Tree.user_id)))
-            .select_from(Tree)
-            .join(Person, Person.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
-        )
-    ).scalar() or 0
-
-    # Users whose non-demo trees have at least one relationship
-    added_relationship = (
-        await db.execute(
-            select(func.count(distinct(Tree.user_id)))
-            .select_from(Tree)
-            .join(Relationship, Relationship.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
-        )
-    ).scalar() or 0
-
-    # Users whose non-demo trees have at least one event
-    added_event = (
-        await db.execute(
-            select(func.count(distinct(Tree.user_id)))
-            .select_from(Tree)
-            .join(TraumaEvent, TraumaEvent.tree_id == Tree.id)
-            .where(Tree.user_id.not_in(excluded), Tree.is_demo.is_(False))
-        )
-    ).scalar() or 0
-
     return FunnelStats(
         registered=registered,
         verified=verified,
-        created_tree=created_tree,
-        added_person=added_person,
-        added_relationship=added_relationship,
-        added_event=added_event,
+        created_tree=await _count_users_with_entity(None, excluded, db),
+        added_person=await _count_users_with_entity(Person, excluded, db),
+        added_relationship=await _count_users_with_entity(Relationship, excluded, db),
+        added_event=await _count_users_with_entity(TraumaEvent, excluded, db),
     )
 
 
