@@ -1,5 +1,4 @@
 import logging
-from threading import Thread
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.email import send_feedback_email
+from app.email import send_email_background, send_feedback_email
 from app.models.feedback import Feedback
 from app.models.user import User
 from app.schemas.feedback import FeedbackCreate
@@ -34,10 +33,6 @@ async def submit_feedback(
     db.add(feedback)
     await db.commit()
 
-    Thread(
-        target=send_feedback_email,
-        args=(data.category, data.message, user_email, settings),
-        daemon=True,
-    ).start()
+    send_email_background(send_feedback_email, data.category, data.message, user_email, settings)
 
     return {"id": str(feedback.id)}

@@ -2,7 +2,6 @@ import hashlib
 import logging
 import secrets
 from datetime import UTC, datetime, timedelta
-from threading import Thread
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,7 +12,7 @@ from app.auth import require_admin
 from app.capacity import get_active_user_count
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.email import send_waitlist_approval_email
+from app.email import send_email_background, send_waitlist_approval_email
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
 from app.schemas.waitlist import WaitlistEntryResponse, WaitlistJoinRequest, WaitlistListResponse
@@ -126,11 +125,7 @@ async def admin_approve_waitlist(
     await db.commit()
     await db.refresh(entry)
 
-    Thread(
-        target=send_waitlist_approval_email,
-        args=(entry.email, token, settings),
-        daemon=True,
-    ).start()
+    send_email_background(send_waitlist_approval_email, entry.email, token, settings)
 
     return _entry_response(entry)
 

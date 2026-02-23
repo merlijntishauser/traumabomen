@@ -12,7 +12,7 @@ from app.auth import create_token, decode_token, get_current_user, hash_password
 from app.capacity import is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.email import send_verification_email
+from app.email import send_email_background, send_verification_email
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
@@ -129,7 +129,7 @@ async def register(
         )
         await _finalize_registration(user, waitlist_entry, db)
 
-        send_verification_email(email, token, settings)
+        send_email_background(send_verification_email, email, token, settings)
         return RegisterResponse(message="verification_email_sent")
 
     user = User(
@@ -247,7 +247,7 @@ async def resend_verification(
     )
     await db.commit()
 
-    send_verification_email(user.email, token, settings)
+    send_email_background(send_verification_email, user.email, token, settings)
     return RegisterResponse(message="verification_email_sent")
 
 

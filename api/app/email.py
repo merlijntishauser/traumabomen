@@ -1,8 +1,13 @@
+import contextlib
 import logging
 import smtplib
+import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from threading import Thread
+from typing import Any
 
 from app.config import Settings
 
@@ -135,3 +140,20 @@ def send_feedback_email(
             server.sendmail(settings.SMTP_FROM, settings.FEEDBACK_EMAIL, msg.as_string())
     except Exception:
         logger.exception("Failed to send feedback email")
+
+
+RETRY_DELAY_SECONDS = 5
+
+
+def send_email_background(fn: Callable[..., None], *args: Any) -> None:
+    """Run an email-sending function in a daemon thread with one retry."""
+
+    def _worker() -> None:
+        try:
+            fn(*args)
+        except Exception:
+            time.sleep(RETRY_DELAY_SECONDS)
+            with contextlib.suppress(Exception):  # Already logged by each send_* fn
+                fn(*args)
+
+    Thread(target=_worker, daemon=True).start()

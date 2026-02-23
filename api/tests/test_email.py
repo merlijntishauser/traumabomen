@@ -1,11 +1,17 @@
 """Tests for email sending utility."""
 
+import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.config import Settings
-from app.email import send_feedback_email, send_verification_email, send_waitlist_approval_email
+from app.email import (
+    send_email_background,
+    send_feedback_email,
+    send_verification_email,
+    send_waitlist_approval_email,
+)
 
 
 @pytest.fixture
@@ -183,3 +189,68 @@ class TestSendFeedbackEmail:
 
         # Should not raise -- feedback email failures are logged, not propagated
         send_feedback_email("bug", "test", "user@test.com", smtp_settings)
+
+
+class TestSendEmailBackground:
+    def test_calls_function_with_args(self):
+        fn = MagicMock()
+        done = threading.Event()
+        fn.side_effect = lambda *a: done.set()
+
+        send_email_background(fn, "arg1", "arg2")
+        done.wait(timeout=2)
+
+        fn.assert_called_once_with("arg1", "arg2")
+
+    @patch("app.email.RETRY_DELAY_SECONDS", 0)
+    def test_retries_once_on_failure_then_succeeds(self):
+        done = threading.Event()
+        call_count = 0
+
+        def side_effect(*_args):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise ConnectionError("SMTP down")
+            done.set()
+
+        fn = MagicMock(side_effect=side_effect)
+
+        send_email_background(fn, "a")
+        done.wait(timeout=2)
+
+        assert fn.call_count == 2
+
+    @patch("app.email.RETRY_DELAY_SECONDS", 0)
+    def test_gives_up_after_two_failures(self):
+        done = threading.Event()
+        call_count = 0
+
+        def side_effect(*_args):
+            nonlocal call_count
+            call_count += 1
+            if call_count >= 2:
+                done.set()
+            raise ConnectionError("SMTP down")
+
+        fn = MagicMock(side_effect=side_effect)
+
+        send_email_background(fn, "a")
+        done.wait(timeout=2)
+
+        assert fn.call_count == 2
+
+    def test_thread_is_daemon(self):
+        fn = MagicMock()
+        started_threads: list[threading.Thread] = []
+        original_init = threading.Thread.__init__
+
+        def capture_init(self, *args, **kwargs):
+            original_init(self, *args, **kwargs)
+            started_threads.append(self)
+
+        with patch.object(threading.Thread, "__init__", capture_init):
+            send_email_background(fn)
+
+        assert len(started_threads) == 1
+        assert started_threads[0].daemon is True
