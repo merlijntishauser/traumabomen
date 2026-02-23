@@ -126,7 +126,7 @@ jobs:
         run: |
           docker build --target production \
             --build-arg VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
-            --build-arg VITE_SENTRY_ENVIRONMENT=production \
+            --build-arg VITE_SENTRY_ENVIRONMENT=production-frontend \
             --build-arg VITE_SENTRY_RELEASE=${{ github.sha }} \
             --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
             --build-arg SENTRY_ORG=${{ secrets.SENTRY_ORG }} \
@@ -184,7 +184,7 @@ jobs:
               ENABLE_WAITLIST=true,\
               MAX_ACTIVE_USERS=20,\
               FEEDBACK_EMAIL=feedback@traumatrees.org,\
-              SENTRY_ENVIRONMENT=production,\
+              SENTRY_ENVIRONMENT=production-api,\
               SENTRY_RELEASE=${{ github.sha }}" \
             --min-instances=0 \
             --max-instances=4 \
