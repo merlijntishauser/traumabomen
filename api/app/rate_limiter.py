@@ -39,11 +39,16 @@ _by_email: dict[str, AttemptRecord] = {}
 _check_counter: int = 0
 
 
+def _sanitize(value: str) -> str:
+    """Strip newlines to prevent log injection."""
+    return value.replace("\r", "").replace("\n", "")
+
+
 def _redact_ip(ip: str) -> str:
     """Redact the last octet of an IP address for logging (e.g. '1.2.3.x')."""
     parts = ip.rsplit(".", 1)
     if len(parts) == 2:
-        return f"{parts[0]}.x"
+        return _sanitize(f"{parts[0]}.x")
     return "x"
 
 
@@ -51,7 +56,7 @@ def _redact_email(email: str) -> str:
     """Redact email to domain only for logging (e.g. '*@example.com')."""
     parts = email.split("@", 1)
     if len(parts) == 2:
-        return f"*@{parts[1]}"
+        return _sanitize(f"*@{parts[1]}")
     return "*@unknown"
 
 

@@ -30,6 +30,14 @@ class TestRedaction:
     def test_redact_email_no_at(self):
         assert _redact_email("invalid") == "*@unknown"
 
+    def test_redact_ip_strips_newlines(self):
+        assert "\n" not in _redact_ip("1.2.3\n.4")
+        assert "\r" not in _redact_ip("1.2\r\n.3.4")
+
+    def test_redact_email_strips_newlines(self):
+        assert "\n" not in _redact_email("user@ex\nample.com")
+        assert "\r" not in _redact_email("user@ex\r\nample.com")
+
 
 class TestRecordFailure:
     async def test_records_ip_and_email_counters(self):
