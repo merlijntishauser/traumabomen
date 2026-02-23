@@ -114,6 +114,8 @@ async def check_and_tarpit(ip: str, email: str) -> None:
     Raises:
         HTTPException: 429 if the attempt count reaches lockout threshold.
     """
+    ip = _sanitize(ip)
+    email = _sanitize(email)
     global _check_counter
     _check_counter += 1
     if _check_counter >= CLEANUP_INTERVAL:
