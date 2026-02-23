@@ -206,6 +206,14 @@ async def verify_email(
     return VerifyResponse(message="email_verified")
 
 
+def _was_token_generated_recently(user: User) -> bool:
+    """True if the verification token was generated less than 1 hour ago."""
+    if not user.email_verification_expires_at:
+        return False
+    min_expiry = datetime.now(UTC) + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS - 1)
+    return user.email_verification_expires_at > min_expiry
+
+
 @router.post("/resend-verification", response_model=RegisterResponse)
 async def resend_verification(
     body: ResendVerificationRequest,
@@ -226,11 +234,7 @@ async def resend_verification(
     if user is None or user.email_verified:
         return RegisterResponse(message="verification_email_sent")
 
-    # Rate limit: check if token was generated recently
-    if user.email_verification_expires_at and user.email_verification_expires_at > datetime.now(
-        UTC
-    ) + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS - 1):
-        # Token was generated less than 1 hour ago -- too soon
+    if _was_token_generated_recently(user):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="resend_too_soon",
