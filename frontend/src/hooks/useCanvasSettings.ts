@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useLocalStorageSettings } from "./useLocalStorageSettings";
 
 export type EdgeStyle = "curved" | "elbows" | "straight";
 
@@ -30,29 +30,6 @@ const DEFAULTS: CanvasSettings = {
   showFriendEdges: true,
 };
 
-const STORAGE_KEY = "traumabomen-canvas-settings";
-
-function loadSettings(): CanvasSettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULTS;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULTS, ...parsed };
-  } catch {
-    return DEFAULTS;
-  }
-}
-
 export function useCanvasSettings() {
-  const [settings, setSettings] = useState<CanvasSettings>(loadSettings);
-
-  const update = useCallback((partial: Partial<CanvasSettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...partial };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  return { settings, update } as const;
+  return useLocalStorageSettings("traumabomen-canvas-settings", DEFAULTS);
 }
