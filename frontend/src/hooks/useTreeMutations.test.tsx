@@ -411,7 +411,7 @@ describe("event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.createEvent.mutateAsync({
+      await result.current.events.create.mutateAsync({
         personIds: ["p-1"],
         data: eventData,
       });
@@ -438,7 +438,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.createEvent.mutateAsync({
+      await result.current.events.create.mutateAsync({
         personIds: ["p-1"],
         data: eventData,
       });
@@ -462,7 +462,7 @@ describe("event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.updateEvent.mutateAsync({
+      await result.current.events.update.mutateAsync({
         entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
@@ -503,7 +503,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateEvent.mutate({
+      result.current.events.update.mutate({
         entityId: "e-1",
         personIds: ["p-1", "p-2"],
         data: eventData,
@@ -528,7 +528,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateEvent.mutate({
+      result.current.events.update.mutate({
         entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
@@ -568,7 +568,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateEvent.mutate({
+      result.current.events.update.mutate({
         entityId: "e-nonexistent",
         personIds: ["p-1"],
         data: eventData,
@@ -610,7 +610,7 @@ describe("event mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateEvent.mutateAsync({
+        await result.current.events.update.mutateAsync({
           entityId: "e-1",
           personIds: ["p-1"],
           data: eventData,
@@ -638,7 +638,7 @@ describe("event mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateEvent.mutateAsync({
+        await result.current.events.update.mutateAsync({
           entityId: "e-1",
           personIds: ["p-1"],
           data: eventData,
@@ -667,7 +667,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.updateEvent.mutateAsync({
+      await result.current.events.update.mutateAsync({
         entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
@@ -687,7 +687,7 @@ describe("event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.deleteEvent.mutateAsync("e-1");
+      await result.current.events.delete.mutateAsync("e-1");
     });
 
     expect(mockEncrypt).not.toHaveBeenCalled();
@@ -703,7 +703,7 @@ describe("event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.deleteEvent.mutateAsync("e-1");
+      await result.current.events.delete.mutateAsync("e-1");
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
@@ -738,7 +738,7 @@ describe("life event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.createLifeEvent.mutateAsync({
+      await result.current.lifeEvents.create.mutateAsync({
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -765,7 +765,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.createLifeEvent.mutateAsync({
+      await result.current.lifeEvents.create.mutateAsync({
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -789,7 +789,7 @@ describe("life event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.updateLifeEvent.mutateAsync({
+      await result.current.lifeEvents.update.mutateAsync({
         entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
@@ -828,7 +828,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateLifeEvent.mutate({
+      result.current.lifeEvents.update.mutate({
         entityId: "le-1",
         personIds: ["p-1", "p-3"],
         data: lifeEventData,
@@ -855,7 +855,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateLifeEvent.mutate({
+      result.current.lifeEvents.update.mutate({
         entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
@@ -893,7 +893,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateLifeEvent.mutate({
+      result.current.lifeEvents.update.mutate({
         entityId: "le-nonexistent",
         personIds: ["p-1"],
         data: lifeEventData,
@@ -938,7 +938,7 @@ describe("life event mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateLifeEvent.mutateAsync({
+        await result.current.lifeEvents.update.mutateAsync({
           entityId: "le-1",
           personIds: ["p-1"],
           data: lifeEventData,
@@ -968,7 +968,7 @@ describe("life event mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateLifeEvent.mutateAsync({
+        await result.current.lifeEvents.update.mutateAsync({
           entityId: "le-1",
           personIds: ["p-1"],
           data: lifeEventData,
@@ -996,7 +996,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.updateLifeEvent.mutateAsync({
+      await result.current.lifeEvents.update.mutateAsync({
         entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
@@ -1016,7 +1016,7 @@ describe("life event mutations", () => {
     });
 
     await act(async () => {
-      await result.current.deleteLifeEvent.mutateAsync("le-1");
+      await result.current.lifeEvents.delete.mutateAsync("le-1");
     });
 
     expect(mockEncrypt).not.toHaveBeenCalled();
@@ -1032,7 +1032,7 @@ describe("life event mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.deleteLifeEvent.mutateAsync("le-1");
+      await result.current.lifeEvents.delete.mutateAsync("le-1");
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
@@ -1067,7 +1067,7 @@ describe("turning point mutations", () => {
     });
 
     await act(async () => {
-      await result.current.createTurningPoint.mutateAsync({
+      await result.current.turningPoints.create.mutateAsync({
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1094,7 +1094,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.createTurningPoint.mutateAsync({
+      await result.current.turningPoints.create.mutateAsync({
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1118,7 +1118,7 @@ describe("turning point mutations", () => {
     });
 
     await act(async () => {
-      await result.current.updateTurningPoint.mutateAsync({
+      await result.current.turningPoints.update.mutateAsync({
         entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
@@ -1157,7 +1157,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateTurningPoint.mutate({
+      result.current.turningPoints.update.mutate({
         entityId: "tp-1",
         personIds: ["p-1", "p-3"],
         data: turningPointData,
@@ -1184,7 +1184,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateTurningPoint.mutate({
+      result.current.turningPoints.update.mutate({
         entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
@@ -1222,7 +1222,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateTurningPoint.mutate({
+      result.current.turningPoints.update.mutate({
         entityId: "tp-nonexistent",
         personIds: ["p-1"],
         data: turningPointData,
@@ -1267,7 +1267,7 @@ describe("turning point mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateTurningPoint.mutateAsync({
+        await result.current.turningPoints.update.mutateAsync({
           entityId: "tp-1",
           personIds: ["p-1"],
           data: turningPointData,
@@ -1297,7 +1297,7 @@ describe("turning point mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateTurningPoint.mutateAsync({
+        await result.current.turningPoints.update.mutateAsync({
           entityId: "tp-1",
           personIds: ["p-1"],
           data: turningPointData,
@@ -1325,7 +1325,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.updateTurningPoint.mutateAsync({
+      await result.current.turningPoints.update.mutateAsync({
         entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
@@ -1345,7 +1345,7 @@ describe("turning point mutations", () => {
     });
 
     await act(async () => {
-      await result.current.deleteTurningPoint.mutateAsync("tp-1");
+      await result.current.turningPoints.delete.mutateAsync("tp-1");
     });
 
     expect(mockEncrypt).not.toHaveBeenCalled();
@@ -1361,7 +1361,7 @@ describe("turning point mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.deleteTurningPoint.mutateAsync("tp-1");
+      await result.current.turningPoints.delete.mutateAsync("tp-1");
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
@@ -1396,7 +1396,7 @@ describe("classification mutations", () => {
     });
 
     await act(async () => {
-      await result.current.createClassification.mutateAsync({
+      await result.current.classifications.create.mutateAsync({
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1423,7 +1423,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.createClassification.mutateAsync({
+      await result.current.classifications.create.mutateAsync({
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1447,7 +1447,7 @@ describe("classification mutations", () => {
     });
 
     await act(async () => {
-      await result.current.updateClassification.mutateAsync({
+      await result.current.classifications.update.mutateAsync({
         entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
@@ -1486,7 +1486,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateClassification.mutate({
+      result.current.classifications.update.mutate({
         entityId: "c-1",
         personIds: ["p-1", "p-2"],
         data: classificationData,
@@ -1515,7 +1515,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateClassification.mutate({
+      result.current.classifications.update.mutate({
         entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
@@ -1553,7 +1553,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updateClassification.mutate({
+      result.current.classifications.update.mutate({
         entityId: "c-nonexistent",
         personIds: ["p-1"],
         data: classificationData,
@@ -1598,7 +1598,7 @@ describe("classification mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateClassification.mutateAsync({
+        await result.current.classifications.update.mutateAsync({
           entityId: "c-1",
           personIds: ["p-1"],
           data: classificationData,
@@ -1629,7 +1629,7 @@ describe("classification mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updateClassification.mutateAsync({
+        await result.current.classifications.update.mutateAsync({
           entityId: "c-1",
           personIds: ["p-1"],
           data: classificationData,
@@ -1657,7 +1657,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.updateClassification.mutateAsync({
+      await result.current.classifications.update.mutateAsync({
         entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
@@ -1677,7 +1677,7 @@ describe("classification mutations", () => {
     });
 
     await act(async () => {
-      await result.current.deleteClassification.mutateAsync("c-1");
+      await result.current.classifications.delete.mutateAsync("c-1");
     });
 
     expect(mockEncrypt).not.toHaveBeenCalled();
@@ -1693,7 +1693,7 @@ describe("classification mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.deleteClassification.mutateAsync("c-1");
+      await result.current.classifications.delete.mutateAsync("c-1");
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
@@ -1726,7 +1726,7 @@ describe("pattern mutations", () => {
     });
 
     await act(async () => {
-      await result.current.createPattern.mutateAsync({
+      await result.current.patterns.create.mutateAsync({
         personIds: ["p-1"],
         data: patternData,
       });
@@ -1753,7 +1753,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.createPattern.mutateAsync({
+      await result.current.patterns.create.mutateAsync({
         personIds: ["p-1"],
         data: patternData,
       });
@@ -1777,7 +1777,7 @@ describe("pattern mutations", () => {
     });
 
     await act(async () => {
-      await result.current.updatePattern.mutateAsync({
+      await result.current.patterns.update.mutateAsync({
         entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
@@ -1814,7 +1814,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updatePattern.mutate({
+      result.current.patterns.update.mutate({
         entityId: "pat-1",
         personIds: ["p-1", "p-2"],
         data: patternData,
@@ -1837,7 +1837,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updatePattern.mutate({
+      result.current.patterns.update.mutate({
         entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
@@ -1873,7 +1873,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     act(() => {
-      result.current.updatePattern.mutate({
+      result.current.patterns.update.mutate({
         entityId: "pat-nonexistent",
         personIds: ["p-1"],
         data: patternData,
@@ -1912,7 +1912,7 @@ describe("pattern mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updatePattern.mutateAsync({
+        await result.current.patterns.update.mutateAsync({
           entityId: "pat-1",
           personIds: ["p-1"],
           data: patternData,
@@ -1938,7 +1938,7 @@ describe("pattern mutations", () => {
 
     await act(async () => {
       try {
-        await result.current.updatePattern.mutateAsync({
+        await result.current.patterns.update.mutateAsync({
           entityId: "pat-1",
           personIds: ["p-1"],
           data: patternData,
@@ -1966,7 +1966,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.updatePattern.mutateAsync({
+      await result.current.patterns.update.mutateAsync({
         entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
@@ -1986,7 +1986,7 @@ describe("pattern mutations", () => {
     });
 
     await act(async () => {
-      await result.current.deletePattern.mutateAsync("pat-1");
+      await result.current.patterns.delete.mutateAsync("pat-1");
     });
 
     expect(mockEncrypt).not.toHaveBeenCalled();
@@ -2002,7 +2002,7 @@ describe("pattern mutations", () => {
     const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
 
     await act(async () => {
-      await result.current.deletePattern.mutateAsync("pat-1");
+      await result.current.patterns.delete.mutateAsync("pat-1");
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({

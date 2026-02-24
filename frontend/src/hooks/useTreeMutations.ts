@@ -278,23 +278,31 @@ export function useTreeMutations(treeId: string) {
     createRelationship: createRelationshipMutation,
     updateRelationship: updateRelationshipMutation,
     deleteRelationship: deleteRelationshipMutation,
-    createEvent: events.create,
-    updateEvent: events.update,
-    deleteEvent: events.delete,
-    createLifeEvent: lifeEvents.create,
-    updateLifeEvent: lifeEvents.update,
-    deleteLifeEvent: lifeEvents.delete,
-    createTurningPoint: turningPoints.create,
-    updateTurningPoint: turningPoints.update,
-    deleteTurningPoint: turningPoints.delete,
-    createClassification: classifications.create,
-    updateClassification: classifications.update,
-    deleteClassification: classifications.delete,
-    createPattern: patterns.create,
-    updatePattern: patterns.update,
-    deletePattern: patterns.delete,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    patterns,
     createJournalEntry: createJournalEntryMutation,
     updateJournalEntry: updateJournalEntryMutation,
     deleteJournalEntry: deleteJournalEntryMutation,
+  };
+}
+
+/** Build save/delete handlers for a linked entity (events, lifeEvents, etc.) */
+export function linkedEntityHandlers<T>(group: {
+  create: { mutate: (args: { personIds: string[]; data: T }) => void };
+  update: { mutate: (args: { entityId: string; personIds: string[]; data: T }) => void };
+  delete: { mutate: (id: string) => void };
+}) {
+  return {
+    save: (id: string | null, data: T, personIds: string[]) => {
+      if (id) {
+        group.update.mutate({ entityId: id, personIds, data });
+      } else {
+        group.create.mutate({ personIds, data });
+      }
+    },
+    remove: (id: string) => group.delete.mutate(id),
   };
 }

@@ -36,18 +36,9 @@ import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
-import { useTreeMutations } from "../hooks/useTreeMutations";
+import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { inferSiblings } from "../lib/inferSiblings";
-import type {
-  Classification,
-  JournalEntry,
-  LifeEvent,
-  Pattern,
-  Person,
-  RelationshipData,
-  TraumaEvent,
-  TurningPoint,
-} from "../types/domain";
+import type { JournalEntry, Person, RelationshipData } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
@@ -630,73 +621,11 @@ function TreeWorkspaceInner() {
     });
   }
 
-  function handleSaveEvent(eventId: string | null, data: TraumaEvent, personIds: string[]) {
-    if (eventId) {
-      mutations.updateEvent.mutate({ entityId: eventId, personIds, data });
-    } else {
-      mutations.createEvent.mutate({ personIds, data });
-    }
-  }
-
-  function handleDeleteEvent(eventId: string) {
-    mutations.deleteEvent.mutate(eventId);
-  }
-
-  function handleSaveLifeEvent(lifeEventId: string | null, data: LifeEvent, personIds: string[]) {
-    if (lifeEventId) {
-      mutations.updateLifeEvent.mutate({ entityId: lifeEventId, personIds, data });
-    } else {
-      mutations.createLifeEvent.mutate({ personIds, data });
-    }
-  }
-
-  function handleDeleteLifeEvent(lifeEventId: string) {
-    mutations.deleteLifeEvent.mutate(lifeEventId);
-  }
-
-  function handleSaveTurningPoint(
-    turningPointId: string | null,
-    data: TurningPoint,
-    personIds: string[],
-  ) {
-    if (turningPointId) {
-      mutations.updateTurningPoint.mutate({ entityId: turningPointId, personIds, data });
-    } else {
-      mutations.createTurningPoint.mutate({ personIds, data });
-    }
-  }
-
-  function handleDeleteTurningPoint(turningPointId: string) {
-    mutations.deleteTurningPoint.mutate(turningPointId);
-  }
-
-  function handleSaveClassification(
-    classificationId: string | null,
-    data: Classification,
-    personIds: string[],
-  ) {
-    if (classificationId) {
-      mutations.updateClassification.mutate({ entityId: classificationId, personIds, data });
-    } else {
-      mutations.createClassification.mutate({ personIds, data });
-    }
-  }
-
-  function handleDeleteClassification(classificationId: string) {
-    mutations.deleteClassification.mutate(classificationId);
-  }
-
-  function handleSavePattern(patternId: string | null, data: Pattern, personIds: string[]) {
-    if (patternId) {
-      mutations.updatePattern.mutate({ entityId: patternId, personIds, data });
-    } else {
-      mutations.createPattern.mutate({ personIds, data });
-    }
-  }
-
-  function handleDeletePattern(patternId: string) {
-    mutations.deletePattern.mutate(patternId);
-  }
+  const eventHandlers = linkedEntityHandlers(mutations.events);
+  const lifeEventHandlers = linkedEntityHandlers(mutations.lifeEvents);
+  const turningPointHandlers = linkedEntityHandlers(mutations.turningPoints);
+  const classificationHandlers = linkedEntityHandlers(mutations.classifications);
+  const patternHandlers = linkedEntityHandlers(mutations.patterns);
 
   function handleSaveJournalEntry(entryId: string | null, data: JournalEntry) {
     if (entryId) {
@@ -977,14 +906,14 @@ function TreeWorkspaceInner() {
             onSavePerson={handleSavePerson}
             onDeletePerson={handleDeletePerson}
             onSaveRelationship={handleSaveRelationship}
-            onSaveEvent={handleSaveEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onSaveLifeEvent={handleSaveLifeEvent}
-            onDeleteLifeEvent={handleDeleteLifeEvent}
-            onSaveTurningPoint={handleSaveTurningPoint}
-            onDeleteTurningPoint={handleDeleteTurningPoint}
-            onSaveClassification={handleSaveClassification}
-            onDeleteClassification={handleDeleteClassification}
+            onSaveEvent={eventHandlers.save}
+            onDeleteEvent={eventHandlers.remove}
+            onSaveLifeEvent={lifeEventHandlers.save}
+            onDeleteLifeEvent={lifeEventHandlers.remove}
+            onSaveTurningPoint={turningPointHandlers.save}
+            onDeleteTurningPoint={turningPointHandlers.remove}
+            onSaveClassification={classificationHandlers.save}
+            onDeleteClassification={classificationHandlers.remove}
             onClose={() => setSelectedPersonId(null)}
             showReflectionPrompts={canvasSettings.showReflectionPrompts}
             onOpenJournal={(prompt, linkedRef) => {
@@ -1015,8 +944,8 @@ function TreeWorkspaceInner() {
             persons={persons}
             visiblePatternIds={visiblePatternIds}
             onToggleVisibility={handleTogglePatternVisibility}
-            onSave={handleSavePattern}
-            onDelete={handleDeletePattern}
+            onSave={patternHandlers.save}
+            onDelete={patternHandlers.remove}
             onClose={() => setPatternPanelOpen(false)}
             onHoverPattern={setHoveredPatternId}
             initialExpandedId={openPatternId}
