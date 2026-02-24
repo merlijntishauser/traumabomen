@@ -31,7 +31,7 @@ import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useTimelineFilters } from "../hooks/useTimelineFilters";
 import { useTimelineSettings } from "../hooks/useTimelineSettings";
-import { useTreeData } from "../hooks/useTreeData";
+import { filterByPerson, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { inferSiblings } from "../lib/inferSiblings";
@@ -199,38 +199,19 @@ export default function TimelinePage() {
   );
 
   const selectedEvents = useMemo(
-    () =>
-      selectedPersonId
-        ? Array.from(events.values()).filter((e) => e.person_ids.includes(selectedPersonId))
-        : [],
+    () => filterByPerson(events, selectedPersonId),
     [selectedPersonId, events],
   );
-
   const selectedLifeEvents = useMemo(
-    () =>
-      selectedPersonId
-        ? Array.from(lifeEvents.values()).filter((e) => e.person_ids.includes(selectedPersonId))
-        : [],
+    () => filterByPerson(lifeEvents, selectedPersonId),
     [selectedPersonId, lifeEvents],
   );
-
   const selectedTurningPoints = useMemo(
-    () =>
-      selectedPersonId
-        ? Array.from(turningPoints.values()).filter((tp) =>
-            tp.person_ids.includes(selectedPersonId),
-          )
-        : [],
+    () => filterByPerson(turningPoints, selectedPersonId),
     [selectedPersonId, turningPoints],
   );
-
   const selectedClassifications = useMemo(
-    () =>
-      selectedPersonId
-        ? Array.from(classifications.values()).filter((c) =>
-            c.person_ids.includes(selectedPersonId),
-          )
-        : [],
+    () => filterByPerson(classifications, selectedPersonId),
     [selectedPersonId, classifications],
   );
 

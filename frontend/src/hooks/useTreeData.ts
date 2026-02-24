@@ -63,6 +63,15 @@ export interface DecryptedJournalEntry extends JournalEntry {
   updated_at: string;
 }
 
+/** Filter a linked-entity map to entries associated with a given person. */
+export function filterByPerson<T extends { person_ids: string[] }>(
+  entities: Map<string, T>,
+  personId: string | null,
+): T[] {
+  if (!personId) return [];
+  return Array.from(entities.values()).filter((e) => e.person_ids.includes(personId));
+}
+
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,
   persons: (treeId: string) => ["trees", treeId, "persons"] as const,

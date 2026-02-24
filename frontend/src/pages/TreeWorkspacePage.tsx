@@ -32,7 +32,7 @@ import { useExportTree } from "../hooks/useExportTree";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
 import type { DecryptedPerson } from "../hooks/useTreeData";
-import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
+import { filterByPerson, treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
@@ -741,21 +741,10 @@ function TreeWorkspaceInner() {
       )
     : [];
 
-  const selectedEvents = selectedPersonId
-    ? Array.from(events.values()).filter((e) => e.person_ids.includes(selectedPersonId))
-    : [];
-
-  const selectedLifeEvents = selectedPersonId
-    ? Array.from(lifeEvents.values()).filter((e) => e.person_ids.includes(selectedPersonId))
-    : [];
-
-  const selectedTurningPoints = selectedPersonId
-    ? Array.from(turningPoints.values()).filter((tp) => tp.person_ids.includes(selectedPersonId))
-    : [];
-
-  const selectedClassifications = selectedPersonId
-    ? Array.from(classifications.values()).filter((c) => c.person_ids.includes(selectedPersonId))
-    : [];
+  const selectedEvents = filterByPerson(events, selectedPersonId);
+  const selectedLifeEvents = filterByPerson(lifeEvents, selectedPersonId);
+  const selectedTurningPoints = filterByPerson(turningPoints, selectedPersonId);
+  const selectedClassifications = filterByPerson(classifications, selectedPersonId);
 
   const inferredSiblings = useMemo(() => inferSiblings(relationships), [relationships]);
 
