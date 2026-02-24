@@ -375,6 +375,44 @@ async def update_key_ring(
     return {"message": "Key ring updated"}
 
 
+async def _validate_tree_ownership(tree_ids: list[UUID], user_id: UUID, db: AsyncSession) -> None:
+    result = await db.execute(select(Tree).where(Tree.user_id == user_id, Tree.id.in_(tree_ids)))
+    owned_trees = {t.id for t in result.scalars().all()}
+    for tid in tree_ids:
+        if tid not in owned_trees:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tree {tid} not found",
+            )
+
+
+_ENTITY_MODELS: list[tuple[str, type]] = [
+    ("persons", Person),
+    ("relationships", Relationship),
+    ("events", TraumaEvent),
+    ("life_events", LifeEvent),
+    ("turning_points", TurningPoint),
+    ("classifications", Classification),
+    ("patterns", Pattern),
+    ("journal_entries", JournalEntry),
+]
+
+
+async def _migrate_tree_entities(tree_data, db: AsyncSession) -> None:  # type: ignore[no-untyped-def]
+    await db.execute(
+        update(Tree)
+        .where(Tree.id == tree_data.tree_id)
+        .values(encrypted_data=tree_data.encrypted_data)
+    )
+    for attr, model in _ENTITY_MODELS:
+        for entity in getattr(tree_data, attr):
+            await db.execute(
+                update(model)
+                .where(model.id == entity.id)  # type: ignore[attr-defined]
+                .values(encrypted_data=entity.encrypted_data)
+            )
+
+
 @router.post("/migrate-keys", status_code=status.HTTP_200_OK)
 async def migrate_keys(
     body: MigrateKeysRequest,
@@ -384,42 +422,11 @@ async def migrate_keys(
     if user.encrypted_key_ring:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already migrated")
 
-    tree_ids = [t.tree_id for t in body.trees]
-    result = await db.execute(select(Tree).where(Tree.user_id == user.id, Tree.id.in_(tree_ids)))
-    owned_trees = {t.id for t in result.scalars().all()}
-    for tid in tree_ids:
-        if tid not in owned_trees:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Tree {tid} not found",
-            )
-
+    await _validate_tree_ownership([t.tree_id for t in body.trees], user.id, db)
     user.encrypted_key_ring = body.encrypted_key_ring
 
     for tree_data in body.trees:
-        await db.execute(
-            update(Tree)
-            .where(Tree.id == tree_data.tree_id)
-            .values(encrypted_data=tree_data.encrypted_data)
-        )
-
-        entity_lists: list[tuple[type, list]] = [  # type: ignore[type-arg]
-            (Person, tree_data.persons),
-            (Relationship, tree_data.relationships),
-            (TraumaEvent, tree_data.events),
-            (LifeEvent, tree_data.life_events),
-            (TurningPoint, tree_data.turning_points),
-            (Classification, tree_data.classifications),
-            (Pattern, tree_data.patterns),
-            (JournalEntry, tree_data.journal_entries),
-        ]
-        for model, entities in entity_lists:
-            for entity in entities:
-                await db.execute(
-                    update(model)
-                    .where(model.id == entity.id)  # type: ignore[attr-defined]
-                    .values(encrypted_data=entity.encrypted_data)
-                )
+        await _migrate_tree_entities(tree_data, db)
 
     await db.commit()
     return {"message": "Migration complete"}
