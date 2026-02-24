@@ -716,6 +716,12 @@
   "privacy.diagram.technicalDetails": "Technische details",
   "privacy.diagram.technicalBody": "Sleutelafleiding: Argon2id (geheugenintensief, 64 MB, 3 iteraties). Versleuteling: AES-256-GCM met verse willekeurige IV per bewerking. Implementatie: Web Crypto API (browser-native, geen externe bibliotheken).",
 
+  "export.title": "Exporteren",
+  "export.downloadBackup": "Versleutelde back-up downloaden",
+  "export.downloadPlaintext": "Downloaden als platte JSON",
+  "export.plaintextWarning": "Dit exporteert je gegevens zonder versleuteling. Iedereen met het bestand kan het lezen.",
+  "export.confirmDownload": "Onversleuteld downloaden",
+
   "error.title": "Er ging iets mis",
   "error.description": "Er is een onverwachte fout opgetreden. Herlaad de pagina.",
   "error.reload": "Pagina herladen"

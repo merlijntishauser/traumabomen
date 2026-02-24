@@ -268,3 +268,23 @@
 .settings-panel__delete-confirm {
   margin-top: 4px;
 }
+
+/* Export section */
+
+.settings-panel__export-actions {
+  padding: 4px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-panel__export-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-panel__export-confirm-actions {
+  display: flex;
+  gap: 6px;
+}

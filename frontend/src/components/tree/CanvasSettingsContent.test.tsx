@@ -26,9 +26,24 @@ const DEFAULT_SETTINGS: CanvasSettings = {
   showFriendEdges: true,
 };
 
-function renderComponent(overrides: Partial<CanvasSettings> = {}, onUpdate = vi.fn()) {
+interface RenderOptions {
+  overrides?: Partial<CanvasSettings>;
+  onUpdate?: ReturnType<typeof vi.fn>;
+  onExportEncrypted?: () => Promise<void>;
+  onExportPlaintext?: () => Promise<void>;
+}
+
+function renderComponent(opts: RenderOptions = {}) {
+  const { overrides = {}, onUpdate = vi.fn(), onExportEncrypted, onExportPlaintext } = opts;
   const settings = { ...DEFAULT_SETTINGS, ...overrides };
-  render(<CanvasSettingsContent settings={settings} onUpdate={onUpdate} />);
+  render(
+    <CanvasSettingsContent
+      settings={settings}
+      onUpdate={onUpdate}
+      onExportEncrypted={onExportEncrypted}
+      onExportPlaintext={onExportPlaintext}
+    />,
+  );
   return { onUpdate };
 }
 
@@ -47,28 +62,28 @@ describe("CanvasSettingsContent", () => {
   });
 
   it("calls onUpdate when showParentEdges is toggled", async () => {
-    const { onUpdate } = renderComponent({ showParentEdges: true });
+    const { onUpdate } = renderComponent({ overrides: { showParentEdges: true } });
     const checkbox = screen.getByRole("checkbox", { name: "canvas.showParentEdges" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showParentEdges: false });
   });
 
   it("calls onUpdate when showPartnerEdges is toggled", async () => {
-    const { onUpdate } = renderComponent({ showPartnerEdges: true });
+    const { onUpdate } = renderComponent({ overrides: { showPartnerEdges: true } });
     const checkbox = screen.getByRole("checkbox", { name: "canvas.showPartnerEdges" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showPartnerEdges: false });
   });
 
   it("calls onUpdate when showSiblingEdges is toggled", async () => {
-    const { onUpdate } = renderComponent({ showSiblingEdges: true });
+    const { onUpdate } = renderComponent({ overrides: { showSiblingEdges: true } });
     const checkbox = screen.getByRole("checkbox", { name: "canvas.showSiblingEdges" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showSiblingEdges: false });
   });
 
   it("calls onUpdate when showFriendEdges is toggled", async () => {
-    const { onUpdate } = renderComponent({ showFriendEdges: true });
+    const { onUpdate } = renderComponent({ overrides: { showFriendEdges: true } });
     const checkbox = screen.getByRole("checkbox", { name: "canvas.showFriendEdges" });
     await userEvent.click(checkbox);
     expect(onUpdate).toHaveBeenCalledWith({ showFriendEdges: false });
@@ -80,7 +95,7 @@ describe("CanvasSettingsContent", () => {
   });
 
   it("calls onUpdate when showReflectionPrompts is toggled", async () => {
-    const { onUpdate } = renderComponent({ showReflectionPrompts: true });
+    const { onUpdate } = renderComponent({ overrides: { showReflectionPrompts: true } });
     const checkbox = screen.getByRole("checkbox", {
       name: "canvas.showReflectionPrompts",
     });
@@ -89,8 +104,47 @@ describe("CanvasSettingsContent", () => {
   });
 
   it("reflects unchecked state when visibility is off", () => {
-    renderComponent({ showParentEdges: false, showFriendEdges: false });
+    renderComponent({ overrides: { showParentEdges: false, showFriendEdges: false } });
     expect(screen.getByRole("checkbox", { name: "canvas.showParentEdges" })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: "canvas.showFriendEdges" })).not.toBeChecked();
+  });
+
+  it("does not render export section when no export callbacks provided", () => {
+    renderComponent();
+    expect(screen.queryByText("export.title")).toBeNull();
+  });
+
+  it("renders export section when onExportEncrypted is provided", () => {
+    renderComponent({ onExportEncrypted: vi.fn() });
+    expect(screen.getByText("export.title")).toBeTruthy();
+    expect(screen.getByText("export.downloadBackup")).toBeTruthy();
+  });
+
+  it("renders export section when onExportPlaintext is provided", () => {
+    renderComponent({ onExportPlaintext: vi.fn() });
+    expect(screen.getByText("export.title")).toBeTruthy();
+    expect(screen.getByText("export.downloadPlaintext")).toBeTruthy();
+  });
+
+  it("shows plaintext confirmation dialog on click", async () => {
+    renderComponent({ onExportPlaintext: vi.fn() });
+    await userEvent.click(screen.getByText("export.downloadPlaintext"));
+    expect(screen.getByText("export.plaintextWarning")).toBeTruthy();
+    expect(screen.getByText("export.confirmDownload")).toBeTruthy();
+  });
+
+  it("calls onExportEncrypted when encrypted button clicked", async () => {
+    const onExportEncrypted = vi.fn().mockResolvedValue(undefined);
+    renderComponent({ onExportEncrypted });
+    await userEvent.click(screen.getByText("export.downloadBackup"));
+    expect(onExportEncrypted).toHaveBeenCalled();
+  });
+
+  it("calls onExportPlaintext after confirmation", async () => {
+    const onExportPlaintext = vi.fn().mockResolvedValue(undefined);
+    renderComponent({ onExportPlaintext });
+    await userEvent.click(screen.getByText("export.downloadPlaintext"));
+    await userEvent.click(screen.getByText("export.confirmDownload"));
+    expect(onExportPlaintext).toHaveBeenCalled();
   });
 });

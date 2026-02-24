@@ -28,6 +28,7 @@ import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPa
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
+import { useExportTree } from "../hooks/useExportTree";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
 import type { DecryptedPerson } from "../hooks/useTreeData";
@@ -330,6 +331,7 @@ function TreeWorkspaceInner() {
     return new Set([...visiblePatternIds, hoveredPatternId]);
   }, [visiblePatternIds, hoveredPatternId]);
 
+  const treeData = useTreeData(treeId!);
   const {
     treeName,
     persons,
@@ -342,18 +344,26 @@ function TreeWorkspaceInner() {
     journalEntries,
     isLoading,
     error,
-  } = useTreeData(treeId!);
+  } = treeData;
   const mutations = useTreeMutations(treeId!);
   const { settings: canvasSettings, update: updateCanvasSettings } = useCanvasSettings();
   const { canUndo, push: pushPositionSnapshot, pop: popPositionSnapshot } = usePositionHistory();
   const [animatingLayout, setAnimatingLayout] = useState(false);
+  const { exportEncrypted, exportPlaintext } = useExportTree(treeId!, treeData);
 
   const canvasViewTab = useMemo(
     () => ({
       label: t("settings.canvas"),
-      content: <CanvasSettingsContent settings={canvasSettings} onUpdate={updateCanvasSettings} />,
+      content: (
+        <CanvasSettingsContent
+          settings={canvasSettings}
+          onUpdate={updateCanvasSettings}
+          onExportEncrypted={exportEncrypted}
+          onExportPlaintext={exportPlaintext}
+        />
+      ),
     }),
-    [t, canvasSettings, updateCanvasSettings],
+    [t, canvasSettings, updateCanvasSettings, exportEncrypted, exportPlaintext],
   );
 
   const layoutSettings = useMemo(

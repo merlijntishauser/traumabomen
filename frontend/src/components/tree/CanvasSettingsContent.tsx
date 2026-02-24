@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { CanvasSettings, EdgeStyle } from "../../hooks/useCanvasSettings";
 import { ThemeLanguageSettings } from "./ThemeLanguageSettings";
@@ -7,10 +8,40 @@ const EDGE_STYLES: EdgeStyle[] = ["curved", "elbows", "straight"];
 interface Props {
   settings: CanvasSettings;
   onUpdate: (partial: Partial<CanvasSettings>) => void;
+  onExportEncrypted?: () => Promise<void>;
+  onExportPlaintext?: () => Promise<void>;
 }
 
-export function CanvasSettingsContent({ settings, onUpdate }: Props) {
+export function CanvasSettingsContent({
+  settings,
+  onUpdate,
+  onExportEncrypted,
+  onExportPlaintext,
+}: Props) {
   const { t } = useTranslation();
+  const [exporting, setExporting] = useState(false);
+  const [confirmPlaintext, setConfirmPlaintext] = useState(false);
+
+  async function handleExportEncrypted() {
+    if (!onExportEncrypted) return;
+    setExporting(true);
+    try {
+      await onExportEncrypted();
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportPlaintext() {
+    if (!onExportPlaintext) return;
+    setExporting(true);
+    try {
+      await onExportPlaintext();
+    } finally {
+      setExporting(false);
+      setConfirmPlaintext(false);
+    }
+  }
 
   return (
     <>
@@ -145,6 +176,62 @@ export function CanvasSettingsContent({ settings, onUpdate }: Props) {
           <span>{t("canvas.showReflectionPrompts")}</span>
         </label>
       </div>
+
+      {(onExportEncrypted || onExportPlaintext) && (
+        <>
+          <div className="settings-panel__divider" />
+
+          <div className="settings-panel__group">
+            <span className="settings-panel__label">{t("export.title")}</span>
+          </div>
+
+          <div className="settings-panel__export-actions">
+            {onExportEncrypted && (
+              <button
+                type="button"
+                className="settings-panel__btn"
+                onClick={handleExportEncrypted}
+                disabled={exporting}
+              >
+                {t("export.downloadBackup")}
+              </button>
+            )}
+            {onExportPlaintext && !confirmPlaintext && (
+              <button
+                type="button"
+                className="settings-panel__btn"
+                onClick={() => setConfirmPlaintext(true)}
+                disabled={exporting}
+              >
+                {t("export.downloadPlaintext")}
+              </button>
+            )}
+            {confirmPlaintext && (
+              <div className="settings-panel__export-confirm">
+                <div className="settings-panel__warning">{t("export.plaintextWarning")}</div>
+                <div className="settings-panel__export-confirm-actions">
+                  <button
+                    type="button"
+                    className="settings-panel__btn settings-panel__btn--danger"
+                    onClick={handleExportPlaintext}
+                    disabled={exporting}
+                  >
+                    {t("export.confirmDownload")}
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-panel__btn"
+                    onClick={() => setConfirmPlaintext(false)}
+                    disabled={exporting}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <div className="settings-panel__divider" />
 

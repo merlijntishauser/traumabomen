@@ -717,6 +717,12 @@
   "privacy.diagram.technicalDetails": "Technical details",
   "privacy.diagram.technicalBody": "Key derivation: Argon2id (memory-hard, 64 MB, 3 iterations). Encryption: AES-256-GCM with fresh random IV per operation. Implementation: Web Crypto API (browser-native, no external libraries).",
 
+  "export.title": "Export",
+  "export.downloadBackup": "Download encrypted backup",
+  "export.downloadPlaintext": "Download as plain JSON",
+  "export.plaintextWarning": "This will export your data without encryption. Anyone with the file can read it.",
+  "export.confirmDownload": "Download unencrypted",
+
   "error.title": "Something went wrong",
   "error.description": "An unexpected error occurred. Please reload the page.",
   "error.reload": "Reload page"
