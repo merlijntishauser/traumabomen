@@ -8,7 +8,7 @@ let mockAccessToken: string | null = null;
 let mockOnboardingFlag = false;
 
 vi.mock("./contexts/EncryptionContext", () => ({
-  useEncryption: () => ({ key: mockKey }),
+  useEncryption: () => ({ masterKey: mockKey }),
 }));
 
 vi.mock("./lib/api", () => ({

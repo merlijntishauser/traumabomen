@@ -64,7 +64,7 @@ vi.mock("../../lib/crypto", () => ({
 const mockSetKey = vi.fn();
 const mockSetPassphraseHash = vi.fn();
 vi.mock("../../contexts/EncryptionContext", () => ({
-  useEncryption: () => ({ setKey: mockSetKey, setPassphraseHash: mockSetPassphraseHash }),
+  useEncryption: () => ({ setMasterKey: mockSetKey, setPassphraseHash: mockSetPassphraseHash }),
 }));
 
 const mockToggleTheme = vi.fn();

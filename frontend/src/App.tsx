@@ -77,12 +77,12 @@ export function ErrorFallback() {
 }
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { key } = useEncryption();
+  const { masterKey } = useEncryption();
   const location = useLocation();
   if (!getAccessToken()) {
     return <Navigate to="/login" replace />;
   }
-  if (!key) {
+  if (!masterKey) {
     return <Navigate to="/unlock" replace state={{ from: location.pathname }} />;
   }
   return <>{children}</>;
@@ -96,7 +96,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 }
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { key } = useEncryption();
+  const { masterKey } = useEncryption();
   const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
   const isAuthenticated = !!getAccessToken();
 
@@ -107,7 +107,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     setAcknowledged(true);
   }
 
-  if (isAuthenticated && key && !acknowledged) {
+  if (isAuthenticated && masterKey && !acknowledged) {
     return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;
   }
 
@@ -115,7 +115,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
-  const { key, clearKey, verifyPassphrase } = useEncryption();
+  const { masterKey, clearKey, verifyPassphrase } = useEncryption();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -126,7 +126,7 @@ function AppContent() {
   }, [clearKey, queryClient, navigate]);
 
   const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
-    enabled: key !== null,
+    enabled: masterKey !== null,
     onFullLock: handleFullLock,
   });
 
@@ -218,7 +218,7 @@ function AppContent() {
             </Routes>
           </Suspense>
         </main>
-        <AppFooter onLock={key ? lock : undefined} />
+        <AppFooter onLock={masterKey ? lock : undefined} />
       </div>
     </OnboardingGuard>
   );

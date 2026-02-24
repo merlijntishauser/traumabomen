@@ -51,7 +51,7 @@ export function useTreeMutations(treeId: string) {
 
   const createPersonMutation = useMutation({
     mutationFn: async (data: Person) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createPerson(treeId, { encrypted_data });
     },
     onSuccess: () => {
@@ -63,7 +63,7 @@ export function useTreeMutations(treeId: string) {
 
   const updatePersonMutation = useMutation({
     mutationFn: async ({ personId, data }: { personId: string; data: Person }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updatePerson(treeId, personId, { encrypted_data });
     },
     onSuccess: () => {
@@ -112,7 +112,7 @@ export function useTreeMutations(treeId: string) {
       targetPersonId: string;
       data: RelationshipData;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createRelationship(treeId, {
         source_person_id: sourcePersonId,
         target_person_id: targetPersonId,
@@ -134,7 +134,7 @@ export function useTreeMutations(treeId: string) {
       relationshipId: string;
       data: RelationshipData;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateRelationship(treeId, relationshipId, { encrypted_data });
     },
     onSuccess: () => {
@@ -157,7 +157,7 @@ export function useTreeMutations(treeId: string) {
 
   const createEventMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: TraumaEvent }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createEvent(treeId, { person_ids: personIds, encrypted_data });
     },
     onSuccess: () => {
@@ -177,7 +177,7 @@ export function useTreeMutations(treeId: string) {
       personIds: string[];
       data: TraumaEvent;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateEvent(treeId, eventId, {
         person_ids: personIds,
         encrypted_data,
@@ -223,7 +223,7 @@ export function useTreeMutations(treeId: string) {
 
   const createLifeEventMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: LifeEvent }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createLifeEvent(treeId, { person_ids: personIds, encrypted_data });
     },
     onSuccess: () => {
@@ -243,7 +243,7 @@ export function useTreeMutations(treeId: string) {
       personIds: string[];
       data: LifeEvent;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateLifeEvent(treeId, lifeEventId, {
         person_ids: personIds,
         encrypted_data,
@@ -289,7 +289,7 @@ export function useTreeMutations(treeId: string) {
 
   const createTurningPointMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: TurningPoint }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createTurningPoint(treeId, { person_ids: personIds, encrypted_data });
     },
     onSuccess: () => {
@@ -309,7 +309,7 @@ export function useTreeMutations(treeId: string) {
       personIds: string[];
       data: TurningPoint;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateTurningPoint(treeId, turningPointId, {
         person_ids: personIds,
         encrypted_data,
@@ -355,7 +355,7 @@ export function useTreeMutations(treeId: string) {
 
   const createClassificationMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: Classification }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createClassification(treeId, { person_ids: personIds, encrypted_data });
     },
     onSuccess: () => {
@@ -375,7 +375,7 @@ export function useTreeMutations(treeId: string) {
       personIds: string[];
       data: Classification;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateClassification(treeId, classificationId, {
         person_ids: personIds,
         encrypted_data,
@@ -421,7 +421,7 @@ export function useTreeMutations(treeId: string) {
 
   const createPatternMutation = useMutation({
     mutationFn: async ({ personIds, data }: { personIds: string[]; data: Pattern }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createPattern(treeId, { person_ids: personIds, encrypted_data });
     },
     onSuccess: () => {
@@ -441,7 +441,7 @@ export function useTreeMutations(treeId: string) {
       personIds: string[];
       data: Pattern;
     }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updatePattern(treeId, patternId, {
         person_ids: personIds,
         encrypted_data,
@@ -487,7 +487,7 @@ export function useTreeMutations(treeId: string) {
 
   const createJournalEntryMutation = useMutation({
     mutationFn: async (data: JournalEntry) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return createJournalEntry(treeId, { encrypted_data });
     },
     onSuccess: () => {
@@ -499,7 +499,7 @@ export function useTreeMutations(treeId: string) {
 
   const updateJournalEntryMutation = useMutation({
     mutationFn: async ({ entryId, data }: { entryId: string; data: JournalEntry }) => {
-      const encrypted_data = await encrypt(data);
+      const encrypted_data = await encrypt(data, treeId);
       return updateJournalEntry(treeId, entryId, { encrypted_data });
     },
     onSuccess: () => {

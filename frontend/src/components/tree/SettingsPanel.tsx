@@ -42,7 +42,7 @@ interface Props {
 
 export function SettingsPanel({ viewTab, className }: Props) {
   const { t } = useTranslation();
-  const { setKey, setPassphraseHash } = useEncryption();
+  const { setMasterKey, setPassphraseHash } = useEncryption();
   const logout = useLogout();
 
   const [open, setOpen] = useState(false);
@@ -260,7 +260,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
 
       // 5. Update key and passphrase hash in encryption context
       const newHash = await hashPassphrase(ppNew);
-      setKey(newKey);
+      setMasterKey(newKey);
       setPassphraseHash(newHash);
 
       setPpMessage({ type: "success", text: t("account.passphraseChanged") });

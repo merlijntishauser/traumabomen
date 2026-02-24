@@ -8,9 +8,17 @@ import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useLogout } from "../hooks/useLogout";
-import { createTree, deleteTree, getIsAdmin, getTrees, updateTree } from "../lib/api";
+import {
+  createTree,
+  deleteTree,
+  getIsAdmin,
+  getTrees,
+  updateKeyRing,
+  updateTree,
+} from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
 import { createDemoTree } from "../lib/createDemoTree";
+import { encryptForApi, encryptKeyRing, exportKeyToBase64, generateTreeKey } from "../lib/crypto";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
@@ -30,7 +38,7 @@ export default function TreeListPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const logout = useLogout();
-  const { encrypt, decrypt } = useEncryption();
+  const { encrypt, decrypt, masterKey, treeKeys, addTreeKey, removeTreeKey } = useEncryption();
   const queryClient = useQueryClient();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,7 +72,7 @@ export default function TreeListPage() {
       const trees: DecryptedTree[] = await Promise.all(
         responses.map(async (r) => {
           try {
-            const data = await decrypt<{ name: string }>(r.encrypted_data);
+            const data = await decrypt<{ name: string }>(r.encrypted_data, r.id);
             return { id: r.id, name: data.name, is_demo: r.is_demo };
           } catch {
             return { id: r.id, name: t("tree.decryptionError"), is_demo: r.is_demo };
@@ -82,8 +90,18 @@ export default function TreeListPage() {
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      const encrypted_data = await encrypt({ name });
-      return createTree({ encrypted_data });
+      const treeKey = await generateTreeKey();
+      const encrypted_data = await encryptForApi({ name }, treeKey);
+      const response = await createTree({ encrypted_data });
+      addTreeKey(response.id, treeKey);
+      const ringEntries: Record<string, string> = {};
+      for (const [id, k] of treeKeys.entries()) {
+        ringEntries[id] = await exportKeyToBase64(k);
+      }
+      ringEntries[response.id] = await exportKeyToBase64(treeKey);
+      const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
+      await updateKeyRing(encryptedRing);
+      return response;
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
@@ -92,7 +110,20 @@ export default function TreeListPage() {
   });
 
   const demoMutation = useMutation({
-    mutationFn: () => createDemoTree(encrypt, i18n.language),
+    mutationFn: async () => {
+      const treeKey = await generateTreeKey();
+      const boundEncrypt = (data: unknown) => encryptForApi(data, treeKey);
+      const treeId = await createDemoTree(boundEncrypt, i18n.language);
+      addTreeKey(treeId, treeKey);
+      const ringEntries: Record<string, string> = {};
+      for (const [id, k] of treeKeys.entries()) {
+        ringEntries[id] = await exportKeyToBase64(k);
+      }
+      ringEntries[treeId] = await exportKeyToBase64(treeKey);
+      const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
+      await updateKeyRing(encryptedRing);
+      return treeId;
+    },
     onSuccess: (treeId) => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
       navigate(`/trees/${uuidToCompact(treeId)}`);
@@ -101,7 +132,7 @@ export default function TreeListPage() {
 
   const renameMutation = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const encrypted_data = await encrypt({ name });
+      const encrypted_data = await encrypt({ name }, id);
       return updateTree(id, { encrypted_data });
     },
     onSuccess: () => {
@@ -111,7 +142,18 @@ export default function TreeListPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteTree(id),
+    mutationFn: async (id: string) => {
+      await deleteTree(id);
+      removeTreeKey(id);
+      const ringEntries: Record<string, string> = {};
+      for (const [tid, k] of treeKeys.entries()) {
+        if (tid !== id) {
+          ringEntries[tid] = await exportKeyToBase64(k);
+        }
+      }
+      const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
+      await updateKeyRing(encryptedRing);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
       setDeletingId(null);

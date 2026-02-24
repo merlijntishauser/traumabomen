@@ -19,7 +19,7 @@ function getRegistrationError(err: unknown, t: (key: string) => string): string 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { setKey, setPassphraseHash } = useEncryption();
+  const { setMasterKey, setPassphraseHash } = useEncryption();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
 
@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
       const derivedKey = await deriveKey(passphrase, salt);
       const hash = await hashPassphrase(passphrase);
-      setKey(derivedKey);
+      setMasterKey(derivedKey);
       setPassphraseHash(hash);
       navigate("/trees");
     } catch (err) {

@@ -69,7 +69,7 @@ describe("person mutations", () => {
       await result.current.createPerson.mutateAsync(personData);
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(personData);
+    expect(mockEncrypt).toHaveBeenCalledWith(personData, TREE_ID);
     expect(mockedApi.createPerson).toHaveBeenCalledWith(TREE_ID, {
       encrypted_data: "encrypted-blob",
     });
@@ -139,7 +139,7 @@ describe("person mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(personData);
+    expect(mockEncrypt).toHaveBeenCalledWith(personData, TREE_ID);
     expect(mockedApi.updatePerson).toHaveBeenCalledWith(TREE_ID, "p-1", {
       encrypted_data: "encrypted-blob",
     });
@@ -265,7 +265,7 @@ describe("relationship mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(relationshipData);
+    expect(mockEncrypt).toHaveBeenCalledWith(relationshipData, TREE_ID);
     expect(mockedApi.createRelationship).toHaveBeenCalledWith(TREE_ID, {
       source_person_id: "p-1",
       target_person_id: "p-2",
@@ -320,7 +320,7 @@ describe("relationship mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(relationshipData);
+    expect(mockEncrypt).toHaveBeenCalledWith(relationshipData, TREE_ID);
     expect(mockedApi.updateRelationship).toHaveBeenCalledWith(TREE_ID, "r-1", {
       encrypted_data: "encrypted-blob",
     });
@@ -417,7 +417,7 @@ describe("event mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(eventData);
+    expect(mockEncrypt).toHaveBeenCalledWith(eventData, TREE_ID);
     expect(mockedApi.createEvent).toHaveBeenCalledWith(TREE_ID, {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -469,7 +469,7 @@ describe("event mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(eventData);
+    expect(mockEncrypt).toHaveBeenCalledWith(eventData, TREE_ID);
     expect(mockedApi.updateEvent).toHaveBeenCalledWith(TREE_ID, "e-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -744,7 +744,7 @@ describe("life event mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData);
+    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData, TREE_ID);
     expect(mockedApi.createLifeEvent).toHaveBeenCalledWith(TREE_ID, {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -796,7 +796,7 @@ describe("life event mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData);
+    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData, TREE_ID);
     expect(mockedApi.updateLifeEvent).toHaveBeenCalledWith(TREE_ID, "le-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1073,7 +1073,7 @@ describe("turning point mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData);
+    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData, TREE_ID);
     expect(mockedApi.createTurningPoint).toHaveBeenCalledWith(TREE_ID, {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1125,7 +1125,7 @@ describe("turning point mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData);
+    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData, TREE_ID);
     expect(mockedApi.updateTurningPoint).toHaveBeenCalledWith(TREE_ID, "tp-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1402,7 +1402,7 @@ describe("classification mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(classificationData);
+    expect(mockEncrypt).toHaveBeenCalledWith(classificationData, TREE_ID);
     expect(mockedApi.createClassification).toHaveBeenCalledWith(TREE_ID, {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1454,7 +1454,7 @@ describe("classification mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(classificationData);
+    expect(mockEncrypt).toHaveBeenCalledWith(classificationData, TREE_ID);
     expect(mockedApi.updateClassification).toHaveBeenCalledWith(TREE_ID, "c-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1732,7 +1732,7 @@ describe("pattern mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(patternData);
+    expect(mockEncrypt).toHaveBeenCalledWith(patternData, TREE_ID);
     expect(mockedApi.createPattern).toHaveBeenCalledWith(TREE_ID, {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -1784,7 +1784,7 @@ describe("pattern mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(patternData);
+    expect(mockEncrypt).toHaveBeenCalledWith(patternData, TREE_ID);
     expect(mockedApi.updatePattern).toHaveBeenCalledWith(TREE_ID, "pat-1", {
       person_ids: ["p-1"],
       encrypted_data: "encrypted-blob",
@@ -2036,7 +2036,7 @@ describe("journal entry mutations", () => {
       await result.current.createJournalEntry.mutateAsync(journalData);
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(journalData);
+    expect(mockEncrypt).toHaveBeenCalledWith(journalData, TREE_ID);
     expect(mockedApi.createJournalEntry).toHaveBeenCalledWith(TREE_ID, {
       encrypted_data: "encrypted-blob",
     });
@@ -2083,7 +2083,7 @@ describe("journal entry mutations", () => {
       });
     });
 
-    expect(mockEncrypt).toHaveBeenCalledWith(journalData);
+    expect(mockEncrypt).toHaveBeenCalledWith(journalData, TREE_ID);
     expect(mockedApi.updateJournalEntry).toHaveBeenCalledWith(TREE_ID, "j-1", {
       encrypted_data: "encrypted-blob",
     });

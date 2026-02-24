@@ -4,9 +4,12 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { treeQueryKeys, useTreeData } from "./useTreeData";
 
+const mockTreeKeys = new Map([["tree1", {} as CryptoKey]]);
 vi.mock("../contexts/EncryptionContext", () => ({
   useEncryption: () => ({
-    decrypt: async (blob: string) => JSON.parse(blob),
+    decrypt: async (blob: string, _treeId: string) => JSON.parse(blob),
+    masterKey: {} as CryptoKey,
+    treeKeys: mockTreeKeys,
   }),
 }));
 

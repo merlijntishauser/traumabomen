@@ -11,7 +11,7 @@ export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { setKey, setPassphraseHash } = useEncryption();
+  const { setMasterKey, setPassphraseHash } = useEncryption();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [passphrase, setPassphrase] = useState("");
@@ -47,7 +47,7 @@ export default function UnlockPage() {
     try {
       const derivedKey = await deriveKey(passphrase, salt);
       const hash = await hashPassphrase(passphrase);
-      setKey(derivedKey);
+      setMasterKey(derivedKey);
       setPassphraseHash(hash);
       navigate(returnTo, { replace: true });
     } catch {

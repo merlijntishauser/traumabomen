@@ -44,6 +44,10 @@ vi.mock("../contexts/EncryptionContext", () => ({
   useEncryption: () => ({
     encrypt: vi.fn(),
     decrypt: vi.fn(),
+    masterKey: {} as CryptoKey,
+    treeKeys: new Map(),
+    addTreeKey: vi.fn(),
+    removeTreeKey: vi.fn(),
   }),
 }));
 
@@ -56,6 +60,7 @@ vi.mock("../lib/api", () => ({
   deleteTree: vi.fn(),
   getIsAdmin: () => false,
   getTrees: vi.fn(),
+  updateKeyRing: vi.fn(),
   updateTree: vi.fn(),
 }));
 

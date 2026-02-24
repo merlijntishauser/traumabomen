@@ -85,14 +85,14 @@ const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
 const EMPTY_JOURNAL_ENTRIES = new Map<string, DecryptedJournalEntry>();
 
 export function useTreeData(treeId: string) {
-  const { decrypt, key } = useEncryption();
-  const hasKey = key !== null;
+  const { decrypt, masterKey, treeKeys } = useEncryption();
+  const hasKey = masterKey !== null && treeKeys.has(treeId);
 
   const treeQuery = useQuery({
     queryKey: treeQueryKeys.tree(treeId),
     queryFn: async () => {
       const response = await getTree(treeId);
-      const data = await decrypt<{ name: string }>(response.encrypted_data);
+      const data = await decrypt<{ name: string }>(response.encrypted_data, treeId);
       return data.name;
     },
     enabled: hasKey,
@@ -104,7 +104,7 @@ export function useTreeData(treeId: string) {
       const responses = await getPersons(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<Person>(r.encrypted_data);
+          const data = await decrypt<Person>(r.encrypted_data, treeId);
           const person: Person = {
             ...data,
             birth_month: data.birth_month ?? null,
@@ -126,7 +126,7 @@ export function useTreeData(treeId: string) {
       const responses = await getRelationships(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<RelationshipData>(r.encrypted_data);
+          const data = await decrypt<RelationshipData>(r.encrypted_data, treeId);
           return [
             r.id,
             {
@@ -149,7 +149,7 @@ export function useTreeData(treeId: string) {
       const responses = await getEvents(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<TraumaEvent>(r.encrypted_data);
+          const data = await decrypt<TraumaEvent>(r.encrypted_data, treeId);
           return [r.id, { ...data, id: r.id, person_ids: r.person_ids } as DecryptedEvent] as const;
         }),
       );
@@ -164,7 +164,7 @@ export function useTreeData(treeId: string) {
       const responses = await getLifeEvents(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<LifeEvent>(r.encrypted_data);
+          const data = await decrypt<LifeEvent>(r.encrypted_data, treeId);
           return [
             r.id,
             { ...data, id: r.id, person_ids: r.person_ids } as DecryptedLifeEvent,
@@ -182,7 +182,7 @@ export function useTreeData(treeId: string) {
       const responses = await getTurningPoints(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<TurningPoint>(r.encrypted_data);
+          const data = await decrypt<TurningPoint>(r.encrypted_data, treeId);
           return [
             r.id,
             { ...data, id: r.id, person_ids: r.person_ids } as DecryptedTurningPoint,
@@ -200,7 +200,7 @@ export function useTreeData(treeId: string) {
       const responses = await getClassifications(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<Classification>(r.encrypted_data);
+          const data = await decrypt<Classification>(r.encrypted_data, treeId);
           return [
             r.id,
             { ...data, id: r.id, person_ids: r.person_ids } as DecryptedClassification,
@@ -218,7 +218,7 @@ export function useTreeData(treeId: string) {
       const responses = await getPatterns(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<Pattern>(r.encrypted_data);
+          const data = await decrypt<Pattern>(r.encrypted_data, treeId);
           return [
             r.id,
             { ...data, id: r.id, person_ids: r.person_ids } as DecryptedPattern,
@@ -236,7 +236,7 @@ export function useTreeData(treeId: string) {
       const responses = await getJournalEntries(treeId);
       const entries = await Promise.all(
         responses.map(async (r) => {
-          const data = await decrypt<JournalEntry>(r.encrypted_data);
+          const data = await decrypt<JournalEntry>(r.encrypted_data, treeId);
           return [
             r.id,
             {
