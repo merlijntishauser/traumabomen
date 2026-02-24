@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     SMOKETEST_EMAIL: str = ""
     FEEDBACK_EMAIL: str = ""
 
+    CORS_ORIGINS: str = "http://localhost:5173"
+
     ENABLE_WAITLIST: bool = False
     MAX_ACTIVE_USERS: int = 20
 

@@ -19,7 +19,7 @@ import {
 } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
 import { createDemoTree } from "../lib/createDemoTree";
-import { encryptForApi, encryptKeyRing, exportKeyToBase64, generateTreeKey } from "../lib/crypto";
+import { encryptForApi, encryptKeyRing, generateTreeKey } from "../lib/crypto";
 import "../components/tree/TreeCanvas.css";
 import "../styles/tree-list.css";
 
@@ -39,7 +39,7 @@ export default function TreeListPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const logout = useLogout();
-  const { encrypt, decrypt, masterKey, treeKeys, addTreeKey, removeTreeKey } = useEncryption();
+  const { encrypt, decrypt, masterKey, keyRingBase64, addTreeKey, removeTreeKey } = useEncryption();
   const queryClient = useQueryClient();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,15 +95,12 @@ export default function TreeListPage() {
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      const treeKey = await generateTreeKey();
+      const { key: treeKey, base64: treeKeyBase64 } = await generateTreeKey();
       const encrypted_data = await encryptForApi({ name }, treeKey);
       const response = await createTree({ encrypted_data });
-      addTreeKey(response.id, treeKey);
-      const ringEntries: Record<string, string> = {};
-      for (const [id, k] of treeKeys.entries()) {
-        ringEntries[id] = await exportKeyToBase64(k);
-      }
-      ringEntries[response.id] = await exportKeyToBase64(treeKey);
+      addTreeKey(response.id, treeKey, treeKeyBase64);
+      const ringEntries: Record<string, string> = Object.fromEntries(keyRingBase64);
+      ringEntries[response.id] = treeKeyBase64;
       const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
       await updateKeyRing(encryptedRing);
       return response;
@@ -116,15 +113,12 @@ export default function TreeListPage() {
 
   const demoMutation = useMutation({
     mutationFn: async () => {
-      const treeKey = await generateTreeKey();
+      const { key: treeKey, base64: treeKeyBase64 } = await generateTreeKey();
       const boundEncrypt = (data: unknown) => encryptForApi(data, treeKey);
       const treeId = await createDemoTree(boundEncrypt, i18n.language);
-      addTreeKey(treeId, treeKey);
-      const ringEntries: Record<string, string> = {};
-      for (const [id, k] of treeKeys.entries()) {
-        ringEntries[id] = await exportKeyToBase64(k);
-      }
-      ringEntries[treeId] = await exportKeyToBase64(treeKey);
+      addTreeKey(treeId, treeKey, treeKeyBase64);
+      const ringEntries: Record<string, string> = Object.fromEntries(keyRingBase64);
+      ringEntries[treeId] = treeKeyBase64;
       const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
       await updateKeyRing(encryptedRing);
       return treeId;
@@ -150,12 +144,8 @@ export default function TreeListPage() {
     mutationFn: async (id: string) => {
       await deleteTree(id);
       removeTreeKey(id);
-      const ringEntries: Record<string, string> = {};
-      for (const [tid, k] of treeKeys.entries()) {
-        if (tid !== id) {
-          ringEntries[tid] = await exportKeyToBase64(k);
-        }
-      }
+      const ringEntries: Record<string, string> = Object.fromEntries(keyRingBase64);
+      delete ringEntries[id];
       const encryptedRing = await encryptKeyRing(ringEntries, masterKey!);
       await updateKeyRing(encryptedRing);
     },

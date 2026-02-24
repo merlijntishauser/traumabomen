@@ -40,7 +40,6 @@ const mockDecryptKeyRing = vi.fn();
 const mockEncryptKeyRing = vi.fn();
 const mockImportTreeKey = vi.fn();
 const mockGenerateTreeKey = vi.fn();
-const mockExportKeyToBase64 = vi.fn();
 const mockDecryptFromApi = vi.fn();
 const mockEncryptForApi = vi.fn();
 
@@ -49,7 +48,6 @@ vi.mock("./crypto", () => ({
   encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
   importTreeKey: (...args: unknown[]) => mockImportTreeKey(...args),
   generateTreeKey: (...args: unknown[]) => mockGenerateTreeKey(...args),
-  exportKeyToBase64: (...args: unknown[]) => mockExportKeyToBase64(...args),
   decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
   encryptForApi: (...args: unknown[]) => mockEncryptForApi(...args),
 }));
@@ -85,10 +83,13 @@ describe("loadOrMigrateKeyRing", () => {
       expect(mockImportTreeKey).toHaveBeenCalledTimes(2);
       expect(mockImportTreeKey).toHaveBeenCalledWith("base64-key-1");
       expect(mockImportTreeKey).toHaveBeenCalledWith("base64-key-2");
-      expect(result).toBeInstanceOf(Map);
-      expect(result.size).toBe(2);
-      expect(result.get("tree-1")).toBe(fakeTreeKeyA);
-      expect(result.get("tree-2")).toBe(fakeTreeKeyB);
+      expect(result.keys).toBeInstanceOf(Map);
+      expect(result.keys.size).toBe(2);
+      expect(result.keys.get("tree-1")).toBe(fakeTreeKeyA);
+      expect(result.keys.get("tree-2")).toBe(fakeTreeKeyB);
+      expect(result.base64Map.size).toBe(2);
+      expect(result.base64Map.get("tree-1")).toBe("base64-key-1");
+      expect(result.base64Map.get("tree-2")).toBe("base64-key-2");
     });
 
     it("returns empty map when key ring has no entries", async () => {
@@ -97,7 +98,8 @@ describe("loadOrMigrateKeyRing", () => {
 
       const result = await loadOrMigrateKeyRing(fakeMasterKey);
 
-      expect(result.size).toBe(0);
+      expect(result.keys.size).toBe(0);
+      expect(result.base64Map.size).toBe(0);
       expect(mockImportTreeKey).not.toHaveBeenCalled();
     });
   });
@@ -117,8 +119,7 @@ describe("loadOrMigrateKeyRing", () => {
       });
 
       mockGetTrees.mockResolvedValue([{ id: "tree-1", encrypted_data: "tree-1-old-enc" }]);
-      mockGenerateTreeKey.mockResolvedValue(fakeTreeKeyA);
-      mockExportKeyToBase64.mockResolvedValue("new-b64-key");
+      mockGenerateTreeKey.mockResolvedValue({ key: fakeTreeKeyA, base64: "new-b64-key" });
       mockDecryptFromApi.mockResolvedValue({ name: "My Tree" });
       mockEncryptForApi.mockResolvedValue("tree-1-new-enc");
 
@@ -137,8 +138,9 @@ describe("loadOrMigrateKeyRing", () => {
 
       const result = await loadOrMigrateKeyRing(fakeMasterKey);
 
-      expect(result.size).toBe(1);
-      expect(result.get("tree-1")).toBe(fakeTreeKeyA);
+      expect(result.keys.size).toBe(1);
+      expect(result.keys.get("tree-1")).toBe(fakeTreeKeyA);
+      expect(result.base64Map.get("tree-1")).toBe("new-b64-key");
       expect(mockMigrateKeys).toHaveBeenCalledWith({
         encrypted_key_ring: "encrypted-new-ring",
         trees: [
@@ -164,8 +166,7 @@ describe("loadOrMigrateKeyRing", () => {
       });
 
       mockGetTrees.mockResolvedValue([{ id: "tree-1", encrypted_data: "tree-enc" }]);
-      mockGenerateTreeKey.mockResolvedValue(fakeTreeKeyA);
-      mockExportKeyToBase64.mockResolvedValue("b64");
+      mockGenerateTreeKey.mockResolvedValue({ key: fakeTreeKeyA, base64: "b64" });
       mockDecryptFromApi.mockResolvedValue({ name: "Tree" });
       mockEncryptForApi.mockImplementation(async (data: unknown) => `enc:${JSON.stringify(data)}`);
 
@@ -207,7 +208,8 @@ describe("loadOrMigrateKeyRing", () => {
 
       const result = await loadOrMigrateKeyRing(fakeMasterKey);
 
-      expect(result.size).toBe(0);
+      expect(result.keys.size).toBe(0);
+      expect(result.base64Map.size).toBe(0);
       expect(mockMigrateKeys).toHaveBeenCalledWith({
         encrypted_key_ring: "empty-ring",
         trees: [],
@@ -223,8 +225,9 @@ describe("loadOrMigrateKeyRing", () => {
         { id: "tree-1", encrypted_data: "enc1" },
         { id: "tree-2", encrypted_data: "enc2" },
       ]);
-      mockGenerateTreeKey.mockResolvedValueOnce(fakeTreeKeyA).mockResolvedValueOnce(fakeTreeKeyB);
-      mockExportKeyToBase64.mockResolvedValueOnce("b64-a").mockResolvedValueOnce("b64-b");
+      mockGenerateTreeKey
+        .mockResolvedValueOnce({ key: fakeTreeKeyA, base64: "b64-a" })
+        .mockResolvedValueOnce({ key: fakeTreeKeyB, base64: "b64-b" });
       mockDecryptFromApi.mockResolvedValue({ name: "Tree" });
       mockEncryptForApi.mockResolvedValue("enc-new");
 
@@ -247,9 +250,11 @@ describe("loadOrMigrateKeyRing", () => {
       const result = await loadOrMigrateKeyRing(fakeMasterKey);
 
       expect(mockGenerateTreeKey).toHaveBeenCalledTimes(2);
-      expect(result.size).toBe(2);
-      expect(result.get("tree-1")).toBe(fakeTreeKeyA);
-      expect(result.get("tree-2")).toBe(fakeTreeKeyB);
+      expect(result.keys.size).toBe(2);
+      expect(result.keys.get("tree-1")).toBe(fakeTreeKeyA);
+      expect(result.keys.get("tree-2")).toBe(fakeTreeKeyB);
+      expect(result.base64Map.get("tree-1")).toBe("b64-a");
+      expect(result.base64Map.get("tree-2")).toBe("b64-b");
 
       // Key ring should contain both keys
       expect(mockEncryptKeyRing).toHaveBeenCalledWith(

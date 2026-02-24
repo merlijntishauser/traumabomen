@@ -11,7 +11,7 @@ import {
   getTree,
   getTurningPoints,
 } from "../lib/api";
-import { encryptForApi, exportKeyToBase64 } from "../lib/crypto";
+import { encryptForApi } from "../lib/crypto";
 import type { useTreeData } from "./useTreeData";
 
 function downloadJson(data: unknown, filename: string) {
@@ -36,13 +36,12 @@ function dateStamp(): string {
 }
 
 export function useExportTree(treeId: string, treeData: ReturnType<typeof useTreeData>) {
-  const { treeKeys, masterKey } = useEncryption();
+  const { treeKeys, keyRingBase64, masterKey } = useEncryption();
 
   const exportEncrypted = useCallback(async () => {
     const treeKey = treeKeys.get(treeId);
-    if (!treeKey || !masterKey) throw new Error("Missing encryption keys");
-
-    const rawKeyBase64 = await exportKeyToBase64(treeKey);
+    const rawKeyBase64 = keyRingBase64.get(treeId);
+    if (!treeKey || !rawKeyBase64 || !masterKey) throw new Error("Missing encryption keys");
     const encryptedTreeKey = await encryptForApi(rawKeyBase64, masterKey);
 
     const [
@@ -110,7 +109,7 @@ export function useExportTree(treeId: string, treeData: ReturnType<typeof useTre
 
     const name = treeData.treeName ? slugify(treeData.treeName) : "tree";
     downloadJson(exportData, `traumatrees-backup-${name}-${dateStamp()}.json`);
-  }, [treeId, treeKeys, masterKey, treeData.treeName]);
+  }, [treeId, treeKeys, keyRingBase64, masterKey, treeData.treeName]);
 
   const exportPlaintext = useCallback(async () => {
     const exportData = {

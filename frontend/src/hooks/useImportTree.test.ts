@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useImportTree } from "./useImportTree";
 
-const mockTreeKeys = new Map<string, CryptoKey>();
+const mockKeyRingBase64 = new Map<string, string>();
 const fakeMasterKey = {} as CryptoKey;
 const fakeTreeKey = { id: "treeKey" } as unknown as CryptoKey;
 const mockAddTreeKey = vi.fn();
@@ -10,7 +10,7 @@ const mockAddTreeKey = vi.fn();
 vi.mock("../contexts/EncryptionContext", () => ({
   useEncryption: () => ({
     masterKey: fakeMasterKey,
-    treeKeys: mockTreeKeys,
+    keyRingBase64: mockKeyRingBase64,
     addTreeKey: mockAddTreeKey,
   }),
 }));
@@ -27,13 +27,11 @@ vi.mock("../lib/api", () => ({
 
 const mockDecryptFromApi = vi.fn();
 const mockImportTreeKey = vi.fn();
-const mockExportKeyToBase64 = vi.fn();
 const mockEncryptKeyRing = vi.fn();
 
 vi.mock("../lib/crypto", () => ({
   decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
   importTreeKey: (...args: unknown[]) => mockImportTreeKey(...args),
-  exportKeyToBase64: (...args: unknown[]) => mockExportKeyToBase64(...args),
   encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
 }));
 
@@ -67,13 +65,14 @@ function makeFile(content: string): File {
 describe("useImportTree", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTreeKeys.clear();
+    mockKeyRingBase64.clear();
 
-    mockDecryptFromApi.mockResolvedValue({ name: "Test Tree" });
+    mockDecryptFromApi
+      .mockResolvedValueOnce("raw-tree-key-b64") // decrypt tree key from backup
+      .mockResolvedValueOnce({ name: "Test Tree" }); // verify tree data
     mockImportTreeKey.mockResolvedValue(fakeTreeKey);
     mockCreateTree.mockResolvedValue({ id: NEW_TREE_ID });
     mockSyncTree.mockResolvedValue({});
-    mockExportKeyToBase64.mockResolvedValue("b64-key");
     mockEncryptKeyRing.mockResolvedValue("encrypted-ring");
     mockUpdateKeyRing.mockResolvedValue(undefined);
   });
@@ -88,7 +87,7 @@ describe("useImportTree", () => {
     expect(mockDecryptFromApi).toHaveBeenCalledWith("enc-tree-key", fakeMasterKey);
     expect(mockImportTreeKey).toHaveBeenCalled();
     expect(mockCreateTree).toHaveBeenCalledWith({ encrypted_data: "tree-enc" });
-    expect(mockAddTreeKey).toHaveBeenCalledWith(NEW_TREE_ID, fakeTreeKey);
+    expect(mockAddTreeKey).toHaveBeenCalledWith(NEW_TREE_ID, fakeTreeKey, "raw-tree-key-b64");
   });
 
   it("syncs all entities via bulk sync endpoint", async () => {

@@ -3,12 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useExportTree } from "./useExportTree";
 
 const mockTreeKeys = new Map<string, CryptoKey>();
+const mockKeyRingBase64 = new Map<string, string>();
 const fakeMasterKey = {} as CryptoKey;
 const fakeTreeKey = { id: "treeKey" } as unknown as CryptoKey;
 
 vi.mock("../contexts/EncryptionContext", () => ({
   useEncryption: () => ({
     treeKeys: mockTreeKeys,
+    keyRingBase64: mockKeyRingBase64,
     masterKey: fakeMasterKey,
   }),
 }));
@@ -35,11 +37,9 @@ vi.mock("../lib/api", () => ({
   getJournalEntries: (...args: unknown[]) => mockGetJournalEntries(...args),
 }));
 
-const mockExportKeyToBase64 = vi.fn();
 const mockEncryptForApi = vi.fn();
 
 vi.mock("../lib/crypto", () => ({
-  exportKeyToBase64: (...args: unknown[]) => mockExportKeyToBase64(...args),
   encryptForApi: (...args: unknown[]) => mockEncryptForApi(...args),
 }));
 
@@ -86,7 +86,9 @@ describe("useExportTree", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTreeKeys.clear();
+    mockKeyRingBase64.clear();
     mockTreeKeys.set(TREE_ID, fakeTreeKey);
+    mockKeyRingBase64.set(TREE_ID, "raw-key-b64");
     lastAnchor = null;
 
     createElementSpy = vi
@@ -107,7 +109,6 @@ describe("useExportTree", () => {
 
   describe("exportEncrypted", () => {
     it("fetches all entities and triggers download", async () => {
-      mockExportKeyToBase64.mockResolvedValue("raw-key-b64");
       mockEncryptForApi.mockResolvedValue("encrypted-tree-key");
       mockGetTree.mockResolvedValue({ id: TREE_ID, encrypted_data: "tree-enc" });
       mockGetPersons.mockResolvedValue([{ id: "p1", encrypted_data: "p-enc" }]);
@@ -132,7 +133,6 @@ describe("useExportTree", () => {
       const { result } = renderHook(() => useExportTree(TREE_ID, makeFakeTreeData()));
       await result.current.exportEncrypted();
 
-      expect(mockExportKeyToBase64).toHaveBeenCalledWith(fakeTreeKey);
       expect(mockEncryptForApi).toHaveBeenCalledWith("raw-key-b64", fakeMasterKey);
       expect(mockGetTree).toHaveBeenCalledWith(TREE_ID);
       expect(mockGetPersons).toHaveBeenCalledWith(TREE_ID);
@@ -162,7 +162,6 @@ describe("useExportTree", () => {
     });
 
     it("uses slugified tree name in filename", async () => {
-      mockExportKeyToBase64.mockResolvedValue("key");
       mockEncryptForApi.mockResolvedValue("enc");
       mockGetTree.mockResolvedValue({ id: TREE_ID, encrypted_data: "enc" });
       for (const mock of [
@@ -190,6 +189,7 @@ describe("useExportTree", () => {
 
     it("throws when tree key is missing", async () => {
       mockTreeKeys.clear();
+      mockKeyRingBase64.clear();
 
       const { result } = renderHook(() => useExportTree(TREE_ID, makeFakeTreeData()));
       await expect(result.current.exportEncrypted()).rejects.toThrow("Missing encryption keys");

@@ -12,7 +12,8 @@ export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { setMasterKey, setPassphraseHash, setTreeKeys, setIsMigrated } = useEncryption();
+  const { setMasterKey, setPassphraseHash, setTreeKeys, setKeyRingBase64, setIsMigrated } =
+    useEncryption();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [passphrase, setPassphrase] = useState("");
@@ -53,8 +54,9 @@ export default function UnlockPage() {
       setPassphraseHash(hash);
 
       setMigrating(true);
-      const treeKeysMap = await loadOrMigrateKeyRing(derivedKey);
-      setTreeKeys(treeKeysMap);
+      const { keys, base64Map } = await loadOrMigrateKeyRing(derivedKey);
+      setTreeKeys(keys);
+      setKeyRingBase64(base64Map);
       setIsMigrated(true);
       setMigrating(false);
 

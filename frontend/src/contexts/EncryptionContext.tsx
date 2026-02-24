@@ -4,11 +4,13 @@ import { decryptFromApi, encryptForApi, hashPassphrase } from "../lib/crypto";
 interface EncryptionContextValue {
   masterKey: CryptoKey | null;
   treeKeys: Map<string, CryptoKey>;
+  keyRingBase64: Map<string, string>;
   passphraseHash: string | null;
   isMigrated: boolean;
   setMasterKey: (key: CryptoKey) => void;
   setTreeKeys: (keys: Map<string, CryptoKey>) => void;
-  addTreeKey: (treeId: string, key: CryptoKey) => void;
+  setKeyRingBase64: (map: Map<string, string>) => void;
+  addTreeKey: (treeId: string, key: CryptoKey, base64: string) => void;
   removeTreeKey: (treeId: string) => void;
   setIsMigrated: (value: boolean) => void;
   clearKey: () => void;
@@ -25,13 +27,19 @@ const EncryptionContext = createContext<EncryptionContextValue | null>(null);
 export function EncryptionProvider({ children }: { children: ReactNode }) {
   const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
   const [treeKeys, setTreeKeys] = useState<Map<string, CryptoKey>>(new Map());
+  const [keyRingBase64, setKeyRingBase64] = useState<Map<string, string>>(new Map());
   const [passphraseHash, setPassphraseHash] = useState<string | null>(null);
   const [isMigrated, setIsMigrated] = useState(false);
 
-  const addTreeKey = useCallback((treeId: string, key: CryptoKey) => {
+  const addTreeKey = useCallback((treeId: string, key: CryptoKey, base64: string) => {
     setTreeKeys((prev) => {
       const next = new Map(prev);
       next.set(treeId, key);
+      return next;
+    });
+    setKeyRingBase64((prev) => {
+      const next = new Map(prev);
+      next.set(treeId, base64);
       return next;
     });
   }, []);
@@ -42,11 +50,17 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       next.delete(treeId);
       return next;
     });
+    setKeyRingBase64((prev) => {
+      const next = new Map(prev);
+      next.delete(treeId);
+      return next;
+    });
   }, []);
 
   const clearKey = useCallback(() => {
     setMasterKey(null);
     setTreeKeys(new Map());
+    setKeyRingBase64(new Map());
     setPassphraseHash(null);
     setIsMigrated(false);
   }, []);
@@ -98,10 +112,12 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
     () => ({
       masterKey,
       treeKeys,
+      keyRingBase64,
       passphraseHash,
       isMigrated,
       setMasterKey,
       setTreeKeys,
+      setKeyRingBase64,
       addTreeKey,
       removeTreeKey,
       setIsMigrated,
@@ -116,6 +132,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
     [
       masterKey,
       treeKeys,
+      keyRingBase64,
       passphraseHash,
       isMigrated,
       addTreeKey,

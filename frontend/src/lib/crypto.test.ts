@@ -9,7 +9,6 @@ import {
   encrypt,
   encryptForApi,
   encryptKeyRing,
-  exportKeyToBase64,
   generateSalt,
   generateTreeKey,
   hashPassphrase,
@@ -254,28 +253,30 @@ describe("CryptoError hierarchy", () => {
 });
 
 describe("generateTreeKey", () => {
-  it("produces an extractable AES-256-GCM key", async () => {
-    const key = await generateTreeKey();
+  it("produces a non-extractable AES-256-GCM key with base64", async () => {
+    const { key, base64 } = await generateTreeKey();
     expect(key.algorithm).toEqual({ name: "AES-GCM", length: 256 });
-    expect(key.extractable).toBe(true);
+    expect(key.extractable).toBe(false);
     expect(key.usages).toContain("encrypt");
     expect(key.usages).toContain("decrypt");
+    expect(typeof base64).toBe("string");
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    expect(bytes.length).toBe(32);
   });
 
   it("produces different keys on each call", async () => {
-    const key1 = await generateTreeKey();
-    const key2 = await generateTreeKey();
-    const raw1 = await exportKeyToBase64(key1);
-    const raw2 = await exportKeyToBase64(key2);
-    expect(raw1).not.toBe(raw2);
+    const result1 = await generateTreeKey();
+    const result2 = await generateTreeKey();
+    expect(result1.base64).not.toBe(result2.base64);
   });
 });
 
-describe("exportKeyToBase64 / importTreeKey", () => {
-  it("round-trips a tree key", async () => {
-    const original = await generateTreeKey();
-    const base64 = await exportKeyToBase64(original);
+describe("importTreeKey", () => {
+  it("round-trips a generated tree key", async () => {
+    const { key: original, base64 } = await generateTreeKey();
     const imported = await importTreeKey(base64);
+
+    expect(imported.extractable).toBe(false);
 
     // Verify by encrypting/decrypting with both keys
     const plaintext = "test data";
@@ -284,9 +285,8 @@ describe("exportKeyToBase64 / importTreeKey", () => {
     expect(result).toBe(plaintext);
   });
 
-  it("exported key is valid base64 of 32 bytes", async () => {
-    const key = await generateTreeKey();
-    const base64 = await exportKeyToBase64(key);
+  it("imports a valid base64 key of 32 bytes", async () => {
+    const { base64 } = await generateTreeKey();
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
     expect(bytes.length).toBe(32);
   });
@@ -316,7 +316,7 @@ describe("encryptKeyRing / decryptKeyRing", () => {
 
 describe("tree key encrypt/decrypt", () => {
   it("tree key can encrypt and decrypt data", async () => {
-    const treeKey = await generateTreeKey();
+    const { key: treeKey } = await generateTreeKey();
     const data = { name: "Family Tree", notes: "Private" };
     const encrypted = await encryptForApi(data, treeKey);
     const decrypted = await decryptFromApi(encrypted, treeKey);

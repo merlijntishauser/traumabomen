@@ -46,6 +46,7 @@ vi.mock("../contexts/EncryptionContext", () => ({
     decrypt: vi.fn(),
     masterKey: {} as CryptoKey,
     treeKeys: new Map(),
+    keyRingBase64: new Map(),
     addTreeKey: vi.fn(),
     removeTreeKey: vi.fn(),
   }),

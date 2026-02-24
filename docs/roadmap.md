@@ -117,6 +117,26 @@ Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline an
 - Viewport-aware rendering for React Flow canvas (already partially handled by @xyflow/react)
 - Consider lazy-loading event details in PersonDetailPanel
 
+### 17. Security hardening
+
+Findings from the February 2026 security audit. Address before wider adoption.
+
+**Frontend stability:**
+- React error boundaries on lazy-loaded route pages (single decrypt failure crashes entire app)
+- Wrap `decrypt()` calls in `useTreeData` queryFns so one corrupt blob does not block all data
+- Explicit `allowedElements` or `rehype-sanitize` config for react-markdown in journal preview
+- Verify interval cleanup on unmount in `VerificationPendingPage`
+
+**Authentication:**
+- Client-side and server-side password strength validation (minimum length, complexity)
+- Refresh token rotation (single-use tokens to limit stolen-token window)
+- Constant-time passphrase hash comparison in `EncryptionContext` (replace `===` with timing-safe check)
+
+**Backend hardening:**
+- Enforce DB connection SSL (`sslmode=require`) in production
+- Verify production email always uses TLS
+- Verify nginx or Cloud Run handles rate limiting on `POST /waitlist`, `POST /feedback`, `POST /auth/login`
+
 ## Done
 
 ### Beta waitlist and user cap

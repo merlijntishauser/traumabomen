@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.tree import (
     ClassificationCreate,
@@ -91,30 +91,30 @@ class SyncJournalEntryUpdate(JournalEntryUpdate):
 
 
 class SyncRequest(BaseModel):
-    persons_create: list[SyncPersonCreate] = []
-    persons_update: list[SyncPersonUpdate] = []
-    persons_delete: list[SyncDelete] = []
-    relationships_create: list[SyncRelationshipCreate] = []
-    relationships_update: list[SyncRelationshipUpdate] = []
-    relationships_delete: list[SyncDelete] = []
-    events_create: list[SyncEventCreate] = []
-    events_update: list[SyncEventUpdate] = []
-    events_delete: list[SyncDelete] = []
-    classifications_create: list[SyncClassificationCreate] = []
-    classifications_update: list[SyncClassificationUpdate] = []
-    classifications_delete: list[SyncDelete] = []
-    turning_points_create: list[SyncTurningPointCreate] = []
-    turning_points_update: list[SyncTurningPointUpdate] = []
-    turning_points_delete: list[SyncDelete] = []
-    life_events_create: list[SyncLifeEventCreate] = []
-    life_events_update: list[SyncLifeEventUpdate] = []
-    life_events_delete: list[SyncDelete] = []
-    patterns_create: list[SyncPatternCreate] = []
-    patterns_update: list[SyncPatternUpdate] = []
-    patterns_delete: list[SyncDelete] = []
-    journal_entries_create: list[SyncJournalEntryCreate] = []
-    journal_entries_update: list[SyncJournalEntryUpdate] = []
-    journal_entries_delete: list[SyncDelete] = []
+    persons_create: list[SyncPersonCreate] = Field(default=[], max_length=500)
+    persons_update: list[SyncPersonUpdate] = Field(default=[], max_length=500)
+    persons_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    relationships_create: list[SyncRelationshipCreate] = Field(default=[], max_length=500)
+    relationships_update: list[SyncRelationshipUpdate] = Field(default=[], max_length=500)
+    relationships_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    events_create: list[SyncEventCreate] = Field(default=[], max_length=500)
+    events_update: list[SyncEventUpdate] = Field(default=[], max_length=500)
+    events_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    classifications_create: list[SyncClassificationCreate] = Field(default=[], max_length=500)
+    classifications_update: list[SyncClassificationUpdate] = Field(default=[], max_length=500)
+    classifications_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    turning_points_create: list[SyncTurningPointCreate] = Field(default=[], max_length=500)
+    turning_points_update: list[SyncTurningPointUpdate] = Field(default=[], max_length=500)
+    turning_points_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    life_events_create: list[SyncLifeEventCreate] = Field(default=[], max_length=500)
+    life_events_update: list[SyncLifeEventUpdate] = Field(default=[], max_length=500)
+    life_events_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    patterns_create: list[SyncPatternCreate] = Field(default=[], max_length=500)
+    patterns_update: list[SyncPatternUpdate] = Field(default=[], max_length=500)
+    patterns_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    journal_entries_create: list[SyncJournalEntryCreate] = Field(default=[], max_length=500)
+    journal_entries_update: list[SyncJournalEntryUpdate] = Field(default=[], max_length=500)
+    journal_entries_delete: list[SyncDelete] = Field(default=[], max_length=500)
 
 
 class SyncResponse(BaseModel):

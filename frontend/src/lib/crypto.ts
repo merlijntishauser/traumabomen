@@ -126,19 +126,24 @@ export async function hashPassphrase(passphrase: string): Promise<string> {
   return toBase64(new Uint8Array(hashBuffer));
 }
 
-export async function generateTreeKey(): Promise<CryptoKey> {
-  const rawKey = crypto.getRandomValues(new Uint8Array(32));
-  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
+export interface GeneratedTreeKey {
+  key: CryptoKey;
+  base64: string;
 }
 
-export async function exportKeyToBase64(key: CryptoKey): Promise<string> {
-  const raw = await crypto.subtle.exportKey("raw", key);
-  return toBase64(new Uint8Array(raw));
+export async function generateTreeKey(): Promise<GeneratedTreeKey> {
+  const rawKey = crypto.getRandomValues(new Uint8Array(32));
+  const base64 = toBase64(rawKey);
+  const key = await crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, [
+    "encrypt",
+    "decrypt",
+  ]);
+  return { key, base64 };
 }
 
 export async function importTreeKey(base64Key: string): Promise<CryptoKey> {
   const raw = fromBase64(base64Key);
-  return crypto.subtle.importKey("raw", raw.buffer as ArrayBuffer, { name: "AES-GCM" }, true, [
+  return crypto.subtle.importKey("raw", raw.buffer as ArrayBuffer, { name: "AES-GCM" }, false, [
     "encrypt",
     "decrypt",
   ]);
