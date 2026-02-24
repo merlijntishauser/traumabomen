@@ -724,6 +724,48 @@ function TreeWorkspaceInner() {
 
   const hasPinnedNodes = Array.from(persons.values()).some((p) => p.position);
 
+  // Shared helper: apply a position map with animation, optimistic cache update, and persistence
+  const applyPositions = useCallback(
+    (positionMap: PositionSnapshot) => {
+      layoutRevisionRef.current += 1;
+
+      setAnimatingLayout(true);
+      setTimeout(() => setAnimatingLayout(false), 350);
+
+      queryClient.setQueryData(
+        treeQueryKeys.persons(treeId!),
+        (old: Map<string, DecryptedPerson> | undefined) => {
+          if (!old) return old;
+          const next = new Map(old);
+          for (const [personId, position] of positionMap) {
+            const person = next.get(personId);
+            if (!person) continue;
+            if (position) {
+              next.set(personId, { ...person, position });
+            } else {
+              const rest = { ...person };
+              delete rest.position;
+              next.set(personId, rest as DecryptedPerson);
+            }
+          }
+          return next;
+        },
+      );
+
+      for (const [personId, position] of positionMap) {
+        const person = persons.get(personId);
+        if (!person) continue;
+        const { id, ...data } = person;
+        delete data.position;
+        mutations.updatePerson.mutate({
+          personId: id,
+          data: position ? { ...data, position } : data,
+        });
+      }
+    },
+    [queryClient, treeId, persons, mutations.updatePerson],
+  );
+
   function handleAutoLayout() {
     const pinnedPersons = Array.from(persons.values()).filter((p) => p.position);
     if (pinnedPersons.length === 0) return;
@@ -735,77 +777,16 @@ function TreeWorkspaceInner() {
     }
     pushPositionSnapshot(snapshot);
 
-    // Force the layout sync effect to accept new positions
-    layoutRevisionRef.current += 1;
-
-    // Enable transition animation on nodes
-    setAnimatingLayout(true);
-    setTimeout(() => setAnimatingLayout(false), 350);
-
-    // Optimistic: clear all positions in cache
-    queryClient.setQueryData(
-      treeQueryKeys.persons(treeId!),
-      (old: Map<string, DecryptedPerson> | undefined) => {
-        if (!old) return old;
-        const next = new Map(old);
-        for (const p of pinnedPersons) {
-          const { position, ...rest } = p;
-          next.set(p.id, rest as DecryptedPerson);
-        }
-        return next;
-      },
-    );
-
-    // Persist each
-    for (const p of pinnedPersons) {
-      const { id, position, ...data } = p;
-      mutations.updatePerson.mutate({ personId: id, data });
-    }
+    // Clear all pinned positions
+    const clearMap: PositionSnapshot = new Map(pinnedPersons.map((p) => [p.id, undefined]));
+    applyPositions(clearMap);
   }
 
   const handleUndo = useCallback(() => {
     const snapshot = popPositionSnapshot();
     if (!snapshot) return;
-
-    // Force the layout sync effect to accept new positions
-    layoutRevisionRef.current += 1;
-
-    setAnimatingLayout(true);
-    setTimeout(() => setAnimatingLayout(false), 350);
-
-    // Optimistic: restore positions in cache
-    queryClient.setQueryData(
-      treeQueryKeys.persons(treeId!),
-      (old: Map<string, DecryptedPerson> | undefined) => {
-        if (!old) return old;
-        const next = new Map(old);
-        for (const [personId, position] of snapshot) {
-          const person = next.get(personId);
-          if (!person) continue;
-          if (position) {
-            next.set(personId, { ...person, position });
-          } else {
-            const restored = { ...person };
-            delete restored.position;
-            next.set(personId, restored);
-          }
-        }
-        return next;
-      },
-    );
-
-    // Persist each changed position
-    for (const [personId, position] of snapshot) {
-      const person = persons.get(personId);
-      if (!person) continue;
-      const { id, ...data } = person;
-      delete data.position;
-      mutations.updatePerson.mutate({
-        personId: id,
-        data: position ? { ...data, position } : data,
-      });
-    }
-  }, [popPositionSnapshot, queryClient, treeId, persons, mutations.updatePerson]);
+    applyPositions(snapshot);
+  }, [popPositionSnapshot, applyPositions]);
 
   // Keyboard shortcut: Cmd/Ctrl+Z for undo
   useEffect(() => {
