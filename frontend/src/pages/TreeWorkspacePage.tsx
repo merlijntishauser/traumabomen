@@ -632,7 +632,7 @@ function TreeWorkspaceInner() {
 
   function handleSaveEvent(eventId: string | null, data: TraumaEvent, personIds: string[]) {
     if (eventId) {
-      mutations.updateEvent.mutate({ eventId, personIds, data });
+      mutations.updateEvent.mutate({ entityId: eventId, personIds, data });
     } else {
       mutations.createEvent.mutate({ personIds, data });
     }
@@ -644,7 +644,7 @@ function TreeWorkspaceInner() {
 
   function handleSaveLifeEvent(lifeEventId: string | null, data: LifeEvent, personIds: string[]) {
     if (lifeEventId) {
-      mutations.updateLifeEvent.mutate({ lifeEventId, personIds, data });
+      mutations.updateLifeEvent.mutate({ entityId: lifeEventId, personIds, data });
     } else {
       mutations.createLifeEvent.mutate({ personIds, data });
     }
@@ -660,7 +660,7 @@ function TreeWorkspaceInner() {
     personIds: string[],
   ) {
     if (turningPointId) {
-      mutations.updateTurningPoint.mutate({ turningPointId, personIds, data });
+      mutations.updateTurningPoint.mutate({ entityId: turningPointId, personIds, data });
     } else {
       mutations.createTurningPoint.mutate({ personIds, data });
     }
@@ -676,7 +676,7 @@ function TreeWorkspaceInner() {
     personIds: string[],
   ) {
     if (classificationId) {
-      mutations.updateClassification.mutate({ classificationId, personIds, data });
+      mutations.updateClassification.mutate({ entityId: classificationId, personIds, data });
     } else {
       mutations.createClassification.mutate({ personIds, data });
     }
@@ -688,7 +688,7 @@ function TreeWorkspaceInner() {
 
   function handleSavePattern(patternId: string | null, data: Pattern, personIds: string[]) {
     if (patternId) {
-      mutations.updatePattern.mutate({ patternId, personIds, data });
+      mutations.updatePattern.mutate({ entityId: patternId, personIds, data });
     } else {
       mutations.createPattern.mutate({ personIds, data });
     }

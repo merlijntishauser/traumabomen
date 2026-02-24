@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEncryption } from "../contexts/EncryptionContext";
 import {
   createClassification,
@@ -36,18 +36,90 @@ import type {
   TraumaEvent,
   TurningPoint,
 } from "../types/domain";
-import type {
-  DecryptedClassification,
-  DecryptedEvent,
-  DecryptedLifeEvent,
-  DecryptedPattern,
-  DecryptedTurningPoint,
-} from "./useTreeData";
 import { treeQueryKeys } from "./useTreeData";
+
+interface LinkedEntityApiFns {
+  create: (
+    treeId: string,
+    payload: { person_ids: string[]; encrypted_data: string },
+  ) => Promise<unknown>;
+  update: (
+    treeId: string,
+    id: string,
+    payload: { person_ids: string[]; encrypted_data: string },
+  ) => Promise<unknown>;
+  delete: (treeId: string, id: string) => Promise<unknown>;
+}
+
+function useLinkedEntityMutations<T>(
+  treeId: string,
+  queryKey: QueryKey,
+  apiFns: LinkedEntityApiFns,
+  encrypt: (data: unknown, treeId: string) => Promise<string>,
+) {
+  const queryClient = useQueryClient();
+
+  const create = useMutation({
+    mutationFn: async ({ personIds, data }: { personIds: string[]; data: T }) => {
+      const encrypted_data = await encrypt(data, treeId);
+      return apiFns.create(treeId, { person_ids: personIds, encrypted_data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  const update = useMutation({
+    mutationFn: async ({
+      entityId,
+      personIds,
+      data,
+    }: {
+      entityId: string;
+      personIds: string[];
+      data: T;
+    }) => {
+      const encrypted_data = await encrypt(data, treeId);
+      return apiFns.update(treeId, entityId, { person_ids: personIds, encrypted_data });
+    },
+    onMutate: async ({ entityId, personIds, data }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<Map<string, unknown>>(queryKey);
+      if (previous) {
+        const updated = new Map(previous);
+        const existing = updated.get(entityId);
+        if (existing) {
+          updated.set(entityId, { ...existing, ...data, person_ids: personIds });
+        }
+        queryClient.setQueryData(queryKey, updated);
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (entityId: string) => apiFns.delete(treeId, entityId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  return { create, update, delete: remove };
+}
 
 export function useTreeMutations(treeId: string) {
   const queryClient = useQueryClient();
   const { encrypt } = useEncryption();
+
+  // --- Person (simple: no person_ids, no optimistic) ---
 
   const createPersonMutation = useMutation({
     mutationFn: async (data: Person) => {
@@ -55,9 +127,7 @@ export function useTreeMutations(treeId: string) {
       return createPerson(treeId, { encrypted_data });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.persons(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.persons(treeId) });
     },
   });
 
@@ -67,40 +137,28 @@ export function useTreeMutations(treeId: string) {
       return updatePerson(treeId, personId, { encrypted_data });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.persons(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.persons(treeId) });
     },
   });
 
   const deletePersonMutation = useMutation({
-    mutationFn: async (personId: string) => {
-      return deletePerson(treeId, personId);
-    },
+    mutationFn: (personId: string) => deletePerson(treeId, personId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.persons(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.relationships(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.events(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.lifeEvents(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.turningPoints(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.classifications(treeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.patterns(treeId),
-      });
+      for (const key of [
+        treeQueryKeys.persons(treeId),
+        treeQueryKeys.relationships(treeId),
+        treeQueryKeys.events(treeId),
+        treeQueryKeys.lifeEvents(treeId),
+        treeQueryKeys.turningPoints(treeId),
+        treeQueryKeys.classifications(treeId),
+        treeQueryKeys.patterns(treeId),
+      ]) {
+        queryClient.invalidateQueries({ queryKey: key });
+      }
     },
   });
+
+  // --- Relationship (unique create shape, no optimistic) ---
 
   const createRelationshipMutation = useMutation({
     mutationFn: async ({
@@ -120,9 +178,7 @@ export function useTreeMutations(treeId: string) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.relationships(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.relationships(treeId) });
     },
   });
 
@@ -138,352 +194,55 @@ export function useTreeMutations(treeId: string) {
       return updateRelationship(treeId, relationshipId, { encrypted_data });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.relationships(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.relationships(treeId) });
     },
   });
 
   const deleteRelationshipMutation = useMutation({
-    mutationFn: async (relationshipId: string) => {
-      return deleteRelationship(treeId, relationshipId);
-    },
+    mutationFn: (relationshipId: string) => deleteRelationship(treeId, relationshipId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.relationships(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.relationships(treeId) });
     },
   });
 
-  const createEventMutation = useMutation({
-    mutationFn: async ({ personIds, data }: { personIds: string[]; data: TraumaEvent }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return createEvent(treeId, { person_ids: personIds, encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.events(treeId),
-      });
-    },
-  });
+  // --- Linked entities (person_ids + optimistic updates) ---
 
-  const updateEventMutation = useMutation({
-    mutationFn: async ({
-      eventId,
-      personIds,
-      data,
-    }: {
-      eventId: string;
-      personIds: string[];
-      data: TraumaEvent;
-    }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return updateEvent(treeId, eventId, {
-        person_ids: personIds,
-        encrypted_data,
-      });
-    },
-    onMutate: async ({ eventId, personIds, data }) => {
-      await queryClient.cancelQueries({ queryKey: treeQueryKeys.events(treeId) });
-      const previous = queryClient.getQueryData<Map<string, DecryptedEvent>>(
-        treeQueryKeys.events(treeId),
-      );
-      if (previous) {
-        const updated = new Map(previous);
-        const existing = updated.get(eventId);
-        if (existing) {
-          updated.set(eventId, { ...existing, ...data, person_ids: personIds });
-        }
-        queryClient.setQueryData(treeQueryKeys.events(treeId), updated);
-      }
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(treeQueryKeys.events(treeId), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.events(treeId),
-      });
-    },
-  });
+  const events = useLinkedEntityMutations<TraumaEvent>(
+    treeId,
+    treeQueryKeys.events(treeId),
+    { create: createEvent, update: updateEvent, delete: deleteEvent },
+    encrypt,
+  );
 
-  const deleteEventMutation = useMutation({
-    mutationFn: async (eventId: string) => {
-      return deleteEvent(treeId, eventId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.events(treeId),
-      });
-    },
-  });
+  const lifeEvents = useLinkedEntityMutations<LifeEvent>(
+    treeId,
+    treeQueryKeys.lifeEvents(treeId),
+    { create: createLifeEvent, update: updateLifeEvent, delete: deleteLifeEvent },
+    encrypt,
+  );
 
-  const createLifeEventMutation = useMutation({
-    mutationFn: async ({ personIds, data }: { personIds: string[]; data: LifeEvent }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return createLifeEvent(treeId, { person_ids: personIds, encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.lifeEvents(treeId),
-      });
-    },
-  });
+  const turningPoints = useLinkedEntityMutations<TurningPoint>(
+    treeId,
+    treeQueryKeys.turningPoints(treeId),
+    { create: createTurningPoint, update: updateTurningPoint, delete: deleteTurningPoint },
+    encrypt,
+  );
 
-  const updateLifeEventMutation = useMutation({
-    mutationFn: async ({
-      lifeEventId,
-      personIds,
-      data,
-    }: {
-      lifeEventId: string;
-      personIds: string[];
-      data: LifeEvent;
-    }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return updateLifeEvent(treeId, lifeEventId, {
-        person_ids: personIds,
-        encrypted_data,
-      });
-    },
-    onMutate: async ({ lifeEventId, personIds, data }) => {
-      await queryClient.cancelQueries({ queryKey: treeQueryKeys.lifeEvents(treeId) });
-      const previous = queryClient.getQueryData<Map<string, DecryptedLifeEvent>>(
-        treeQueryKeys.lifeEvents(treeId),
-      );
-      if (previous) {
-        const updated = new Map(previous);
-        const existing = updated.get(lifeEventId);
-        if (existing) {
-          updated.set(lifeEventId, { ...existing, ...data, person_ids: personIds });
-        }
-        queryClient.setQueryData(treeQueryKeys.lifeEvents(treeId), updated);
-      }
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(treeQueryKeys.lifeEvents(treeId), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.lifeEvents(treeId),
-      });
-    },
-  });
+  const classifications = useLinkedEntityMutations<Classification>(
+    treeId,
+    treeQueryKeys.classifications(treeId),
+    { create: createClassification, update: updateClassification, delete: deleteClassification },
+    encrypt,
+  );
 
-  const deleteLifeEventMutation = useMutation({
-    mutationFn: async (lifeEventId: string) => {
-      return deleteLifeEvent(treeId, lifeEventId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.lifeEvents(treeId),
-      });
-    },
-  });
+  const patterns = useLinkedEntityMutations<Pattern>(
+    treeId,
+    treeQueryKeys.patterns(treeId),
+    { create: createPattern, update: updatePattern, delete: deletePattern },
+    encrypt,
+  );
 
-  const createTurningPointMutation = useMutation({
-    mutationFn: async ({ personIds, data }: { personIds: string[]; data: TurningPoint }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return createTurningPoint(treeId, { person_ids: personIds, encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.turningPoints(treeId),
-      });
-    },
-  });
-
-  const updateTurningPointMutation = useMutation({
-    mutationFn: async ({
-      turningPointId,
-      personIds,
-      data,
-    }: {
-      turningPointId: string;
-      personIds: string[];
-      data: TurningPoint;
-    }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return updateTurningPoint(treeId, turningPointId, {
-        person_ids: personIds,
-        encrypted_data,
-      });
-    },
-    onMutate: async ({ turningPointId, personIds, data }) => {
-      await queryClient.cancelQueries({ queryKey: treeQueryKeys.turningPoints(treeId) });
-      const previous = queryClient.getQueryData<Map<string, DecryptedTurningPoint>>(
-        treeQueryKeys.turningPoints(treeId),
-      );
-      if (previous) {
-        const updated = new Map(previous);
-        const existing = updated.get(turningPointId);
-        if (existing) {
-          updated.set(turningPointId, { ...existing, ...data, person_ids: personIds });
-        }
-        queryClient.setQueryData(treeQueryKeys.turningPoints(treeId), updated);
-      }
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(treeQueryKeys.turningPoints(treeId), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.turningPoints(treeId),
-      });
-    },
-  });
-
-  const deleteTurningPointMutation = useMutation({
-    mutationFn: async (turningPointId: string) => {
-      return deleteTurningPoint(treeId, turningPointId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.turningPoints(treeId),
-      });
-    },
-  });
-
-  const createClassificationMutation = useMutation({
-    mutationFn: async ({ personIds, data }: { personIds: string[]; data: Classification }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return createClassification(treeId, { person_ids: personIds, encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.classifications(treeId),
-      });
-    },
-  });
-
-  const updateClassificationMutation = useMutation({
-    mutationFn: async ({
-      classificationId,
-      personIds,
-      data,
-    }: {
-      classificationId: string;
-      personIds: string[];
-      data: Classification;
-    }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return updateClassification(treeId, classificationId, {
-        person_ids: personIds,
-        encrypted_data,
-      });
-    },
-    onMutate: async ({ classificationId, personIds, data }) => {
-      await queryClient.cancelQueries({ queryKey: treeQueryKeys.classifications(treeId) });
-      const previous = queryClient.getQueryData<Map<string, DecryptedClassification>>(
-        treeQueryKeys.classifications(treeId),
-      );
-      if (previous) {
-        const updated = new Map(previous);
-        const existing = updated.get(classificationId);
-        if (existing) {
-          updated.set(classificationId, { ...existing, ...data, person_ids: personIds });
-        }
-        queryClient.setQueryData(treeQueryKeys.classifications(treeId), updated);
-      }
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(treeQueryKeys.classifications(treeId), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.classifications(treeId),
-      });
-    },
-  });
-
-  const deleteClassificationMutation = useMutation({
-    mutationFn: async (classificationId: string) => {
-      return deleteClassification(treeId, classificationId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.classifications(treeId),
-      });
-    },
-  });
-
-  const createPatternMutation = useMutation({
-    mutationFn: async ({ personIds, data }: { personIds: string[]; data: Pattern }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return createPattern(treeId, { person_ids: personIds, encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.patterns(treeId),
-      });
-    },
-  });
-
-  const updatePatternMutation = useMutation({
-    mutationFn: async ({
-      patternId,
-      personIds,
-      data,
-    }: {
-      patternId: string;
-      personIds: string[];
-      data: Pattern;
-    }) => {
-      const encrypted_data = await encrypt(data, treeId);
-      return updatePattern(treeId, patternId, {
-        person_ids: personIds,
-        encrypted_data,
-      });
-    },
-    onMutate: async ({ patternId, personIds, data }) => {
-      await queryClient.cancelQueries({ queryKey: treeQueryKeys.patterns(treeId) });
-      const previous = queryClient.getQueryData<Map<string, DecryptedPattern>>(
-        treeQueryKeys.patterns(treeId),
-      );
-      if (previous) {
-        const updated = new Map(previous);
-        const existing = updated.get(patternId);
-        if (existing) {
-          updated.set(patternId, { ...existing, ...data, person_ids: personIds });
-        }
-        queryClient.setQueryData(treeQueryKeys.patterns(treeId), updated);
-      }
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(treeQueryKeys.patterns(treeId), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.patterns(treeId),
-      });
-    },
-  });
-
-  const deletePatternMutation = useMutation({
-    mutationFn: async (patternId: string) => {
-      return deletePattern(treeId, patternId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.patterns(treeId),
-      });
-    },
-  });
+  // --- Journal (simple: no person_ids, no optimistic) ---
 
   const createJournalEntryMutation = useMutation({
     mutationFn: async (data: JournalEntry) => {
@@ -491,9 +250,7 @@ export function useTreeMutations(treeId: string) {
       return createJournalEntry(treeId, { encrypted_data });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.journalEntries(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.journalEntries(treeId) });
     },
   });
 
@@ -503,20 +260,14 @@ export function useTreeMutations(treeId: string) {
       return updateJournalEntry(treeId, entryId, { encrypted_data });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.journalEntries(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.journalEntries(treeId) });
     },
   });
 
   const deleteJournalEntryMutation = useMutation({
-    mutationFn: async (entryId: string) => {
-      return deleteJournalEntry(treeId, entryId);
-    },
+    mutationFn: (entryId: string) => deleteJournalEntry(treeId, entryId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: treeQueryKeys.journalEntries(treeId),
-      });
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.journalEntries(treeId) });
     },
   });
 
@@ -527,21 +278,21 @@ export function useTreeMutations(treeId: string) {
     createRelationship: createRelationshipMutation,
     updateRelationship: updateRelationshipMutation,
     deleteRelationship: deleteRelationshipMutation,
-    createEvent: createEventMutation,
-    updateEvent: updateEventMutation,
-    deleteEvent: deleteEventMutation,
-    createLifeEvent: createLifeEventMutation,
-    updateLifeEvent: updateLifeEventMutation,
-    deleteLifeEvent: deleteLifeEventMutation,
-    createTurningPoint: createTurningPointMutation,
-    updateTurningPoint: updateTurningPointMutation,
-    deleteTurningPoint: deleteTurningPointMutation,
-    createClassification: createClassificationMutation,
-    updateClassification: updateClassificationMutation,
-    deleteClassification: deleteClassificationMutation,
-    createPattern: createPatternMutation,
-    updatePattern: updatePatternMutation,
-    deletePattern: deletePatternMutation,
+    createEvent: events.create,
+    updateEvent: events.update,
+    deleteEvent: events.delete,
+    createLifeEvent: lifeEvents.create,
+    updateLifeEvent: lifeEvents.update,
+    deleteLifeEvent: lifeEvents.delete,
+    createTurningPoint: turningPoints.create,
+    updateTurningPoint: turningPoints.update,
+    deleteTurningPoint: turningPoints.delete,
+    createClassification: classifications.create,
+    updateClassification: classifications.update,
+    deleteClassification: classifications.delete,
+    createPattern: patterns.create,
+    updatePattern: patterns.update,
+    deletePattern: patterns.delete,
     createJournalEntry: createJournalEntryMutation,
     updateJournalEntry: updateJournalEntryMutation,
     deleteJournalEntry: deleteJournalEntryMutation,

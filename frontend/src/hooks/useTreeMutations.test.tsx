@@ -463,7 +463,7 @@ describe("event mutations", () => {
 
     await act(async () => {
       await result.current.updateEvent.mutateAsync({
-        eventId: "e-1",
+        entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
       });
@@ -504,7 +504,7 @@ describe("event mutations", () => {
 
     act(() => {
       result.current.updateEvent.mutate({
-        eventId: "e-1",
+        entityId: "e-1",
         personIds: ["p-1", "p-2"],
         data: eventData,
       });
@@ -529,7 +529,7 @@ describe("event mutations", () => {
 
     act(() => {
       result.current.updateEvent.mutate({
-        eventId: "e-1",
+        entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
       });
@@ -569,7 +569,7 @@ describe("event mutations", () => {
 
     act(() => {
       result.current.updateEvent.mutate({
-        eventId: "e-nonexistent",
+        entityId: "e-nonexistent",
         personIds: ["p-1"],
         data: eventData,
       });
@@ -611,7 +611,7 @@ describe("event mutations", () => {
     await act(async () => {
       try {
         await result.current.updateEvent.mutateAsync({
-          eventId: "e-1",
+          entityId: "e-1",
           personIds: ["p-1"],
           data: eventData,
         });
@@ -639,7 +639,7 @@ describe("event mutations", () => {
     await act(async () => {
       try {
         await result.current.updateEvent.mutateAsync({
-          eventId: "e-1",
+          entityId: "e-1",
           personIds: ["p-1"],
           data: eventData,
         });
@@ -668,7 +668,7 @@ describe("event mutations", () => {
 
     await act(async () => {
       await result.current.updateEvent.mutateAsync({
-        eventId: "e-1",
+        entityId: "e-1",
         personIds: ["p-1"],
         data: eventData,
       });
@@ -790,7 +790,7 @@ describe("life event mutations", () => {
 
     await act(async () => {
       await result.current.updateLifeEvent.mutateAsync({
-        lifeEventId: "le-1",
+        entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -829,7 +829,7 @@ describe("life event mutations", () => {
 
     act(() => {
       result.current.updateLifeEvent.mutate({
-        lifeEventId: "le-1",
+        entityId: "le-1",
         personIds: ["p-1", "p-3"],
         data: lifeEventData,
       });
@@ -856,7 +856,7 @@ describe("life event mutations", () => {
 
     act(() => {
       result.current.updateLifeEvent.mutate({
-        lifeEventId: "le-1",
+        entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -894,7 +894,7 @@ describe("life event mutations", () => {
 
     act(() => {
       result.current.updateLifeEvent.mutate({
-        lifeEventId: "le-nonexistent",
+        entityId: "le-nonexistent",
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -939,7 +939,7 @@ describe("life event mutations", () => {
     await act(async () => {
       try {
         await result.current.updateLifeEvent.mutateAsync({
-          lifeEventId: "le-1",
+          entityId: "le-1",
           personIds: ["p-1"],
           data: lifeEventData,
         });
@@ -969,7 +969,7 @@ describe("life event mutations", () => {
     await act(async () => {
       try {
         await result.current.updateLifeEvent.mutateAsync({
-          lifeEventId: "le-1",
+          entityId: "le-1",
           personIds: ["p-1"],
           data: lifeEventData,
         });
@@ -997,7 +997,7 @@ describe("life event mutations", () => {
 
     await act(async () => {
       await result.current.updateLifeEvent.mutateAsync({
-        lifeEventId: "le-1",
+        entityId: "le-1",
         personIds: ["p-1"],
         data: lifeEventData,
       });
@@ -1119,7 +1119,7 @@ describe("turning point mutations", () => {
 
     await act(async () => {
       await result.current.updateTurningPoint.mutateAsync({
-        turningPointId: "tp-1",
+        entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1158,7 +1158,7 @@ describe("turning point mutations", () => {
 
     act(() => {
       result.current.updateTurningPoint.mutate({
-        turningPointId: "tp-1",
+        entityId: "tp-1",
         personIds: ["p-1", "p-3"],
         data: turningPointData,
       });
@@ -1185,7 +1185,7 @@ describe("turning point mutations", () => {
 
     act(() => {
       result.current.updateTurningPoint.mutate({
-        turningPointId: "tp-1",
+        entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1223,7 +1223,7 @@ describe("turning point mutations", () => {
 
     act(() => {
       result.current.updateTurningPoint.mutate({
-        turningPointId: "tp-nonexistent",
+        entityId: "tp-nonexistent",
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1268,7 +1268,7 @@ describe("turning point mutations", () => {
     await act(async () => {
       try {
         await result.current.updateTurningPoint.mutateAsync({
-          turningPointId: "tp-1",
+          entityId: "tp-1",
           personIds: ["p-1"],
           data: turningPointData,
         });
@@ -1298,7 +1298,7 @@ describe("turning point mutations", () => {
     await act(async () => {
       try {
         await result.current.updateTurningPoint.mutateAsync({
-          turningPointId: "tp-1",
+          entityId: "tp-1",
           personIds: ["p-1"],
           data: turningPointData,
         });
@@ -1326,7 +1326,7 @@ describe("turning point mutations", () => {
 
     await act(async () => {
       await result.current.updateTurningPoint.mutateAsync({
-        turningPointId: "tp-1",
+        entityId: "tp-1",
         personIds: ["p-1"],
         data: turningPointData,
       });
@@ -1448,7 +1448,7 @@ describe("classification mutations", () => {
 
     await act(async () => {
       await result.current.updateClassification.mutateAsync({
-        classificationId: "c-1",
+        entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1487,7 +1487,7 @@ describe("classification mutations", () => {
 
     act(() => {
       result.current.updateClassification.mutate({
-        classificationId: "c-1",
+        entityId: "c-1",
         personIds: ["p-1", "p-2"],
         data: classificationData,
       });
@@ -1516,7 +1516,7 @@ describe("classification mutations", () => {
 
     act(() => {
       result.current.updateClassification.mutate({
-        classificationId: "c-1",
+        entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1554,7 +1554,7 @@ describe("classification mutations", () => {
 
     act(() => {
       result.current.updateClassification.mutate({
-        classificationId: "c-nonexistent",
+        entityId: "c-nonexistent",
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1599,7 +1599,7 @@ describe("classification mutations", () => {
     await act(async () => {
       try {
         await result.current.updateClassification.mutateAsync({
-          classificationId: "c-1",
+          entityId: "c-1",
           personIds: ["p-1"],
           data: classificationData,
         });
@@ -1630,7 +1630,7 @@ describe("classification mutations", () => {
     await act(async () => {
       try {
         await result.current.updateClassification.mutateAsync({
-          classificationId: "c-1",
+          entityId: "c-1",
           personIds: ["p-1"],
           data: classificationData,
         });
@@ -1658,7 +1658,7 @@ describe("classification mutations", () => {
 
     await act(async () => {
       await result.current.updateClassification.mutateAsync({
-        classificationId: "c-1",
+        entityId: "c-1",
         personIds: ["p-1"],
         data: classificationData,
       });
@@ -1778,7 +1778,7 @@ describe("pattern mutations", () => {
 
     await act(async () => {
       await result.current.updatePattern.mutateAsync({
-        patternId: "pat-1",
+        entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
       });
@@ -1815,7 +1815,7 @@ describe("pattern mutations", () => {
 
     act(() => {
       result.current.updatePattern.mutate({
-        patternId: "pat-1",
+        entityId: "pat-1",
         personIds: ["p-1", "p-2"],
         data: patternData,
       });
@@ -1838,7 +1838,7 @@ describe("pattern mutations", () => {
 
     act(() => {
       result.current.updatePattern.mutate({
-        patternId: "pat-1",
+        entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
       });
@@ -1874,7 +1874,7 @@ describe("pattern mutations", () => {
 
     act(() => {
       result.current.updatePattern.mutate({
-        patternId: "pat-nonexistent",
+        entityId: "pat-nonexistent",
         personIds: ["p-1"],
         data: patternData,
       });
@@ -1913,7 +1913,7 @@ describe("pattern mutations", () => {
     await act(async () => {
       try {
         await result.current.updatePattern.mutateAsync({
-          patternId: "pat-1",
+          entityId: "pat-1",
           personIds: ["p-1"],
           data: patternData,
         });
@@ -1939,7 +1939,7 @@ describe("pattern mutations", () => {
     await act(async () => {
       try {
         await result.current.updatePattern.mutateAsync({
-          patternId: "pat-1",
+          entityId: "pat-1",
           personIds: ["p-1"],
           data: patternData,
         });
@@ -1967,7 +1967,7 @@ describe("pattern mutations", () => {
 
     await act(async () => {
       await result.current.updatePattern.mutateAsync({
-        patternId: "pat-1",
+        entityId: "pat-1",
         personIds: ["p-1"],
         data: patternData,
       });
