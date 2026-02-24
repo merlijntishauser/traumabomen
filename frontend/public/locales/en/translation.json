@@ -55,6 +55,9 @@
   "tree.canvas": "Canvas",
   "tree.canvasEmpty": "Your tree is empty",
   "tree.canvasEmptyHint": "Add your first family member to start building your tree.",
+  "tree.import": "Import backup",
+  "tree.importing": "Importing...",
+  "tree.importError": "Failed to import backup",
 
   "person.name": "Name",
   "person.birthYear": "Birth year",

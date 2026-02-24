@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, LogOut, X } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useState } from "react";
+import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
+import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
 import {
   createTree,
@@ -51,6 +52,10 @@ export default function TreeListPage() {
   );
   const [showFeedback, setShowFeedback] = useState(false);
   const [showDemoLimit, setShowDemoLimit] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { importTree } = useImportTree();
 
   const treeListViewTab = useMemo(
     () => ({
@@ -182,6 +187,24 @@ export default function TreeListPage() {
     setNewName("");
   }
 
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so re-selecting the same file triggers onChange
+    e.target.value = "";
+    setImporting(true);
+    setImportError(null);
+    try {
+      const treeId = await importTree(file);
+      queryClient.invalidateQueries({ queryKey: ["trees"] });
+      navigate(`/trees/${uuidToCompact(treeId)}`);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : t("tree.importError"));
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <>
       <div className="tree-list-page bg-gradient">
@@ -211,6 +234,23 @@ export default function TreeListPage() {
           >
             {t("tree.create")}
           </button>
+          <button
+            type="button"
+            className="tree-toolbar__icon-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            aria-label={t("tree.import")}
+            title={t("tree.import")}
+          >
+            <Upload size={14} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: "none" }}
+            onChange={handleImportFile}
+          />
           <SettingsPanel viewTab={treeListViewTab} className="tree-toolbar__icon-btn" />
           {getIsAdmin() && (
             <Link to="/admin" className="tree-toolbar__btn">
@@ -304,6 +344,15 @@ export default function TreeListPage() {
             <div className="tree-list-limit">
               <AlertTriangle size={16} />
               <span>{t("demo.limitReachedHint")}</span>
+            </div>
+          )}
+
+          {importing && <p className="tree-list-loading">{t("tree.importing")}</p>}
+
+          {importError && (
+            <div className="tree-list-limit">
+              <AlertTriangle size={16} />
+              <span>{importError}</span>
             </div>
           )}
 

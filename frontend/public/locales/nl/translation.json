@@ -55,6 +55,9 @@
   "tree.canvas": "Boomweergave",
   "tree.canvasEmpty": "Je boom is nog leeg",
   "tree.canvasEmptyHint": "Voeg je eerste familielid toe om je stamboom op te bouwen.",
+  "tree.import": "Back-up importeren",
+  "tree.importing": "Importeren...",
+  "tree.importError": "Importeren van back-up mislukt",
 
   "person.name": "Naam",
   "person.birthYear": "Geboortejaar",
