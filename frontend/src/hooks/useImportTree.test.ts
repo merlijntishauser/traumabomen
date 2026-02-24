@@ -52,9 +52,9 @@ function makeValidExport(overrides: Record<string, unknown> = {}): string {
     ],
     events: [{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }],
     life_events: [{ id: "le1", person_ids: ["p1"], encrypted_data: "le-enc" }],
-    turning_points: [],
-    classifications: [],
-    patterns: [],
+    turning_points: [{ id: "tp1", person_ids: ["p1"], encrypted_data: "tp-enc" }],
+    classifications: [{ id: "c1", person_ids: ["p1"], encrypted_data: "c-enc" }],
+    patterns: [{ id: "pat1", person_ids: ["p1"], encrypted_data: "pat-enc" }],
     journal_entries: [{ id: "j1", encrypted_data: "j-enc" }],
     ...overrides,
   });
@@ -104,9 +104,9 @@ describe("useImportTree", () => {
       ],
       events_create: [{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }],
       life_events_create: [{ id: "le1", person_ids: ["p1"], encrypted_data: "le-enc" }],
-      classifications_create: [],
-      turning_points_create: [],
-      patterns_create: [],
+      classifications_create: [{ id: "c1", person_ids: ["p1"], encrypted_data: "c-enc" }],
+      turning_points_create: [{ id: "tp1", person_ids: ["p1"], encrypted_data: "tp-enc" }],
+      patterns_create: [{ id: "pat1", person_ids: ["p1"], encrypted_data: "pat-enc" }],
       journal_entries_create: [{ id: "j1", encrypted_data: "j-enc" }],
     });
   });

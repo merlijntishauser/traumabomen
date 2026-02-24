@@ -71,11 +71,11 @@ function makeFakeTreeData(overrides: Record<string, unknown> = {}) {
       ],
     ]),
     events: new Map([["e1", { id: "e1", person_ids: ["p1"], title: "Event" }]]),
-    lifeEvents: new Map(),
-    turningPoints: new Map(),
-    classifications: new Map(),
-    patterns: new Map(),
-    journalEntries: new Map(),
+    lifeEvents: new Map([["le1", { id: "le1", person_ids: ["p1"], title: "Life" }]]),
+    turningPoints: new Map([["tp1", { id: "tp1", person_ids: ["p1"], title: "Turn" }]]),
+    classifications: new Map([["c1", { id: "c1", person_ids: ["p1"], dsm_category: "anxiety" }]]),
+    patterns: new Map([["pat1", { id: "pat1", person_ids: ["p1"], name: "Pattern" }]]),
+    journalEntries: new Map([["j1", { id: "j1", text: "Entry" }]]),
     isLoading: false,
     error: null,
     ...overrides,
@@ -115,11 +115,19 @@ describe("useExportTree", () => {
         { id: "r1", source_person_id: "p1", target_person_id: "p2", encrypted_data: "r-enc" },
       ]);
       mockGetEvents.mockResolvedValue([{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }]);
-      mockGetLifeEvents.mockResolvedValue([]);
-      mockGetTurningPoints.mockResolvedValue([]);
-      mockGetClassifications.mockResolvedValue([]);
-      mockGetPatterns.mockResolvedValue([]);
-      mockGetJournalEntries.mockResolvedValue([]);
+      mockGetLifeEvents.mockResolvedValue([
+        { id: "le1", person_ids: ["p1"], encrypted_data: "le-enc" },
+      ]);
+      mockGetTurningPoints.mockResolvedValue([
+        { id: "tp1", person_ids: ["p1"], encrypted_data: "tp-enc" },
+      ]);
+      mockGetClassifications.mockResolvedValue([
+        { id: "c1", person_ids: ["p1"], encrypted_data: "c-enc" },
+      ]);
+      mockGetPatterns.mockResolvedValue([
+        { id: "pat1", person_ids: ["p1"], encrypted_data: "pat-enc" },
+      ]);
+      mockGetJournalEntries.mockResolvedValue([{ id: "j1", encrypted_data: "j-enc" }]);
 
       const { result } = renderHook(() => useExportTree(TREE_ID, makeFakeTreeData()));
       await result.current.exportEncrypted();
@@ -146,6 +154,11 @@ describe("useExportTree", () => {
       expect(data.persons).toHaveLength(1);
       expect(data.relationships).toHaveLength(1);
       expect(data.events).toHaveLength(1);
+      expect(data.life_events).toHaveLength(1);
+      expect(data.turning_points).toHaveLength(1);
+      expect(data.classifications).toHaveLength(1);
+      expect(data.patterns).toHaveLength(1);
+      expect(data.journal_entries).toHaveLength(1);
     });
 
     it("uses slugified tree name in filename", async () => {
@@ -201,6 +214,11 @@ describe("useExportTree", () => {
       expect(data.persons[0].name).toBe("Alice");
       expect(data.relationships).toHaveLength(1);
       expect(data.events).toHaveLength(1);
+      expect(data.life_events).toHaveLength(1);
+      expect(data.turning_points).toHaveLength(1);
+      expect(data.classifications).toHaveLength(1);
+      expect(data.patterns).toHaveLength(1);
+      expect(data.journal_entries).toHaveLength(1);
     });
 
     it("does not call any API functions", async () => {
