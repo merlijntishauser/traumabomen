@@ -39,17 +39,7 @@ Required before growing beyond the current 20-user beta. These are infrastructur
 
 ### ~~6. Production error tracking~~ (done)
 
-### 7. User data export
-
-Users have no way to back up their tree. Combined with "passphrase lost = data lost", this is a real risk at scale.
-
-- Migrate from single passphrase-derived key to per-tree encryption keys with a master-key-encrypted key ring
-- Encrypted JSON backup (download + re-import with passphrase)
-- Plaintext JSON export with explicit user confirmation (foundation for future GEDCOM)
-- Transparent client-side migration on first unlock (under 300ms for typical trees)
-- Passphrase change simplified: re-encrypt key ring only, not every entity
-
-See [design doc](plans/2026-02-24-user-data-export-design.md).
+### ~~7. User data export~~ (done)
 
 ### ~~8. Async email sending~~ (done)
 
@@ -156,6 +146,10 @@ Centralized `send_email_background` helper wraps all email-sending functions in 
 ### Production error tracking
 
 Sentry integration for both FastAPI backend (`sentry-sdk[fastapi]`) and React frontend (`@sentry/react`). Custom crypto error hierarchy (`CryptoError` base with `DecryptError`, `KeyDerivationError`, `PassphraseError`) for encryption failure tracking. Privacy safeguards: no PII, encrypted data stripped from request context, hashed user IDs. Source maps uploaded via `@sentry/vite-plugin` during production build. Error boundary with user-friendly fallback. [Design doc](plans/2026-02-23-error-tracking-design.md).
+
+### User data export
+
+Per-tree encryption keys with master-key-encrypted key ring, transparent client-side migration on first unlock, simplified passphrase change (re-encrypt key ring only). Encrypted JSON backup (download + re-import), plaintext JSON export with confirmation dialog. Life events and journal entries added to bulk sync endpoint. [Design doc](plans/2026-02-24-user-data-export-design.md).
 
 ### API rate limiting
 
