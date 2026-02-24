@@ -1,14 +1,52 @@
+import uuid
 from collections.abc import AsyncGenerator
 from functools import lru_cache
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.config import get_settings
 
 
 class Base(DeclarativeBase):
     pass
+
+
+def make_junction_model(
+    class_name: str,
+    table_name: str,
+    entity_fk_name: str,
+    entity_table: str,
+) -> type[Base]:
+    """Create a junction table model linking an entity to persons.
+
+    Returns a real SQLAlchemy mapped class (subclass of Base) that Alembic
+    can detect for autogenerate migrations. The class has two composite
+    primary key columns: ``entity_fk_name`` -> ``entity_table.id`` and
+    ``person_id`` -> ``persons.id``, both with CASCADE deletes.
+    """
+    entity_fk_col: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(f"{entity_table}.id", ondelete="CASCADE"), primary_key=True
+    )
+    person_id_col: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"), primary_key=True
+    )
+
+    cls = type(
+        class_name,
+        (Base,),
+        {
+            "__tablename__": table_name,
+            "__annotations__": {
+                entity_fk_name: Mapped[uuid.UUID],
+                "person_id": Mapped[uuid.UUID],
+            },
+            entity_fk_name: entity_fk_col,
+            "person_id": person_id_col,
+        },
+    )
+    return cls  # type: ignore[return-value]
 
 
 @lru_cache

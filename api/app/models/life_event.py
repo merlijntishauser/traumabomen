@@ -6,18 +6,11 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, make_junction_model
 
-
-class LifeEventPerson(Base):
-    __tablename__ = "life_event_persons"
-
-    life_event_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("life_events.id", ondelete="CASCADE"), primary_key=True
-    )
-    person_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("persons.id", ondelete="CASCADE"), primary_key=True
-    )
+LifeEventPerson = make_junction_model(
+    "LifeEventPerson", "life_event_persons", "life_event_id", "life_events"
+)
 
 
 class LifeEvent(Base):

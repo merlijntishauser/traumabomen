@@ -6,18 +6,9 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, make_junction_model
 
-
-class PatternPerson(Base):
-    __tablename__ = "pattern_persons"
-
-    pattern_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("patterns.id", ondelete="CASCADE"), primary_key=True
-    )
-    person_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("persons.id", ondelete="CASCADE"), primary_key=True
-    )
+PatternPerson = make_junction_model("PatternPerson", "pattern_persons", "pattern_id", "patterns")
 
 
 class Pattern(Base):

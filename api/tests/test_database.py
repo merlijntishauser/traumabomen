@@ -1,4 +1,4 @@
-"""Tests for app.database module (get_engine, get_session_factory, get_db)."""
+"""Tests for app.database module (get_engine, get_session_factory, get_db, make_junction_model)."""
 
 from unittest.mock import MagicMock, patch
 
@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.config import Settings
-from app.database import get_db, get_engine, get_session_factory
+from app.database import Base, get_db, get_engine, get_session_factory
 
 
 @pytest.fixture(autouse=True)
@@ -75,3 +75,50 @@ async def test_get_db_yields_session(mock_settings, mock_create):
         break
 
     await real_engine.dispose()
+
+
+class TestMakeJunctionModel:
+    """Tests for the make_junction_model factory."""
+
+    def test_creates_base_subclass(self):
+        """The generated class must inherit from Base for Alembic detection."""
+        from app.models.event import EventPerson
+
+        assert issubclass(EventPerson, Base)
+
+    def test_has_correct_tablename(self):
+        from app.models.event import EventPerson
+
+        assert EventPerson.__tablename__ == "event_persons"
+
+    def test_has_entity_fk_column(self):
+        from app.models.event import EventPerson
+
+        assert hasattr(EventPerson, "event_id")
+
+    def test_has_person_id_column(self):
+        from app.models.event import EventPerson
+
+        assert hasattr(EventPerson, "person_id")
+
+    def test_class_name_is_correct(self):
+        from app.models.event import EventPerson
+
+        assert EventPerson.__name__ == "EventPerson"
+
+    def test_all_junction_models_are_base_subclasses(self):
+        """All five junction models produced by the factory are real Base subclasses."""
+        from app.models.classification import ClassificationPerson
+        from app.models.event import EventPerson
+        from app.models.life_event import LifeEventPerson
+        from app.models.pattern import PatternPerson
+        from app.models.turning_point import TurningPointPerson
+
+        for model in (
+            EventPerson,
+            LifeEventPerson,
+            ClassificationPerson,
+            PatternPerson,
+            TurningPointPerson,
+        ):
+            assert issubclass(model, Base), f"{model.__name__} is not a Base subclass"
