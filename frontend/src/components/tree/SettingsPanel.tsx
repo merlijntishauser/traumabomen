@@ -11,6 +11,7 @@ import {
   getClassifications,
   getEncryptionSalt,
   getEvents,
+  getKeyRing,
   getLifeEvents,
   getPatterns,
   getPersons,
@@ -18,13 +19,16 @@ import {
   getTrees,
   syncTree,
   updateClassification,
+  updateKeyRing,
   updatePattern,
   updateSalt,
 } from "../../lib/api";
 import {
   decryptFromApi,
+  decryptKeyRing,
   deriveKey,
   encryptForApi,
+  encryptKeyRing,
   generateSalt,
   hashPassphrase,
 } from "../../lib/crypto";
@@ -42,7 +46,7 @@ interface Props {
 
 export function SettingsPanel({ viewTab, className }: Props) {
   const { t } = useTranslation();
-  const { setMasterKey, setPassphraseHash } = useEncryption();
+  const { isMigrated, setMasterKey, setPassphraseHash } = useEncryption();
   const logout = useLogout();
 
   const [open, setOpen] = useState(false);
@@ -130,6 +134,133 @@ export function SettingsPanel({ viewTab, className }: Props) {
     }
   }
 
+  async function handleChangePassphraseMigrated() {
+    // Simplified flow: only re-encrypt the key ring (tree keys stay the same)
+    setPpProgress(t("account.reencrypting"));
+    const { encryption_salt: currentSalt } = await getEncryptionSalt();
+    const oldKey = await deriveKey(ppCurrent, currentSalt);
+
+    // Verify old passphrase by attempting to decrypt key ring
+    const { encrypted_key_ring } = await getKeyRing();
+    const keyRingData = await decryptKeyRing(encrypted_key_ring, oldKey);
+
+    // Derive new key and re-encrypt key ring
+    const newSalt = generateSalt();
+    const newKey = await deriveKey(ppNew, newSalt);
+    const newEncryptedRing = await encryptKeyRing(keyRingData, newKey);
+
+    // Persist new key ring and salt
+    await updateKeyRing(newEncryptedRing);
+    await updateSalt({ encryption_salt: newSalt });
+
+    // Update context
+    const newHash = await hashPassphrase(ppNew);
+    setMasterKey(newKey);
+    setPassphraseHash(newHash);
+  }
+
+  async function handleChangePassphraseLegacy() {
+    // Legacy flow: re-encrypt every entity (pre-migration users)
+    setPpProgress(t("account.reencrypting"));
+    const { encryption_salt: currentSalt } = await getEncryptionSalt();
+    const oldKey = await deriveKey(ppCurrent, currentSalt);
+
+    const newSalt = generateSalt();
+    const newKey = await deriveKey(ppNew, newSalt);
+
+    const trees = await getTrees();
+    for (const tree of trees) {
+      const treeData = await decryptFromApi(tree.encrypted_data, oldKey);
+      const newTreeEncrypted = await encryptForApi(treeData, newKey);
+
+      const [persons, relationships, events, lifeEvents, classifications, patterns] =
+        await Promise.all([
+          getPersons(tree.id),
+          getRelationships(tree.id),
+          getEvents(tree.id),
+          getLifeEvents(tree.id),
+          getClassifications(tree.id),
+          getPatterns(tree.id),
+        ]);
+
+      const personsUpdate = await Promise.all(
+        persons.map(async (p) => {
+          const data = await decryptFromApi(p.encrypted_data, oldKey);
+          const enc = await encryptForApi(data, newKey);
+          return { id: p.id, encrypted_data: enc };
+        }),
+      );
+
+      const relationshipsUpdate = await Promise.all(
+        relationships.map(async (r) => {
+          const data = await decryptFromApi(r.encrypted_data, oldKey);
+          const enc = await encryptForApi(data, newKey);
+          return {
+            id: r.id,
+            source_person_id: r.source_person_id,
+            target_person_id: r.target_person_id,
+            encrypted_data: enc,
+          };
+        }),
+      );
+
+      const eventsUpdate = await Promise.all(
+        events.map(async (e) => {
+          const data = await decryptFromApi(e.encrypted_data, oldKey);
+          const enc = await encryptForApi(data, newKey);
+          return { id: e.id, person_ids: e.person_ids, encrypted_data: enc };
+        }),
+      );
+
+      for (const le of lifeEvents) {
+        const data = await decryptFromApi(le.encrypted_data, oldKey);
+        const enc = await encryptForApi(data, newKey);
+        le.encrypted_data = enc;
+      }
+
+      await syncTree(tree.id, {
+        persons_update: personsUpdate,
+        relationships_update: relationshipsUpdate,
+        events_update: eventsUpdate,
+      });
+
+      const { updateTree } = await import("../../lib/api");
+      await updateTree(tree.id, { encrypted_data: newTreeEncrypted });
+
+      const { updateLifeEvent } = await import("../../lib/api");
+      for (const le of lifeEvents) {
+        await updateLifeEvent(tree.id, le.id, {
+          person_ids: le.person_ids,
+          encrypted_data: le.encrypted_data,
+        });
+      }
+
+      for (const cls of classifications) {
+        const data = await decryptFromApi(cls.encrypted_data, oldKey);
+        const enc = await encryptForApi(data, newKey);
+        await updateClassification(tree.id, cls.id, {
+          person_ids: cls.person_ids,
+          encrypted_data: enc,
+        });
+      }
+
+      for (const pat of patterns) {
+        const data = await decryptFromApi(pat.encrypted_data, oldKey);
+        const enc = await encryptForApi(data, newKey);
+        await updatePattern(tree.id, pat.id, {
+          person_ids: pat.person_ids,
+          encrypted_data: enc,
+        });
+      }
+    }
+
+    await updateSalt({ encryption_salt: newSalt });
+
+    const newHash = await hashPassphrase(ppNew);
+    setMasterKey(newKey);
+    setPassphraseHash(newHash);
+  }
+
   async function handleChangePassphrase() {
     setPpMessage(null);
     if (ppNew !== ppConfirm) {
@@ -139,129 +270,11 @@ export function SettingsPanel({ viewTab, className }: Props) {
 
     setPpLoading(true);
     try {
-      // 1. Get current salt and derive old key
-      setPpProgress(t("account.reencrypting"));
-      const { encryption_salt: currentSalt } = await getEncryptionSalt();
-      let oldKey: CryptoKey;
-      try {
-        oldKey = await deriveKey(ppCurrent, currentSalt);
-      } catch {
-        setPpMessage({ type: "error", text: t("account.passphraseError") });
-        setPpLoading(false);
-        return;
+      if (isMigrated) {
+        await handleChangePassphraseMigrated();
+      } else {
+        await handleChangePassphraseLegacy();
       }
-
-      // 2. Generate new salt and derive new key
-      const newSalt = generateSalt();
-      const newKey = await deriveKey(ppNew, newSalt);
-
-      // 3. Re-encrypt all data
-      const trees = await getTrees();
-      for (const tree of trees) {
-        // Decrypt and re-encrypt tree
-        const treeData = await decryptFromApi(tree.encrypted_data, oldKey);
-        const newTreeEncrypted = await encryptForApi(treeData, newKey);
-
-        // Fetch all entities for this tree
-        const [persons, relationships, events, lifeEvents, classifications, patterns] =
-          await Promise.all([
-            getPersons(tree.id),
-            getRelationships(tree.id),
-            getEvents(tree.id),
-            getLifeEvents(tree.id),
-            getClassifications(tree.id),
-            getPatterns(tree.id),
-          ]);
-
-        // Re-encrypt persons
-        const personsUpdate = await Promise.all(
-          persons.map(async (p) => {
-            const data = await decryptFromApi(p.encrypted_data, oldKey);
-            const enc = await encryptForApi(data, newKey);
-            return { id: p.id, encrypted_data: enc };
-          }),
-        );
-
-        // Re-encrypt relationships
-        const relationshipsUpdate = await Promise.all(
-          relationships.map(async (r) => {
-            const data = await decryptFromApi(r.encrypted_data, oldKey);
-            const enc = await encryptForApi(data, newKey);
-            return {
-              id: r.id,
-              source_person_id: r.source_person_id,
-              target_person_id: r.target_person_id,
-              encrypted_data: enc,
-            };
-          }),
-        );
-
-        // Re-encrypt events
-        const eventsUpdate = await Promise.all(
-          events.map(async (e) => {
-            const data = await decryptFromApi(e.encrypted_data, oldKey);
-            const enc = await encryptForApi(data, newKey);
-            return { id: e.id, person_ids: e.person_ids, encrypted_data: enc };
-          }),
-        );
-
-        // Re-encrypt life events (sent as events in sync since life events
-        // are a separate entity type -- we'll update them individually)
-        for (const le of lifeEvents) {
-          const data = await decryptFromApi(le.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          le.encrypted_data = enc;
-        }
-
-        // Sync re-encrypted data for this tree using bulk sync
-        // First sync persons, relationships, events via syncTree
-        await syncTree(tree.id, {
-          persons_update: personsUpdate,
-          relationships_update: relationshipsUpdate,
-          events_update: eventsUpdate,
-        });
-
-        // Update tree itself - use the updateTree API
-        const { updateTree } = await import("../../lib/api");
-        await updateTree(tree.id, { encrypted_data: newTreeEncrypted });
-
-        // Update life events individually
-        const { updateLifeEvent } = await import("../../lib/api");
-        for (const le of lifeEvents) {
-          await updateLifeEvent(tree.id, le.id, {
-            person_ids: le.person_ids,
-            encrypted_data: le.encrypted_data,
-          });
-        }
-
-        // Update classifications individually
-        for (const cls of classifications) {
-          const data = await decryptFromApi(cls.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          await updateClassification(tree.id, cls.id, {
-            person_ids: cls.person_ids,
-            encrypted_data: enc,
-          });
-        }
-
-        // Update patterns individually
-        for (const pat of patterns) {
-          const data = await decryptFromApi(pat.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          await updatePattern(tree.id, pat.id, {
-            person_ids: pat.person_ids,
-            encrypted_data: enc,
-          });
-        }
-      }
-
-      // 4. Update salt on server
-      await updateSalt({ encryption_salt: newSalt });
-
-      // 5. Update key and passphrase hash in encryption context
-      const newHash = await hashPassphrase(ppNew);
-      setMasterKey(newKey);
-      setPassphraseHash(newHash);
 
       setPpMessage({ type: "success", text: t("account.passphraseChanged") });
       setPpCurrent("");
