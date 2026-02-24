@@ -278,6 +278,31 @@ export function migrateKeys(data: MigrateKeysRequest): Promise<void> {
   });
 }
 
+// Tree-scoped CRUD factory
+
+interface CrudApi<TResponse, TCreate, TUpdate> {
+  getAll: (treeId: string) => Promise<TResponse[]>;
+  getOne: (treeId: string, itemId: string) => Promise<TResponse>;
+  create: (treeId: string, data: TCreate) => Promise<TResponse>;
+  update: (treeId: string, itemId: string, data: TUpdate) => Promise<TResponse>;
+  remove: (treeId: string, itemId: string) => Promise<void>;
+}
+
+function makeCrudApi<TResponse, TCreate, TUpdate>(
+  segment: string,
+): CrudApi<TResponse, TCreate, TUpdate> {
+  return {
+    getAll: (treeId) => apiFetchWithRetry(`/trees/${treeId}/${segment}`),
+    getOne: (treeId, itemId) => apiFetchWithRetry(`/trees/${treeId}/${segment}/${itemId}`),
+    create: (treeId, data) =>
+      apiFetchWithRetry(`/trees/${treeId}/${segment}`, { method: "POST", body: data }),
+    update: (treeId, itemId, data) =>
+      apiFetchWithRetry(`/trees/${treeId}/${segment}/${itemId}`, { method: "PUT", body: data }),
+    remove: (treeId, itemId) =>
+      apiFetchWithRetry(`/trees/${treeId}/${segment}/${itemId}`, { method: "DELETE" }),
+  };
+}
+
 // Trees
 
 export function getTrees(): Promise<TreeResponse[]> {
@@ -302,285 +327,85 @@ export function deleteTree(id: string): Promise<void> {
 
 // Persons
 
-export function getPersons(treeId: string): Promise<PersonResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/persons`);
-}
-
-export function getPerson(treeId: string, personId: string): Promise<PersonResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/persons/${personId}`);
-}
-
-export function createPerson(treeId: string, data: PersonCreate): Promise<PersonResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/persons`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updatePerson(
-  treeId: string,
-  personId: string,
-  data: PersonUpdate,
-): Promise<PersonResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/persons/${personId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deletePerson(treeId: string, personId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/persons/${personId}`, {
-    method: "DELETE",
-  });
-}
+const personsApi = makeCrudApi<PersonResponse, PersonCreate, PersonUpdate>("persons");
+export const getPersons = personsApi.getAll;
+export const getPerson = personsApi.getOne;
+export const createPerson = personsApi.create;
+export const updatePerson = personsApi.update;
+export const deletePerson = personsApi.remove;
 
 // Relationships
 
-export function getRelationships(treeId: string): Promise<RelationshipResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/relationships`);
-}
-
-export function getRelationship(
-  treeId: string,
-  relationshipId: string,
-): Promise<RelationshipResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`);
-}
-
-export function createRelationship(
-  treeId: string,
-  data: RelationshipCreate,
-): Promise<RelationshipResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/relationships`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateRelationship(
-  treeId: string,
-  relationshipId: string,
-  data: RelationshipUpdate,
-): Promise<RelationshipResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteRelationship(treeId: string, relationshipId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/relationships/${relationshipId}`, {
-    method: "DELETE",
-  });
-}
+const relationshipsApi = makeCrudApi<RelationshipResponse, RelationshipCreate, RelationshipUpdate>(
+  "relationships",
+);
+export const getRelationships = relationshipsApi.getAll;
+export const getRelationship = relationshipsApi.getOne;
+export const createRelationship = relationshipsApi.create;
+export const updateRelationship = relationshipsApi.update;
+export const deleteRelationship = relationshipsApi.remove;
 
 // Events
 
-export function getEvents(treeId: string): Promise<EventResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/events`);
-}
-
-export function getEvent(treeId: string, eventId: string): Promise<EventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`);
-}
-
-export function createEvent(treeId: string, data: EventCreate): Promise<EventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/events`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateEvent(
-  treeId: string,
-  eventId: string,
-  data: EventUpdate,
-): Promise<EventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteEvent(treeId: string, eventId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/events/${eventId}`, {
-    method: "DELETE",
-  });
-}
+const eventsApi = makeCrudApi<EventResponse, EventCreate, EventUpdate>("events");
+export const getEvents = eventsApi.getAll;
+export const getEvent = eventsApi.getOne;
+export const createEvent = eventsApi.create;
+export const updateEvent = eventsApi.update;
+export const deleteEvent = eventsApi.remove;
 
 // Life Events
 
-export function getLifeEvents(treeId: string): Promise<LifeEventResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/life-events`);
-}
-
-export function getLifeEvent(treeId: string, lifeEventId: string): Promise<LifeEventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`);
-}
-
-export function createLifeEvent(treeId: string, data: LifeEventCreate): Promise<LifeEventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/life-events`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateLifeEvent(
-  treeId: string,
-  lifeEventId: string,
-  data: LifeEventUpdate,
-): Promise<LifeEventResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteLifeEvent(treeId: string, lifeEventId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/life-events/${lifeEventId}`, {
-    method: "DELETE",
-  });
-}
+const lifeEventsApi = makeCrudApi<LifeEventResponse, LifeEventCreate, LifeEventUpdate>(
+  "life-events",
+);
+export const getLifeEvents = lifeEventsApi.getAll;
+export const getLifeEvent = lifeEventsApi.getOne;
+export const createLifeEvent = lifeEventsApi.create;
+export const updateLifeEvent = lifeEventsApi.update;
+export const deleteLifeEvent = lifeEventsApi.remove;
 
 // Turning Points
 
-export function getTurningPoints(treeId: string): Promise<TurningPointResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/turning-points`);
-}
-
-export function createTurningPoint(
-  treeId: string,
-  data: TurningPointCreate,
-): Promise<TurningPointResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/turning-points`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateTurningPoint(
-  treeId: string,
-  turningPointId: string,
-  data: TurningPointUpdate,
-): Promise<TurningPointResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/turning-points/${turningPointId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteTurningPoint(treeId: string, turningPointId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/turning-points/${turningPointId}`, {
-    method: "DELETE",
-  });
-}
+const turningPointsApi = makeCrudApi<TurningPointResponse, TurningPointCreate, TurningPointUpdate>(
+  "turning-points",
+);
+export const getTurningPoints = turningPointsApi.getAll;
+export const createTurningPoint = turningPointsApi.create;
+export const updateTurningPoint = turningPointsApi.update;
+export const deleteTurningPoint = turningPointsApi.remove;
 
 // Journal
 
-export function getJournalEntries(treeId: string): Promise<JournalEntryResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/journal`);
-}
-
-export function createJournalEntry(
-  treeId: string,
-  data: JournalEntryCreate,
-): Promise<JournalEntryResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/journal`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateJournalEntry(
-  treeId: string,
-  entryId: string,
-  data: JournalEntryUpdate,
-): Promise<JournalEntryResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/journal/${entryId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteJournalEntry(treeId: string, entryId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/journal/${entryId}`, {
-    method: "DELETE",
-  });
-}
+const journalApi = makeCrudApi<JournalEntryResponse, JournalEntryCreate, JournalEntryUpdate>(
+  "journal",
+);
+export const getJournalEntries = journalApi.getAll;
+export const createJournalEntry = journalApi.create;
+export const updateJournalEntry = journalApi.update;
+export const deleteJournalEntry = journalApi.remove;
 
 // Classifications
 
-export function getClassifications(treeId: string): Promise<ClassificationResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/classifications`);
-}
-
-export function getClassification(
-  treeId: string,
-  classificationId: string,
-): Promise<ClassificationResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`);
-}
-
-export function createClassification(
-  treeId: string,
-  data: ClassificationCreate,
-): Promise<ClassificationResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/classifications`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updateClassification(
-  treeId: string,
-  classificationId: string,
-  data: ClassificationUpdate,
-): Promise<ClassificationResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deleteClassification(treeId: string, classificationId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/classifications/${classificationId}`, {
-    method: "DELETE",
-  });
-}
+const classificationsApi = makeCrudApi<
+  ClassificationResponse,
+  ClassificationCreate,
+  ClassificationUpdate
+>("classifications");
+export const getClassifications = classificationsApi.getAll;
+export const getClassification = classificationsApi.getOne;
+export const createClassification = classificationsApi.create;
+export const updateClassification = classificationsApi.update;
+export const deleteClassification = classificationsApi.remove;
 
 // Patterns
 
-export function getPatterns(treeId: string): Promise<PatternResponse[]> {
-  return apiFetchWithRetry(`/trees/${treeId}/patterns`);
-}
-
-export function getPattern(treeId: string, patternId: string): Promise<PatternResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`);
-}
-
-export function createPattern(treeId: string, data: PatternCreate): Promise<PatternResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/patterns`, {
-    method: "POST",
-    body: data,
-  });
-}
-
-export function updatePattern(
-  treeId: string,
-  patternId: string,
-  data: PatternUpdate,
-): Promise<PatternResponse> {
-  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`, {
-    method: "PUT",
-    body: data,
-  });
-}
-
-export function deletePattern(treeId: string, patternId: string): Promise<void> {
-  return apiFetchWithRetry(`/trees/${treeId}/patterns/${patternId}`, {
-    method: "DELETE",
-  });
-}
+const patternsApi = makeCrudApi<PatternResponse, PatternCreate, PatternUpdate>("patterns");
+export const getPatterns = patternsApi.getAll;
+export const getPattern = patternsApi.getOne;
+export const createPattern = patternsApi.create;
+export const updatePattern = patternsApi.update;
+export const deletePattern = patternsApi.remove;
 
 // Sync
 
