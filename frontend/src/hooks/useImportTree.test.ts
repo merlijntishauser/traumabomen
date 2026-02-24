@@ -17,15 +17,11 @@ vi.mock("../contexts/EncryptionContext", () => ({
 
 const mockCreateTree = vi.fn();
 const mockSyncTree = vi.fn();
-const mockCreateLifeEvent = vi.fn();
-const mockCreateJournalEntry = vi.fn();
 const mockUpdateKeyRing = vi.fn();
 
 vi.mock("../lib/api", () => ({
   createTree: (...args: unknown[]) => mockCreateTree(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
-  createLifeEvent: (...args: unknown[]) => mockCreateLifeEvent(...args),
-  createJournalEntry: (...args: unknown[]) => mockCreateJournalEntry(...args),
   updateKeyRing: (...args: unknown[]) => mockUpdateKeyRing(...args),
 }));
 
@@ -77,8 +73,6 @@ describe("useImportTree", () => {
     mockImportTreeKey.mockResolvedValue(fakeTreeKey);
     mockCreateTree.mockResolvedValue({ id: NEW_TREE_ID });
     mockSyncTree.mockResolvedValue({});
-    mockCreateLifeEvent.mockResolvedValue({});
-    mockCreateJournalEntry.mockResolvedValue({});
     mockExportKeyToBase64.mockResolvedValue("b64-key");
     mockEncryptKeyRing.mockResolvedValue("encrypted-ring");
     mockUpdateKeyRing.mockResolvedValue(undefined);
@@ -97,7 +91,7 @@ describe("useImportTree", () => {
     expect(mockAddTreeKey).toHaveBeenCalledWith(NEW_TREE_ID, fakeTreeKey);
   });
 
-  it("syncs entities via bulk sync endpoint", async () => {
+  it("syncs all entities via bulk sync endpoint", async () => {
     const file = makeFile(makeValidExport());
     const { result } = renderHook(() => useImportTree());
 
@@ -109,32 +103,11 @@ describe("useImportTree", () => {
         { id: "r1", source_person_id: "p1", target_person_id: "p2", encrypted_data: "r-enc" },
       ],
       events_create: [{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }],
+      life_events_create: [{ id: "le1", person_ids: ["p1"], encrypted_data: "le-enc" }],
       classifications_create: [],
       turning_points_create: [],
       patterns_create: [],
-    });
-  });
-
-  it("creates life events individually", async () => {
-    const file = makeFile(makeValidExport());
-    const { result } = renderHook(() => useImportTree());
-
-    await result.current.importTree(file);
-
-    expect(mockCreateLifeEvent).toHaveBeenCalledWith(NEW_TREE_ID, {
-      person_ids: ["p1"],
-      encrypted_data: "le-enc",
-    });
-  });
-
-  it("creates journal entries individually", async () => {
-    const file = makeFile(makeValidExport());
-    const { result } = renderHook(() => useImportTree());
-
-    await result.current.importTree(file);
-
-    expect(mockCreateJournalEntry).toHaveBeenCalledWith(NEW_TREE_ID, {
-      encrypted_data: "j-enc",
+      journal_entries_create: [{ id: "j1", encrypted_data: "j-enc" }],
     });
   });
 
@@ -177,14 +150,14 @@ describe("useImportTree", () => {
 
     await result.current.importTree(file);
 
-    expect(mockCreateLifeEvent).not.toHaveBeenCalled();
-    expect(mockCreateJournalEntry).not.toHaveBeenCalled();
     expect(mockSyncTree).toHaveBeenCalledWith(
       NEW_TREE_ID,
       expect.objectContaining({
+        life_events_create: [],
         classifications_create: [],
         turning_points_create: [],
         patterns_create: [],
+        journal_entries_create: [],
       }),
     );
   });

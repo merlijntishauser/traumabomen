@@ -433,6 +433,18 @@ export interface SyncTurningPointUpdate {
   encrypted_data?: string;
 }
 
+export interface SyncLifeEventCreate {
+  id?: string;
+  person_ids: string[];
+  encrypted_data: string;
+}
+
+export interface SyncLifeEventUpdate {
+  id: string;
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
 export interface SyncPatternCreate {
   id?: string;
   person_ids: string[];
@@ -443,6 +455,16 @@ export interface SyncPatternUpdate {
   id: string;
   person_ids?: string[];
   encrypted_data?: string;
+}
+
+export interface SyncJournalEntryCreate {
+  id?: string;
+  encrypted_data: string;
+}
+
+export interface SyncJournalEntryUpdate {
+  id: string;
+  encrypted_data: string;
 }
 
 export interface SyncDelete {
@@ -459,6 +481,9 @@ export interface SyncRequest {
   events_create?: SyncEventCreate[];
   events_update?: SyncEventUpdate[];
   events_delete?: SyncDelete[];
+  life_events_create?: SyncLifeEventCreate[];
+  life_events_update?: SyncLifeEventUpdate[];
+  life_events_delete?: SyncDelete[];
   classifications_create?: SyncClassificationCreate[];
   classifications_update?: SyncClassificationUpdate[];
   classifications_delete?: SyncDelete[];
@@ -468,25 +493,34 @@ export interface SyncRequest {
   patterns_create?: SyncPatternCreate[];
   patterns_update?: SyncPatternUpdate[];
   patterns_delete?: SyncDelete[];
+  journal_entries_create?: SyncJournalEntryCreate[];
+  journal_entries_update?: SyncJournalEntryUpdate[];
+  journal_entries_delete?: SyncDelete[];
 }
 
 export interface SyncResponse {
   persons_created: string[];
   relationships_created: string[];
   events_created: string[];
+  life_events_created: string[];
   classifications_created: string[];
   turning_points_created: string[];
   patterns_created: string[];
+  journal_entries_created: string[];
   persons_updated: number;
   relationships_updated: number;
   events_updated: number;
+  life_events_updated: number;
   classifications_updated: number;
   turning_points_updated: number;
   patterns_updated: number;
+  journal_entries_updated: number;
   persons_deleted: number;
   relationships_deleted: number;
   events_deleted: number;
+  life_events_deleted: number;
   classifications_deleted: number;
   turning_points_deleted: number;
   patterns_deleted: number;
+  journal_entries_deleted: number;
 }

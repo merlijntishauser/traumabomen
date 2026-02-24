@@ -1,12 +1,6 @@
 import { useCallback } from "react";
 import { useEncryption } from "../contexts/EncryptionContext";
-import {
-  createJournalEntry,
-  createLifeEvent,
-  createTree,
-  syncTree,
-  updateKeyRing,
-} from "../lib/api";
+import { createTree, syncTree, updateKeyRing } from "../lib/api";
 import { decryptFromApi, encryptKeyRing, exportKeyToBase64, importTreeKey } from "../lib/crypto";
 
 interface ImportedEntity {
@@ -75,6 +69,11 @@ export function useImportTree() {
           person_ids: e.person_ids ?? [],
           encrypted_data: e.encrypted_data,
         })),
+        life_events_create: (data.life_events ?? []).map((le) => ({
+          id: le.id,
+          person_ids: le.person_ids ?? [],
+          encrypted_data: le.encrypted_data,
+        })),
         classifications_create: (data.classifications ?? []).map((c) => ({
           id: c.id,
           person_ids: c.person_ids ?? [],
@@ -90,21 +89,11 @@ export function useImportTree() {
           person_ids: p.person_ids ?? [],
           encrypted_data: p.encrypted_data,
         })),
-      });
-
-      // Life events and journal entries are not in the sync endpoint
-      for (const le of data.life_events ?? []) {
-        await createLifeEvent(newTree.id, {
-          person_ids: le.person_ids ?? [],
-          encrypted_data: le.encrypted_data,
-        });
-      }
-
-      for (const je of data.journal_entries ?? []) {
-        await createJournalEntry(newTree.id, {
+        journal_entries_create: (data.journal_entries ?? []).map((je) => ({
+          id: je.id,
           encrypted_data: je.encrypted_data,
-        });
-      }
+        })),
+      });
 
       // Update key ring on server
       const ringEntries: Record<string, string> = {};

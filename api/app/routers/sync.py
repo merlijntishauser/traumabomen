@@ -9,6 +9,8 @@ from app.database import get_db
 from app.dependencies import get_owned_tree
 from app.models.classification import Classification, ClassificationPerson
 from app.models.event import EventPerson, TraumaEvent
+from app.models.journal_entry import JournalEntry
+from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.pattern import Pattern, PatternPerson
 from app.models.person import Person
 from app.models.relationship import Relationship
@@ -53,7 +55,13 @@ async def _phase_deletes(
     resp.turning_points_deleted = await _delete_by_tree(
         TurningPoint, body.turning_points_delete, tree.id, db
     )
+    resp.life_events_deleted = await _delete_by_tree(
+        LifeEvent, body.life_events_delete, tree.id, db
+    )
     resp.patterns_deleted = await _delete_by_tree(Pattern, body.patterns_delete, tree.id, db)
+    resp.journal_entries_deleted = await _delete_by_tree(
+        JournalEntry, body.journal_entries_delete, tree.id, db
+    )
     resp.persons_deleted = await _delete_by_tree(Person, body.persons_delete, tree.id, db)
     await db.flush()
 
@@ -64,6 +72,7 @@ def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
         ids.extend([item.source_person_id, item.target_person_id])
     for entity_list in (
         body.events_create,
+        body.life_events_create,
         body.classifications_create,
         body.turning_points_create,
         body.patterns_create,
@@ -76,6 +85,7 @@ def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
 def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) -> None:
     specs = (
         (body.events_create, resp.events_created, EventPerson, "event_id"),
+        (body.life_events_create, resp.life_events_created, LifeEventPerson, "life_event_id"),
         (
             body.classifications_create,
             resp.classifications_created,
@@ -135,6 +145,9 @@ async def _phase_creates(
         resp.relationships_created.append(rel.id)
 
     resp.events_created = _create_encrypted_entities(TraumaEvent, body.events_create, tree.id, db)
+    resp.life_events_created = _create_encrypted_entities(
+        LifeEvent, body.life_events_create, tree.id, db
+    )
     resp.classifications_created = _create_encrypted_entities(
         Classification, body.classifications_create, tree.id, db
     )
@@ -142,6 +155,9 @@ async def _phase_creates(
         TurningPoint, body.turning_points_create, tree.id, db
     )
     resp.patterns_created = _create_encrypted_entities(Pattern, body.patterns_create, tree.id, db)
+    resp.journal_entries_created = _create_encrypted_entities(
+        JournalEntry, body.journal_entries_create, tree.id, db
+    )
 
     await db.flush()
     _add_junction_rows(body, resp, db)
@@ -194,9 +210,23 @@ async def _phase_updates(
         tree,
         db,
     )
+    resp.life_events_updated = await _update_entities_with_persons(
+        body.life_events_update,
+        LifeEvent,
+        LifeEventPerson,
+        "life_event_id",
+        "LifeEvent",
+        tree,
+        db,
+    )
     resp.patterns_updated = await _update_entities_with_persons(
         body.patterns_update, Pattern, PatternPerson, "pattern_id", "Pattern", tree, db
     )
+    # Journal entries have no person links
+    for item in body.journal_entries_update:
+        journal = await _fetch_entity(JournalEntry, item.id, tree.id, "JournalEntry", db)
+        journal.encrypted_data = item.encrypted_data
+        resp.journal_entries_updated += 1
 
 
 async def _update_relationships(

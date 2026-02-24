@@ -7,6 +7,10 @@ from app.schemas.tree import (
     ClassificationUpdate,
     EventCreate,
     EventUpdate,
+    JournalEntryCreate,
+    JournalEntryUpdate,
+    LifeEventCreate,
+    LifeEventUpdate,
     PatternCreate,
     PatternUpdate,
     PersonCreate,
@@ -62,11 +66,27 @@ class SyncTurningPointUpdate(TurningPointUpdate):
     id: uuid.UUID
 
 
+class SyncLifeEventCreate(LifeEventCreate):
+    id: uuid.UUID | None = None
+
+
+class SyncLifeEventUpdate(LifeEventUpdate):
+    id: uuid.UUID
+
+
 class SyncPatternCreate(PatternCreate):
     id: uuid.UUID | None = None
 
 
 class SyncPatternUpdate(PatternUpdate):
+    id: uuid.UUID
+
+
+class SyncJournalEntryCreate(JournalEntryCreate):
+    id: uuid.UUID | None = None
+
+
+class SyncJournalEntryUpdate(JournalEntryUpdate):
     id: uuid.UUID
 
 
@@ -86,27 +106,39 @@ class SyncRequest(BaseModel):
     turning_points_create: list[SyncTurningPointCreate] = []
     turning_points_update: list[SyncTurningPointUpdate] = []
     turning_points_delete: list[SyncDelete] = []
+    life_events_create: list[SyncLifeEventCreate] = []
+    life_events_update: list[SyncLifeEventUpdate] = []
+    life_events_delete: list[SyncDelete] = []
     patterns_create: list[SyncPatternCreate] = []
     patterns_update: list[SyncPatternUpdate] = []
     patterns_delete: list[SyncDelete] = []
+    journal_entries_create: list[SyncJournalEntryCreate] = []
+    journal_entries_update: list[SyncJournalEntryUpdate] = []
+    journal_entries_delete: list[SyncDelete] = []
 
 
 class SyncResponse(BaseModel):
     persons_created: list[uuid.UUID] = []
     relationships_created: list[uuid.UUID] = []
     events_created: list[uuid.UUID] = []
+    life_events_created: list[uuid.UUID] = []
     classifications_created: list[uuid.UUID] = []
     turning_points_created: list[uuid.UUID] = []
     patterns_created: list[uuid.UUID] = []
+    journal_entries_created: list[uuid.UUID] = []
     persons_updated: int = 0
     relationships_updated: int = 0
     events_updated: int = 0
+    life_events_updated: int = 0
     classifications_updated: int = 0
     turning_points_updated: int = 0
     patterns_updated: int = 0
+    journal_entries_updated: int = 0
     persons_deleted: int = 0
     relationships_deleted: int = 0
     events_deleted: int = 0
+    life_events_deleted: int = 0
     classifications_deleted: int = 0
     turning_points_deleted: int = 0
     patterns_deleted: int = 0
+    journal_entries_deleted: int = 0
