@@ -6,7 +6,7 @@ export function useLocalStorageSettings<T extends object>(
 ): { settings: T; update: (partial: Partial<T>) => void } {
   const [settings, setSettings] = useState<T>(() => {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(key); // privacy-ok: stores UI preferences, not sensitive data
       if (!raw) return defaults;
       return { ...defaults, ...JSON.parse(raw) };
     } catch {
@@ -18,7 +18,7 @@ export function useLocalStorageSettings<T extends object>(
     (partial: Partial<T>) => {
       setSettings((prev) => {
         const next = { ...prev, ...partial };
-        localStorage.setItem(key, JSON.stringify(next));
+        localStorage.setItem(key, JSON.stringify(next)); // privacy-ok: stores UI preferences, not sensitive data
         return next;
       });
     },
