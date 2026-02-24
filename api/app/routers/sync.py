@@ -1,5 +1,6 @@
 import logging
 import uuid
+from dataclasses import dataclass
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -24,6 +25,90 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/trees/{tree_id}/sync", tags=["sync"])
 
 
+@dataclass(frozen=True, slots=True)
+class _JunctionSpec:
+    """Junction table metadata for entities that link to persons."""
+
+    junction_model: type
+    junction_fk: str
+
+
+@dataclass(frozen=True, slots=True)
+class _EntitySpec:
+    """Configuration for a single entity type in the sync pipeline."""
+
+    model: type
+    prefix: str  # e.g. "events" -> maps to events_create, events_created, etc.
+    label: str  # human-readable label for error messages
+    junction: _JunctionSpec | None = None
+
+
+# Entities with person junction tables. Order here determines create/delete order
+# (within this group).
+_JUNCTION_ENTITY_SPECS: tuple[_EntitySpec, ...] = (
+    _EntitySpec(
+        TraumaEvent,
+        "events",
+        "Event",
+        _JunctionSpec(EventPerson, "event_id"),
+    ),
+    _EntitySpec(
+        LifeEvent,
+        "life_events",
+        "LifeEvent",
+        _JunctionSpec(LifeEventPerson, "life_event_id"),
+    ),
+    _EntitySpec(
+        Classification,
+        "classifications",
+        "Classification",
+        _JunctionSpec(ClassificationPerson, "classification_id"),
+    ),
+    _EntitySpec(
+        TurningPoint,
+        "turning_points",
+        "TurningPoint",
+        _JunctionSpec(TurningPointPerson, "turning_point_id"),
+    ),
+    _EntitySpec(
+        Pattern,
+        "patterns",
+        "Pattern",
+        _JunctionSpec(PatternPerson, "pattern_id"),
+    ),
+)
+
+# Simple entities (no junction table, no special fields).
+_SIMPLE_ENTITY_SPECS: tuple[_EntitySpec, ...] = (
+    _EntitySpec(JournalEntry, "journal_entries", "JournalEntry"),
+)
+
+# Delete order: relationships first, then junction entities, then simple entities,
+# then persons last (to satisfy FK constraints).
+_DELETE_ORDER: tuple[_EntitySpec, ...] = (
+    _EntitySpec(Relationship, "relationships", "Relationship"),
+    *_JUNCTION_ENTITY_SPECS,
+    *_SIMPLE_ENTITY_SPECS,
+    _EntitySpec(Person, "persons", "Person"),
+)
+
+# All non-relationship, non-person entities that use _create_encrypted_entities.
+_BULK_CREATE_SPECS: tuple[_EntitySpec, ...] = (
+    *_JUNCTION_ENTITY_SPECS,
+    *_SIMPLE_ENTITY_SPECS,
+)
+
+
+def _get_request_list(body: SyncRequest, prefix: str, operation: str) -> list:
+    """Get the request list attribute, e.g. body.events_create."""
+    return getattr(body, f"{prefix}_{operation}")
+
+
+def _set_response_count(resp: SyncResponse, prefix: str, suffix: str, value: object) -> None:
+    """Set a response attribute, e.g. resp.events_deleted = 5."""
+    setattr(resp, f"{prefix}_{suffix}", value)
+
+
 async def _delete_by_tree(
     model: type,
     items: list,
@@ -45,24 +130,10 @@ async def _delete_by_tree(
 async def _phase_deletes(
     body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
 ) -> None:
-    resp.relationships_deleted = await _delete_by_tree(
-        Relationship, body.relationships_delete, tree.id, db
-    )
-    resp.classifications_deleted = await _delete_by_tree(
-        Classification, body.classifications_delete, tree.id, db
-    )
-    resp.events_deleted = await _delete_by_tree(TraumaEvent, body.events_delete, tree.id, db)
-    resp.turning_points_deleted = await _delete_by_tree(
-        TurningPoint, body.turning_points_delete, tree.id, db
-    )
-    resp.life_events_deleted = await _delete_by_tree(
-        LifeEvent, body.life_events_delete, tree.id, db
-    )
-    resp.patterns_deleted = await _delete_by_tree(Pattern, body.patterns_delete, tree.id, db)
-    resp.journal_entries_deleted = await _delete_by_tree(
-        JournalEntry, body.journal_entries_delete, tree.id, db
-    )
-    resp.persons_deleted = await _delete_by_tree(Person, body.persons_delete, tree.id, db)
+    for spec in _DELETE_ORDER:
+        items = _get_request_list(body, spec.prefix, "delete")
+        count = await _delete_by_tree(spec.model, items, tree.id, db)
+        _set_response_count(resp, spec.prefix, "deleted", count)
     await db.flush()
 
 
@@ -70,40 +141,10 @@ def _collect_referenced_person_ids(body: SyncRequest) -> list[uuid.UUID]:
     ids: list[uuid.UUID] = []
     for item in body.relationships_create:
         ids.extend([item.source_person_id, item.target_person_id])
-    for entity_list in (
-        body.events_create,
-        body.life_events_create,
-        body.classifications_create,
-        body.turning_points_create,
-        body.patterns_create,
-    ):
-        for item in entity_list:
+    for spec in _JUNCTION_ENTITY_SPECS:
+        for item in _get_request_list(body, spec.prefix, "create"):
             ids.extend(item.person_ids)
     return ids
-
-
-def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) -> None:
-    specs = (
-        (body.events_create, resp.events_created, EventPerson, "event_id"),
-        (body.life_events_create, resp.life_events_created, LifeEventPerson, "life_event_id"),
-        (
-            body.classifications_create,
-            resp.classifications_created,
-            ClassificationPerson,
-            "classification_id",
-        ),
-        (
-            body.turning_points_create,
-            resp.turning_points_created,
-            TurningPointPerson,
-            "turning_point_id",
-        ),
-        (body.patterns_create, resp.patterns_created, PatternPerson, "pattern_id"),
-    )
-    for items, entity_ids, junction_cls, fk_name in specs:
-        for item, entity_id in zip(items, entity_ids):
-            for pid in item.person_ids:
-                db.add(junction_cls(**{fk_name: entity_id, "person_id": pid}))
 
 
 def _create_encrypted_entities(
@@ -124,15 +165,31 @@ def _create_encrypted_entities(
     return ids
 
 
+def _add_junction_rows(body: SyncRequest, resp: SyncResponse, db: AsyncSession) -> None:
+    for spec in _JUNCTION_ENTITY_SPECS:
+        junction = spec.junction
+        if junction is None:  # pragma: no cover – always set for junction specs
+            continue
+        items = _get_request_list(body, spec.prefix, "create")
+        entity_ids: list[uuid.UUID] = getattr(resp, f"{spec.prefix}_created")
+        for item, entity_id in zip(items, entity_ids):
+            for pid in item.person_ids:
+                db.add(
+                    junction.junction_model(**{junction.junction_fk: entity_id, "person_id": pid})
+                )
+
+
 async def _phase_creates(
     body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
 ) -> None:
+    # Persons first (other entities reference them via FKs).
     resp.persons_created = _create_encrypted_entities(Person, body.persons_create, tree.id, db)
     await db.flush()
 
     all_person_ids = _collect_referenced_person_ids(body)
     await validate_persons_in_tree(list(set(all_person_ids)), tree.id, db)
 
+    # Relationships are special: they carry source_person_id / target_person_id.
     for item in body.relationships_create:
         rel = Relationship(
             id=item.id or uuid.uuid4(),
@@ -144,20 +201,11 @@ async def _phase_creates(
         db.add(rel)
         resp.relationships_created.append(rel.id)
 
-    resp.events_created = _create_encrypted_entities(TraumaEvent, body.events_create, tree.id, db)
-    resp.life_events_created = _create_encrypted_entities(
-        LifeEvent, body.life_events_create, tree.id, db
-    )
-    resp.classifications_created = _create_encrypted_entities(
-        Classification, body.classifications_create, tree.id, db
-    )
-    resp.turning_points_created = _create_encrypted_entities(
-        TurningPoint, body.turning_points_create, tree.id, db
-    )
-    resp.patterns_created = _create_encrypted_entities(Pattern, body.patterns_create, tree.id, db)
-    resp.journal_entries_created = _create_encrypted_entities(
-        JournalEntry, body.journal_entries_create, tree.id, db
-    )
+    # All other entities use the generic encrypted-entity creator.
+    for spec in _BULK_CREATE_SPECS:
+        items = _get_request_list(body, spec.prefix, "create")
+        created_ids = _create_encrypted_entities(spec.model, items, tree.id, db)
+        _set_response_count(resp, spec.prefix, "created", created_ids)
 
     await db.flush()
     _add_junction_rows(body, resp, db)
@@ -178,70 +226,6 @@ async def _fetch_entity(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"{label} {entity_id} not found"
         )
     return entity
-
-
-async def _phase_updates(
-    body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
-) -> None:
-    for item in body.persons_update:
-        person = await _fetch_entity(Person, item.id, tree.id, "Person", db)
-        person.encrypted_data = item.encrypted_data
-        resp.persons_updated += 1
-
-    await _update_relationships(body, tree, db, resp)
-    resp.events_updated = await _update_entities_with_persons(
-        body.events_update, TraumaEvent, EventPerson, "event_id", "Event", tree, db
-    )
-    resp.classifications_updated = await _update_entities_with_persons(
-        body.classifications_update,
-        Classification,
-        ClassificationPerson,
-        "classification_id",
-        "Classification",
-        tree,
-        db,
-    )
-    resp.turning_points_updated = await _update_entities_with_persons(
-        body.turning_points_update,
-        TurningPoint,
-        TurningPointPerson,
-        "turning_point_id",
-        "TurningPoint",
-        tree,
-        db,
-    )
-    resp.life_events_updated = await _update_entities_with_persons(
-        body.life_events_update,
-        LifeEvent,
-        LifeEventPerson,
-        "life_event_id",
-        "LifeEvent",
-        tree,
-        db,
-    )
-    resp.patterns_updated = await _update_entities_with_persons(
-        body.patterns_update, Pattern, PatternPerson, "pattern_id", "Pattern", tree, db
-    )
-    # Journal entries have no person links
-    for item in body.journal_entries_update:
-        journal = await _fetch_entity(JournalEntry, item.id, tree.id, "JournalEntry", db)
-        journal.encrypted_data = item.encrypted_data
-        resp.journal_entries_updated += 1
-
-
-async def _update_relationships(
-    body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
-) -> None:
-    for item in body.relationships_update:
-        rel = await _fetch_entity(Relationship, item.id, tree.id, "Relationship", db)
-        for attr in ("source_person_id", "target_person_id"):
-            new_val = getattr(item, attr)
-            if new_val is not None:
-                await validate_persons_in_tree([new_val], tree.id, db)
-                setattr(rel, attr, new_val)
-        if item.encrypted_data is not None:
-            rel.encrypted_data = item.encrypted_data
-        resp.relationships_updated += 1
 
 
 async def _replace_person_links(
@@ -281,6 +265,72 @@ async def _update_entities_with_persons(
             )
         count += 1
     return count
+
+
+async def _update_simple_entities(
+    items: list,
+    model: type,
+    entity_label: str,
+    tree: Tree,
+    db: AsyncSession,  # type: ignore[type-arg]
+) -> int:
+    """Update entities that have only encrypted_data (no person links)."""
+    count = 0
+    for item in items:
+        entity = await _fetch_entity(model, item.id, tree.id, entity_label, db)
+        entity.encrypted_data = item.encrypted_data
+        count += 1
+    return count
+
+
+async def _update_relationships(
+    body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
+) -> None:
+    for item in body.relationships_update:
+        rel = await _fetch_entity(Relationship, item.id, tree.id, "Relationship", db)
+        for attr in ("source_person_id", "target_person_id"):
+            new_val = getattr(item, attr)
+            if new_val is not None:
+                await validate_persons_in_tree([new_val], tree.id, db)
+                setattr(rel, attr, new_val)
+        if item.encrypted_data is not None:
+            rel.encrypted_data = item.encrypted_data
+        resp.relationships_updated += 1
+
+
+async def _phase_updates(
+    body: SyncRequest, tree: Tree, db: AsyncSession, resp: SyncResponse
+) -> None:
+    # Persons: simple encrypted_data update, no junction table.
+    resp.persons_updated = await _update_simple_entities(
+        body.persons_update, Person, "Person", tree, db
+    )
+
+    # Relationships: special handling for source_person_id / target_person_id.
+    await _update_relationships(body, tree, db, resp)
+
+    # Junction entities: encrypted_data + person links.
+    for spec in _JUNCTION_ENTITY_SPECS:
+        junction = spec.junction
+        if junction is None:  # pragma: no cover – always set for junction specs
+            continue
+        items = _get_request_list(body, spec.prefix, "update")
+        count = await _update_entities_with_persons(
+            items,
+            spec.model,
+            junction.junction_model,
+            junction.junction_fk,
+            spec.label,
+            tree,
+            db,
+        )
+        _set_response_count(resp, spec.prefix, "updated", count)
+
+    # Simple entities: encrypted_data only, no person links.
+    for spec in _SIMPLE_ENTITY_SPECS:
+        items = _get_request_list(body, spec.prefix, "update")
+        count = await _update_simple_entities(items, spec.model, spec.label, tree, db)
+        _set_response_count(resp, spec.prefix, "updated", count)
 
 
 @router.post("", response_model=SyncResponse)
