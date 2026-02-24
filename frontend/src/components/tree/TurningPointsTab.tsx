@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedPerson, DecryptedTurningPoint } from "../../hooks/useTreeData";
 import { getTurningPointColor } from "../../lib/turningPointColors";
 import type { TurningPoint } from "../../types/domain";
 import { TurningPointCategory } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EditSubPanel } from "./EditSubPanel";
+import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
-import { SeverityBar } from "./TraumaEventsTab";
 
 const T_SAVE = "common.save";
 const T_DELETE = "common.delete";
@@ -50,7 +52,6 @@ function TurningPointForm({
     turningPoint?.significance != null ? String(turningPoint.significance) : "",
   );
   const [tags, setTags] = useState(turningPoint?.tags?.join(", ") ?? "");
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -139,19 +140,11 @@ function TurningPointForm({
           {t(T_SAVE)}
         </button>
         {onDelete && (
-          <button
-            type="button"
-            className="detail-panel__btn detail-panel__btn--danger"
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete();
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-          >
-            {confirmDelete ? t("turningPoint.confirmDelete") : t(T_DELETE)}
-          </button>
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t(T_DELETE)}
+            confirmLabel={t("turningPoint.confirmDelete")}
+          />
         )}
       </div>
     </div>
@@ -167,56 +160,39 @@ export function TurningPointsTab({
   initialEditId,
 }: TurningPointsTabProps) {
   const { t } = useTranslation();
-  const [editingTurningPointId, setEditingTurningPointId] = useState<string | null>(
-    initialEditId ?? null,
-  );
-  const [showNewTurningPoint, setShowNewTurningPoint] = useState(false);
+  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
+    useEditingState(initialEditId);
 
-  useEffect(() => {
-    if (initialEditId) {
-      setEditingTurningPointId(initialEditId);
-      setShowNewTurningPoint(false);
-    }
-  }, [initialEditId]);
-
-  if (editingTurningPointId || showNewTurningPoint) {
+  if (isEditing) {
     return (
       <EditSubPanel
         title={
-          editingTurningPointId
-            ? (turningPoints.find((tp) => tp.id === editingTurningPointId)?.title ??
+          editingId
+            ? (turningPoints.find((tp) => tp.id === editingId)?.title ??
               t("turningPoint.editEvent"))
             : t("turningPoint.newEvent")
         }
-        onBack={() => {
-          setEditingTurningPointId(null);
-          setShowNewTurningPoint(false);
-        }}
+        onBack={clearEditing}
       >
         <TurningPointForm
           turningPoint={
-            editingTurningPointId
-              ? (turningPoints.find((tp) => tp.id === editingTurningPointId) ?? null)
-              : null
+            editingId ? (turningPoints.find((tp) => tp.id === editingId) ?? null) : null
           }
           allPersons={allPersons}
           initialPersonIds={
-            editingTurningPointId
-              ? (turningPoints.find((tp) => tp.id === editingTurningPointId)?.person_ids ?? [
-                  person.id,
-                ])
+            editingId
+              ? (turningPoints.find((tp) => tp.id === editingId)?.person_ids ?? [person.id])
               : [person.id]
           }
           onSave={(data, personIds) => {
-            onSaveTurningPoint(editingTurningPointId, data, personIds);
-            setEditingTurningPointId(null);
-            setShowNewTurningPoint(false);
+            onSaveTurningPoint(editingId, data, personIds);
+            clearEditing();
           }}
           onDelete={
-            editingTurningPointId
+            editingId
               ? () => {
-                  onDeleteTurningPoint(editingTurningPointId);
-                  setEditingTurningPointId(null);
+                  onDeleteTurningPoint(editingId);
+                  setEditingId(null);
                 }
               : undefined
           }
@@ -228,44 +204,21 @@ export function TurningPointsTab({
   return (
     <>
       {turningPoints.map((tp) => (
-        <button
+        <EventCard
           key={tp.id}
-          type="button"
-          className="detail-panel__event-card"
-          onClick={() => setEditingTurningPointId(tp.id)}
-        >
-          <div className="detail-panel__event-card-row">
-            <span
-              className="detail-panel__event-card-dot detail-panel__event-card-dot--turning-point"
-              style={{
-                backgroundColor: getTurningPointColor(tp.category),
-              }}
-            />
-            <span className="detail-panel__event-card-title">{tp.title}</span>
-            {tp.approximate_date && (
-              <span className="detail-panel__event-card-date">{tp.approximate_date}</span>
-            )}
-          </div>
-          <div className="detail-panel__event-card-meta">
-            <span
-              className="detail-panel__category-pill"
-              style={{
-                backgroundColor: `${getTurningPointColor(tp.category)}26`,
-                color: getTurningPointColor(tp.category),
-              }}
-            >
-              {t(`turningPoint.category.${tp.category}`)}
-            </span>
-            {tp.significance != null && tp.significance > 0 && (
-              <SeverityBar value={tp.significance} color={getTurningPointColor(tp.category)} />
-            )}
-          </div>
-        </button>
+          title={tp.title}
+          approximateDate={tp.approximate_date}
+          categoryLabel={t(`turningPoint.category.${tp.category}`)}
+          color={getTurningPointColor(tp.category)}
+          barValue={tp.significance}
+          dotClassName="detail-panel__event-card-dot detail-panel__event-card-dot--turning-point"
+          onClick={() => setEditingId(tp.id)}
+        />
       ))}
       <button
         type="button"
         className="detail-panel__btn detail-panel__btn--secondary"
-        onClick={() => setShowNewTurningPoint(true)}
+        onClick={() => setShowNew(true)}
       >
         {t("turningPoint.newEvent")}
       </button>

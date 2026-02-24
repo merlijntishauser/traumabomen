@@ -14,6 +14,7 @@ import type {
 import { getChipColor, resolveChipLabel } from "../../lib/journalChips";
 import { getRandomJournalPrompts } from "../../lib/reflectionPrompts";
 import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EntityLinkPicker } from "./EntityLinkPicker";
 
 type FormMode = "write" | "preview";
@@ -57,7 +58,6 @@ export function JournalEntryForm({
   const [mode, setMode] = useState<FormMode>("write");
   const [showPicker, setShowPicker] = useState(false);
   const [showPrompts, setShowPrompts] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [prompts] = useState(() => getRandomJournalPrompts(t));
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -237,19 +237,11 @@ export function JournalEntryForm({
           {t("common.cancel")}
         </button>
         {onDelete && (
-          <button
-            type="button"
-            className="detail-panel__btn detail-panel__btn--danger"
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete();
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-          >
-            {confirmDelete ? t("journal.confirmDelete") : t("journal.delete")}
-          </button>
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t("journal.delete")}
+            confirmLabel={t("journal.confirmDelete")}
+          />
         )}
       </div>
     </div>

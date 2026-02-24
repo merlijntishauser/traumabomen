@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { formatAge } from "../../lib/age";
 import type { Person } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 
 function daysInMonth(month: number): number {
   // Use a non-leap year; Feb = 28, etc.
@@ -156,7 +157,6 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
   const [gender, setGender] = useState(person.gender);
   const [isAdopted, setIsAdopted] = useState(person.is_adopted);
   const [notes, setNotes] = useState(person.notes ?? "");
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Reset form when person changes
   useEffect(() => {
@@ -171,7 +171,6 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
     setGender(person.gender);
     setIsAdopted(person.is_adopted);
     setNotes(person.notes ?? "");
-    setConfirmDelete(false);
   }, [
     person.birth_year,
     person.birth_month,
@@ -223,14 +222,6 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
       is_adopted: isAdopted,
       notes: notes || null,
     });
-  }
-
-  function handleDeletePerson() {
-    if (confirmDelete) {
-      onDeletePerson(person.id);
-    } else {
-      setConfirmDelete(true);
-    }
   }
 
   return (
@@ -319,13 +310,11 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         >
           {t("person.save")}
         </button>
-        <button
-          type="button"
-          className="detail-panel__btn detail-panel__btn--danger"
-          onClick={handleDeletePerson}
-        >
-          {confirmDelete ? t("person.confirmDelete") : t("person.delete")}
-        </button>
+        <ConfirmDeleteButton
+          onConfirm={() => onDeletePerson(person.id)}
+          label={t("person.delete")}
+          confirmLabel={t("person.confirmDelete")}
+        />
       </div>
     </>
   );

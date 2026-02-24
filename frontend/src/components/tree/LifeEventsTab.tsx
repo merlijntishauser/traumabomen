@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { getLifeEventColor } from "../../lib/lifeEventColors";
 import type { LifeEvent } from "../../types/domain";
 import { LifeEventCategory } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EditSubPanel } from "./EditSubPanel";
+import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
-import { SeverityBar } from "./TraumaEventsTab";
 
 const T_SAVE = "common.save";
 const T_DELETE = "common.delete";
@@ -44,7 +46,6 @@ function LifeEventForm({
   const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
   const [impact, setImpact] = useState(event?.impact != null ? String(event.impact) : "");
   const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -130,19 +131,11 @@ function LifeEventForm({
           {t(T_SAVE)}
         </button>
         {onDelete && (
-          <button
-            type="button"
-            className="detail-panel__btn detail-panel__btn--danger"
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete();
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-          >
-            {confirmDelete ? t("lifeEvent.confirmDelete") : t(T_DELETE)}
-          </button>
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t(T_DELETE)}
+            confirmLabel={t("lifeEvent.confirmDelete")}
+          />
         )}
       </div>
     </div>
@@ -158,54 +151,36 @@ export function LifeEventsTab({
   initialEditId,
 }: LifeEventsTabProps) {
   const { t } = useTranslation();
-  const [editingLifeEventId, setEditingLifeEventId] = useState<string | null>(
-    initialEditId ?? null,
-  );
-  const [showNewLifeEvent, setShowNewLifeEvent] = useState(false);
+  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
+    useEditingState(initialEditId);
 
-  useEffect(() => {
-    if (initialEditId) {
-      setEditingLifeEventId(initialEditId);
-      setShowNewLifeEvent(false);
-    }
-  }, [initialEditId]);
-
-  if (editingLifeEventId || showNewLifeEvent) {
+  if (isEditing) {
     return (
       <EditSubPanel
         title={
-          editingLifeEventId
-            ? (lifeEvents.find((e) => e.id === editingLifeEventId)?.title ??
-              t("lifeEvent.editEvent"))
+          editingId
+            ? (lifeEvents.find((e) => e.id === editingId)?.title ?? t("lifeEvent.editEvent"))
             : t("lifeEvent.newEvent")
         }
-        onBack={() => {
-          setEditingLifeEventId(null);
-          setShowNewLifeEvent(false);
-        }}
+        onBack={clearEditing}
       >
         <LifeEventForm
-          event={
-            editingLifeEventId
-              ? (lifeEvents.find((e) => e.id === editingLifeEventId) ?? null)
-              : null
-          }
+          event={editingId ? (lifeEvents.find((e) => e.id === editingId) ?? null) : null}
           allPersons={allPersons}
           initialPersonIds={
-            editingLifeEventId
-              ? (lifeEvents.find((e) => e.id === editingLifeEventId)?.person_ids ?? [person.id])
+            editingId
+              ? (lifeEvents.find((e) => e.id === editingId)?.person_ids ?? [person.id])
               : [person.id]
           }
           onSave={(data, personIds) => {
-            onSaveLifeEvent(editingLifeEventId, data, personIds);
-            setEditingLifeEventId(null);
-            setShowNewLifeEvent(false);
+            onSaveLifeEvent(editingId, data, personIds);
+            clearEditing();
           }}
           onDelete={
-            editingLifeEventId
+            editingId
               ? () => {
-                  onDeleteLifeEvent(editingLifeEventId);
-                  setEditingLifeEventId(null);
+                  onDeleteLifeEvent(editingId);
+                  setEditingId(null);
                 }
               : undefined
           }
@@ -217,45 +192,21 @@ export function LifeEventsTab({
   return (
     <>
       {lifeEvents.map((event) => (
-        <button
+        <EventCard
           key={event.id}
-          type="button"
-          className="detail-panel__event-card"
-          onClick={() => setEditingLifeEventId(event.id)}
-        >
-          <div className="detail-panel__event-card-row">
-            <span
-              className="detail-panel__event-card-dot"
-              style={{
-                backgroundColor: getLifeEventColor(event.category),
-                borderRadius: 2,
-              }}
-            />
-            <span className="detail-panel__event-card-title">{event.title}</span>
-            {event.approximate_date && (
-              <span className="detail-panel__event-card-date">{event.approximate_date}</span>
-            )}
-          </div>
-          <div className="detail-panel__event-card-meta">
-            <span
-              className="detail-panel__category-pill"
-              style={{
-                backgroundColor: `${getLifeEventColor(event.category)}26`,
-                color: getLifeEventColor(event.category),
-              }}
-            >
-              {t(`lifeEvent.category.${event.category}`)}
-            </span>
-            {event.impact != null && event.impact > 0 && (
-              <SeverityBar value={event.impact} color={getLifeEventColor(event.category)} />
-            )}
-          </div>
-        </button>
+          title={event.title}
+          approximateDate={event.approximate_date}
+          categoryLabel={t(`lifeEvent.category.${event.category}`)}
+          color={getLifeEventColor(event.category)}
+          barValue={event.impact}
+          dotStyle={{ borderRadius: 2 }}
+          onClick={() => setEditingId(event.id)}
+        />
       ))}
       <button
         type="button"
         className="detail-panel__btn detail-panel__btn--secondary"
-        onClick={() => setShowNewLifeEvent(true)}
+        onClick={() => setShowNew(true)}
       >
         {t("lifeEvent.newEvent")}
       </button>

@@ -17,6 +17,7 @@ import {
   resolveLinkedEntity,
 } from "../../lib/patternEntities";
 import type { LinkedEntity, Pattern } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import "./PatternPanel.css";
 
 interface PatternPanelProps {
@@ -210,7 +211,6 @@ function PatternEditForm({
     pattern?.linked_entities ?? [],
   );
   const [showLinkPicker, setShowLinkPicker] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const linkedEntitySet = useMemo(
     () => new Set(linkedEntities.map((e) => `${e.entity_type}:${e.entity_id}`)),
@@ -377,24 +377,14 @@ function PatternEditForm({
         <button type="button" className="pattern-panel__btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
-        {onDelete &&
-          (confirmDelete ? (
-            <button
-              type="button"
-              className="pattern-panel__btn pattern-panel__btn--danger"
-              onClick={onDelete}
-            >
-              {t("pattern.confirmDelete")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="pattern-panel__btn pattern-panel__btn--danger"
-              onClick={() => setConfirmDelete(true)}
-            >
-              {t("common.delete")}
-            </button>
-          ))}
+        {onDelete && (
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t("common.delete")}
+            confirmLabel={t("pattern.confirmDelete")}
+            className="pattern-panel__btn pattern-panel__btn--danger"
+          />
+        )}
       </div>
     </div>
   );

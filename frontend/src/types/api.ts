@@ -140,18 +140,18 @@ export interface RelationshipResponse {
   updated_at: string;
 }
 
-// Events
-export interface EventCreate {
+// Linked entities (events, life events, turning points, classifications, patterns)
+export interface LinkedEntityCreate {
   person_ids: string[];
   encrypted_data: string;
 }
 
-export interface EventUpdate {
+export interface LinkedEntityUpdate {
   person_ids?: string[];
   encrypted_data?: string;
 }
 
-export interface EventResponse {
+export interface LinkedEntityResponse {
   id: string;
   person_ids: string[];
   encrypted_data: string;
@@ -159,43 +159,15 @@ export interface EventResponse {
   updated_at: string;
 }
 
-// Life Events
-export interface LifeEventCreate {
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface LifeEventUpdate {
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface LifeEventResponse {
-  id: string;
-  person_ids: string[];
-  encrypted_data: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Turning Points
-export interface TurningPointCreate {
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface TurningPointUpdate {
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface TurningPointResponse {
-  id: string;
-  person_ids: string[];
-  encrypted_data: string;
-  created_at: string;
-  updated_at: string;
-}
+export type EventCreate = LinkedEntityCreate;
+export type EventUpdate = LinkedEntityUpdate;
+export type EventResponse = LinkedEntityResponse;
+export type LifeEventCreate = LinkedEntityCreate;
+export type LifeEventUpdate = LinkedEntityUpdate;
+export type LifeEventResponse = LinkedEntityResponse;
+export type TurningPointCreate = LinkedEntityCreate;
+export type TurningPointUpdate = LinkedEntityUpdate;
+export type TurningPointResponse = LinkedEntityResponse;
 
 // Journal
 export interface JournalEntryCreate {
@@ -213,43 +185,12 @@ export interface JournalEntryResponse {
   updated_at: string;
 }
 
-// Classifications
-export interface ClassificationCreate {
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface ClassificationUpdate {
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface ClassificationResponse {
-  id: string;
-  person_ids: string[];
-  encrypted_data: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Patterns
-export interface PatternCreate {
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface PatternUpdate {
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface PatternResponse {
-  id: string;
-  person_ids: string[];
-  encrypted_data: string;
-  created_at: string;
-  updated_at: string;
-}
+export type ClassificationCreate = LinkedEntityCreate;
+export type ClassificationUpdate = LinkedEntityUpdate;
+export type ClassificationResponse = LinkedEntityResponse;
+export type PatternCreate = LinkedEntityCreate;
+export type PatternUpdate = LinkedEntityUpdate;
+export type PatternResponse = LinkedEntityResponse;
 
 // Admin stats
 export interface PeriodCounts {
@@ -372,99 +313,37 @@ export interface WaitlistCapacity {
   waitlist_enabled: boolean;
 }
 
-// Sync
-export interface SyncPersonCreate {
+// Sync: base shapes shared across entity types
+interface SyncSimpleCreate {
   id?: string;
   encrypted_data: string;
 }
 
-export interface SyncPersonUpdate {
+interface SyncSimpleUpdate {
   id: string;
   encrypted_data: string;
 }
 
-export interface SyncRelationshipCreate {
-  id?: string;
-  source_person_id: string;
-  target_person_id: string;
-  encrypted_data: string;
+interface SyncLinkedCreate extends SyncSimpleCreate {
+  person_ids: string[];
 }
 
-export interface SyncRelationshipUpdate {
+interface SyncLinkedUpdate {
+  id: string;
+  person_ids?: string[];
+  encrypted_data?: string;
+}
+
+interface SyncRelationshipCreate extends SyncSimpleCreate {
+  source_person_id: string;
+  target_person_id: string;
+}
+
+interface SyncRelationshipUpdate {
   id: string;
   source_person_id?: string;
   target_person_id?: string;
   encrypted_data?: string;
-}
-
-export interface SyncEventCreate {
-  id?: string;
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface SyncEventUpdate {
-  id: string;
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface SyncClassificationCreate {
-  id?: string;
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface SyncClassificationUpdate {
-  id: string;
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface SyncTurningPointCreate {
-  id?: string;
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface SyncTurningPointUpdate {
-  id: string;
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface SyncLifeEventCreate {
-  id?: string;
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface SyncLifeEventUpdate {
-  id: string;
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface SyncPatternCreate {
-  id?: string;
-  person_ids: string[];
-  encrypted_data: string;
-}
-
-export interface SyncPatternUpdate {
-  id: string;
-  person_ids?: string[];
-  encrypted_data?: string;
-}
-
-export interface SyncJournalEntryCreate {
-  id?: string;
-  encrypted_data: string;
-}
-
-export interface SyncJournalEntryUpdate {
-  id: string;
-  encrypted_data: string;
 }
 
 export interface SyncDelete {
@@ -472,29 +351,29 @@ export interface SyncDelete {
 }
 
 export interface SyncRequest {
-  persons_create?: SyncPersonCreate[];
-  persons_update?: SyncPersonUpdate[];
+  persons_create?: SyncSimpleCreate[];
+  persons_update?: SyncSimpleUpdate[];
   persons_delete?: SyncDelete[];
   relationships_create?: SyncRelationshipCreate[];
   relationships_update?: SyncRelationshipUpdate[];
   relationships_delete?: SyncDelete[];
-  events_create?: SyncEventCreate[];
-  events_update?: SyncEventUpdate[];
+  events_create?: SyncLinkedCreate[];
+  events_update?: SyncLinkedUpdate[];
   events_delete?: SyncDelete[];
-  life_events_create?: SyncLifeEventCreate[];
-  life_events_update?: SyncLifeEventUpdate[];
+  life_events_create?: SyncLinkedCreate[];
+  life_events_update?: SyncLinkedUpdate[];
   life_events_delete?: SyncDelete[];
-  classifications_create?: SyncClassificationCreate[];
-  classifications_update?: SyncClassificationUpdate[];
+  classifications_create?: SyncLinkedCreate[];
+  classifications_update?: SyncLinkedUpdate[];
   classifications_delete?: SyncDelete[];
-  turning_points_create?: SyncTurningPointCreate[];
-  turning_points_update?: SyncTurningPointUpdate[];
+  turning_points_create?: SyncLinkedCreate[];
+  turning_points_update?: SyncLinkedUpdate[];
   turning_points_delete?: SyncDelete[];
-  patterns_create?: SyncPatternCreate[];
-  patterns_update?: SyncPatternUpdate[];
+  patterns_create?: SyncLinkedCreate[];
+  patterns_update?: SyncLinkedUpdate[];
   patterns_delete?: SyncDelete[];
-  journal_entries_create?: SyncJournalEntryCreate[];
-  journal_entries_update?: SyncJournalEntryUpdate[];
+  journal_entries_create?: SyncSimpleCreate[];
+  journal_entries_update?: SyncSimpleUpdate[];
   journal_entries_delete?: SyncDelete[];
 }
 

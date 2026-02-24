@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
 import { getClassificationColor } from "../../lib/classificationColors";
 import { DSM_CATEGORIES, type DsmCategory } from "../../lib/dsmCategories";
@@ -8,6 +9,7 @@ import type {
   ClassificationPeriod,
   ClassificationStatus,
 } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EditSubPanel } from "./EditSubPanel";
 import { PersonLinkField } from "./PersonLinkField";
 
@@ -61,26 +63,16 @@ export function ClassificationsTab({
   initialEditId,
 }: ClassificationsTabProps) {
   const { t } = useTranslation();
+  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
+    useEditingState(initialEditId);
 
-  const [editingClassificationId, setEditingClassificationId] = useState<string | null>(
-    initialEditId ?? null,
-  );
-  const [showNewClassification, setShowNewClassification] = useState(false);
-
-  useEffect(() => {
-    if (initialEditId) {
-      setEditingClassificationId(initialEditId);
-      setShowNewClassification(false);
-    }
-  }, [initialEditId]);
-
-  if (editingClassificationId || showNewClassification) {
+  if (isEditing) {
     return (
       <EditSubPanel
         title={
-          editingClassificationId
+          editingId
             ? (() => {
-                const cls = classifications.find((c) => c.id === editingClassificationId);
+                const cls = classifications.find((c) => c.id === editingId);
                 if (!cls) return t("classification.editClassification");
                 return cls.dsm_subcategory
                   ? t(`dsm.sub.${cls.dsm_subcategory}`)
@@ -88,35 +80,27 @@ export function ClassificationsTab({
               })()
             : t("classification.newClassification")
         }
-        onBack={() => {
-          setEditingClassificationId(null);
-          setShowNewClassification(false);
-        }}
+        onBack={clearEditing}
       >
         <ClassificationForm
           classification={
-            editingClassificationId
-              ? (classifications.find((c) => c.id === editingClassificationId) ?? null)
-              : null
+            editingId ? (classifications.find((c) => c.id === editingId) ?? null) : null
           }
           allPersons={allPersons}
           initialPersonIds={
-            editingClassificationId
-              ? (classifications.find((c) => c.id === editingClassificationId)?.person_ids ?? [
-                  person.id,
-                ])
+            editingId
+              ? (classifications.find((c) => c.id === editingId)?.person_ids ?? [person.id])
               : [person.id]
           }
           onSave={(data, personIds) => {
-            onSaveClassification(editingClassificationId, data, personIds);
-            setEditingClassificationId(null);
-            setShowNewClassification(false);
+            onSaveClassification(editingId, data, personIds);
+            clearEditing();
           }}
           onDelete={
-            editingClassificationId
+            editingId
               ? () => {
-                  onDeleteClassification(editingClassificationId);
-                  setEditingClassificationId(null);
+                  onDeleteClassification(editingId);
+                  setEditingId(null);
                 }
               : undefined
           }
@@ -132,7 +116,7 @@ export function ClassificationsTab({
           key={cls.id}
           type="button"
           className="detail-panel__event-card"
-          onClick={() => setEditingClassificationId(cls.id)}
+          onClick={() => setEditingId(cls.id)}
         >
           <div className="detail-panel__event-card-row">
             <span
@@ -165,7 +149,7 @@ export function ClassificationsTab({
       <button
         type="button"
         className="detail-panel__btn detail-panel__btn--secondary"
-        onClick={() => setShowNewClassification(true)}
+        onClick={() => setShowNew(true)}
       >
         {t("classification.newClassification")}
       </button>
@@ -199,7 +183,6 @@ function ClassificationForm({
   );
   const [periods, setPeriods] = useState<ClassificationPeriod[]>(classification?.periods ?? []);
   const [notes, setNotes] = useState(classification?.notes ?? "");
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -398,19 +381,11 @@ function ClassificationForm({
           {t(T_SAVE)}
         </button>
         {onDelete && (
-          <button
-            type="button"
-            className="detail-panel__btn detail-panel__btn--danger"
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete();
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-          >
-            {confirmDelete ? t("classification.confirmDelete") : t(T_DELETE)}
-          </button>
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t(T_DELETE)}
+            confirmLabel={t("classification.confirmDelete")}
+          />
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
 import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
 import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import "./PersonDetailPanel.css";
 
 interface RelationshipDetailPanelProps {
@@ -31,13 +32,11 @@ export function RelationshipDetailPanel({
 
   const [type, setType] = useState(relationship.type);
   const [periods, setPeriods] = useState<RelationshipPeriod[]>(relationship.periods);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [editingPeriods, setEditingPeriods] = useState(false);
 
   useEffect(() => {
     setType(relationship.type);
     setPeriods(relationship.periods);
-    setConfirmDelete(false);
     setEditingPeriods(false);
   }, [relationship.periods, relationship.type]);
 
@@ -96,14 +95,6 @@ export function RelationshipDetailPanel({
         return { ...p, [field]: parseInt(value, 10) || 0 };
       }),
     );
-  }
-
-  function handleDelete() {
-    if (confirmDelete) {
-      onDeleteRelationship(relationship.id);
-    } else {
-      setConfirmDelete(true);
-    }
   }
 
   return (
@@ -259,13 +250,11 @@ export function RelationshipDetailPanel({
         <section className="detail-panel__section">
           <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
             <div className="detail-panel__actions">
-              <button
-                type="button"
-                className="detail-panel__btn detail-panel__btn--danger"
-                onClick={handleDelete}
-              >
-                {confirmDelete ? t("relationship.confirmDelete") : t("common.delete")}
-              </button>
+              <ConfirmDeleteButton
+                onConfirm={() => onDeleteRelationship(relationship.id)}
+                label={t("common.delete")}
+                confirmLabel={t("relationship.confirmDelete")}
+              />
             </div>
           </div>
         </section>

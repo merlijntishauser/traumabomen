@@ -1,34 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import { getTraumaColor } from "../../lib/traumaColors";
 import type { TraumaEvent } from "../../types/domain";
 import { TraumaCategory } from "../../types/domain";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EditSubPanel } from "./EditSubPanel";
+import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
+
+// Re-export SeverityBar from its new home for any external consumers
+export { SeverityBar } from "./EventCard";
 
 // Shared i18n keys
 const T_SAVE = "common.save";
 const T_DELETE = "common.delete";
-
-/** Mini-bar showing severity/impact as 10 small filled/empty blocks. */
-export function SeverityBar({ value, color }: { value: number; color: string }) {
-  const clamped = Math.max(0, Math.min(10, value));
-  return (
-    <div className="detail-panel__severity-bar" role="img" aria-label={`${clamped}/10`}>
-      {Array.from({ length: 10 }, (_, i) => (
-        <span
-          key={`sev-${i}`}
-          className="detail-panel__severity-dot"
-          style={{
-            backgroundColor: i < clamped ? color : "var(--color-border-primary)",
-            opacity: i < clamped ? 1 : 0.3,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 interface TraumaEventsTabProps {
   person: DecryptedPerson;
@@ -48,47 +35,36 @@ export function TraumaEventsTab({
   initialEditId,
 }: TraumaEventsTabProps) {
   const { t } = useTranslation();
-  const [editingEventId, setEditingEventId] = useState<string | null>(initialEditId ?? null);
-  const [showNewEvent, setShowNewEvent] = useState(false);
+  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
+    useEditingState(initialEditId);
 
-  useEffect(() => {
-    if (initialEditId) {
-      setEditingEventId(initialEditId);
-      setShowNewEvent(false);
-    }
-  }, [initialEditId]);
-
-  if (editingEventId || showNewEvent) {
+  if (isEditing) {
     return (
       <EditSubPanel
         title={
-          editingEventId
-            ? (events.find((e) => e.id === editingEventId)?.title ?? t("trauma.editEvent"))
+          editingId
+            ? (events.find((e) => e.id === editingId)?.title ?? t("trauma.editEvent"))
             : t("trauma.newEvent")
         }
-        onBack={() => {
-          setEditingEventId(null);
-          setShowNewEvent(false);
-        }}
+        onBack={clearEditing}
       >
         <EventForm
-          event={editingEventId ? (events.find((e) => e.id === editingEventId) ?? null) : null}
+          event={editingId ? (events.find((e) => e.id === editingId) ?? null) : null}
           allPersons={allPersons}
           initialPersonIds={
-            editingEventId
-              ? (events.find((e) => e.id === editingEventId)?.person_ids ?? [person.id])
+            editingId
+              ? (events.find((e) => e.id === editingId)?.person_ids ?? [person.id])
               : [person.id]
           }
           onSave={(data, personIds) => {
-            onSaveEvent(editingEventId, data, personIds);
-            setEditingEventId(null);
-            setShowNewEvent(false);
+            onSaveEvent(editingId, data, personIds);
+            clearEditing();
           }}
           onDelete={
-            editingEventId
+            editingId
               ? () => {
-                  onDeleteEvent(editingEventId);
-                  setEditingEventId(null);
+                  onDeleteEvent(editingId);
+                  setEditingId(null);
                 }
               : undefined
           }
@@ -100,44 +76,20 @@ export function TraumaEventsTab({
   return (
     <>
       {events.map((event) => (
-        <button
+        <EventCard
           key={event.id}
-          type="button"
-          className="detail-panel__event-card"
-          onClick={() => setEditingEventId(event.id)}
-        >
-          <div className="detail-panel__event-card-row">
-            <span
-              className="detail-panel__event-card-dot"
-              style={{
-                backgroundColor: getTraumaColor(event.category),
-              }}
-            />
-            <span className="detail-panel__event-card-title">{event.title}</span>
-            {event.approximate_date && (
-              <span className="detail-panel__event-card-date">{event.approximate_date}</span>
-            )}
-          </div>
-          <div className="detail-panel__event-card-meta">
-            <span
-              className="detail-panel__category-pill"
-              style={{
-                backgroundColor: `${getTraumaColor(event.category)}26`,
-                color: getTraumaColor(event.category),
-              }}
-            >
-              {t(`trauma.category.${event.category}`)}
-            </span>
-            {event.severity != null && event.severity > 0 && (
-              <SeverityBar value={event.severity} color={getTraumaColor(event.category)} />
-            )}
-          </div>
-        </button>
+          title={event.title}
+          approximateDate={event.approximate_date}
+          categoryLabel={t(`trauma.category.${event.category}`)}
+          color={getTraumaColor(event.category)}
+          barValue={event.severity}
+          onClick={() => setEditingId(event.id)}
+        />
       ))}
       <button
         type="button"
         className="detail-panel__btn detail-panel__btn--secondary"
-        onClick={() => setShowNewEvent(true)}
+        onClick={() => setShowNew(true)}
       >
         {t("trauma.newEvent")}
       </button>
@@ -161,7 +113,6 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
   const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
   const [severity, setSeverity] = useState(String(event?.severity ?? 5));
   const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -247,19 +198,11 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
           {t(T_SAVE)}
         </button>
         {onDelete && (
-          <button
-            type="button"
-            className="detail-panel__btn detail-panel__btn--danger"
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete();
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-          >
-            {confirmDelete ? t("trauma.confirmDelete") : t(T_DELETE)}
-          </button>
+          <ConfirmDeleteButton
+            onConfirm={onDelete}
+            label={t(T_DELETE)}
+            confirmLabel={t("trauma.confirmDelete")}
+          />
         )}
       </div>
     </div>
