@@ -19,6 +19,7 @@
   "auth.registerError": "Registration failed",
   "auth.passphrasePrompt": "Enter your encryption passphrase to unlock your data",
   "auth.derivingKey": "Deriving encryption key...",
+  "auth.migratingData": "Migrating data...",
   "auth.unlock": "Unlock",
   "auth.passwordMismatch": "Passwords do not match",
   "auth.passphraseMismatch": "Passphrases do not match",

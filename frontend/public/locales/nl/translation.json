@@ -19,6 +19,7 @@
   "auth.registerError": "Registratie mislukt",
   "auth.passphrasePrompt": "Voer je versleutelingswachtwoord in om je gegevens te ontgrendelen",
   "auth.derivingKey": "Versleutelingssleutel afleiden...",
+  "auth.migratingData": "Gegevens migreren...",
   "auth.unlock": "Ontgrendelen",
   "auth.passwordMismatch": "Wachtwoorden komen niet overeen",
   "auth.passphraseMismatch": "Versleutelingswachtwoorden komen niet overeen",

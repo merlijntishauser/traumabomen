@@ -5,19 +5,21 @@ import { AuthHero } from "../components/AuthHero";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
+import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import "../styles/auth.css";
 
 export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { setMasterKey, setPassphraseHash } = useEncryption();
+  const { setMasterKey, setPassphraseHash, setTreeKeys, setIsMigrated } = useEncryption();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [passphrase, setPassphrase] = useState("");
   const [salt, setSalt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [migrating, setMigrating] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,8 +51,16 @@ export default function UnlockPage() {
       const hash = await hashPassphrase(passphrase);
       setMasterKey(derivedKey);
       setPassphraseHash(hash);
+
+      setMigrating(true);
+      const treeKeysMap = await loadOrMigrateKeyRing(derivedKey);
+      setTreeKeys(treeKeysMap);
+      setIsMigrated(true);
+      setMigrating(false);
+
       navigate(returnTo, { replace: true });
     } catch {
+      setMigrating(false);
       setError(t("auth.passphraseError"));
     } finally {
       setLoading(false);
@@ -105,7 +115,11 @@ export default function UnlockPage() {
             )}
 
             <button className="auth-submit" type="submit" disabled={loading}>
-              {loading ? t("auth.derivingKey") : t("auth.unlock")}
+              {migrating
+                ? t("auth.migratingData")
+                : loading
+                  ? t("auth.derivingKey")
+                  : t("auth.unlock")}
             </button>
           </form>
 
