@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +8,7 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.models.tree import Tree
 from app.models.user import User
+from app.routers.crud_helpers import get_or_404
 
 
 async def get_owned_tree(
@@ -15,8 +16,8 @@ async def get_owned_tree(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Tree:
-    result = await db.execute(select(Tree).where(Tree.id == tree_id, Tree.user_id == user.id))
-    tree = result.scalar_one_or_none()
-    if tree is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tree not found")
-    return tree
+    return await get_or_404(
+        db,
+        select(Tree).where(Tree.id == tree_id, Tree.user_id == user.id),
+        detail="Tree not found",
+    )

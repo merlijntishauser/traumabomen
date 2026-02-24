@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -9,6 +9,7 @@ from app.auth import require_admin
 from app.database import get_db
 from app.models.feedback import Feedback
 from app.models.user import User
+from app.routers.crud_helpers import get_or_404
 from app.schemas.feedback import FeedbackListResponse, FeedbackResponse
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -48,10 +49,11 @@ async def admin_feedback(db: AsyncSession = Depends(get_db)) -> FeedbackListResp
 async def mark_feedback_read(
     feedback_id: UUID, db: AsyncSession = Depends(get_db)
 ) -> FeedbackResponse:
-    result = await db.execute(select(Feedback).where(Feedback.id == feedback_id))
-    feedback = result.scalar_one_or_none()
-    if feedback is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feedback not found")
+    feedback = await get_or_404(
+        db,
+        select(Feedback).where(Feedback.id == feedback_id),
+        detail="Feedback not found",
+    )
 
     feedback.is_read = True
     await db.commit()
@@ -76,10 +78,11 @@ async def mark_feedback_read(
 
 @router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_feedback(feedback_id: UUID, db: AsyncSession = Depends(get_db)) -> None:
-    result = await db.execute(select(Feedback).where(Feedback.id == feedback_id))
-    feedback = result.scalar_one_or_none()
-    if feedback is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feedback not found")
+    feedback = await get_or_404(
+        db,
+        select(Feedback).where(Feedback.id == feedback_id),
+        detail="Feedback not found",
+    )
 
     await db.delete(feedback)
     await db.commit()

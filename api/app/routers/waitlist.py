@@ -15,6 +15,7 @@ from app.database import get_db
 from app.email import send_email_background, send_waitlist_approval_email
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
+from app.routers.crud_helpers import get_or_404
 from app.schemas.waitlist import WaitlistEntryResponse, WaitlistJoinRequest, WaitlistListResponse
 
 logger = logging.getLogger(__name__)
@@ -101,12 +102,11 @@ async def admin_approve_waitlist(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> WaitlistEntryResponse:
-    result = await db.execute(select(WaitlistEntry).where(WaitlistEntry.id == entry_id))
-    entry = result.scalar_one_or_none()
-    if entry is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Waitlist entry not found"
-        )
+    entry = await get_or_404(
+        db,
+        select(WaitlistEntry).where(WaitlistEntry.id == entry_id),
+        detail="Waitlist entry not found",
+    )
 
     if entry.status != WaitlistStatus.waiting.value:
         raise HTTPException(
@@ -139,12 +139,11 @@ async def admin_delete_waitlist(
     entry_id: UUID,
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    result = await db.execute(select(WaitlistEntry).where(WaitlistEntry.id == entry_id))
-    entry = result.scalar_one_or_none()
-    if entry is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Waitlist entry not found"
-        )
+    entry = await get_or_404(
+        db,
+        select(WaitlistEntry).where(WaitlistEntry.id == entry_id),
+        detail="Waitlist entry not found",
+    )
     await db.delete(entry)
     await db.commit()
 

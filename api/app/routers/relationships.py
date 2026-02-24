@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +8,7 @@ from app.database import get_db
 from app.dependencies import get_owned_tree
 from app.models.relationship import Relationship
 from app.models.tree import Tree
-from app.routers.crud_helpers import validate_persons_in_tree
+from app.routers.crud_helpers import get_or_404, validate_persons_in_tree
 from app.schemas.tree import RelationshipCreate, RelationshipResponse, RelationshipUpdate
 
 router = APIRouter(prefix="/trees/{tree_id}/relationships", tags=["relationships"])
@@ -61,14 +61,13 @@ async def get_relationship(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> RelationshipResponse:
-    result = await db.execute(
+    rel = await get_or_404(
+        db,
         select(Relationship).where(
             Relationship.id == relationship_id, Relationship.tree_id == tree.id
-        )
+        ),
+        detail="Relationship not found",
     )
-    rel = result.scalar_one_or_none()
-    if rel is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Relationship not found")
     return _to_response(rel)
 
 
@@ -79,14 +78,13 @@ async def update_relationship(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> RelationshipResponse:
-    result = await db.execute(
+    rel = await get_or_404(
+        db,
         select(Relationship).where(
             Relationship.id == relationship_id, Relationship.tree_id == tree.id
-        )
+        ),
+        detail="Relationship not found",
     )
-    rel = result.scalar_one_or_none()
-    if rel is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Relationship not found")
 
     if body.source_person_id is not None:
         await validate_persons_in_tree([body.source_person_id], tree.id, db)
@@ -108,13 +106,12 @@ async def delete_relationship(
     tree: Tree = Depends(get_owned_tree),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    result = await db.execute(
+    rel = await get_or_404(
+        db,
         select(Relationship).where(
             Relationship.id == relationship_id, Relationship.tree_id == tree.id
-        )
+        ),
+        detail="Relationship not found",
     )
-    rel = result.scalar_one_or_none()
-    if rel is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Relationship not found")
     await db.delete(rel)
     await db.commit()

@@ -2,7 +2,7 @@ import logging
 import uuid
 from dataclasses import dataclass
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +17,7 @@ from app.models.person import Person
 from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.models.turning_point import TurningPoint, TurningPointPerson
-from app.routers.crud_helpers import validate_persons_in_tree
+from app.routers.crud_helpers import get_or_404, validate_persons_in_tree
 from app.schemas.sync import SyncRequest, SyncResponse
 
 logger = logging.getLogger(__name__)
@@ -219,13 +219,11 @@ async def _fetch_entity(
     db: AsyncSession,  # type: ignore[type-arg]
 ):
     """Load an entity by id and tree_id, or raise 404."""
-    result = await db.execute(select(model).where(model.id == entity_id, model.tree_id == tree_id))
-    entity = result.scalar_one_or_none()
-    if entity is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"{label} {entity_id} not found"
-        )
-    return entity
+    return await get_or_404(
+        db,
+        select(model).where(model.id == entity_id, model.tree_id == tree_id),
+        detail=f"{label} {entity_id} not found",
+    )
 
 
 async def _replace_person_links(

@@ -13,9 +13,51 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql import Select
 
 from app.models.person import Person
-from app.schemas.tree import _LinkedEntityResponse
+from app.schemas.tree import (
+    JournalEntryResponse,
+    PersonResponse,
+    TreeResponse,
+    _LinkedEntityResponse,
+)
+
+
+async def get_or_404[T](db: AsyncSession, query: Select[tuple[T]], detail: str = "Not found") -> T:
+    result = await db.execute(query)
+    entity = result.scalar_one_or_none()
+    if entity is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+    return entity  # type: ignore[return-value]
+
+
+def build_person_response(person: Any) -> PersonResponse:
+    return PersonResponse(
+        id=person.id,
+        encrypted_data=person.encrypted_data,
+        created_at=person.created_at,
+        updated_at=person.updated_at,
+    )
+
+
+def build_tree_response(tree: Any) -> TreeResponse:
+    return TreeResponse(
+        id=tree.id,
+        encrypted_data=tree.encrypted_data,
+        is_demo=tree.is_demo,
+        created_at=tree.created_at,
+        updated_at=tree.updated_at,
+    )
+
+
+def build_journal_entry_response(entry: Any) -> JournalEntryResponse:
+    return JournalEntryResponse(
+        id=entry.id,
+        encrypted_data=entry.encrypted_data,
+        created_at=entry.created_at,
+        updated_at=entry.updated_at,
+    )
 
 
 @dataclass(frozen=True)
@@ -100,15 +142,11 @@ async def get_entity(
     db: AsyncSession,
 ) -> _LinkedEntityResponse:
     """Get a single entity by ID, raising 404 if not found."""
-    result = await db.execute(
-        select(config.model).where(
-            config.model.id == entity_id,
-            config.model.tree_id == tree_id,
-        )
+    entity = await get_or_404(
+        db,
+        select(config.model).where(config.model.id == entity_id, config.model.tree_id == tree_id),
+        detail=config.not_found_detail,
     )
-    entity = result.scalar_one_or_none()
-    if entity is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=config.not_found_detail)
     await db.refresh(entity, ["person_links"])
     return build_entity_response(entity, config)
 
@@ -122,15 +160,11 @@ async def update_entity(
     db: AsyncSession,
 ) -> _LinkedEntityResponse:
     """Update an entity's encrypted_data and/or person_ids."""
-    result = await db.execute(
-        select(config.model).where(
-            config.model.id == entity_id,
-            config.model.tree_id == tree_id,
-        )
+    entity = await get_or_404(
+        db,
+        select(config.model).where(config.model.id == entity_id, config.model.tree_id == tree_id),
+        detail=config.not_found_detail,
     )
-    entity = result.scalar_one_or_none()
-    if entity is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=config.not_found_detail)
 
     if encrypted_data is not None:
         entity.encrypted_data = encrypted_data
@@ -156,14 +190,10 @@ async def delete_entity(
     db: AsyncSession,
 ) -> None:
     """Delete an entity by ID, raising 404 if not found."""
-    result = await db.execute(
-        select(config.model).where(
-            config.model.id == entity_id,
-            config.model.tree_id == tree_id,
-        )
+    entity = await get_or_404(
+        db,
+        select(config.model).where(config.model.id == entity_id, config.model.tree_id == tree_id),
+        detail=config.not_found_detail,
     )
-    entity = result.scalar_one_or_none()
-    if entity is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=config.not_found_detail)
     await db.delete(entity)
     await db.commit()

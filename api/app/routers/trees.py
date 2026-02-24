@@ -7,6 +7,7 @@ from app.database import get_db
 from app.dependencies import get_owned_tree
 from app.models.tree import Tree
 from app.models.user import User
+from app.routers.crud_helpers import build_tree_response
 from app.schemas.tree import TreeCreate, TreeResponse, TreeUpdate
 
 router = APIRouter(prefix="/trees", tags=["trees"])
@@ -23,13 +24,7 @@ async def create_tree(
     await db.commit()
     await db.refresh(tree)
 
-    return TreeResponse(
-        id=tree.id,
-        encrypted_data=tree.encrypted_data,
-        is_demo=tree.is_demo,
-        created_at=tree.created_at,
-        updated_at=tree.updated_at,
-    )
+    return build_tree_response(tree)
 
 
 @router.get("", response_model=list[TreeResponse])
@@ -39,29 +34,14 @@ async def list_trees(
 ) -> list[TreeResponse]:
     result = await db.execute(select(Tree).where(Tree.user_id == user.id))
     trees = result.scalars().all()
-    return [
-        TreeResponse(
-            id=t.id,
-            encrypted_data=t.encrypted_data,
-            is_demo=t.is_demo,
-            created_at=t.created_at,
-            updated_at=t.updated_at,
-        )
-        for t in trees
-    ]
+    return [build_tree_response(t) for t in trees]
 
 
 @router.get("/{tree_id}", response_model=TreeResponse)
 async def get_tree(
     tree: Tree = Depends(get_owned_tree),
 ) -> TreeResponse:
-    return TreeResponse(
-        id=tree.id,
-        encrypted_data=tree.encrypted_data,
-        is_demo=tree.is_demo,
-        created_at=tree.created_at,
-        updated_at=tree.updated_at,
-    )
+    return build_tree_response(tree)
 
 
 @router.put("/{tree_id}", response_model=TreeResponse)
@@ -73,13 +53,7 @@ async def update_tree(
     tree.encrypted_data = body.encrypted_data
     await db.commit()
     await db.refresh(tree)
-    return TreeResponse(
-        id=tree.id,
-        encrypted_data=tree.encrypted_data,
-        is_demo=tree.is_demo,
-        created_at=tree.created_at,
-        updated_at=tree.updated_at,
-    )
+    return build_tree_response(tree)
 
 
 @router.delete("/{tree_id}", status_code=status.HTTP_204_NO_CONTENT)
