@@ -35,6 +35,7 @@ import { filterByPerson, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { inferSiblings } from "../lib/inferSiblings";
+import { derivePersonIds } from "../lib/patternEntities";
 import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
 import type {
   JournalEntry,
@@ -44,27 +45,6 @@ import type {
   RelationshipData,
 } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
-
-function derivePersonIdsFromEntities(
-  linkedEntities: LinkedEntity[],
-  events: Map<string, { person_ids: string[] }>,
-  lifeEvents: Map<string, { person_ids: string[] }>,
-  classifications: Map<string, { person_ids: string[] }>,
-): string[] {
-  const ids = new Set<string>();
-  for (const le of linkedEntities) {
-    let personIds: string[] = [];
-    if (le.entity_type === "trauma_event") {
-      personIds = events.get(le.entity_id)?.person_ids ?? [];
-    } else if (le.entity_type === "life_event") {
-      personIds = lifeEvents.get(le.entity_id)?.person_ids ?? [];
-    } else if (le.entity_type === "classification") {
-      personIds = classifications.get(le.entity_id)?.person_ids ?? [];
-    }
-    for (const pid of personIds) ids.add(pid);
-  }
-  return Array.from(ids);
-}
 
 const ICON_BTN = "tree-toolbar__icon-btn";
 const ICON_BTN_ACTIVE = `${ICON_BTN} ${ICON_BTN}--active`;
@@ -335,19 +315,19 @@ export default function TimelinePage() {
         const [entity_type, entity_id] = key.split(":");
         return { entity_type: entity_type as LinkedEntity["entity_type"], entity_id };
       });
-      const personIds = derivePersonIdsFromEntities(
-        linked_entities,
+      const personIds = derivePersonIds(linked_entities, {
         events,
         lifeEvents,
+        turningPoints,
         classifications,
-      );
+      });
       mutations.patterns.create.mutate({
         personIds,
         data: { name, description, color, linked_entities },
       });
       setSelectedEntityKeys(new Set());
     },
-    [selectedEntityKeys, events, lifeEvents, classifications, mutations],
+    [selectedEntityKeys, events, lifeEvents, turningPoints, classifications, mutations],
   );
 
   const handleClickPartnerLine = useCallback(

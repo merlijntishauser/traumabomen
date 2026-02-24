@@ -1,12 +1,14 @@
 """Tests for email sending utility."""
 
 import threading
+from email.mime.text import MIMEText
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.config import Settings
 from app.email import (
+    _send_smtp,
     send_email_background,
     send_feedback_email,
     send_verification_email,
@@ -40,6 +42,59 @@ def smtp_settings_no_auth():
         SMTP_PASSWORD="",
         APP_BASE_URL="https://app.example.com",
     )
+
+
+class TestSendSmtp:
+    """Tests for the shared _send_smtp helper."""
+
+    @patch("app.email.smtplib.SMTP")
+    def test_sends_with_tls_and_auth(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        msg = MIMEText("hello", "plain")
+        msg["Subject"] = "Test"
+        msg["From"] = smtp_settings.SMTP_FROM
+        msg["To"] = "recipient@example.com"
+
+        _send_smtp(msg, "recipient@example.com", smtp_settings)
+
+        mock_smtp_cls.assert_called_once_with("smtp.example.com", 587)
+        mock_server.starttls.assert_called_once()
+        mock_server.login.assert_called_once_with("user", "pass")
+        mock_server.sendmail.assert_called_once()
+        args = mock_server.sendmail.call_args[0]
+        assert args[0] == "noreply@example.com"
+        assert args[1] == "recipient@example.com"
+
+    @patch("app.email.smtplib.SMTP")
+    def test_sends_without_auth_when_no_smtp_user(self, mock_smtp_cls, smtp_settings_no_auth):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        msg = MIMEText("hello", "plain")
+        msg["Subject"] = "Test"
+        msg["From"] = smtp_settings_no_auth.SMTP_FROM
+        msg["To"] = "recipient@example.com"
+
+        _send_smtp(msg, "recipient@example.com", smtp_settings_no_auth)
+
+        mock_server.starttls.assert_not_called()
+        mock_server.login.assert_not_called()
+        mock_server.sendmail.assert_called_once()
+
+    @patch("app.email.smtplib.SMTP")
+    def test_propagates_connection_error(self, mock_smtp_cls, smtp_settings):
+        mock_smtp_cls.return_value.__enter__ = MagicMock(
+            side_effect=ConnectionRefusedError("Connection refused")
+        )
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        msg = MIMEText("hello", "plain")
+        with pytest.raises(ConnectionRefusedError):
+            _send_smtp(msg, "recipient@example.com", smtp_settings)
 
 
 class TestSendVerificationEmail:

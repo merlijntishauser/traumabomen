@@ -10,53 +10,14 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { getPatternColor, PATTERN_COLORS } from "../../lib/patternColors";
+import {
+  buildPersonEntityGroups,
+  derivePersonIds,
+  type EntityMaps,
+  resolveLinkedEntity,
+} from "../../lib/patternEntities";
 import type { LinkedEntity, Pattern } from "../../types/domain";
 import "./PatternPanel.css";
-
-function resolveLinkedEntity(
-  le: LinkedEntity,
-  events: Map<string, DecryptedEvent>,
-  lifeEvents: Map<string, DecryptedLifeEvent>,
-  turningPoints: Map<string, DecryptedTurningPoint>,
-  classifications: Map<string, DecryptedClassification>,
-  persons: Map<string, DecryptedPerson>,
-  t: (key: string) => string,
-): { label: string; personName: string; personId: string } {
-  const entityMaps: Record<string, Map<string, { title?: string; person_ids: string[] }>> = {
-    trauma_event: events,
-    life_event: lifeEvents,
-    turning_point: turningPoints,
-  };
-
-  const map = entityMaps[le.entity_type];
-  if (map) {
-    const entity = map.get(le.entity_id);
-    const label = (entity as { title?: string } | undefined)?.title ?? "?";
-    const pid = entity?.person_ids[0];
-    return {
-      label,
-      personName: pid ? (persons.get(pid)?.name ?? "") : "",
-      personId: pid ?? "",
-    };
-  }
-
-  if (le.entity_type === "classification") {
-    const cls = classifications.get(le.entity_id);
-    const label = cls
-      ? cls.dsm_subcategory
-        ? t(`dsm.sub.${cls.dsm_subcategory}`)
-        : t(`dsm.${cls.dsm_category}`)
-      : "?";
-    const pid = cls?.person_ids[0];
-    return {
-      label,
-      personName: pid ? (persons.get(pid)?.name ?? "") : "",
-      personId: pid ?? "",
-    };
-  }
-
-  return { label: "?", personName: "", personId: "" };
-}
 
 interface PatternPanelProps {
   patterns: Map<string, DecryptedPattern>;
@@ -79,77 +40,6 @@ interface EntityInfo {
   label: string;
   personName: string;
   personId: string;
-}
-
-interface PersonEntityGroup {
-  personId: string;
-  personName: string;
-  entities: { type: LinkedEntity["entity_type"]; id: string; label: string }[];
-}
-
-function buildPersonEntityGroups(
-  events: Map<string, DecryptedEvent>,
-  lifeEvents: Map<string, DecryptedLifeEvent>,
-  turningPoints: Map<string, DecryptedTurningPoint>,
-  classifications: Map<string, DecryptedClassification>,
-  persons: Map<string, DecryptedPerson>,
-  t: (key: string) => string,
-): PersonEntityGroup[] {
-  const personMap = new Map<
-    string,
-    { type: LinkedEntity["entity_type"]; id: string; label: string }[]
-  >();
-
-  function addEntry(pid: string, type: LinkedEntity["entity_type"], id: string, label: string) {
-    if (!personMap.has(pid)) personMap.set(pid, []);
-    personMap.get(pid)!.push({ type, id, label });
-  }
-
-  for (const [id, ev] of events) {
-    for (const pid of ev.person_ids) addEntry(pid, "trauma_event", id, ev.title);
-  }
-  for (const [id, ev] of lifeEvents) {
-    for (const pid of ev.person_ids) addEntry(pid, "life_event", id, ev.title);
-  }
-  for (const [id, tp] of turningPoints) {
-    for (const pid of tp.person_ids) addEntry(pid, "turning_point", id, tp.title);
-  }
-  for (const [id, cls] of classifications) {
-    const label = cls.dsm_subcategory
-      ? t(`dsm.sub.${cls.dsm_subcategory}`)
-      : t(`dsm.${cls.dsm_category}`);
-    for (const pid of cls.person_ids) addEntry(pid, "classification", id, label);
-  }
-
-  return Array.from(personMap, ([pid, entities]) => ({
-    personId: pid,
-    personName: persons.get(pid)?.name ?? "?",
-    entities,
-  })).sort((a, b) => a.personName.localeCompare(b.personName));
-}
-
-function derivePersonIds(
-  linkedEntities: LinkedEntity[],
-  events: Map<string, DecryptedEvent>,
-  lifeEvents: Map<string, DecryptedLifeEvent>,
-  turningPoints: Map<string, DecryptedTurningPoint>,
-  classifications: Map<string, DecryptedClassification>,
-): string[] {
-  const ids = new Set<string>();
-  for (const le of linkedEntities) {
-    let personIds: string[] = [];
-    if (le.entity_type === "trauma_event") {
-      personIds = events.get(le.entity_id)?.person_ids ?? [];
-    } else if (le.entity_type === "life_event") {
-      personIds = lifeEvents.get(le.entity_id)?.person_ids ?? [];
-    } else if (le.entity_type === "turning_point") {
-      personIds = turningPoints.get(le.entity_id)?.person_ids ?? [];
-    } else if (le.entity_type === "classification") {
-      personIds = classifications.get(le.entity_id)?.person_ids ?? [];
-    }
-    for (const pid of personIds) ids.add(pid);
-  }
-  return Array.from(ids);
 }
 
 export function PatternPanel({
@@ -181,20 +71,19 @@ export function PatternPanel({
     setExpandedId(null);
   }, []);
 
+  const entityMaps: EntityMaps = useMemo(
+    () => ({ events, lifeEvents, turningPoints, classifications, persons }),
+    [events, lifeEvents, turningPoints, classifications, persons],
+  );
+
   const handleSave = useCallback(
     (patternId: string | null, data: Pattern) => {
-      const personIds = derivePersonIds(
-        data.linked_entities,
-        events,
-        lifeEvents,
-        turningPoints,
-        classifications,
-      );
+      const personIds = derivePersonIds(data.linked_entities, entityMaps);
       onSave(patternId, data, personIds);
       setEditingNew(false);
       setExpandedId(null);
     },
-    [events, lifeEvents, turningPoints, classifications, onSave],
+    [entityMaps, onSave],
   );
 
   const handleDelete = useCallback(
@@ -230,11 +119,7 @@ export function PatternPanel({
           <div className="pattern-panel__item">
             <PatternEditForm
               pattern={null}
-              events={events}
-              lifeEvents={lifeEvents}
-              turningPoints={turningPoints}
-              classifications={classifications}
-              persons={persons}
+              entityMaps={entityMaps}
               onSave={(data) => handleSave(null, data)}
               onCancel={() => setEditingNew(false)}
               onDelete={undefined}
@@ -289,11 +174,7 @@ export function PatternPanel({
             {expandedId === pattern.id && (
               <PatternEditForm
                 pattern={pattern}
-                events={events}
-                lifeEvents={lifeEvents}
-                turningPoints={turningPoints}
-                classifications={classifications}
-                persons={persons}
+                entityMaps={entityMaps}
                 onSave={(data) => handleSave(pattern.id, data)}
                 onCancel={() => setExpandedId(null)}
                 onDelete={() => handleDelete(pattern.id)}
@@ -308,11 +189,7 @@ export function PatternPanel({
 
 interface PatternEditFormProps {
   pattern: DecryptedPattern | null;
-  events: Map<string, DecryptedEvent>;
-  lifeEvents: Map<string, DecryptedLifeEvent>;
-  turningPoints: Map<string, DecryptedTurningPoint>;
-  classifications: Map<string, DecryptedClassification>;
-  persons: Map<string, DecryptedPerson>;
+  entityMaps: EntityMaps;
   onSave: (data: Pattern) => void;
   onCancel: () => void;
   onDelete: (() => void) | undefined;
@@ -320,11 +197,7 @@ interface PatternEditFormProps {
 
 function PatternEditForm({
   pattern,
-  events,
-  lifeEvents,
-  turningPoints,
-  classifications,
-  persons,
+  entityMaps,
   onSave,
   onCancel,
   onDelete,
@@ -346,23 +219,12 @@ function PatternEditForm({
 
   const entityInfos: EntityInfo[] = useMemo(() => {
     return linkedEntities.map((le) => {
-      const resolved = resolveLinkedEntity(
-        le,
-        events,
-        lifeEvents,
-        turningPoints,
-        classifications,
-        persons,
-        t,
-      );
+      const resolved = resolveLinkedEntity(le, entityMaps, t);
       return { entity: le, ...resolved };
     });
-  }, [linkedEntities, events, lifeEvents, turningPoints, classifications, persons, t]);
+  }, [linkedEntities, entityMaps, t]);
 
-  const personEntityGroups = useMemo(
-    () => buildPersonEntityGroups(events, lifeEvents, turningPoints, classifications, persons, t),
-    [events, lifeEvents, turningPoints, classifications, persons, t],
-  );
+  const personEntityGroups = useMemo(() => buildPersonEntityGroups(entityMaps, t), [entityMaps, t]);
 
   function handleAddEntity(type: LinkedEntity["entity_type"], id: string) {
     const key = `${type}:${id}`;

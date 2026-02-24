@@ -11,8 +11,9 @@ import type {
 } from "../hooks/useTreeData";
 import { uuidToCompact } from "../lib/compactId";
 import { getPatternColor } from "../lib/patternColors";
+import { type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
 import { getPatternPrompt } from "../lib/reflectionPrompts";
-import type { JournalLinkedRef } from "../types/domain";
+import type { JournalLinkedRef, LinkedEntity } from "../types/domain";
 import "./PatternView.css";
 
 interface PatternViewProps {
@@ -34,47 +35,25 @@ interface EntityDisplay {
   personName: string;
 }
 
+const ENTITY_TYPE_CSS: Record<LinkedEntity["entity_type"], EntityDisplay["type"]> = {
+  trauma_event: "trauma",
+  life_event: "life",
+  turning_point: "turning-point",
+  classification: "classification",
+};
+
 function getEntityDisplays(
   pattern: DecryptedPattern,
-  events: Map<string, DecryptedEvent>,
-  lifeEvents: Map<string, DecryptedLifeEvent>,
-  turningPoints: Map<string, DecryptedTurningPoint>,
-  classifications: Map<string, DecryptedClassification>,
-  persons: Map<string, DecryptedPerson>,
-  t: (key: string, opts?: Record<string, string>) => string,
+  maps: EntityMaps,
+  t: (key: string) => string,
 ): EntityDisplay[] {
   return pattern.linked_entities.map((le) => {
-    if (le.entity_type === "trauma_event") {
-      const ev = events.get(le.entity_id);
-      const personName = ev?.person_ids[0] ? (persons.get(ev.person_ids[0])?.name ?? "") : "";
-      return { id: le.entity_id, type: "trauma" as const, label: ev?.title ?? "?", personName };
-    }
-    if (le.entity_type === "life_event") {
-      const ev = lifeEvents.get(le.entity_id);
-      const personName = ev?.person_ids[0] ? (persons.get(ev.person_ids[0])?.name ?? "") : "";
-      return { id: le.entity_id, type: "life" as const, label: ev?.title ?? "?", personName };
-    }
-    if (le.entity_type === "turning_point") {
-      const tp = turningPoints.get(le.entity_id);
-      const personName = tp?.person_ids[0] ? (persons.get(tp.person_ids[0])?.name ?? "") : "";
-      return {
-        id: le.entity_id,
-        type: "turning-point" as const,
-        label: tp?.title ?? "?",
-        personName,
-      };
-    }
-    const cls = classifications.get(le.entity_id);
-    const personName = cls?.person_ids[0] ? (persons.get(cls.person_ids[0])?.name ?? "") : "";
+    const resolved = resolveLinkedEntity(le, maps, t);
     return {
       id: le.entity_id,
-      type: "classification" as const,
-      label: cls
-        ? cls.dsm_subcategory
-          ? t(`dsm.sub.${cls.dsm_subcategory}`)
-          : t(`dsm.${cls.dsm_category}`)
-        : "?",
-      personName,
+      type: ENTITY_TYPE_CSS[le.entity_type],
+      label: resolved.label,
+      personName: resolved.personName,
     };
   });
 }
@@ -132,11 +111,7 @@ export function PatternView({
         {expandedPattern && (
           <PatternDetail
             pattern={expandedPattern}
-            events={events}
-            lifeEvents={lifeEvents}
-            turningPoints={turningPoints}
-            classifications={classifications}
-            persons={persons}
+            entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
             treeId={treeId}
             onClose={() => setExpandedId(null)}
             showReflectionPrompts={showReflectionPrompts}
@@ -146,15 +121,14 @@ export function PatternView({
 
         {patternList.map((pattern) => {
           if (pattern.id === expandedId) return null;
-          const displays = getEntityDisplays(
-            pattern,
+          const entityMaps: EntityMaps = {
             events,
             lifeEvents,
             turningPoints,
             classifications,
             persons,
-            t,
-          );
+          };
+          const displays = getEntityDisplays(pattern, entityMaps, t);
           const generations = countGenerations(pattern, persons);
 
           return (
@@ -211,22 +185,14 @@ export function PatternView({
 
 function PatternDetail({
   pattern,
-  events,
-  lifeEvents,
-  turningPoints,
-  classifications,
-  persons,
+  entityMaps,
   treeId,
   onClose,
   showReflectionPrompts,
   onOpenJournal,
 }: {
   pattern: DecryptedPattern;
-  events: Map<string, DecryptedEvent>;
-  lifeEvents: Map<string, DecryptedLifeEvent>;
-  turningPoints: Map<string, DecryptedTurningPoint>;
-  classifications: Map<string, DecryptedClassification>;
-  persons: Map<string, DecryptedPerson>;
+  entityMaps: EntityMaps;
   treeId: string;
   onClose: () => void;
   showReflectionPrompts?: boolean;
@@ -237,15 +203,7 @@ function PatternDetail({
   // Stable prompt per pattern (re-rolls when selecting a different pattern)
   // biome-ignore lint/correctness/useExhaustiveDependencies: stable per pattern
   const patternPrompt = useMemo(() => getPatternPrompt(t), [pattern.id]);
-  const displays = getEntityDisplays(
-    pattern,
-    events,
-    lifeEvents,
-    turningPoints,
-    classifications,
-    persons,
-    t,
-  );
+  const displays = getEntityDisplays(pattern, entityMaps, t);
 
   return (
     <div className="pattern-view__detail">

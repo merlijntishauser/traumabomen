@@ -23,21 +23,13 @@ interface EncryptionContextValue {
 const EncryptionContext = createContext<EncryptionContextValue | null>(null);
 
 export function EncryptionProvider({ children }: { children: ReactNode }) {
-  const [masterKey, setMasterKeyState] = useState<CryptoKey | null>(null);
-  const [treeKeys, setTreeKeysState] = useState<Map<string, CryptoKey>>(new Map());
-  const [passphraseHash, setPassphraseHashState] = useState<string | null>(null);
-  const [isMigrated, setIsMigratedState] = useState(false);
-
-  const setMasterKey = useCallback((newKey: CryptoKey) => {
-    setMasterKeyState(newKey);
-  }, []);
-
-  const setTreeKeys = useCallback((keys: Map<string, CryptoKey>) => {
-    setTreeKeysState(keys);
-  }, []);
+  const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
+  const [treeKeys, setTreeKeys] = useState<Map<string, CryptoKey>>(new Map());
+  const [passphraseHash, setPassphraseHash] = useState<string | null>(null);
+  const [isMigrated, setIsMigrated] = useState(false);
 
   const addTreeKey = useCallback((treeId: string, key: CryptoKey) => {
-    setTreeKeysState((prev) => {
+    setTreeKeys((prev) => {
       const next = new Map(prev);
       next.set(treeId, key);
       return next;
@@ -45,26 +37,18 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const removeTreeKey = useCallback((treeId: string) => {
-    setTreeKeysState((prev) => {
+    setTreeKeys((prev) => {
       const next = new Map(prev);
       next.delete(treeId);
       return next;
     });
   }, []);
 
-  const setIsMigrated = useCallback((value: boolean) => {
-    setIsMigratedState(value);
-  }, []);
-
   const clearKey = useCallback(() => {
-    setMasterKeyState(null);
-    setTreeKeysState(new Map());
-    setPassphraseHashState(null);
-    setIsMigratedState(false);
-  }, []);
-
-  const setPassphraseHash = useCallback((hash: string) => {
-    setPassphraseHashState(hash);
+    setMasterKey(null);
+    setTreeKeys(new Map());
+    setPassphraseHash(null);
+    setIsMigrated(false);
   }, []);
 
   const verifyPassphrase = useCallback(
@@ -134,13 +118,9 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       treeKeys,
       passphraseHash,
       isMigrated,
-      setMasterKey,
-      setTreeKeys,
       addTreeKey,
       removeTreeKey,
-      setIsMigrated,
       clearKey,
-      setPassphraseHash,
       verifyPassphrase,
       encrypt,
       decrypt,

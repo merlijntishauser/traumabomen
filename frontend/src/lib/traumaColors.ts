@@ -1,7 +1,7 @@
 import { TraumaCategory } from "../types/domain";
+import { makeCategoryColors } from "./categoryColors";
 
-/** CSS variable names for each trauma category, defined in theme.css */
-const TRAUMA_CSS_VARS: Record<TraumaCategory, string> = {
+const CSS_VARS: Record<TraumaCategory, string> = {
   [TraumaCategory.Loss]: "--color-trauma-loss",
   [TraumaCategory.Abuse]: "--color-trauma-abuse",
   [TraumaCategory.Addiction]: "--color-trauma-addiction",
@@ -11,30 +11,7 @@ const TRAUMA_CSS_VARS: Record<TraumaCategory, string> = {
   [TraumaCategory.Poverty]: "--color-trauma-poverty",
 };
 
-/** Read the current computed trauma color from CSS variables, with fallback. */
-export function getTraumaColor(category: TraumaCategory): string {
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(TRAUMA_CSS_VARS[category])
-    .trim();
-  return value || TRAUMA_COLORS[category];
-}
-
-/** Read all trauma colors from CSS variables (call at render time). */
-export function getTraumaColors(): Record<TraumaCategory, string> {
-  const style = getComputedStyle(document.documentElement);
-  const result = {} as Record<TraumaCategory, string>;
-  for (const [cat, varName] of Object.entries(TRAUMA_CSS_VARS)) {
-    const value = style.getPropertyValue(varName).trim();
-    result[cat as TraumaCategory] = value || TRAUMA_COLORS[cat as TraumaCategory];
-  }
-  return result;
-}
-
-/**
- * Static fallback map for contexts where getComputedStyle isn't available.
- * Matches dark theme defaults.
- */
-export const TRAUMA_COLORS: Record<TraumaCategory, string> = {
+const FALLBACKS: Record<TraumaCategory, string> = {
   [TraumaCategory.Loss]: "#818cf8",
   [TraumaCategory.Abuse]: "#f87171",
   [TraumaCategory.Addiction]: "#fbbf24",
@@ -43,3 +20,9 @@ export const TRAUMA_COLORS: Record<TraumaCategory, string> = {
   [TraumaCategory.Illness]: "#22d3ee",
   [TraumaCategory.Poverty]: "#a78bfa",
 };
+
+const { getColor, getColors, COLORS } = makeCategoryColors(CSS_VARS, FALLBACKS);
+
+export const getTraumaColor = getColor;
+export const getTraumaColors = getColors;
+export const TRAUMA_COLORS = COLORS;

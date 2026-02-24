@@ -4,6 +4,7 @@ import smtplib
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
+from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from threading import Thread
@@ -12,6 +13,15 @@ from typing import Any
 from app.config import Settings
 
 logger = logging.getLogger(__name__)
+
+
+def _send_smtp(msg: Message, to: str, settings: Settings) -> None:
+    """Send an email message via SMTP, handling connection, TLS, and auth."""
+    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+        if settings.SMTP_USER:
+            server.starttls()
+            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+        server.sendmail(settings.SMTP_FROM, to, msg.as_string())
 
 
 def send_verification_email(to: str, token: str, settings: Settings) -> None:
@@ -53,11 +63,7 @@ def send_verification_email(to: str, token: str, settings: Settings) -> None:
     msg.attach(MIMEText(html, "html"))
 
     try:
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-            if settings.SMTP_USER:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.sendmail(settings.SMTP_FROM, to, msg.as_string())
+        _send_smtp(msg, to, settings)
     except Exception:
         safe_to = to.replace("\n", "").replace("\r", "")
         logger.exception("Failed to send verification email to %s", safe_to)
@@ -103,11 +109,7 @@ def send_waitlist_approval_email(to: str, token: str, settings: Settings) -> Non
     msg.attach(MIMEText(html, "html"))
 
     try:
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-            if settings.SMTP_USER:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.sendmail(settings.SMTP_FROM, to, msg.as_string())
+        _send_smtp(msg, to, settings)
     except Exception:
         safe_to = to.replace("\n", "").replace("\r", "")
         logger.exception("Failed to send waitlist approval email to %s", safe_to)
@@ -133,11 +135,7 @@ def send_feedback_email(
     msg["To"] = settings.FEEDBACK_EMAIL
 
     try:
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-            if settings.SMTP_USER:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.sendmail(settings.SMTP_FROM, settings.FEEDBACK_EMAIL, msg.as_string())
+        _send_smtp(msg, settings.FEEDBACK_EMAIL, settings)
     except Exception:
         logger.exception("Failed to send feedback email")
 
