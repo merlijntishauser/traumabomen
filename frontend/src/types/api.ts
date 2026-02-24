@@ -57,6 +57,33 @@ export interface DeleteAccountRequest {
   password: string;
 }
 
+export interface KeyRingResponse {
+  encrypted_key_ring: string;
+}
+
+export interface MigrateKeysEntity {
+  id: string;
+  encrypted_data: string;
+}
+
+export interface MigrateKeysTree {
+  tree_id: string;
+  encrypted_data: string;
+  persons: MigrateKeysEntity[];
+  relationships: MigrateKeysEntity[];
+  events: MigrateKeysEntity[];
+  life_events: MigrateKeysEntity[];
+  turning_points: MigrateKeysEntity[];
+  classifications: MigrateKeysEntity[];
+  patterns: MigrateKeysEntity[];
+  journal_entries: MigrateKeysEntity[];
+}
+
+export interface MigrateKeysRequest {
+  encrypted_key_ring: string;
+  trees: MigrateKeysTree[];
+}
+
 // Trees
 export interface TreeCreate {
   encrypted_data: string;

@@ -4,11 +4,16 @@ import {
   DecryptError,
   decrypt,
   decryptFromApi,
+  decryptKeyRing,
   deriveKey,
   encrypt,
   encryptForApi,
+  encryptKeyRing,
+  exportKeyToBase64,
   generateSalt,
+  generateTreeKey,
   hashPassphrase,
+  importTreeKey,
   KeyDerivationError,
   PassphraseError,
 } from "./crypto";
@@ -245,5 +250,76 @@ describe("CryptoError hierarchy", () => {
     const error = new CryptoError("generic");
     expect(error).not.toBeInstanceOf(DecryptError);
     expect(error.name).toBe("CryptoError");
+  });
+});
+
+describe("generateTreeKey", () => {
+  it("produces an extractable AES-256-GCM key", async () => {
+    const key = await generateTreeKey();
+    expect(key.algorithm).toEqual({ name: "AES-GCM", length: 256 });
+    expect(key.extractable).toBe(true);
+    expect(key.usages).toContain("encrypt");
+    expect(key.usages).toContain("decrypt");
+  });
+
+  it("produces different keys on each call", async () => {
+    const key1 = await generateTreeKey();
+    const key2 = await generateTreeKey();
+    const raw1 = await exportKeyToBase64(key1);
+    const raw2 = await exportKeyToBase64(key2);
+    expect(raw1).not.toBe(raw2);
+  });
+});
+
+describe("exportKeyToBase64 / importTreeKey", () => {
+  it("round-trips a tree key", async () => {
+    const original = await generateTreeKey();
+    const base64 = await exportKeyToBase64(original);
+    const imported = await importTreeKey(base64);
+
+    // Verify by encrypting/decrypting with both keys
+    const plaintext = "test data";
+    const blob = await encrypt(plaintext, original);
+    const result = await decrypt(blob, imported);
+    expect(result).toBe(plaintext);
+  });
+
+  it("exported key is valid base64 of 32 bytes", async () => {
+    const key = await generateTreeKey();
+    const base64 = await exportKeyToBase64(key);
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    expect(bytes.length).toBe(32);
+  });
+});
+
+describe("encryptKeyRing / decryptKeyRing", () => {
+  it("round-trips a key ring", async () => {
+    const masterKey = await createTestKey();
+    const keyRing = {
+      "tree-id-1": "base64-key-data-1",
+      "tree-id-2": "base64-key-data-2",
+    };
+
+    const encrypted = await encryptKeyRing(keyRing, masterKey);
+    const decrypted = await decryptKeyRing(encrypted, masterKey);
+    expect(decrypted).toEqual(keyRing);
+  });
+
+  it("encrypted key ring is a JSON string", async () => {
+    const masterKey = await createTestKey();
+    const encrypted = await encryptKeyRing({ id: "key" }, masterKey);
+    const parsed = JSON.parse(encrypted);
+    expect(parsed).toHaveProperty("iv");
+    expect(parsed).toHaveProperty("ciphertext");
+  });
+});
+
+describe("tree key encrypt/decrypt", () => {
+  it("tree key can encrypt and decrypt data", async () => {
+    const treeKey = await generateTreeKey();
+    const data = { name: "Family Tree", notes: "Private" };
+    const encrypted = await encryptForApi(data, treeKey);
+    const decrypted = await decryptFromApi(encrypted, treeKey);
+    expect(decrypted).toEqual(data);
   });
 });

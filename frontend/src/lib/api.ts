@@ -15,10 +15,12 @@ import type {
   JournalEntryCreate,
   JournalEntryResponse,
   JournalEntryUpdate,
+  KeyRingResponse,
   LifeEventCreate,
   LifeEventResponse,
   LifeEventUpdate,
   LoginRequest,
+  MigrateKeysRequest,
   OverviewStats,
   PatternCreate,
   PatternResponse,
@@ -254,6 +256,26 @@ export function updateSalt(data: UpdateSaltRequest): Promise<void> {
 
 export function deleteAccount(data: DeleteAccountRequest): Promise<void> {
   return apiFetchWithRetry("/auth/account", { method: "DELETE", body: data });
+}
+
+// Key ring
+
+export function getKeyRing(): Promise<KeyRingResponse> {
+  return apiFetchWithRetry("/auth/key-ring");
+}
+
+export function updateKeyRing(encrypted_key_ring: string): Promise<void> {
+  return apiFetchWithRetry("/auth/key-ring", {
+    method: "PUT",
+    body: { encrypted_key_ring },
+  });
+}
+
+export function migrateKeys(data: MigrateKeysRequest): Promise<void> {
+  return apiFetchWithRetry("/auth/migrate-keys", {
+    method: "POST",
+    body: data,
+  });
 }
 
 // Trees
