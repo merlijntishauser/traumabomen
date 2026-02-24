@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -57,3 +59,34 @@ class UpdateSaltRequest(BaseModel):
 
 class DeleteAccountRequest(BaseModel):
     password: str
+
+
+class KeyRingResponse(BaseModel):
+    encrypted_key_ring: str
+
+
+class KeyRingUpdate(BaseModel):
+    encrypted_key_ring: str
+
+
+class MigrateKeysEntity(BaseModel):
+    id: uuid.UUID
+    encrypted_data: str
+
+
+class MigrateKeysTree(BaseModel):
+    tree_id: uuid.UUID
+    encrypted_data: str
+    persons: list[MigrateKeysEntity]
+    relationships: list[MigrateKeysEntity]
+    events: list[MigrateKeysEntity]
+    life_events: list[MigrateKeysEntity]
+    turning_points: list[MigrateKeysEntity]
+    classifications: list[MigrateKeysEntity]
+    patterns: list[MigrateKeysEntity]
+    journal_entries: list[MigrateKeysEntity]
+
+
+class MigrateKeysRequest(BaseModel):
+    encrypted_key_ring: str
+    trees: list[MigrateKeysTree]
