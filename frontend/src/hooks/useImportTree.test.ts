@@ -1,0 +1,191 @@
+import { renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useImportTree } from "./useImportTree";
+
+const mockTreeKeys = new Map<string, CryptoKey>();
+const fakeMasterKey = {} as CryptoKey;
+const fakeTreeKey = { id: "treeKey" } as unknown as CryptoKey;
+const mockAddTreeKey = vi.fn();
+
+vi.mock("../contexts/EncryptionContext", () => ({
+  useEncryption: () => ({
+    masterKey: fakeMasterKey,
+    treeKeys: mockTreeKeys,
+    addTreeKey: mockAddTreeKey,
+  }),
+}));
+
+const mockCreateTree = vi.fn();
+const mockSyncTree = vi.fn();
+const mockCreateLifeEvent = vi.fn();
+const mockCreateJournalEntry = vi.fn();
+const mockUpdateKeyRing = vi.fn();
+
+vi.mock("../lib/api", () => ({
+  createTree: (...args: unknown[]) => mockCreateTree(...args),
+  syncTree: (...args: unknown[]) => mockSyncTree(...args),
+  createLifeEvent: (...args: unknown[]) => mockCreateLifeEvent(...args),
+  createJournalEntry: (...args: unknown[]) => mockCreateJournalEntry(...args),
+  updateKeyRing: (...args: unknown[]) => mockUpdateKeyRing(...args),
+}));
+
+const mockDecryptFromApi = vi.fn();
+const mockImportTreeKey = vi.fn();
+const mockExportKeyToBase64 = vi.fn();
+const mockEncryptKeyRing = vi.fn();
+
+vi.mock("../lib/crypto", () => ({
+  decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
+  importTreeKey: (...args: unknown[]) => mockImportTreeKey(...args),
+  exportKeyToBase64: (...args: unknown[]) => mockExportKeyToBase64(...args),
+  encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
+}));
+
+const NEW_TREE_ID = "new-tree-id";
+
+function makeValidExport(overrides: Record<string, unknown> = {}): string {
+  return JSON.stringify({
+    version: 1,
+    format: "encrypted",
+    exported_at: "2026-02-24T10:00:00Z",
+    encrypted_tree_key: "enc-tree-key",
+    tree: { id: "old-tree-id", encrypted_data: "tree-enc" },
+    persons: [{ id: "p1", encrypted_data: "p-enc" }],
+    relationships: [
+      { id: "r1", source_person_id: "p1", target_person_id: "p2", encrypted_data: "r-enc" },
+    ],
+    events: [{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }],
+    life_events: [{ id: "le1", person_ids: ["p1"], encrypted_data: "le-enc" }],
+    turning_points: [],
+    classifications: [],
+    patterns: [],
+    journal_entries: [{ id: "j1", encrypted_data: "j-enc" }],
+    ...overrides,
+  });
+}
+
+function makeFile(content: string): File {
+  return new File([content], "backup.json", { type: "application/json" });
+}
+
+describe("useImportTree", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockTreeKeys.clear();
+
+    mockDecryptFromApi.mockResolvedValue({ name: "Test Tree" });
+    mockImportTreeKey.mockResolvedValue(fakeTreeKey);
+    mockCreateTree.mockResolvedValue({ id: NEW_TREE_ID });
+    mockSyncTree.mockResolvedValue({});
+    mockCreateLifeEvent.mockResolvedValue({});
+    mockCreateJournalEntry.mockResolvedValue({});
+    mockExportKeyToBase64.mockResolvedValue("b64-key");
+    mockEncryptKeyRing.mockResolvedValue("encrypted-ring");
+    mockUpdateKeyRing.mockResolvedValue(undefined);
+  });
+
+  it("imports a valid encrypted backup", async () => {
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    const treeId = await result.current.importTree(file);
+
+    expect(treeId).toBe(NEW_TREE_ID);
+    expect(mockDecryptFromApi).toHaveBeenCalledWith("enc-tree-key", fakeMasterKey);
+    expect(mockImportTreeKey).toHaveBeenCalled();
+    expect(mockCreateTree).toHaveBeenCalledWith({ encrypted_data: "tree-enc" });
+    expect(mockAddTreeKey).toHaveBeenCalledWith(NEW_TREE_ID, fakeTreeKey);
+  });
+
+  it("syncs entities via bulk sync endpoint", async () => {
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    expect(mockSyncTree).toHaveBeenCalledWith(NEW_TREE_ID, {
+      persons_create: [{ id: "p1", encrypted_data: "p-enc" }],
+      relationships_create: [
+        { id: "r1", source_person_id: "p1", target_person_id: "p2", encrypted_data: "r-enc" },
+      ],
+      events_create: [{ id: "e1", person_ids: ["p1"], encrypted_data: "e-enc" }],
+      classifications_create: [],
+      turning_points_create: [],
+      patterns_create: [],
+    });
+  });
+
+  it("creates life events individually", async () => {
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    expect(mockCreateLifeEvent).toHaveBeenCalledWith(NEW_TREE_ID, {
+      person_ids: ["p1"],
+      encrypted_data: "le-enc",
+    });
+  });
+
+  it("creates journal entries individually", async () => {
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    expect(mockCreateJournalEntry).toHaveBeenCalledWith(NEW_TREE_ID, {
+      encrypted_data: "j-enc",
+    });
+  });
+
+  it("updates key ring on server after import", async () => {
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    expect(mockEncryptKeyRing).toHaveBeenCalled();
+    expect(mockUpdateKeyRing).toHaveBeenCalledWith("encrypted-ring");
+  });
+
+  it("rejects files with wrong version", async () => {
+    const file = makeFile(makeValidExport({ version: 2 }));
+    const { result } = renderHook(() => useImportTree());
+
+    await expect(result.current.importTree(file)).rejects.toThrow("Invalid backup file");
+    expect(mockCreateTree).not.toHaveBeenCalled();
+  });
+
+  it("rejects files with wrong format", async () => {
+    const file = makeFile(makeValidExport({ format: "plaintext" }));
+    const { result } = renderHook(() => useImportTree());
+
+    await expect(result.current.importTree(file)).rejects.toThrow("Invalid backup file");
+    expect(mockCreateTree).not.toHaveBeenCalled();
+  });
+
+  it("handles backup with no optional entities", async () => {
+    const minimal = makeValidExport({
+      life_events: undefined,
+      turning_points: undefined,
+      classifications: undefined,
+      patterns: undefined,
+      journal_entries: undefined,
+    });
+    const file = makeFile(minimal);
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    expect(mockCreateLifeEvent).not.toHaveBeenCalled();
+    expect(mockCreateJournalEntry).not.toHaveBeenCalled();
+    expect(mockSyncTree).toHaveBeenCalledWith(
+      NEW_TREE_ID,
+      expect.objectContaining({
+        classifications_create: [],
+        turning_points_create: [],
+        patterns_create: [],
+      }),
+    );
+  });
+});
