@@ -43,9 +43,13 @@ Required before growing beyond the current 20-user beta. These are infrastructur
 
 Users have no way to back up their tree. Combined with "passphrase lost = data lost", this is a real risk at scale.
 
-- Encrypted JSON export (download encrypted blob that can be re-imported)
-- Or plaintext export with explicit user confirmation ("this will create an unencrypted file")
-- Foundation for future GEDCOM export
+- Migrate from single passphrase-derived key to per-tree encryption keys with a master-key-encrypted key ring
+- Encrypted JSON backup (download + re-import with passphrase)
+- Plaintext JSON export with explicit user confirmation (foundation for future GEDCOM)
+- Transparent client-side migration on first unlock (under 300ms for typical trees)
+- Passphrase change simplified: re-encrypt key ring only, not every entity
+
+See [design doc](plans/2026-02-24-user-data-export-design.md).
 
 ### ~~8. Async email sending~~ (done)
 
@@ -67,13 +71,25 @@ See [design doc](plans/2026-02-15-care-providers-design.md).
 
 Free-text sticky notes or arrows that users can place directly on the canvas between nodes. Sometimes the insight is spatial. Lighter than the pattern editor.
 
-### 11. Wellbeing check-in
+### 11. Read-only tree sharing
+
+Share a tree with another user for viewing. Builds on the per-tree key architecture from the export milestone.
+
+- Asymmetric key pair (X25519 or RSA-OAEP) generated at registration, private key encrypted with master key
+- Sharer encrypts tree key with recipient's public key; stored in `TreeShare` model with permission level
+- Recipient decrypts shared tree keys on unlock; shared trees appear alongside owned trees
+- Server-side permission enforcement (viewer cannot write)
+- Revoke access by deleting the share grant
+
+Prerequisite: user data export (#7) must land first (per-tree keys, key ring).
+
+### 12. Wellbeing check-in
 
 Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
 
 ## Planned: Infrastructure (lower priority)
 
-### 12. Passphrase hints and auth modals
+### 13. Passphrase hints and auth modals
 
 User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
 
@@ -83,7 +99,7 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
-### 13. Passkey authentication
+### 14. Passkey authentication
 
 Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
 
@@ -94,7 +110,7 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
-### 14. Cloud Run scaling configuration
+### 15. Cloud Run scaling configuration
 
 Current settings are conservative for beta. Adjust before wider rollout.
 
@@ -103,7 +119,7 @@ Current settings are conservative for beta. Adjust before wider rollout.
 - Set min-instances to 1 (eliminates 5-10s cold start latency)
 - Increase DB connection pool: `pool_size=10, max_overflow=20`
 
-### 15. Client-side virtualization
+### 16. Client-side virtualization
 
 Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline and event lists.
 
@@ -156,7 +172,7 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - GEDCOM import/export
 - PDF/image export (with filtering: choose which persons/events to include)
 - Custom category management
-- Collaborative/shared trees (view-only or edit permissions)
+- Collaborative/shared trees with edit permissions (extends read-only sharing, #11)
 - Offline-first with service worker
 - Additional languages beyond English and Dutch
 - Family constellation ("familie opstelling") functionality with an "I" person node
