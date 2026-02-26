@@ -34,6 +34,10 @@
   --color-danger-bg: rgba(239, 68, 68, 0.1);
   --color-danger-border: rgba(239, 68, 68, 0.3);
 
+  /* Warning + Success */
+  --color-warning: #f59e0b;
+  --color-success: #22c55e;
+
   /* Edges */
   --color-edge-default: #8faa97;
   --color-edge-partner: #ec4899;
@@ -142,6 +146,9 @@
   --color-danger: #dc2626;
   --color-danger-bg: rgba(220, 38, 38, 0.06);
   --color-danger-border: rgba(220, 38, 38, 0.2);
+
+  --color-warning: #d97706;
+  --color-success: #16a34a;
 
   --color-edge-default: #5a6e5f;
   --color-edge-partner: #db2777;
