@@ -187,7 +187,7 @@ jobs:
               FEEDBACK_EMAIL=feedback@traumatrees.org;\
               SENTRY_ENVIRONMENT=production-api;\
               SENTRY_RELEASE=${{ github.sha }}" \
-            --min-instances=0 \
+            --min-instances=1 \
             --max-instances=4 \
             --memory=256Mi \
             --cpu=1 \
@@ -207,7 +207,7 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --set-env-vars="API_URL=${API_URL}" \
-            --min-instances=0 \
+            --min-instances=1 \
             --max-instances=4 \
             --memory=128Mi \
             --cpu=1 \
