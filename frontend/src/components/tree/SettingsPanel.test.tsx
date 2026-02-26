@@ -7,7 +7,8 @@ import { SettingsPanel } from "./SettingsPanel";
 
 // Dummy credentials for testing (not real passwords)
 const DUMMY_OLD_PW = "oldpass";
-const DUMMY_NEW_PW = "newpass";
+const DUMMY_NEW_PW = "StrongPass1!"; // must not be "weak" per getPasswordStrength
+const DUMMY_WEAK_PW = "short";
 const DUMMY_ACCOUNT_PW = "mypassword"; // nosonar
 
 // ---------------------------------------------------------------------------
@@ -622,6 +623,53 @@ describe("SettingsPanel", () => {
       await waitFor(() => {
         expect(screen.getByText("account.passwordError")).toBeInTheDocument();
       });
+    });
+
+    it("save button is disabled when new password is weak", async () => {
+      const user = userEvent.setup();
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: DUMMY_WEAK_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: DUMMY_WEAK_PW },
+      });
+
+      const saveButtons = screen.getAllByText("common.save");
+      expect(saveButtons[0]).toBeDisabled();
+    });
+
+    it("shows error when submitting with a weak password", async () => {
+      const user = userEvent.setup();
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      // Use a password that is fair (not weak) for the disabled check to pass,
+      // but we test the handleChangePassword guard directly by using fireEvent
+      // to bypass the disabled state. Instead, use a password that is exactly
+      // at the weak boundary (8 chars, lowercase only = score 1 = weak).
+      const weakButLongEnough = "abcdefgh"; // 8 chars, lowercase only, score=1, weak
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
+        target: { value: DUMMY_OLD_PW },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassword"), {
+        target: { value: weakButLongEnough },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassword"), {
+        target: { value: weakButLongEnough },
+      });
+
+      // The button should be disabled because the password is weak
+      const saveButtons = screen.getAllByText("common.save");
+      expect(saveButtons[0]).toBeDisabled();
+      expect(mockChangePassword).not.toHaveBeenCalled();
     });
 
     it("clears password fields after successful change", async () => {

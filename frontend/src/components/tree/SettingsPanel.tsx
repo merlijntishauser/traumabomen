@@ -32,6 +32,8 @@ import {
   generateSalt,
   hashPassphrase,
 } from "../../lib/crypto";
+import { getPasswordStrength } from "../../lib/passwordStrength";
+import { PasswordStrengthMeter } from "../PasswordStrengthMeter";
 import "./SettingsPanel.css";
 
 export interface ViewTab {
@@ -118,6 +120,10 @@ export function SettingsPanel({ viewTab, className }: Props) {
     setPwMessage(null);
     if (pwNew !== pwConfirm) {
       setPwMessage({ type: "error", text: t("account.passwordMismatch") });
+      return;
+    }
+    if (getPasswordStrength(pwNew).level === "weak") {
+      setPwMessage({ type: "error", text: t("auth.passwordTooWeak") });
       return;
     }
     setPwLoading(true);
@@ -366,9 +372,11 @@ export function SettingsPanel({ viewTab, className }: Props) {
                       className="settings-panel__input"
                       placeholder={t("account.newPassword")}
                       value={pwNew}
+                      maxLength={64}
                       onChange={(e) => setPwNew(e.target.value)}
                       autoComplete="new-password"
                     />
+                    <PasswordStrengthMeter password={pwNew} />
                     <input
                       type="password"
                       className="settings-panel__input"
@@ -380,7 +388,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
                     <button
                       type="button"
                       className="settings-panel__btn"
-                      disabled={!pwCurrent || !pwNew || !pwConfirm || pwLoading}
+                      disabled={!pwCurrent || !pwNew || !pwConfirm || pwLoading || getPasswordStrength(pwNew).level === "weak"}
                       onClick={handleChangePassword}
                     >
                       {t("common.save")}
