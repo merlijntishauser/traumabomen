@@ -2,9 +2,11 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
+import { getPasswordStrength } from "../lib/passwordStrength";
 import "../styles/auth.css";
 
 function getRegistrationError(err: unknown, t: (key: string) => string): string {
@@ -33,6 +35,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   function validate(): string | null {
+    if (getPasswordStrength(password).level === "weak") return t("auth.passwordTooWeak");
+    if (password.length > 64) return t("auth.passwordTooLong");
     if (password !== confirmPassword) return t("auth.passwordMismatch");
     if (passphrase.length < 8) return t("auth.passphraseTooShort");
     if (passphrase !== confirmPassphrase) return t("auth.passphraseMismatch");
@@ -118,10 +122,12 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 required
+                maxLength={64}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 data-1p-allow
               />
+              <PasswordStrengthMeter password={password} />
             </div>
 
             <div className="auth-field">
@@ -176,7 +182,7 @@ export default function RegisterPage() {
               </p>
             )}
 
-            <button className="auth-submit" type="submit" disabled={loading}>
+            <button className="auth-submit" type="submit" disabled={loading || getPasswordStrength(password).level === "weak"}>
               {loading ? t("auth.derivingKey") : t("auth.register")}
             </button>
           </form>
