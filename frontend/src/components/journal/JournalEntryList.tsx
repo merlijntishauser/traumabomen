@@ -13,7 +13,7 @@ import type {
 } from "../../hooks/useTreeData";
 import { getChipColor, resolveChipLabel } from "../../lib/journalChips";
 import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
-import { JournalEntryForm } from "./JournalEntryForm";
+import { ALLOWED_MARKDOWN_ELEMENTS, JournalEntryForm } from "./JournalEntryForm";
 import "./Journal.css";
 
 const MAX_CHIPS = 4;
@@ -145,7 +145,9 @@ export function JournalEntryList({
 
           <div className="journal-list__card-body">
             <div className="journal-list__card-markdown">
-              <Markdown>{entry.text}</Markdown>
+              <Markdown allowedElements={ALLOWED_MARKDOWN_ELEMENTS} unwrapDisallowed>
+                {entry.text}
+              </Markdown>
             </div>
           </div>
 

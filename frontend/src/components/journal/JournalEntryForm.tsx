@@ -17,6 +17,28 @@ import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { EntityLinkPicker } from "./EntityLinkPicker";
 
+export const ALLOWED_MARKDOWN_ELEMENTS = [
+  "p",
+  "br",
+  "strong",
+  "em",
+  "del",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "ul",
+  "ol",
+  "li",
+  "blockquote",
+  "code",
+  "pre",
+  "a",
+  "hr",
+];
+
 type FormMode = "write" | "preview";
 
 interface JournalEntryFormProps {
@@ -131,7 +153,9 @@ export function JournalEntryForm({
       ) : (
         <div className="journal-form__preview" data-testid="journal-preview">
           {text ? (
-            <Markdown>{text}</Markdown>
+            <Markdown allowedElements={ALLOWED_MARKDOWN_ELEMENTS} unwrapDisallowed>
+              {text}
+            </Markdown>
           ) : (
             <p className="journal-form__preview-empty">{t("journal.textPlaceholder")}</p>
           )}

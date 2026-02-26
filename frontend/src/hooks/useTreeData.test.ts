@@ -4,10 +4,16 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { treeQueryKeys, useTreeData } from "./useTreeData";
 
+const mockCaptureMessage = vi.fn();
+vi.mock("@sentry/react", () => ({
+  captureMessage: (...args: unknown[]) => mockCaptureMessage(...args),
+}));
+
+const mockDecrypt = vi.fn(async (blob: string, _treeId: string) => JSON.parse(blob));
 const mockTreeKeys = new Map([["tree1", {} as CryptoKey]]);
 vi.mock("../contexts/EncryptionContext", () => ({
   useEncryption: () => ({
-    decrypt: async (blob: string, _treeId: string) => JSON.parse(blob),
+    decrypt: (...args: unknown[]) => mockDecrypt(...args),
     masterKey: {} as CryptoKey,
     treeKeys: mockTreeKeys,
   }),
@@ -239,6 +245,46 @@ describe("useTreeData", () => {
     });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBeNull();
+  });
+
+  it("skips corrupt blobs and returns remaining data when decrypt fails for some items", async () => {
+    const { getEvents } = await import("../lib/api");
+    vi.mocked(getEvents).mockResolvedValueOnce([
+      {
+        id: "e1",
+        person_ids: ["p1"],
+        encrypted_data: JSON.stringify({
+          title: "Good Event",
+          description: "",
+          category: "loss",
+          approximate_date: "1990",
+          severity: 3,
+          tags: [],
+        }),
+      },
+      { id: "e-corrupt", person_ids: ["p1"], encrypted_data: "CORRUPT_DATA" },
+    ] as never);
+    mockDecrypt.mockImplementation(async (blob: string) => {
+      if (blob === "CORRUPT_DATA") throw new Error("Decrypt failed");
+      return JSON.parse(blob);
+    });
+
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Good event is returned, corrupt one is skipped
+    expect(result.current.events.size).toBe(1);
+    expect(result.current.events.get("e1")?.title).toBe("Good Event");
+    expect(result.current.events.has("e-corrupt")).toBe(false);
+    expect(result.current.error).toBeNull();
+
+    // Sentry was notified
+    expect(mockCaptureMessage).toHaveBeenCalledWith(
+      "Failed to decrypt 1 linked entities",
+      "warning",
+    );
   });
 });
 

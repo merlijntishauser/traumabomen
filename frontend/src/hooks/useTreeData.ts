@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { useEncryption } from "../contexts/EncryptionContext";
 import {
@@ -109,12 +110,22 @@ function useLinkedEntityQuery<
     queryKey,
     queryFn: async () => {
       const responses = await fetchFn(treeId);
-      const entries = await Promise.all(
+      const results = await Promise.allSettled(
         responses.map(async (r) => {
           const data = await decrypt<TData>(r.encrypted_data, treeId);
           return [r.id, { ...data, id: r.id, person_ids: r.person_ids } as TDecrypted] as const;
         }),
       );
+      const rejected = results.filter((r) => r.status === "rejected");
+      if (rejected.length > 0) {
+        Sentry.captureMessage(`Failed to decrypt ${rejected.length} linked entities`, "warning");
+      }
+      const entries = results
+        .filter(
+          (r): r is PromiseFulfilledResult<readonly [string, TDecrypted]> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
       return new Map(entries);
     },
     enabled: hasKey,
@@ -139,7 +150,7 @@ export function useTreeData(treeId: string) {
     queryKey: treeQueryKeys.persons(treeId),
     queryFn: async () => {
       const responses = await getPersons(treeId);
-      const entries = await Promise.all(
+      const results = await Promise.allSettled(
         responses.map(async (r) => {
           const data = await decrypt<Person>(r.encrypted_data, treeId);
           const person: Person = {
@@ -152,6 +163,16 @@ export function useTreeData(treeId: string) {
           return [r.id, { ...person, id: r.id } as DecryptedPerson] as const;
         }),
       );
+      const rejected = results.filter((r) => r.status === "rejected");
+      if (rejected.length > 0) {
+        Sentry.captureMessage(`Failed to decrypt ${rejected.length} persons`, "warning");
+      }
+      const entries = results
+        .filter(
+          (r): r is PromiseFulfilledResult<readonly [string, DecryptedPerson]> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
       return new Map(entries);
     },
     enabled: hasKey,
@@ -161,7 +182,7 @@ export function useTreeData(treeId: string) {
     queryKey: treeQueryKeys.relationships(treeId),
     queryFn: async () => {
       const responses = await getRelationships(treeId);
-      const entries = await Promise.all(
+      const results = await Promise.allSettled(
         responses.map(async (r) => {
           const data = await decrypt<RelationshipData>(r.encrypted_data, treeId);
           return [
@@ -175,6 +196,16 @@ export function useTreeData(treeId: string) {
           ] as const;
         }),
       );
+      const rejected = results.filter((r) => r.status === "rejected");
+      if (rejected.length > 0) {
+        Sentry.captureMessage(`Failed to decrypt ${rejected.length} relationships`, "warning");
+      }
+      const entries = results
+        .filter(
+          (r): r is PromiseFulfilledResult<readonly [string, DecryptedRelationship]> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
       return new Map(entries);
     },
     enabled: hasKey,
@@ -224,7 +255,7 @@ export function useTreeData(treeId: string) {
     queryKey: treeQueryKeys.journalEntries(treeId),
     queryFn: async () => {
       const responses = await getJournalEntries(treeId);
-      const entries = await Promise.all(
+      const results = await Promise.allSettled(
         responses.map(async (r) => {
           const data = await decrypt<JournalEntry>(r.encrypted_data, treeId);
           return [
@@ -238,6 +269,16 @@ export function useTreeData(treeId: string) {
           ] as const;
         }),
       );
+      const rejected = results.filter((r) => r.status === "rejected");
+      if (rejected.length > 0) {
+        Sentry.captureMessage(`Failed to decrypt ${rejected.length} journal entries`, "warning");
+      }
+      const entries = results
+        .filter(
+          (r): r is PromiseFulfilledResult<readonly [string, DecryptedJournalEntry]> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
       return new Map(entries);
     },
     enabled: hasKey,

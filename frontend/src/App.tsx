@@ -76,6 +76,10 @@ export function ErrorFallback() {
   );
 }
 
+export function LazyBoundary({ children }: { children: React.ReactNode }) {
+  return <Sentry.ErrorBoundary fallback={<ErrorFallback />}>{children}</Sentry.ErrorBoundary>;
+}
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { masterKey } = useEncryption();
   const location = useLocation();
@@ -178,7 +182,9 @@ function AppContent() {
                 path="/trees/:id"
                 element={
                   <AuthGuard>
-                    <TreeWorkspacePage />
+                    <LazyBoundary>
+                      <TreeWorkspacePage />
+                    </LazyBoundary>
                   </AuthGuard>
                 }
               />
@@ -186,7 +192,9 @@ function AppContent() {
                 path="/trees/:id/timeline"
                 element={
                   <AuthGuard>
-                    <TimelinePage />
+                    <LazyBoundary>
+                      <TimelinePage />
+                    </LazyBoundary>
                   </AuthGuard>
                 }
               />
@@ -194,7 +202,9 @@ function AppContent() {
                 path="/trees/:id/patterns"
                 element={
                   <AuthGuard>
-                    <PatternPage />
+                    <LazyBoundary>
+                      <PatternPage />
+                    </LazyBoundary>
                   </AuthGuard>
                 }
               />
@@ -202,7 +212,9 @@ function AppContent() {
                 path="/trees/:id/journal"
                 element={
                   <AuthGuard>
-                    <JournalPage />
+                    <LazyBoundary>
+                      <JournalPage />
+                    </LazyBoundary>
                   </AuthGuard>
                 }
               />
@@ -210,7 +222,9 @@ function AppContent() {
                 path="/admin"
                 element={
                   <AdminGuard>
-                    <AdminPage />
+                    <LazyBoundary>
+                      <AdminPage />
+                    </LazyBoundary>
                   </AdminGuard>
                 }
               />

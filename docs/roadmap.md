@@ -126,10 +126,10 @@ Replace Dagre layout engine with elkjs (the open-source engine behind React Flow
 Findings from the February 2026 security audit. Address before wider adoption.
 
 **Frontend stability:**
-- React error boundaries on lazy-loaded route pages (single decrypt failure crashes entire app)
-- Wrap `decrypt()` calls in `useTreeData` queryFns so one corrupt blob does not block all data
-- Explicit `allowedElements` or `rehype-sanitize` config for react-markdown in journal preview
-- Verify interval cleanup on unmount in `VerificationPendingPage`
+- ~~React error boundaries on lazy-loaded route pages (single decrypt failure crashes entire app)~~
+- ~~Wrap `decrypt()` calls in `useTreeData` queryFns so one corrupt blob does not block all data~~
+- ~~Explicit `allowedElements` or `rehype-sanitize` config for react-markdown in journal preview~~
+- ~~Verify interval cleanup on unmount in `VerificationPendingPage`~~
 
 **Authentication:**
 - Client-side and server-side password strength validation (minimum length, complexity)

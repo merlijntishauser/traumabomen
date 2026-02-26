@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
@@ -13,6 +13,13 @@ export default function VerificationPendingPage() {
   const [cooldown, setCooldown] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   async function handleResend() {
     if (!email || cooldown > 0) return;
@@ -23,10 +30,11 @@ export default function VerificationPendingPage() {
       await resendVerification({ email });
       setMessage(t("auth.resendSuccess"));
       setCooldown(60);
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setCooldown((prev) => {
           if (prev <= 1) {
-            clearInterval(interval);
+            clearInterval(intervalRef.current!);
+            intervalRef.current = null;
             return 0;
           }
           return prev - 1;

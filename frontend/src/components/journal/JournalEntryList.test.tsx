@@ -22,7 +22,19 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("react-markdown", () => ({
-  default: ({ children }: { children: string }) => <div data-testid="markdown">{children}</div>,
+  default: ({
+    children,
+    allowedElements,
+    unwrapDisallowed,
+  }: { children: string; allowedElements?: string[]; unwrapDisallowed?: boolean }) => (
+    <div
+      data-testid="markdown"
+      data-allowed-elements={allowedElements?.join(",") ?? ""}
+      data-unwrap-disallowed={String(!!unwrapDisallowed)}
+    >
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock("../../lib/reflectionPrompts", () => ({
@@ -228,6 +240,17 @@ describe("JournalEntryList", () => {
     fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: "Tab" });
 
     expect(screen.queryByTestId("journal-entry-form")).not.toBeInTheDocument();
+  });
+
+  it("passes allowedElements and unwrapDisallowed to Markdown in entry cards", () => {
+    renderList({ entries: [mockEntry] });
+
+    const markdown = screen.getByTestId("markdown");
+    expect(markdown.dataset.allowedElements).toContain("p");
+    expect(markdown.dataset.allowedElements).toContain("strong");
+    expect(markdown.dataset.allowedElements).not.toContain("script");
+    expect(markdown.dataset.allowedElements).not.toContain("img");
+    expect(markdown.dataset.unwrapDisallowed).toBe("true");
   });
 
   it("delete flow on existing entry calls onDelete", () => {

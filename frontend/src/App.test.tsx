@@ -1,7 +1,13 @@
+import * as Sentry from "@sentry/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { ErrorFallback, OnboardingGuard } from "./App";
+import { ErrorFallback, LazyBoundary, OnboardingGuard } from "./App";
+
+vi.mock("@sentry/react", async () => {
+  const actual = await vi.importActual<typeof Sentry>("@sentry/react");
+  return { ...actual };
+});
 
 let mockKey: CryptoKey | null = null;
 let mockAccessToken: string | null = null;
@@ -117,5 +123,38 @@ describe("OnboardingGuard", () => {
     // Should show children, not the onboarding gate
     expect(screen.getByTestId("child")).toBeInTheDocument();
     expect(screen.queryByText("safety.onboarding.continue")).not.toBeInTheDocument();
+  });
+});
+
+describe("LazyBoundary", () => {
+  it("renders children normally when no error occurs", () => {
+    render(
+      <LazyBoundary>
+        <div data-testid="lazy-child">page content</div>
+      </LazyBoundary>,
+    );
+
+    expect(screen.getByTestId("lazy-child")).toBeInTheDocument();
+  });
+
+  it("renders ErrorFallback when child throws", () => {
+    // Suppress React error boundary console errors in test output
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    function ThrowingComponent(): React.ReactNode {
+      throw new Error("Render crash");
+    }
+
+    render(
+      <LazyBoundary>
+        <ThrowingComponent />
+      </LazyBoundary>,
+    );
+
+    expect(screen.getByText("error.title")).toBeInTheDocument();
+    expect(screen.getByText("error.reload")).toBeInTheDocument();
+    expect(screen.queryByTestId("lazy-child")).not.toBeInTheDocument();
+
+    spy.mockRestore();
   });
 });

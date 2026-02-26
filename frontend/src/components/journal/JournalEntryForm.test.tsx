@@ -19,7 +19,19 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("react-markdown", () => ({
-  default: ({ children }: { children: string }) => <div data-testid="markdown">{children}</div>,
+  default: ({
+    children,
+    allowedElements,
+    unwrapDisallowed,
+  }: { children: string; allowedElements?: string[]; unwrapDisallowed?: boolean }) => (
+    <div
+      data-testid="markdown"
+      data-allowed-elements={allowedElements?.join(",") ?? ""}
+      data-unwrap-disallowed={String(!!unwrapDisallowed)}
+    >
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock("../../lib/reflectionPrompts", () => ({
@@ -263,6 +275,20 @@ describe("JournalEntryForm", () => {
     // Second click confirms
     fireEvent.click(screen.getByText("journal.confirmDelete"));
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes allowedElements and unwrapDisallowed to Markdown", () => {
+    renderForm({ entry: existingEntry });
+
+    // Switch to preview
+    fireEvent.click(screen.getByText("journal.preview"));
+
+    const markdown = screen.getByTestId("markdown");
+    expect(markdown.dataset.allowedElements).toContain("p");
+    expect(markdown.dataset.allowedElements).toContain("strong");
+    expect(markdown.dataset.allowedElements).not.toContain("script");
+    expect(markdown.dataset.allowedElements).not.toContain("img");
+    expect(markdown.dataset.unwrapDisallowed).toBe("true");
   });
 
   it("does not add duplicate linked entities", () => {
