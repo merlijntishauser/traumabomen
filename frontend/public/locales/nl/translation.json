@@ -40,6 +40,12 @@
   "auth.verificationFailed": "Verificatielink is ongeldig of verlopen",
   "auth.emailNotVerified": "Verifieer je e-mailadres voordat je inlogt",
   "auth.backToLogin": "Terug naar inloggen",
+  "auth.passwordTooWeak": "Wachtwoord is te zwak",
+  "auth.passwordTooLong": "Wachtwoord mag maximaal 64 tekens bevatten",
+
+  "password.weak": "Zwak",
+  "password.fair": "Redelijk",
+  "password.strong": "Sterk",
 
   "tree.myTrees": "Mijn bomen",
   "tree.create": "Boom aanmaken",

@@ -40,6 +40,12 @@
   "auth.verificationFailed": "Verification link is invalid or expired",
   "auth.emailNotVerified": "Please verify your email before logging in",
   "auth.backToLogin": "Back to login",
+  "auth.passwordTooWeak": "Password is too weak",
+  "auth.passwordTooLong": "Password must be 64 characters or fewer",
+
+  "password.weak": "Weak",
+  "password.fair": "Fair",
+  "password.strong": "Strong",
 
   "tree.myTrees": "My Trees",
   "tree.create": "Create tree",
