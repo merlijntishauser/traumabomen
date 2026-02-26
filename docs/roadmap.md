@@ -117,7 +117,11 @@ Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline an
 - Viewport-aware rendering for React Flow canvas (already partially handled by @xyflow/react)
 - Consider lazy-loading event details in PersonDetailPanel
 
-### 17. Security hardening
+### 17. Replace Dagre with elkjs and collapsible sub-trees
+
+Replace Dagre layout engine with elkjs (the open-source engine behind React Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with compact summary nodes. Drop the React Flow Pro watermark suppression. See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
+
+### 18. Security hardening
 
 Findings from the February 2026 security audit. Address before wider adoption.
 
