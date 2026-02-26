@@ -106,7 +106,7 @@ Current settings are conservative for beta. Adjust before wider rollout.
 
 - Increase `MAX_ACTIVE_USERS` from 20 to 200+
 - Increase Cloud Run max-instances from 4 to 8-16
-- Set min-instances to 1 (eliminates 5-10s cold start latency)
+- ~~Set min-instances to 1 (eliminates 5-10s cold start latency)~~
 - Increase DB connection pool: `pool_size=10, max_overflow=20`
 
 ### 16. Client-side virtualization
