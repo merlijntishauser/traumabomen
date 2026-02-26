@@ -37,10 +37,10 @@ class TestAdminToken:
     async def test_admin_token_contains_claim(self, client, db_session):
         """Login as admin user and verify the token works for admin endpoints."""
         await create_user(
-            db_session, email="admin-login@example.com", password="pass123", is_admin=True
+            db_session, email="admin-login@example.com", password="TestPassword1", is_admin=True
         )
         login_resp = await client.post(
-            "/auth/login", json={"email": "admin-login@example.com", "password": "pass123"}
+            "/auth/login", json={"email": "admin-login@example.com", "password": "TestPassword1"}
         )
         assert login_resp.status_code == 200
         token = login_resp.json()["access_token"]

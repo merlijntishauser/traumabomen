@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -21,6 +22,28 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
+
+
+def check_password_strength(password: str) -> dict[str, object]:
+    if len(password) < 8:
+        return {"score": 0, "level": "weak"}
+
+    score = 1  # >= 8 chars
+    if len(password) >= 12:
+        score += 1
+    if len(password) >= 16:
+        score += 1
+
+    has_lower = bool(re.search(r"[a-z]", password))
+    has_upper = bool(re.search(r"[A-Z]", password))
+    if has_lower and has_upper:
+        score += 1
+
+    if re.search(r"[\d\W_]", password):
+        score += 1
+
+    level = "weak" if score <= 2 else ("fair" if score == 3 else "strong")
+    return {"score": score, "level": level}
 
 
 def create_token(

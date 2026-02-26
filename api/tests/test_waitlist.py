@@ -144,7 +144,7 @@ class TestRegistrationWithWaitlist:
                 "/auth/register",
                 json={
                     "email": "new@example.com",
-                    "password": "password123",
+                    "password": "TestPassword1",
                     "encryption_salt": "test-salt",
                 },
             )
@@ -161,7 +161,7 @@ class TestRegistrationWithWaitlist:
                 "/auth/register",
                 json={
                     "email": "new@example.com",
-                    "password": "password123",
+                    "password": "TestPassword1",
                     "encryption_salt": "test-salt",
                 },
             )
@@ -194,7 +194,7 @@ class TestRegistrationWithWaitlist:
                 "/auth/register",
                 json={
                     "email": "invited@example.com",
-                    "password": "password123",
+                    "password": "TestPassword1",
                     "encryption_salt": "test-salt",
                     "invite_token": invite_token,
                 },
@@ -217,7 +217,7 @@ class TestRegistrationWithWaitlist:
             "/auth/register",
             json={
                 "email": "new@example.com",
-                "password": "password123",
+                "password": "TestPassword1",
                 "encryption_salt": "test-salt",
                 "invite_token": "invalid-token",
             },
@@ -241,7 +241,7 @@ class TestRegistrationWithWaitlist:
             "/auth/register",
             json={
                 "email": "wrong@example.com",
-                "password": "password123",
+                "password": "TestPassword1",
                 "encryption_salt": "test-salt",
                 "invite_token": invite_token,
             },
@@ -278,7 +278,7 @@ class TestRegistrationWithWaitlist:
             "/auth/register",
             json={
                 "email": "expired@example.com",
-                "password": "password123",
+                "password": "TestPassword1",
                 "encryption_salt": "test-salt",
                 "invite_token": invite_token,
             },
@@ -298,7 +298,7 @@ class TestRegistrationWithWaitlist:
                 "/auth/register",
                 json={
                     "email": "new@example.com",
-                    "password": "password123",
+                    "password": "TestPassword1",
                     "encryption_salt": "test-salt",
                 },
             )
@@ -310,7 +310,7 @@ class TestRegistrationWithWaitlist:
             "/auth/register",
             json={
                 "email": "new@example.com",
-                "password": "password123",
+                "password": "TestPassword1",
                 "encryption_salt": "test-salt",
             },
         )

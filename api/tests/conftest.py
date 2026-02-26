@@ -187,7 +187,7 @@ async def client():
 async def create_user(
     db: AsyncSession,
     email: str = "test@example.com",
-    password: str = "password123",
+    password: str = "TestPassword1",
     *,
     is_admin: bool = False,
 ):

@@ -42,7 +42,7 @@ class TestLoginRateLimiting:
         # Successful login resets counters
         resp = await client.post(
             "/auth/login",
-            json={"email": "test@example.com", "password": "password123"},
+            json={"email": "test@example.com", "password": "TestPassword1"},
         )
         assert resp.status_code == 200
 

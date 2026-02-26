@@ -8,7 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import create_token, decode_token, get_current_user, hash_password, verify_password
+from app.auth import (
+    check_password_strength,
+    create_token,
+    decode_token,
+    get_current_user,
+    hash_password,
+    verify_password,
+)
 from app.capacity import is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
@@ -114,6 +121,11 @@ async def register(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse | RegisterResponse:
+    if len(body.password) > 64:
+        raise HTTPException(status_code=422, detail="password_too_long")
+    if check_password_strength(body.password)["level"] == "weak":
+        raise HTTPException(status_code=422, detail="password_too_weak")
+
     email = body.email.strip().lower()
     result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none() is not None:
@@ -320,6 +332,10 @@ async def change_password(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect"
         )
+    if len(body.new_password) > 64:
+        raise HTTPException(status_code=422, detail="password_too_long")
+    if check_password_strength(body.new_password)["level"] == "weak":
+        raise HTTPException(status_code=422, detail="password_too_weak")
     user.hashed_password = hash_password(body.new_password)
     await db.commit()
     return {"message": "Password changed"}

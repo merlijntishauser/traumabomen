@@ -8,7 +8,13 @@ from unittest.mock import patch
 import jwt
 import pytest
 
-from app.auth import create_token, decode_token, hash_password, verify_password
+from app.auth import (
+    check_password_strength,
+    create_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 from app.models.user import User
 from tests.conftest import TEST_SETTINGS, auth_headers, create_user
 
@@ -30,6 +36,57 @@ class TestPasswordHashing:
         h1 = hash_password("same")
         h2 = hash_password("same")
         assert h1 != h2  # different salts
+
+
+class TestPasswordStrength:
+    def test_empty_password_is_weak(self):
+        result = check_password_strength("")
+        assert result["level"] == "weak"
+        assert result["score"] == 0
+
+    def test_short_password_is_weak(self):
+        result = check_password_strength("short")
+        assert result["level"] == "weak"
+        assert result["score"] == 0
+
+    def test_8_chars_single_case_is_weak(self):
+        result = check_password_strength("abcdefgh")
+        assert result["level"] == "weak"
+        assert result["score"] == 1
+
+    def test_8_chars_mixed_case_is_weak(self):
+        result = check_password_strength("Abcdefgh")
+        assert result["level"] == "weak"
+        assert result["score"] == 2
+
+    def test_12_chars_single_case_is_weak(self):
+        result = check_password_strength("abcdefghijkl")
+        assert result["level"] == "weak"
+        assert result["score"] == 2
+
+    def test_8_chars_mixed_case_digit_is_fair(self):
+        result = check_password_strength("Abcdefg1")
+        assert result["level"] == "fair"
+        assert result["score"] == 3
+
+    def test_12_chars_mixed_case_is_fair(self):
+        result = check_password_strength("Abcdefghijkl")
+        assert result["level"] == "fair"
+        assert result["score"] == 3
+
+    def test_16_chars_single_case_is_fair(self):
+        result = check_password_strength("a" * 16)
+        assert result["level"] == "fair"
+        assert result["score"] == 3
+
+    def test_16_chars_mixed_case_digit_is_max(self):
+        result = check_password_strength("Abcdefghijklmno1")
+        assert result["level"] == "strong"
+        assert result["score"] == 5
+
+    def test_symbols_count_as_digit_or_symbol(self):
+        result = check_password_strength("abcdefg!")
+        assert result["score"] == 2
 
 
 class TestTokens:
@@ -61,7 +118,11 @@ class TestRegister:
     async def test_register_success(self, client):
         resp = await client.post(
             "/auth/register",
-            json={"email": "new@example.com", "password": "pass1234", "encryption_salt": "salt"},
+            json={
+                "email": "new@example.com",
+                "password": "TestPassword1",
+                "encryption_salt": "salt",
+            },
         )
         assert resp.status_code == 201
         data = resp.json()
@@ -73,7 +134,11 @@ class TestRegister:
     async def test_register_duplicate_email(self, client, user):
         resp = await client.post(
             "/auth/register",
-            json={"email": "test@example.com", "password": "pass1234", "encryption_salt": "salt"},
+            json={
+                "email": "test@example.com",
+                "password": "TestPassword1",
+                "encryption_salt": "salt",
+            },
         )
         assert resp.status_code == 409
 
@@ -86,7 +151,7 @@ class TestRegister:
                     "/auth/register",
                     json={
                         "email": "verify@example.com",
-                        "password": "pass1234",
+                        "password": "TestPassword1",
                         "encryption_salt": "salt",
                     },
                 )
@@ -95,13 +160,31 @@ class TestRegister:
         finally:
             TEST_SETTINGS.REQUIRE_EMAIL_VERIFICATION = False
 
+    @pytest.mark.asyncio
+    async def test_register_weak_password_rejected(self, client):
+        resp = await client.post(
+            "/auth/register",
+            json={"email": "weak@example.com", "password": "abc", "encryption_salt": "salt"},
+        )
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "password_too_weak"
+
+    @pytest.mark.asyncio
+    async def test_register_too_long_password_rejected(self, client):
+        resp = await client.post(
+            "/auth/register",
+            json={"email": "long@example.com", "password": "a" * 65, "encryption_salt": "salt"},
+        )
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "password_too_long"
+
 
 class TestLogin:
     @pytest.mark.asyncio
     async def test_login_success(self, client, user):
         resp = await client.post(
             "/auth/login",
-            json={"email": "test@example.com", "password": "password123"},
+            json={"email": "test@example.com", "password": "TestPassword1"},
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -130,7 +213,7 @@ class TestLogin:
 
         user = User(
             email="unverified@example.com",
-            hashed_password=hash_password("pass123"),
+            hashed_password=hash_password("TestPassword1"),
             encryption_salt="salt",
             email_verified=False,
         )
@@ -139,7 +222,7 @@ class TestLogin:
 
         resp = await client.post(
             "/auth/login",
-            json={"email": "unverified@example.com", "password": "pass123"},
+            json={"email": "unverified@example.com", "password": "TestPassword1"},
         )
         assert resp.status_code == 403
 
@@ -215,7 +298,7 @@ class TestVerifyEmail:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         user = User(
             email="verify-test@example.com",
-            hashed_password=hash_password("pass123"),
+            hashed_password=hash_password("TestPassword1"),
             encryption_salt="salt",
             email_verified=False,
             email_verification_token=token_hash,
@@ -239,7 +322,7 @@ class TestVerifyEmail:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         user = User(
             email="expired@example.com",
-            hashed_password=hash_password("pass123"),
+            hashed_password=hash_password("TestPassword1"),
             encryption_salt="salt",
             email_verified=False,
             email_verification_token=token_hash,
@@ -266,7 +349,7 @@ class TestResendVerification:
         try:
             user = User(
                 email="resend@example.com",
-                hashed_password=hash_password("pass123"),
+                hashed_password=hash_password("TestPassword1"),
                 encryption_salt="salt",
                 email_verified=False,
                 email_verification_token="old-hash",
@@ -316,7 +399,7 @@ class TestResendVerification:
         try:
             user = User(
                 email="ratelimit@example.com",
-                hashed_password=hash_password("pass123"),
+                hashed_password=hash_password("TestPassword1"),
                 encryption_salt="salt",
                 email_verified=False,
                 email_verification_token="hash",
@@ -344,7 +427,7 @@ class TestChangePassword:
     async def test_change_password_success(self, client, user, headers):
         resp = await client.put(
             "/auth/password",
-            json={"current_password": "password123", "new_password": "newpass456"},
+            json={"current_password": "TestPassword1", "new_password": "NewTestPass456"},
             headers=headers,
         )
         assert resp.status_code == 200
@@ -353,7 +436,7 @@ class TestChangePassword:
         # Verify new password works
         login_resp = await client.post(
             "/auth/login",
-            json={"email": "test@example.com", "password": "newpass456"},
+            json={"email": "test@example.com", "password": "NewTestPass456"},
         )
         assert login_resp.status_code == 200
 
@@ -361,10 +444,30 @@ class TestChangePassword:
     async def test_change_password_wrong_current(self, client, user, headers):
         resp = await client.put(
             "/auth/password",
-            json={"current_password": "wrong", "new_password": "newpass"},
+            json={"current_password": "wrong", "new_password": "NewTestPass456"},
             headers=headers,
         )
         assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_change_password_weak_rejected(self, client, user, headers):
+        resp = await client.put(
+            "/auth/password",
+            json={"current_password": "TestPassword1", "new_password": "weak"},
+            headers=headers,
+        )
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "password_too_weak"
+
+    @pytest.mark.asyncio
+    async def test_change_password_too_long_rejected(self, client, user, headers):
+        resp = await client.put(
+            "/auth/password",
+            json={"current_password": "TestPassword1", "new_password": "a" * 65},
+            headers=headers,
+        )
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "password_too_long"
 
 
 class TestUpdateSalt:
@@ -398,14 +501,14 @@ class TestDeleteAccount:
             "DELETE",
             "/auth/account",
             headers=hdrs,
-            content='{"password": "password123"}',
+            content='{"password": "TestPassword1"}',
         )
         assert resp.status_code == 204
 
         # Verify account is gone
         login = await client.post(
             "/auth/login",
-            json={"email": "delete-me@example.com", "password": "password123"},
+            json={"email": "delete-me@example.com", "password": "TestPassword1"},
         )
         assert login.status_code == 401
 
@@ -466,7 +569,7 @@ class TestAcknowledgeOnboarding:
 
         resp = await client.post(
             "/auth/login",
-            json={"email": "test@example.com", "password": "password123"},
+            json={"email": "test@example.com", "password": "TestPassword1"},
         )
         assert resp.status_code == 200
         assert resp.json()["onboarding_safety_acknowledged"] is True
@@ -476,7 +579,7 @@ class TestAcknowledgeOnboarding:
         """Login response includes onboarding_safety_acknowledged (False for new user)."""
         resp = await client.post(
             "/auth/login",
-            json={"email": "test@example.com", "password": "password123"},
+            json={"email": "test@example.com", "password": "TestPassword1"},
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -490,7 +593,7 @@ class TestAcknowledgeOnboarding:
             "/auth/register",
             json={
                 "email": "onboard@example.com",
-                "password": "pass1234",
+                "password": "TestPassword1",
                 "encryption_salt": "salt",
             },
         )
