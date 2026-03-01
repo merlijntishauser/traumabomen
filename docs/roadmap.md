@@ -133,7 +133,7 @@ Findings from the February 2026 security audit. Address before wider adoption.
 
 **Authentication:**
 - ~~Client-side and server-side password strength validation (minimum length, complexity)~~
-- Refresh token rotation (single-use tokens to limit stolen-token window)
+- ~~Refresh token rotation (single-use tokens to limit stolen-token window)~~
 - Constant-time passphrase hash comparison in `EncryptionContext` (replace `===` with timing-safe check)
 
 **Backend hardening:**
