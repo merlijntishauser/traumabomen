@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import jwt
 import pytest
+from sqlalchemy import select, update
 
 from app.auth import (
     check_password_strength,
@@ -87,6 +88,127 @@ class TestPasswordStrength:
     def test_symbols_count_as_digit_or_symbol(self):
         result = check_password_strength("abcdefg!")
         assert result["score"] == 2
+
+
+class TestRefreshTokenFunctions:
+    @pytest.mark.asyncio
+    async def test_create_refresh_token_returns_plaintext_and_stores_hash(self, db_session):
+        from app.auth import create_refresh_token
+        from app.models.refresh_token import RefreshToken
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        plaintext = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        assert len(plaintext) > 20
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        result = await db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+        )
+        row = result.scalar_one()
+        assert row.user_id == user.id
+        assert row.family_id == family_id
+        assert row.revoked is False
+
+    @pytest.mark.asyncio
+    async def test_use_refresh_token_returns_user_and_revokes(self, db_session):
+        from app.auth import create_refresh_token, use_refresh_token
+        from app.models.refresh_token import RefreshToken
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        plaintext = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        result = await use_refresh_token(plaintext, db_session)
+        assert result is not None
+        user_row, old_family_id = result
+        assert user_row.id == user.id
+        assert old_family_id == family_id
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        res = await db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+        )
+        assert res.scalar_one().revoked is True
+
+    @pytest.mark.asyncio
+    async def test_use_revoked_token_revokes_entire_family(self, db_session):
+        from app.auth import create_refresh_token, use_refresh_token
+        from app.models.refresh_token import RefreshToken
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        token1 = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        await use_refresh_token(token1, db_session)
+        token2 = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        result = await use_refresh_token(token1, db_session)
+        assert result is None
+
+        token2_hash = hashlib.sha256(token2.encode()).hexdigest()
+        res = await db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_hash == token2_hash)
+        )
+        assert res.scalar_one().revoked is True
+
+    @pytest.mark.asyncio
+    async def test_use_expired_token_returns_none(self, db_session):
+        from app.auth import create_refresh_token, use_refresh_token
+        from app.models.refresh_token import RefreshToken
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        plaintext = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        await db_session.execute(
+            update(RefreshToken)
+            .where(RefreshToken.token_hash == token_hash)
+            .values(expires_at=datetime(2020, 1, 1, tzinfo=UTC))
+        )
+        await db_session.commit()
+
+        result = await use_refresh_token(plaintext, db_session)
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_use_nonexistent_token_returns_none(self, db_session):
+        from app.auth import use_refresh_token
+
+        result = await use_refresh_token("totally-fake-token", db_session)
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_revoke_refresh_token(self, db_session):
+        from app.auth import create_refresh_token, revoke_refresh_token
+        from app.models.refresh_token import RefreshToken
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        plaintext = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        revoked = await revoke_refresh_token(plaintext, user.id, db_session)
+        assert revoked is True
+
+        token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+        res = await db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+        )
+        assert res.scalar_one().revoked is True
+
+    @pytest.mark.asyncio
+    async def test_revoke_refresh_token_wrong_user(self, db_session):
+        from app.auth import create_refresh_token, revoke_refresh_token
+
+        user = await create_user(db_session)
+        family_id = uuid.uuid4()
+        plaintext = await create_refresh_token(user.id, family_id, db_session, TEST_SETTINGS)
+
+        other_user = await create_user(db_session, email="other@example.com")
+        revoked = await revoke_refresh_token(plaintext, other_user.id, db_session)
+        assert revoked is False
 
 
 class TestTokens:

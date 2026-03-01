@@ -1,4 +1,6 @@
+import hashlib
 import re
+import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -6,7 +8,7 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
@@ -44,6 +46,93 @@ def check_password_strength(password: str) -> dict[str, object]:
 
     level = "weak" if score <= 2 else ("fair" if score == 3 else "strong")
     return {"score": score, "level": level}
+
+
+async def create_refresh_token(
+    user_id: uuid.UUID,
+    family_id: uuid.UUID,
+    db: AsyncSession,
+    settings: Settings,
+) -> str:
+    """Create an opaque refresh token, store its hash, return the plaintext."""
+    from app.models.refresh_token import RefreshToken
+
+    plaintext = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    row = RefreshToken(
+        user_id=user_id,
+        token_hash=token_hash,
+        family_id=family_id,
+        expires_at=datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(row)
+    await db.flush()
+    return plaintext
+
+
+async def use_refresh_token(
+    plaintext: str,
+    db: AsyncSession,
+) -> tuple[User, uuid.UUID] | None:
+    """Consume a refresh token. Returns (user, family_id) or None.
+
+    If the token is already revoked (replay attack), revokes the entire
+    family and returns None.
+    """
+    from app.models.refresh_token import RefreshToken
+
+    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+    row = result.scalar_one_or_none()
+
+    if row is None:
+        return None
+
+    if row.revoked:
+        # Reuse detected: revoke entire family
+        await db.execute(
+            update(RefreshToken).where(RefreshToken.family_id == row.family_id).values(revoked=True)
+        )
+        await db.flush()
+        return None
+
+    if row.expires_at <= datetime.now(UTC):
+        return None
+
+    # Mark as used (revoked)
+    row.revoked = True
+    await db.flush()
+
+    # Look up the user
+    user_result = await db.execute(select(User).where(User.id == row.user_id))
+    user = user_result.scalar_one_or_none()
+    if user is None:
+        return None
+
+    return user, row.family_id
+
+
+async def revoke_refresh_token(
+    plaintext: str,
+    user_id: uuid.UUID,
+    db: AsyncSession,
+) -> bool:
+    """Revoke a specific refresh token. Returns True if found and owned by user."""
+    from app.models.refresh_token import RefreshToken
+
+    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.token_hash == token_hash,
+            RefreshToken.user_id == user_id,
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        return False
+    row.revoked = True
+    await db.flush()
+    return True
 
 
 def create_token(
