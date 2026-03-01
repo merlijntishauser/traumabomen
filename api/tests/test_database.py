@@ -25,9 +25,10 @@ def _clear_caches():
     return_value=Settings(
         DATABASE_URL="postgresql+asyncpg://u:p@localhost/db",
         JWT_SECRET_KEY="test-secret-key-that-is-at-least-32-bytes-long",
+        DATABASE_SSL=True,
     ),
 )
-def test_get_engine_calls_create_async_engine(mock_settings, mock_create):
+def test_get_engine_with_ssl(mock_settings, mock_create):
     mock_create.return_value = MagicMock(spec=AsyncEngine)
     engine = get_engine()
     mock_create.assert_called_once()
@@ -40,6 +41,21 @@ def test_get_engine_calls_create_async_engine(mock_settings, mock_create):
 
     assert isinstance(kwargs["connect_args"]["ssl"], ssl.SSLContext)
     assert engine is mock_create.return_value
+
+
+@patch("app.database.create_async_engine")
+@patch(
+    "app.database.get_settings",
+    return_value=Settings(
+        DATABASE_URL="postgresql+asyncpg://u:p@localhost/db",
+        JWT_SECRET_KEY="test-secret-key-that-is-at-least-32-bytes-long",
+    ),
+)
+def test_get_engine_without_ssl(mock_settings, mock_create):
+    mock_create.return_value = MagicMock(spec=AsyncEngine)
+    get_engine()
+    _, kwargs = mock_create.call_args
+    assert kwargs["connect_args"] == {}
 
 
 @patch("app.database.create_async_engine")
