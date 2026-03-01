@@ -7,11 +7,15 @@ import pytest
 from fastapi import HTTPException
 
 from app.rate_limiter import (
+    ENDPOINT_RATE_LIMIT,
+    ENDPOINT_WINDOW_MINUTES,
     _by_email,
+    _by_endpoint,
     _by_ip,
     _redact_email,
     _redact_ip,
     check_and_tarpit,
+    check_endpoint_rate_limit,
     clear,
     record_failure,
 )
@@ -145,6 +149,55 @@ class TestCheckAndTarpit:
         await check_and_tarpit("5.5.5.5", "clean@example.com")
 
         mock_sleep.assert_not_called()
+
+
+class TestEndpointRateLimit:
+    def test_allows_requests_under_limit(self):
+        """Requests under the limit should pass without raising."""
+        for _ in range(ENDPOINT_RATE_LIMIT):
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+    def test_raises_429_over_limit(self):
+        """Exceeding the limit should raise 429 with Retry-After."""
+        for _ in range(ENDPOINT_RATE_LIMIT):
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+        with pytest.raises(HTTPException) as exc_info:
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+        assert exc_info.value.status_code == 429
+        assert exc_info.value.headers["Retry-After"] == str(ENDPOINT_WINDOW_MINUTES * 60)
+
+    def test_separate_ips_tracked_independently(self):
+        """Different IPs should have independent counters."""
+        for _ in range(ENDPOINT_RATE_LIMIT):
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+        # Different IP should still be allowed
+        check_endpoint_rate_limit("5.6.7.8", "logout")
+
+    def test_separate_endpoints_tracked_independently(self):
+        """Different endpoints for the same IP should have independent counters."""
+        for _ in range(ENDPOINT_RATE_LIMIT):
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+        # Different endpoint should still be allowed
+        check_endpoint_rate_limit("1.2.3.4", "other")
+
+    def test_window_expiry_resets_count(self):
+        """Requests outside the window should reset the counter."""
+        for _ in range(ENDPOINT_RATE_LIMIT):
+            check_endpoint_rate_limit("1.2.3.4", "logout")
+
+        # Age the entry beyond the window
+        key = "1.2.3.4:logout"
+        _by_endpoint[key].last_attempt = datetime.now(UTC) - timedelta(
+            minutes=ENDPOINT_WINDOW_MINUTES + 1
+        )
+
+        # Should be allowed again (counter resets)
+        check_endpoint_rate_limit("1.2.3.4", "logout")
+        assert _by_endpoint[key].attempts == 1
 
 
 class TestCleanup:

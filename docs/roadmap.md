@@ -139,7 +139,7 @@ Findings from the February 2026 security audit. Address before wider adoption.
 **Backend hardening:**
 - ~~Enforce DB connection SSL (`sslmode=require`) in production~~
 - ~~Verify production email always uses TLS~~
-- Verify nginx or Cloud Run handles rate limiting on `POST /waitlist`, `POST /feedback`, `POST /auth/login`
+- ~~Verify nginx or Cloud Run handles rate limiting on `POST /waitlist`, `POST /feedback`, `POST /auth/login`~~
 
 ## Done
 

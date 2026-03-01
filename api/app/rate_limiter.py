@@ -36,6 +36,7 @@ class AttemptRecord:
 
 _by_ip: dict[str, AttemptRecord] = {}
 _by_email: dict[str, AttemptRecord] = {}
+_by_endpoint: dict[str, AttemptRecord] = {}
 _check_counter: int = 0
 
 
@@ -86,7 +87,7 @@ def clear(ip: str, email: str) -> None:
 def _cleanup() -> None:
     """Evict entries older than EXPIRY_MINUTES."""
     cutoff = datetime.now(UTC) - timedelta(minutes=EXPIRY_MINUTES)
-    for store in (_by_ip, _by_email):
+    for store in (_by_ip, _by_email, _by_endpoint):
         expired = [k for k, v in store.items() if v.last_attempt < cutoff]
         for k in expired:
             del store[k]
@@ -144,3 +145,40 @@ async def check_and_tarpit(ip: str, email: str) -> None:
             worst,
         )
         await asyncio.sleep(delay)
+
+
+ENDPOINT_RATE_LIMIT = 20
+ENDPOINT_WINDOW_MINUTES = 5
+
+
+def check_endpoint_rate_limit(ip: str, endpoint: str) -> None:
+    """Raise 429 if IP exceeds per-endpoint rate limit.
+
+    Simple counter: ENDPOINT_RATE_LIMIT calls per ENDPOINT_WINDOW_MINUTES
+    per IP per endpoint. Entries auto-expire via _cleanup().
+    """
+    ip = _sanitize(ip)
+    key = f"{ip}:{endpoint}"
+    now = datetime.now(UTC)
+    window_start = now - timedelta(minutes=ENDPOINT_WINDOW_MINUTES)
+
+    record = _by_endpoint.get(key)
+    if record is None or record.last_attempt < window_start:
+        _by_endpoint[key] = AttemptRecord(attempts=1, last_attempt=now)
+        return
+
+    record.attempts += 1
+    record.last_attempt = now
+
+    if record.attempts > ENDPOINT_RATE_LIMIT:
+        logger.warning(
+            "Endpoint rate limit: ip=%s endpoint=%s attempts=%d",
+            _redact_ip(ip),
+            endpoint,
+            record.attempts,
+        )
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Try again later.",
+            headers={"Retry-After": str(ENDPOINT_WINDOW_MINUTES * 60)},
+        )

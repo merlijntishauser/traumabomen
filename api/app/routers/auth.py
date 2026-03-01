@@ -31,7 +31,7 @@ from app.models.tree import Tree
 from app.models.turning_point import TurningPoint
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
-from app.rate_limiter import check_and_tarpit, clear, record_failure
+from app.rate_limiter import check_and_tarpit, check_endpoint_rate_limit, clear, record_failure
 from app.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
@@ -305,12 +305,15 @@ async def refresh(
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(
+    request: Request,
     body: LogoutRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     from app.auth import revoke_refresh_token
 
+    ip = request.client.host if request.client else "unknown"
+    check_endpoint_rate_limit(ip, "logout")
     await revoke_refresh_token(body.refresh_token, user.id, db)
     await db.commit()
     return {"message": "Logged out"}
