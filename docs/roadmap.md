@@ -24,12 +24,9 @@ These features turn the tree from a diagram into a living reflection tool. The r
 
 ### 4. Personal insights summary
 
-Read-only overview page per tree that surfaces basic observations from what the user already entered.
+Read-only overview page per tree at `/trees/:id/insights` that surfaces basic observations from what the user already entered. Four insight categories: generational patterns, temporal clustering, category summaries, resilience indicators. Card grid layout, all computation client-side, no AI. Presented as a reflection starting point, not conclusions.
 
-- "3 generations affected by addiction"
-- "Loss events cluster around ages 30-40"
-- "2 persons share the same classification"
-- Not AI analysis; counting and grouping, presented as a reflection starting point
+See [design doc](plans/2026-03-01-personal-insights-design.md).
 
 ## Planned: Scaling hardening (high priority)
 
