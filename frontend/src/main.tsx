@@ -28,7 +28,10 @@ if (sentryDsn) {
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
     sendDefaultPii: false,
-    ignoreErrors: [/message <get-frame-manager-configuration>/],
+    ignoreErrors: [
+      /message <get-frame-manager-configuration>/,
+      /runtime\.sendMessage\(\)\. Tab not found/,
+    ],
     beforeSend: stripSensitiveBreadcrumbs,
   });
 }
