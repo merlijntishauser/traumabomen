@@ -408,9 +408,9 @@ describe("auth functions", () => {
     expect(getRefreshToken()).toBe("login-rt");
   });
 
-  it("logout clears tokens", () => {
+  it("logout clears tokens", async () => {
     setTokens("a", "b");
-    logout();
+    await logout();
     expect(getAccessToken()).toBeNull();
     expect(getRefreshToken()).toBeNull();
   });
