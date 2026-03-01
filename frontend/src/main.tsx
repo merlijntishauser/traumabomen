@@ -28,6 +28,7 @@ if (sentryDsn) {
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
     sendDefaultPii: false,
+    ignoreErrors: [/message <get-frame-manager-configuration>/],
     beforeSend: stripSensitiveBreadcrumbs,
   });
 }
