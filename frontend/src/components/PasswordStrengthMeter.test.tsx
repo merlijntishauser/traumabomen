@@ -42,9 +42,7 @@ describe("PasswordStrengthMeter", () => {
   });
 
   it("applies the correct level class to the meter", () => {
-    const { container } = render(
-      <PasswordStrengthMeter password="Abcdefghijklmno1" />,
-    );
+    const { container } = render(<PasswordStrengthMeter password="Abcdefghijklmno1" />);
     const meter = container.querySelector(".password-meter");
     expect(meter?.classList.contains("password-meter--strong")).toBe(true);
   });

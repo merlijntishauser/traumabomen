@@ -26,7 +26,11 @@ vi.mock("react-markdown", () => ({
     children,
     allowedElements,
     unwrapDisallowed,
-  }: { children: string; allowedElements?: string[]; unwrapDisallowed?: boolean }) => (
+  }: {
+    children: string;
+    allowedElements?: string[];
+    unwrapDisallowed?: boolean;
+  }) => (
     <div
       data-testid="markdown"
       data-allowed-elements={allowedElements?.join(",") ?? ""}

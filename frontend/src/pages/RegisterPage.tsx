@@ -182,7 +182,11 @@ export default function RegisterPage() {
               </p>
             )}
 
-            <button className="auth-submit" type="submit" disabled={loading || getPasswordStrength(password).level === "weak"}>
+            <button
+              className="auth-submit"
+              type="submit"
+              disabled={loading || getPasswordStrength(password).level === "weak"}
+            >
               {loading ? t("auth.derivingKey") : t("auth.register")}
             </button>
           </form>

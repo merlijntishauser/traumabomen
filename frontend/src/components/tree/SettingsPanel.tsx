@@ -388,7 +388,13 @@ export function SettingsPanel({ viewTab, className }: Props) {
                     <button
                       type="button"
                       className="settings-panel__btn"
-                      disabled={!pwCurrent || !pwNew || !pwConfirm || pwLoading || getPasswordStrength(pwNew).level === "weak"}
+                      disabled={
+                        !pwCurrent ||
+                        !pwNew ||
+                        !pwConfirm ||
+                        pwLoading ||
+                        getPasswordStrength(pwNew).level === "weak"
+                      }
                       onClick={handleChangePassword}
                     >
                       {t("common.save")}
