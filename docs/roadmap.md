@@ -65,13 +65,15 @@ Free-text sticky notes or arrows that users can place directly on the canvas bet
 
 Share a tree with another user for viewing. Builds on the per-tree key architecture from the export milestone.
 
-- Asymmetric key pair (X25519 or RSA-OAEP) generated at registration, private key encrypted with master key
-- Sharer encrypts tree key with recipient's public key; stored in `TreeShare` model with permission level
-- Recipient decrypts shared tree keys on unlock; shared trees appear alongside owned trees
-- Server-side permission enforcement (viewer cannot write)
+- RSA-OAEP 4096-bit key pair generated per user on first unlock, private key encrypted with master key
+- Sharer encrypts tree key with recipient's public key; stored in `TreeShare` model
+- Pending shares for non-registered recipients: invite email sent, auto-completed when recipient creates account
+- Recipient decrypts shared tree keys on unlock; shared trees appear in separate "Shared with me" section
+- Server-side read-only enforcement (viewer can GET but not POST/PUT/DELETE); journal entries excluded
+- Display name field for user identity in shares
 - Revoke access by deleting the share grant
 
-Prerequisite: user data export (#7) must land first (per-tree keys, key ring).
+See [design doc](plans/2026-03-01-read-only-tree-sharing-design.md). Prerequisite: user data export (#7).
 
 ### 12. Wellbeing check-in
 
@@ -190,7 +192,10 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - GEDCOM import/export
 - PDF/image export (with filtering: choose which persons/events to include)
 - Custom category management
-- Collaborative/shared trees with edit permissions (extends read-only sharing, #11)
+- Edit permissions for shared trees (extends read-only sharing, #11)
+- Share links for non-registered users (extends read-only sharing, #11)
+- Out-of-band key fingerprint verification for shared tree key exchange
+- Collaborative real-time editing (extends edit permissions)
 - Offline-first with service worker
 - Additional languages beyond English and Dutch
 - Family constellation ("familie opstelling") functionality with an "I" person node
