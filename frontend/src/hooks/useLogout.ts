@@ -10,7 +10,7 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useCallback(() => {
-    logout();
+    void logout();
     clearKey();
     queryClient.clear();
     navigate("/login");

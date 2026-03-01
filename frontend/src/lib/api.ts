@@ -160,7 +160,7 @@ async function refreshAccessToken(): Promise<boolean> {
         body: { refresh_token: refreshToken },
         requiresAuth: false,
       });
-      localStorage.setItem(TOKEN_KEY, data.access_token);
+      setTokens(data.access_token, data.refresh_token);
       return true;
     } catch {
       clearTokens();
@@ -233,7 +233,18 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
   return data;
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
+  const refreshToken = getRefreshToken();
+  if (refreshToken) {
+    try {
+      await apiFetch("/auth/logout", {
+        method: "POST",
+        body: { refresh_token: refreshToken },
+      });
+    } catch {
+      // Fire-and-forget: don't block logout if server call fails
+    }
+  }
   clearTokens();
 }
 
