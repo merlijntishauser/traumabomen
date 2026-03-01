@@ -216,6 +216,16 @@ async def create_user(
     return user
 
 
+async def create_test_refresh_token(db: AsyncSession, user_id: uuid.UUID) -> str:
+    """Create an opaque refresh token for testing."""
+    from app.auth import create_refresh_token
+
+    family_id = uuid.uuid4()
+    plaintext = await create_refresh_token(user_id, family_id, db, TEST_SETTINGS)
+    await db.commit()
+    return plaintext
+
+
 def auth_headers(user_id: uuid.UUID) -> dict:
     """Build Authorization header with a valid access token."""
     token = create_token(user_id, "access", TEST_SETTINGS)

@@ -62,6 +62,7 @@ async def _build_token_response(user: User, settings: Settings, db: AsyncSession
 
     family_id = _uuid.uuid4()
     refresh_plaintext = await create_refresh_token(user.id, family_id, db, settings)
+    await db.commit()
     return TokenResponse(
         access_token=create_token(user.id, "access", settings, is_admin=user.is_admin),
         refresh_token=refresh_plaintext,
@@ -289,6 +290,7 @@ async def refresh(
 
     result = await use_refresh_token(body.refresh_token, db)
     if result is None:
+        await db.commit()  # persist any family revocation from replay detection
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )

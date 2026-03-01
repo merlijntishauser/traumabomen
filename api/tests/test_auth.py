@@ -17,7 +17,7 @@ from app.auth import (
     verify_password,
 )
 from app.models.user import User
-from tests.conftest import TEST_SETTINGS, auth_headers, create_user
+from tests.conftest import TEST_SETTINGS, auth_headers, create_test_refresh_token, create_user
 
 # ---------------------------------------------------------------------------
 # Unit tests: auth utilities
@@ -330,6 +330,22 @@ class TestLogin:
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
+    async def test_login_returns_opaque_refresh_token(self, client, db_session):
+        """Login returns an opaque refresh token that can be used to refresh."""
+        await create_user(db_session, email="opaque-login@example.com")
+        resp = await client.post(
+            "/auth/login",
+            json={"email": "opaque-login@example.com", "password": "TestPassword1"},
+        )
+        assert resp.status_code == 200
+        refresh_token = resp.json()["refresh_token"]
+
+        # Use the refresh token
+        resp2 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp2.status_code == 200
+        assert "refresh_token" in resp2.json()
+
+    @pytest.mark.asyncio
     async def test_login_unverified_email(self, client, db_session):
         from app.models.user import User
 
@@ -351,21 +367,90 @@ class TestLogin:
 
 class TestRefresh:
     @pytest.mark.asyncio
-    async def test_refresh_success(self, client, user):
-        refresh_token = create_token(user.id, "refresh", TEST_SETTINGS)
+    async def test_refresh_returns_new_tokens(self, client, db_session):
+        user = await create_user(db_session, email="refresh@example.com")
+        refresh_token = await create_test_refresh_token(db_session, user.id)
+
         resp = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
         assert resp.status_code == 200
-        assert "access_token" in resp.json()
+        data = resp.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+        assert data["refresh_token"] != refresh_token  # rotated
 
     @pytest.mark.asyncio
-    async def test_refresh_with_access_token_fails(self, client, user):
-        access_token = create_token(user.id, "access", TEST_SETTINGS)
-        resp = await client.post("/auth/refresh", json={"refresh_token": access_token})
-        assert resp.status_code == 401
+    async def test_refresh_token_is_single_use(self, client, db_session):
+        user = await create_user(db_session, email="single-use@example.com")
+        refresh_token = await create_test_refresh_token(db_session, user.id)
+
+        # First use succeeds
+        resp1 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp1.status_code == 200
+
+        # Second use of same token fails
+        resp2 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp2.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_reuse_revokes_entire_family(self, client, db_session):
+        user = await create_user(db_session, email="family@example.com")
+        refresh_token = await create_test_refresh_token(db_session, user.id)
+
+        # First refresh: get a new token
+        resp1 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp1.status_code == 200
+        new_token = resp1.json()["refresh_token"]
+
+        # Replay old token: triggers family revocation
+        resp2 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp2.status_code == 401
+
+        # New token should also be revoked now
+        resp3 = await client.post("/auth/refresh", json={"refresh_token": new_token})
+        assert resp3.status_code == 401
 
     @pytest.mark.asyncio
     async def test_refresh_invalid_token(self, client):
         resp = await client.post("/auth/refresh", json={"refresh_token": "invalid"})
+        assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_multiple_sessions_independent(self, client, db_session):
+        user = await create_user(db_session, email="multi@example.com")
+        token_a = await create_test_refresh_token(db_session, user.id)
+        token_b = await create_test_refresh_token(db_session, user.id)
+
+        # Both should work independently
+        resp_a = await client.post("/auth/refresh", json={"refresh_token": token_a})
+        resp_b = await client.post("/auth/refresh", json={"refresh_token": token_b})
+        assert resp_a.status_code == 200
+        assert resp_b.status_code == 200
+
+
+class TestLogout:
+    @pytest.mark.asyncio
+    async def test_logout_revokes_token(self, client, db_session):
+        user = await create_user(db_session, email="logout@example.com")
+        refresh_token = await create_test_refresh_token(db_session, user.id)
+        hdrs = auth_headers(user.id)
+
+        resp = await client.post(
+            "/auth/logout",
+            json={"refresh_token": refresh_token},
+            headers=hdrs,
+        )
+        assert resp.status_code == 200
+
+        # Token should no longer work
+        resp2 = await client.post("/auth/refresh", json={"refresh_token": refresh_token})
+        assert resp2.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_logout_unauthenticated(self, client):
+        resp = await client.post(
+            "/auth/logout",
+            json={"refresh_token": "anything"},
+        )
         assert resp.status_code == 401
 
 
@@ -389,8 +474,9 @@ class TestProtectedEndpoint:
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_refresh_token_as_access(self, client, user):
-        refresh_token = create_token(user.id, "refresh", TEST_SETTINGS)
+    async def test_opaque_refresh_token_as_access(self, client, db_session):
+        user = await create_user(db_session, email="opaque@example.com")
+        refresh_token = await create_test_refresh_token(db_session, user.id)
         resp = await client.get("/trees", headers={"Authorization": f"Bearer {refresh_token}"})
         assert resp.status_code == 401
 
@@ -656,7 +742,7 @@ class TestRefreshDeletedUser:
     async def test_refresh_for_deleted_user(self, client, db_session):
         """Refresh token for a user that no longer exists returns 401."""
         user = await create_user(db_session, email="gone@example.com")
-        refresh_token = create_token(user.id, "refresh", TEST_SETTINGS)
+        refresh_token = await create_test_refresh_token(db_session, user.id)
         await db_session.delete(user)
         await db_session.commit()
 
