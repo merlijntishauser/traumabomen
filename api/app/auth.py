@@ -48,11 +48,11 @@ async def create_refresh_token(
     db: AsyncSession,
     settings: Settings,
 ) -> str:
-    """Create an opaque refresh token, store its hash, return the plaintext."""
+    """Create an opaque refresh token, store its hash, return the raw token."""
     from app.models.refresh_token import RefreshToken
 
-    plaintext = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     row = RefreshToken(
         user_id=user_id,
         token_hash=token_hash,
@@ -61,11 +61,11 @@ async def create_refresh_token(
     )
     db.add(row)
     await db.flush()
-    return plaintext
+    return raw_token
 
 
 async def use_refresh_token(
-    plaintext: str,
+    raw_token: str,
     db: AsyncSession,
 ) -> tuple[User, uuid.UUID] | None:
     """Consume a refresh token. Returns (user, family_id) or None.
@@ -75,7 +75,7 @@ async def use_refresh_token(
     """
     from app.models.refresh_token import RefreshToken
 
-    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     row = result.scalar_one_or_none()
 
@@ -107,14 +107,14 @@ async def use_refresh_token(
 
 
 async def revoke_refresh_token(
-    plaintext: str,
+    raw_token: str,
     user_id: uuid.UUID,
     db: AsyncSession,
 ) -> bool:
     """Revoke a specific refresh token. Returns True if found and owned by user."""
     from app.models.refresh_token import RefreshToken
 
-    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     result = await db.execute(
         select(RefreshToken).where(
             RefreshToken.token_hash == token_hash,
