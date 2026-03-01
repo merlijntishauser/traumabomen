@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { decryptFromApi, encryptForApi, hashPassphrase } from "../lib/crypto";
+import { decryptFromApi, encryptForApi, hashPassphrase, timingSafeEqual } from "../lib/crypto";
 
 interface EncryptionContextValue {
   masterKey: CryptoKey | null;
@@ -69,7 +69,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
     async (passphrase: string): Promise<boolean> => {
       if (!passphraseHash) return false;
       const hash = await hashPassphrase(passphrase);
-      return hash === passphraseHash;
+      return timingSafeEqual(hash, passphraseHash);
     },
     [passphraseHash],
   );

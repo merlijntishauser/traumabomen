@@ -126,6 +126,18 @@ export async function hashPassphrase(passphrase: string): Promise<string> {
   return toBase64(new Uint8Array(hashBuffer));
 }
 
+export function timingSafeEqual(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.length !== bufB.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bufA.length; i++) {
+    diff |= bufA[i] ^ bufB[i];
+  }
+  return diff === 0;
+}
+
 export interface GeneratedTreeKey {
   key: CryptoKey;
   base64: string;

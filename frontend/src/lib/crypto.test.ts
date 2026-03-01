@@ -15,6 +15,7 @@ import {
   importTreeKey,
   KeyDerivationError,
   PassphraseError,
+  timingSafeEqual,
 } from "./crypto";
 
 async function createTestKey(): Promise<CryptoKey> {
@@ -143,6 +144,30 @@ describe("hashPassphrase", () => {
     const hash1 = await hashPassphrase("passphrase-one");
     const hash2 = await hashPassphrase("passphrase-two");
     expect(hash1).not.toBe(hash2);
+  });
+});
+
+describe("timingSafeEqual", () => {
+  it("returns true for equal strings", () => {
+    expect(timingSafeEqual("abc", "abc")).toBe(true);
+  });
+
+  it("returns false for different strings of same length", () => {
+    expect(timingSafeEqual("abc", "abd")).toBe(false);
+  });
+
+  it("returns false for different lengths", () => {
+    expect(timingSafeEqual("abc", "abcd")).toBe(false);
+  });
+
+  it("returns true for empty strings", () => {
+    expect(timingSafeEqual("", "")).toBe(true);
+  });
+
+  it("works with base64 hash strings", async () => {
+    const hash = await hashPassphrase("test");
+    expect(timingSafeEqual(hash, hash)).toBe(true);
+    expect(timingSafeEqual(hash, hash + "x")).toBe(false);
   });
 });
 
