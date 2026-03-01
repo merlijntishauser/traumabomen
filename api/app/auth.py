@@ -30,20 +30,14 @@ def check_password_strength(password: str) -> dict[str, object]:
     if len(password) < 8:
         return {"score": 0, "level": "weak"}
 
-    score = 1  # >= 8 chars
-    if len(password) >= 12:
-        score += 1
-    if len(password) >= 16:
-        score += 1
-
-    has_lower = bool(re.search(r"[a-z]", password))
-    has_upper = bool(re.search(r"[A-Z]", password))
-    if has_lower and has_upper:
-        score += 1
-
-    if re.search(r"[\d\W_]", password):
-        score += 1
-
+    score = 1 + sum(
+        [
+            len(password) >= 12,
+            len(password) >= 16,
+            bool(re.search(r"[a-z]", password)) and bool(re.search(r"[A-Z]", password)),
+            bool(re.search(r"[\d\W_]", password)),
+        ]
+    )
     level = "weak" if score <= 2 else ("fair" if score == 3 else "strong")
     return {"score": score, "level": level}
 

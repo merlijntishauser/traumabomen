@@ -120,16 +120,20 @@ async def _finalize_registration(
     await db.commit()
 
 
+def _validate_password(password: str) -> None:
+    if len(password) > 64:
+        raise HTTPException(status_code=422, detail="password_too_long")
+    if check_password_strength(password)["level"] == "weak":
+        raise HTTPException(status_code=422, detail="password_too_weak")
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     body: RegisterRequest,
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse | RegisterResponse:
-    if len(body.password) > 64:
-        raise HTTPException(status_code=422, detail="password_too_long")
-    if check_password_strength(body.password)["level"] == "weak":
-        raise HTTPException(status_code=422, detail="password_too_weak")
+    _validate_password(body.password)
 
     email = body.email.strip().lower()
     result = await db.execute(select(User).where(User.email == email))
@@ -145,31 +149,25 @@ async def register(
             detail="registration_closed",
         )
 
-    if settings.REQUIRE_EMAIL_VERIFICATION:
-        token, hashed = _generate_verification_token()
-        user = User(
-            email=email,
-            hashed_password=hash_password(body.password),
-            encryption_salt=body.encryption_salt,
-            email_verified=False,
-            email_verification_token=hashed,
-            email_verification_expires_at=datetime.now(UTC)
-            + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS),
-        )
-        await _finalize_registration(user, waitlist_entry, db)
-
-        send_email_background(send_verification_email, email, token, settings)
-        return RegisterResponse(message="verification_email_sent")
-
     user = User(
         email=email,
         hashed_password=hash_password(body.password),
         encryption_salt=body.encryption_salt,
-        email_verified=True,
+        email_verified=not settings.REQUIRE_EMAIL_VERIFICATION,
     )
+
+    if settings.REQUIRE_EMAIL_VERIFICATION:
+        token, hashed = _generate_verification_token()
+        user.email_verification_token = hashed
+        user.email_verification_expires_at = datetime.now(UTC) + timedelta(
+            hours=VERIFICATION_TOKEN_EXPIRY_HOURS
+        )
+        await _finalize_registration(user, waitlist_entry, db)
+        send_email_background(send_verification_email, email, token, settings)
+        return RegisterResponse(message="verification_email_sent")
+
     await _finalize_registration(user, waitlist_entry, db)
     await db.refresh(user)
-
     return await _build_token_response(user, settings, db)
 
 
@@ -345,10 +343,7 @@ async def change_password(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect"
         )
-    if len(body.new_password) > 64:
-        raise HTTPException(status_code=422, detail="password_too_long")
-    if check_password_strength(body.new_password)["level"] == "weak":
-        raise HTTPException(status_code=422, detail="password_too_weak")
+    _validate_password(body.new_password)
     user.hashed_password = hash_password(body.new_password)
     await db.commit()
     return {"message": "Password changed"}
