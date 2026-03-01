@@ -51,11 +51,19 @@ def make_junction_model(
 
 @lru_cache
 def get_engine():
+    url = get_settings().DATABASE_URL
+    connect_args: dict[str, object] = {}
+    if url.startswith("postgresql"):
+        import ssl
+
+        ctx = ssl.create_default_context()
+        connect_args["ssl"] = ctx
     return create_async_engine(
-        get_settings().DATABASE_URL,
+        url,
         pool_pre_ping=True,
         pool_size=5,
         max_overflow=10,
+        connect_args=connect_args,
     )
 
 

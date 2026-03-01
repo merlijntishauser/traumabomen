@@ -30,12 +30,15 @@ def _clear_caches():
 def test_get_engine_calls_create_async_engine(mock_settings, mock_create):
     mock_create.return_value = MagicMock(spec=AsyncEngine)
     engine = get_engine()
-    mock_create.assert_called_once_with(
-        "postgresql+asyncpg://u:p@localhost/db",
-        pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=10,
-    )
+    mock_create.assert_called_once()
+    args, kwargs = mock_create.call_args
+    assert args == ("postgresql+asyncpg://u:p@localhost/db",)
+    assert kwargs["pool_pre_ping"] is True
+    assert kwargs["pool_size"] == 5
+    assert kwargs["max_overflow"] == 10
+    import ssl
+
+    assert isinstance(kwargs["connect_args"]["ssl"], ssl.SSLContext)
     assert engine is mock_create.return_value
 
 
