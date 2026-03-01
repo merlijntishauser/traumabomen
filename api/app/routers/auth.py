@@ -3,15 +3,14 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import (
     check_password_strength,
+    create_refresh_token,
     create_token,
-    decode_token,
     get_current_user,
     hash_password,
     verify_password,
@@ -39,6 +38,7 @@ from app.schemas.auth import (
     KeyRingResponse,
     KeyRingUpdate,
     LoginRequest,
+    LogoutRequest,
     MigrateKeysRequest,
     RefreshRequest,
     RefreshResponse,
@@ -57,10 +57,14 @@ VERIFICATION_TOKEN_EXPIRY_HOURS = 24
 RESEND_RATE_LIMIT_PER_HOUR = 3
 
 
-def _build_token_response(user: User, settings: Settings) -> TokenResponse:
+async def _build_token_response(user: User, settings: Settings, db: AsyncSession) -> TokenResponse:
+    import uuid as _uuid
+
+    family_id = _uuid.uuid4()
+    refresh_plaintext = await create_refresh_token(user.id, family_id, db, settings)
     return TokenResponse(
         access_token=create_token(user.id, "access", settings, is_admin=user.is_admin),
-        refresh_token=create_token(user.id, "refresh", settings),
+        refresh_token=refresh_plaintext,
         encryption_salt=user.encryption_salt,
         onboarding_safety_acknowledged=user.onboarding_safety_acknowledged,
     )
@@ -165,7 +169,7 @@ async def register(
     await _finalize_registration(user, waitlist_entry, db)
     await db.refresh(user)
 
-    return _build_token_response(user, settings)
+    return await _build_token_response(user, settings, db)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -196,7 +200,7 @@ async def login(
     db.add(LoginEvent(user_id=user.id))
     await db.commit()
 
-    return _build_token_response(user, settings)
+    return await _build_token_response(user, settings, db)
 
 
 @router.get("/verify", response_model=VerifyResponse)
@@ -281,28 +285,35 @@ async def refresh(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RefreshResponse:
-    try:
-        payload = decode_token(body.refresh_token, settings)
-        if payload.get("type") != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
-            )
-        user_id = UUID(payload["sub"])
-    except HTTPException:
-        raise
-    except (jwt.PyJWTError, KeyError, ValueError) as exc:
+    from app.auth import use_refresh_token
+
+    result = await use_refresh_token(body.refresh_token, db)
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
-        ) from exc
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists"
         )
+
+    user, family_id = result
+    new_refresh = await create_refresh_token(user.id, family_id, db, settings)
+    await db.commit()
+
     return RefreshResponse(
-        access_token=create_token(user_id, "access", settings, is_admin=user.is_admin),
+        access_token=create_token(user.id, "access", settings, is_admin=user.is_admin),
+        refresh_token=new_refresh,
     )
+
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(
+    body: LogoutRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    from app.auth import revoke_refresh_token
+
+    await revoke_refresh_token(body.refresh_token, user.id, db)
+    await db.commit()
+    return {"message": "Logged out"}
 
 
 @router.put("/onboarding", status_code=status.HTTP_200_OK)
