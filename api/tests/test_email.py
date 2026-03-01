@@ -69,7 +69,9 @@ class TestSendSmtp:
         assert args[1] == "recipient@example.com"
 
     @patch("app.email.smtplib.SMTP")
-    def test_sends_without_auth_when_no_smtp_user(self, mock_smtp_cls, smtp_settings_no_auth):
+    def test_sends_with_tls_but_no_auth_when_no_smtp_user(
+        self, mock_smtp_cls, smtp_settings_no_auth
+    ):
         mock_server = MagicMock()
         mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
         mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
@@ -81,7 +83,7 @@ class TestSendSmtp:
 
         _send_smtp(msg, "recipient@example.com", smtp_settings_no_auth)
 
-        mock_server.starttls.assert_not_called()
+        mock_server.starttls.assert_called_once()
         mock_server.login.assert_not_called()
         mock_server.sendmail.assert_called_once()
 
@@ -116,14 +118,14 @@ class TestSendVerificationEmail:
         assert "test-token-123" in args[0][2]
 
     @patch("app.email.smtplib.SMTP")
-    def test_sends_email_without_auth(self, mock_smtp_cls, smtp_settings_no_auth):
+    def test_sends_email_with_tls_but_no_auth(self, mock_smtp_cls, smtp_settings_no_auth):
         mock_server = MagicMock()
         mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
         mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         send_verification_email("user@example.com", "tok", smtp_settings_no_auth)
 
-        mock_server.starttls.assert_not_called()
+        mock_server.starttls.assert_called_once()
         mock_server.login.assert_not_called()
         mock_server.sendmail.assert_called_once()
 
@@ -167,14 +169,14 @@ class TestSendWaitlistApprovalEmail:
         assert args[0][1] == "user@example.com"
 
     @patch("app.email.smtplib.SMTP")
-    def test_sends_approval_email_without_auth(self, mock_smtp_cls, smtp_settings_no_auth):
+    def test_sends_approval_email_with_tls_but_no_auth(self, mock_smtp_cls, smtp_settings_no_auth):
         mock_server = MagicMock()
         mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
         mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         send_waitlist_approval_email("user@example.com", "tok", smtp_settings_no_auth)
 
-        mock_server.starttls.assert_not_called()
+        mock_server.starttls.assert_called_once()
         mock_server.login.assert_not_called()
         mock_server.sendmail.assert_called_once()
 
