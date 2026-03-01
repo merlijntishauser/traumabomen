@@ -3,7 +3,12 @@ from collections.abc import AsyncGenerator
 from functools import lru_cache
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.config import get_settings
@@ -50,7 +55,7 @@ def make_junction_model(
 
 
 @lru_cache
-def get_engine():
+def get_engine() -> AsyncEngine:
     settings = get_settings()
     connect_args: dict[str, object] = {}
     if settings.DATABASE_SSL:
@@ -67,7 +72,7 @@ def get_engine():
 
 
 @lru_cache
-def get_session_factory():
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(get_engine(), expire_on_commit=False)
 
 
