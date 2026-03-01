@@ -6,6 +6,7 @@ from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.login_event import LoginEvent
 from app.models.pattern import Pattern, PatternPerson
 from app.models.person import Person
+from app.models.refresh_token import RefreshToken
 from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.models.turning_point import TurningPoint, TurningPointPerson
@@ -30,5 +31,6 @@ __all__ = [
     "JournalEntry",
     "LoginEvent",
     "Feedback",
+    "RefreshToken",
     "WaitlistEntry",
 ]
