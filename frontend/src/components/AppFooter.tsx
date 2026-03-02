@@ -121,6 +121,16 @@ export function AppFooter({ onLock }: Props) {
           >
             AGPL-3.0
           </a>
+          {(__APP_VERSION__ || __APP_COMMIT__) && (
+            <>
+              <span className="app-footer__colophon-sep" aria-hidden="true" />
+              <span className="app-footer__version">
+                {__APP_VERSION__ && <span>{__APP_VERSION__}</span>}
+                {__APP_VERSION__ && __APP_COMMIT__ && " "}
+                {__APP_COMMIT__ && <span>({__APP_COMMIT__})</span>}
+              </span>
+            </>
+          )}
         </div>
       </footer>
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}

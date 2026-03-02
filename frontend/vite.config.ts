@@ -1,6 +1,23 @@
+import { execSync } from "node:child_process";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { type Plugin, defineConfig } from "vite";
+
+function gitInfo(): { tag: string; hash: string } {
+  // In Docker production builds, git isn't available; use build args passed as env vars.
+  if (process.env.APP_VERSION || process.env.APP_COMMIT) {
+    return { tag: process.env.APP_VERSION ?? "", hash: process.env.APP_COMMIT ?? "" };
+  }
+  try {
+    const tag = execSync("git describe --tags --abbrev=0 2>/dev/null || echo ''", {
+      encoding: "utf-8",
+    }).trim();
+    const hash = execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+    return { tag, hash };
+  } catch {
+    return { tag: "", hash: "unknown" };
+  }
+}
 
 /** Replace __OG_*__ placeholders in index.html during dev only (nginx does this in prod). */
 function devHtmlPlaceholders(): Plugin {
@@ -18,7 +35,13 @@ function devHtmlPlaceholders(): Plugin {
   };
 }
 
+const git = gitInfo();
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(git.tag),
+    __APP_COMMIT__: JSON.stringify(git.hash),
+  },
   plugins: [
     react(),
     devHtmlPlaceholders(),

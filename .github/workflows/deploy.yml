@@ -131,6 +131,8 @@ jobs:
             --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
             --build-arg SENTRY_ORG=${{ secrets.SENTRY_ORG }} \
             --build-arg SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }} \
+            --build-arg APP_VERSION=${{ github.ref_name }} \
+            --build-arg APP_COMMIT=$(echo ${{ github.sha }} | cut -c1-7) \
             -t ${{ env.IMAGE_PREFIX }}/frontend:${{ github.ref_name }} \
             -t ${{ env.IMAGE_PREFIX }}/frontend:latest \
             ./frontend
