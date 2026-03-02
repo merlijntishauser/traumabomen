@@ -652,6 +652,7 @@
   "admin.email": "E-mail",
   "admin.signedUp": "Geregistreerd",
   "admin.lastActive": "Laatst actief",
+  "admin.adminBadge": "Admin",
   "admin.emailVerified": "Geverifieerd",
   "admin.trees": "Bomen",
   "admin.rels": "Rel.",

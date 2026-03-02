@@ -494,7 +494,12 @@ export default function AdminPage() {
                   <tbody>
                     {users.data.users.map((user: UserRow) => (
                       <tr key={user.id}>
-                        <td className="admin-users-table__email">{user.email}</td>
+                        <td className="admin-users-table__email">
+                          {user.email}
+                          {user.is_admin && (
+                            <span className="admin-user-badge">{t("admin.adminBadge")}</span>
+                          )}
+                        </td>
                         <td>{formatDate(user.created_at, i18n.language)}</td>
                         <td>
                           {user.last_active ? formatDate(user.last_active, i18n.language) : "--"}

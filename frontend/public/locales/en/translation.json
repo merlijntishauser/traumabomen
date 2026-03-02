@@ -653,6 +653,7 @@
   "admin.email": "Email",
   "admin.signedUp": "Signed up",
   "admin.lastActive": "Last active",
+  "admin.adminBadge": "Admin",
   "admin.emailVerified": "Verified",
   "admin.trees": "Trees",
   "admin.rels": "Rels",

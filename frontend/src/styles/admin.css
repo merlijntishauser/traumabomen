@@ -302,6 +302,19 @@
   font-weight: 500;
 }
 
+.admin-user-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  vertical-align: middle;
+}
+
 .admin-users-table td:nth-child(n + 5) {
   text-align: center;
 }

@@ -374,6 +374,7 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
             User.email,
             User.created_at,
             User.email_verified,
+            User.is_admin,
             User.last_active_at,
             func.coalesce(tree_count_sq.c.tree_count, 0).label("tree_count"),
             func.coalesce(tree_person_sq.c.person_count, 0).label("person_count"),
@@ -385,7 +386,7 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
         .outerjoin(tree_rel_sq, tree_rel_sq.c.user_id == User.id)
         .outerjoin(tree_event_sq, tree_event_sq.c.user_id == User.id)
         .where(User.id.not_in(_excluded_user_ids()))
-        .order_by(User.created_at.desc())
+        .order_by(User.is_admin.desc(), User.created_at.desc())
     )
 
     users = [
@@ -394,6 +395,7 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
             email=row.email,
             created_at=row.created_at.isoformat(),
             email_verified=row.email_verified,
+            is_admin=row.is_admin,
             last_active=row.last_active_at.isoformat() if row.last_active_at else None,
             tree_count=row.tree_count,
             person_count=row.person_count,
