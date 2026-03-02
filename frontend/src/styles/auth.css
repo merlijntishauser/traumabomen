@@ -136,7 +136,6 @@
 .auth-page--landing {
   position: relative;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
@@ -173,7 +172,7 @@
   width: auto;
   min-width: 0;
   max-width: 520px;
-  margin: 20px;
+  margin: auto 20px;
   padding: 0;
   background: none;
   border: none;
@@ -632,7 +631,7 @@
 /* --- Mobile: compact layout --- */
 @media (max-width: 420px) {
   .auth-page--landing .auth-content {
-    margin: 10px;
+    margin: auto 10px;
     gap: 14px;
   }
 
