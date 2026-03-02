@@ -13,7 +13,8 @@ import type {
 } from "../../hooks/useTreeData";
 import { getChipColor, resolveChipLabel } from "../../lib/journalChips";
 import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
-import { ALLOWED_MARKDOWN_ELEMENTS, JournalEntryForm } from "./JournalEntryForm";
+import { ALLOWED_MARKDOWN_ELEMENTS } from "./allowedMarkdownElements";
+import { JournalEntryForm } from "./JournalEntryForm";
 import "./Journal.css";
 
 const MAX_CHIPS = 4;

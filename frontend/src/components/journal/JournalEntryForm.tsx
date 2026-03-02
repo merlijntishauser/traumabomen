@@ -15,29 +15,8 @@ import { getChipColor, resolveChipLabel } from "../../lib/journalChips";
 import { getRandomJournalPrompts } from "../../lib/reflectionPrompts";
 import type { JournalEntry, JournalLinkedRef } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { ALLOWED_MARKDOWN_ELEMENTS } from "./allowedMarkdownElements";
 import { EntityLinkPicker } from "./EntityLinkPicker";
-
-export const ALLOWED_MARKDOWN_ELEMENTS = [
-  "p",
-  "br",
-  "strong",
-  "em",
-  "del",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "ul",
-  "ol",
-  "li",
-  "blockquote",
-  "code",
-  "pre",
-  "a",
-  "hr",
-];
 
 type FormMode = "write" | "preview";
 
