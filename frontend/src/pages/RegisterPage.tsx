@@ -20,7 +20,7 @@ function getRegistrationError(err: unknown, t: (key: string) => string): string 
 }
 
 export default function RegisterPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { setMasterKey, setPassphraseHash } = useEncryption();
   const [searchParams] = useSearchParams();
@@ -63,10 +63,12 @@ export default function RegisterPage() {
         password: string;
         encryption_salt: string;
         invite_token?: string;
+        language: string;
       } = {
         email,
         password,
         encryption_salt: salt,
+        language: i18n.language,
       };
       if (inviteToken) {
         registerRequest.invite_token = inviteToken;

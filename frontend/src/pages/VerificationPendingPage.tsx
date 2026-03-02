@@ -6,7 +6,7 @@ import { ApiError, resendVerification } from "../lib/api";
 import "../styles/auth.css";
 
 export default function VerificationPendingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const email = (location.state as { email?: string })?.email ?? "";
 
@@ -27,7 +27,7 @@ export default function VerificationPendingPage() {
     setMessage("");
 
     try {
-      await resendVerification({ email });
+      await resendVerification({ email, language: i18n.language });
       setMessage(t("auth.resendSuccess"));
       setCooldown(60);
       intervalRef.current = setInterval(() => {

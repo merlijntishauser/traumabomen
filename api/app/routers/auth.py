@@ -163,7 +163,7 @@ async def register(
             hours=VERIFICATION_TOKEN_EXPIRY_HOURS
         )
         await _finalize_registration(user, waitlist_entry, db)
-        send_email_background(send_verification_email, email, token, settings)
+        send_email_background(send_verification_email, email, token, settings, body.language)
         return RegisterResponse(message="verification_email_sent")
 
     await _finalize_registration(user, waitlist_entry, db)
@@ -274,7 +274,7 @@ async def resend_verification(
     )
     await db.commit()
 
-    send_email_background(send_verification_email, user.email, token, settings)
+    send_email_background(send_verification_email, user.email, token, settings, body.language)
     return RegisterResponse(message="verification_email_sent")
 
 

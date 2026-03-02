@@ -4,6 +4,7 @@ export interface RegisterRequest {
   password: string;
   encryption_salt: string;
   invite_token?: string;
+  language?: string;
 }
 
 export interface LoginRequest {
@@ -25,6 +26,7 @@ export interface RegisterResponse {
 
 export interface ResendVerificationRequest {
   email: string;
+  language?: string;
 }
 
 export interface VerifyResponse {

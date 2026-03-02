@@ -8,6 +8,7 @@ class RegisterRequest(BaseModel):
     password: str
     encryption_salt: str
     invite_token: str | None = None
+    language: str = "en"
 
 
 class LoginRequest(BaseModel):
@@ -47,6 +48,7 @@ class SaltResponse(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
+    language: str = "en"
 
 
 class VerifyResponse(BaseModel):

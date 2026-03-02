@@ -24,39 +24,68 @@ def _send_smtp(msg: Message, to: str, settings: Settings) -> None:
         server.sendmail(settings.SMTP_FROM, to, msg.as_string())
 
 
-def send_verification_email(to: str, token: str, settings: Settings) -> None:
-    verify_url = f"{settings.APP_BASE_URL}/verify?token={token}"
+def _get_base_url(settings: Settings, language: str) -> str:
+    """Return the base URL matching the user's language."""
+    if language == "nl" and settings.APP_BASE_URL_NL:
+        return settings.APP_BASE_URL_NL.rstrip("/")
+    return settings.APP_BASE_URL.rstrip("/")
+
+
+_VERIFICATION_STRINGS = {
+    "en": {
+        "heading": "Traumatrees",
+        "body": "Verify your email address to get started.",
+        "button": "Verify email",
+        "copy": "Or copy this link:",
+        "expiry": "This link expires in 24 hours. If you did not create an account, you can ignore this email.",
+        "subject": "Verify your email",
+        "text_heading": "Traumatrees",
+        "text_body": "Click the link below to verify your email address:",
+    },
+    "nl": {
+        "heading": "Traumabomen",
+        "body": "Verifieer je e-mailadres om te beginnen.",
+        "button": "E-mail verifi\u00ebren",
+        "copy": "Of kopieer deze link:",
+        "expiry": "Deze link verloopt na 24 uur. Als je geen account hebt aangemaakt, kun je deze e-mail negeren.",
+        "subject": "Verifieer je e-mailadres",
+        "text_heading": "Traumabomen",
+        "text_body": "Klik op de onderstaande link om je e-mailadres te verifi\u00ebren:",
+    },
+}
+
+
+def send_verification_email(to: str, token: str, settings: Settings, language: str = "en") -> None:
+    base_url = _get_base_url(settings, language)
+    verify_url = f"{base_url}/verify?token={token}"
+    s = _VERIFICATION_STRINGS.get(language, _VERIFICATION_STRINGS["en"])
 
     html = f"""\
 <html>
 <body style="font-family: 'Source Sans 3', sans-serif; color: #1a2e1f; max-width: 480px; margin: 0 auto; padding: 24px;">
-  <h2 style="font-family: Georgia, serif; color: #1a2e1f;">Traumabomen</h2>
-  <p>Verify your email address to get started.</p>
+  <h2 style="font-family: Georgia, serif; color: #1a2e1f;">{s["heading"]}</h2>
+  <p>{s["body"]}</p>
   <p>
     <a href="{verify_url}"
        style="display: inline-block; padding: 10px 24px; background: #2d8a5e; color: #fff; text-decoration: none; border-radius: 6px;">
-      Verify email
+      {s["button"]}
     </a>
   </p>
   <p style="color: #5a6e5f; font-size: 14px;">
-    Or copy this link: {verify_url}
+    {s["copy"]} {verify_url}
   </p>
   <p style="color: #5a6e5f; font-size: 14px;">
-    This link expires in 24 hours. If you did not create an account, you can ignore this email.
+    {s["expiry"]}
   </p>
 </body>
 </html>"""
 
     text = (
-        f"Traumabomen - Verify your email\n\n"
-        f"Click the link below to verify your email address:\n\n"
-        f"{verify_url}\n\n"
-        f"This link expires in 24 hours. "
-        f"If you did not create an account, you can ignore this email."
+        f"{s['text_heading']} - {s['subject']}\n\n{s['text_body']}\n\n{verify_url}\n\n{s['expiry']}"
     )
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Verify your email - Traumabomen"
+    msg["Subject"] = f"{s['subject']} - {s['heading']}"
     msg["From"] = settings.SMTP_FROM
     msg["To"] = to
     msg.attach(MIMEText(text, "plain"))
@@ -70,8 +99,11 @@ def send_verification_email(to: str, token: str, settings: Settings) -> None:
         raise
 
 
-def send_waitlist_approval_email(to: str, token: str, settings: Settings) -> None:
-    register_url = f"{settings.APP_BASE_URL}/register?invite={token}"
+def send_waitlist_approval_email(
+    to: str, token: str, settings: Settings, language: str = "en"
+) -> None:
+    base_url = _get_base_url(settings, language)
+    register_url = f"{base_url}/register?invite={token}"
 
     html = f"""\
 <html>

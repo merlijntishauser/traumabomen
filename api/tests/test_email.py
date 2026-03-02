@@ -1,5 +1,6 @@
 """Tests for email sending utility."""
 
+import email
 import threading
 from email.mime.text import MIMEText
 from unittest.mock import MagicMock, patch
@@ -149,6 +150,69 @@ class TestSendVerificationEmail:
 
         sent_msg = mock_server.sendmail.call_args[0][2]
         assert "https://app.example.com/verify?token=abc123" in sent_msg
+
+    @patch("app.email.smtplib.SMTP")
+    def test_dutch_email_uses_nl_base_url(self, mock_smtp_cls, smtp_settings):
+        smtp_settings.APP_BASE_URL_NL = "https://www.traumabomen.nl"
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        send_verification_email("user@example.com", "tok123", smtp_settings, language="nl")
+
+        raw = mock_server.sendmail.call_args[0][2]
+        msg = email.message_from_string(raw)
+        parts = [
+            p.get_payload(decode=True).decode()
+            for p in msg.walk()
+            if p.get_content_type() in ("text/plain", "text/html")
+        ]
+        body = "\n".join(parts)
+        assert "https://www.traumabomen.nl/verify?token=tok123" in body
+        assert "Traumabomen" in body
+        assert "Verifieer" in body
+
+    @patch("app.email.smtplib.SMTP")
+    def test_dutch_email_falls_back_without_nl_url(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        send_verification_email("user@example.com", "tok", smtp_settings, language="nl")
+
+        raw = mock_server.sendmail.call_args[0][2]
+        msg = email.message_from_string(raw)
+        parts = [
+            p.get_payload(decode=True).decode()
+            for p in msg.walk()
+            if p.get_content_type() in ("text/plain", "text/html")
+        ]
+        body = "\n".join(parts)
+        assert "https://app.example.com/verify?token=tok" in body
+
+    @patch("app.email.smtplib.SMTP")
+    def test_english_email_uses_default_base_url(self, mock_smtp_cls, smtp_settings):
+        smtp_settings.APP_BASE_URL_NL = "https://www.traumabomen.nl"
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        send_verification_email("user@example.com", "tok", smtp_settings, language="en")
+
+        sent_msg = mock_server.sendmail.call_args[0][2]
+        assert "https://app.example.com/verify?token=tok" in sent_msg
+        assert "Verify" in sent_msg
+
+    @patch("app.email.smtplib.SMTP")
+    def test_unknown_language_defaults_to_english(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        send_verification_email("user@example.com", "tok", smtp_settings, language="de")
+
+        sent_msg = mock_server.sendmail.call_args[0][2]
+        assert "Verify" in sent_msg
 
 
 class TestSendWaitlistApprovalEmail:
