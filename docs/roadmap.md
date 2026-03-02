@@ -1,20 +1,18 @@
 # Roadmap
 
-## Assessment (February 2026)
+## Assessment (March 2026)
 
-The core product is solid: tree canvas, timeline, DSM classifications, pattern editor, life events, trauma events, zero-knowledge encryption, safety envelope. Quality infrastructure is excellent (97% frontend / 98% backend coverage with ratcheting, CodeQL, Nuclei, ZAP, privacy scanner, Lighthouse). CI/CD is mature with automated testing, multi-stage Docker builds, and post-deploy verification.
+The core product is solid: tree canvas, timeline, DSM classifications, pattern editor, life events, trauma events, turning points (resilience), reflection journal with guided prompts, zero-knowledge encryption, safety envelope. Quality infrastructure is excellent (97% frontend / 98% backend coverage with ratcheting, CodeQL, Nuclei, ZAP, privacy scanner, Lighthouse). CI/CD is mature with automated testing, multi-stage Docker builds, and post-deploy verification.
 
-Two strategic gaps remain:
+The two strategic gaps identified in February are now largely resolved:
 
-**1. Reflection gap.** The app is strong on mapping and visualization but thin on sense-making. There is great data entry, but limited tools to help users process what they have entered. The feature set is deficit-focused (trauma events, classifications, severity scores) without resilience or strengths. For practitioners like Mark Wolynn ("It Didn't Start with You"), the tool tells only half the story without a way to map cycle-breaking, healing, and protective factors.
+**Reflection gap: nearly closed.** Resilience layer, reflection journal, and guided prompts are all shipped. One item remains: personal insights summary (frontend-only, design complete). Shipping this completes the reflection story.
 
-**2. Scaling gap.** The app is configured for a private beta (20-user cap, blocking email, no error tracking). Rate limiting is in place; remaining hardening items must land before wider adoption.
+**Scaling gap: closed.** Rate limiting, error tracking, user data export, async email, and all security hardening items from the February audit are done. The remaining scaling work is operational (Cloud Run configuration, connection pools) and can be adjusted as needed when growing beyond 20 users.
 
-Priority: reflection features first (they define the product), then scaling hardening (gates wider adoption).
+Priority: finish the personal insights summary (completes reflection), then ship high-impact UX features that make the tree more useful for everyday work.
 
 ## Planned: Reflection (high priority)
-
-These features turn the tree from a diagram into a living reflection tool. The resilience layer is the single most important addition for practitioner credibility.
 
 ### ~~1. Resilience and strengths layer~~ (done)
 
@@ -28,9 +26,7 @@ Read-only overview page per tree at `/trees/:id/insights` that surfaces basic ob
 
 See [design doc](plans/2026-03-01-personal-insights-design.md).
 
-## Planned: Scaling hardening (high priority)
-
-Required before growing beyond the current 20-user beta. These are infrastructure essentials, not polish.
+## ~~Planned: Scaling hardening~~ (done)
 
 ### ~~5. API rate limiting~~ (done)
 
@@ -42,23 +38,17 @@ Required before growing beyond the current 20-user beta. These are infrastructur
 
 ## Planned: Features (medium priority)
 
-### 9. Care providers
-
-Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
-
-- **CareProvider nodes**: name, kind (professional/institute), role, optional modality, notes
-- **CareRelationship edges**: link one provider to multiple persons with per-person care periods
-- **CareProviderDetailPanel**: edit provider details and manage linked persons with periods
-- **Timeline**: care periods render as strips below person life bars
-- Visually distinct from family nodes (pill shape, teal/green, dotted edges)
-
-See [design doc](plans/2026-02-15-care-providers-design.md).
-
-### 10. Canvas annotations
+### 9. Canvas annotations
 
 Free-positioned sticky notes on the canvas for spatial observations. Six muted colors for visual grouping. Double-click canvas or toolbar button to create, inline editing with color picker. Encrypted text, plaintext position. New Annotation entity with CRUD endpoints and bulk sync support.
 
 See [design doc](plans/2026-03-02-canvas-annotations-design.md).
+
+### 10. Sibling groups
+
+Compact representation of siblings without creating full Person nodes. A new SiblingGroup entity holds lightweight member records (name, optional birth year) alongside references to full Person nodes. Renders as a pill-shaped node on the canvas, connected to shared parents when available or to the anchor person otherwise. Members can be promoted to full persons with relationships in a single bulk sync call. One group per person constraint.
+
+See [design doc](plans/2026-03-02-sibling-groups-design.md).
 
 ### 11. Read-only tree sharing
 
@@ -74,13 +64,25 @@ Share a tree with another user for viewing. Builds on the per-tree key architect
 
 See [design doc](plans/2026-03-01-read-only-tree-sharing-design.md). Prerequisite: user data export (#7).
 
-### 12. Wellbeing check-in
+### 12. Care providers
+
+Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
+
+- **CareProvider nodes**: name, kind (professional/institute), role, optional modality, notes
+- **CareRelationship edges**: link one provider to multiple persons with per-person care periods
+- **CareProviderDetailPanel**: edit provider details and manage linked persons with periods
+- **Timeline**: care periods render as strips below person life bars
+- Visually distinct from family nodes (pill shape, teal/green, dotted edges)
+
+See [design doc](plans/2026-02-15-care-providers-design.md).
+
+### 13. Wellbeing check-in
 
 Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
 
 ## Planned: Infrastructure (lower priority)
 
-### 13. Passphrase hints and auth modals
+### 14. Passphrase hints and auth modals
 
 User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
 
@@ -90,7 +92,7 @@ User-written passphrase recovery hints, auth modal overlay replacing the unlock 
 
 See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
-### 14. Passkey authentication
+### 15. Passkey authentication
 
 Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
 
@@ -101,7 +103,7 @@ Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+passwor
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
-### 15. Cloud Run scaling configuration
+### 16. Cloud Run scaling configuration
 
 Current settings are conservative for beta. Adjust before wider rollout.
 
@@ -110,7 +112,7 @@ Current settings are conservative for beta. Adjust before wider rollout.
 - ~~Set min-instances to 1 (eliminates 5-10s cold start latency)~~
 - Increase DB connection pool: `pool_size=10, max_overflow=20`
 
-### 16. Client-side virtualization
+### 17. Client-side virtualization
 
 Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline and event lists.
 
@@ -118,31 +120,21 @@ Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline an
 - Viewport-aware rendering for React Flow canvas (already partially handled by @xyflow/react)
 - Consider lazy-loading event details in PersonDetailPanel
 
-### 17. Replace Dagre with elkjs and collapsible sub-trees
+### 18. Replace Dagre with elkjs and collapsible sub-trees
 
 Replace Dagre layout engine with elkjs (the open-source engine behind React Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with compact summary nodes. Drop the React Flow Pro watermark suppression. See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
 
-### 18. Security hardening
-
-Findings from the February 2026 security audit. Address before wider adoption.
-
-**Frontend stability:**
-- ~~React error boundaries on lazy-loaded route pages (single decrypt failure crashes entire app)~~
-- ~~Wrap `decrypt()` calls in `useTreeData` queryFns so one corrupt blob does not block all data~~
-- ~~Explicit `allowedElements` or `rehype-sanitize` config for react-markdown in journal preview~~
-- ~~Verify interval cleanup on unmount in `VerificationPendingPage`~~
-
-**Authentication:**
-- ~~Client-side and server-side password strength validation (minimum length, complexity)~~
-- ~~Refresh token rotation (single-use tokens to limit stolen-token window)~~
-- ~~Constant-time passphrase hash comparison in `EncryptionContext` (replace `===` with timing-safe check)~~
-
-**Backend hardening:**
-- ~~Enforce DB connection SSL (`sslmode=require`) in production~~
-- ~~Verify production email always uses TLS~~
-- ~~Verify nginx or Cloud Run handles rate limiting on `POST /waitlist`, `POST /feedback`, `POST /auth/login`~~
-
 ## Done
+
+### Security hardening
+
+Findings from the February 2026 security audit, all resolved.
+
+**Frontend stability:** React error boundaries on lazy-loaded route pages, resilient decrypt() calls in useTreeData (Promise.allSettled), allowedElements for react-markdown in journal preview, interval cleanup on unmount in VerificationPendingPage.
+
+**Authentication:** Client-side and server-side password strength validation, refresh token rotation (single-use tokens), constant-time passphrase hash comparison.
+
+**Backend hardening:** DB connection SSL enforcement in production, production email TLS verification, rate limiting on auth and public endpoints.
 
 ### Beta waitlist and user cap
 
@@ -206,6 +198,8 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Unknown birth year with approximation (before year, or decade)
 - Call name / nickname for persons
 - Directly add an adopted sibling shortcut
+- Relationship prompt after person creation ([design doc](plans/2026-02-18-relationship-prompt-design.md), partially implemented)
+- Full birth/death dates ([design doc](plans/2026-02-17-full-birth-death-dates-design.md), partially implemented)
 
 ### To think about
 - More themes
