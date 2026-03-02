@@ -90,6 +90,7 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 autoComplete="off"
+                data-1p-ignore
               />
             </div>
             <div className="lock-screen__error" role="alert">

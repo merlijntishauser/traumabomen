@@ -423,6 +423,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
                       placeholder={t("account.currentPassphrase")}
                       value={ppCurrent}
                       onChange={(e) => setPpCurrent(e.target.value)}
+                      data-1p-ignore
                     />
                     <input
                       type="password"
@@ -430,6 +431,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
                       placeholder={t("account.newPassphrase")}
                       value={ppNew}
                       onChange={(e) => setPpNew(e.target.value)}
+                      data-1p-ignore
                     />
                     <input
                       type="password"
@@ -437,6 +439,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
                       placeholder={t("account.confirmNewPassphrase")}
                       value={ppConfirm}
                       onChange={(e) => setPpConfirm(e.target.value)}
+                      data-1p-ignore
                     />
                     <button
                       type="button"

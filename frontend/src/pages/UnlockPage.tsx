@@ -107,6 +107,7 @@ export default function UnlockPage() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 autoFocus
+                data-1p-ignore
               />
             </div>
 

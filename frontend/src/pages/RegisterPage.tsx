@@ -153,6 +153,7 @@ export default function RegisterPage() {
                 minLength={8}
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
+                data-1p-ignore
               />
               <p className="auth-field__hint">{t("auth.passphraseHint")}</p>
             </div>
@@ -165,6 +166,7 @@ export default function RegisterPage() {
                 required
                 value={confirmPassphrase}
                 onChange={(e) => setConfirmPassphrase(e.target.value)}
+                data-1p-ignore
               />
             </div>
 
