@@ -1,6 +1,6 @@
 /* Auth pages: login, register, unlock */
 
-/* --- Split layout: hero left, form right --- */
+/* --- Base layout: hero top/left, form right --- */
 .auth-page {
   flex: 1;
   display: flex;
@@ -9,7 +9,7 @@
   overflow-y: auto;
 }
 
-/* Hero image panel -- visible on mobile as banner, full-height on desktop */
+/* Hero image panel */
 .auth-hero {
   position: relative;
   height: 40vh;
@@ -93,7 +93,7 @@
   }
 }
 
-/* Leaf motif -- only shows on desktop (no hero banner) */
+/* Leaf motif pseudo-elements (hidden, kept for non-landing pages) */
 .auth-content::before,
 .auth-content::after {
   content: "";
@@ -118,14 +118,134 @@
   transform: rotate(-30deg) scale(0.8);
 }
 
-@media (min-width: 900px) {
-  .auth-content::before,
-  .auth-content::after {
-    display: none;
+/* =====================================================
+   Landing variant: full-bleed hero with glass panel
+   ===================================================== */
+
+.auth-page--landing {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Hero fills the entire viewport */
+.auth-page--landing .auth-hero {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  min-height: 0;
+  z-index: 0;
+}
+
+/* Soft radial vignette for the landing hero */
+.auth-page--landing .auth-hero::after {
+  background: radial-gradient(ellipse at center, transparent 10%, rgba(10, 26, 15, 0.55) 100%);
+}
+
+[data-theme="light"] .auth-page--landing .auth-hero::after {
+  background: radial-gradient(ellipse at center, transparent 10%, rgba(232, 235, 229, 0.6) 100%);
+}
+
+/* Glass panel floating over the hero */
+.auth-page--landing .auth-content {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  min-width: 0;
+  max-width: 500px;
+  margin: 20px;
+  padding: 36px 28px 32px;
+  background: rgba(10, 26, 15, 0.78);
+  border: 1px solid rgba(31, 77, 53, 0.5);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .auth-page--landing .auth-content {
+    background: rgba(10, 26, 15, 0.68);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
   }
 }
 
-/* --- Card --- */
+[data-theme="light"] .auth-page--landing .auth-content {
+  background: rgba(245, 246, 243, 0.82);
+  border-color: rgba(200, 205, 195, 0.6);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="light"] .auth-page--landing .auth-content {
+    background: rgba(245, 246, 243, 0.72);
+  }
+}
+
+/* Hide leaf motifs in landing variant */
+.auth-page--landing .auth-content::before,
+.auth-page--landing .auth-content::after {
+  display: none;
+}
+
+/* On desktop, override the row/split behavior for landing */
+@media (min-width: 900px) {
+  .auth-page--landing {
+    flex-direction: column;
+  }
+
+  .auth-page--landing .auth-hero {
+    flex: none;
+  }
+
+  .auth-page--landing .auth-content {
+    width: auto;
+    min-width: 0;
+    max-width: 500px;
+    padding: 44px 40px 36px;
+  }
+}
+
+@media (min-width: 480px) {
+  .auth-page--landing .auth-content {
+    padding: 40px 36px 32px;
+  }
+}
+
+/* Card inside the glass panel: no separate bg, just a top separator */
+.auth-page--landing .auth-card {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--color-border-secondary);
+  border-radius: 0;
+  max-width: none;
+}
+
+/* Welcome section within the glass panel */
+.auth-page--landing .auth-welcome {
+  max-width: none;
+  padding: 0;
+}
+
+/* Custom scrollbar for the glass panel */
+.auth-page--landing .auth-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.auth-page--landing .auth-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.auth-page--landing .auth-content::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 2px;
+}
+
+/* --- Card (non-landing pages) --- */
 .auth-card {
   width: 100%;
   max-width: 420px;
@@ -167,7 +287,7 @@
   font-size: 1.1rem;
   font-weight: 400;
   color: var(--color-text-secondary);
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .auth-card form {
@@ -327,11 +447,20 @@
   }
 }
 
+.auth-welcome__title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
 .auth-welcome__tagline {
   font-family: var(--font-heading);
   font-size: 1.1rem;
   color: var(--color-text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   line-height: 1.4;
 }
 
@@ -394,4 +523,13 @@
 
 .auth-welcome__policy-link:hover {
   color: var(--color-accent-hover);
+}
+
+/* --- Mobile: compact layout --- */
+@media (max-width: 420px) {
+  .auth-page--landing .auth-content {
+    margin: 12px;
+    padding: 28px 20px 24px;
+    max-height: 92vh;
+  }
 }

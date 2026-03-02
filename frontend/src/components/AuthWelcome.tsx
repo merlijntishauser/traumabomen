@@ -6,6 +6,7 @@ export function AuthWelcome() {
 
   return (
     <div className="auth-welcome">
+      <h1 className="auth-welcome__title">{t("app.title")}</h1>
       <p className="auth-welcome__tagline">{t("landing.tagline")}</p>
       <p className="auth-welcome__about">{t("landing.about")}</p>
 

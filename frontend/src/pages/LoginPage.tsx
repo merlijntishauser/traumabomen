@@ -37,13 +37,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-page auth-page--landing">
       <AuthHero />
       <div className="auth-content">
         <AuthWelcome />
 
         <div className="auth-card">
-          <h1>{t("app.title")}</h1>
           <h2>{t("auth.login")}</h2>
 
           <form onSubmit={handleSubmit}>
