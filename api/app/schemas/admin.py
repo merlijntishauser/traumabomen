@@ -72,7 +72,7 @@ class UserRow(BaseModel):
     email: str
     created_at: str
     email_verified: bool
-    last_login: str | None
+    last_active: str | None
     tree_count: int
     person_count: int
     relationship_count: int

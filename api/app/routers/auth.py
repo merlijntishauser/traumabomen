@@ -384,10 +384,13 @@ async def delete_account(
 
 @router.get("/key-ring")
 async def get_key_ring(
+    db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> KeyRingResponse:
     if not user.encrypted_key_ring:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No key ring")
+    user.last_active_at = datetime.now(UTC)
+    await db.commit()
     return KeyRingResponse(encrypted_key_ring=user.encrypted_key_ring)
 
 

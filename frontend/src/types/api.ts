@@ -265,7 +265,7 @@ export interface UserRow {
   email: string;
   created_at: string;
   email_verified: boolean;
-  last_login: string | null;
+  last_active: string | null;
   tree_count: number;
   person_count: number;
   relationship_count: number;

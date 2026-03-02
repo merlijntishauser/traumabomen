@@ -651,7 +651,7 @@
   "admin.userList": "Gebruikers",
   "admin.email": "E-mail",
   "admin.signedUp": "Geregistreerd",
-  "admin.lastLogin": "Laatste login",
+  "admin.lastActive": "Laatst actief",
   "admin.emailVerified": "Geverifieerd",
   "admin.trees": "Bomen",
   "admin.rels": "Rel.",

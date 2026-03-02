@@ -652,7 +652,7 @@
   "admin.userList": "Users",
   "admin.email": "Email",
   "admin.signedUp": "Signed up",
-  "admin.lastLogin": "Last login",
+  "admin.lastActive": "Last active",
   "admin.emailVerified": "Verified",
   "admin.trees": "Trees",
   "admin.rels": "Rels",

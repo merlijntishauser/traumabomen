@@ -483,7 +483,7 @@ export default function AdminPage() {
                     <tr>
                       <th>{t("admin.email")}</th>
                       <th>{t("admin.signedUp")}</th>
-                      <th>{t("admin.lastLogin")}</th>
+                      <th>{t("admin.lastActive")}</th>
                       <th>{t("admin.emailVerified")}</th>
                       <th>{t("admin.trees")}</th>
                       <th>{t("admin.persons")}</th>
@@ -497,7 +497,7 @@ export default function AdminPage() {
                         <td className="admin-users-table__email">{user.email}</td>
                         <td>{formatDate(user.created_at, i18n.language)}</td>
                         <td>
-                          {user.last_login ? formatDate(user.last_login, i18n.language) : "--"}
+                          {user.last_active ? formatDate(user.last_active, i18n.language) : "--"}
                         </td>
                         <td>{user.email_verified ? t("admin.yes") : t("admin.no")}</td>
                         <td>{user.tree_count}</td>

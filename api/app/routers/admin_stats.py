@@ -338,16 +338,6 @@ async def growth_stats(db: AsyncSession = Depends(get_db)) -> GrowthStats:
 
 @router.get("/stats/users", response_model=UserListStats)
 async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
-    # Subquery: last login per user
-    last_login_sq = (
-        select(
-            LoginEvent.user_id,
-            func.max(LoginEvent.logged_at).label("last_login"),
-        )
-        .group_by(LoginEvent.user_id)
-        .subquery()
-    )
-
     # Subquery: entity counts per user (via trees)
     non_demo = Tree.is_demo.is_(False)
     tree_person_sq = (
@@ -384,13 +374,12 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
             User.email,
             User.created_at,
             User.email_verified,
-            last_login_sq.c.last_login,
+            User.last_active_at,
             func.coalesce(tree_count_sq.c.tree_count, 0).label("tree_count"),
             func.coalesce(tree_person_sq.c.person_count, 0).label("person_count"),
             func.coalesce(tree_rel_sq.c.rel_count, 0).label("rel_count"),
             func.coalesce(tree_event_sq.c.event_count, 0).label("event_count"),
         )
-        .outerjoin(last_login_sq, last_login_sq.c.user_id == User.id)
         .outerjoin(tree_count_sq, tree_count_sq.c.user_id == User.id)
         .outerjoin(tree_person_sq, tree_person_sq.c.user_id == User.id)
         .outerjoin(tree_rel_sq, tree_rel_sq.c.user_id == User.id)
@@ -405,7 +394,7 @@ async def user_list_stats(db: AsyncSession = Depends(get_db)) -> UserListStats:
             email=row.email,
             created_at=row.created_at.isoformat(),
             email_verified=row.email_verified,
-            last_login=row.last_login.isoformat() if row.last_login else None,
+            last_active=row.last_active_at.isoformat() if row.last_active_at else None,
             tree_count=row.tree_count,
             person_count=row.person_count,
             relationship_count=row.rel_count,

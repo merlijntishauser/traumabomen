@@ -98,7 +98,7 @@ from app.models.waitlist import WaitlistEntry as _WaitlistEntry  # noqa: E402
 
 @event.listens_for(_User, "load")
 def _fix_user_tz(target, _context):
-    for attr in ("email_verification_expires_at", "created_at", "updated_at"):
+    for attr in ("email_verification_expires_at", "last_active_at", "created_at", "updated_at"):
         val = getattr(target, attr, None)
         if val is not None and val.tzinfo is None:
             object.__setattr__(target, attr, val.replace(tzinfo=UTC))
