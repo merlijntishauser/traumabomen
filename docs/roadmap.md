@@ -56,7 +56,9 @@ See [design doc](plans/2026-02-15-care-providers-design.md).
 
 ### 10. Canvas annotations
 
-Free-text sticky notes or arrows that users can place directly on the canvas between nodes. Sometimes the insight is spatial. Lighter than the pattern editor.
+Free-positioned sticky notes on the canvas for spatial observations. Six muted colors for visual grouping. Double-click canvas or toolbar button to create, inline editing with color picker. Encrypted text, plaintext position. New Annotation entity with CRUD endpoints and bulk sync support.
+
+See [design doc](plans/2026-03-02-canvas-annotations-design.md).
 
 ### 11. Read-only tree sharing
 
