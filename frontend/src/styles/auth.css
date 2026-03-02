@@ -91,15 +91,6 @@
     padding: 40px 48px;
     justify-content: center;
   }
-
-  /* On desktop, card first, explainer after */
-  .auth-card {
-    order: 1;
-  }
-
-  .auth-explainer {
-    order: 2;
-  }
 }
 
 /* Leaf motif -- only shows on desktop (no hero banner) */
@@ -158,7 +149,8 @@
     border: none;
     background: transparent;
     box-shadow: none;
-    padding: 0;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--color-border-secondary);
     max-width: 360px;
   }
 }
@@ -198,6 +190,13 @@
 
 .auth-field input {
   width: 100%;
+}
+
+.auth-field__hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 2px 0 0;
 }
 
 .auth-checkbox {
@@ -312,44 +311,70 @@
   color: var(--color-accent-hover);
 }
 
-/* --- Landing explainer (login page) --- */
-.auth-explainer {
+/* --- Welcome section (login & register) --- */
+.auth-welcome {
   width: 100%;
   max-width: 420px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   padding: 0 4px;
 }
 
 @media (min-width: 900px) {
-  .auth-explainer {
-    margin-top: 32px;
-    margin-bottom: 0;
-    padding: 24px 0 0;
-    border-top: 1px solid var(--color-border-secondary);
+  .auth-welcome {
     max-width: 360px;
+    margin-bottom: 32px;
+    padding: 0;
   }
 }
 
-.auth-explainer__tagline {
+.auth-welcome__tagline {
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--color-text-primary);
   margin-bottom: 12px;
   line-height: 1.4;
 }
 
-.auth-explainer__text {
+.auth-welcome__about {
   font-size: 13px;
   line-height: 1.65;
   color: var(--color-text-secondary);
   margin-bottom: 16px;
 }
 
-.auth-explainer__text:last-child {
+.auth-welcome__about:last-child {
   margin-bottom: 0;
 }
 
-.auth-explainer__heading {
+.auth-welcome__features {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-welcome__features li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  padding-left: 16px;
+  position: relative;
+}
+
+.auth-welcome__features li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.auth-welcome__privacy-heading {
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
@@ -358,16 +383,15 @@
   letter-spacing: 0.02em;
 }
 
-.auth-explainer__policy-link {
+.auth-welcome__policy-link {
   display: inline-block;
   margin-top: 12px;
-  margin-bottom: 16px;
   font-size: 13px;
   color: var(--color-accent);
   text-decoration: none;
   font-weight: 500;
 }
 
-.auth-explainer__policy-link:hover {
+.auth-welcome__policy-link:hover {
   color: var(--color-accent-hover);
 }

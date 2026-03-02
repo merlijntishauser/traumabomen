@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { AuthWelcome } from "../components/AuthWelcome";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, register } from "../lib/api";
@@ -97,6 +98,8 @@ export default function RegisterPage() {
     <div className="auth-page">
       <AuthHero />
       <div className="auth-content">
+        <AuthWelcome />
+
         <div className="auth-card">
           <h1>{t("app.title")}</h1>
           <h2>{t("auth.register")}</h2>
@@ -152,6 +155,7 @@ export default function RegisterPage() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
               />
+              <p className="auth-field__hint">{t("auth.passphraseHint")}</p>
             </div>
 
             <div className="auth-field">
