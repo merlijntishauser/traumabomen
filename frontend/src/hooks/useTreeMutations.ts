@@ -1,5 +1,5 @@
 import { type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import {
   createClassification,
   createEvent,

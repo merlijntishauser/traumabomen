@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { SettingsPanel } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
 import {

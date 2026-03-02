@@ -12,7 +12,7 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock("../contexts/EncryptionContext", () => ({
+vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     clearKey: mockClearKey,
   }),

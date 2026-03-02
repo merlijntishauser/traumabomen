@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { useEncryption } from "../../contexts/EncryptionContext";
+import { useEncryption } from "../../contexts/useEncryption";
 import { useLogout } from "../../hooks/useLogout";
 import {
   changePassword,

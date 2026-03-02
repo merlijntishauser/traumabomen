@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";

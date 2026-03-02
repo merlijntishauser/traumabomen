@@ -7,7 +7,7 @@ const mockKeyRingBase64 = new Map<string, string>();
 const fakeMasterKey = {} as CryptoKey;
 const fakeTreeKey = { id: "treeKey" } as unknown as CryptoKey;
 
-vi.mock("../contexts/EncryptionContext", () => ({
+vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     treeKeys: mockTreeKeys,
     keyRingBase64: mockKeyRingBase64,

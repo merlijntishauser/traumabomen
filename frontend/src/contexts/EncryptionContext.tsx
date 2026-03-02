@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, type ReactNode, useCallback, useMemo, useState } from "react";
 import { decryptFromApi, encryptForApi, hashPassphrase, timingSafeEqual } from "../lib/crypto";
 
 interface EncryptionContextValue {
@@ -22,7 +22,7 @@ interface EncryptionContextValue {
   masterDecrypt: <T>(encryptedData: string) => Promise<T>;
 }
 
-const EncryptionContext = createContext<EncryptionContextValue | null>(null);
+export const EncryptionContext = createContext<EncryptionContextValue | null>(null);
 
 export function EncryptionProvider({ children }: { children: ReactNode }) {
   const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
@@ -147,12 +147,4 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
   );
 
   return <EncryptionContext.Provider value={value}>{children}</EncryptionContext.Provider>;
-}
-
-export function useEncryption(): EncryptionContextValue {
-  const context = useContext(EncryptionContext);
-  if (!context) {
-    throw new Error("useEncryption must be used within an EncryptionProvider");
-  }
-  return context;
 }

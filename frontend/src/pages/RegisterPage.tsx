@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
 import { getPasswordStrength } from "../lib/passwordStrength";

@@ -11,7 +11,7 @@ vi.mock("@sentry/react", () => ({
 
 const mockDecrypt = vi.fn(async (blob: string, _treeId: string) => JSON.parse(blob));
 const mockTreeKeys = new Map([["tree1", {} as CryptoKey]]);
-vi.mock("../contexts/EncryptionContext", () => ({
+vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     decrypt: (...args: unknown[]) => mockDecrypt(...args),
     masterKey: {} as CryptoKey,

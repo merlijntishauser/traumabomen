@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import {
   getClassifications,
   getEvents,

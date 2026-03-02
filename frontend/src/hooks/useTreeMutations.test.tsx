@@ -6,7 +6,7 @@ import { useTreeMutations } from "./useTreeMutations";
 
 const mockEncrypt = vi.fn().mockResolvedValue("encrypted-blob");
 
-vi.mock("../contexts/EncryptionContext", () => ({
+vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({ encrypt: mockEncrypt }),
 }));
 

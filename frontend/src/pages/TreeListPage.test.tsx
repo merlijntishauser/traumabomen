@@ -40,7 +40,7 @@ vi.mock("../components/tree/SettingsPanel", () => ({
   SettingsPanel: () => <div data-testid="settings-panel" />,
 }));
 
-vi.mock("../contexts/EncryptionContext", () => ({
+vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     encrypt: vi.fn(),
     decrypt: vi.fn(),

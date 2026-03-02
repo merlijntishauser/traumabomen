@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useEncryption } from "../contexts/useEncryption";
 import {
   getClassifications,
   getEvents,

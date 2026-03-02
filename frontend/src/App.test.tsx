@@ -13,7 +13,7 @@ let mockKey: CryptoKey | null = null;
 let mockAccessToken: string | null = null;
 let mockOnboardingFlag = false;
 
-vi.mock("./contexts/EncryptionContext", () => ({
+vi.mock("./contexts/useEncryption", () => ({
   useEncryption: () => ({ masterKey: mockKey }),
 }));
 
