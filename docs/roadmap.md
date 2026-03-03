@@ -120,6 +120,10 @@ Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline an
 
 Replace Dagre layout engine with elkjs (the open-source engine behind React Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with compact summary nodes. Drop the React Flow Pro watermark suppression. See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
 
+### 19. Post-deploy e2e smoketest
+
+Run a Playwright smoketest subset against the live production URL after each deploy. Reuses the `@smoketest`-tagged e2e tests (auth flow, tree workflow with encryption round-trip) via `E2E_SMOKETEST=true` and `E2E_BASE_URL` pointing to the production domain. Replaces the current curl-based health check in the deploy workflow. Requires wiring production test credentials into the deploy workflow secrets.
+
 ## Done
 
 ### Security hardening
