@@ -6,13 +6,13 @@ The core product is solid: tree canvas, timeline, DSM classifications, pattern e
 
 The two strategic gaps identified in February are now largely resolved:
 
-**Reflection gap: nearly closed.** Resilience layer, reflection journal, and guided prompts are all shipped. One item remains: personal insights summary (frontend-only, design complete). Shipping this completes the reflection story.
+**Reflection gap: closed.** Resilience layer, reflection journal, guided prompts, and personal insights summary are all shipped. The reflection story is complete.
 
 **Scaling gap: closed.** Rate limiting, error tracking, user data export, async email, and all security hardening items from the February audit are done. The remaining scaling work is operational (Cloud Run configuration, connection pools) and can be adjusted as needed when growing beyond 20 users.
 
-Priority: finish the personal insights summary (completes reflection), then ship high-impact UX features that make the tree more useful for everyday work.
+Priority: ship high-impact UX features that make the tree more useful for everyday work.
 
-## Planned: Reflection (high priority)
+## ~~Planned: Reflection~~ (done)
 
 ### ~~1. Resilience and strengths layer~~ (done)
 
@@ -20,11 +20,7 @@ Priority: finish the personal insights summary (completes reflection), then ship
 
 ### ~~3. Guided reflection prompts~~ (done)
 
-### 4. Personal insights summary
-
-Read-only overview page per tree at `/trees/:id/insights` that surfaces basic observations from what the user already entered. Four insight categories: generational patterns, temporal clustering, category summaries, resilience indicators. Card grid layout, all computation client-side, no AI. Presented as a reflection starting point, not conclusions.
-
-See [design doc](plans/2026-03-01-personal-insights-design.md).
+### ~~4. Personal insights summary~~ (done)
 
 ## ~~Planned: Scaling hardening~~ (done)
 
@@ -171,6 +167,10 @@ Per-tree encryption keys with master-key-encrypted key ring, transparent client-
 ### API rate limiting
 
 Two-layer rate limiting: nginx (strict 5/min on login/register, general 20/min on auth, global 120/min) and application-layer progressive backoff on failed logins (tarpitting at 4+ attempts, lockout at 10, 30-min auto-expiry). In-memory tracking by IP and email with log injection protection. [Design doc](plans/2026-02-22-api-rate-limiting-design.md), [implementation plan](plans/2026-02-23-api-rate-limiting-plan.md).
+
+### Personal insights summary
+
+Read-only overview page at `/trees/:id/insights` surfacing basic observations from entered data. Four insight categories: generational patterns (recurring trauma/classifications across generations), temporal clustering (age-at-event patterns, dense year windows), category summaries (most common trauma type, total counts, shared classifications), resilience indicators (turning points following trauma, cycle-breaking). All computation client-side, card grid layout, no AI. [Design doc](plans/2026-03-01-personal-insights-design.md).
 
 ### Safety envelope
 
