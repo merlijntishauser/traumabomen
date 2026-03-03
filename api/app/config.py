@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     ENABLE_WAITLIST: bool = False
     MAX_ACTIVE_USERS: int = 20
 
+    ENABLE_TEST_RESET: bool = False
+
     SENTRY_DSN: str = ""
     SENTRY_ENVIRONMENT: str = "development"
     SENTRY_RELEASE: str = ""

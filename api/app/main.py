@@ -67,6 +67,11 @@ app.include_router(sync_router)
 app.include_router(turning_points_router)
 app.include_router(waitlist_router)
 
+if _settings.ENABLE_TEST_RESET:
+    from app.routers.testing import router as testing_router
+
+    app.include_router(testing_router)
+
 
 @app.get("/health")
 async def health():

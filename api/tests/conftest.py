@@ -167,6 +167,7 @@ TEST_SETTINGS = Settings(
     DATABASE_URL=TEST_DATABASE_URL,
     JWT_SECRET_KEY="test-secret-key-that-is-at-least-32-bytes-long",
     REQUIRE_EMAIL_VERIFICATION=False,
+    ENABLE_TEST_RESET=True,
 )
 
 
@@ -177,6 +178,12 @@ def _override_get_settings():
 from app.config import get_settings  # noqa: E402
 
 app.dependency_overrides[get_settings] = _override_get_settings
+
+# Register the testing router directly since the conditional check in main.py
+# runs at import time before the settings override takes effect.
+from app.routers.testing import router as testing_router  # noqa: E402
+
+app.include_router(testing_router)
 
 # ---------------------------------------------------------------------------
 # HTTP client
