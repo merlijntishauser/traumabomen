@@ -12,7 +12,9 @@ vi.mock("react-i18next", () => ({
 
 const TREE_UUID = "03f28958-029f-4663-82e3-4de766986d28";
 
-function renderTabs(activeView: "canvas" | "timeline" | "patterns" | "journal" = "canvas") {
+function renderTabs(
+  activeView: "canvas" | "timeline" | "patterns" | "journal" | "insights" = "canvas",
+) {
   return render(
     <MemoryRouter>
       <ViewTabs treeId={TREE_UUID} activeView={activeView} />
@@ -21,12 +23,13 @@ function renderTabs(activeView: "canvas" | "timeline" | "patterns" | "journal" =
 }
 
 describe("ViewTabs", () => {
-  it("renders all four tabs", () => {
+  it("renders all five tabs", () => {
     renderTabs();
     expect(screen.getByText("tree.canvas")).toBeTruthy();
     expect(screen.getByText("tree.timeline")).toBeTruthy();
     expect(screen.getByText("pattern.patterns")).toBeTruthy();
     expect(screen.getByText("journal.tab")).toBeTruthy();
+    expect(screen.getByText("insights.tab")).toBeTruthy();
   });
 
   it("renders active tab as a span (not a link)", () => {
@@ -66,6 +69,13 @@ describe("ViewTabs", () => {
     const journalTab = screen.getByText("journal.tab");
     expect(journalTab.tagName).toBe("SPAN");
     expect(journalTab.className).toContain("tree-toolbar__tab--active");
+  });
+
+  it("marks insights as active when activeView is insights", () => {
+    renderTabs("insights");
+    const insightsTab = screen.getByText("insights.tab");
+    expect(insightsTab.tagName).toBe("SPAN");
+    expect(insightsTab.className).toContain("tree-toolbar__tab--active");
   });
 
   it("uses compact IDs in link hrefs", () => {

@@ -738,5 +738,30 @@
 
   "error.title": "Er ging iets mis",
   "error.description": "Er is een onverwachte fout opgetreden. Herlaad de pagina.",
-  "error.reload": "Pagina herladen"
+  "error.reload": "Pagina herladen",
+
+  "insights.tab": "Inzichten",
+  "insights.title": "Inzichten",
+  "insights.subtitle": "Observaties op basis van wat je hebt ingevoerd. Een beginpunt voor reflectie, geen conclusies.",
+  "insights.empty": "Voeg meer personen en gebeurtenissen toe aan je boom om hier inzichten te zien.",
+  "insights.sectionGenerational": "Generatiepatronen",
+  "insights.sectionTemporal": "Clustering in de tijd",
+  "insights.sectionSummary": "Categorieoverzichten",
+  "insights.sectionResilience": "Veerkrachtindicatoren",
+  "insights.categoryAcrossGenerations": "{{category}} komt voor in {{count}} generaties",
+  "insights.classificationAcrossGenerations": "{{classification}} gediagnosticeerd in {{count}} generaties",
+  "insights.ageClustering": "{{category}} clustert rond leeftijd {{low}} tot {{high}}",
+  "insights.ageClusteringDetail": "Gebaseerd op {{count}} gebeurtenissen",
+  "insights.denseYearWindow": "{{percentage}}% van de traumagebeurtenissen vond plaats tussen {{startYear}} en {{endYear}}",
+  "insights.denseYearWindowDetail": "{{count}} van {{total}} gebeurtenissen",
+  "insights.averageDiagnosisAge": "Gemiddelde leeftijd bij eerste diagnose: {{age}}",
+  "insights.averageDiagnosisAgeDetail": "Gebaseerd op {{count}} diagnoses",
+  "insights.mostCommonCategory": "Meest voorkomende traumacategorie: {{category}} ({{count}} gebeurtenissen)",
+  "insights.sharedClassification": "{{count}} personen delen {{classification}}",
+  "insights.totalEvents": "{{events}} traumagebeurtenissen bij {{persons}} personen",
+  "insights.treeSize": "{{persons}} personen in {{generations}} generaties",
+  "insights.turningPointsFollowTrauma": "{{count}} keerpunten volgen op traumagebeurtenissen binnen 5 jaar",
+  "insights.turningPointsFollowTraumaDetail": "Wijst op herstel of groei na tegenslag",
+  "insights.cycleBreakingGenerations": "Patronen doorbroken in {{count}} generaties",
+  "insights.mostCommonTurningPoint": "Meest voorkomend keerpunt: {{category}} ({{count}} gebeurtenissen)"
 }

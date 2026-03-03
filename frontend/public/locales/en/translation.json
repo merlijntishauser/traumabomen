@@ -739,5 +739,30 @@
 
   "error.title": "Something went wrong",
   "error.description": "An unexpected error occurred. Please reload the page.",
-  "error.reload": "Reload page"
+  "error.reload": "Reload page",
+
+  "insights.tab": "Insights",
+  "insights.title": "Insights",
+  "insights.subtitle": "Observations from what you have entered. A starting point for reflection, not conclusions.",
+  "insights.empty": "Add more persons and events to your tree to see insights here.",
+  "insights.sectionGenerational": "Generational patterns",
+  "insights.sectionTemporal": "Temporal clustering",
+  "insights.sectionSummary": "Category summaries",
+  "insights.sectionResilience": "Resilience indicators",
+  "insights.categoryAcrossGenerations": "{{category}} appears across {{count}} generations",
+  "insights.classificationAcrossGenerations": "{{classification}} diagnosed across {{count}} generations",
+  "insights.ageClustering": "{{category}} events cluster around ages {{low}} to {{high}}",
+  "insights.ageClusteringDetail": "Based on {{count}} events",
+  "insights.denseYearWindow": "{{percentage}}% of trauma events occurred between {{startYear}} and {{endYear}}",
+  "insights.denseYearWindowDetail": "{{count}} of {{total}} events",
+  "insights.averageDiagnosisAge": "Average age at first diagnosis: {{age}}",
+  "insights.averageDiagnosisAgeDetail": "Based on {{count}} diagnoses",
+  "insights.mostCommonCategory": "Most common trauma category: {{category}} ({{count}} events)",
+  "insights.sharedClassification": "{{count}} persons share {{classification}}",
+  "insights.totalEvents": "{{events}} trauma events across {{persons}} persons",
+  "insights.treeSize": "{{persons}} persons across {{generations}} generations",
+  "insights.turningPointsFollowTrauma": "{{count}} turning points follow trauma events within 5 years",
+  "insights.turningPointsFollowTraumaDetail": "Suggesting recovery or growth after adversity",
+  "insights.cycleBreakingGenerations": "Cycle-breaking events in {{count}} generations",
+  "insights.mostCommonTurningPoint": "Most common turning point: {{category}} ({{count}} events)"
 }

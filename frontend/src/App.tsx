@@ -45,6 +45,7 @@ function lazyWithReload(importFn: () => Promise<{ default: React.ComponentType }
 }
 
 const AdminPage = lazyWithReload(() => import("./pages/AdminPage"));
+const InsightsPage = lazyWithReload(() => import("./pages/InsightsPage"));
 const JournalPage = lazyWithReload(() => import("./pages/JournalPage"));
 const PatternPage = lazyWithReload(() => import("./pages/PatternPage"));
 const TimelinePage = lazyWithReload(() => import("./pages/TimelinePage"));
@@ -215,6 +216,16 @@ function AppContent() {
                   <AuthGuard>
                     <LazyBoundary>
                       <JournalPage />
+                    </LazyBoundary>
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/trees/:id/insights"
+                element={
+                  <AuthGuard>
+                    <LazyBoundary>
+                      <InsightsPage />
                     </LazyBoundary>
                   </AuthGuard>
                 }
