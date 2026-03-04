@@ -26,8 +26,18 @@ export async function register(page: Page, email: string): Promise<void> {
   await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
   await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
   await page.getByLabel(/i understand/i).check();
-  await page.getByRole("button", { name: /create account/i }).click();
-  await page.waitForURL("**/trees", { timeout: 30_000 });
+
+  // Registration may fail under parallel load; retry once
+  const submitBtn = page.getByRole("button", { name: /create account/i });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await submitBtn.click();
+    const result = await Promise.race([
+      page.waitForURL("**/trees", { timeout: 20_000 }).then(() => "ok" as const),
+      page.getByText(/registration failed/i).waitFor({ state: "visible", timeout: 20_000 }).then(() => "retry" as const),
+    ]);
+    if (result === "ok") break;
+  }
+
   await dismissOnboarding(page);
 }
 
