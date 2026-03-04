@@ -7,8 +7,8 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  fullyParallel: false,
-  workers: 1,
+  fullyParallel: true,
+  workers: 3,
   retries: 1,
   globalSetup: "./e2e/global-setup.ts",
   use: {

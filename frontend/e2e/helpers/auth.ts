@@ -69,9 +69,11 @@ export async function createTree(
 
 export async function logout(page: Page): Promise<void> {
   await page.getByRole("button", { name: /log out/i }).click();
-  await page.waitForURL("**/unlock", { timeout: 10_000 });
-  await page
-    .getByRole("button", { name: /log in with a different account/i })
-    .click();
+  // Logout clears encryption key, landing on /unlock or /login.
+  // Navigate to /login directly to avoid race between /unlock redirect.
+  await page.waitForURL(/\/(unlock|login)/, { timeout: 15_000 });
+  if (!page.url().includes("/login")) {
+    await page.goto("/login");
+  }
   await page.waitForURL("**/login", { timeout: 10_000 });
 }
