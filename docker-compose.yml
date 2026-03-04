@@ -23,14 +23,14 @@ services:
     env_file: .env
     environment:
       - ENABLE_TEST_RESET=true
-      - REQUIRE_EMAIL_VERIFICATION=${REQUIRE_EMAIL_VERIFICATION:-false}
+      - REQUIRE_EMAIL_VERIFICATION=false
     depends_on:
       db:
         condition: service_healthy
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.29.2
     ports:
       - "8025:8025"
       - "1025:1025"
@@ -48,7 +48,7 @@ services:
     command: npx vite dev --host
 
   e2e:
-    image: mcr.microsoft.com/playwright:v1.49.0-noble
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
     working_dir: /app
     volumes:
       - ./frontend:/app

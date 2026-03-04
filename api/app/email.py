@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 def _send_smtp(msg: Message, to: str, settings: Settings) -> None:
     """Send an email message via SMTP, handling connection, TLS, and auth."""
     with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-        server.starttls()
+        if settings.SMTP_USE_TLS:
+            server.starttls()
         if settings.SMTP_USER:
             server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
         server.sendmail(settings.SMTP_FROM, to, msg.as_string())

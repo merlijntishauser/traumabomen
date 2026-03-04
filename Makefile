@@ -75,7 +75,7 @@ e2e-ui: ## Open Playwright UI mode
 	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --ui'
 
 e2e-verify: ## Run e2e tests including email verification
-	REQUIRE_EMAIL_VERIFICATION=true docker compose up -d api
+	docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d api
 	@sleep 3
 	docker compose --profile e2e run --rm -e E2E_VERIFICATION=true e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test'
 	docker compose up -d api

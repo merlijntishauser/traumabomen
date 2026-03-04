@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
+    SMTP_USE_TLS: bool = True
     APP_BASE_URL: str = "http://localhost:5173"
     APP_BASE_URL_NL: str = ""
     SMOKETEST_EMAIL: str = ""

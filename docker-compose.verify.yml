@@ -1,0 +1,4 @@
+services:
+  api:
+    environment:
+      - REQUIRE_EMAIL_VERIFICATION=true
