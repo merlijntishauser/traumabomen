@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
@@ -11,12 +11,15 @@ export default function VerifyEmailPage() {
   const token = searchParams.get("token");
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const calledRef = useRef(false);
 
   useEffect(() => {
     if (!token) {
       setStatus("error");
       return;
     }
+    if (calledRef.current) return;
+    calledRef.current = true;
 
     verifyEmail(token)
       .then(() => setStatus("success"))

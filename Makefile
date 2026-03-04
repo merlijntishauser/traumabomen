@@ -74,11 +74,11 @@ e2e-headed: ## Run e2e tests with visible browser (local)
 e2e-ui: ## Open Playwright UI mode (local)
 	cd frontend && npx playwright test --ui
 
-e2e-verify: ## Run e2e tests including email verification
+e2e-verify: ## Run e2e verification test (email flow)
 	docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d api
 	@sleep 3
-	docker compose --profile e2e run --rm -e E2E_VERIFICATION=true e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test'
-	docker compose up -d api
+	docker compose -f docker-compose.yml -f docker-compose.verify.yml --profile e2e run --rm -e E2E_VERIFICATION=true e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --grep @verification' ; \
+	EXIT=$$? ; docker compose up -d api ; exit $$EXIT
 
 # --- Deployment ---
 
