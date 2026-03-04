@@ -823,7 +823,7 @@ function TreeWorkspaceInner() {
       </TreeToolbar>
 
       <div className="tree-canvas-wrapper bg-gradient">
-        <BranchDecoration />
+        {!canvasSettings.showGrid && <BranchDecoration />}
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>
         ) : (
