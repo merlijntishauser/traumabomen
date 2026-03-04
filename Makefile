@@ -68,11 +68,11 @@ coverage: ## Run tests with coverage reports
 e2e: ## Run end-to-end tests (playwright)
 	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test'
 
-e2e-headed: ## Run e2e tests with visible browser
-	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --headed'
+e2e-headed: ## Run e2e tests with visible browser (local)
+	cd frontend && npx playwright test --headed
 
-e2e-ui: ## Open Playwright UI mode
-	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --ui'
+e2e-ui: ## Open Playwright UI mode (local)
+	cd frontend && npx playwright test --ui
 
 e2e-verify: ## Run e2e tests including email verification
 	docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d api
