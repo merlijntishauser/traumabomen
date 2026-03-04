@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 from threading import Thread
 from typing import Any
 
@@ -31,6 +32,155 @@ def _get_base_url(settings: Settings, language: str) -> str:
         return settings.APP_BASE_URL_NL.rstrip("/")
     return settings.APP_BASE_URL.rstrip("/")
 
+
+# ---------------------------------------------------------------------------
+# Shared HTML email layout
+# ---------------------------------------------------------------------------
+
+# Inline SVG leaf icon used as a subtle decorative separator.
+# Kept small and simple for broad email client compatibility.
+_LEAF_SVG = (
+    '<img src="data:image/svg+xml,'
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' "
+    "fill='none' stroke='%232d8a5e' stroke-width='1.5' stroke-linecap='round' "
+    "stroke-linejoin='round'%3E%3Cpath d='M12 22c-4-4-8-7.5-8-12C4 5 8 2 12 2s8 3 8 "
+    "8c0 4.5-4 8-8 12z'/%3E%3Cpath d='M12 22V8'/%3E%3C/svg%3E"
+    '" alt="" width="24" height="24" '
+    'style="display:block;margin:0 auto 0 auto;opacity:0.4;" />'
+)
+
+
+def _email_layout(heading: str, body_html: str, footer_html: str) -> str:
+    """Wrap email content in a styled HTML layout.
+
+    Uses table-based layout with inline styles for broad email client
+    compatibility (Gmail, Outlook, Apple Mail, etc.).
+    """
+    return f"""\
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>{heading}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#eef0eb;font-family:Georgia,'Times New Roman',serif;">
+  <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef0eb;">
+    <tr>
+      <td align="center" style="padding:32px 16px 24px 16px;">
+
+        <!-- Card -->
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.06),0 0 0 1px rgba(45,138,94,0.08);">
+
+          <!-- Accent bar -->
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,#2d8a5e 0%,#3da87a 50%,rgba(45,138,94,0.2) 100%);font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px 12px 40px;text-align:center;">
+              <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:normal;color:#1a2e1f;letter-spacing:0.5px;">{heading}</h1>
+            </td>
+          </tr>
+
+          <!-- Leaf divider -->
+          <tr>
+            <td style="padding:8px 0 8px 0;text-align:center;">
+              {_LEAF_SVG}
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:8px 40px 28px 40px;font-family:'Lato','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#1a2e1f;">
+              {body_html}
+            </td>
+          </tr>
+
+          <!-- Footer divider -->
+          <tr>
+            <td style="padding:0 40px;">
+              <hr style="border:none;border-top:1px solid #dde2d9;margin:0;" />
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px 28px 40px;font-family:'Lato','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8a9a8e;text-align:center;">
+              {footer_html}
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Card -->
+
+        <!-- Outer footer -->
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;width:100%;">
+          <tr>
+            <td style="padding:16px 40px 0 40px;font-family:'Lato','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8a9a8e;text-align:center;">
+              Personal reflection tool, not therapy
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+  <!--[if mso]></td></tr></table><![endif]-->
+</body>
+</html>"""
+
+
+def _button_html(url: str, label: str) -> str:
+    """Render a styled CTA button that works across email clients."""
+    return (
+        '<table role="presentation" cellpadding="0" cellspacing="0" border="0" '
+        'style="margin:24px 0 8px 0;">'
+        "<tr><td>"
+        "<!--[if mso]>"
+        '<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" '
+        'xmlns:w="urn:schemas-microsoft-com:office:word" '
+        f'href="{url}" '
+        'style="height:44px;v-text-anchor:middle;width:220px;" '
+        'arcsize="14%" strokecolor="#24704c" fillcolor="#2d8a5e">'
+        "<w:anchorlock/>"
+        '<center style="color:#ffffff;font-family:Lato,Helvetica,Arial,sans-serif;'
+        f'font-size:15px;font-weight:bold;">{label}</center>'
+        "</v:roundrect>"
+        "<![endif]-->"
+        "<!--[if !mso]><!-->"
+        f'<a href="{url}" target="_blank" '
+        'style="display:inline-block;padding:12px 32px;'
+        "background-color:#2d8a5e;color:#ffffff;font-family:'Lato','Helvetica Neue',"
+        "Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;"
+        "text-decoration:none;border-radius:6px;"
+        'border:1px solid #24704c;">'
+        f"{label}"
+        "</a>"
+        "<!--<![endif]-->"
+        "</td></tr></table>"
+    )
+
+
+def _link_text(url: str, label: str) -> str:
+    """Render a copy-paste link with label."""
+    return (
+        f'<p style="margin:16px 0 0 0;font-size:13px;color:#5a6e5f;">'
+        f"{label}"
+        "</p>"
+        f'<p style="margin:4px 0 0 0;font-size:13px;word-break:break-all;">'
+        f'<a href="{url}" style="color:#2d8a5e;text-decoration:underline;">'
+        f"{url}</a></p>"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Verification email
+# ---------------------------------------------------------------------------
 
 _VERIFICATION_STRINGS = {
     "en": {
@@ -61,25 +211,15 @@ def send_verification_email(to: str, token: str, settings: Settings, language: s
     verify_url = f"{base_url}/verify?token={token}"
     s = _VERIFICATION_STRINGS.get(language, _VERIFICATION_STRINGS["en"])
 
-    html = f"""\
-<html>
-<body style="font-family: 'Source Sans 3', sans-serif; color: #1a2e1f; max-width: 480px; margin: 0 auto; padding: 24px;">
-  <h2 style="font-family: Georgia, serif; color: #1a2e1f;">{s["heading"]}</h2>
-  <p>{s["body"]}</p>
-  <p>
-    <a href="{verify_url}"
-       style="display: inline-block; padding: 10px 24px; background: #2d8a5e; color: #fff; text-decoration: none; border-radius: 6px;">
-      {s["button"]}
-    </a>
-  </p>
-  <p style="color: #5a6e5f; font-size: 14px;">
-    {s["copy"]} {verify_url}
-  </p>
-  <p style="color: #5a6e5f; font-size: 14px;">
-    {s["expiry"]}
-  </p>
-</body>
-</html>"""
+    body_html = (
+        f'<p style="margin:0 0 4px 0;">{s["body"]}</p>'
+        f"{_button_html(verify_url, s['button'])}"
+        f"{_link_text(verify_url, s['copy'])}"
+    )
+
+    footer_html = f'<p style="margin:0;">{s["expiry"]}</p>'
+
+    html = _email_layout(s["heading"], body_html, footer_html)
 
     text = (
         f"{s['text_heading']} - {s['subject']}\n\n{s['text_body']}\n\n{verify_url}\n\n{s['expiry']}"
@@ -87,7 +227,7 @@ def send_verification_email(to: str, token: str, settings: Settings, language: s
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"{s['subject']} - {s['heading']}"
-    msg["From"] = settings.SMTP_FROM
+    msg["From"] = formataddr((s["heading"], settings.SMTP_FROM))
     msg["To"] = to
     msg.attach(MIMEText(text, "plain"))
     msg.attach(MIMEText(html, "html"))
@@ -100,43 +240,59 @@ def send_verification_email(to: str, token: str, settings: Settings, language: s
         raise
 
 
+# ---------------------------------------------------------------------------
+# Waitlist approval email
+# ---------------------------------------------------------------------------
+
+_WAITLIST_STRINGS = {
+    "en": {
+        "heading": "Traumatrees",
+        "subject": "You're in! Complete your registration",
+        "body": "A spot has opened up! Complete your registration to get started.",
+        "button": "Complete registration",
+        "copy": "Or copy this link:",
+        "expiry": "This link expires in 7 days. If you did not join the waitlist, you can ignore this email.",
+        "text_heading": "Traumatrees",
+        "text_body": "A spot has opened up. Click the link below to complete your registration:",
+    },
+    "nl": {
+        "heading": "Traumabomen",
+        "subject": "Je bent aan de beurt! Voltooi je registratie",
+        "body": "Er is een plek vrijgekomen! Voltooi je registratie om te beginnen.",
+        "button": "Registratie voltooien",
+        "copy": "Of kopieer deze link:",
+        "expiry": "Deze link verloopt na 7 dagen. Als je je niet hebt aangemeld voor de wachtlijst, kun je deze e-mail negeren.",
+        "text_heading": "Traumabomen",
+        "text_body": "Er is een plek vrijgekomen. Klik op de onderstaande link om je registratie te voltooien:",
+    },
+}
+
+
 def send_waitlist_approval_email(
     to: str, token: str, settings: Settings, language: str = "en"
 ) -> None:
     base_url = _get_base_url(settings, language)
     register_url = f"{base_url}/register?invite={token}"
+    s = _WAITLIST_STRINGS.get(language, _WAITLIST_STRINGS["en"])
 
-    html = f"""\
-<html>
-<body style="font-family: 'Source Sans 3', sans-serif; color: #1a2e1f; max-width: 480px; margin: 0 auto; padding: 24px;">
-  <h2 style="font-family: Georgia, serif; color: #1a2e1f;">Traumabomen</h2>
-  <p>A spot has opened up! Complete your registration to get started.</p>
-  <p>
-    <a href="{register_url}"
-       style="display: inline-block; padding: 10px 24px; background: #2d8a5e; color: #fff; text-decoration: none; border-radius: 6px;">
-      Complete registration
-    </a>
-  </p>
-  <p style="color: #5a6e5f; font-size: 14px;">
-    Or copy this link: {register_url}
-  </p>
-  <p style="color: #5a6e5f; font-size: 14px;">
-    This link expires in 7 days. If you did not join the waitlist, you can ignore this email.
-  </p>
-</body>
-</html>"""
+    body_html = (
+        f'<p style="margin:0 0 4px 0;">{s["body"]}</p>'
+        f"{_button_html(register_url, s['button'])}"
+        f"{_link_text(register_url, s['copy'])}"
+    )
+
+    footer_html = f'<p style="margin:0;">{s["expiry"]}</p>'
+
+    html = _email_layout(s["heading"], body_html, footer_html)
 
     text = (
-        f"Traumabomen - You're in!\n\n"
-        f"A spot has opened up. Click the link below to complete your registration:\n\n"
-        f"{register_url}\n\n"
-        f"This link expires in 7 days. "
-        f"If you did not join the waitlist, you can ignore this email."
+        f"{s['text_heading']} - {s['subject']}\n\n"
+        f"{s['text_body']}\n\n{register_url}\n\n{s['expiry']}"
     )
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "You're in! Complete your Traumabomen registration"
-    msg["From"] = settings.SMTP_FROM
+    msg["Subject"] = f"{s['subject']} - {s['heading']}"
+    msg["From"] = formataddr((s["heading"], settings.SMTP_FROM))
     msg["To"] = to
     msg.attach(MIMEText(text, "plain"))
     msg.attach(MIMEText(html, "html"))
@@ -147,6 +303,11 @@ def send_waitlist_approval_email(
         safe_to = to.replace("\n", "").replace("\r", "")
         logger.exception("Failed to send waitlist approval email to %s", safe_to)
         raise
+
+
+# ---------------------------------------------------------------------------
+# Feedback email (internal, plain text only)
+# ---------------------------------------------------------------------------
 
 
 def send_feedback_email(
@@ -172,6 +333,10 @@ def send_feedback_email(
     except Exception:
         logger.exception("Failed to send feedback email")
 
+
+# ---------------------------------------------------------------------------
+# Background sender with one retry
+# ---------------------------------------------------------------------------
 
 RETRY_DELAY_SECONDS = 5
 

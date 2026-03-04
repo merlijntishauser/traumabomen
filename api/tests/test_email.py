@@ -27,6 +27,7 @@ def smtp_settings():
         SMTP_FROM="noreply@example.com",
         SMTP_USER="user",
         SMTP_PASSWORD="pass",
+        SMTP_USE_TLS=True,
         APP_BASE_URL="https://app.example.com",
     )
 
@@ -41,6 +42,7 @@ def smtp_settings_no_auth():
         SMTP_FROM="noreply@example.com",
         SMTP_USER="",
         SMTP_PASSWORD="",
+        SMTP_USE_TLS=True,
         APP_BASE_URL="https://app.example.com",
     )
 
@@ -51,8 +53,7 @@ class TestSendSmtp:
     @patch("app.email.smtplib.SMTP")
     def test_sends_with_tls_and_auth(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         msg = MIMEText("hello", "plain")
         msg["Subject"] = "Test"
@@ -74,8 +75,7 @@ class TestSendSmtp:
         self, mock_smtp_cls, smtp_settings_no_auth
     ):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         msg = MIMEText("hello", "plain")
         msg["Subject"] = "Test"
@@ -90,10 +90,9 @@ class TestSendSmtp:
 
     @patch("app.email.smtplib.SMTP")
     def test_propagates_connection_error(self, mock_smtp_cls, smtp_settings):
-        mock_smtp_cls.return_value.__enter__ = MagicMock(
-            side_effect=ConnectionRefusedError("Connection refused")
+        mock_smtp_cls.return_value.__enter__.side_effect = ConnectionRefusedError(
+            "Connection refused"
         )
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         msg = MIMEText("hello", "plain")
         with pytest.raises(ConnectionRefusedError):
@@ -104,8 +103,7 @@ class TestSendVerificationEmail:
     @patch("app.email.smtplib.SMTP")
     def test_sends_email_with_auth(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "test-token-123", smtp_settings)
 
@@ -121,8 +119,7 @@ class TestSendVerificationEmail:
     @patch("app.email.smtplib.SMTP")
     def test_sends_email_with_tls_but_no_auth(self, mock_smtp_cls, smtp_settings_no_auth):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "tok", smtp_settings_no_auth)
 
@@ -132,10 +129,9 @@ class TestSendVerificationEmail:
 
     @patch("app.email.smtplib.SMTP")
     def test_raises_on_smtp_failure(self, mock_smtp_cls, smtp_settings):
-        mock_smtp_cls.return_value.__enter__ = MagicMock(
-            side_effect=ConnectionRefusedError("Connection refused")
+        mock_smtp_cls.return_value.__enter__.side_effect = ConnectionRefusedError(
+            "Connection refused"
         )
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         with pytest.raises(ConnectionRefusedError):
             send_verification_email("user@example.com", "tok", smtp_settings)
@@ -143,8 +139,7 @@ class TestSendVerificationEmail:
     @patch("app.email.smtplib.SMTP")
     def test_email_contains_verify_url(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "abc123", smtp_settings)
 
@@ -155,8 +150,7 @@ class TestSendVerificationEmail:
     def test_dutch_email_uses_nl_base_url(self, mock_smtp_cls, smtp_settings):
         smtp_settings.APP_BASE_URL_NL = "https://www.traumabomen.nl"
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "tok123", smtp_settings, language="nl")
 
@@ -175,8 +169,7 @@ class TestSendVerificationEmail:
     @patch("app.email.smtplib.SMTP")
     def test_dutch_email_falls_back_without_nl_url(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "tok", smtp_settings, language="nl")
 
@@ -194,8 +187,7 @@ class TestSendVerificationEmail:
     def test_english_email_uses_default_base_url(self, mock_smtp_cls, smtp_settings):
         smtp_settings.APP_BASE_URL_NL = "https://www.traumabomen.nl"
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "tok", smtp_settings, language="en")
 
@@ -206,8 +198,7 @@ class TestSendVerificationEmail:
     @patch("app.email.smtplib.SMTP")
     def test_unknown_language_defaults_to_english(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_verification_email("user@example.com", "tok", smtp_settings, language="de")
 
@@ -219,8 +210,7 @@ class TestSendWaitlistApprovalEmail:
     @patch("app.email.smtplib.SMTP")
     def test_sends_approval_email_with_auth(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_waitlist_approval_email("user@example.com", "invite-token-123", smtp_settings)
 
@@ -235,8 +225,7 @@ class TestSendWaitlistApprovalEmail:
     @patch("app.email.smtplib.SMTP")
     def test_sends_approval_email_with_tls_but_no_auth(self, mock_smtp_cls, smtp_settings_no_auth):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_waitlist_approval_email("user@example.com", "tok", smtp_settings_no_auth)
 
@@ -247,8 +236,7 @@ class TestSendWaitlistApprovalEmail:
     @patch("app.email.smtplib.SMTP")
     def test_email_contains_register_url(self, mock_smtp_cls, smtp_settings):
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_waitlist_approval_email("user@example.com", "invite-abc", smtp_settings)
 
@@ -257,10 +245,9 @@ class TestSendWaitlistApprovalEmail:
 
     @patch("app.email.smtplib.SMTP")
     def test_raises_on_smtp_failure(self, mock_smtp_cls, smtp_settings):
-        mock_smtp_cls.return_value.__enter__ = MagicMock(
-            side_effect=ConnectionRefusedError("Connection refused")
+        mock_smtp_cls.return_value.__enter__.side_effect = ConnectionRefusedError(
+            "Connection refused"
         )
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         with pytest.raises(ConnectionRefusedError):
             send_waitlist_approval_email("user@example.com", "tok", smtp_settings)
@@ -271,8 +258,7 @@ class TestSendFeedbackEmail:
     def test_sends_feedback_email(self, mock_smtp_cls, smtp_settings):
         smtp_settings.FEEDBACK_EMAIL = "feedback@example.com"
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_feedback_email("bug", "Something broke", "user@test.com", smtp_settings)
 
@@ -285,8 +271,7 @@ class TestSendFeedbackEmail:
     def test_sends_feedback_email_anonymous(self, mock_smtp_cls, smtp_settings):
         smtp_settings.FEEDBACK_EMAIL = "feedback@example.com"
         mock_server = MagicMock()
-        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
 
         send_feedback_email("feature", "Add this", None, smtp_settings)
 
@@ -303,10 +288,9 @@ class TestSendFeedbackEmail:
     @patch("app.email.smtplib.SMTP")
     def test_does_not_raise_on_smtp_failure(self, mock_smtp_cls, smtp_settings):
         smtp_settings.FEEDBACK_EMAIL = "feedback@example.com"
-        mock_smtp_cls.return_value.__enter__ = MagicMock(
-            side_effect=ConnectionRefusedError("Connection refused")
+        mock_smtp_cls.return_value.__enter__.side_effect = ConnectionRefusedError(
+            "Connection refused"
         )
-        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         # Should not raise -- feedback email failures are logged, not propagated
         send_feedback_email("bug", "test", "user@test.com", smtp_settings)
