@@ -26,6 +26,7 @@ test.describe("Tree workflow @smoketest", () => {
     await panel.locator("input[type='number']").first().fill("1960");
     await panel.getByRole("button", { name: /save/i }).first().click();
     await page.keyboard.press("Escape");
+    await expect(panel).not.toBeVisible();
 
     // Add person Bob (second person, relationship prompt will appear)
     await page.getByLabel("Add person").click();
