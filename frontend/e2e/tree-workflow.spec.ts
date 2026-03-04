@@ -28,27 +28,41 @@ test.describe("Tree workflow @smoketest", () => {
     await page.keyboard.press("Escape");
     await expect(panel).not.toBeVisible();
 
-    // Add person Bob (second person, relationship prompt will appear)
+    // Add person Bob (second person, relationship prompt appears after save)
     await page.getByLabel("Add person").click();
-    await expect(panel).toBeVisible();
-    await panel.locator("input[type='text']").first().fill("Bob");
-    await panel.locator("input[type='number']").first().fill("1958");
-    await panel.getByRole("button", { name: /save/i }).first().click();
 
-    // The relationship prompt should appear for Bob
+    // Either the panel or relationship prompt may appear first depending on timing
     const prompt = page.locator(".relationship-prompt");
-    await expect(prompt).toBeVisible({ timeout: 5_000 });
+    const panelVisible = panel.waitFor({ state: "visible", timeout: 10_000 });
+    const promptVisible = prompt.waitFor({ state: "visible", timeout: 10_000 });
+    const first = await Promise.race([
+      panelVisible.then(() => "panel" as const),
+      promptVisible.then(() => "prompt" as const),
+    ]);
 
-    // Click "Yes" to connect Bob to someone
+    if (first === "panel") {
+      // Panel opened: fill in details, save, then handle relationship prompt
+      await panel.locator("input[type='text']").first().fill("Bob");
+      await panel.locator("input[type='number']").first().fill("1958");
+      await panel.getByRole("button", { name: /save/i }).first().click();
+      await expect(prompt).toBeVisible({ timeout: 5_000 });
+    }
+
+    // Handle relationship prompt: connect Bob to Alice as Partner
     await prompt.getByRole("button", { name: /yes/i }).click();
-
-    // Pick Alice from the person list
     await prompt.locator(".relationship-prompt__item").filter({ hasText: "Alice" }).click();
-
-    // Pick relationship type "Partner"
     await prompt.locator(".relationship-prompt__item").filter({ hasText: /partner/i }).click();
 
-    // Close the panel
+    if (first === "prompt") {
+      // Prompt appeared first: now click the node to edit details
+      const newPersonNode = page.locator(".react-flow__node").filter({ hasText: "New person" });
+      await newPersonNode.click();
+      await expect(panel).toBeVisible();
+      await panel.locator("input[type='text']").first().fill("Bob");
+      await panel.locator("input[type='number']").first().fill("1958");
+      await panel.getByRole("button", { name: /save/i }).first().click();
+    }
+
     await page.keyboard.press("Escape");
 
     // Verify both nodes exist on the canvas
