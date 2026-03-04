@@ -1,0 +1,114 @@
+import { test, expect } from "@playwright/test";
+import {
+  register,
+  login,
+  logout,
+  uniqueEmail,
+  TEST_PASSWORD,
+  TEST_PASSPHRASE,
+} from "./helpers/auth";
+
+test.describe("Settings", () => {
+  /**
+   * Open settings panel on the tree list page and switch to Account tab.
+   * We stay on /trees (not the workspace) because the settings panel here
+   * renders in normal DOM flow without portal re-rendering issues.
+   */
+  async function openAccountSettings(page: import("@playwright/test").Page) {
+    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { name: "Account" }).click();
+    await expect(page.getByRole("heading", { name: /change password/i })).toBeVisible();
+  }
+
+  test("change password and login with new password", async ({ page }) => {
+    const email = uniqueEmail();
+    await register(page, email);
+
+    await openAccountSettings(page);
+
+    const newPassword = "NewPassword456!";
+    await page.getByPlaceholder("Current password").fill(TEST_PASSWORD);
+    await page.getByPlaceholder("New password", { exact: true }).fill(newPassword);
+    await page.getByPlaceholder("Confirm new password").fill(newPassword);
+
+    // Click Save in the password section
+    const pwSection = page.locator(".settings-panel__section").filter({
+      has: page.getByRole("heading", { name: /change password/i }),
+    });
+    await pwSection.getByRole("button", { name: /save/i }).click();
+
+    // Verify success message
+    await expect(page.getByText(/password changed/i)).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // Logout and login with new password
+    await logout(page);
+    await page.goto("/login");
+    await page.getByLabel(/email/i).fill(email);
+    await page.getByLabel(/password/i).fill(newPassword);
+    await page.getByRole("button", { name: /log in/i }).click();
+
+    // Should reach unlock page
+    await expect(page.getByLabel(/passphrase/i)).toBeVisible();
+  });
+
+  test("change passphrase and unlock with new passphrase", async ({
+    page,
+  }) => {
+    const email = uniqueEmail();
+    await register(page, email);
+
+    await openAccountSettings(page);
+
+    const newPassphrase = "my-new-secure-passphrase";
+    await page.getByPlaceholder("Current passphrase").fill(TEST_PASSPHRASE);
+    await page.getByPlaceholder("New passphrase", { exact: true }).fill(newPassphrase);
+    await page.getByPlaceholder("Confirm new passphrase").fill(newPassphrase);
+
+    // Click Save in the passphrase section
+    const ppSection = page.locator(".settings-panel__section").filter({
+      has: page.getByRole("heading", { name: /change passphrase/i }),
+    });
+    await ppSection.getByRole("button", { name: /save/i }).click();
+
+    // Wait for re-encryption to complete
+    await expect(page.getByText(/passphrase changed|re-encrypted/i)).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Logout and login, unlock with new passphrase
+    await logout(page);
+    await login(page, email);
+
+    await page.getByLabel(/passphrase/i).fill(newPassphrase);
+    await page.getByRole("button", { name: /unlock/i }).click();
+    await page.waitForURL("**/trees", { timeout: 30_000 });
+  });
+
+  test("delete account", async ({ page }) => {
+    const email = uniqueEmail();
+    await register(page, email);
+
+    await openAccountSettings(page);
+
+    // Click the initial "Delete account" button to expand confirmation form
+    await page.getByRole("button", { name: "Delete account" }).click();
+
+    // Fill confirmation fields
+    await page.getByPlaceholder("Type DELETE to confirm").fill("DELETE");
+    await page.getByPlaceholder("Enter your password").fill(TEST_PASSWORD);
+
+    // Click the permanent delete button
+    await page.getByRole("button", { name: /permanently delete/i }).click();
+
+    // Should redirect to login
+    await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
+
+    // Verify account is deleted (login should fail)
+    await page.getByLabel(/email/i).fill(email);
+    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: /log in/i }).click();
+    await expect(page.getByText(/invalid email or password/i)).toBeVisible();
+  });
+});

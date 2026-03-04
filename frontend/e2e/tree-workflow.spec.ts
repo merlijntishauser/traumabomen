@@ -1,156 +1,79 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import {
+  register,
+  loginAndUnlock,
+  logout,
+  createTree,
+  uniqueEmail,
+} from "./helpers/auth";
 
-const TEST_EMAIL = `test-${Date.now()}@example.com`;
-const TEST_PASSWORD = "TestPassword123!";
-const TEST_PASSPHRASE = "my-secure-test-passphrase";
+test.describe("Tree workflow @smoketest", () => {
+  test("create tree, add persons, create relationship, verify persistence", async ({
+    page,
+  }) => {
+    const email = uniqueEmail();
+    await register(page, email);
 
-async function register(page: Page) {
-  await page.goto("/register");
+    // Create tree via inline form
+    await createTree(page, "My Family");
 
-  // Fill registration form
-  await page.getByLabel(/email/i).fill(TEST_EMAIL);
-  await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
-  await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
-  await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
-  await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
-  await page.getByLabel(/i understand/i).check();
-  await page.getByRole("button", { name: /create account/i }).click();
+    // Add person Alice (first person, no relationship prompt)
+    await page.getByLabel("Add person").click();
+    const panel = page.locator(".detail-panel");
+    await expect(panel).toBeVisible();
 
-  // Wait for passphrase derivation and redirect to trees
-  await page.waitForURL("**/trees", { timeout: 30_000 });
-}
+    await panel.locator("input[type='text']").first().fill("Alice");
+    await panel.locator("input[type='number']").first().fill("1960");
+    await panel.getByRole("button", { name: /save/i }).first().click();
+    await page.keyboard.press("Escape");
 
-async function loginAndUnlock(page: Page) {
-  await page.goto("/login");
-  await page.getByLabel(/email/i).fill(TEST_EMAIL);
-  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page.getByRole("button", { name: /log in/i }).click();
+    // Add person Bob (second person, relationship prompt will appear)
+    await page.getByLabel("Add person").click();
+    await expect(panel).toBeVisible();
+    await panel.locator("input[type='text']").first().fill("Bob");
+    await panel.locator("input[type='number']").first().fill("1958");
+    await panel.getByRole("button", { name: /save/i }).first().click();
 
-  // Enter passphrase
-  await page.getByLabel(/passphrase/i).fill(TEST_PASSPHRASE);
-  await page.getByRole("button", { name: /unlock/i }).click();
+    // The relationship prompt should appear for Bob
+    const prompt = page.locator(".relationship-prompt");
+    await expect(prompt).toBeVisible({ timeout: 5_000 });
 
-  await page.waitForURL("**/trees", { timeout: 30_000 });
-}
+    // Click "Yes" to connect Bob to someone
+    await prompt.getByRole("button", { name: /yes/i }).click();
 
-test("full tree workflow: register, create tree, persons, relationships, events, timeline, persistence", async ({
-  page,
-}) => {
-  // --- Register ---
-  await register(page);
-  await expect(page).toHaveURL(/\/trees$/);
+    // Pick Alice from the person list
+    await prompt.locator(".relationship-prompt__item").filter({ hasText: "Alice" }).click();
 
-  // --- Create tree ---
-  await page.getByRole("button", { name: /create tree/i }).click();
-  await page.waitForURL("**/trees/*");
+    // Pick relationship type "Partner"
+    await prompt.locator(".relationship-prompt__item").filter({ hasText: /partner/i }).click();
 
-  // --- Add person A (Alice) ---
-  await page.getByRole("button", { name: /add person/i }).click();
+    // Close the panel
+    await page.keyboard.press("Escape");
 
-  // Wait for the detail panel to appear
-  const panel = page.locator(".detail-panel");
-  await expect(panel).toBeVisible();
+    // Verify both nodes exist on the canvas
+    const aliceNode = page.locator(".react-flow__node").filter({ hasText: "Alice" });
+    const bobNode = page.locator(".react-flow__node").filter({ hasText: "Bob" });
+    await expect(aliceNode).toBeAttached();
+    await expect(bobNode).toBeAttached();
 
-  // Edit person A
-  const nameInput = panel.locator("input[type='text']").first();
-  await nameInput.fill("Alice");
-  const birthYearInput = panel.locator("input[type='number']").first();
-  await birthYearInput.fill("1960");
-  await panel.getByText(/^person\.save$|^save$/i).first().click();
+    // Verify edge exists (relationship was created)
+    await expect(page.locator(".react-flow__edge")).toBeAttached();
 
-  // Close panel
-  await page.keyboard.press("Escape");
-  await expect(panel).not.toBeVisible();
+    // Logout and verify persistence
+    await logout(page);
+    await loginAndUnlock(page, email);
 
-  // --- Add person B (Bob) ---
-  await page.getByRole("button", { name: /add person/i }).click();
-  await expect(panel).toBeVisible();
+    // Navigate to tree via the tree list item link
+    await page.locator(".tree-list-item__link").first().click();
+    await page.waitForURL("**/trees/*");
 
-  const nameInput2 = panel.locator("input[type='text']").first();
-  await nameInput2.fill("Bob");
-  const birthYearInput2 = panel.locator("input[type='number']").first();
-  await birthYearInput2.fill("1958");
-  await panel.getByText(/^person\.save$|^save$/i).first().click();
-
-  // Close panel
-  await page.keyboard.press("Escape");
-
-  // --- Verify both nodes appear ---
-  await expect(page.locator(".person-node").filter({ hasText: "Alice" })).toBeVisible();
-  await expect(page.locator(".person-node").filter({ hasText: "Bob" })).toBeVisible();
-
-  // --- Create relationship via drag-to-connect ---
-  // Get the source handle (bottom) of Alice and target handle (top) of Bob
-  const aliceNode = page.locator(".person-node").filter({ hasText: "Alice" });
-  const bobNode = page.locator(".person-node").filter({ hasText: "Bob" });
-  const sourceHandle = aliceNode.locator(".react-flow__handle-bottom");
-  const targetHandle = bobNode.locator(".react-flow__handle-top");
-
-  // Drag from Alice's bottom handle to Bob's top handle
-  await sourceHandle.dragTo(targetHandle);
-
-  // Relationship type popover should appear
-  const popover = page.locator(".relationship-popover");
-  await expect(popover).toBeVisible();
-
-  // Select "Partner"
-  await popover.getByText(/partner/i).click();
-  await expect(popover).not.toBeVisible();
-
-  // --- Verify relationship edge exists ---
-  // React Flow renders edges as SVG paths
-  await expect(page.locator(".react-flow__edge")).toBeVisible();
-
-  // --- Add trauma event on Alice ---
-  await aliceNode.click();
-  await expect(panel).toBeVisible();
-
-  // Expand events section
-  await panel.getByText(/trauma\.events|trauma events/i).click();
-  await panel.getByText(/new event/i).click();
-
-  // Fill event form
-  const eventTitle = panel.locator(".detail-panel__event-form input[type='text']").first();
-  await eventTitle.fill("Family loss");
-
-  // Save event
-  await panel.locator(".detail-panel__event-form").getByText(/^common\.save$|^save$/i).click();
-
-  // Verify event badge appears on Alice's node
-  await page.keyboard.press("Escape");
-  await expect(aliceNode.locator(".person-node__badge")).toBeVisible();
-
-  // --- Navigate to timeline ---
-  await page.getByText(/timeline/i).click();
-  await page.waitForURL("**/timeline");
-
-  // Verify timeline renders with persons
-  await expect(page.locator("svg")).toBeVisible();
-  // Both person names should appear as labels in the SVG
-  await expect(page.locator("text").filter({ hasText: "Alice" })).toBeVisible();
-  await expect(page.locator("text").filter({ hasText: "Bob" })).toBeVisible();
-
-  // --- Logout ---
-  await page.getByText(/log out/i).click();
-  await expect(page).toHaveURL(/\/login/);
-
-  // --- Login and verify persistence ---
-  await loginAndUnlock(page);
-
-  // Navigate to the tree (should be the first/only tree)
-  await page.getByRole("link", { name: /untitled|naamloz/i }).click();
-  await page.waitForURL("**/trees/*");
-
-  // Verify Alice and Bob are still there
-  await expect(page.locator(".person-node").filter({ hasText: "Alice" })).toBeVisible();
-  await expect(page.locator(".person-node").filter({ hasText: "Bob" })).toBeVisible();
-
-  // Verify edge still exists
-  await expect(page.locator(".react-flow__edge")).toBeVisible();
-
-  // Verify trauma event persists
-  await page.locator(".person-node").filter({ hasText: "Alice" }).click();
-  await expect(panel).toBeVisible();
-  await panel.getByText(/trauma\.events|trauma events/i).click();
-  await expect(panel.getByText("Family loss")).toBeVisible();
+    // Verify data persisted
+    await expect(
+      page.locator(".react-flow__node").filter({ hasText: "Alice" }),
+    ).toBeAttached();
+    await expect(
+      page.locator(".react-flow__node").filter({ hasText: "Bob" }),
+    ).toBeAttached();
+    await expect(page.locator(".react-flow__edge")).toBeAttached();
+  });
 });

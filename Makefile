@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e \
+.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e e2e-headed e2e-ui \
        bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet
 
 .DEFAULT_GOAL := help
@@ -66,7 +66,13 @@ coverage: ## Run tests with coverage reports
 	docker compose exec api uv run pytest --cov=app --cov-report=html --cov-report=term
 
 e2e: ## Run end-to-end tests (playwright)
-	docker compose exec frontend npx playwright test
+	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test'
+
+e2e-headed: ## Run e2e tests with visible browser
+	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --headed'
+
+e2e-ui: ## Open Playwright UI mode
+	docker compose --profile e2e run --rm e2e sh -c 'npm ci --ignore-scripts ; node e2e/port-forward.cjs & sleep 1 ; node node_modules/@playwright/test/cli.js test --ui'
 
 # --- Deployment ---
 
