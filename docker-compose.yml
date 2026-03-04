@@ -23,7 +23,7 @@ services:
     env_file: .env
     environment:
       - ENABLE_TEST_RESET=true
-      - REQUIRE_EMAIL_VERIFICATION=false
+      - REQUIRE_EMAIL_VERIFICATION=${REQUIRE_EMAIL_VERIFICATION:-false}
     depends_on:
       db:
         condition: service_healthy
