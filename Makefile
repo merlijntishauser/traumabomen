@@ -2,7 +2,8 @@
 export
 
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e e2e-headed e2e-ui e2e-verify \
-       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet
+       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet \
+       perf-seed perf-load perf-metrics perf-report profile-api
 
 .DEFAULT_GOAL := help
 
@@ -143,6 +144,30 @@ perf-ratchet: ## Update performance baseline to current production values
 		cp .performance-current.json .performance-baseline.json; \
 		echo "Local performance baseline updated."; \
 	fi
+
+# --- Load Testing ---
+
+perf-seed: ## Seed performance test data
+	docker compose exec -T db psql -U traumabomen -d traumabomen -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>/dev/null || true
+	python3 scripts/seed_perf_data.py
+
+perf-load: ## Run Locust headless (20 users, 7 min)
+	@mkdir -p scripts/output
+	docker stats --no-stream > scripts/output/docker_stats_before.txt
+	docker compose exec -T db psql -U traumabomen -d traumabomen -c "SELECT pg_stat_statements_reset();" 2>/dev/null || true
+	locust -f loadtests/locustfile.py --host=http://localhost:8000 --users=20 --spawn-rate=1 --run-time=7m --headless --csv=scripts/output/locust --only-summary
+	docker stats --no-stream > scripts/output/docker_stats_after.txt
+	docker compose exec -T db psql -U traumabomen -d traumabomen -f /dev/stdin < scripts/db_query_stats.sql > scripts/output/db_stats_after.txt
+
+perf-metrics: ## Snapshot container CPU/memory
+	docker stats --no-stream
+
+perf-report: ## Generate markdown report from latest run
+	python3 scripts/gen_perf_report.py
+
+profile-api: ## Attach py-spy to API container for flamegraph
+	@mkdir -p scripts/output
+	docker compose exec --privileged api py-spy record --pid 1 --format speedscope --output /app/scripts/output/flamegraph.json --duration 300
 
 # --- Security ---
 

@@ -51,3 +51,8 @@ docker-compose.override.yml
 /api/.coverage
 /api/coverage.json
 .performance-current.json
+
+# Load testing
+scripts/output/
+scripts/perf_accounts.json
+loadtests/__pycache__/
