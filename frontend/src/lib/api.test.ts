@@ -26,6 +26,7 @@ import {
   deleteWaitlistEntry,
   getAccessToken,
   getAdminActivity,
+  getAdminFeatures,
   getAdminFeedback,
   getAdminFunnel,
   getAdminGrowth,
@@ -40,6 +41,7 @@ import {
   getEncryptionSalt,
   getEvent,
   getEvents,
+  getFeatureFlags,
   getIsAdmin,
   getLifeEvent,
   getLifeEvents,
@@ -63,6 +65,7 @@ import {
   setTokens,
   submitFeedback,
   syncTree,
+  updateAdminFeature,
   updateClassification,
   updateEvent,
   updateLifeEvent,
@@ -1404,6 +1407,47 @@ describe("waitlist functions", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/admin/waitlist/capacity");
     expect(init.method).toBe("GET");
+  });
+
+  it("getFeatureFlags sends GET to /features", async () => {
+    setTokens("tok", "ref");
+    const data = { watercolor_theme: true };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await getFeatureFlags();
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/features");
+    expect(init.method).toBe("GET");
+  });
+
+  it("getAdminFeatures sends GET to /admin/features", async () => {
+    setTokens("tok", "ref");
+    const data = {
+      flags: [{ key: "watercolor_theme", audience: "disabled", selected_user_ids: [] }],
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(data));
+
+    const result = await getAdminFeatures();
+
+    expect(result).toEqual(data);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/features");
+    expect(init.method).toBe("GET");
+  });
+
+  it("updateAdminFeature sends PUT to /admin/features/{key}", async () => {
+    setTokens("tok", "ref");
+    const response = { key: "watercolor_theme", audience: "all", selected_user_ids: [] };
+    mockFetch.mockResolvedValueOnce(mockResponse(response));
+
+    const result = await updateAdminFeature("watercolor_theme", { audience: "all" });
+
+    expect(result).toEqual(response);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/features/watercolor_theme");
+    expect(init.method).toBe("PUT");
   });
 
   it("getOnboardingFlag returns true when localStorage value is 'true'", () => {
