@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useEncryption } from "../contexts/useEncryption";
-import { createTree, syncTree, updateKeyRing } from "../lib/api";
-import { decryptFromApi, encryptKeyRing, importTreeKey } from "../lib/crypto";
+import { createTree, modifyKeyRing, syncTree } from "../lib/api";
+import { decryptFromApi, importTreeKey } from "../lib/crypto";
 
 interface ImportedEntity {
   id?: string;
@@ -27,7 +27,7 @@ interface EncryptedExport {
 }
 
 export function useImportTree() {
-  const { masterKey, keyRingBase64, addTreeKey } = useEncryption();
+  const { masterKey, addTreeKey } = useEncryption();
 
   const importTree = useCallback(
     async (file: File): Promise<string> => {
@@ -95,15 +95,15 @@ export function useImportTree() {
         })),
       });
 
-      // Update key ring on server
-      const ringEntries: Record<string, string> = Object.fromEntries(keyRingBase64);
-      ringEntries[newTree.id] = rawKeyBase64;
-      const encryptedRing = await encryptKeyRing(ringEntries, masterKey);
-      await updateKeyRing(encryptedRing);
+      // Update key ring on server (read-modify-write to avoid lost updates)
+      await modifyKeyRing(masterKey, (entries) => ({
+        ...entries,
+        [newTree.id]: rawKeyBase64,
+      }));
 
       return newTree.id;
     },
-    [masterKey, keyRingBase64, addTreeKey],
+    [masterKey, addTreeKey],
   );
 
   return { importTree };

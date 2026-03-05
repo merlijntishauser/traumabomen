@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { lazy, Suspense, useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
@@ -109,9 +109,11 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   // Re-sync with localStorage: login() updates the flag after this component
   // has already mounted with the stale pre-login value.
   const flagFromStorage = getOnboardingFlag();
-  if (flagFromStorage && !acknowledged) {
-    setAcknowledged(true);
-  }
+  useEffect(() => {
+    if (flagFromStorage && !acknowledged) {
+      setAcknowledged(true);
+    }
+  }, [flagFromStorage, acknowledged]);
 
   if (isAuthenticated && masterKey && !acknowledged) {
     return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;

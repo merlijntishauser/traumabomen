@@ -2,7 +2,6 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useImportTree } from "./useImportTree";
 
-const mockKeyRingBase64 = new Map<string, string>();
 const fakeMasterKey = {} as CryptoKey;
 const fakeTreeKey = { id: "treeKey" } as unknown as CryptoKey;
 const mockAddTreeKey = vi.fn();
@@ -10,29 +9,26 @@ const mockAddTreeKey = vi.fn();
 vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     masterKey: fakeMasterKey,
-    keyRingBase64: mockKeyRingBase64,
     addTreeKey: mockAddTreeKey,
   }),
 }));
 
 const mockCreateTree = vi.fn();
 const mockSyncTree = vi.fn();
-const mockUpdateKeyRing = vi.fn();
+const mockModifyKeyRing = vi.fn();
 
 vi.mock("../lib/api", () => ({
   createTree: (...args: unknown[]) => mockCreateTree(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
-  updateKeyRing: (...args: unknown[]) => mockUpdateKeyRing(...args),
+  modifyKeyRing: (...args: unknown[]) => mockModifyKeyRing(...args),
 }));
 
 const mockDecryptFromApi = vi.fn();
 const mockImportTreeKey = vi.fn();
-const mockEncryptKeyRing = vi.fn();
 
 vi.mock("../lib/crypto", () => ({
   decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
   importTreeKey: (...args: unknown[]) => mockImportTreeKey(...args),
-  encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
 }));
 
 const NEW_TREE_ID = "new-tree-id";
@@ -65,7 +61,6 @@ function makeFile(content: string): File {
 describe("useImportTree", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockKeyRingBase64.clear();
 
     mockDecryptFromApi
       .mockResolvedValueOnce("raw-tree-key-b64") // decrypt tree key from backup
@@ -73,8 +68,7 @@ describe("useImportTree", () => {
     mockImportTreeKey.mockResolvedValue(fakeTreeKey);
     mockCreateTree.mockResolvedValue({ id: NEW_TREE_ID });
     mockSyncTree.mockResolvedValue({});
-    mockEncryptKeyRing.mockResolvedValue("encrypted-ring");
-    mockUpdateKeyRing.mockResolvedValue(undefined);
+    mockModifyKeyRing.mockResolvedValue(undefined);
   });
 
   it("imports a valid encrypted backup", async () => {
@@ -116,8 +110,11 @@ describe("useImportTree", () => {
 
     await result.current.importTree(file);
 
-    expect(mockEncryptKeyRing).toHaveBeenCalled();
-    expect(mockUpdateKeyRing).toHaveBeenCalledWith("encrypted-ring");
+    expect(mockModifyKeyRing).toHaveBeenCalledWith(fakeMasterKey, expect.any(Function));
+    // Verify the transform function adds the new tree key
+    const transform = mockModifyKeyRing.mock.calls[0][1];
+    const updated = transform({ existingTree: "existing-key" });
+    expect(updated).toEqual({ existingTree: "existing-key", [NEW_TREE_ID]: "raw-tree-key-b64" });
   });
 
   it("rejects files with wrong version", async () => {

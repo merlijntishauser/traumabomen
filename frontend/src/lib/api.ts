@@ -286,6 +286,22 @@ export function updateKeyRing(encrypted_key_ring: string): Promise<void> {
   });
 }
 
+/**
+ * Read-modify-write the key ring on the server to avoid lost updates.
+ * The transform receives the current ring entries and returns updated entries.
+ */
+export async function modifyKeyRing(
+  masterKey: CryptoKey,
+  transform: (entries: Record<string, string>) => Record<string, string>,
+): Promise<void> {
+  const { decryptKeyRing, encryptKeyRing } = await import("./crypto");
+  const { encrypted_key_ring } = await getKeyRing();
+  const current = await decryptKeyRing(encrypted_key_ring, masterKey);
+  const updated = transform(current);
+  const encrypted = await encryptKeyRing(updated, masterKey);
+  await updateKeyRing(encrypted);
+}
+
 export function migrateKeys(data: MigrateKeysRequest): Promise<void> {
   return apiFetchWithRetry("/auth/migrate-keys", {
     method: "POST",
@@ -437,7 +453,10 @@ export function getIsAdmin(): boolean {
   const token = getAccessToken();
   if (!token) return false;
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    // JWT uses base64url encoding; convert to standard base64 for atob
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
     return payload.is_admin === true;
   } catch {
     return false;

@@ -20,14 +20,14 @@ const mockDeleteAccount = vi.fn();
 const mockGetEncryptionSalt = vi.fn();
 const mockGetClassifications = vi.fn();
 const mockGetEvents = vi.fn();
+const mockGetJournalEntries = vi.fn();
 const mockGetLifeEvents = vi.fn();
 const mockGetPatterns = vi.fn();
 const mockGetPersons = vi.fn();
 const mockGetRelationships = vi.fn();
 const mockGetTrees = vi.fn();
+const mockGetTurningPoints = vi.fn();
 const mockSyncTree = vi.fn();
-const mockUpdateClassification = vi.fn();
-const mockUpdatePattern = vi.fn();
 const mockUpdateSalt = vi.fn();
 
 vi.mock("../../lib/api", () => ({
@@ -36,17 +36,16 @@ vi.mock("../../lib/api", () => ({
   getEncryptionSalt: (...args: unknown[]) => mockGetEncryptionSalt(...args),
   getClassifications: (...args: unknown[]) => mockGetClassifications(...args),
   getEvents: (...args: unknown[]) => mockGetEvents(...args),
+  getJournalEntries: (...args: unknown[]) => mockGetJournalEntries(...args),
   getLifeEvents: (...args: unknown[]) => mockGetLifeEvents(...args),
   getPatterns: (...args: unknown[]) => mockGetPatterns(...args),
   getPersons: (...args: unknown[]) => mockGetPersons(...args),
   getRelationships: (...args: unknown[]) => mockGetRelationships(...args),
   getTrees: (...args: unknown[]) => mockGetTrees(...args),
+  getTurningPoints: (...args: unknown[]) => mockGetTurningPoints(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
-  updateClassification: (...args: unknown[]) => mockUpdateClassification(...args),
-  updatePattern: (...args: unknown[]) => mockUpdatePattern(...args),
   updateSalt: (...args: unknown[]) => mockUpdateSalt(...args),
   updateTree: vi.fn(),
-  updateLifeEvent: vi.fn(),
 }));
 
 const mockDecryptFromApi = vi.fn();
@@ -798,6 +797,8 @@ describe("SettingsPanel", () => {
       mockGetLifeEvents.mockResolvedValue([]);
       mockGetClassifications.mockResolvedValue([]);
       mockGetPatterns.mockResolvedValue([]);
+      mockGetTurningPoints.mockResolvedValue([]);
+      mockGetJournalEntries.mockResolvedValue([]);
       mockSyncTree.mockResolvedValue(undefined);
       mockUpdateSalt.mockResolvedValue(undefined);
 
@@ -857,9 +858,11 @@ describe("SettingsPanel", () => {
       mockGetPatterns.mockResolvedValue([
         { id: "pat1", person_ids: ["p1"], encrypted_data: "enc-pat" },
       ]);
+      mockGetTurningPoints.mockResolvedValue([
+        { id: "tp1", person_ids: ["p1"], encrypted_data: "enc-tp" },
+      ]);
+      mockGetJournalEntries.mockResolvedValue([{ id: "j1", encrypted_data: "enc-j" }]);
       mockSyncTree.mockResolvedValue(undefined);
-      mockUpdateClassification.mockResolvedValue(undefined);
-      mockUpdatePattern.mockResolvedValue(undefined);
       mockUpdateSalt.mockResolvedValue(undefined);
 
       renderPanel();
@@ -884,12 +887,12 @@ describe("SettingsPanel", () => {
       });
 
       // Decrypt is called for: tree + person + relationship + event + life event
-      //   + classification + pattern = 7 times
-      expect(mockDecryptFromApi).toHaveBeenCalledTimes(7);
-      // Encrypt is called for the same 7 entities
-      expect(mockEncryptForApi).toHaveBeenCalledTimes(7);
+      //   + classification + pattern + turning point + journal entry = 9
+      expect(mockDecryptFromApi).toHaveBeenCalledTimes(9);
+      // Encrypt is called for the same 9 entities
+      expect(mockEncryptForApi).toHaveBeenCalledTimes(9);
 
-      // syncTree should have been called with persons, relationships, and events
+      // syncTree should include all entity types
       expect(mockSyncTree).toHaveBeenCalledWith("t1", {
         persons_update: [{ id: "p1", encrypted_data: "re-encrypted" }],
         relationships_update: [
@@ -901,18 +904,11 @@ describe("SettingsPanel", () => {
           },
         ],
         events_update: [{ id: "e1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
-      });
-
-      // Classification updated individually
-      expect(mockUpdateClassification).toHaveBeenCalledWith("t1", "c1", {
-        person_ids: ["p1"],
-        encrypted_data: "re-encrypted",
-      });
-
-      // Pattern updated individually
-      expect(mockUpdatePattern).toHaveBeenCalledWith("t1", "pat1", {
-        person_ids: ["p1"],
-        encrypted_data: "re-encrypted",
+        life_events_update: [{ id: "le1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
+        classifications_update: [{ id: "c1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
+        patterns_update: [{ id: "pat1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
+        turning_points_update: [{ id: "tp1", person_ids: ["p1"], encrypted_data: "re-encrypted" }],
+        journal_entries_update: [{ id: "j1", encrypted_data: "re-encrypted" }],
       });
     });
 

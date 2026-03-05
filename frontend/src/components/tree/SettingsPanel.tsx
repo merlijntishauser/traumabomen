@@ -11,16 +11,16 @@ import {
   getClassifications,
   getEncryptionSalt,
   getEvents,
+  getJournalEntries,
   getKeyRing,
   getLifeEvents,
   getPatterns,
   getPersons,
   getRelationships,
   getTrees,
+  getTurningPoints,
   syncTree,
-  updateClassification,
   updateKeyRing,
-  updatePattern,
   updateSalt,
 } from "../../lib/api";
 import {
@@ -155,9 +155,11 @@ export function SettingsPanel({ viewTab, className }: Props) {
     const newKey = await deriveKey(ppNew, newSalt);
     const newEncryptedRing = await encryptKeyRing(keyRingData, newKey);
 
-    // Persist new key ring and salt
-    await updateKeyRing(newEncryptedRing);
+    // Persist salt first: if key-ring update fails, old key-ring + old salt
+    // still works. Reverse order would leave new key-ring with old salt,
+    // making key derivation impossible.
     await updateSalt({ encryption_salt: newSalt });
+    await updateKeyRing(newEncryptedRing);
 
     // Update context
     const newHash = await hashPassphrase(ppNew);
@@ -179,15 +181,25 @@ export function SettingsPanel({ viewTab, className }: Props) {
       const treeData = await decryptFromApi(tree.encrypted_data, oldKey);
       const newTreeEncrypted = await encryptForApi(treeData, newKey);
 
-      const [persons, relationships, events, lifeEvents, classifications, patterns] =
-        await Promise.all([
-          getPersons(tree.id),
-          getRelationships(tree.id),
-          getEvents(tree.id),
-          getLifeEvents(tree.id),
-          getClassifications(tree.id),
-          getPatterns(tree.id),
-        ]);
+      const [
+        persons,
+        relationships,
+        events,
+        lifeEvents,
+        classifications,
+        patterns,
+        turningPoints,
+        journalEntries,
+      ] = await Promise.all([
+        getPersons(tree.id),
+        getRelationships(tree.id),
+        getEvents(tree.id),
+        getLifeEvents(tree.id),
+        getClassifications(tree.id),
+        getPatterns(tree.id),
+        getTurningPoints(tree.id),
+        getJournalEntries(tree.id),
+      ]);
 
       const personsUpdate = await Promise.all(
         persons.map(async (p) => {
@@ -218,46 +230,53 @@ export function SettingsPanel({ viewTab, className }: Props) {
         }),
       );
 
-      for (const le of lifeEvents) {
-        const data = await decryptFromApi(le.encrypted_data, oldKey);
-        const enc = await encryptForApi(data, newKey);
-        le.encrypted_data = enc;
-      }
+      const reencryptLinked = async (
+        items: { id: string; person_ids: string[]; encrypted_data: string }[],
+      ) =>
+        Promise.all(
+          items.map(async (item) => {
+            const data = await decryptFromApi(item.encrypted_data, oldKey);
+            const enc = await encryptForApi(data, newKey);
+            return { id: item.id, person_ids: item.person_ids, encrypted_data: enc };
+          }),
+        );
+
+      const reencryptSimple = async (items: { id: string; encrypted_data: string }[]) =>
+        Promise.all(
+          items.map(async (item) => {
+            const data = await decryptFromApi(item.encrypted_data, oldKey);
+            const enc = await encryptForApi(data, newKey);
+            return { id: item.id, encrypted_data: enc };
+          }),
+        );
+
+      const [
+        lifeEventsUpdate,
+        classificationsUpdate,
+        patternsUpdate,
+        turningPointsUpdate,
+        journalEntriesUpdate,
+      ] = await Promise.all([
+        reencryptLinked(lifeEvents),
+        reencryptLinked(classifications),
+        reencryptLinked(patterns),
+        reencryptLinked(turningPoints),
+        reencryptSimple(journalEntries),
+      ]);
 
       await syncTree(tree.id, {
         persons_update: personsUpdate,
         relationships_update: relationshipsUpdate,
         events_update: eventsUpdate,
+        life_events_update: lifeEventsUpdate,
+        classifications_update: classificationsUpdate,
+        patterns_update: patternsUpdate,
+        turning_points_update: turningPointsUpdate,
+        journal_entries_update: journalEntriesUpdate,
       });
 
       const { updateTree } = await import("../../lib/api");
       await updateTree(tree.id, { encrypted_data: newTreeEncrypted });
-
-      const { updateLifeEvent } = await import("../../lib/api");
-      for (const le of lifeEvents) {
-        await updateLifeEvent(tree.id, le.id, {
-          person_ids: le.person_ids,
-          encrypted_data: le.encrypted_data,
-        });
-      }
-
-      for (const cls of classifications) {
-        const data = await decryptFromApi(cls.encrypted_data, oldKey);
-        const enc = await encryptForApi(data, newKey);
-        await updateClassification(tree.id, cls.id, {
-          person_ids: cls.person_ids,
-          encrypted_data: enc,
-        });
-      }
-
-      for (const pat of patterns) {
-        const data = await decryptFromApi(pat.encrypted_data, oldKey);
-        const enc = await encryptForApi(data, newKey);
-        await updatePattern(tree.id, pat.id, {
-          person_ids: pat.person_ids,
-          encrypted_data: enc,
-        });
-      }
     }
 
     await updateSalt({ encryption_salt: newSalt });

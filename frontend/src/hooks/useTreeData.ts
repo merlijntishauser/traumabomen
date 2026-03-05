@@ -284,7 +284,8 @@ export function useTreeData(treeId: string) {
     enabled: hasKey,
   });
 
-  const entityQueries = [
+  const allQueries = [
+    treeQuery,
     personsQuery,
     relationshipsQuery,
     eventsQuery,
@@ -305,7 +306,7 @@ export function useTreeData(treeId: string) {
     classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
     patterns: patternsQuery.data ?? EMPTY_PATTERNS,
     journalEntries: journalEntriesQuery.data ?? EMPTY_JOURNAL_ENTRIES,
-    isLoading: entityQueries.some((q) => q.isLoading),
-    error: entityQueries.find((q) => q.error)?.error ?? null,
+    isLoading: allQueries.some((q) => q.isLoading),
+    error: allQueries.find((q) => q.error)?.error ?? null,
   };
 }
