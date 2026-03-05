@@ -103,7 +103,7 @@ async def _validate_user_ids(
     missing = [str(uid) for uid in user_ids if uid not in existing_ids]
     if missing:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"User IDs not found: {', '.join(missing)}",
         )
 
