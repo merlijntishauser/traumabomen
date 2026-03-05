@@ -1,15 +1,14 @@
+import uuid
+from typing import Literal
+
 from pydantic import BaseModel
 
-
-class UserFeaturesResponse(BaseModel):
-    """Maps feature flag keys to boolean enabled status for the current user."""
-
-    model_config = {"extra": "allow"}
+AudienceType = Literal["disabled", "admins", "selected", "all"]
 
 
 class AdminFeatureFlag(BaseModel):
     key: str
-    audience: str
+    audience: AudienceType
     selected_user_ids: list[str]
 
 
@@ -18,5 +17,5 @@ class AdminFeaturesResponse(BaseModel):
 
 
 class UpdateFeatureFlagRequest(BaseModel):
-    audience: str
-    user_ids: list[str] = []
+    audience: AudienceType
+    user_ids: list[uuid.UUID] = []

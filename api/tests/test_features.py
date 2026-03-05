@@ -251,6 +251,19 @@ class TestAdminUpdateFeature:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
+    async def test_invalid_user_id_returns_422(self, client, admin_headers, db_session):
+        """An invalid UUID in user_ids returns 422."""
+        db_session.add(FeatureFlag(key="beta", audience="disabled"))
+        await db_session.commit()
+
+        resp = await client.put(
+            "/admin/features/beta",
+            json={"audience": "selected", "user_ids": ["not-a-uuid"]},
+            headers=admin_headers,
+        )
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
     async def test_unauthenticated_returns_401(self, client):
         """Unauthenticated requests should return 401."""
         resp = await client.put(

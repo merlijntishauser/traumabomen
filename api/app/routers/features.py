@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +12,6 @@ from app.schemas.features import (
     AdminFeaturesResponse,
     UpdateFeatureFlagRequest,
 )
-
-VALID_AUDIENCES = {"disabled", "admins", "selected", "all"}
 
 router = APIRouter(tags=["features"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -53,24 +49,24 @@ async def admin_get_features(
     db: AsyncSession = Depends(get_db),
 ) -> AdminFeaturesResponse:
     """Return all feature flags with full detail (admin only)."""
-    result = await db.execute(select(FeatureFlag))
-    flags = result.scalars().all()
+    flags_result = await db.execute(select(FeatureFlag))
+    flags = flags_result.scalars().all()
 
-    items: list[AdminFeatureFlag] = []
-    for flag in flags:
-        user_result = await db.execute(
-            select(FeatureFlagUser.user_id).where(FeatureFlagUser.flag_key == flag.key)
-        )
-        user_ids = [str(uid) for uid in user_result.scalars().all()]
-        items.append(
+    users_result = await db.execute(select(FeatureFlagUser))
+    users_by_key: dict[str, list[str]] = {}
+    for row in users_result.scalars().all():
+        users_by_key.setdefault(row.flag_key, []).append(str(row.user_id))
+
+    return AdminFeaturesResponse(
+        flags=[
             AdminFeatureFlag(
-                key=flag.key,
-                audience=flag.audience,
-                selected_user_ids=user_ids,
+                key=f.key,
+                audience=f.audience,
+                selected_user_ids=users_by_key.get(f.key, []),
             )
-        )
-
-    return AdminFeaturesResponse(flags=items)
+            for f in flags
+        ]
+    )
 
 
 @admin_router.put("/features/{key}")
@@ -80,12 +76,6 @@ async def admin_update_feature(
     db: AsyncSession = Depends(get_db),
 ) -> AdminFeatureFlag:
     """Update a feature flag's audience and optional selected users (admin only)."""
-    if body.audience not in VALID_AUDIENCES:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"Invalid audience. Must be one of: {', '.join(sorted(VALID_AUDIENCES))}",
-        )
-
     result = await db.execute(select(FeatureFlag).where(FeatureFlag.key == key))
     flag = result.scalar_one_or_none()
     if flag is None:
@@ -100,8 +90,8 @@ async def admin_update_feature(
     await db.execute(delete(FeatureFlagUser).where(FeatureFlagUser.flag_key == key))
 
     if body.audience == "selected" and body.user_ids:
-        for uid_str in body.user_ids:
-            db.add(FeatureFlagUser(flag_key=key, user_id=uuid.UUID(uid_str)))
+        for uid in body.user_ids:
+            db.add(FeatureFlagUser(flag_key=key, user_id=uid))
 
     await db.commit()
 
