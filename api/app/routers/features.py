@@ -17,6 +17,18 @@ router = APIRouter(tags=["features"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 
+def _is_flag_enabled(flag: FeatureFlag, user: User, selected_keys: set[str]) -> bool:
+    match flag.audience:
+        case "all":
+            return True
+        case "admins":
+            return user.is_admin
+        case "selected":
+            return flag.key in selected_keys
+        case _:
+            return False
+
+
 @router.get("/features")
 async def get_features(
     user: User = Depends(get_current_user),
@@ -26,22 +38,12 @@ async def get_features(
     result = await db.execute(select(FeatureFlag))
     flags = result.scalars().all()
 
-    # Get the set of flag keys this user is selected for
     selected_result = await db.execute(
         select(FeatureFlagUser.flag_key).where(FeatureFlagUser.user_id == user.id)
     )
     selected_keys = {row for row in selected_result.scalars().all()}
 
-    response: dict[str, bool] = {}
-    for flag in flags:
-        enabled = (
-            flag.audience == "all"
-            or (flag.audience == "admins" and user.is_admin)
-            or (flag.audience == "selected" and flag.key in selected_keys)
-        )
-        response[flag.key] = enabled
-
-    return response
+    return {flag.key: _is_flag_enabled(flag, user, selected_keys) for flag in flags}
 
 
 @admin_router.get("/features", response_model=AdminFeaturesResponse)
@@ -69,13 +71,7 @@ async def admin_get_features(
     )
 
 
-@admin_router.put("/features/{key}")
-async def admin_update_feature(
-    key: str,
-    body: UpdateFeatureFlagRequest,
-    db: AsyncSession = Depends(get_db),
-) -> AdminFeatureFlag:
-    """Update a feature flag's audience and optional selected users (admin only)."""
+async def _get_flag_or_404(db: AsyncSession, key: str) -> FeatureFlag:
     result = await db.execute(select(FeatureFlag).where(FeatureFlag.key == key))
     flag = result.scalar_one_or_none()
     if flag is None:
@@ -83,26 +79,34 @@ async def admin_update_feature(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Feature flag not found",
         )
+    return flag
 
+
+async def _build_admin_flag(db: AsyncSession, flag: FeatureFlag) -> AdminFeatureFlag:
+    user_result = await db.execute(
+        select(FeatureFlagUser.user_id).where(FeatureFlagUser.flag_key == flag.key)
+    )
+    return AdminFeatureFlag(
+        key=flag.key,
+        audience=flag.audience,
+        selected_user_ids=[str(uid) for uid in user_result.scalars().all()],
+    )
+
+
+@admin_router.put("/features/{key}")
+async def admin_update_feature(
+    key: str,
+    body: UpdateFeatureFlagRequest,
+    db: AsyncSession = Depends(get_db),
+) -> AdminFeatureFlag:
+    """Update a feature flag's audience and optional selected users (admin only)."""
+    flag = await _get_flag_or_404(db, key)
     flag.audience = body.audience
 
-    # Replace selected users
     await db.execute(delete(FeatureFlagUser).where(FeatureFlagUser.flag_key == key))
-
     if body.audience == "selected" and body.user_ids:
         for uid in body.user_ids:
             db.add(FeatureFlagUser(flag_key=key, user_id=uid))
 
     await db.commit()
-
-    # Return updated state
-    user_result = await db.execute(
-        select(FeatureFlagUser.user_id).where(FeatureFlagUser.flag_key == key)
-    )
-    user_ids = [str(uid) for uid in user_result.scalars().all()]
-
-    return AdminFeatureFlag(
-        key=flag.key,
-        audience=flag.audience,
-        selected_user_ids=user_ids,
-    )
+    return await _build_admin_flag(db, flag)
