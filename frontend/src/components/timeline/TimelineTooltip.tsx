@@ -34,7 +34,10 @@ export const TimelineTooltip = React.memo(function TimelineTooltip({
       }}
     >
       {state.lines.map((line, i) => (
-        <React.Fragment key={i}>
+        <React.Fragment
+          // biome-ignore lint/suspicious/noArrayIndexKey: tooltip lines are positional, never reorder
+          key={i}
+        >
           {i > 0 && <br />}
           <span style={line.bold ? { fontWeight: 600 } : undefined}>{line.text}</span>
         </React.Fragment>

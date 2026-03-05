@@ -116,6 +116,7 @@ export function BranchDecoration() {
     >
       {contours.map((line, i) => (
         <path
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
           key={`contour-${i}`}
           d={line.d}
           stroke="var(--color-accent)"

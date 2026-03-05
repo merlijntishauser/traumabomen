@@ -75,8 +75,8 @@ export function JournalDecoration() {
 
       {/* Ruled lines like a notebook page */}
       {Array.from({ length: LINE_COUNT }, (_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static decorative list never reorders
         <line
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
           key={`rule-${i}`}
           x1="0"
           y1={LINE_START_Y + i * LINE_STEP}
@@ -93,8 +93,8 @@ export function JournalDecoration() {
 
       {/* Script words sitting on the ruled lines */}
       {words.map((w, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static decorative list never reorders
         <text
+          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
           key={`w-${i}`}
           x={w.x}
           y={LINE_START_Y + w.lineIndex * LINE_STEP}

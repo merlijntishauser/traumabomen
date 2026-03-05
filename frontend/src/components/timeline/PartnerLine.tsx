@@ -101,7 +101,10 @@ export const PartnerLine = React.memo(function PartnerLine({
         };
 
         return (
-          <g key={i}>
+          <g
+            // biome-ignore lint/suspicious/noArrayIndexKey: periods are positional, never reorder
+            key={i}
+          >
             {/* Vertical connector (only when both partners visible) */}
             {srcLineY != null && tgtLineY != null && (
               <line

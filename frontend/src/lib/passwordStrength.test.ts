@@ -44,7 +44,7 @@ describe("getPasswordStrength", () => {
   });
 
   it("handles max length edge (64 chars)", () => {
-    const result = getPasswordStrength("A1" + "a".repeat(62));
+    const result = getPasswordStrength(`A1${"a".repeat(62)}`);
     expect(result.level).toBe("strong");
   });
 

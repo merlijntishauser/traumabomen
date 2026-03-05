@@ -167,7 +167,7 @@ describe("timingSafeEqual", () => {
   it("works with base64 hash strings", async () => {
     const hash = await hashPassphrase("test");
     expect(timingSafeEqual(hash, hash)).toBe(true);
-    expect(timingSafeEqual(hash, hash + "x")).toBe(false);
+    expect(timingSafeEqual(hash, `${hash}x`)).toBe(false);
   });
 });
 
