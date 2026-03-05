@@ -33,7 +33,7 @@ test.describe("Authentication @smoketest", () => {
     await page.getByLabel(/password/i).fill("WrongPassword123!");
     await page.getByRole("button", { name: /log in/i }).click();
 
-    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator(".auth-error")).toBeVisible();
   });
 
   test("wrong passphrase shows error", async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe("Authentication @smoketest", () => {
     await page.getByLabel(/passphrase/i).fill("wrong-passphrase-value");
     await page.getByRole("button", { name: /unlock/i }).click();
 
-    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator(".auth-error")).toBeVisible();
   });
 
   test("logout redirects to login", async ({ page }) => {

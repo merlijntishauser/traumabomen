@@ -7,6 +7,7 @@ import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
+import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import { getPasswordStrength } from "../lib/passwordStrength";
 import "../styles/auth.css";
 
@@ -22,7 +23,8 @@ function getRegistrationError(err: unknown, t: (key: string) => string): string 
 export default function RegisterPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { setMasterKey, setPassphraseHash } = useEncryption();
+  const { setMasterKey, setPassphraseHash, setTreeKeys, setKeyRingBase64, setIsMigrated } =
+    useEncryption();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
 
@@ -84,6 +86,10 @@ export default function RegisterPage() {
       const hash = await hashPassphrase(passphrase);
       setMasterKey(derivedKey);
       setPassphraseHash(hash);
+      const { keys, base64Map } = await loadOrMigrateKeyRing(derivedKey);
+      setTreeKeys(keys);
+      setKeyRingBase64(base64Map);
+      setIsMigrated(true);
       navigate("/trees");
     } catch (err) {
       if (err instanceof ApiError && err.status === 403 && err.detail === "registration_closed") {
