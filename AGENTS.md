@@ -20,7 +20,7 @@ traumabomen/
     Dockerfile            Multi-stage: dev / build / production (nginx)
     vite.config.ts        Build config with manual chunk splitting
     src/
-      components/         React components (tree/, timeline/)
+      components/         React components (tree/, timeline/, journal/, insights/)
       contexts/           React contexts (EncryptionContext)
       hooks/              Custom hooks (useTreeData, useTreeMutations, etc.)
       lib/                Utilities (api, crypto, colors, dsmCategories)
@@ -31,7 +31,7 @@ traumabomen/
   api/                    FastAPI Python backend
     Dockerfile            Multi-stage: dev / production
     app/
-      models/             SQLAlchemy models (user, tree, feedback, waitlist)
+      models/             SQLAlchemy models (user, tree, feedback, waitlist, feature_flag, journal_entry, turning_point)
       routers/            FastAPI route handlers
       auth.py             JWT authentication utilities
       config.py           Environment configuration
@@ -193,6 +193,30 @@ Multiple periods on the same edge support real-world complexity (e.g., marry, di
 
 Annotation layer linking multiple entities across generations to mark recurring themes. Supports linking trauma events, life events, and classifications. Visualized as connectors on the canvas and as cards on the dedicated pattern page.
 
+### TurningPoint
+- `id`: UUID
+- `person_ids`: list of UUIDs (attached to one or more Persons)
+- `title`: string
+- `description`: string (free text)
+- `approximate_date`: string (year or period)
+
+Key moments or transitions in a person's life used as anchors for journal reflections.
+
+### JournalEntry
+- `id`: UUID
+- `tree_id`: UUID
+- `title`: string
+- `content`: string (free text)
+- `linked_turning_point_ids`: list of UUIDs (optional)
+
+Personal reflections tied to a tree. Can link to turning points for context.
+
+### FeatureFlag
+- `key`: string (primary key, e.g., `watercolor_theme`)
+- `audience`: `disabled` | `admins` | `selected` | `all`
+
+Controls feature availability. Audience determines who sees the feature: all users, admins only, a selected set of users, or nobody. Selected users stored in a `FeatureFlagUser` junction table (`flag_key`, `user_id`).
+
 ## Architecture
 
 ### Zero-Knowledge Encryption Flow
@@ -234,6 +258,8 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/life-events`
 - `GET/POST/PUT/DELETE /trees/{id}/classifications`
 - `GET/POST/PUT/DELETE /trees/{id}/patterns`
+- `GET/POST/PUT/DELETE /trees/{id}/turning-points`
+- `GET/POST/PUT/DELETE /trees/{id}/journal`
 
 ### Bulk Sync
 - `POST /trees/{id}/sync` —batch of creates, updates, deletes across all entity types in a single transaction
@@ -244,12 +270,17 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 ### Waitlist
 - `POST /waitlist` —join the waitlist
 
+### Features
+- `GET /features` —returns feature flags enabled for the current user (checks audience: all, admins, selected)
+
 ### Admin
 - `GET /admin/stats/*` —analytics endpoints (overview, retention, usage, funnel, activity, growth, users)
 - `GET /admin/waitlist` —list all waitlist entries
 - `PATCH /admin/waitlist/{id}/approve` —approve and send invite email
 - `DELETE /admin/waitlist/{id}` —remove entry
 - `GET /admin/waitlist/capacity` —active user count and waitlist status
+- `GET /admin/features` —list all feature flags with audience and selected user IDs
+- `PUT /admin/features/{key}` —update a flag's audience and optional selected users
 
 ## Frontend Architecture
 
@@ -263,6 +294,8 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `/trees/{id}` —main workspace, tree canvas view
 - `/trees/{id}/timeline` —timeline view
 - `/trees/{id}/patterns` —pattern view (linked trauma/life events/classifications)
+- `/trees/{id}/journal` —journal entries view
+- `/trees/{id}/insights` —personal insights summary
 - `/admin` —admin dashboard (admin-guarded)
 
 ### Key Components
@@ -278,6 +311,9 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<SettingsPanel>` —Canvas settings, theme, language, account management (password/passphrase change, account deletion).
 - `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
+- `<ThemeToggle>` —Toolbar button cycling through available themes (dark/light/watercolor). Icons: Moon (dark), Sun (light), Droplets (watercolor).
+- `<JournalView>` —Journal entries page with entry list, create/edit/delete, linked turning points.
+- `<InsightsView>` —Personal insights summary page with aggregated tree statistics.
 
 ### Relationship Visual Styles
 - Solid lines: biological relationships
@@ -346,6 +382,13 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - Privacy policy page
 - Mental health support banner
 - Route-based code splitting (lazy-loaded heavy pages with stale-deploy auto-reload)
+- Turning point CRUD (key life moments as journal anchors)
+- Journal entries (personal reflections linked to turning points)
+- Personal insights summary page
+- Feature flag system (audience-based: disabled/admins/selected/all)
+- Admin feature toggles UI
+- Watercolor theme (teal-blue on warm cream, feature-flagged)
+- Three-theme system (dark/light/watercolor) with synchronized state
 
 ### Deferred
 - OAuth/social login
@@ -362,7 +405,13 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 
 ### Visual Identity
 
-The app uses a "dark forest" nature aesthetic with strong thematic coherence. The dominant hue is forest green (`#2d8a5e`), used as the single accent color across both themes. The dark theme evokes a midnight forest (near-black greens), while the light theme evokes morning light through birches (warm linen-sage).
+The app uses a nature-inspired aesthetic with strong thematic coherence. Three themes are available:
+
+- **Dark** (default): "Midnight forest" with near-black greens. Accent: forest green (`#2d8a5e`).
+- **Light**: "Morning light through birches" with warm linen-sage. Accent: forest green (`#2d8a5e`).
+- **Watercolor** (feature-flagged): Soft teal-blue on warm cream/parchment. Accent: teal-blue (`#4a9bb5`). Gated behind the `watercolor_theme` feature flag; only visible when an admin enables it.
+
+The theme system uses `useSyncExternalStore` for cross-component state synchronization, with `useAvailableThemes` deriving the theme list from feature flags. Settings show radio buttons; the toolbar ThemeToggle cycles through available themes.
 
 ### Typography
 
@@ -373,10 +422,10 @@ The app uses a "dark forest" nature aesthetic with strong thematic coherence. Th
 
 ### Color Palette
 
-All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`.
+All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`, watercolor via `[data-theme="watercolor"]`.
 
 - **Surfaces:** 5-level depth scale from `--color-bg-primary` (deepest) to `--color-bg-hover` (interactive)
-- **Accent:** Single green (`#2d8a5e`) with hover, subtle, and focus-ring variants
+- **Accent:** Green (`#2d8a5e`) for dark/light themes, teal-blue (`#4a9bb5`) for watercolor, with hover, subtle, and focus-ring variants
 - **Text:** 4-level hierarchy: primary, secondary, muted, inverse
 - **Semantic:** Danger (red), edge types (pink/purple/orange for partner/half-sibling/friend), trauma categories (7 colors), life event categories (6 colors), classification status (amber suspected, blue diagnosed)
 
@@ -392,10 +441,10 @@ All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. 
 
 When modifying the frontend, follow these principles:
 
-- **Stay in the green palette.** New surfaces, borders, and shadows should use the existing green-tinted variables. Never introduce grays or blues for structural elements.
+- **Stay in the theme palette.** New surfaces, borders, and shadows should use the existing CSS variables. Dark/light themes use green-tinted variables; watercolor uses warm neutrals with teal accents. Never introduce off-palette colors for structural elements.
 - **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
 - **Heading font is personal.** Playwrite NZ Basic's flowing script gives headings a handwritten, journal-like quality. Use weight 200-300 for large display, 300-400 for compact panel headers. Pair with the clean Lato body font for readability.
-- **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in both themes. Don't add new ones without updating both theme variants.
+- **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in all themes. Don't add new ones without updating all theme variants.
 - **Motion is restrained.** The app uses `0.15s ease` transitions for color/background changes and `0.25s ease-out` slide-in for panels. Don't add bouncy, springy, or attention-seeking animations —the subject matter is sensitive.
 - **Panels slide from the right.** All detail panels (person, relationship, pattern, settings) are 400px-wide absolute overlays on the right side of the canvas.
 - **Buttons have three tiers.** Primary (accent background), default (secondary background with border), and danger (red text/border). Small variant uses 11px font.
