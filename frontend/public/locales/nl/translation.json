@@ -472,6 +472,9 @@
   "settings.timeline": "Tijdlijn",
   "settings.account": "Account",
   "settings.theme": "Thema",
+  "settings.theme.dark": "Donker",
+  "settings.theme.light": "Licht",
+  "settings.theme.watercolor": "Aquarel",
   "settings.themeDark": "Donker",
   "settings.themeLight": "Licht",
   "settings.language": "Taal",
@@ -519,7 +522,7 @@
   "canvas.showMinimap": "Minimap tonen",
   "canvas.promptRelationship": "Vraag om relatie toe te voegen",
 
-  "theme.toggle": "Wissel donker/licht thema",
+  "theme.toggle": "Wissel thema",
 
   "mentalHealth.banner": "Deze tool behandelt mogelijk gevoelige onderwerpen die een trigger kunnen zijn. Heb je behoefte aan ondersteuning? Neem bijvoorbeeld contact op met <a>{{resource}}</a>. Wij zijn niet verbonden aan deze organisatie.",
   "mentalHealth.footer": "Neem mentale gezondheid serieus. Hulp nodig? Neem bijv. contact op met <a>{{resource}}</a>",

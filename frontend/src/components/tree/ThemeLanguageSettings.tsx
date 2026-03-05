@@ -1,29 +1,30 @@
-import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAvailableThemes } from "../../hooks/useAvailableThemes";
 import { useTheme } from "../../hooks/useTheme";
 
 export function ThemeLanguageSettings() {
   const { t, i18n } = useTranslation();
-  const { theme, toggle: toggleTheme } = useTheme();
+  const availableThemes = useAvailableThemes();
+  const { theme, setTheme } = useTheme(availableThemes);
 
   return (
     <>
       <div className="settings-panel__group">
         <span className="settings-panel__label">{t("settings.theme")}</span>
-      </div>
-      <div className="settings-panel__theme-row">
-        <Sun size={14} className="settings-panel__theme-icon" />
-        <button
-          type="button"
-          role="switch"
-          aria-checked={theme === "dark"}
-          aria-label={t("settings.theme")}
-          className={`settings-panel__theme-switch ${theme === "dark" ? "settings-panel__theme-switch--dark" : ""}`}
-          onClick={toggleTheme}
-        >
-          <span className="settings-panel__theme-knob" />
-        </button>
-        <Moon size={14} className="settings-panel__theme-icon" />
+        <div className="settings-panel__radios">
+          {availableThemes.map((t_theme) => (
+            <label key={t_theme} className="settings-panel__radio">
+              <input
+                type="radio"
+                name="theme"
+                value={t_theme}
+                checked={theme === t_theme}
+                onChange={() => setTheme(t_theme)}
+              />
+              <span>{t(`settings.theme.${t_theme}`)}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="settings-panel__group">

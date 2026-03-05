@@ -69,8 +69,18 @@ vi.mock("../../contexts/useEncryption", () => ({
 }));
 
 const mockToggleTheme = vi.fn();
+const mockSetTheme = vi.fn();
 vi.mock("../../hooks/useTheme", () => ({
-  useTheme: () => ({ theme: "dark", toggle: mockToggleTheme }),
+  useTheme: () => ({
+    theme: "dark",
+    setTheme: mockSetTheme,
+    toggle: mockToggleTheme,
+    availableThemes: ["dark", "light"],
+  }),
+}));
+
+vi.mock("../../hooks/useAvailableThemes", () => ({
+  useAvailableThemes: () => ["dark", "light"],
 }));
 
 const mockLogout = vi.fn();
@@ -371,25 +381,29 @@ describe("SettingsPanel", () => {
   // -----------------------------------------------------------------------
 
   describe("theme and language", () => {
-    it("renders theme toggle switch", async () => {
+    it("renders theme radio buttons", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
 
-      const themeSwitch = screen.getByRole("switch", { name: "settings.theme" });
-      expect(themeSwitch).toBeInTheDocument();
-      expect(themeSwitch).toHaveAttribute("aria-checked", "true"); // dark theme
+      const themeRadios = screen
+        .getAllByRole("radio")
+        .filter((r) => r.getAttribute("name") === "theme");
+      expect(themeRadios).toHaveLength(2); // dark and light (default available themes)
+      expect(themeRadios[0]).toBeChecked(); // dark is selected
     });
 
-    it("clicking theme toggle calls toggleTheme", async () => {
+    it("clicking theme radio calls setTheme", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
 
-      const themeSwitch = screen.getByRole("switch", { name: "settings.theme" });
-      await user.click(themeSwitch);
+      const themeRadios = screen
+        .getAllByRole("radio")
+        .filter((r) => r.getAttribute("name") === "theme");
+      await user.click(themeRadios[1]); // click "light"
 
-      expect(mockToggleTheme).toHaveBeenCalledOnce();
+      expect(mockSetTheme).toHaveBeenCalledWith("light");
     });
 
     it("renders language radio buttons", async () => {

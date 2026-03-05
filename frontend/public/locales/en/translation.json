@@ -473,6 +473,9 @@
   "settings.timeline": "Timeline",
   "settings.account": "Account",
   "settings.theme": "Theme",
+  "settings.theme.dark": "Dark",
+  "settings.theme.light": "Light",
+  "settings.theme.watercolor": "Watercolor",
   "settings.themeDark": "Dark",
   "settings.themeLight": "Light",
   "settings.language": "Language",
@@ -520,7 +523,7 @@
   "canvas.showMinimap": "Show minimap",
   "canvas.promptRelationship": "Prompt to add relationship",
 
-  "theme.toggle": "Toggle dark/light mode",
+  "theme.toggle": "Cycle theme",
 
   "mentalHealth.banner": "This tool deals with sensitive topics that may be triggering. If you need support, consider reaching out to for example <a>{{resource}}</a>. We are not affiliated with this organisation.",
   "mentalHealth.footer": "Need support? For example <a>{{resource}}</a>",

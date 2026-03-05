@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "./ThemeToggle";
 
 const mockToggle = vi.fn();
+const mockSetTheme = vi.fn();
 let currentTheme = "dark";
 
 vi.mock("react-i18next", () => ({
@@ -11,10 +12,16 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+vi.mock("../hooks/useAvailableThemes", () => ({
+  useAvailableThemes: () => ["dark", "light", "watercolor"],
+}));
+
 vi.mock("../hooks/useTheme", () => ({
   useTheme: () => ({
     theme: currentTheme,
     toggle: mockToggle,
+    setTheme: mockSetTheme,
+    availableThemes: ["dark", "light", "watercolor"],
   }),
 }));
 
@@ -55,6 +62,22 @@ describe("ThemeToggle", () => {
 
     // Dark shows sun icon (circle + lines), light shows moon icon (path)
     expect(darkSvg).not.toBe(lightSvg);
+
+    // Reset for other tests
+    currentTheme = "dark";
+  });
+
+  it("renders droplets icon for watercolor theme", () => {
+    currentTheme = "watercolor";
+    const { container: watercolorContainer } = render(<ThemeToggle />);
+    const watercolorSvg = watercolorContainer.querySelector("svg")!.innerHTML;
+
+    currentTheme = "dark";
+    const { container: darkContainer } = render(<ThemeToggle />);
+    const darkSvg = darkContainer.querySelector("svg")!.innerHTML;
+
+    // Watercolor icon (droplets) should differ from dark icon (sun)
+    expect(watercolorSvg).not.toBe(darkSvg);
 
     // Reset for other tests
     currentTheme = "dark";
