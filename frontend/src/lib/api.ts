@@ -1,5 +1,7 @@
 import type {
   ActivityStats,
+  AdminFeatureFlag,
+  AdminFeaturesResponse,
   ChangePasswordRequest,
   ClassificationCreate,
   ClassificationResponse,
@@ -8,6 +10,7 @@ import type {
   EventCreate,
   EventResponse,
   EventUpdate,
+  FeatureFlags,
   FeedbackCreate,
   FeedbackItem,
   FunnelStats,
@@ -46,6 +49,7 @@ import type {
   TurningPointCreate,
   TurningPointResponse,
   TurningPointUpdate,
+  UpdateFeatureFlagRequest,
   UpdateSaltRequest,
   UsageStats,
   UserListStats,
@@ -506,4 +510,21 @@ export function deleteWaitlistEntry(id: string): Promise<void> {
 
 export function getAdminWaitlistCapacity(): Promise<WaitlistCapacity> {
   return apiFetchWithRetry("/admin/waitlist/capacity");
+}
+
+// Feature flags
+
+export function getFeatureFlags(): Promise<FeatureFlags> {
+  return apiFetchWithRetry("/features");
+}
+
+export function getAdminFeatures(): Promise<AdminFeaturesResponse> {
+  return apiFetchWithRetry("/admin/features");
+}
+
+export function updateAdminFeature(
+  key: string,
+  data: UpdateFeatureFlagRequest,
+): Promise<AdminFeatureFlag> {
+  return apiFetchWithRetry(`/admin/features/${key}`, { method: "PUT", body: data });
 }

@@ -407,3 +407,23 @@ export interface SyncResponse {
   patterns_deleted: number;
   journal_entries_deleted: number;
 }
+
+// Feature flags
+export interface FeatureFlags {
+  [key: string]: boolean;
+}
+
+export interface AdminFeatureFlag {
+  key: string;
+  audience: "disabled" | "admins" | "selected" | "all";
+  selected_user_ids: string[];
+}
+
+export interface AdminFeaturesResponse {
+  flags: AdminFeatureFlag[];
+}
+
+export interface UpdateFeatureFlagRequest {
+  audience: "disabled" | "admins" | "selected" | "all";
+  user_ids?: string[];
+}
