@@ -504,43 +504,175 @@
 .admin-feature-toggles {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.admin-feature-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
+.admin-ft-card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: var(--transition-colors);
+  padding: 20px;
 }
 
-.admin-feature-toggle:hover {
-  background: var(--color-bg-hover);
+.admin-ft-card__header {
+  margin-bottom: 16px;
 }
 
-.admin-feature-toggle input[type="checkbox"] {
-  margin-top: 2px;
-  accent-color: var(--color-accent);
-  cursor: pointer;
-}
-
-.admin-feature-toggle__text {
-  flex: 1;
-}
-
-.admin-feature-toggle__label {
-  font-size: 13px;
+.admin-ft-card__title {
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
-.admin-feature-toggle__desc {
+.admin-ft-card__desc {
   font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Audience radio options */
+
+.admin-ft-card__options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-ft-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border-primary);
+  background: transparent;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.admin-ft-option:hover {
+  border-color: var(--color-border-focus);
+  color: var(--color-text-primary);
+}
+
+.admin-ft-option--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.admin-ft-option__radio {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-primary);
+  transition: var(--transition-colors);
+  flex-shrink: 0;
+}
+
+.admin-ft-option--active .admin-ft-option__radio {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-bg-secondary);
+}
+
+.admin-ft-option__label {
+  white-space: nowrap;
+}
+
+/* User picker for "selected" audience */
+
+.admin-ft-users {
+  margin-top: 12px;
+  position: relative;
+}
+
+.admin-ft-users__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.admin-ft-users__trigger:hover {
+  border-color: var(--color-border-focus);
+}
+
+.admin-ft-users__summary {
+  flex: 1;
+  text-align: left;
+}
+
+.admin-ft-users__chevron {
+  transition: transform 0.15s ease;
+  color: var(--color-text-muted);
+}
+
+.admin-ft-users__chevron--open {
+  transform: rotate(180deg);
+}
+
+.admin-ft-users__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md, 6px);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  padding: 4px 0;
+}
+
+.admin-ft-users__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.admin-ft-users__item:hover {
+  background: var(--color-bg-hover);
+}
+
+.admin-ft-users__item input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.admin-ft-users__email {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-ft-users__empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }

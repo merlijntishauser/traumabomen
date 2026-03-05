@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as d3 from "d3";
-import { House, LogOut } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ChevronDown, House, LogOut } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -27,6 +27,7 @@ import {
 } from "../lib/api";
 import type {
   ActivityCell,
+  AdminFeatureFlag,
   CohortRow,
   FeedbackItem,
   GrowthPoint,
@@ -184,6 +185,151 @@ function GrowthChart({ points }: { points: GrowthPoint[] }) {
   return <svg ref={svgRef} className="admin-growth-svg" />;
 }
 
+type AudienceValue = AdminFeatureFlag["audience"];
+
+const AUDIENCE_OPTIONS: AudienceValue[] = ["disabled", "all", "admins", "selected"];
+
+function FeatureToggleCard({
+  flag,
+  allUsers,
+  isPending,
+  onUpdate,
+  t,
+}: {
+  flag: AdminFeatureFlag;
+  allUsers: UserRow[];
+  isPending: boolean;
+  onUpdate: (audience: AudienceValue, userIds?: string[]) => void;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(
+    () => new Set(flag.selected_user_ids),
+  );
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!userDropdownOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [userDropdownOpen]);
+
+  // Sync selected users when flag data changes from server
+  useEffect(() => {
+    setSelectedUsers(new Set(flag.selected_user_ids));
+  }, [flag.selected_user_ids]);
+
+  const handleAudienceChange = useCallback(
+    (audience: AudienceValue) => {
+      if (audience === "selected") {
+        onUpdate(audience, Array.from(selectedUsers));
+      } else {
+        onUpdate(audience);
+      }
+    },
+    [onUpdate, selectedUsers],
+  );
+
+  const toggleUser = useCallback(
+    (userId: string) => {
+      setSelectedUsers((prev) => {
+        const next = new Set(prev);
+        if (next.has(userId)) {
+          next.delete(userId);
+        } else {
+          next.add(userId);
+        }
+        // Immediately persist the change
+        onUpdate("selected", Array.from(next));
+        return next;
+      });
+    },
+    [onUpdate],
+  );
+
+  const selectedCount = selectedUsers.size;
+
+  return (
+    <div className="admin-ft-card">
+      <div className="admin-ft-card__header">
+        <div className="admin-ft-card__title">{t(`admin.features.${flag.key}`)}</div>
+        <div className="admin-ft-card__desc">{t(`admin.features.${flag.key}Desc`)}</div>
+      </div>
+
+      <div className="admin-ft-card__options">
+        {AUDIENCE_OPTIONS.map((option) => (
+          <label
+            key={option}
+            className={`admin-ft-option${flag.audience === option ? " admin-ft-option--active" : ""}`}
+          >
+            <input
+              type="radio"
+              name={`audience-${flag.key}`}
+              value={option}
+              checked={flag.audience === option}
+              onChange={() => handleAudienceChange(option)}
+              disabled={isPending}
+              className="admin-ft-option__radio"
+            />
+            <span className="admin-ft-option__label">{t(`admin.features.audience.${option}`)}</span>
+          </label>
+        ))}
+      </div>
+
+      {/* User picker for "selected" audience */}
+      {flag.audience === "selected" && (
+        <div className="admin-ft-users" ref={dropdownRef}>
+          <button
+            type="button"
+            className="admin-ft-users__trigger"
+            onClick={() => setUserDropdownOpen((o) => !o)}
+            disabled={isPending}
+          >
+            <span className="admin-ft-users__summary">
+              {selectedCount === 0
+                ? t("admin.features.noUsersSelected")
+                : t("admin.features.usersSelected", { count: selectedCount })}
+            </span>
+            <ChevronDown
+              size={14}
+              className={`admin-ft-users__chevron${userDropdownOpen ? " admin-ft-users__chevron--open" : ""}`}
+            />
+          </button>
+
+          {userDropdownOpen && (
+            <div className="admin-ft-users__dropdown">
+              {allUsers.length === 0 ? (
+                <div className="admin-ft-users__empty">{t("common.loading")}</div>
+              ) : (
+                allUsers.map((user) => (
+                  <label key={user.id} className="admin-ft-users__item">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.has(user.id)}
+                      onChange={() => toggleUser(user.id)}
+                      disabled={isPending}
+                    />
+                    <span className="admin-ft-users__email">{user.email}</span>
+                    {user.is_admin && (
+                      <span className="admin-user-badge">{t("admin.adminBadge")}</span>
+                    )}
+                  </label>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
   const logout = useLogout();
@@ -240,9 +386,16 @@ export default function AdminPage() {
     queryFn: getAdminFeatures,
   });
 
-  const toggleFeatureMutation = useMutation({
-    mutationFn: ({ key, audience }: { key: string; audience: "disabled" | "all" }) =>
-      updateAdminFeature(key, { audience }),
+  const updateFeatureMutation = useMutation({
+    mutationFn: ({
+      key,
+      audience,
+      user_ids,
+    }: {
+      key: string;
+      audience: AdminFeatureFlag["audience"];
+      user_ids?: string[];
+    }) => updateAdminFeature(key, { audience, user_ids }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "features"] });
       queryClient.invalidateQueries({ queryKey: featureQueryKeys.flags() });
@@ -324,38 +477,6 @@ export default function AdminPage() {
 
       {!isLoading && !error && (
         <div className="admin-content">
-          {/* Feature toggles */}
-          <section>
-            <div className="admin-section__title">{t("admin.featureToggles")}</div>
-            {features.data && (
-              <div className="admin-feature-toggles">
-                {features.data.flags.map((flag) => (
-                  <label key={flag.key} className="admin-feature-toggle">
-                    <input
-                      type="checkbox"
-                      checked={flag.audience !== "disabled"}
-                      onChange={() =>
-                        toggleFeatureMutation.mutate({
-                          key: flag.key,
-                          audience: flag.audience !== "disabled" ? "disabled" : "all",
-                        })
-                      }
-                      disabled={toggleFeatureMutation.isPending}
-                    />
-                    <div className="admin-feature-toggle__text">
-                      <div className="admin-feature-toggle__label">
-                        {t(`admin.features.${flag.key}`)}
-                      </div>
-                      <div className="admin-feature-toggle__desc">
-                        {t(`admin.features.${flag.key}Desc`)}
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-          </section>
-
           {/* Overview cards */}
           <section>
             <div className="admin-section__title">{t("admin.overview")}</div>
@@ -726,6 +847,31 @@ export default function AdminPage() {
               <div className="admin-cohort-empty">{t("admin.feedbackEmpty")}</div>
             )}
           </section>
+
+          {/* Feature toggles */}
+          {features.data && (
+            <section>
+              <div className="admin-section__title">{t("admin.featureToggles")}</div>
+              <div className="admin-feature-toggles">
+                {features.data.flags.map((flag) => (
+                  <FeatureToggleCard
+                    key={flag.key}
+                    flag={flag}
+                    allUsers={users.data?.users ?? []}
+                    isPending={updateFeatureMutation.isPending}
+                    onUpdate={(audience, userIds) =>
+                      updateFeatureMutation.mutate({
+                        key: flag.key,
+                        audience,
+                        user_ids: userIds,
+                      })
+                    }
+                    t={t}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

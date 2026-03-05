@@ -675,7 +675,13 @@
 
   "admin.featureToggles": "Functie-instellingen",
   "admin.features.watercolor_theme": "Aquarel thema",
-  "admin.features.watercolor_themeDesc": "Schakel de aquarel thema-optie in voor alle gebruikers. Indien ingeschakeld, kunnen gebruikers het aquarel thema selecteren in hun instellingen.",
+  "admin.features.watercolor_themeDesc": "Indien ingeschakeld, kunnen gebruikers het aquarel thema selecteren in hun instellingen.",
+  "admin.features.audience.disabled": "Uitgeschakeld",
+  "admin.features.audience.all": "Alle gebruikers",
+  "admin.features.audience.admins": "Alleen beheerders",
+  "admin.features.audience.selected": "Specifieke gebruikers",
+  "admin.features.noUsersSelected": "Geen gebruikers geselecteerd",
+  "admin.features.usersSelected": "{{count}} gebruiker(s) geselecteerd",
 
   "admin.waitlist.title": "Wachtlijst",
   "admin.waitlist.capacity": "{{current}} / {{max}} gebruikers",

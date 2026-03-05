@@ -676,7 +676,13 @@
 
   "admin.featureToggles": "Feature toggles",
   "admin.features.watercolor_theme": "Watercolor theme",
-  "admin.features.watercolor_themeDesc": "Enable the watercolor theme option for all users. When enabled, users can select the watercolor theme from their settings.",
+  "admin.features.watercolor_themeDesc": "When enabled, users can select the watercolor theme from their settings.",
+  "admin.features.audience.disabled": "Disabled",
+  "admin.features.audience.all": "All users",
+  "admin.features.audience.admins": "Admins only",
+  "admin.features.audience.selected": "Specific users",
+  "admin.features.noUsersSelected": "No users selected",
+  "admin.features.usersSelected": "{{count}} user(s) selected",
 
   "admin.waitlist.title": "Waitlist",
   "admin.waitlist.capacity": "{{current}} / {{max}} users",
