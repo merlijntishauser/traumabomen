@@ -681,18 +681,19 @@ function TreeWorkspaceInner() {
         },
       );
 
+      const batch: { personId: string; data: Person }[] = [];
       for (const [personId, position] of positionMap) {
         const person = persons.get(personId);
         if (!person) continue;
         const { id, ...data } = person;
         delete data.position;
-        mutations.updatePerson.mutate({
-          personId: id,
-          data: position ? { ...data, position } : data,
-        });
+        batch.push({ personId: id, data: position ? { ...data, position } : data });
+      }
+      if (batch.length > 0) {
+        mutations.batchUpdatePersons.mutate(batch);
       }
     },
-    [queryClient, treeId, persons, mutations.updatePerson],
+    [queryClient, treeId, persons, mutations.batchUpdatePersons],
   );
 
   function handleAutoLayout() {

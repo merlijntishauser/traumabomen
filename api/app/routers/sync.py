@@ -3,6 +3,7 @@ import uuid
 from dataclasses import dataclass
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -115,16 +116,11 @@ async def _delete_by_tree(
     tree_id: uuid.UUID,
     db: AsyncSession,  # type: ignore[type-arg]
 ) -> int:
-    count = 0
-    for item in items:
-        result = await db.execute(
-            select(model).where(model.id == item.id, model.tree_id == tree_id)
-        )
-        entity = result.scalar_one_or_none()
-        if entity is not None:
-            await db.delete(entity)
-            count += 1
-    return count
+    if not items:
+        return 0
+    ids = [item.id for item in items]
+    result = await db.execute(sa_delete(model).where(model.id.in_(ids), model.tree_id == tree_id))
+    return result.rowcount  # type: ignore[return-value]
 
 
 async def _phase_deletes(
@@ -226,21 +222,23 @@ async def _fetch_entity(
     )
 
 
-async def _replace_person_links(
-    entity,
-    person_ids: list[uuid.UUID],
-    junction_model: type,
-    junction_fk: str,
+async def _batch_fetch_entities(
+    model: type,
+    items: list,
     tree_id: uuid.UUID,
+    label: str,
     db: AsyncSession,  # type: ignore[type-arg]
-) -> None:
-    """Replace all person junction rows for an entity."""
-    await validate_persons_in_tree(person_ids, tree_id, db)
-    await db.refresh(entity, ["person_links"])
-    entity.person_links.clear()
-    await db.flush()
-    for pid in person_ids:
-        db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
+) -> dict:
+    """Fetch multiple entities in a single query, or raise 404 for missing IDs."""
+    if not items:
+        return {}
+    ids = [item.id for item in items]
+    result = await db.execute(select(model).where(model.id.in_(ids), model.tree_id == tree_id))
+    entities = {e.id: e for e in result.scalars().all()}
+    missing = set(ids) - entities.keys()
+    if missing:
+        raise HTTPException(status_code=404, detail=f"{label} {next(iter(missing))} not found")
+    return entities
 
 
 async def _update_entities_with_persons(
@@ -252,17 +250,30 @@ async def _update_entities_with_persons(
     tree: Tree,
     db: AsyncSession,  # type: ignore[type-arg]
 ) -> int:
-    count = 0
+    entities = await _batch_fetch_entities(model, items, tree.id, entity_label, db)
+    if not entities:
+        return 0
+
+    # Collect all person_ids for a single validation call.
+    all_person_ids: list[uuid.UUID] = []
     for item in items:
-        entity = await _fetch_entity(model, item.id, tree.id, entity_label, db)
+        if item.person_ids is not None:
+            all_person_ids.extend(item.person_ids)
+    if all_person_ids:
+        await validate_persons_in_tree(list(set(all_person_ids)), tree.id, db)
+
+    for item in items:
+        entity = entities[item.id]
         if item.encrypted_data is not None:
             entity.encrypted_data = item.encrypted_data
         if item.person_ids is not None:
-            await _replace_person_links(
-                entity, item.person_ids, junction_model, junction_fk, tree.id, db
+            # Delete old junction rows and insert new ones.
+            await db.execute(
+                sa_delete(junction_model).where(getattr(junction_model, junction_fk) == entity.id)
             )
-        count += 1
-    return count
+            for pid in item.person_ids:
+                db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
+    return len(items)
 
 
 async def _update_simple_entities(
@@ -273,12 +284,10 @@ async def _update_simple_entities(
     db: AsyncSession,  # type: ignore[type-arg]
 ) -> int:
     """Update entities that have only encrypted_data (no person links)."""
-    count = 0
+    entities = await _batch_fetch_entities(model, items, tree.id, entity_label, db)
     for item in items:
-        entity = await _fetch_entity(model, item.id, tree.id, entity_label, db)
-        entity.encrypted_data = item.encrypted_data
-        count += 1
-    return count
+        entities[item.id].encrypted_data = item.encrypted_data
+    return len(items)
 
 
 async def _update_relationships(

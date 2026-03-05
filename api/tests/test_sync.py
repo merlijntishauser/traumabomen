@@ -314,6 +314,78 @@ class TestSyncDelete:
         assert resp.json()["persons_deleted"] == 0
 
 
+class TestSyncBatchPersons:
+    @pytest.mark.asyncio
+    async def test_batch_update_multiple_persons(self, client, headers, tree):
+        """Update 3 persons in a single sync call."""
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "persons_create": [
+                    {"encrypted_data": "a"},
+                    {"encrypted_data": "b"},
+                    {"encrypted_data": "c"},
+                ],
+            },
+            headers=headers,
+        )
+        ids = create.json()["persons_created"]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "persons_update": [
+                    {"id": ids[0], "encrypted_data": "a2"},
+                    {"id": ids[1], "encrypted_data": "b2"},
+                    {"id": ids[2], "encrypted_data": "c2"},
+                ],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["persons_updated"] == 3
+
+    @pytest.mark.asyncio
+    async def test_batch_delete_multiple_persons(self, client, headers, tree):
+        """Delete 2 persons in a single sync call."""
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "persons_create": [
+                    {"encrypted_data": "x"},
+                    {"encrypted_data": "y"},
+                ],
+            },
+            headers=headers,
+        )
+        ids = create.json()["persons_created"]
+
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "persons_delete": [{"id": ids[0]}, {"id": ids[1]}],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["persons_deleted"] == 2
+
+    @pytest.mark.asyncio
+    async def test_batch_update_with_missing_id_returns_404(self, client, headers, tree, person):
+        """Updating one valid and one nonexistent person returns 404."""
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "persons_update": [
+                    {"id": person["id"], "encrypted_data": "ok"},
+                    {"id": str(uuid.uuid4()), "encrypted_data": "bad"},
+                ],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 404
+
+
 class TestSyncEmpty:
     @pytest.mark.asyncio
     async def test_empty_sync(self, client, headers, tree):

@@ -235,6 +235,95 @@ describe("person mutations", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Batch person updates
+// ---------------------------------------------------------------------------
+describe("batchUpdatePersons", () => {
+  it("calls syncTree with persons_update and invalidates persons query", async () => {
+    mockedApi.syncTree.mockResolvedValue({
+      persons_created: [],
+      persons_updated: 2,
+      persons_deleted: 0,
+      relationships_created: [],
+      relationships_updated: 0,
+      relationships_deleted: 0,
+      events_created: [],
+      events_updated: 0,
+      events_deleted: 0,
+      life_events_created: [],
+      life_events_updated: 0,
+      life_events_deleted: 0,
+      classifications_created: [],
+      classifications_updated: 0,
+      classifications_deleted: 0,
+      turning_points_created: [],
+      turning_points_updated: 0,
+      turning_points_deleted: 0,
+      patterns_created: [],
+      patterns_updated: 0,
+      patterns_deleted: 0,
+      journal_entries_created: [],
+      journal_entries_updated: 0,
+      journal_entries_deleted: 0,
+    });
+
+    const wrapper = createWrapper();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+    const entries = [
+      {
+        personId: "p-1",
+        data: {
+          name: "Alice",
+          birth_year: 1990,
+          birth_month: null,
+          birth_day: null,
+          death_year: null,
+          death_month: null,
+          death_day: null,
+          cause_of_death: null,
+          gender: "female" as const,
+          is_adopted: false,
+          notes: null,
+        },
+      },
+      {
+        personId: "p-2",
+        data: {
+          name: "Bob",
+          birth_year: 1985,
+          birth_month: null,
+          birth_day: null,
+          death_year: null,
+          death_month: null,
+          death_day: null,
+          cause_of_death: null,
+          gender: "male" as const,
+          is_adopted: false,
+          notes: null,
+        },
+      },
+    ];
+
+    await act(async () => {
+      await result.current.batchUpdatePersons.mutateAsync(entries);
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledTimes(2);
+    expect(mockedApi.syncTree).toHaveBeenCalledWith(TREE_ID, {
+      persons_update: [
+        { id: "p-1", encrypted_data: "encrypted-blob" },
+        { id: "p-2", encrypted_data: "encrypted-blob" },
+      ],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "persons"],
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Relationships
 // ---------------------------------------------------------------------------
 describe("relationship mutations", () => {

@@ -219,7 +219,9 @@ async def usage_stats(db: AsyncSession = Depends(get_db)) -> UsageStats:
     # Count entities per tree
     async def count_per_tree(model: type) -> dict[str, int]:
         result = await db.execute(
-            select(model.tree_id, func.count()).group_by(model.tree_id)  # type: ignore[attr-defined]
+            select(model.tree_id, func.count())  # type: ignore[attr-defined]
+            .where(model.tree_id.in_(tree_ids))  # type: ignore[attr-defined]
+            .group_by(model.tree_id)  # type: ignore[attr-defined]
         )
         return {str(row[0]): row[1] for row in result.all()}
 

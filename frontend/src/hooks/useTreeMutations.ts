@@ -17,6 +17,7 @@ import {
   deletePerson,
   deleteRelationship,
   deleteTurningPoint,
+  syncTree,
   updateClassification,
   updateEvent,
   updateJournalEntry,
@@ -158,6 +159,21 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const batchUpdatePersonsMutation = useMutation({
+    mutationFn: async (entries: { personId: string; data: Person }[]) => {
+      const persons_update = await Promise.all(
+        entries.map(async ({ personId, data }) => ({
+          id: personId,
+          encrypted_data: await encrypt(data, treeId),
+        })),
+      );
+      return syncTree(treeId, { persons_update });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.persons(treeId) });
+    },
+  });
+
   // --- Relationship (unique create shape, no optimistic) ---
 
   const createRelationshipMutation = useMutation({
@@ -274,6 +290,7 @@ export function useTreeMutations(treeId: string) {
   return {
     createPerson: createPersonMutation,
     updatePerson: updatePersonMutation,
+    batchUpdatePersons: batchUpdatePersonsMutation,
     deletePerson: deletePersonMutation,
     createRelationship: createRelationshipMutation,
     updateRelationship: updateRelationshipMutation,
