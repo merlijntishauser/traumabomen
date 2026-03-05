@@ -93,6 +93,21 @@ async def _build_admin_flag(db: AsyncSession, flag: FeatureFlag) -> AdminFeature
     )
 
 
+async def _validate_user_ids(
+    user_ids: list,
+    db: AsyncSession,  # type: ignore[type-arg]
+) -> None:
+    """Raise 422 if any user_ids don't exist in the database."""
+    result = await db.execute(select(User.id).where(User.id.in_(user_ids)))
+    existing_ids = set(result.scalars().all())
+    missing = [str(uid) for uid in user_ids if uid not in existing_ids]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"User IDs not found: {', '.join(missing)}",
+        )
+
+
 @admin_router.put("/features/{key}")
 async def admin_update_feature(
     key: str,
@@ -105,15 +120,7 @@ async def admin_update_feature(
 
     await db.execute(delete(FeatureFlagUser).where(FeatureFlagUser.flag_key == key))
     if body.audience == "selected" and body.user_ids:
-        # Validate all user_ids exist before inserting
-        result = await db.execute(select(User.id).where(User.id.in_(body.user_ids)))
-        existing_ids = set(result.scalars().all())
-        missing = [str(uid) for uid in body.user_ids if uid not in existing_ids]
-        if missing:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"User IDs not found: {', '.join(missing)}",
-            )
+        await _validate_user_ids(body.user_ids, db)
         for uid in body.user_ids:
             db.add(FeatureFlagUser(flag_key=key, user_id=uid))
 

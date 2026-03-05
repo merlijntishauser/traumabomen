@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,17 +24,24 @@ from app.routers.turning_points import router as turning_points_router
 from app.routers.waitlist import router as waitlist_router
 
 
-def _scrub_encrypted_fields(obj):
+def _filter_encrypted_keys(d: dict) -> None:
+    """Replace values of any key containing 'encrypted' with '[filtered]'."""
+    for key in list(d.keys()):
+        if "encrypted" in key.lower():
+            d[key] = "[filtered]"
+
+
+def _scrub_encrypted_fields(obj) -> None:
     """Recursively strip any key containing 'encrypted' from dicts/lists."""
     if isinstance(obj, dict):
-        for key in list(obj.keys()):
-            if "encrypted" in key.lower():
-                obj[key] = "[filtered]"
-            else:
-                _scrub_encrypted_fields(obj[key])
+        _filter_encrypted_keys(obj)
+        children: Iterable = obj.values()
     elif isinstance(obj, list):
-        for item in obj:
-            _scrub_encrypted_fields(item)
+        children = obj
+    else:
+        return
+    for child in children:
+        _scrub_encrypted_fields(child)
 
 
 def _strip_encrypted_data(event, hint):

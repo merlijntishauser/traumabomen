@@ -241,6 +241,38 @@ async def _batch_fetch_entities(
     return entities
 
 
+async def _validate_all_person_ids(
+    items: list,
+    tree_id: uuid.UUID,
+    db: AsyncSession,  # type: ignore[type-arg]
+) -> None:
+    """Collect person_ids from all items and validate them in one call."""
+    all_person_ids: list[uuid.UUID] = []
+    for item in items:
+        if item.person_ids is not None:
+            all_person_ids.extend(item.person_ids)
+    if all_person_ids:
+        await validate_persons_in_tree(list(set(all_person_ids)), tree_id, db)
+
+
+async def _apply_junction_update(
+    entity,
+    item,
+    junction_model: type,
+    junction_fk: str,
+    db: AsyncSession,  # type: ignore[type-arg]
+) -> None:
+    """Apply encrypted_data and person-link changes to a single entity."""
+    if item.encrypted_data is not None:
+        entity.encrypted_data = item.encrypted_data
+    if item.person_ids is not None:
+        await db.execute(
+            sa_delete(junction_model).where(getattr(junction_model, junction_fk) == entity.id)
+        )
+        for pid in item.person_ids:
+            db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
+
+
 async def _update_entities_with_persons(
     items: list,
     model: type,
@@ -254,25 +286,9 @@ async def _update_entities_with_persons(
     if not entities:
         return 0
 
-    # Collect all person_ids for a single validation call.
-    all_person_ids: list[uuid.UUID] = []
+    await _validate_all_person_ids(items, tree.id, db)
     for item in items:
-        if item.person_ids is not None:
-            all_person_ids.extend(item.person_ids)
-    if all_person_ids:
-        await validate_persons_in_tree(list(set(all_person_ids)), tree.id, db)
-
-    for item in items:
-        entity = entities[item.id]
-        if item.encrypted_data is not None:
-            entity.encrypted_data = item.encrypted_data
-        if item.person_ids is not None:
-            # Delete old junction rows and insert new ones.
-            await db.execute(
-                sa_delete(junction_model).where(getattr(junction_model, junction_fk) == entity.id)
-            )
-            for pid in item.person_ids:
-                db.add(junction_model(**{junction_fk: entity.id, "person_id": pid}))
+        await _apply_junction_update(entities[item.id], item, junction_model, junction_fk, db)
     return len(items)
 
 
