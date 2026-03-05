@@ -2,6 +2,7 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import type { Theme } from "./useAvailableThemes";
 
 const STORAGE_KEY = "traumabomen-theme";
+const DEFAULT_THEMES: Theme[] = ["dark", "light"];
 
 const listeners = new Set<() => void>();
 
@@ -20,7 +21,7 @@ function getSnapshot(): string | null {
   return localStorage.getItem(STORAGE_KEY);
 }
 
-export function useTheme(availableThemes: Theme[] = ["dark", "light"]) {
+export function useTheme(availableThemes: Theme[] = DEFAULT_THEMES) {
   const stored = useSyncExternalStore(subscribe, getSnapshot);
 
   const theme: Theme =

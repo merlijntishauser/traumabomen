@@ -41,7 +41,7 @@ async def get_features(
     selected_result = await db.execute(
         select(FeatureFlagUser.flag_key).where(FeatureFlagUser.user_id == user.id)
     )
-    selected_keys = {row for row in selected_result.scalars().all()}
+    selected_keys = set(selected_result.scalars().all())
 
     return {flag.key: _is_flag_enabled(flag, user, selected_keys) for flag in flags}
 
@@ -107,7 +107,7 @@ async def admin_update_feature(
     if body.audience == "selected" and body.user_ids:
         # Validate all user_ids exist before inserting
         result = await db.execute(select(User.id).where(User.id.in_(body.user_ids)))
-        existing_ids = {uid for uid in result.scalars().all()}
+        existing_ids = set(result.scalars().all())
         missing = [str(uid) for uid in body.user_ids if uid not in existing_ids]
         if missing:
             raise HTTPException(

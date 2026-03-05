@@ -1,10 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "./ThemeToggle";
 
 const mockToggle = vi.fn();
 const mockSetTheme = vi.fn();
 let currentTheme = "dark";
+
+beforeEach(() => {
+  currentTheme = "dark";
+  mockToggle.mockClear();
+  mockSetTheme.mockClear();
+});
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -62,9 +68,6 @@ describe("ThemeToggle", () => {
 
     // Dark shows sun icon (circle + lines), light shows moon icon (path)
     expect(darkSvg).not.toBe(lightSvg);
-
-    // Reset for other tests
-    currentTheme = "dark";
   });
 
   it("renders droplets icon for watercolor theme", () => {
@@ -78,8 +81,5 @@ describe("ThemeToggle", () => {
 
     // Watercolor icon (droplets) should differ from dark icon (sun)
     expect(watercolorSvg).not.toBe(darkSvg);
-
-    // Reset for other tests
-    currentTheme = "dark";
   });
 });

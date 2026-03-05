@@ -194,19 +194,19 @@ function FeatureToggleCard({
   allUsers,
   isPending,
   onUpdate,
-  t,
 }: {
   flag: AdminFeatureFlag;
   allUsers: UserRow[];
   isPending: boolean;
   onUpdate: (audience: AudienceValue, userIds?: string[]) => void;
-  t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
+  const { t } = useTranslation();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(
     () => new Set(flag.selected_user_ids),
   );
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -223,7 +223,11 @@ function FeatureToggleCard({
   // Sync selected users when flag data changes from server
   useEffect(() => {
     setSelectedUsers(new Set(flag.selected_user_ids));
+    clearTimeout(debounceRef.current);
   }, [flag.selected_user_ids]);
+
+  // Clean up debounce timeout on unmount
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   const handleAudienceChange = useCallback(
     (audience: AudienceValue) => {
@@ -236,9 +240,6 @@ function FeatureToggleCard({
     [onUpdate, selectedUsers],
   );
 
-  // Debounce the API call so rapid checkbox clicks don't cause race conditions
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
   const debouncedPersist = useCallback(
     (users: Set<string>) => {
       clearTimeout(debounceRef.current);
@@ -248,9 +249,6 @@ function FeatureToggleCard({
     },
     [onUpdate],
   );
-
-  // Clean up timeout on unmount
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   const toggleUser = useCallback(
     (userId: string) => {
@@ -881,7 +879,6 @@ export default function AdminPage() {
                         user_ids: userIds,
                       })
                     }
-                    t={t}
                   />
                 ))}
               </div>

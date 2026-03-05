@@ -62,25 +62,34 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
       aria-label={t("safety.lock.title")}
     >
       <div className="lock-screen__card">
-        <img
-          className="lock-screen__bg lock-screen__bg--dark"
-          src="/images/hero-unlock-dark.jpg"
-          alt=""
-          aria-hidden="true"
-        />
-        <img
-          className="lock-screen__bg lock-screen__bg--light"
-          src="/images/hero-unlock-light.jpg"
-          alt=""
-          aria-hidden="true"
-        />
-        <img
-          className="lock-screen__bg lock-screen__bg--watercolor"
-          src="/images/hero-unlock-watercolor.jpg"
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-        />
+        <picture>
+          <source srcSet="/images/hero-unlock-dark.webp" type="image/webp" />
+          <img
+            className="lock-screen__bg lock-screen__bg--dark"
+            src="/images/hero-unlock-dark.jpg"
+            alt=""
+            aria-hidden="true"
+          />
+        </picture>
+        <picture>
+          <source srcSet="/images/hero-unlock-light.webp" type="image/webp" />
+          <img
+            className="lock-screen__bg lock-screen__bg--light"
+            src="/images/hero-unlock-light.jpg"
+            alt=""
+            aria-hidden="true"
+          />
+        </picture>
+        <picture>
+          <source srcSet="/images/hero-unlock-watercolor.webp" type="image/webp" />
+          <img
+            className="lock-screen__bg lock-screen__bg--watercolor"
+            src="/images/hero-unlock-watercolor.jpg"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+          />
+        </picture>
         <div className="lock-screen__content">
           <div className="lock-screen__icon">
             <Lock size={24} aria-hidden="true" />

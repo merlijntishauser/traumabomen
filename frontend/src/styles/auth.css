@@ -305,14 +305,16 @@
   }
 }
 
-[data-theme="watercolor"] .auth-page--landing .auth-welcome {
+[data-theme="watercolor"] .auth-page--landing .auth-welcome,
+[data-theme="watercolor"] .auth-page--landing .auth-card {
   background: rgba(255, 253, 250, 0.82);
   border-color: rgba(212, 206, 198, 0.5);
   box-shadow: 0 8px 40px rgba(44, 51, 64, 0.1);
 }
 
 @supports (backdrop-filter: blur(1px)) {
-  [data-theme="watercolor"] .auth-page--landing .auth-welcome {
+  [data-theme="watercolor"] .auth-page--landing .auth-welcome,
+  [data-theme="watercolor"] .auth-page--landing .auth-card {
     background: rgba(255, 253, 250, 0.72);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
@@ -357,20 +359,6 @@
 @supports (backdrop-filter: blur(1px)) {
   [data-theme="light"] .auth-page--landing .auth-card {
     background: rgba(245, 246, 243, 0.72);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  }
-}
-
-[data-theme="watercolor"] .auth-page--landing .auth-card {
-  background: rgba(255, 253, 250, 0.82);
-  border-color: rgba(212, 206, 198, 0.5);
-  box-shadow: 0 8px 40px rgba(44, 51, 64, 0.1);
-}
-
-@supports (backdrop-filter: blur(1px)) {
-  [data-theme="watercolor"] .auth-page--landing .auth-card {
-    background: rgba(255, 253, 250, 0.72);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
   }
