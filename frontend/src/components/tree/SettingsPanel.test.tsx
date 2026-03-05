@@ -27,7 +27,9 @@ const mockGetPersons = vi.fn();
 const mockGetRelationships = vi.fn();
 const mockGetTrees = vi.fn();
 const mockGetTurningPoints = vi.fn();
+const mockGetKeyRing = vi.fn();
 const mockSyncTree = vi.fn();
+const mockUpdateKeyRing = vi.fn();
 const mockUpdateSalt = vi.fn();
 
 vi.mock("../../lib/api", () => ({
@@ -37,6 +39,7 @@ vi.mock("../../lib/api", () => ({
   getClassifications: (...args: unknown[]) => mockGetClassifications(...args),
   getEvents: (...args: unknown[]) => mockGetEvents(...args),
   getJournalEntries: (...args: unknown[]) => mockGetJournalEntries(...args),
+  getKeyRing: (...args: unknown[]) => mockGetKeyRing(...args),
   getLifeEvents: (...args: unknown[]) => mockGetLifeEvents(...args),
   getPatterns: (...args: unknown[]) => mockGetPatterns(...args),
   getPersons: (...args: unknown[]) => mockGetPersons(...args),
@@ -44,27 +47,37 @@ vi.mock("../../lib/api", () => ({
   getTrees: (...args: unknown[]) => mockGetTrees(...args),
   getTurningPoints: (...args: unknown[]) => mockGetTurningPoints(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
+  updateKeyRing: (...args: unknown[]) => mockUpdateKeyRing(...args),
   updateSalt: (...args: unknown[]) => mockUpdateSalt(...args),
   updateTree: vi.fn(),
 }));
 
 const mockDecryptFromApi = vi.fn();
+const mockDecryptKeyRing = vi.fn();
 const mockDeriveKey = vi.fn();
 const mockEncryptForApi = vi.fn();
+const mockEncryptKeyRing = vi.fn();
 const mockGenerateSalt = vi.fn();
 
 vi.mock("../../lib/crypto", () => ({
   decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
+  decryptKeyRing: (...args: unknown[]) => mockDecryptKeyRing(...args),
   deriveKey: (...args: unknown[]) => mockDeriveKey(...args),
   encryptForApi: (...args: unknown[]) => mockEncryptForApi(...args),
+  encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
   generateSalt: (...args: unknown[]) => mockGenerateSalt(...args),
   hashPassphrase: () => Promise.resolve("mock-hash"),
 }));
 
 const mockSetKey = vi.fn();
 const mockSetPassphraseHash = vi.fn();
+let mockIsMigrated = false;
 vi.mock("../../contexts/useEncryption", () => ({
-  useEncryption: () => ({ setMasterKey: mockSetKey, setPassphraseHash: mockSetPassphraseHash }),
+  useEncryption: () => ({
+    isMigrated: mockIsMigrated,
+    setMasterKey: mockSetKey,
+    setPassphraseHash: mockSetPassphraseHash,
+  }),
 }));
 
 const mockToggleTheme = vi.fn();
@@ -145,6 +158,7 @@ async function switchToAccountTab(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   mockI18nLanguage = "en";
+  mockIsMigrated = false;
 });
 
 describe("SettingsPanel", () => {
@@ -1009,6 +1023,119 @@ describe("SettingsPanel", () => {
       await waitFor(() => {
         expect(screen.getByText("account.passphraseError")).toBeInTheDocument();
       });
+    });
+
+    it("migrated flow does not leave partial server state when salt update fails", async () => {
+      const user = userEvent.setup();
+      mockIsMigrated = true;
+
+      const fakeCryptoKey = {} as CryptoKey;
+      const fakeNewKey = {} as CryptoKey;
+
+      mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "salt123" });
+      mockDeriveKey
+        .mockResolvedValueOnce(fakeCryptoKey) // old key
+        .mockResolvedValueOnce(fakeNewKey); // new key
+      mockGenerateSalt.mockReturnValue("newsalt456");
+      mockGetKeyRing.mockResolvedValue({ encrypted_key_ring: "enc-ring" });
+      mockDecryptKeyRing.mockResolvedValue({ tree1: "key-b64" });
+      mockEncryptKeyRing.mockResolvedValue("new-enc-ring");
+      // Salt update fails after key ring is encrypted
+      mockUpdateSalt.mockRejectedValue(new Error("network error"));
+
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
+
+      const saveButtons = screen.getAllByText("common.save");
+      await user.click(saveButtons[1]);
+
+      await waitFor(() => {
+        expect(screen.getByText("account.passphraseError")).toBeInTheDocument();
+      });
+
+      // Key and hash must NOT have been updated in context
+      expect(mockSetKey).not.toHaveBeenCalled();
+      expect(mockSetPassphraseHash).not.toHaveBeenCalled();
+      // Key ring update should not have been attempted (salt failed first)
+      expect(mockUpdateKeyRing).not.toHaveBeenCalled();
+    });
+
+    it("legacy flow re-encrypts turning_points and journal_entries", async () => {
+      const user = userEvent.setup();
+      mockIsMigrated = false;
+
+      const fakeCryptoKey = {} as CryptoKey;
+      const fakeNewKey = {} as CryptoKey;
+
+      mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "salt123" });
+      mockDeriveKey
+        .mockResolvedValueOnce(fakeCryptoKey) // old key
+        .mockResolvedValueOnce(fakeNewKey); // new key
+      mockGenerateSalt.mockReturnValue("newsalt456");
+      mockGetTrees.mockResolvedValue([{ id: "t1", encrypted_data: "enc-tree" }]);
+      mockDecryptFromApi.mockResolvedValue({ some: "data" });
+      mockEncryptForApi.mockResolvedValue("re-encrypted");
+      mockGetPersons.mockResolvedValue([]);
+      mockGetRelationships.mockResolvedValue([]);
+      mockGetEvents.mockResolvedValue([]);
+      mockGetLifeEvents.mockResolvedValue([]);
+      mockGetClassifications.mockResolvedValue([]);
+      mockGetPatterns.mockResolvedValue([]);
+      mockGetTurningPoints.mockResolvedValue([
+        { id: "tp1", person_ids: ["p1"], encrypted_data: "enc-tp" },
+      ]);
+      mockGetJournalEntries.mockResolvedValue([{ id: "j1", encrypted_data: "enc-j" }]);
+      mockSyncTree.mockResolvedValue(undefined);
+      mockUpdateSalt.mockResolvedValue(undefined);
+
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
+        target: { value: "oldpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.newPassphrase"), {
+        target: { value: "newpp" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("account.confirmNewPassphrase"), {
+        target: { value: "newpp" },
+      });
+
+      const saveButtons = screen.getAllByText("common.save");
+      await user.click(saveButtons[1]);
+
+      await waitFor(() => {
+        expect(screen.getByText("account.passphraseChanged")).toBeInTheDocument();
+      });
+
+      // syncTree should include turning_points and journal_entries
+      expect(mockSyncTree).toHaveBeenCalledWith(
+        "t1",
+        expect.objectContaining({
+          turning_points_update: [
+            { id: "tp1", person_ids: ["p1"], encrypted_data: "re-encrypted" },
+          ],
+          journal_entries_update: [{ id: "j1", encrypted_data: "re-encrypted" }],
+        }),
+      );
+
+      // updateSalt is called after syncTree (legacy: data first, salt last)
+      expect(mockUpdateSalt).toHaveBeenCalledWith({ encryption_salt: "newsalt456" });
+      const syncOrder = mockSyncTree.mock.invocationCallOrder[0];
+      const saltOrder = mockUpdateSalt.mock.invocationCallOrder[0];
+      expect(syncOrder).toBeLessThan(saltOrder);
     });
   });
 

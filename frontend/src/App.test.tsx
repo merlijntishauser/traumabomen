@@ -1,6 +1,7 @@
 import type * as Sentry from "@sentry/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { ErrorFallback, LazyBoundary, OnboardingGuard } from "./App";
 
@@ -96,6 +97,30 @@ describe("OnboardingGuard", () => {
 
     expect(screen.queryByTestId("child")).not.toBeInTheDocument();
     expect(screen.getByText("safety.onboarding.continue")).toBeInTheDocument();
+  });
+
+  it("does not trigger render-phase setState warnings in StrictMode", () => {
+    mockAccessToken = "token";
+    mockKey = {} as CryptoKey;
+    mockOnboardingFlag = true;
+
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(
+      <StrictMode>
+        <OnboardingGuard>
+          <div data-testid="child">content</div>
+        </OnboardingGuard>
+      </StrictMode>,
+    );
+
+    expect(screen.getByTestId("child")).toBeInTheDocument();
+    const stateWarnings = spy.mock.calls.filter(
+      (args) => typeof args[0] === "string" && args[0].includes("Cannot update"),
+    );
+    expect(stateWarnings).toHaveLength(0);
+
+    spy.mockRestore();
   });
 
   it("re-syncs with localStorage when flag changes after mount", () => {

@@ -447,6 +447,18 @@ describe("auth functions", () => {
     expect(getIsAdmin()).toBe(false);
   });
 
+  it("getIsAdmin handles base64url JWT payload without padding", () => {
+    // Real JWTs use base64url encoding (- instead of +, _ instead of /)
+    // and omit padding (=). This test verifies the conversion works.
+    const payload = { sub: "user-1", is_admin: true };
+    const header = btoa(JSON.stringify({ alg: "HS256" }));
+    // Manually create base64url-encoded payload
+    const base64 = btoa(JSON.stringify(payload));
+    const base64url = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    setTokens(`${header}.${base64url}.fake-sig`, "ref");
+    expect(getIsAdmin()).toBe(true);
+  });
+
   it("login stores onboarding flag from response", async () => {
     const resp = {
       access_token: "login-at",

@@ -247,6 +247,19 @@ describe("useTreeData", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("surfaces tree query errors via result.error", async () => {
+    const { getTree } = await import("../lib/api");
+    vi.mocked(getTree).mockRejectedValueOnce(new Error("tree fetch failed"));
+
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.error).not.toBeNull();
+    expect(result.current.error?.message).toBe("tree fetch failed");
+  });
+
   it("skips corrupt blobs and returns remaining data when decrypt fails for some items", async () => {
     const { getEvents } = await import("../lib/api");
     vi.mocked(getEvents).mockResolvedValueOnce([

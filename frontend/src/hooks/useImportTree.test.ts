@@ -133,6 +133,26 @@ describe("useImportTree", () => {
     expect(mockCreateTree).not.toHaveBeenCalled();
   });
 
+  it("modifyKeyRing transform preserves concurrent additions", async () => {
+    // Two imports running concurrently would each call modifyKeyRing.
+    // Each transform should add only its own key, preserving whatever
+    // exists at read-time (including keys added by concurrent operations).
+    const file = makeFile(makeValidExport());
+    const { result } = renderHook(() => useImportTree());
+
+    await result.current.importTree(file);
+
+    const transform = mockModifyKeyRing.mock.calls[0][1];
+
+    // Simulate a key ring that already has a concurrently-added key
+    const ringWithConcurrentKey = { concurrentTree: "concurrent-key-b64" };
+    const merged = transform(ringWithConcurrentKey);
+    expect(merged).toEqual({
+      concurrentTree: "concurrent-key-b64",
+      [NEW_TREE_ID]: "raw-tree-key-b64",
+    });
+  });
+
   it("handles backup with no optional entities", async () => {
     const minimal = makeValidExport({
       life_events: undefined,
