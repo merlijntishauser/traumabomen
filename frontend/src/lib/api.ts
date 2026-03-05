@@ -237,19 +237,15 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
   return data;
 }
 
-export async function logout(): Promise<void> {
-  const refreshToken = getRefreshToken();
-  if (refreshToken) {
-    try {
-      await apiFetch("/auth/logout", {
-        method: "POST",
-        body: { refresh_token: refreshToken },
-      });
-    } catch {
-      // Fire-and-forget: don't block logout if server call fails
-    }
+export async function logout(refreshToken: string): Promise<void> {
+  try {
+    await apiFetch("/auth/logout", {
+      method: "POST",
+      body: { refresh_token: refreshToken },
+    });
+  } catch {
+    // Fire-and-forget: don't block logout if server call fails
   }
-  clearTokens();
 }
 
 export async function acknowledgeOnboarding(): Promise<void> {

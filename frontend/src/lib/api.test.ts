@@ -411,11 +411,16 @@ describe("auth functions", () => {
     expect(getRefreshToken()).toBe("login-rt");
   });
 
-  it("logout clears tokens", async () => {
-    setTokens("a", "b");
-    await logout();
-    expect(getAccessToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
+  it("logout sends refresh token to server", async () => {
+    mockFetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await logout("refresh-token-abc");
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/auth/logout"),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ refresh_token: "refresh-token-abc" }),
+      }),
+    );
   });
 
   it("getIsAdmin returns true when JWT payload has is_admin=true", () => {

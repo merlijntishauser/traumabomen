@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { useLogout } from "./useLogout";
 
 const mockNavigate = vi.fn();
 const mockClearKey = vi.fn();
 const mockLogout = vi.fn();
+const mockClearTokens = vi.fn();
+const mockGetRefreshToken = vi.fn();
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
@@ -20,6 +22,8 @@ vi.mock("../contexts/useEncryption", () => ({
 
 vi.mock("../lib/api", () => ({
   logout: (...args: unknown[]) => mockLogout(...args),
+  clearTokens: () => mockClearTokens(),
+  getRefreshToken: () => mockGetRefreshToken(),
 }));
 
 const queryClient = new QueryClient();
@@ -29,7 +33,12 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("useLogout", () => {
-  it("calls logout, clearKey, clears query cache, and navigates to /login", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("clears tokens and key before navigating, then revokes refresh token", () => {
+    mockGetRefreshToken.mockReturnValue("refresh-abc");
     const clearSpy = vi.spyOn(queryClient, "clear");
     const { result } = renderHook(() => useLogout(), { wrapper });
 
@@ -37,12 +46,25 @@ describe("useLogout", () => {
       result.current();
     });
 
-    expect(mockLogout).toHaveBeenCalledOnce();
+    expect(mockClearTokens).toHaveBeenCalledOnce();
     expect(mockClearKey).toHaveBeenCalledOnce();
     expect(clearSpy).toHaveBeenCalledOnce();
     expect(mockNavigate).toHaveBeenCalledWith("/login");
+    expect(mockLogout).toHaveBeenCalledWith("refresh-abc");
 
     clearSpy.mockRestore();
+  });
+
+  it("skips server logout when no refresh token exists", () => {
+    mockGetRefreshToken.mockReturnValue(null);
+    const { result } = renderHook(() => useLogout(), { wrapper });
+
+    act(() => {
+      result.current();
+    });
+
+    expect(mockClearTokens).toHaveBeenCalled();
+    expect(mockLogout).not.toHaveBeenCalled();
   });
 
   it("returns the same callback reference on re-renders", () => {
