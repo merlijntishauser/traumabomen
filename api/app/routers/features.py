@@ -105,6 +105,15 @@ async def admin_update_feature(
 
     await db.execute(delete(FeatureFlagUser).where(FeatureFlagUser.flag_key == key))
     if body.audience == "selected" and body.user_ids:
+        # Validate all user_ids exist before inserting
+        result = await db.execute(select(User.id).where(User.id.in_(body.user_ids)))
+        existing_ids = {uid for uid in result.scalars().all()}
+        missing = [str(uid) for uid in body.user_ids if uid not in existing_ids]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"User IDs not found: {', '.join(missing)}",
+            )
         for uid in body.user_ids:
             db.add(FeatureFlagUser(flag_key=key, user_id=uid))
 

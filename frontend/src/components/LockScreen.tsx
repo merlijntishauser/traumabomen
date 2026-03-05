@@ -79,6 +79,7 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
           src="/images/hero-unlock-watercolor.jpg"
           alt=""
           aria-hidden="true"
+          loading="lazy"
         />
         <div className="lock-screen__content">
           <div className="lock-screen__icon">

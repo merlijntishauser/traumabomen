@@ -1,5 +1,7 @@
 """Tests for feature flag endpoints."""
 
+import uuid
+
 import pytest
 
 from app.models.feature_flag import FeatureFlag, FeatureFlagUser
@@ -262,6 +264,21 @@ class TestAdminUpdateFeature:
             headers=admin_headers,
         )
         assert resp.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_nonexistent_user_id_returns_422(self, client, admin_headers, db_session):
+        """A valid UUID that does not correspond to an existing user returns 422."""
+        db_session.add(FeatureFlag(key="beta", audience="disabled"))
+        await db_session.commit()
+
+        fake_id = str(uuid.uuid4())
+        resp = await client.put(
+            "/admin/features/beta",
+            json={"audience": "selected", "user_ids": [fake_id]},
+            headers=admin_headers,
+        )
+        assert resp.status_code == 422
+        assert fake_id in resp.json()["detail"]
 
     @pytest.mark.asyncio
     async def test_unauthenticated_returns_401(self, client):

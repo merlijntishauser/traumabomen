@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import type { Theme } from "./useAvailableThemes";
 
 const STORAGE_KEY = "traumabomen-theme";
@@ -27,7 +27,9 @@ export function useTheme(availableThemes: Theme[] = ["dark", "light"]) {
     stored && availableThemes.includes(stored as Theme) ? (stored as Theme) : "dark";
 
   // Keep DOM in sync
-  document.documentElement.setAttribute("data-theme", theme);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   const setTheme = useCallback(
     (newTheme: Theme) => {

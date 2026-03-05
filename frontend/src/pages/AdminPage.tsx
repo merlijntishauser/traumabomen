@@ -236,6 +236,22 @@ function FeatureToggleCard({
     [onUpdate, selectedUsers],
   );
 
+  // Debounce the API call so rapid checkbox clicks don't cause race conditions
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const debouncedPersist = useCallback(
+    (users: Set<string>) => {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        onUpdate("selected", Array.from(users));
+      }, 300);
+    },
+    [onUpdate],
+  );
+
+  // Clean up timeout on unmount
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
   const toggleUser = useCallback(
     (userId: string) => {
       setSelectedUsers((prev) => {
@@ -245,12 +261,11 @@ function FeatureToggleCard({
         } else {
           next.add(userId);
         }
-        // Immediately persist the change
-        onUpdate("selected", Array.from(next));
+        debouncedPersist(next);
         return next;
       });
     },
-    [onUpdate],
+    [debouncedPersist],
   );
 
   const selectedCount = selectedUsers.size;

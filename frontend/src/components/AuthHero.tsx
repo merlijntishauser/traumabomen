@@ -27,6 +27,7 @@ export function AuthHero({ variant = "default" }: { variant?: "default" | "unloc
           src={`/images/hero${suffix}-watercolor.jpg`}
           alt=""
           decoding="async"
+          loading="lazy"
         />
       </picture>
     </div>
