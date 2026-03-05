@@ -454,7 +454,10 @@ describe("auth functions", () => {
     const header = btoa(JSON.stringify({ alg: "HS256" }));
     // Manually create base64url-encoded payload
     const base64 = btoa(JSON.stringify(payload));
-    const base64url = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const base64url = base64
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/={1,2}$/, "");
     setTokens(`${header}.${base64url}.fake-sig`, "ref");
     expect(getIsAdmin()).toBe(true);
   });
