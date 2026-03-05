@@ -43,6 +43,14 @@
   opacity: 1;
 }
 
+[data-theme="watercolor"] .auth-hero__img--dark {
+  opacity: 0;
+}
+
+[data-theme="watercolor"] .auth-hero__img--light {
+  opacity: 1;
+}
+
 /* Gradient overlay: bottom fade on mobile, right fade on desktop */
 .auth-hero::after {
   content: "";
@@ -165,6 +173,14 @@
   );
 }
 
+[data-theme="watercolor"] .auth-page--landing .auth-hero::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(247, 245, 242, 0.2) 0%,
+    rgba(247, 245, 242, 0.65) 100%
+  );
+}
+
 /* Content: transparent centered column (no glass) */
 .auth-page--landing .auth-content {
   position: relative;
@@ -199,6 +215,18 @@
 
 @supports (backdrop-filter: blur(1px)) {
   [data-theme="light"] .auth-page--landing .auth-content {
+    background: none;
+  }
+}
+
+[data-theme="watercolor"] .auth-page--landing .auth-content {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="watercolor"] .auth-page--landing .auth-content {
     background: none;
   }
 }
@@ -273,6 +301,20 @@
   }
 }
 
+[data-theme="watercolor"] .auth-page--landing .auth-welcome {
+  background: rgba(255, 253, 250, 0.82);
+  border-color: rgba(212, 206, 198, 0.5);
+  box-shadow: 0 8px 40px rgba(44, 51, 64, 0.10);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="watercolor"] .auth-page--landing .auth-welcome {
+    background: rgba(255, 253, 250, 0.72);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  }
+}
+
 .auth-page--landing .auth-welcome__title {
   font-size: 2.4rem;
 }
@@ -316,6 +358,20 @@
   }
 }
 
+[data-theme="watercolor"] .auth-page--landing .auth-card {
+  background: rgba(255, 253, 250, 0.82);
+  border-color: rgba(212, 206, 198, 0.5);
+  box-shadow: 0 8px 40px rgba(44, 51, 64, 0.10);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="watercolor"] .auth-page--landing .auth-card {
+    background: rgba(255, 253, 250, 0.72);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  }
+}
+
 @media (min-width: 480px) {
   .auth-page--landing .auth-card {
     padding: 32px 32px 28px;
@@ -338,6 +394,10 @@
 
 [data-theme="light"] .auth-page--landing .auth-content::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="watercolor"] .auth-page--landing .auth-content::-webkit-scrollbar-thumb {
+  background: rgba(44, 51, 64, 0.1);
 }
 
 /* Respect reduced motion preference */

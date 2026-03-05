@@ -1,5 +1,6 @@
 from app.models.classification import Classification, ClassificationPerson
 from app.models.event import EventPerson, TraumaEvent
+from app.models.feature_flag import FeatureFlag, FeatureFlagUser
 from app.models.feedback import Feedback
 from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent, LifeEventPerson
@@ -24,6 +25,8 @@ __all__ = [
     "LifeEvent",
     "Classification",
     "ClassificationPerson",
+    "FeatureFlag",
+    "FeatureFlagUser",
     "Pattern",
     "PatternPerson",
     "TurningPoint",

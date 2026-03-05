@@ -209,6 +209,103 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(45, 138, 94, 0.06);
 }
 
+/* --- Watercolor theme --- */
+[data-theme="watercolor"] {
+  --color-bg-primary: #f7f5f2;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f0edea;
+  --color-bg-canvas: #f4f1ed;
+  --color-bg-hover: #ebe7e2;
+  --color-bg-overlay: rgba(44, 51, 64, 0.35);
+
+  --color-border-primary: #d4cec6;
+  --color-border-secondary: #e4dfd9;
+  --color-border-focus: #4a9bb5;
+
+  --color-text-primary: #2c3340;
+  --color-text-secondary: #6b7a8d;
+  --color-text-muted: #9aa5b2;
+  --color-text-inverse: #ffffff;
+
+  --color-accent: #4a9bb5;
+  --color-accent-hover: #3d8499;
+  --color-accent-subtle: rgba(74, 155, 181, 0.08);
+  --color-accent-focus-ring: rgba(74, 155, 181, 0.25);
+
+  /* Danger, warning, success */
+  --color-danger: #dc2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.06);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+  --color-warning: #d97706;
+  --color-success: #16a34a;
+
+  /* Edge colors */
+  --color-edge-default: #5a6e5f;
+  --color-edge-partner: #db2777;
+  --color-edge-half-sibling: #9333ea;
+  --color-edge-step: #8a9a8e;
+  --color-edge-friend: #c96a1e;
+  --color-node-friend: #c96a1e;
+
+  /* Trauma categories */
+  --color-trauma-loss: #6366f1;
+  --color-trauma-abuse: #ef4444;
+  --color-trauma-addiction: #d97706;
+  --color-trauma-war: #78716c;
+  --color-trauma-displacement: #c026d3;
+  --color-trauma-illness: #0891b2;
+  --color-trauma-poverty: #7c3aed;
+
+  /* Classification status */
+  --color-classification-suspected: #d97706;
+  --color-classification-diagnosed: #0284c7;
+
+  /* Life event categories */
+  --color-life-family: #3b82f6;
+  --color-life-education: #7c3aed;
+  --color-life-career: #d97706;
+  --color-life-relocation: #0d9488;
+  --color-life-health: #db2777;
+  --color-life-medication: #0891b2;
+  --color-life-other: #64748b;
+
+  /* Turning point categories */
+  --color-tp-cycle-breaking: #059669;
+  --color-tp-protective-relationship: #2563eb;
+  --color-tp-recovery: #7c3aed;
+  --color-tp-achievement: #d97706;
+  --color-tp-positive-change: #0d9488;
+
+  /* Pattern colors */
+  --color-pattern-0: #6366f1;
+  --color-pattern-1: #db2777;
+  --color-pattern-2: #ea580c;
+  --color-pattern-3: #ca8a04;
+  --color-pattern-4: #059669;
+  --color-pattern-5: #0284c7;
+  --color-pattern-6: #7c3aed;
+  --color-pattern-7: #dc2626;
+
+  /* Nodes */
+  --color-node-bg: #ffffff;
+  --color-node-border: #d4cec6;
+  --color-node-selected: #4a9bb5;
+  --color-node-handle: #9aa5b2;
+
+  /* Life bar */
+  --color-lifebar-fill: rgba(74, 155, 181, 0.12);
+  --color-lifebar-stroke: #4a9bb5;
+
+  /* Generation band */
+  --color-band-even: rgba(0, 0, 0, 0.02);
+  --color-band-odd: transparent;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.06), 0 1px 2px rgba(74, 155, 181, 0.03);
+  --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.08), 0 2px 8px rgba(74, 155, 181, 0.04);
+  --shadow-lg: 0 8px 24px rgba(44, 51, 64, 0.10), 0 4px 16px rgba(74, 155, 181, 0.05);
+}
+
 /* --- Reset & Base --- */
 *,
 *::before,
