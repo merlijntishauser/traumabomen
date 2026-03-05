@@ -498,3 +498,49 @@
 .admin-waitlist-btn--delete:hover:not(:disabled) {
   background: var(--color-danger-bg);
 }
+
+/* Feature toggles */
+
+.admin-feature-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-feature-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.admin-feature-toggle:hover {
+  background: var(--color-bg-hover);
+}
+
+.admin-feature-toggle input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.admin-feature-toggle__text {
+  flex: 1;
+}
+
+.admin-feature-toggle__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.admin-feature-toggle__desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}

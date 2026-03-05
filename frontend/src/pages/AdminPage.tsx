@@ -5,12 +5,14 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { featureQueryKeys } from "../hooks/useFeatureFlags";
 import { useLogout } from "../hooks/useLogout";
 import {
   approveWaitlistEntry,
   deleteFeedback,
   deleteWaitlistEntry,
   getAdminActivity,
+  getAdminFeatures,
   getAdminFeedback,
   getAdminFunnel,
   getAdminGrowth,
@@ -21,6 +23,7 @@ import {
   getAdminWaitlist,
   getAdminWaitlistCapacity,
   markFeedbackRead,
+  updateAdminFeature,
 } from "../lib/api";
 import type {
   ActivityCell,
@@ -232,6 +235,20 @@ export default function AdminPage() {
     },
   });
 
+  const features = useQuery({
+    queryKey: ["admin", "features"],
+    queryFn: getAdminFeatures,
+  });
+
+  const toggleFeatureMutation = useMutation({
+    mutationFn: ({ key, audience }: { key: string; audience: "disabled" | "all" }) =>
+      updateAdminFeature(key, { audience }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "features"] });
+      queryClient.invalidateQueries({ queryKey: featureQueryKeys.flags() });
+    },
+  });
+
   const isLoading =
     overview.isLoading ||
     funnel.isLoading ||
@@ -307,6 +324,38 @@ export default function AdminPage() {
 
       {!isLoading && !error && (
         <div className="admin-content">
+          {/* Feature toggles */}
+          <section>
+            <div className="admin-section__title">{t("admin.featureToggles")}</div>
+            {features.data && (
+              <div className="admin-feature-toggles">
+                {features.data.flags.map((flag) => (
+                  <label key={flag.key} className="admin-feature-toggle">
+                    <input
+                      type="checkbox"
+                      checked={flag.audience !== "disabled"}
+                      onChange={() =>
+                        toggleFeatureMutation.mutate({
+                          key: flag.key,
+                          audience: flag.audience !== "disabled" ? "disabled" : "all",
+                        })
+                      }
+                      disabled={toggleFeatureMutation.isPending}
+                    />
+                    <div className="admin-feature-toggle__text">
+                      <div className="admin-feature-toggle__label">
+                        {t(`admin.features.${flag.key}`)}
+                      </div>
+                      <div className="admin-feature-toggle__desc">
+                        {t(`admin.features.${flag.key}Desc`)}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </section>
+
           {/* Overview cards */}
           <section>
             <div className="admin-section__title">{t("admin.overview")}</div>

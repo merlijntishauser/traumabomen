@@ -1,3 +1,4 @@
+import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useAvailableThemes } from "./useAvailableThemes";
 
@@ -5,11 +6,6 @@ const mockUseFeatureFlags = vi.fn();
 vi.mock("./useFeatureFlags", () => ({
   useFeatureFlags: () => mockUseFeatureFlags(),
 }));
-
-// useAvailableThemes calls useFeatureFlags internally, so we render it directly
-// by importing the function and calling it within the mock context.
-// Since it's a hook that depends on another hook, we use renderHook.
-import { renderHook } from "@testing-library/react";
 
 describe("useAvailableThemes", () => {
   it("returns only dark and light when feature flags are not loaded", () => {

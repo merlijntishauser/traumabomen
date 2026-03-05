@@ -676,6 +676,10 @@
   "admin.feedbackMarkRead": "Mark read",
   "admin.feedbackDelete": "Delete",
 
+  "admin.featureToggles": "Feature toggles",
+  "admin.features.watercolor_theme": "Watercolor theme",
+  "admin.features.watercolor_themeDesc": "Enable the watercolor theme option for all users. When enabled, users can select the watercolor theme from their settings.",
+
   "admin.waitlist.title": "Waitlist",
   "admin.waitlist.capacity": "{{current}} / {{max}} users",
   "admin.waitlist.disabled": "disabled",

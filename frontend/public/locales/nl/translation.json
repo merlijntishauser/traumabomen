@@ -675,6 +675,10 @@
   "admin.feedbackMarkRead": "Gelezen",
   "admin.feedbackDelete": "Verwijderen",
 
+  "admin.featureToggles": "Functie-instellingen",
+  "admin.features.watercolor_theme": "Aquarel thema",
+  "admin.features.watercolor_themeDesc": "Schakel de aquarel thema-optie in voor alle gebruikers. Indien ingeschakeld, kunnen gebruikers het aquarel thema selecteren in hun instellingen.",
+
   "admin.waitlist.title": "Wachtlijst",
   "admin.waitlist.capacity": "{{current}} / {{max}} gebruikers",
   "admin.waitlist.disabled": "uitgeschakeld",
