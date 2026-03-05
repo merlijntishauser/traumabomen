@@ -272,6 +272,12 @@ export default function TreeListPage() {
                 aria-hidden="true"
                 className="welcome-card__img welcome-card__img--light"
               />
+              <img
+                src="/images/welcome-watercolor.jpg"
+                alt=""
+                aria-hidden="true"
+                className="welcome-card__img welcome-card__img--watercolor"
+              />
               <button
                 type="button"
                 className="welcome-card__dismiss"

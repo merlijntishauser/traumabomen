@@ -43,11 +43,15 @@
   opacity: 1;
 }
 
+.auth-hero__img--watercolor {
+  opacity: 0;
+}
+
 [data-theme="watercolor"] .auth-hero__img--dark {
   opacity: 0;
 }
 
-[data-theme="watercolor"] .auth-hero__img--light {
+[data-theme="watercolor"] .auth-hero__img--watercolor {
   opacity: 1;
 }
 
