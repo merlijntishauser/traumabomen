@@ -225,8 +225,8 @@
 
 [data-theme="watercolor"] .welcome-card::before {
   background:
-    radial-gradient(ellipse at 55% 50%, rgba(255, 253, 250, 0.25) 0%, rgba(255, 253, 250, 0.7) 100%),
-    linear-gradient(to right, rgba(255, 253, 250, 0.55) 20%, rgba(255, 253, 250, 0.25) 100%);
+    radial-gradient(ellipse at 55% 50%, rgba(255, 253, 250, 0.5) 0%, rgba(255, 253, 250, 0.82) 100%),
+    linear-gradient(to right, rgba(255, 253, 250, 0.72) 20%, rgba(255, 253, 250, 0.45) 100%);
 }
 
 /* Card content above overlay */
