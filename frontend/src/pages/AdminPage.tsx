@@ -189,7 +189,8 @@ type AudienceValue = AdminFeatureFlag["audience"];
 
 const AUDIENCE_OPTIONS: AudienceValue[] = ["disabled", "all", "admins", "selected"];
 
-function FeatureToggleCard({
+/** @internal Exported for testing */
+export function FeatureToggleCard({
   flag,
   allUsers,
   isPending,
