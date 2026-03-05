@@ -163,6 +163,17 @@ describe("useTheme", () => {
     expect(result.current.theme).toBe("dark");
   });
 
+  it("setTheme ignores themes not in available list", () => {
+    const themes: Theme[] = ["dark", "light"];
+    const { result } = renderHook(() => useTheme(themes));
+    expect(result.current.theme).toBe("dark");
+
+    act(() => {
+      result.current.setTheme("watercolor");
+    });
+    expect(result.current.theme).toBe("dark");
+  });
+
   it("returns availableThemes in the result", () => {
     const themes: Theme[] = ["dark", "light", "watercolor"];
     const { result } = renderHook(() => useTheme(themes));

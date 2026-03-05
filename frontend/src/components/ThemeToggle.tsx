@@ -4,9 +4,10 @@ import type { Theme } from "../hooks/useAvailableThemes";
 import { useAvailableThemes } from "../hooks/useAvailableThemes";
 import { useTheme } from "../hooks/useTheme";
 
+// Icon represents the current theme
 const icons: Record<Theme, typeof Sun> = {
-  dark: Sun,
-  light: Moon,
+  dark: Moon,
+  light: Sun,
   watercolor: Droplets,
 };
 

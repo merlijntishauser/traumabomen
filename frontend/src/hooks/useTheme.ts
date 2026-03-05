@@ -1,42 +1,48 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import type { Theme } from "./useAvailableThemes";
 
 const STORAGE_KEY = "traumabomen-theme";
 
-function getInitialTheme(availableThemes: Theme[]): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && availableThemes.includes(stored as Theme)) {
-    return stored as Theme;
+const listeners = new Set<() => void>();
+
+function emitChange() {
+  for (const listener of listeners) {
+    listener();
   }
-  return "dark";
+}
+
+function subscribe(callback: () => void): () => void {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+function getSnapshot(): string | null {
+  return localStorage.getItem(STORAGE_KEY);
 }
 
 export function useTheme(availableThemes: Theme[] = ["dark", "light"]) {
-  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme(availableThemes));
+  const stored = useSyncExternalStore(subscribe, getSnapshot);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme]);
+  const theme: Theme =
+    stored && availableThemes.includes(stored as Theme) ? (stored as Theme) : "dark";
 
-  // Fall back to "dark" if current theme is removed from available list
-  useEffect(() => {
-    if (!availableThemes.includes(theme)) {
-      setThemeState("dark");
-    }
-  }, [availableThemes, theme]);
+  // Keep DOM in sync
+  document.documentElement.setAttribute("data-theme", theme);
 
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-  }, []);
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      if (!availableThemes.includes(newTheme)) return;
+      localStorage.setItem(STORAGE_KEY, newTheme);
+      emitChange();
+    },
+    [availableThemes],
+  );
 
   const toggle = useCallback(() => {
-    setThemeState((prev) => {
-      const currentIndex = availableThemes.indexOf(prev);
-      const nextIndex = (currentIndex + 1) % availableThemes.length;
-      return availableThemes[nextIndex];
-    });
-  }, [availableThemes]);
+    const currentIndex = availableThemes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % availableThemes.length;
+    setTheme(availableThemes[nextIndex]);
+  }, [availableThemes, theme, setTheme]);
 
   return { theme, setTheme, toggle, availableThemes } as const;
 }
