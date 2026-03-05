@@ -481,6 +481,14 @@ class TestProtectedEndpoint:
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
+    async def test_jwt_refresh_token_rejected_as_access(self, client, db_session):
+        user = await create_user(db_session, email="jwt-refresh@example.com")
+        refresh_jwt = create_token(user.id, "refresh", TEST_SETTINGS)
+        resp = await client.get("/trees", headers={"Authorization": f"Bearer {refresh_jwt}"})
+        assert resp.status_code == 401
+        assert resp.json()["detail"] == "Invalid token type"
+
+    @pytest.mark.asyncio
     async def test_nonexistent_user_token(self, client):
         fake_id = uuid.uuid4()
         headers = auth_headers(fake_id)
