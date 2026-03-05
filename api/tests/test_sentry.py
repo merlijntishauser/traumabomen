@@ -39,3 +39,34 @@ class TestStripEncryptedData:
         result = _strip_encrypted_data(event, {})
         assert result["request"]["data"]["Encrypted_Data"] == "[filtered]"
         assert result["request"]["data"]["ENCRYPTED_FIELD"] == "[filtered]"
+
+    def test_filters_nested_encrypted_keys(self):
+        event = {
+            "request": {
+                "data": {
+                    "trees": [
+                        {
+                            "tree_id": "t1",
+                            "encrypted_data": "secret",
+                            "persons": [{"id": "p1", "encrypted_data": "nested-secret"}],
+                        }
+                    ]
+                }
+            }
+        }
+        result = _strip_encrypted_data(event, {})
+        tree = result["request"]["data"]["trees"][0]
+        assert tree["encrypted_data"] == "[filtered]"
+        assert tree["tree_id"] == "t1"
+        assert tree["persons"][0]["encrypted_data"] == "[filtered]"
+        assert tree["persons"][0]["id"] == "p1"
+
+    def test_filters_deeply_nested_dicts(self):
+        event = {
+            "request": {
+                "data": {"outer": {"inner": {"encrypted_key_ring": "deep-secret", "normal": "ok"}}}
+            }
+        }
+        result = _strip_encrypted_data(event, {})
+        assert result["request"]["data"]["outer"]["inner"]["encrypted_key_ring"] == "[filtered]"
+        assert result["request"]["data"]["outer"]["inner"]["normal"] == "ok"

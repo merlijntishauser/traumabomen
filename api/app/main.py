@@ -22,13 +22,23 @@ from app.routers.turning_points import router as turning_points_router
 from app.routers.waitlist import router as waitlist_router
 
 
-def _strip_encrypted_data(event, hint):
-    """Remove encrypted_data from request body context."""
-    request_data = event.get("request", {}).get("data")
-    if isinstance(request_data, dict):
-        for key in list(request_data.keys()):
+def _scrub_encrypted_fields(obj):
+    """Recursively strip any key containing 'encrypted' from dicts/lists."""
+    if isinstance(obj, dict):
+        for key in list(obj.keys()):
             if "encrypted" in key.lower():
-                request_data[key] = "[filtered]"
+                obj[key] = "[filtered]"
+            else:
+                _scrub_encrypted_fields(obj[key])
+    elif isinstance(obj, list):
+        for item in obj:
+            _scrub_encrypted_fields(item)
+
+
+def _strip_encrypted_data(event, hint):
+    """Remove encrypted_data from Sentry event context."""
+    request_data = event.get("request", {}).get("data")
+    _scrub_encrypted_fields(request_data)
     return event
 
 

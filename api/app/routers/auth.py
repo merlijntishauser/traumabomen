@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import (
@@ -117,7 +118,13 @@ async def _finalize_registration(
     db.add(user)
     if waitlist_entry:
         waitlist_entry.status = WaitlistStatus.registered.value
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
+        ) from None
 
 
 def _validate_password(password: str) -> None:
@@ -436,11 +443,19 @@ async def _migrate_tree_entities(tree_data, db: AsyncSession) -> None:  # type: 
     )
     for attr, model in _ENTITY_MODELS:
         for entity in getattr(tree_data, attr):
-            await db.execute(
+            result = await db.execute(
                 update(model)
-                .where(model.id == entity.id)  # type: ignore[attr-defined]
+                .where(
+                    model.id == entity.id,  # type: ignore[attr-defined]
+                    model.tree_id == tree_data.tree_id,  # type: ignore[attr-defined]
+                )
                 .values(encrypted_data=entity.encrypted_data)
             )
+            if result.rowcount == 0:  # type: ignore[attr-defined]
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Entity {entity.id} not found in tree {tree_data.tree_id}",
+                )
 
 
 @router.post("/migrate-keys", status_code=status.HTTP_200_OK)

@@ -200,6 +200,51 @@ class TestMigrateKeys:
         assert ring_resp.json()["encrypted_key_ring"] == "empty-ring"
 
     @pytest.mark.asyncio
+    async def test_rejects_entity_from_another_tree(self, client, user, headers, tree, person):
+        """Entity IDs that don't belong to the claimed tree are rejected."""
+        # Create a second tree
+        tree2_resp = await client.post(
+            "/trees", json={"encrypted_data": "tree2-data"}, headers=headers
+        )
+        tree2_id = tree2_resp.json()["id"]
+
+        # person belongs to the first tree; try to migrate it under tree2
+        resp = await client.post(
+            "/auth/migrate-keys",
+            json={
+                "encrypted_key_ring": "ring",
+                "trees": [
+                    {
+                        "tree_id": tree["id"],
+                        "encrypted_data": "re-encrypted-tree1",
+                        "persons": [],
+                        "relationships": [],
+                        "events": [],
+                        "life_events": [],
+                        "turning_points": [],
+                        "classifications": [],
+                        "patterns": [],
+                        "journal_entries": [],
+                    },
+                    {
+                        "tree_id": tree2_id,
+                        "encrypted_data": "re-encrypted-tree2",
+                        "persons": [{"id": person["id"], "encrypted_data": "hijacked"}],
+                        "relationships": [],
+                        "events": [],
+                        "life_events": [],
+                        "turning_points": [],
+                        "classifications": [],
+                        "patterns": [],
+                        "journal_entries": [],
+                    },
+                ],
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
     async def test_requires_authentication(self, client):
         resp = await client.post(
             "/auth/migrate-keys",

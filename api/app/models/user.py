@@ -19,7 +19,7 @@ class User(Base):
     onboarding_safety_acknowledged: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false"
     )
-    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="true")
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email_verification_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
