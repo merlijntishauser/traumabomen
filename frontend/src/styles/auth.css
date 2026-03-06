@@ -149,6 +149,7 @@
   position: relative;
   align-items: center;
   overflow: hidden;
+  justify-content: center;
 }
 
 /* Hero fills the entire viewport */
@@ -192,15 +193,15 @@
   width: auto;
   min-width: 0;
   max-width: 520px;
-  margin: auto 20px;
-  padding: 0;
+  margin: 0 20px;
+  padding: 32px 0;
   background: none;
   border: none;
   border-radius: 0;
   box-shadow: none;
-  max-height: 94vh;
+  max-height: 100%;
   overflow-y: auto;
-  gap: 20px;
+  gap: 28px;
 }
 
 @supports (backdrop-filter: blur(1px)) {
@@ -683,8 +684,9 @@
 /* --- Mobile: compact layout --- */
 @media (max-width: 420px) {
   .auth-page--landing .auth-content {
-    margin: auto 10px;
-    gap: 14px;
+    margin: 0 10px;
+    padding: 24px 0;
+    gap: 20px;
   }
 
   .auth-page--landing .auth-welcome,
