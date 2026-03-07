@@ -34,6 +34,8 @@ htmlcov/
 frontend/dist/
 frontend/test-results/
 frontend/playwright-report/
+demo/test-results/
+demo/screenshots/*.png
 *.tsbuildinfo
 
 # Python virtual environments
