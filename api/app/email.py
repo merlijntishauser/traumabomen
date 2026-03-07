@@ -206,24 +206,25 @@ _VERIFICATION_STRINGS = {
 }
 
 
-def send_verification_email(to: str, token: str, settings: Settings, language: str = "en") -> None:
-    base_url = _get_base_url(settings, language)
-    verify_url = f"{base_url}/verify?token={token}"
-    s = _VERIFICATION_STRINGS.get(language, _VERIFICATION_STRINGS["en"])
+def _send_cta_email(
+    to: str,
+    url: str,
+    strings: dict[str, dict[str, str]],
+    settings: Settings,
+    language: str,
+    log_label: str,
+) -> None:
+    """Assemble and send a transactional email with a CTA button and link."""
+    s = strings.get(language, strings["en"])
 
     body_html = (
         f'<p style="margin:0 0 4px 0;">{s["body"]}</p>'
-        f"{_button_html(verify_url, s['button'])}"
-        f"{_link_text(verify_url, s['copy'])}"
+        f"{_button_html(url, s['button'])}"
+        f"{_link_text(url, s['copy'])}"
     )
-
     footer_html = f'<p style="margin:0;">{s["expiry"]}</p>'
-
     html = _email_layout(s["heading"], body_html, footer_html)
-
-    text = (
-        f"{s['text_heading']} - {s['subject']}\n\n{s['text_body']}\n\n{verify_url}\n\n{s['expiry']}"
-    )
+    text = f"{s['text_heading']} - {s['subject']}\n\n{s['text_body']}\n\n{url}\n\n{s['expiry']}"
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"{s['subject']} - {s['heading']}"
@@ -236,8 +237,20 @@ def send_verification_email(to: str, token: str, settings: Settings, language: s
         _send_smtp(msg, to, settings)
     except Exception:
         safe_to = to.replace("\n", "").replace("\r", "")
-        logger.exception("Failed to send verification email to %s", safe_to)
+        logger.exception("Failed to send %s to %s", log_label, safe_to)
         raise
+
+
+def send_verification_email(to: str, token: str, settings: Settings, language: str = "en") -> None:
+    base_url = _get_base_url(settings, language)
+    _send_cta_email(
+        to,
+        f"{base_url}/verify?token={token}",
+        _VERIFICATION_STRINGS,
+        settings,
+        language,
+        "verification email",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -272,37 +285,14 @@ def send_waitlist_approval_email(
     to: str, token: str, settings: Settings, language: str = "en"
 ) -> None:
     base_url = _get_base_url(settings, language)
-    register_url = f"{base_url}/register?invite={token}"
-    s = _WAITLIST_STRINGS.get(language, _WAITLIST_STRINGS["en"])
-
-    body_html = (
-        f'<p style="margin:0 0 4px 0;">{s["body"]}</p>'
-        f"{_button_html(register_url, s['button'])}"
-        f"{_link_text(register_url, s['copy'])}"
+    _send_cta_email(
+        to,
+        f"{base_url}/register?invite={token}",
+        _WAITLIST_STRINGS,
+        settings,
+        language,
+        "waitlist approval email",
     )
-
-    footer_html = f'<p style="margin:0;">{s["expiry"]}</p>'
-
-    html = _email_layout(s["heading"], body_html, footer_html)
-
-    text = (
-        f"{s['text_heading']} - {s['subject']}\n\n"
-        f"{s['text_body']}\n\n{register_url}\n\n{s['expiry']}"
-    )
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"{s['subject']} - {s['heading']}"
-    msg["From"] = formataddr((s["heading"], settings.SMTP_FROM))
-    msg["To"] = to
-    msg.attach(MIMEText(text, "plain"))
-    msg.attach(MIMEText(html, "html"))
-
-    try:
-        _send_smtp(msg, to, settings)
-    except Exception:
-        safe_to = to.replace("\n", "").replace("\r", "")
-        logger.exception("Failed to send waitlist approval email to %s", safe_to)
-        raise
 
 
 # ---------------------------------------------------------------------------
