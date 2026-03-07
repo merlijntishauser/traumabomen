@@ -3,6 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (k: string) => k }),
+}));
+
 describe("ConfirmDeleteButton", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
