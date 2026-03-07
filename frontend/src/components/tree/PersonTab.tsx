@@ -229,7 +229,12 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
       <div className="detail-panel__field-inline">
         <label className="detail-panel__field" style={{ flex: 1 }}>
           <span>{t("person.name")}</span>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onFocus={(e) => e.target.select()}
+          />
         </label>
         <label className="detail-panel__field">
           <span>{t("person.gender")}</span>
