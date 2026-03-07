@@ -249,3 +249,34 @@ class TestUserListStats:
         non_admin = [u for u in data["users"] if u["tree_count"] > 0]
         assert len(non_admin) >= 1
         assert non_admin[0]["person_count"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for pure helper functions
+# ---------------------------------------------------------------------------
+
+
+class TestBucket:
+    def test_zero(self):
+        from app.routers.admin_stats import _bucket
+
+        assert _bucket(0) == "zero"
+
+    def test_boundary(self):
+        from app.routers.admin_stats import _bucket
+
+        assert _bucket(20) == "eleven_twenty"
+
+    def test_twenty_plus(self):
+        from app.routers.admin_stats import _bucket
+
+        assert _bucket(21) == "twenty_plus"
+        assert _bucket(100) == "twenty_plus"
+
+
+class TestRetentionPercentages:
+    def test_empty_uids(self):
+        from app.routers.admin_stats import _retention_percentages
+
+        result = _retention_percentages([], {}, 3)
+        assert result == [0.0, 0.0, 0.0]
