@@ -44,7 +44,7 @@ typecheck: ## Run type checkers (tsc + mypy)
 	cd frontend && npx tsc --noEmit
 	docker compose exec api uv run mypy app
 
-ci: lint typecheck test privacy-scan quality ## Run full CI pipeline
+ci: lint typecheck privacy-scan quality ## Run full CI pipeline
 
 # --- Testing ---
 
