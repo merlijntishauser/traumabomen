@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -41,6 +42,7 @@ from app.schemas.auth import (
     LoginRequest,
     LogoutRequest,
     MigrateKeysRequest,
+    MigrateKeysTree,
     RefreshRequest,
     RefreshResponse,
     RegisterRequest,
@@ -423,7 +425,7 @@ async def _validate_tree_ownership(tree_ids: list[UUID], user_id: UUID, db: Asyn
             )
 
 
-_ENTITY_MODELS: list[tuple[str, type]] = [
+_ENTITY_MODELS: list[tuple[str, Any]] = [
     ("persons", Person),
     ("relationships", Relationship),
     ("events", TraumaEvent),
@@ -435,7 +437,7 @@ _ENTITY_MODELS: list[tuple[str, type]] = [
 ]
 
 
-async def _migrate_tree_entities(tree_data, db: AsyncSession) -> None:  # type: ignore[no-untyped-def]
+async def _migrate_tree_entities(tree_data: MigrateKeysTree, db: AsyncSession) -> None:
     await db.execute(
         update(Tree)
         .where(Tree.id == tree_data.tree_id)
@@ -446,8 +448,8 @@ async def _migrate_tree_entities(tree_data, db: AsyncSession) -> None:  # type: 
             result = await db.execute(
                 update(model)
                 .where(
-                    model.id == entity.id,  # type: ignore[attr-defined]
-                    model.tree_id == tree_data.tree_id,  # type: ignore[attr-defined]
+                    model.id == entity.id,
+                    model.tree_id == tree_data.tree_id,
                 )
                 .values(encrypted_data=entity.encrypted_data)
             )
