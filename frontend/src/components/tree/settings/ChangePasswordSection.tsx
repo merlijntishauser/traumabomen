@@ -43,9 +43,7 @@ export function ChangePasswordSection() {
     <div className="settings-panel__section">
       <h4 className="settings-panel__section-title">{t("account.changePassword")}</h4>
       {pwMessage && (
-        <div
-          className={`settings-panel__message settings-panel__message--${pwMessage.type}`}
-        >
+        <div className={`settings-panel__message settings-panel__message--${pwMessage.type}`}>
           {pwMessage.text}
         </div>
       )}

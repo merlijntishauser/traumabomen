@@ -17,8 +17,8 @@ import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/BranchDecoration";
-import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
+import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
@@ -42,8 +42,7 @@ import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayou
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
-import type { Person, RelationshipData } from "../types/domain";
-import { RelationshipType } from "../types/domain";
+import type { Person, RelationshipData, RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode };
@@ -94,7 +93,6 @@ function findFreePosition(
 
   return origin;
 }
-
 
 function TreeWorkspaceInner() {
   const treeId = useTreeId();

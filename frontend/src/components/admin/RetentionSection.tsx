@@ -41,9 +41,7 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
                         // biome-ignore lint/suspicious/noArrayIndexKey: static week columns
                         key={i}
                         style={
-                          pct !== undefined
-                            ? { backgroundColor: retentionColor(pct) }
-                            : undefined
+                          pct !== undefined ? { backgroundColor: retentionColor(pct) } : undefined
                         }
                       >
                         {pct !== undefined ? `${pct}%` : ""}

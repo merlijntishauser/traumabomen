@@ -1,5 +1,5 @@
-import { useTranslation } from "react-i18next";
 import type { Connection } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
 

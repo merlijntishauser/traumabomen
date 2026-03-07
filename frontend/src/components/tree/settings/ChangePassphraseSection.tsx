@@ -216,14 +216,10 @@ export function ChangePassphraseSection() {
 
   return (
     <div className="settings-panel__section">
-      <h4 className="settings-panel__section-title">
-        {t("account.changePassphrase")}
-      </h4>
+      <h4 className="settings-panel__section-title">{t("account.changePassphrase")}</h4>
       <div className="settings-panel__warning">{t("account.passphraseWarning")}</div>
       {ppMessage && (
-        <div
-          className={`settings-panel__message settings-panel__message--${ppMessage.type}`}
-        >
+        <div className={`settings-panel__message settings-panel__message--${ppMessage.type}`}>
           {ppMessage.text}
         </div>
       )}

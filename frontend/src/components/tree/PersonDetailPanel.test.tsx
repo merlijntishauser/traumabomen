@@ -317,7 +317,9 @@ describe("PersonDetailPanel", () => {
     fireEvent.change(nameInput, { target: { value: "Carol" } });
     await user.click(screen.getByText("person.save"));
 
-    expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ name: "Carol" }));
+    expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Carol" }),
+    );
   });
 
   it("requires two clicks to delete a person", async () => {
@@ -460,7 +462,9 @@ describe("PersonDetailPanel", () => {
       await user.selectOptions(screen.getByDisplayValue("person.female"), "male");
       await user.click(screen.getByText("person.save"));
 
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ gender: "male" }));
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({ gender: "male" }),
+      );
     });
 
     it("saves adopted checkbox toggle", async () => {
@@ -501,7 +505,9 @@ describe("PersonDetailPanel", () => {
       fireEvent.change(notesTextarea, { target: { value: "" } });
       await user.click(screen.getByText("person.save"));
 
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ notes: null }));
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
+        expect.objectContaining({ notes: null }),
+      );
     });
 
     it("shows death year from person data", () => {

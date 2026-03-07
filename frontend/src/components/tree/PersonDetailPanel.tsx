@@ -143,12 +143,7 @@ export function PersonDetailPanel({
   showReflectionPrompts,
   onOpenJournal,
 }: PersonDetailPanelProps) {
-  const {
-    onSavePerson,
-    onDeletePerson,
-    onSaveRelationship,
-    onClose,
-  } = handlers;
+  const { onSavePerson, onDeletePerson, onSaveRelationship, onClose } = handlers;
   const {
     onSaveEvent,
     onDeleteEvent,

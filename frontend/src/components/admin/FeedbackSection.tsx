@@ -43,18 +43,14 @@ export function FeedbackSection({
                     </span>
                   </td>
                   <td>
-                    <span
-                      className={`admin-feedback-badge admin-feedback-badge--${item.category}`}
-                    >
+                    <span className={`admin-feedback-badge admin-feedback-badge--${item.category}`}>
                       {t(
                         `feedback.category${item.category.charAt(0).toUpperCase()}${item.category.slice(1)}`,
                       )}
                     </span>
                   </td>
                   <td className="admin-feedback-message" title={item.message}>
-                    {item.message.length > 100
-                      ? `${item.message.slice(0, 100)}...`
-                      : item.message}
+                    {item.message.length > 100 ? `${item.message.slice(0, 100)}...` : item.message}
                   </td>
                   <td>{item.user_email ?? t("admin.feedbackAnonymous")}</td>
                   <td className="admin-feedback-actions">

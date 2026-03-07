@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { featureQueryKeys } from "./useFeatureFlags";
 import {
   approveWaitlistEntry,
   deleteFeedback,
@@ -19,6 +18,7 @@ import {
   updateAdminFeature,
 } from "../lib/api";
 import type { AdminFeatureFlag } from "../types/api";
+import { featureQueryKeys } from "./useFeatureFlags";
 
 export function formatDate(iso: string, locale: string): string {
   return new Date(iso).toLocaleDateString(locale, {

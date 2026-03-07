@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AdminFeatureFlag, UserRow } from "../types/api";
 import { FeatureToggleCard } from "../components/admin/FeatureTogglesSection";
+import type { AdminFeatureFlag, UserRow } from "../types/api";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({

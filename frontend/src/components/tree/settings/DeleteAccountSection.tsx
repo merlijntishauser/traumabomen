@@ -68,9 +68,7 @@ export function DeleteAccountSection() {
           <button
             type="button"
             className="settings-panel__btn settings-panel__btn--danger"
-            disabled={
-              deleteConfirmText !== "DELETE" || !deletePassword || deleteLoading
-            }
+            disabled={deleteConfirmText !== "DELETE" || !deletePassword || deleteLoading}
             onClick={handleDeleteAccount}
           >
             {t("account.deleteButton")}

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import type { UserListStats, UserRow } from "../../types/api";
 import { formatDate } from "../../hooks/useAdminData";
+import type { UserListStats, UserRow } from "../../types/api";
 
 export function UserListSection({ data }: { data: UserListStats }) {
   const { t, i18n } = useTranslation();
