@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DemoFixture } from "./createDemoTree";
 import { buildIdMap, buildSyncRequest, createDemoTree } from "./createDemoTree";
 
+let lifeEventCounter = 0;
+let turningPointCounter = 0;
+
 vi.mock("./api", () => ({
   createTree: vi.fn().mockResolvedValue({
     id: "new-tree-id",
@@ -11,8 +14,15 @@ vi.mock("./api", () => ({
     updated_at: "2024-01-01",
   }),
   syncTree: vi.fn().mockResolvedValue({}),
-  createLifeEvent: vi.fn().mockResolvedValue({}),
-  createTurningPoint: vi.fn().mockResolvedValue({}),
+  createLifeEvent: vi.fn().mockImplementation(() => {
+    lifeEventCounter += 1;
+    return Promise.resolve({ id: `server-le-${lifeEventCounter}` });
+  }),
+  createTurningPoint: vi.fn().mockImplementation(() => {
+    turningPointCounter += 1;
+    return Promise.resolve({ id: `server-tp-${turningPointCounter}` });
+  }),
+  updatePattern: vi.fn().mockResolvedValue({}),
 }));
 
 const FIXTURE: DemoFixture = {
@@ -239,6 +249,8 @@ describe("createDemoTree", () => {
 
   beforeEach(async () => {
     uuidCounter = 0;
+    lifeEventCounter = 0;
+    turningPointCounter = 0;
     const api = await import("./api");
     mockCreateTree = api.createTree as ReturnType<typeof vi.fn>;
     mockSyncTree = api.syncTree as ReturnType<typeof vi.fn>;

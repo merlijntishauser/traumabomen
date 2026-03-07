@@ -1,5 +1,5 @@
 import type { SyncRequest } from "../types/api";
-import { createLifeEvent, createTree, createTurningPoint, syncTree } from "./api";
+import { createLifeEvent, createTree, createTurningPoint, syncTree, updatePattern } from "./api";
 
 interface FixturePerson {
   id: string;
@@ -263,20 +263,49 @@ export async function createDemoTree(
   const syncRequest = buildSyncRequest(fixture, idMap, encryptedEntities);
   await syncTree(treeId, syncRequest);
 
-  // Life events are not in the sync endpoint; create them individually
+  // Life events and turning points are not in the sync endpoint; create them
+  // individually and capture server-assigned IDs so pattern references resolve.
+  const serverIdMap = new Map<string, string>();
+
   for (const le of fixture.lifeEvents) {
-    await createLifeEvent(treeId, {
+    const response = await createLifeEvent(treeId, {
       person_ids: remapIds(le.person_ids, idMap),
       encrypted_data: encryptedEntities.get(le.id)!,
     });
+    serverIdMap.set(idMap.get(le.id)!, response.id);
   }
 
-  // Turning points are not in the sync endpoint; create them individually
   for (const tp of fixture.turningPoints) {
-    await createTurningPoint(treeId, {
+    const response = await createTurningPoint(treeId, {
       person_ids: remapIds(tp.person_ids, idMap),
       encrypted_data: encryptedEntities.get(tp.id)!,
     });
+    serverIdMap.set(idMap.get(tp.id)!, response.id);
+  }
+
+  // Re-encrypt and update patterns whose linked_entities reference life events
+  // or turning points (their IDs were reassigned by the server).
+  const patternsToFix = fixture.patterns.filter((pat) =>
+    pat.linked_entities.some(
+      (le) => le.entity_type === "life_event" || le.entity_type === "turning_point",
+    ),
+  );
+
+  for (const pat of patternsToFix) {
+    const patternServerId = idMap.get(pat.id)!;
+    const fixedEncrypted = await encrypt({
+      name: pat.name,
+      description: pat.description,
+      color: pat.color,
+      linked_entities: pat.linked_entities.map((le) => {
+        const clientId = idMap.get(le.entity_id) ?? le.entity_id;
+        return {
+          entity_type: le.entity_type,
+          entity_id: serverIdMap.get(clientId) ?? clientId,
+        };
+      }),
+    });
+    await updatePattern(treeId, patternServerId, { encrypted_data: fixedEncrypted });
   }
 
   return treeId;
