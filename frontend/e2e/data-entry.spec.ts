@@ -15,11 +15,14 @@ async function setupTreeWithPerson(
   const panel = page.locator(".detail-panel");
   await expect(panel).toBeVisible();
 
-  await panel.locator("input[type='text']").first().fill(name);
+  const nameInput = panel.locator("input[type='text']").first();
+  await nameInput.fill(name);
+  await expect(nameInput).toHaveValue(name);
   await panel.locator("input[type='number']").first().fill("1980");
   await panel.getByRole("button", { name: /save/i }).first().click();
 
-  // After save, the panel closes. Click the person node to reopen it.
+  // Wait for save to complete (panel closes on success), then reopen
+  await expect(panel).not.toBeVisible({ timeout: 10_000 });
   await page.locator(".react-flow__node").filter({ hasText: name }).click();
   await expect(panel).toBeVisible();
 
