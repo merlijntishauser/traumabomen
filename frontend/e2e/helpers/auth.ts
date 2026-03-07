@@ -7,7 +7,8 @@ let emailCounter = 0;
 
 export function uniqueEmail(): string {
   emailCounter++;
-  return `e2e-${Date.now()}-${emailCounter}@example.com`;
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `e2e-${Date.now()}-${emailCounter}-${rand}@example.com`;
 }
 
 /** Dismiss the onboarding safety gate if it appears. */
@@ -34,8 +35,15 @@ export async function register(page: Page, email: string): Promise<void> {
     const result = await Promise.race([
       page.waitForURL("**/trees", { timeout: 20_000 }).then(() => "ok" as const),
       page.getByText(/registration failed/i).waitFor({ state: "visible", timeout: 20_000 }).then(() => "retry" as const),
+      page.getByText(/already exists/i).waitFor({ state: "visible", timeout: 20_000 }).then(() => "exists" as const),
     ]);
     if (result === "ok") break;
+    if (result === "exists") {
+      // Account was created (e.g. by a parallel worker); login instead
+      await login(page, email);
+      await unlock(page);
+      return;
+    }
   }
 
   await dismissOnboarding(page);
