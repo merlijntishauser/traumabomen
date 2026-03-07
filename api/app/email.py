@@ -235,7 +235,7 @@ def _send_cta_email(
 
     try:
         _send_smtp(msg, to, settings)
-    except Exception:
+    except (smtplib.SMTPException, OSError):
         safe_to = to.replace("\n", "").replace("\r", "")
         logger.exception("Failed to send %s to %s", log_label, safe_to)
         raise
@@ -320,7 +320,7 @@ def send_feedback_email(
 
     try:
         _send_smtp(msg, settings.FEEDBACK_EMAIL, settings)
-    except Exception:
+    except (smtplib.SMTPException, OSError):
         logger.exception("Failed to send feedback email")
 
 
@@ -337,9 +337,11 @@ def send_email_background(fn: Callable[..., None], *args: Any) -> None:
     def _worker() -> None:
         try:
             fn(*args)
-        except Exception:
+        except (smtplib.SMTPException, OSError):
             time.sleep(RETRY_DELAY_SECONDS)
-            with contextlib.suppress(Exception):  # Already logged by each send_* fn
+            with contextlib.suppress(
+                smtplib.SMTPException, OSError
+            ):  # Already logged by each send_* fn
                 fn(*args)
 
     Thread(target=_worker, daemon=True).start()
