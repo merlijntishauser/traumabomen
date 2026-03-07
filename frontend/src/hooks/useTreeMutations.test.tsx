@@ -38,6 +38,292 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
+// Linked entity test factory
+// ---------------------------------------------------------------------------
+
+interface LinkedEntityTestConfig {
+  name: string;
+  idPrefix: string;
+  hookAccessor: (r: ReturnType<typeof useTreeMutations>) => {
+    // biome-ignore lint/suspicious/noExplicitAny: test factory uses dynamic mutation types
+    create: { mutateAsync: (args: any) => Promise<any> };
+    // biome-ignore lint/suspicious/noExplicitAny: test factory uses dynamic mutation types
+    update: { mutateAsync: (args: any) => Promise<any>; mutate: (args: any) => void };
+    // biome-ignore lint/suspicious/noExplicitAny: test factory uses dynamic mutation types
+    delete: { mutateAsync: (id: any) => Promise<any> };
+  };
+  queryKeySegment: string;
+  // biome-ignore lint/suspicious/noExplicitAny: test mock type
+  apiCreate: any;
+  // biome-ignore lint/suspicious/noExplicitAny: test mock type
+  apiUpdate: any;
+  // biome-ignore lint/suspicious/noExplicitAny: test mock type
+  apiDelete: any;
+  testData: Record<string, unknown>;
+  existingEntry: Record<string, unknown>;
+  optimisticChecks: (entry: Record<string, unknown>) => void;
+  rollbackChecks: (entry: Record<string, unknown>) => void;
+}
+
+function describeLinkedEntityMutations(config: LinkedEntityTestConfig) {
+  const entityId = `${config.idPrefix}-1`;
+  const otherId = `${config.idPrefix}-other`;
+  const nonexistentId = `${config.idPrefix}-nonexistent`;
+  const queryKey = ["trees", TREE_ID, config.queryKeySegment];
+
+  const apiResponse = () => ({
+    id: entityId,
+    tree_id: TREE_ID,
+    person_ids: ["p-1"],
+    encrypted_data: "encrypted-blob",
+  });
+
+  const fullEntry = (overrides: Record<string, unknown>, id = entityId) => ({
+    id,
+    person_ids: ["p-1"],
+    ...overrides,
+  });
+
+  describe(`${config.name} mutations`, () => {
+    it("create encrypts data then calls API", async () => {
+      config.apiCreate.mockResolvedValue(apiResponse());
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).create.mutateAsync({
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      expect(mockEncrypt).toHaveBeenCalledWith(config.testData, TREE_ID);
+      expect(config.apiCreate).toHaveBeenCalledWith(TREE_ID, {
+        person_ids: ["p-1"],
+        encrypted_data: "encrypted-blob",
+      });
+    });
+
+    it("create invalidates query key on success", async () => {
+      config.apiCreate.mockResolvedValue(apiResponse());
+
+      const wrapper = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).create.mutateAsync({
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey });
+    });
+
+    it("update encrypts data then calls API", async () => {
+      config.apiUpdate.mockResolvedValue(apiResponse());
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).update.mutateAsync({
+          entityId,
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      expect(mockEncrypt).toHaveBeenCalledWith(config.testData, TREE_ID);
+      expect(config.apiUpdate).toHaveBeenCalledWith(TREE_ID, entityId, {
+        person_ids: ["p-1"],
+        encrypted_data: "encrypted-blob",
+      });
+    });
+
+    it("update performs optimistic update via onMutate", async () => {
+      const existing = new Map([[entityId, fullEntry(config.existingEntry)]]);
+
+      config.apiUpdate.mockReturnValue(new Promise(() => {}));
+
+      const wrapper = createWrapper();
+      queryClient.setQueryData(queryKey, existing);
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      act(() => {
+        config.hookAccessor(result.current).update.mutate({
+          entityId,
+          personIds: ["p-1", "p-2"],
+          data: config.testData,
+        });
+      });
+
+      await waitFor(() => {
+        const cached = queryClient.getQueryData<Map<string, unknown>>(queryKey);
+        const entry = cached?.get(entityId) as Record<string, unknown> | undefined;
+        config.optimisticChecks(entry!);
+        expect(entry?.person_ids).toEqual(["p-1", "p-2"]);
+      });
+    });
+
+    it("update onMutate handles empty cache gracefully", async () => {
+      config.apiUpdate.mockReturnValue(new Promise(() => {}));
+
+      const wrapper = createWrapper();
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      act(() => {
+        config.hookAccessor(result.current).update.mutate({
+          entityId,
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      await waitFor(() => {
+        const cached = queryClient.getQueryData(queryKey);
+        expect(cached).toBeUndefined();
+      });
+    });
+
+    it("update onMutate skips unknown entity ID", async () => {
+      const existing = new Map([[otherId, fullEntry(config.existingEntry, otherId)]]);
+
+      config.apiUpdate.mockReturnValue(new Promise(() => {}));
+
+      const wrapper = createWrapper();
+      queryClient.setQueryData(queryKey, existing);
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      act(() => {
+        config.hookAccessor(result.current).update.mutate({
+          entityId: nonexistentId,
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      await waitFor(() => {
+        const cached = queryClient.getQueryData<Map<string, unknown>>(queryKey);
+        expect(cached?.size).toBe(1);
+        expect(cached?.has(otherId)).toBe(true);
+        expect(cached?.has(nonexistentId)).toBe(false);
+      });
+    });
+
+    it("update rolls back on error via onError", async () => {
+      const existing = new Map([[entityId, fullEntry(config.existingEntry)]]);
+
+      config.apiUpdate.mockRejectedValue(new Error("network error"));
+
+      const wrapper = createWrapper();
+      queryClient.setQueryData(queryKey, existing);
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      await act(async () => {
+        try {
+          await config.hookAccessor(result.current).update.mutateAsync({
+            entityId,
+            personIds: ["p-1"],
+            data: config.testData,
+          });
+        } catch {
+          // expected
+        }
+      });
+
+      await waitFor(() => {
+        const cached = queryClient.getQueryData<Map<string, unknown>>(queryKey);
+        const entry = cached?.get(entityId) as Record<string, unknown> | undefined;
+        expect(entry).toBeDefined();
+        config.rollbackChecks(entry!);
+      });
+    });
+
+    it("update onError without previous context is a no-op", async () => {
+      config.apiUpdate.mockRejectedValue(new Error("fail"));
+
+      const wrapper = createWrapper();
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      await act(async () => {
+        try {
+          await config.hookAccessor(result.current).update.mutateAsync({
+            entityId,
+            personIds: ["p-1"],
+            data: config.testData,
+          });
+        } catch {
+          // expected
+        }
+      });
+
+      const cached = queryClient.getQueryData(queryKey);
+      expect(cached).toBeUndefined();
+    });
+
+    it("update invalidates query on settled", async () => {
+      config.apiUpdate.mockResolvedValue(apiResponse());
+
+      const wrapper = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).update.mutateAsync({
+          entityId,
+          personIds: ["p-1"],
+          data: config.testData,
+        });
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey });
+    });
+
+    it("delete calls API without encryption", async () => {
+      config.apiDelete.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).delete.mutateAsync(entityId);
+      });
+
+      expect(mockEncrypt).not.toHaveBeenCalled();
+      expect(config.apiDelete).toHaveBeenCalledWith(TREE_ID, entityId);
+    });
+
+    it("delete invalidates query key on success", async () => {
+      config.apiDelete.mockResolvedValue(undefined);
+
+      const wrapper = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
+
+      await act(async () => {
+        await config.hookAccessor(result.current).delete.mutateAsync(entityId);
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Persons
 // ---------------------------------------------------------------------------
 describe("person mutations", () => {
@@ -475,1629 +761,165 @@ describe("relationship mutations", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Events (trauma events)
+// Linked entities (parameterized via factory)
 // ---------------------------------------------------------------------------
-describe("event mutations", () => {
-  const eventData = {
+
+describeLinkedEntityMutations({
+  name: "event",
+  idPrefix: "e",
+  hookAccessor: (r) => r.events,
+  queryKeySegment: "events",
+  apiCreate: mockedApi.createEvent,
+  apiUpdate: mockedApi.updateEvent,
+  apiDelete: mockedApi.deleteEvent,
+  testData: {
     title: "Test Event",
     description: "desc",
-    category: "loss" as const,
+    category: "loss",
     approximate_date: "1990",
     severity: 5,
     tags: ["tag1"],
-  };
-
-  it("createEvent encrypts data then calls api.createEvent", async () => {
-    mockedApi.createEvent.mockResolvedValue({
-      id: "e-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.events.create.mutateAsync({
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(eventData, TREE_ID);
-    expect(mockedApi.createEvent).toHaveBeenCalledWith(TREE_ID, {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("createEvent invalidates events query key on success", async () => {
-    mockedApi.createEvent.mockResolvedValue({
-      id: "e-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.events.create.mutateAsync({
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "events"],
-    });
-  });
-
-  it("updateEvent encrypts data then calls api.updateEvent", async () => {
-    mockedApi.updateEvent.mockResolvedValue({
-      id: "e-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.events.update.mutateAsync({
-        entityId: "e-1",
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(eventData, TREE_ID);
-    expect(mockedApi.updateEvent).toHaveBeenCalledWith(TREE_ID, "e-1", {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("updateEvent performs optimistic update via onMutate", async () => {
-    // Set up existing data in the query cache
-    const existingEvents = new Map([
-      [
-        "e-1",
-        {
-          id: "e-1",
-          person_ids: ["p-1"],
-          title: "Old Title",
-          description: "old desc",
-          category: "loss" as const,
-          approximate_date: "1985",
-          severity: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    // Never resolves so we can inspect the optimistic state
-    mockedApi.updateEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "events"], existingEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.events.update.mutate({
-        entityId: "e-1",
-        personIds: ["p-1", "p-2"],
-        data: eventData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "events"]);
-      const entry = cached?.get("e-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Test Event");
-      expect(entry?.person_ids).toEqual(["p-1", "p-2"]);
-    });
-  });
-
-  it("updateEvent onMutate handles empty cache gracefully", async () => {
-    // No prior cache data set — the `if (previous)` branch should be false
-    mockedApi.updateEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    // Intentionally do NOT set query data
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.events.update.mutate({
-        entityId: "e-1",
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    await waitFor(() => {
-      // Cache should remain undefined
-      const cached = queryClient.getQueryData(["trees", TREE_ID, "events"]);
-      expect(cached).toBeUndefined();
-    });
-  });
-
-  it("updateEvent onMutate skips unknown entity ID", async () => {
-    // Cache exists but the specific eventId is not in it
-    const existingEvents = new Map([
-      [
-        "e-other",
-        {
-          id: "e-other",
-          person_ids: ["p-1"],
-          title: "Other Event",
-          description: "other",
-          category: "loss" as const,
-          approximate_date: "1985",
-          severity: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "events"], existingEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.events.update.mutate({
-        entityId: "e-nonexistent",
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "events"]);
-      // The "e-other" entry should remain untouched and "e-nonexistent" should not be added
-      expect(cached?.size).toBe(1);
-      expect(cached?.has("e-other")).toBe(true);
-      expect(cached?.has("e-nonexistent")).toBe(false);
-    });
-  });
-
-  it("updateEvent rolls back on error via onError", async () => {
-    const existingEvents = new Map([
-      [
-        "e-1",
-        {
-          id: "e-1",
-          person_ids: ["p-1"],
-          title: "Original",
-          description: "orig",
-          category: "loss" as const,
-          approximate_date: "1985",
-          severity: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateEvent.mockRejectedValue(new Error("network error"));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "events"], existingEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.events.update.mutateAsync({
-          entityId: "e-1",
-          personIds: ["p-1"],
-          data: eventData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "events"]);
-      const entry = cached?.get("e-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Original");
-    });
-  });
-
-  it("updateEvent onError without previous context is a no-op", async () => {
-    mockedApi.updateEvent.mockRejectedValue(new Error("fail"));
-
-    const wrapper = createWrapper();
-    // No cache set, so onMutate returns { previous: undefined }
-    // onError should handle context?.previous being falsy
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.events.update.mutateAsync({
-          entityId: "e-1",
-          personIds: ["p-1"],
-          data: eventData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    // No crash; cache remains undefined
-    const cached = queryClient.getQueryData(["trees", TREE_ID, "events"]);
-    expect(cached).toBeUndefined();
-  });
-
-  it("updateEvent invalidates events query on settled", async () => {
-    mockedApi.updateEvent.mockResolvedValue({
-      id: "e-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.events.update.mutateAsync({
-        entityId: "e-1",
-        personIds: ["p-1"],
-        data: eventData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "events"],
-    });
-  });
-
-  it("deleteEvent calls api.deleteEvent without encryption", async () => {
-    mockedApi.deleteEvent.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.events.delete.mutateAsync("e-1");
-    });
-
-    expect(mockEncrypt).not.toHaveBeenCalled();
-    expect(mockedApi.deleteEvent).toHaveBeenCalledWith(TREE_ID, "e-1");
-  });
-
-  it("deleteEvent invalidates events query key on success", async () => {
-    mockedApi.deleteEvent.mockResolvedValue(undefined);
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.events.delete.mutateAsync("e-1");
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "events"],
-    });
-  });
+  },
+  existingEntry: {
+    title: "Old Title",
+    description: "old",
+    category: "loss",
+    approximate_date: "1985",
+    severity: 3,
+    tags: [],
+  },
+  optimisticChecks: (entry) => {
+    expect(entry?.title).toBe("Test Event");
+  },
+  rollbackChecks: (entry) => {
+    expect(entry?.title).toBe("Old Title");
+  },
 });
 
-// ---------------------------------------------------------------------------
-// Life Events
-// ---------------------------------------------------------------------------
-describe("life event mutations", () => {
-  const lifeEventData = {
+describeLinkedEntityMutations({
+  name: "life event",
+  idPrefix: "le",
+  hookAccessor: (r) => r.lifeEvents,
+  queryKeySegment: "lifeEvents",
+  apiCreate: mockedApi.createLifeEvent,
+  apiUpdate: mockedApi.updateLifeEvent,
+  apiDelete: mockedApi.deleteLifeEvent,
+  testData: {
     title: "Graduated",
     description: "University",
-    category: "education" as const,
+    category: "education",
     approximate_date: "2012",
     impact: 7,
     tags: [],
-  };
-
-  it("createLifeEvent encrypts data then calls api.createLifeEvent", async () => {
-    mockedApi.createLifeEvent.mockResolvedValue({
-      id: "le-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.lifeEvents.create.mutateAsync({
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData, TREE_ID);
-    expect(mockedApi.createLifeEvent).toHaveBeenCalledWith(TREE_ID, {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("createLifeEvent invalidates lifeEvents query key on success", async () => {
-    mockedApi.createLifeEvent.mockResolvedValue({
-      id: "le-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.lifeEvents.create.mutateAsync({
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "lifeEvents"],
-    });
-  });
-
-  it("updateLifeEvent encrypts data then calls api.updateLifeEvent", async () => {
-    mockedApi.updateLifeEvent.mockResolvedValue({
-      id: "le-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.lifeEvents.update.mutateAsync({
-        entityId: "le-1",
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(lifeEventData, TREE_ID);
-    expect(mockedApi.updateLifeEvent).toHaveBeenCalledWith(TREE_ID, "le-1", {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("updateLifeEvent performs optimistic update via onMutate", async () => {
-    const existingLifeEvents = new Map([
-      [
-        "le-1",
-        {
-          id: "le-1",
-          person_ids: ["p-1"],
-          title: "Old Title",
-          description: "old",
-          category: "career" as const,
-          approximate_date: "2000",
-          impact: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateLifeEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "lifeEvents"], existingLifeEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.lifeEvents.update.mutate({
-        entityId: "le-1",
-        personIds: ["p-1", "p-3"],
-        data: lifeEventData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "lifeEvents",
-      ]);
-      const entry = cached?.get("le-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Graduated");
-      expect(entry?.person_ids).toEqual(["p-1", "p-3"]);
-    });
-  });
-
-  it("updateLifeEvent onMutate handles empty cache gracefully", async () => {
-    mockedApi.updateLifeEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.lifeEvents.update.mutate({
-        entityId: "le-1",
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData(["trees", TREE_ID, "lifeEvents"]);
-      expect(cached).toBeUndefined();
-    });
-  });
-
-  it("updateLifeEvent onMutate skips unknown entity ID", async () => {
-    const existingLifeEvents = new Map([
-      [
-        "le-other",
-        {
-          id: "le-other",
-          person_ids: ["p-1"],
-          title: "Other LE",
-          description: "other",
-          category: "career" as const,
-          approximate_date: "2000",
-          impact: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateLifeEvent.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "lifeEvents"], existingLifeEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.lifeEvents.update.mutate({
-        entityId: "le-nonexistent",
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "lifeEvents",
-      ]);
-      expect(cached?.size).toBe(1);
-      expect(cached?.has("le-other")).toBe(true);
-      expect(cached?.has("le-nonexistent")).toBe(false);
-    });
-  });
-
-  it("updateLifeEvent rolls back on error via onError", async () => {
-    const existingLifeEvents = new Map([
-      [
-        "le-1",
-        {
-          id: "le-1",
-          person_ids: ["p-1"],
-          title: "Original LE",
-          description: "orig",
-          category: "career" as const,
-          approximate_date: "2000",
-          impact: 3,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateLifeEvent.mockRejectedValue(new Error("network error"));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "lifeEvents"], existingLifeEvents);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.lifeEvents.update.mutateAsync({
-          entityId: "le-1",
-          personIds: ["p-1"],
-          data: lifeEventData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "lifeEvents",
-      ]);
-      const entry = cached?.get("le-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Original LE");
-    });
-  });
-
-  it("updateLifeEvent onError without previous context is a no-op", async () => {
-    mockedApi.updateLifeEvent.mockRejectedValue(new Error("fail"));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.lifeEvents.update.mutateAsync({
-          entityId: "le-1",
-          personIds: ["p-1"],
-          data: lifeEventData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    const cached = queryClient.getQueryData(["trees", TREE_ID, "lifeEvents"]);
-    expect(cached).toBeUndefined();
-  });
-
-  it("updateLifeEvent invalidates lifeEvents query on settled", async () => {
-    mockedApi.updateLifeEvent.mockResolvedValue({
-      id: "le-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.lifeEvents.update.mutateAsync({
-        entityId: "le-1",
-        personIds: ["p-1"],
-        data: lifeEventData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "lifeEvents"],
-    });
-  });
-
-  it("deleteLifeEvent calls api.deleteLifeEvent without encryption", async () => {
-    mockedApi.deleteLifeEvent.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.lifeEvents.delete.mutateAsync("le-1");
-    });
-
-    expect(mockEncrypt).not.toHaveBeenCalled();
-    expect(mockedApi.deleteLifeEvent).toHaveBeenCalledWith(TREE_ID, "le-1");
-  });
-
-  it("deleteLifeEvent invalidates lifeEvents query key on success", async () => {
-    mockedApi.deleteLifeEvent.mockResolvedValue(undefined);
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.lifeEvents.delete.mutateAsync("le-1");
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "lifeEvents"],
-    });
-  });
+  },
+  existingEntry: {
+    title: "Old Title",
+    description: "old",
+    category: "career",
+    approximate_date: "2000",
+    impact: 3,
+    tags: [],
+  },
+  optimisticChecks: (entry) => {
+    expect(entry?.title).toBe("Graduated");
+  },
+  rollbackChecks: (entry) => {
+    expect(entry?.title).toBe("Old Title");
+  },
 });
 
-// ---------------------------------------------------------------------------
-// Turning Points
-// ---------------------------------------------------------------------------
-describe("turning point mutations", () => {
-  const turningPointData = {
+describeLinkedEntityMutations({
+  name: "turning point",
+  idPrefix: "tp",
+  hookAccessor: (r) => r.turningPoints,
+  queryKeySegment: "turningPoints",
+  apiCreate: mockedApi.createTurningPoint,
+  apiUpdate: mockedApi.updateTurningPoint,
+  apiDelete: mockedApi.deleteTurningPoint,
+  testData: {
     title: "Broke the cycle",
     description: "Sought therapy",
-    category: "cycle_breaking" as const,
+    category: "cycle_breaking",
     approximate_date: "2010",
     significance: 4,
     tags: [],
-  };
-
-  it("createTurningPoint encrypts data then calls api.createTurningPoint", async () => {
-    mockedApi.createTurningPoint.mockResolvedValue({
-      id: "tp-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.turningPoints.create.mutateAsync({
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData, TREE_ID);
-    expect(mockedApi.createTurningPoint).toHaveBeenCalledWith(TREE_ID, {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("createTurningPoint invalidates turningPoints query key on success", async () => {
-    mockedApi.createTurningPoint.mockResolvedValue({
-      id: "tp-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.turningPoints.create.mutateAsync({
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "turningPoints"],
-    });
-  });
-
-  it("updateTurningPoint encrypts data then calls api.updateTurningPoint", async () => {
-    mockedApi.updateTurningPoint.mockResolvedValue({
-      id: "tp-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.turningPoints.update.mutateAsync({
-        entityId: "tp-1",
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(turningPointData, TREE_ID);
-    expect(mockedApi.updateTurningPoint).toHaveBeenCalledWith(TREE_ID, "tp-1", {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("updateTurningPoint performs optimistic update via onMutate", async () => {
-    const existingTurningPoints = new Map([
-      [
-        "tp-1",
-        {
-          id: "tp-1",
-          person_ids: ["p-1"],
-          title: "Old Title",
-          description: "old",
-          category: "recovery" as const,
-          approximate_date: "2005",
-          significance: 2,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.turningPoints.update.mutate({
-        entityId: "tp-1",
-        personIds: ["p-1", "p-3"],
-        data: turningPointData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "turningPoints",
-      ]);
-      const entry = cached?.get("tp-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Broke the cycle");
-      expect(entry?.person_ids).toEqual(["p-1", "p-3"]);
-    });
-  });
-
-  it("updateTurningPoint onMutate handles empty cache gracefully", async () => {
-    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.turningPoints.update.mutate({
-        entityId: "tp-1",
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData(["trees", TREE_ID, "turningPoints"]);
-      expect(cached).toBeUndefined();
-    });
-  });
-
-  it("updateTurningPoint onMutate skips unknown entity ID", async () => {
-    const existingTurningPoints = new Map([
-      [
-        "tp-other",
-        {
-          id: "tp-other",
-          person_ids: ["p-1"],
-          title: "Other TP",
-          description: "other",
-          category: "recovery" as const,
-          approximate_date: "2005",
-          significance: 2,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateTurningPoint.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.turningPoints.update.mutate({
-        entityId: "tp-nonexistent",
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "turningPoints",
-      ]);
-      expect(cached?.size).toBe(1);
-      expect(cached?.has("tp-other")).toBe(true);
-      expect(cached?.has("tp-nonexistent")).toBe(false);
-    });
-  });
-
-  it("updateTurningPoint rolls back on error via onError", async () => {
-    const existingTurningPoints = new Map([
-      [
-        "tp-1",
-        {
-          id: "tp-1",
-          person_ids: ["p-1"],
-          title: "Original TP",
-          description: "orig",
-          category: "recovery" as const,
-          approximate_date: "2005",
-          significance: 2,
-          tags: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updateTurningPoint.mockRejectedValue(new Error("network error"));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "turningPoints"], existingTurningPoints);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.turningPoints.update.mutateAsync({
-          entityId: "tp-1",
-          personIds: ["p-1"],
-          data: turningPointData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "turningPoints",
-      ]);
-      const entry = cached?.get("tp-1") as Record<string, unknown> | undefined;
-      expect(entry?.title).toBe("Original TP");
-    });
-  });
-
-  it("updateTurningPoint onError without previous context is a no-op", async () => {
-    mockedApi.updateTurningPoint.mockRejectedValue(new Error("fail"));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.turningPoints.update.mutateAsync({
-          entityId: "tp-1",
-          personIds: ["p-1"],
-          data: turningPointData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    const cached = queryClient.getQueryData(["trees", TREE_ID, "turningPoints"]);
-    expect(cached).toBeUndefined();
-  });
-
-  it("updateTurningPoint invalidates turningPoints query on settled", async () => {
-    mockedApi.updateTurningPoint.mockResolvedValue({
-      id: "tp-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.turningPoints.update.mutateAsync({
-        entityId: "tp-1",
-        personIds: ["p-1"],
-        data: turningPointData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "turningPoints"],
-    });
-  });
-
-  it("deleteTurningPoint calls api.deleteTurningPoint without encryption", async () => {
-    mockedApi.deleteTurningPoint.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.turningPoints.delete.mutateAsync("tp-1");
-    });
-
-    expect(mockEncrypt).not.toHaveBeenCalled();
-    expect(mockedApi.deleteTurningPoint).toHaveBeenCalledWith(TREE_ID, "tp-1");
-  });
-
-  it("deleteTurningPoint invalidates turningPoints query key on success", async () => {
-    mockedApi.deleteTurningPoint.mockResolvedValue(undefined);
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.turningPoints.delete.mutateAsync("tp-1");
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "turningPoints"],
-    });
-  });
+  },
+  existingEntry: {
+    title: "Old Title",
+    description: "old",
+    category: "recovery",
+    approximate_date: "2005",
+    significance: 2,
+    tags: [],
+  },
+  optimisticChecks: (entry) => {
+    expect(entry?.title).toBe("Broke the cycle");
+  },
+  rollbackChecks: (entry) => {
+    expect(entry?.title).toBe("Old Title");
+  },
 });
 
-// ---------------------------------------------------------------------------
-// Classifications
-// ---------------------------------------------------------------------------
-describe("classification mutations", () => {
-  const classificationData = {
+describeLinkedEntityMutations({
+  name: "classification",
+  idPrefix: "c",
+  hookAccessor: (r) => r.classifications,
+  queryKeySegment: "classifications",
+  apiCreate: mockedApi.createClassification,
+  apiUpdate: mockedApi.updateClassification,
+  apiDelete: mockedApi.deleteClassification,
+  testData: {
     dsm_category: "neurodevelopmental",
     dsm_subcategory: "ADHD",
-    status: "diagnosed" as const,
+    status: "diagnosed",
     diagnosis_year: 2020,
     periods: [{ start_year: 2020, end_year: null }],
     notes: null,
-  };
-
-  it("createClassification encrypts data then calls api.createClassification", async () => {
-    mockedApi.createClassification.mockResolvedValue({
-      id: "c-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.classifications.create.mutateAsync({
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(classificationData, TREE_ID);
-    expect(mockedApi.createClassification).toHaveBeenCalledWith(TREE_ID, {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("createClassification invalidates classifications query key on success", async () => {
-    mockedApi.createClassification.mockResolvedValue({
-      id: "c-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.classifications.create.mutateAsync({
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "classifications"],
-    });
-  });
-
-  it("updateClassification encrypts data then calls api.updateClassification", async () => {
-    mockedApi.updateClassification.mockResolvedValue({
-      id: "c-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.classifications.update.mutateAsync({
-        entityId: "c-1",
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(classificationData, TREE_ID);
-    expect(mockedApi.updateClassification).toHaveBeenCalledWith(TREE_ID, "c-1", {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("updateClassification performs optimistic update via onMutate", async () => {
-    const existingClassifications = new Map([
-      [
-        "c-1",
-        {
-          id: "c-1",
-          person_ids: ["p-1"],
-          dsm_category: "anxiety",
-          dsm_subcategory: null,
-          status: "suspected" as const,
-          diagnosis_year: null,
-          periods: [],
-          notes: null,
-        },
-      ],
-    ]);
-
-    mockedApi.updateClassification.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "classifications"], existingClassifications);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.classifications.update.mutate({
-        entityId: "c-1",
-        personIds: ["p-1", "p-2"],
-        data: classificationData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "classifications",
-      ]);
-      const entry = cached?.get("c-1") as Record<string, unknown> | undefined;
-      expect(entry?.dsm_category).toBe("neurodevelopmental");
-      expect(entry?.dsm_subcategory).toBe("ADHD");
-      expect(entry?.status).toBe("diagnosed");
-      expect(entry?.person_ids).toEqual(["p-1", "p-2"]);
-    });
-  });
-
-  it("updateClassification onMutate handles empty cache gracefully", async () => {
-    mockedApi.updateClassification.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.classifications.update.mutate({
-        entityId: "c-1",
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData(["trees", TREE_ID, "classifications"]);
-      expect(cached).toBeUndefined();
-    });
-  });
-
-  it("updateClassification onMutate skips unknown entity ID", async () => {
-    const existingClassifications = new Map([
-      [
-        "c-other",
-        {
-          id: "c-other",
-          person_ids: ["p-1"],
-          dsm_category: "anxiety",
-          dsm_subcategory: null,
-          status: "suspected" as const,
-          diagnosis_year: null,
-          periods: [],
-          notes: null,
-        },
-      ],
-    ]);
-
-    mockedApi.updateClassification.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "classifications"], existingClassifications);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.classifications.update.mutate({
-        entityId: "c-nonexistent",
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "classifications",
-      ]);
-      expect(cached?.size).toBe(1);
-      expect(cached?.has("c-other")).toBe(true);
-      expect(cached?.has("c-nonexistent")).toBe(false);
-    });
-  });
-
-  it("updateClassification rolls back on error via onError", async () => {
-    const existingClassifications = new Map([
-      [
-        "c-1",
-        {
-          id: "c-1",
-          person_ids: ["p-1"],
-          dsm_category: "anxiety",
-          dsm_subcategory: null,
-          status: "suspected" as const,
-          diagnosis_year: null,
-          periods: [],
-          notes: "original note",
-        },
-      ],
-    ]);
-
-    mockedApi.updateClassification.mockRejectedValue(new Error("network error"));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "classifications"], existingClassifications);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.classifications.update.mutateAsync({
-          entityId: "c-1",
-          personIds: ["p-1"],
-          data: classificationData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>([
-        "trees",
-        TREE_ID,
-        "classifications",
-      ]);
-      const entry = cached?.get("c-1") as Record<string, unknown> | undefined;
-      expect(entry?.dsm_category).toBe("anxiety");
-      expect(entry?.notes).toBe("original note");
-    });
-  });
-
-  it("updateClassification onError without previous context is a no-op", async () => {
-    mockedApi.updateClassification.mockRejectedValue(new Error("fail"));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.classifications.update.mutateAsync({
-          entityId: "c-1",
-          personIds: ["p-1"],
-          data: classificationData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    const cached = queryClient.getQueryData(["trees", TREE_ID, "classifications"]);
-    expect(cached).toBeUndefined();
-  });
-
-  it("updateClassification invalidates classifications query on settled", async () => {
-    mockedApi.updateClassification.mockResolvedValue({
-      id: "c-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.classifications.update.mutateAsync({
-        entityId: "c-1",
-        personIds: ["p-1"],
-        data: classificationData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "classifications"],
-    });
-  });
-
-  it("deleteClassification calls api.deleteClassification without encryption", async () => {
-    mockedApi.deleteClassification.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.classifications.delete.mutateAsync("c-1");
-    });
-
-    expect(mockEncrypt).not.toHaveBeenCalled();
-    expect(mockedApi.deleteClassification).toHaveBeenCalledWith(TREE_ID, "c-1");
-  });
-
-  it("deleteClassification invalidates classifications query key on success", async () => {
-    mockedApi.deleteClassification.mockResolvedValue(undefined);
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.classifications.delete.mutateAsync("c-1");
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "classifications"],
-    });
-  });
+  },
+  existingEntry: {
+    dsm_category: "anxiety",
+    dsm_subcategory: null,
+    status: "suspected",
+    diagnosis_year: null,
+    periods: [],
+    notes: null,
+  },
+  optimisticChecks: (entry) => {
+    expect(entry?.dsm_category).toBe("neurodevelopmental");
+    expect(entry?.dsm_subcategory).toBe("ADHD");
+    expect(entry?.status).toBe("diagnosed");
+  },
+  rollbackChecks: (entry) => {
+    expect(entry?.dsm_category).toBe("anxiety");
+  },
 });
 
-// ---------------------------------------------------------------------------
-// Patterns
-// ---------------------------------------------------------------------------
-describe("pattern mutations", () => {
-  const patternData = {
+describeLinkedEntityMutations({
+  name: "pattern",
+  idPrefix: "pat",
+  hookAccessor: (r) => r.patterns,
+  queryKeySegment: "patterns",
+  apiCreate: mockedApi.createPattern,
+  apiUpdate: mockedApi.updatePattern,
+  apiDelete: mockedApi.deletePattern,
+  testData: {
     name: "Test Pattern",
     description: "desc",
     color: "#818cf8",
-    linked_entities: [{ entity_type: "trauma_event" as const, entity_id: "e-1" }],
-  };
-
-  it("createPattern encrypts data then calls api.createPattern", async () => {
-    mockedApi.createPattern.mockResolvedValue({
-      id: "pat-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.patterns.create.mutateAsync({
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(patternData, TREE_ID);
-    expect(mockedApi.createPattern).toHaveBeenCalledWith(TREE_ID, {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("createPattern invalidates patterns query key on success", async () => {
-    mockedApi.createPattern.mockResolvedValue({
-      id: "pat-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.patterns.create.mutateAsync({
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "patterns"],
-    });
-  });
-
-  it("updatePattern encrypts data then calls api.updatePattern", async () => {
-    mockedApi.updatePattern.mockResolvedValue({
-      id: "pat-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.patterns.update.mutateAsync({
-        entityId: "pat-1",
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    expect(mockEncrypt).toHaveBeenCalledWith(patternData, TREE_ID);
-    expect(mockedApi.updatePattern).toHaveBeenCalledWith(TREE_ID, "pat-1", {
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-  });
-
-  it("updatePattern performs optimistic update via onMutate", async () => {
-    const existingPatterns = new Map([
-      [
-        "pat-1",
-        {
-          id: "pat-1",
-          person_ids: ["p-1"],
-          name: "Old Pattern",
-          description: "old",
-          color: "#000000",
-          linked_entities: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.patterns.update.mutate({
-        entityId: "pat-1",
-        personIds: ["p-1", "p-2"],
-        data: patternData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
-      const entry = cached?.get("pat-1") as Record<string, unknown> | undefined;
-      expect(entry?.name).toBe("Test Pattern");
-      expect(entry?.person_ids).toEqual(["p-1", "p-2"]);
-    });
-  });
-
-  it("updatePattern onMutate handles empty cache gracefully", async () => {
-    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.patterns.update.mutate({
-        entityId: "pat-1",
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData(["trees", TREE_ID, "patterns"]);
-      expect(cached).toBeUndefined();
-    });
-  });
-
-  it("updatePattern onMutate skips unknown entity ID", async () => {
-    const existingPatterns = new Map([
-      [
-        "pat-other",
-        {
-          id: "pat-other",
-          person_ids: ["p-1"],
-          name: "Other Pattern",
-          description: "other",
-          color: "#000000",
-          linked_entities: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updatePattern.mockReturnValue(new Promise(() => {}));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    act(() => {
-      result.current.patterns.update.mutate({
-        entityId: "pat-nonexistent",
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
-      expect(cached?.size).toBe(1);
-      expect(cached?.has("pat-other")).toBe(true);
-      expect(cached?.has("pat-nonexistent")).toBe(false);
-    });
-  });
-
-  it("updatePattern rolls back on error via onError", async () => {
-    const existingPatterns = new Map([
-      [
-        "pat-1",
-        {
-          id: "pat-1",
-          person_ids: ["p-1"],
-          name: "Original Pattern",
-          description: "orig",
-          color: "#000000",
-          linked_entities: [],
-        },
-      ],
-    ]);
-
-    mockedApi.updatePattern.mockRejectedValue(new Error("network error"));
-
-    const wrapper = createWrapper();
-    queryClient.setQueryData(["trees", TREE_ID, "patterns"], existingPatterns);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.patterns.update.mutateAsync({
-          entityId: "pat-1",
-          personIds: ["p-1"],
-          data: patternData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    await waitFor(() => {
-      const cached = queryClient.getQueryData<Map<string, unknown>>(["trees", TREE_ID, "patterns"]);
-      const entry = cached?.get("pat-1") as Record<string, unknown> | undefined;
-      expect(entry?.name).toBe("Original Pattern");
-    });
-  });
-
-  it("updatePattern onError without previous context is a no-op", async () => {
-    mockedApi.updatePattern.mockRejectedValue(new Error("fail"));
-
-    const wrapper = createWrapper();
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      try {
-        await result.current.patterns.update.mutateAsync({
-          entityId: "pat-1",
-          personIds: ["p-1"],
-          data: patternData,
-        });
-      } catch {
-        // expected
-      }
-    });
-
-    const cached = queryClient.getQueryData(["trees", TREE_ID, "patterns"]);
-    expect(cached).toBeUndefined();
-  });
-
-  it("updatePattern invalidates patterns query on settled", async () => {
-    mockedApi.updatePattern.mockResolvedValue({
-      id: "pat-1",
-      tree_id: TREE_ID,
-      person_ids: ["p-1"],
-      encrypted_data: "encrypted-blob",
-    });
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.patterns.update.mutateAsync({
-        entityId: "pat-1",
-        personIds: ["p-1"],
-        data: patternData,
-      });
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "patterns"],
-    });
-  });
-
-  it("deletePattern calls api.deletePattern without encryption", async () => {
-    mockedApi.deletePattern.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      await result.current.patterns.delete.mutateAsync("pat-1");
-    });
-
-    expect(mockEncrypt).not.toHaveBeenCalled();
-    expect(mockedApi.deletePattern).toHaveBeenCalledWith(TREE_ID, "pat-1");
-  });
-
-  it("deletePattern invalidates patterns query key on success", async () => {
-    mockedApi.deletePattern.mockResolvedValue(undefined);
-
-    const wrapper = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useTreeMutations(TREE_ID), { wrapper });
-
-    await act(async () => {
-      await result.current.patterns.delete.mutateAsync("pat-1");
-    });
-
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ["trees", TREE_ID, "patterns"],
-    });
-  });
+    linked_entities: [{ entity_type: "trauma_event", entity_id: "e-1" }],
+  },
+  existingEntry: {
+    name: "Old Pattern",
+    description: "old",
+    color: "#000000",
+    linked_entities: [],
+  },
+  optimisticChecks: (entry) => {
+    expect(entry?.name).toBe("Test Pattern");
+  },
+  rollbackChecks: (entry) => {
+    expect(entry?.name).toBe("Old Pattern");
+  },
 });
 
 // ---------------------------------------------------------------------------
