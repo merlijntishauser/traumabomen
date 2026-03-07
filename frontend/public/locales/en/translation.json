@@ -140,6 +140,7 @@
   "common.startYear": "Start year",
   "common.endYear": "End year",
   "common.ongoing": "ongoing",
+  "common.notAvailable": "n/a",
 
   "tree.untitled": "Untitled tree",
   "tree.namePlaceholder": "Tree name",

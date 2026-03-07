@@ -686,7 +686,9 @@ export default function AdminPage() {
                         </td>
                         <td>{formatDate(user.created_at, i18n.language)}</td>
                         <td>
-                          {user.last_active ? formatDate(user.last_active, i18n.language) : "--"}
+                          {user.last_active
+                            ? formatDate(user.last_active, i18n.language)
+                            : t("common.notAvailable")}
                         </td>
                         <td>{user.email_verified ? t("admin.yes") : t("admin.no")}</td>
                         <td>{user.tree_count}</td>
@@ -713,8 +715,7 @@ export default function AdminPage() {
                     current: waitlistCapacity.data.active_users,
                     max: waitlistCapacity.data.max_active_users,
                   })}
-                  {!waitlistCapacity.data.waitlist_enabled && ` -- ${t("admin.waitlist.disabled")}`}
-                  )
+                  {!waitlistCapacity.data.waitlist_enabled && `, ${t("admin.waitlist.disabled")}`})
                 </span>
               )}
             </div>
@@ -757,7 +758,7 @@ export default function AdminPage() {
                           <td>
                             {entry.approved_at
                               ? formatDate(entry.approved_at, i18n.language)
-                              : "--"}
+                              : t("common.notAvailable")}
                           </td>
                           <td className="admin-waitlist-actions">
                             {entry.status === "waiting" && (

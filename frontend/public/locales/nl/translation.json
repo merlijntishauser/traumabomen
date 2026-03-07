@@ -140,6 +140,7 @@
   "common.startYear": "Startjaar",
   "common.endYear": "Eindjaar",
   "common.ongoing": "lopend",
+  "common.notAvailable": "n.v.t.",
 
   "tree.untitled": "Naamloze boom",
   "tree.namePlaceholder": "Naam van de boom",
