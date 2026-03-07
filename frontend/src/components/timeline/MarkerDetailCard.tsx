@@ -8,7 +8,7 @@ import type {
   DecryptedPerson,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import type { MarkerClickInfo } from "./PersonLane";
+import type { MarkerClickInfo } from "./timelineHelpers";
 
 const CLOSE_LABEL_KEY = "common.close";
 

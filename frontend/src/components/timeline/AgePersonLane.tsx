@@ -8,10 +8,16 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
-import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
-import type { TooltipLine } from "./timelineHelpers";
+import type { MarkerClickInfo, TimelineMode, TooltipLine } from "./timelineHelpers";
 import { BAR_HEIGHT, MARKER_RADIUS } from "./timelineHelpers";
+import type { LaneOrientation, MarkerContext } from "./timelineMarkers";
+import {
+  renderClassificationStrips,
+  renderLifeEventMarkers,
+  renderTraumaMarkers,
+  renderTurningPointMarkers,
+} from "./timelineMarkers";
 
 interface AgePersonLaneProps {
   person: DecryptedPerson;
@@ -116,6 +122,56 @@ export const AgePersonLane = React.memo(function AgePersonLane({
     [mode, onClickMarker, onToggleEntitySelect, person.id],
   );
 
+  const orientation: LaneOrientation = {
+    pointAt: (year) => ({ x: cx, y: scaledAge(year) }),
+    primaryPos: (year) => scaledAge(year),
+    markerTransform,
+    dateText: (year) => ageLabel(year),
+    markerLabelAt: (year) => ({
+      x: cx,
+      y: scaledAge(year) - MARKER_RADIUS - 2,
+      textAnchor: "middle",
+    }),
+    stripRect: (startPos, endPos, stripIdx) => ({
+      x: barX + barWidth + 2 + stripIdx * 5,
+      y: startPos,
+      width: 4,
+      height: endPos - startPos,
+    }),
+    stripLabelAt: (pos) => ({
+      x: cx,
+      y: pos - 2,
+      textAnchor: "middle",
+      transform: labelTransform(pos - 2),
+    }),
+    diagLabelAt: (year) => ({
+      x: cx,
+      y: scaledAge(year) - MARKER_RADIUS - 2,
+      textAnchor: "middle",
+    }),
+    fallbackEndPos: yScale(maxAge),
+  };
+
+  const ctx: MarkerContext = {
+    orientation,
+    persons,
+    traumaColors,
+    lifeEventColors,
+    turningPointColors,
+    canvasStroke,
+    classificationDiagnosedColor: cssVar("--color-classification-diagnosed"),
+    classificationSuspectedColor: cssVar("--color-classification-suspected"),
+    hideTooltip,
+    onTooltip,
+    handleMarkerClick,
+    dims,
+    filterMode,
+    showMarkerLabels,
+    selectedEntityKeys,
+    patternRings,
+    t,
+  };
+
   const className = ["tl-lane", selected && "tl-lane--selected", dimmed && "tl-lane--dimmed"]
     .filter(Boolean)
     .join(" ");
@@ -147,391 +203,10 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         />
       )}
 
-      {/* Classification strips (vertical) */}
-      {showClassifications &&
-        hasBirth &&
-        classifications.map((cls, stripIdx) => {
-          const clsColor = cssVar(
-            cls.status === "diagnosed"
-              ? "--color-classification-diagnosed"
-              : "--color-classification-suspected",
-          );
-          const stripWidth = 4;
-          const isMarkerDimmed = dims?.dimmedClassificationIds.has(cls.id);
-          if (isMarkerDimmed && filterMode === "hide") return null;
-
-          return (
-            <g key={cls.id} opacity={isMarkerDimmed ? 0.15 : undefined}>
-              {cls.periods.map((period, pi) => {
-                const startY = scaledAge(period.start_year);
-                const endY = period.end_year != null ? scaledAge(period.end_year) : yScale(maxAge);
-                const stripX = barX + barWidth + 2 + stripIdx * (stripWidth + 1);
-
-                const catLabel = t(`dsm.${cls.dsm_category}`);
-                const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
-                const statusLabel = t(`classification.status.${cls.status}`);
-                const yearRange = `${period.start_year}${period.end_year ? ` - ${period.end_year}` : " -"}`;
-                const clsLabel = subLabel ?? catLabel;
-
-                return (
-                  <React.Fragment key={`${cls.id}-p${pi}`}>
-                    <rect
-                      x={stripX}
-                      y={startY}
-                      width={stripWidth}
-                      height={Math.max(0, endY - startY)}
-                      rx={1}
-                      fill={clsColor}
-                      opacity={0.8}
-                      className="tl-marker"
-                      onClick={(e) => handleMarkerClick("classification", cls.id, e)}
-                      onMouseEnter={(e) => {
-                        onTooltip({
-                          visible: true,
-                          x: e.clientX,
-                          y: e.clientY,
-                          lines: [
-                            { text: subLabel ? `${catLabel} - ${subLabel}` : catLabel, bold: true },
-                            { text: `${statusLabel} ${yearRange}` },
-                          ],
-                        });
-                      }}
-                      onMouseLeave={hideTooltip}
-                    />
-                    {showMarkerLabels && pi === 0 && (
-                      <text
-                        x={cx}
-                        y={startY - 2}
-                        className="tl-marker-label"
-                        textAnchor="middle"
-                        transform={labelTransform(startY - 2)}
-                      >
-                        {clsLabel}
-                      </text>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-
-              {/* Diagnosis triangle */}
-              {cls.status === "diagnosed" &&
-                cls.diagnosis_year != null &&
-                (() => {
-                  const diagY = scaledAge(cls.diagnosis_year!);
-                  const triSize = MARKER_RADIUS * 0.85;
-                  const triPath = `M${cx},${diagY - triSize} L${cx + triSize},${diagY + triSize} L${cx - triSize},${diagY + triSize} Z`;
-
-                  const catLabel = t(`dsm.${cls.dsm_category}`);
-                  const subLabel = cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : null;
-                  const isClsSelected = selectedEntityKeys?.has(`classification:${cls.id}`);
-
-                  const triLabel = subLabel ?? catLabel;
-
-                  return (
-                    <g transform={markerTransform(diagY)}>
-                      <path
-                        d={triPath}
-                        fill={clsColor}
-                        stroke={canvasStroke}
-                        strokeWidth={1.5}
-                        className="tl-marker"
-                        onClick={(e) => handleMarkerClick("classification", cls.id, e)}
-                        onMouseEnter={(e) => {
-                          onTooltip({
-                            visible: true,
-                            x: e.clientX,
-                            y: e.clientY,
-                            lines: [
-                              {
-                                text: subLabel ? `${catLabel} - ${subLabel}` : catLabel,
-                                bold: true,
-                              },
-                              {
-                                text: `${t("classification.status.diagnosed")} (${cls.diagnosis_year})`,
-                              },
-                            ],
-                          });
-                        }}
-                        onMouseLeave={hideTooltip}
-                      />
-                      {isClsSelected && (
-                        <circle
-                          cx={cx}
-                          cy={diagY}
-                          r={MARKER_RADIUS + 3}
-                          className="tl-selection-ring"
-                        />
-                      )}
-                      {patternRings?.get(`classification:${cls.id}`)?.map((ring, ri) => (
-                        <circle
-                          key={ring.patternId}
-                          cx={cx}
-                          cy={diagY}
-                          r={MARKER_RADIUS + 2 + ri * 2}
-                          fill="none"
-                          stroke={ring.color}
-                          strokeWidth={1.5}
-                          strokeOpacity={0.7}
-                          className="tl-pattern-ring"
-                        />
-                      ))}
-                      {showMarkerLabels && cls.diagnosis_year !== cls.periods[0]?.start_year && (
-                        <text
-                          x={cx}
-                          y={diagY - MARKER_RADIUS - 2}
-                          className="tl-marker-label"
-                          textAnchor="middle"
-                        >
-                          {triLabel}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })()}
-            </g>
-          );
-        })}
-
-      {/* Trauma markers (circles) */}
-      {events.map((event) => {
-        const year = Number.parseInt(event.approximate_date, 10);
-        if (Number.isNaN(year)) return null;
-
-        const py = scaledAge(year);
-        const linkedNames = event.person_ids
-          .map((pid) => persons.get(pid)?.name)
-          .filter(Boolean)
-          .join(", ");
-
-        const isMarkerDimmed = dims?.dimmedEventIds.has(event.id);
-        if (isMarkerDimmed && filterMode === "hide") return null;
-        const isEntitySelected = selectedEntityKeys?.has(`trauma_event:${event.id}`);
-
-        return (
-          <g
-            key={event.id}
-            transform={markerTransform(py)}
-            opacity={isMarkerDimmed ? 0.15 : undefined}
-          >
-            <circle
-              cx={cx}
-              cy={py}
-              r={MARKER_RADIUS}
-              fill={traumaColors[event.category]}
-              stroke={canvasStroke}
-              strokeWidth={1.5}
-              className="tl-marker"
-              onClick={(e) => handleMarkerClick("trauma_event", event.id, e)}
-              onMouseEnter={(e) => {
-                onTooltip({
-                  visible: true,
-                  x: e.clientX,
-                  y: e.clientY,
-                  lines: [
-                    { text: event.title, bold: true },
-                    { text: t(`trauma.category.${event.category}`) },
-                    { text: ageLabel(year) },
-                    { text: t("timeline.severity", { value: event.severity }) },
-                    { text: linkedNames },
-                  ],
-                });
-              }}
-              onMouseLeave={hideTooltip}
-            />
-            {isEntitySelected && (
-              <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
-            )}
-            {patternRings?.get(`trauma_event:${event.id}`)?.map((ring, ri) => (
-              <circle
-                key={ring.patternId}
-                cx={cx}
-                cy={py}
-                r={MARKER_RADIUS + 2 + ri * 2}
-                fill="none"
-                stroke={ring.color}
-                strokeWidth={1.5}
-                strokeOpacity={0.7}
-                className="tl-pattern-ring"
-              />
-            ))}
-            {showMarkerLabels && (
-              <text
-                x={cx}
-                y={py - MARKER_RADIUS - 2}
-                className="tl-marker-label"
-                textAnchor="middle"
-              >
-                {event.title}
-              </text>
-            )}
-          </g>
-        );
-      })}
-
-      {/* Turning point markers (stars) */}
-      {turningPointColors &&
-        turningPoints.map((tp) => {
-          const year = Number.parseInt(tp.approximate_date, 10);
-          if (Number.isNaN(year)) return null;
-
-          const py = scaledAge(year);
-          const r = MARKER_RADIUS;
-          const starPath = `M${cx},${py - r} L${cx + r * 0.22},${py - r * 0.31} L${cx + r * 0.95},${py - r * 0.31} L${cx + r * 0.36},${py + r * 0.12} L${cx + r * 0.59},${py + r * 0.81} L${cx},${py + r * 0.38} L${cx - r * 0.59},${py + r * 0.81} L${cx - r * 0.36},${py + r * 0.12} L${cx - r * 0.95},${py - r * 0.31} L${cx - r * 0.22},${py - r * 0.31} Z`;
-
-          const linkedNames = tp.person_ids
-            .map((pid) => persons.get(pid)?.name)
-            .filter(Boolean)
-            .join(", ");
-
-          const lines: TooltipLine[] = [
-            { text: tp.title, bold: true },
-            { text: t(`turningPoint.category.${tp.category}`) },
-            { text: ageLabel(year) },
-          ];
-          if (tp.significance != null) {
-            lines.push({ text: t("timeline.significance", { value: tp.significance }) });
-          }
-          lines.push({ text: linkedNames });
-
-          const isMarkerDimmed = dims?.dimmedTurningPointIds.has(tp.id);
-          if (isMarkerDimmed && filterMode === "hide") return null;
-          const isEntitySelected = selectedEntityKeys?.has(`turning_point:${tp.id}`);
-
-          return (
-            <g
-              key={tp.id}
-              transform={markerTransform(py)}
-              opacity={isMarkerDimmed ? 0.15 : undefined}
-            >
-              <path
-                d={starPath}
-                fill={turningPointColors[tp.category]}
-                stroke={canvasStroke}
-                strokeWidth={1.5}
-                className="tl-marker tl-marker--star"
-                onClick={(e) => handleMarkerClick("turning_point", tp.id, e)}
-                onMouseEnter={(e) => {
-                  onTooltip({
-                    visible: true,
-                    x: e.clientX,
-                    y: e.clientY,
-                    lines,
-                  });
-                }}
-                onMouseLeave={hideTooltip}
-              />
-              {isEntitySelected && (
-                <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
-              )}
-              {patternRings?.get(`turning_point:${tp.id}`)?.map((ring, ri) => (
-                <circle
-                  key={ring.patternId}
-                  cx={cx}
-                  cy={py}
-                  r={MARKER_RADIUS + 2 + ri * 2}
-                  fill="none"
-                  stroke={ring.color}
-                  strokeWidth={1.5}
-                  strokeOpacity={0.7}
-                  className="tl-pattern-ring"
-                />
-              ))}
-              {showMarkerLabels && (
-                <text
-                  x={cx}
-                  y={py - MARKER_RADIUS - 2}
-                  className="tl-marker-label"
-                  textAnchor="middle"
-                >
-                  {tp.title}
-                </text>
-              )}
-            </g>
-          );
-        })}
-
-      {/* Life event markers (diamonds) */}
-      {lifeEvents.map((le) => {
-        const year = Number.parseInt(le.approximate_date, 10);
-        if (Number.isNaN(year)) return null;
-
-        const py = scaledAge(year);
-        const diamondSize = MARKER_RADIUS * 0.9;
-        const linkedNames = le.person_ids
-          .map((pid) => persons.get(pid)?.name)
-          .filter(Boolean)
-          .join(", ");
-
-        const lines: TooltipLine[] = [
-          { text: le.title, bold: true },
-          { text: t(`lifeEvent.category.${le.category}`) },
-          { text: ageLabel(year) },
-        ];
-        if (le.impact != null) {
-          lines.push({ text: t("timeline.impact", { value: le.impact }) });
-        }
-        lines.push({ text: linkedNames });
-
-        const isMarkerDimmed = dims?.dimmedLifeEventIds.has(le.id);
-        if (isMarkerDimmed && filterMode === "hide") return null;
-        const isEntitySelected = selectedEntityKeys?.has(`life_event:${le.id}`);
-
-        return (
-          <g
-            key={le.id}
-            transform={markerTransform(py)}
-            opacity={isMarkerDimmed ? 0.15 : undefined}
-          >
-            <rect
-              x={cx - diamondSize}
-              y={py - diamondSize}
-              width={diamondSize * 2}
-              height={diamondSize * 2}
-              transform={`rotate(45, ${cx}, ${py})`}
-              fill={lifeEventColors[le.category]}
-              stroke={canvasStroke}
-              strokeWidth={1.5}
-              className="tl-marker"
-              onClick={(e) => handleMarkerClick("life_event", le.id, e)}
-              onMouseEnter={(e) => {
-                onTooltip({
-                  visible: true,
-                  x: e.clientX,
-                  y: e.clientY,
-                  lines,
-                });
-              }}
-              onMouseLeave={hideTooltip}
-            />
-            {isEntitySelected && (
-              <circle cx={cx} cy={py} r={MARKER_RADIUS + 3} className="tl-selection-ring" />
-            )}
-            {patternRings?.get(`life_event:${le.id}`)?.map((ring, ri) => (
-              <circle
-                key={ring.patternId}
-                cx={cx}
-                cy={py}
-                r={MARKER_RADIUS + 2 + ri * 2}
-                fill="none"
-                stroke={ring.color}
-                strokeWidth={1.5}
-                strokeOpacity={0.7}
-                className="tl-pattern-ring"
-              />
-            ))}
-            {showMarkerLabels && (
-              <text
-                x={cx}
-                y={py - MARKER_RADIUS - 2}
-                className="tl-marker-label"
-                textAnchor="middle"
-              >
-                {le.title}
-              </text>
-            )}
-          </g>
-        );
-      })}
+      {showClassifications && hasBirth && renderClassificationStrips(ctx, classifications)}
+      {renderTraumaMarkers(ctx, events)}
+      {renderTurningPointMarkers(ctx, turningPoints)}
+      {renderLifeEventMarkers(ctx, lifeEvents)}
     </g>
   );
 });

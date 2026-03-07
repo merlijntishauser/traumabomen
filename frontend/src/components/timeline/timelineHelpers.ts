@@ -23,6 +23,14 @@ export const GEN_COL_GAP = 24;
 export const AGE_LABEL_WIDTH = 40;
 export const COL_HEADER_HEIGHT = 52;
 
+export type TimelineMode = "explore" | "edit" | "annotate";
+
+export interface MarkerClickInfo {
+  personId: string;
+  entityType: "trauma_event" | "life_event" | "turning_point" | "classification";
+  entityId: string;
+}
+
 // ---- Types ----
 
 export interface PersonRow {

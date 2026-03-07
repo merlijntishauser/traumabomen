@@ -13,11 +13,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreatePatternMiniForm } from "../components/timeline/CreatePatternMiniForm";
 import { MarkerDetailCard } from "../components/timeline/MarkerDetailCard";
-import type { MarkerClickInfo, TimelineMode } from "../components/timeline/PersonLane";
 import { PersonSummaryCard } from "../components/timeline/PersonSummaryCard";
 import { TimelineChipBar } from "../components/timeline/TimelineChipBar";
 import { TimelineFilterPanel } from "../components/timeline/TimelineFilterPanel";
 import { type LayoutMode, TimelineView } from "../components/timeline/TimelineView";
+import type { MarkerClickInfo, TimelineMode } from "../components/timeline/timelineHelpers";
 import {
   computeGenerations,
   computeTimeDomain,

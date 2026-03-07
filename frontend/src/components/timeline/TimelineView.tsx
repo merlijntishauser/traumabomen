@@ -11,10 +11,10 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { BranchDecoration } from "../BranchDecoration";
-import type { MarkerClickInfo, TimelineMode } from "./PersonLane";
 import { TimelineAgeContent } from "./TimelineAgeContent";
 import { INITIAL_TOOLTIP, TimelineTooltip, type TooltipState } from "./TimelineTooltip";
 import { TimelineYearsContent } from "./TimelineYearsContent";
+import type { MarkerClickInfo, TimelineMode } from "./timelineHelpers";
 import "./TimelineView.css";
 
 export type LayoutMode = "years" | "age";

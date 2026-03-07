@@ -17,10 +17,11 @@ import { getTraumaColors } from "../../lib/traumaColors";
 import { getTurningPointColors } from "../../lib/turningPointColors";
 import { capPeriodsAtDeath, RelationshipType } from "../../types/domain";
 import { PartnerLine } from "./PartnerLine";
-import { type MarkerClickInfo, PersonLane, type TimelineMode } from "./PersonLane";
+import { PersonLane } from "./PersonLane";
 import { computePatternRings, TimelinePatternLanes } from "./TimelinePatternLanes";
 import type { TooltipState } from "./TimelineTooltip";
 import { TimelineZoomControls } from "./TimelineZoomControls";
+import type { MarkerClickInfo, TimelineMode } from "./timelineHelpers";
 import {
   buildPersonDataMaps,
   buildRowLayout,
