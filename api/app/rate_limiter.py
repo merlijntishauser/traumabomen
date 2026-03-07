@@ -27,6 +27,14 @@ EXPIRY_MINUTES = 30
 LOCKOUT_RETRY_AFTER = 900  # 15 minutes in seconds
 CLEANUP_INTERVAL = 100  # run cleanup every N checks
 
+# Login tarpit thresholds
+FREE_ATTEMPTS = 3  # attempts 1-3: no delay
+SHORT_TARPIT_THRESHOLD = 4  # attempt count that triggers short delay
+SHORT_TARPIT_DELAY = 5  # seconds delay for attempts 4-6
+LONG_TARPIT_THRESHOLD = 7  # attempt count that triggers long delay
+LONG_TARPIT_DELAY = 30  # seconds delay for attempts 7-9
+LOCKOUT_THRESHOLD = 10  # attempt count that triggers 429
+
 
 @dataclass
 class AttemptRecord:
@@ -102,10 +110,10 @@ def _worst_attempts(ip: str, email: str) -> int:
 
 def _tarpit_delay(attempts: int) -> int:
     """Return tarpit delay in seconds for the given attempt count (0 = no delay)."""
-    if attempts >= 7:
-        return 30
-    if attempts >= 4:
-        return 5
+    if attempts >= LONG_TARPIT_THRESHOLD:
+        return LONG_TARPIT_DELAY
+    if attempts >= SHORT_TARPIT_THRESHOLD:
+        return SHORT_TARPIT_DELAY
     return 0
 
 
@@ -125,7 +133,7 @@ async def check_and_tarpit(ip: str, email: str) -> None:
 
     worst = _worst_attempts(ip, email)
 
-    if worst >= 10:
+    if worst >= LOCKOUT_THRESHOLD:
         logger.warning(
             "Login lockout: ip=%s email=%s attempts=%d", _redact_ip(ip), _redact_email(email), worst
         )
