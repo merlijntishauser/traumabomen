@@ -233,7 +233,10 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => {
+              const target = e.target;
+              requestAnimationFrame(() => target.select());
+            }}
           />
         </label>
         <label className="detail-panel__field">
