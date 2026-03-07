@@ -1,15 +1,16 @@
 """Shared CRUD helpers for entity routers with person junction links.
 
-Each entity router (events, life_events, classifications, patterns) follows
-the same create/list/get/update/delete pattern. This module extracts that
-logic so each router becomes a thin wrapper around an EntityConfig.
+Each entity router (events, life_events, classifications, patterns,
+turning_points) follows the same create/list/get/update/delete pattern.
+This module provides a router factory so each entity module becomes a
+single ``create_linked_entity_router`` call.
 """
 
 import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from fastapi import HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -20,7 +21,9 @@ from app.schemas.tree import (
     JournalEntryResponse,
     PersonResponse,
     TreeResponse,
+    _LinkedEntityCreate,
     _LinkedEntityResponse,
+    _LinkedEntityUpdate,
 )
 
 
@@ -61,13 +64,13 @@ def build_journal_entry_response(entry: Any) -> JournalEntryResponse:
 
 
 @dataclass(frozen=True)
-class EntityConfig:
+class EntityConfig[TResp: _LinkedEntityResponse]:
     """Configuration for a CRUD entity with person junction links."""
 
     model: Any
     junction_model: Any
     junction_fk: str
-    response_schema: type[_LinkedEntityResponse]
+    response_schema: type[TResp]
     not_found_detail: str
 
 
@@ -89,7 +92,9 @@ async def validate_persons_in_tree(
         )
 
 
-def build_entity_response(entity: Any, config: EntityConfig) -> _LinkedEntityResponse:
+def build_entity_response[TResp: _LinkedEntityResponse](
+    entity: Any, config: EntityConfig[TResp]
+) -> TResp:
     """Build a Pydantic response from an entity with person_links."""
     return config.response_schema(
         id=entity.id,
@@ -100,13 +105,13 @@ def build_entity_response(entity: Any, config: EntityConfig) -> _LinkedEntityRes
     )
 
 
-async def create_entity(
-    config: EntityConfig,
+async def create_entity[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
     person_ids: list[uuid.UUID],
     encrypted_data: str,
     tree_id: uuid.UUID,
     db: AsyncSession,
-) -> _LinkedEntityResponse:
+) -> TResp:
     """Create an entity with junction rows linking to persons."""
     await validate_persons_in_tree(person_ids, tree_id, db)
 
@@ -120,11 +125,11 @@ async def create_entity(
     return build_entity_response(entity, config)
 
 
-async def list_entities(
-    config: EntityConfig,
+async def list_entities[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
     tree_id: uuid.UUID,
     db: AsyncSession,
-) -> list[_LinkedEntityResponse]:
+) -> list[TResp]:
     """List all entities for a tree, eagerly loading person_links."""
     result = await db.execute(
         select(config.model)
@@ -135,12 +140,12 @@ async def list_entities(
     return [build_entity_response(e, config) for e in entities]
 
 
-async def get_entity(
-    config: EntityConfig,
+async def get_entity[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
     entity_id: uuid.UUID,
     tree_id: uuid.UUID,
     db: AsyncSession,
-) -> _LinkedEntityResponse:
+) -> TResp:
     """Get a single entity by ID, raising 404 if not found."""
     entity = await get_or_404(
         db,
@@ -151,14 +156,14 @@ async def get_entity(
     return build_entity_response(entity, config)
 
 
-async def update_entity(
-    config: EntityConfig,
+async def update_entity[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
     entity_id: uuid.UUID,
     tree_id: uuid.UUID,
     encrypted_data: str | None,
     person_ids: list[uuid.UUID] | None,
     db: AsyncSession,
-) -> _LinkedEntityResponse:
+) -> TResp:
     """Update an entity's encrypted_data and/or person_ids."""
     entity = await get_or_404(
         db,
@@ -183,8 +188,8 @@ async def update_entity(
     return build_entity_response(entity, config)
 
 
-async def delete_entity(
-    config: EntityConfig,
+async def delete_entity[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
     entity_id: uuid.UUID,
     tree_id: uuid.UUID,
     db: AsyncSession,
@@ -197,3 +202,60 @@ async def delete_entity(
     )
     await db.delete(entity)
     await db.commit()
+
+
+def create_linked_entity_router[TResp: _LinkedEntityResponse](
+    config: EntityConfig[TResp],
+    prefix: str,
+    tag: str,
+) -> APIRouter:
+    """Create an APIRouter with standard CRUD endpoints for a linked entity."""
+    from app.database import get_db
+    from app.dependencies import get_owned_tree
+    from app.models.tree import Tree
+
+    router = APIRouter(prefix=f"/trees/{{tree_id}}/{prefix}", tags=[tag])
+
+    @router.post("", response_model=config.response_schema, status_code=status.HTTP_201_CREATED)
+    async def create(
+        body: _LinkedEntityCreate,
+        tree: Tree = Depends(get_owned_tree),
+        db: AsyncSession = Depends(get_db),
+    ) -> TResp:
+        return await create_entity(config, body.person_ids, body.encrypted_data, tree.id, db)
+
+    @router.get("", response_model=list[config.response_schema])  # type: ignore[name-defined]
+    async def list_all(
+        tree: Tree = Depends(get_owned_tree),
+        db: AsyncSession = Depends(get_db),
+    ) -> list[TResp]:
+        return await list_entities(config, tree.id, db)
+
+    @router.get("/{entity_id}", response_model=config.response_schema)
+    async def get_one(
+        entity_id: uuid.UUID,
+        tree: Tree = Depends(get_owned_tree),
+        db: AsyncSession = Depends(get_db),
+    ) -> TResp:
+        return await get_entity(config, entity_id, tree.id, db)
+
+    @router.put("/{entity_id}", response_model=config.response_schema)
+    async def update(
+        entity_id: uuid.UUID,
+        body: _LinkedEntityUpdate,
+        tree: Tree = Depends(get_owned_tree),
+        db: AsyncSession = Depends(get_db),
+    ) -> TResp:
+        return await update_entity(
+            config, entity_id, tree.id, body.encrypted_data, body.person_ids, db
+        )
+
+    @router.delete("/{entity_id}", status_code=status.HTTP_204_NO_CONTENT)
+    async def delete(
+        entity_id: uuid.UUID,
+        tree: Tree = Depends(get_owned_tree),
+        db: AsyncSession = Depends(get_db),
+    ) -> None:
+        await delete_entity(config, entity_id, tree.id, db)
+
+    return router
