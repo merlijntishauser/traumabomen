@@ -1,4 +1,4 @@
-import { Droplets, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Theme } from "../hooks/useAvailableThemes";
 import { useAvailableThemes } from "../hooks/useAvailableThemes";
@@ -8,7 +8,6 @@ import { useTheme } from "../hooks/useTheme";
 const icons: Record<Theme, typeof Sun> = {
   dark: Moon,
   light: Sun,
-  watercolor: Droplets,
 };
 
 export function ThemeToggle({ className }: { className?: string }) {

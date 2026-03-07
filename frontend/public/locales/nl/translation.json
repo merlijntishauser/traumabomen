@@ -474,7 +474,6 @@
   "settings.theme": "Thema",
   "settings.theme.dark": "Donker",
   "settings.theme.light": "Licht",
-  "settings.theme.watercolor": "Aquarel",
   "settings.language": "Taal",
 
   "account.changePassword": "Wachtwoord wijzigen",
@@ -674,8 +673,6 @@
   "admin.feedbackDelete": "Verwijderen",
 
   "admin.featureToggles": "Functie-instellingen",
-  "admin.features.watercolor_theme": "Aquarel thema",
-  "admin.features.watercolor_themeDesc": "Indien ingeschakeld, kunnen gebruikers het aquarel thema selecteren in hun instellingen.",
   "admin.features.audience.disabled": "Uitgeschakeld",
   "admin.features.audience.all": "Alle gebruikers",
   "admin.features.audience.admins": "Alleen beheerders",

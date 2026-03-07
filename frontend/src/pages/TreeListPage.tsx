@@ -279,16 +279,6 @@ export default function TreeListPage() {
                   className="welcome-card__img welcome-card__img--light"
                 />
               </picture>
-              <picture>
-                <source srcSet="/images/welcome-watercolor.webp" type="image/webp" />
-                <img
-                  src="/images/welcome-watercolor.jpg"
-                  alt=""
-                  aria-hidden="true"
-                  className="welcome-card__img welcome-card__img--watercolor"
-                  loading="lazy"
-                />
-              </picture>
               <button
                 type="button"
                 className="welcome-card__dismiss"

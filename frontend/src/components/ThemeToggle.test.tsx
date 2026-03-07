@@ -19,7 +19,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("../hooks/useAvailableThemes", () => ({
-  useAvailableThemes: () => ["dark", "light", "watercolor"],
+  useAvailableThemes: () => ["dark", "light"],
 }));
 
 vi.mock("../hooks/useTheme", () => ({
@@ -27,7 +27,7 @@ vi.mock("../hooks/useTheme", () => ({
     theme: currentTheme,
     toggle: mockToggle,
     setTheme: mockSetTheme,
-    availableThemes: ["dark", "light", "watercolor"],
+    availableThemes: ["dark", "light"],
   }),
 }));
 
@@ -68,18 +68,5 @@ describe("ThemeToggle", () => {
 
     // Dark shows sun icon (circle + lines), light shows moon icon (path)
     expect(darkSvg).not.toBe(lightSvg);
-  });
-
-  it("renders droplets icon for watercolor theme", () => {
-    currentTheme = "watercolor";
-    const { container: watercolorContainer } = render(<ThemeToggle />);
-    const watercolorSvg = watercolorContainer.querySelector("svg")!.innerHTML;
-
-    currentTheme = "dark";
-    const { container: darkContainer } = render(<ThemeToggle />);
-    const darkSvg = darkContainer.querySelector("svg")!.innerHTML;
-
-    // Watercolor icon (droplets) should differ from dark icon (sun)
-    expect(watercolorSvg).not.toBe(darkSvg);
   });
 });

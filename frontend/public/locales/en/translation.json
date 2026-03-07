@@ -475,7 +475,6 @@
   "settings.theme": "Theme",
   "settings.theme.dark": "Dark",
   "settings.theme.light": "Light",
-  "settings.theme.watercolor": "Watercolor",
   "settings.language": "Language",
 
   "account.changePassword": "Change password",
@@ -675,8 +674,6 @@
   "admin.feedbackDelete": "Delete",
 
   "admin.featureToggles": "Feature toggles",
-  "admin.features.watercolor_theme": "Watercolor theme",
-  "admin.features.watercolor_themeDesc": "When enabled, users can select the watercolor theme from their settings.",
   "admin.features.audience.disabled": "Disabled",
   "admin.features.audience.all": "All users",
   "admin.features.audience.admins": "Admins only",

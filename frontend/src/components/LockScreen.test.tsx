@@ -103,15 +103,14 @@ describe("LockScreen", () => {
     expect(notPrevented).toBe(true);
   });
 
-  it("renders three theme-aware background images", () => {
+  it("renders two theme-aware background images", () => {
     const onUnlock = vi.fn();
     render(<LockScreen wrongAttempts={0} onUnlock={onUnlock} onLogout={vi.fn()} />);
 
     const images = document.querySelectorAll(".lock-screen__bg");
-    expect(images).toHaveLength(3);
+    expect(images).toHaveLength(2);
     expect(images[0].getAttribute("src")).toBe("/images/hero-unlock-dark.jpg");
     expect(images[1].getAttribute("src")).toBe("/images/hero-unlock-light.jpg");
-    expect(images[2].getAttribute("src")).toBe("/images/hero-unlock-watercolor.jpg");
     for (const img of images) {
       expect(img.getAttribute("aria-hidden")).toBe("true");
     }
@@ -122,21 +121,11 @@ describe("LockScreen", () => {
 
     const card = document.querySelector(".lock-screen__card")!;
     const pictures = card.querySelectorAll("picture");
-    expect(pictures).toHaveLength(3);
+    expect(pictures).toHaveLength(2);
     const sources = card.querySelectorAll("source[type='image/webp']");
-    expect(sources).toHaveLength(3);
+    expect(sources).toHaveLength(2);
     expect(sources[0].getAttribute("srcset")).toBe("/images/hero-unlock-dark.webp");
     expect(sources[1].getAttribute("srcset")).toBe("/images/hero-unlock-light.webp");
-    expect(sources[2].getAttribute("srcset")).toBe("/images/hero-unlock-watercolor.webp");
-  });
-
-  it("sets loading=lazy only on watercolor image", () => {
-    render(<LockScreen wrongAttempts={0} onUnlock={vi.fn()} onLogout={vi.fn()} />);
-
-    const images = document.querySelectorAll(".lock-screen__bg");
-    expect(images[0].getAttribute("loading")).toBeNull();
-    expect(images[1].getAttribute("loading")).toBeNull();
-    expect(images[2].getAttribute("loading")).toBe("lazy");
   });
 
   it("calls onLogout when logout button is clicked", async () => {

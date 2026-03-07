@@ -8,10 +8,10 @@ describe("AuthHero", () => {
     expect(container.querySelector(".auth-hero")).toBeTruthy();
   });
 
-  it("renders three images (dark, light, watercolor)", () => {
+  it("renders two images (dark, light)", () => {
     const { container } = render(<AuthHero />);
     const images = container.querySelectorAll("img");
-    expect(images).toHaveLength(3);
+    expect(images).toHaveLength(2);
   });
 
   it("uses default variant image paths", () => {
@@ -19,7 +19,6 @@ describe("AuthHero", () => {
     const images = container.querySelectorAll("img");
     expect(images[0].getAttribute("src")).toBe("/images/hero-dark.jpg");
     expect(images[1].getAttribute("src")).toBe("/images/hero-light.jpg");
-    expect(images[2].getAttribute("src")).toBe("/images/hero-watercolor.jpg");
   });
 
   it("uses unlock variant image paths", () => {
@@ -27,7 +26,6 @@ describe("AuthHero", () => {
     const images = container.querySelectorAll("img");
     expect(images[0].getAttribute("src")).toBe("/images/hero-unlock-dark.jpg");
     expect(images[1].getAttribute("src")).toBe("/images/hero-unlock-light.jpg");
-    expect(images[2].getAttribute("src")).toBe("/images/hero-unlock-watercolor.jpg");
   });
 
   it("sets decoding=async on both images", () => {
@@ -41,12 +39,11 @@ describe("AuthHero", () => {
   it("wraps each image in a picture element with webp source", () => {
     const { container } = render(<AuthHero />);
     const pictures = container.querySelectorAll("picture");
-    expect(pictures).toHaveLength(3);
+    expect(pictures).toHaveLength(2);
     const sources = container.querySelectorAll("source[type='image/webp']");
-    expect(sources).toHaveLength(3);
+    expect(sources).toHaveLength(2);
     expect(sources[0].getAttribute("srcset")).toBe("/images/hero-dark.webp");
     expect(sources[1].getAttribute("srcset")).toBe("/images/hero-light.webp");
-    expect(sources[2].getAttribute("srcset")).toBe("/images/hero-watercolor.webp");
   });
 
   it("marks the container as aria-hidden", () => {

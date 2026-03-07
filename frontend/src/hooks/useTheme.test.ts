@@ -101,66 +101,24 @@ describe("useTheme", () => {
     expect(localStorage.getItem(STORAGE_KEY)).toBe("light");
   });
 
-  it("reads stored watercolor theme when in available list", () => {
-    localStorage.setItem(STORAGE_KEY, "watercolor");
-    const themes: Theme[] = ["dark", "light", "watercolor"];
-    const { result } = renderHook(() => useTheme(themes));
-    expect(result.current.theme).toBe("watercolor");
-  });
-
-  it("ignores stored watercolor when not in available list and defaults to dark", () => {
+  it("falls back to dark when stored theme is not in available list", () => {
     localStorage.setItem(STORAGE_KEY, "watercolor");
     const themes: Theme[] = ["dark", "light"];
     const { result } = renderHook(() => useTheme(themes));
     expect(result.current.theme).toBe("dark");
   });
 
-  it("toggle cycles through 3 themes: dark -> light -> watercolor -> dark", () => {
-    const themes: Theme[] = ["dark", "light", "watercolor"];
+  it("setTheme sets a specific theme directly", () => {
+    const themes: Theme[] = ["dark", "light"];
     const { result } = renderHook(() => useTheme(themes));
     expect(result.current.theme).toBe("dark");
 
     act(() => {
-      result.current.toggle();
+      result.current.setTheme("light");
     });
     expect(result.current.theme).toBe("light");
-
-    act(() => {
-      result.current.toggle();
-    });
-    expect(result.current.theme).toBe("watercolor");
-
-    act(() => {
-      result.current.toggle();
-    });
-    expect(result.current.theme).toBe("dark");
-  });
-
-  it("setTheme sets a specific theme directly", () => {
-    const themes: Theme[] = ["dark", "light", "watercolor"];
-    const { result } = renderHook(() => useTheme(themes));
-    expect(result.current.theme).toBe("dark");
-
-    act(() => {
-      result.current.setTheme("watercolor");
-    });
-    expect(result.current.theme).toBe("watercolor");
-    expect(document.documentElement.getAttribute("data-theme")).toBe("watercolor");
-    expect(localStorage.getItem(STORAGE_KEY)).toBe("watercolor");
-  });
-
-  it("falls back to dark when current theme removed from available list", () => {
-    localStorage.setItem(STORAGE_KEY, "watercolor");
-    const allThemes: Theme[] = ["dark", "light", "watercolor"];
-    const twoThemes: Theme[] = ["dark", "light"];
-
-    const { result, rerender } = renderHook(({ themes }) => useTheme(themes), {
-      initialProps: { themes: allThemes },
-    });
-    expect(result.current.theme).toBe("watercolor");
-
-    rerender({ themes: twoThemes });
-    expect(result.current.theme).toBe("dark");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("light");
   });
 
   it("setTheme ignores themes not in available list", () => {
@@ -169,13 +127,14 @@ describe("useTheme", () => {
     expect(result.current.theme).toBe("dark");
 
     act(() => {
+      // @ts-expect-error -- testing invalid theme value
       result.current.setTheme("watercolor");
     });
     expect(result.current.theme).toBe("dark");
   });
 
   it("returns availableThemes in the result", () => {
-    const themes: Theme[] = ["dark", "light", "watercolor"];
+    const themes: Theme[] = ["dark", "light"];
     const { result } = renderHook(() => useTheme(themes));
     expect(result.current.availableThemes).toEqual(themes);
   });

@@ -1,13 +1,5 @@
-import { useMemo } from "react";
-import { useFeatureFlags } from "./useFeatureFlags";
-
-export type Theme = "dark" | "light" | "watercolor";
+export type Theme = "dark" | "light";
 
 export function useAvailableThemes(): Theme[] {
-  const { data } = useFeatureFlags();
-  return useMemo(() => {
-    const themes: Theme[] = ["dark", "light"];
-    if (data?.watercolor_theme) themes.push("watercolor");
-    return themes;
-  }, [data?.watercolor_theme]);
+  return ["dark", "light"];
 }

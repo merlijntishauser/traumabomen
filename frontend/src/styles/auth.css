@@ -43,18 +43,6 @@
   opacity: 1;
 }
 
-.auth-hero__img--watercolor {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .auth-hero__img--dark {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .auth-hero__img--watercolor {
-  opacity: 1;
-}
-
 /* Gradient overlay: bottom fade on mobile, right fade on desktop */
 .auth-hero::after {
   content: "";
@@ -173,14 +161,6 @@
 [data-theme="light"] .auth-page--landing .auth-hero::after {
   background: radial-gradient(
     ellipse at center,
-    rgba(232, 235, 229, 0.2) 0%,
-    rgba(232, 235, 229, 0.65) 100%
-  );
-}
-
-[data-theme="watercolor"] .auth-page--landing .auth-hero::after {
-  background: radial-gradient(
-    ellipse at center,
     rgba(247, 245, 242, 0.2) 0%,
     rgba(247, 245, 242, 0.65) 100%
   );
@@ -220,18 +200,6 @@
 
 @supports (backdrop-filter: blur(1px)) {
   [data-theme="light"] .auth-page--landing .auth-content {
-    background: none;
-  }
-}
-
-[data-theme="watercolor"] .auth-page--landing .auth-content {
-  background: none;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-@supports (backdrop-filter: blur(1px)) {
-  [data-theme="watercolor"] .auth-page--landing .auth-content {
     background: none;
   }
 }
@@ -292,30 +260,16 @@
   }
 }
 
-[data-theme="light"] .auth-page--landing .auth-welcome {
-  background: rgba(245, 246, 243, 0.82);
-  border-color: rgba(200, 205, 195, 0.6);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-}
-
-@supports (backdrop-filter: blur(1px)) {
-  [data-theme="light"] .auth-page--landing .auth-welcome {
-    background: rgba(245, 246, 243, 0.72);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  }
-}
-
-[data-theme="watercolor"] .auth-page--landing .auth-welcome,
-[data-theme="watercolor"] .auth-page--landing .auth-card {
+[data-theme="light"] .auth-page--landing .auth-welcome,
+[data-theme="light"] .auth-page--landing .auth-card {
   background: rgba(255, 253, 250, 0.82);
   border-color: rgba(212, 206, 198, 0.5);
   box-shadow: 0 8px 40px rgba(44, 51, 64, 0.1);
 }
 
 @supports (backdrop-filter: blur(1px)) {
-  [data-theme="watercolor"] .auth-page--landing .auth-welcome,
-  [data-theme="watercolor"] .auth-page--landing .auth-card {
+  [data-theme="light"] .auth-page--landing .auth-welcome,
+  [data-theme="light"] .auth-page--landing .auth-card {
     background: rgba(255, 253, 250, 0.72);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
@@ -351,20 +305,6 @@
   }
 }
 
-[data-theme="light"] .auth-page--landing .auth-card {
-  background: rgba(245, 246, 243, 0.82);
-  border-color: rgba(200, 205, 195, 0.6);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-}
-
-@supports (backdrop-filter: blur(1px)) {
-  [data-theme="light"] .auth-page--landing .auth-card {
-    background: rgba(245, 246, 243, 0.72);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  }
-}
-
 @media (min-width: 480px) {
   .auth-page--landing .auth-card {
     padding: 32px 32px 28px;
@@ -386,10 +326,6 @@
 }
 
 [data-theme="light"] .auth-page--landing .auth-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="watercolor"] .auth-page--landing .auth-content::-webkit-scrollbar-thumb {
   background: rgba(44, 51, 64, 0.1);
 }
 

@@ -20,16 +20,6 @@ export function AuthHero({ variant = "default" }: { variant?: "default" | "unloc
           decoding="async"
         />
       </picture>
-      <picture>
-        <source srcSet={`/images/hero${suffix}-watercolor.webp`} type="image/webp" />
-        <img
-          className="auth-hero__img auth-hero__img--watercolor"
-          src={`/images/hero${suffix}-watercolor.jpg`}
-          alt=""
-          decoding="async"
-          loading="lazy"
-        />
-      </picture>
     </div>
   );
 }

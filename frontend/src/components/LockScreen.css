@@ -29,24 +29,18 @@
     rgba(10, 26, 15, 0.82);
 }
 
-/* Light mode: morning mist through birch branches */
+/* Light mode: soft teal mist */
 [data-theme="light"] .lock-screen {
-  /* Dappled light - soft warm spots filtering through */
   background:
-    radial-gradient(3px 3px at 18% 12%, rgba(45, 138, 94, 0.06) 50%, transparent 50%),
-    radial-gradient(2px 3px at 38% 8%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
-    radial-gradient(3px 2px at 58% 15%, rgba(45, 138, 94, 0.05) 50%, transparent 50%),
-    radial-gradient(2px 2px at 78% 10%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
-    radial-gradient(2px 3px at 25% 20%, rgba(45, 138, 94, 0.03) 50%, transparent 50%),
-    radial-gradient(3px 2px at 65% 22%, rgba(45, 138, 94, 0.04) 50%, transparent 50%),
-    /* Misty glow at center - where the card sits */
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 255, 255, 0.25) 0%, transparent 70%),
-    /* Soft golden morning light from upper right */
-    radial-gradient(ellipse 40% 50% at 75% 10%, rgba(232, 235, 229, 0.15) 0%, transparent 60%),
-    /* Ground mist rising */
-    linear-gradient(to top, rgba(232, 235, 229, 0.2) 0%, transparent 25%),
-    /* Base light overlay */
-    rgba(232, 235, 229, 0.78);
+    radial-gradient(3px 3px at 18% 12%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
+    radial-gradient(2px 3px at 38% 8%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
+    radial-gradient(3px 2px at 58% 15%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
+    radial-gradient(2px 2px at 78% 10%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
+    radial-gradient(2px 3px at 25% 20%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
+    radial-gradient(3px 2px at 65% 22%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 253, 250, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 75% 10%, rgba(247, 245, 242, 0.15) 0%, transparent 60%),
+    linear-gradient(to top, rgba(247, 245, 242, 0.2) 0%, transparent 25%), rgba(247, 245, 242, 0.78);
 }
 
 .lock-screen__card {
@@ -89,36 +83,6 @@
   opacity: 1;
 }
 
-.lock-screen__bg--watercolor {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .lock-screen__bg--dark {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .lock-screen__bg--watercolor {
-  opacity: 1;
-}
-
-/* Watercolor mode: soft teal mist with cherry blossom texture */
-[data-theme="watercolor"] .lock-screen {
-  background:
-    radial-gradient(3px 3px at 18% 12%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
-    radial-gradient(2px 3px at 38% 8%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
-    radial-gradient(3px 2px at 58% 15%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
-    radial-gradient(2px 2px at 78% 10%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
-    radial-gradient(2px 3px at 25% 20%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
-    radial-gradient(3px 2px at 65% 22%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 253, 250, 0.2) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 50% at 75% 10%, rgba(247, 245, 242, 0.15) 0%, transparent 60%),
-    linear-gradient(to top, rgba(247, 245, 242, 0.2) 0%, transparent 25%), rgba(247, 245, 242, 0.78);
-}
-
-[data-theme="watercolor"] .lock-screen__card {
-  border-color: transparent;
-}
-
 .lock-screen__content {
   position: relative;
   z-index: 1;
@@ -132,15 +96,6 @@
 }
 
 [data-theme="light"] .lock-screen__content {
-  background: radial-gradient(
-    ellipse 70% 60% at 50% 50%,
-    rgba(255, 255, 255, 0.35) 0%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0.92) 100%
-  );
-}
-
-[data-theme="watercolor"] .lock-screen__content {
   background: radial-gradient(
     ellipse 70% 60% at 50% 50%,
     rgba(255, 253, 250, 0.3) 0%,

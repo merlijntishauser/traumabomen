@@ -193,18 +193,6 @@
   opacity: 1;
 }
 
-.welcome-card__img--watercolor {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .welcome-card__img--dark {
-  opacity: 0;
-}
-
-[data-theme="watercolor"] .welcome-card__img--watercolor {
-  opacity: 1;
-}
-
 /* Semi-transparent overlay for text readability + vignette */
 .welcome-card::before {
   content: "";
@@ -218,12 +206,6 @@
 }
 
 [data-theme="light"] .welcome-card::before {
-  background:
-    radial-gradient(ellipse at 55% 50%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.75) 100%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.6) 20%, rgba(255, 255, 255, 0.3) 100%);
-}
-
-[data-theme="watercolor"] .welcome-card::before {
   background:
     radial-gradient(ellipse at 55% 50%, rgba(255, 253, 250, 0.5) 0%, rgba(255, 253, 250, 0.82) 100%),
     linear-gradient(to right, rgba(255, 253, 250, 0.72) 20%, rgba(255, 253, 250, 0.45) 100%);
