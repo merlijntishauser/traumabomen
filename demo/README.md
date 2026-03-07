@@ -58,8 +58,32 @@ sed 's/\*\*//g; s/\[PAUSE [0-9]*s\]//g; /^#/d; /^---/d; /^$/d' voiceover-script.
   | say -o voiceover.aiff -v Samantha
 ```
 
-Example with ElevenLabs or similar cloud TTS: upload the script text directly
-and use the `[PAUSE]` markers to insert silence in your editing software.
+### ElevenLabs
+
+First, convert the script to ElevenLabs-compatible format by stripping markdown
+and replacing `[PAUSE]` markers with SSML break tags:
+
+```bash
+sed -E \
+  's/\*\*//g;
+   s/\[PAUSE ([0-9]+)s\]/<break time="\1s" \/>/g;
+   /^#/d; /^---/d; /^$/d' \
+  voiceover-script.md > voiceover-elevenlabs.txt
+```
+
+Recommended ElevenLabs settings:
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| Voice | Rachel or Antoni | Warm, calm tone |
+| Stability | ~0.65 | Natural variation without being erratic |
+| Similarity boost | ~0.75 | Consistent but not robotic |
+| Style exaggeration | ~0.2 | Low, given the sensitive subject matter |
+| Speed | Slightly below default | Targets ~150 wpm |
+
+For precise timing alignment with the video, generate each scene as a separate
+audio clip, then combine them in an audio editor (Audacity, GarageBand, or
+ffmpeg) with silence padding to match the video timestamps.
 
 ## Combining Video and Audio
 

@@ -376,9 +376,9 @@
       "color": "#e06c75",
       "person_ids": ["demo-p2", "demo-p3"],
       "linked_entities": [
-        { "entity_type": "event", "entity_id": "demo-e1" },
-        { "entity_type": "event", "entity_id": "demo-e2" },
-        { "entity_type": "event", "entity_id": "demo-e3" },
+        { "entity_type": "trauma_event", "entity_id": "demo-e1" },
+        { "entity_type": "trauma_event", "entity_id": "demo-e2" },
+        { "entity_type": "trauma_event", "entity_id": "demo-e3" },
         { "entity_type": "classification", "entity_id": "demo-c1" },
         { "entity_type": "turning_point", "entity_id": "demo-tp1" }
       ]
