@@ -4,10 +4,10 @@ import type { Theme } from "../hooks/useAvailableThemes";
 import { useAvailableThemes } from "../hooks/useAvailableThemes";
 import { useTheme } from "../hooks/useTheme";
 
-// Icon represents the current theme
+// Icon represents the theme you switch TO
 const icons: Record<Theme, typeof Sun> = {
-  dark: Moon,
-  light: Sun,
+  dark: Sun,
+  light: Moon,
 };
 
 export function ThemeToggle({ className }: { className?: string }) {
