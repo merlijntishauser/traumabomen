@@ -17,28 +17,29 @@ import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/BranchDecoration";
-import { JournalPanel } from "../components/journal/JournalPanel";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
-import { PatternPanel } from "../components/tree/PatternPanel";
-import { PersonDetailPanel, type PersonDetailSection } from "../components/tree/PersonDetailPanel";
+import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useExportTree } from "../hooks/useExportTree";
+import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
+import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
 import type { DecryptedPerson } from "../hooks/useTreeData";
-import { filterByPerson, treeQueryKeys, useTreeData } from "../hooks/useTreeData";
+import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
-import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
-import { inferSiblings } from "../lib/inferSiblings";
-import type { JournalEntry, Person, RelationshipData } from "../types/domain";
+import { useTreeMutations } from "../hooks/useTreeMutations";
+import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
+import type { Person, RelationshipData } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
@@ -300,27 +301,23 @@ function TreeWorkspaceInner() {
   const location = useLocation();
   const openPatternId = (location.state as { openPatternId?: string } | null)?.openPatternId;
 
-  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const panels = useWorkspacePanels({
+    initialPatternPanelOpen: !!openPatternId,
+  });
+  const { selectedPersonId, setSelectedPersonId } = panels;
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
-  const [patternPanelOpen, setPatternPanelOpen] = useState(!!openPatternId);
-  const [journalPanelOpen, setJournalPanelOpen] = useState(false);
-  const [journalInitialPrompt, setJournalInitialPrompt] = useState("");
-  const [journalInitialLinkedRef, setJournalInitialLinkedRef] = useState<
-    import("../types/domain").JournalLinkedRef | undefined
-  >(undefined);
   const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(
     openPatternId ? new Set([openPatternId]) : new Set(),
   );
-  const [hoveredPatternId, setHoveredPatternId] = useState<string | null>(null);
   const [relationshipPromptPersonId, setRelationshipPromptPersonId] = useState<string | null>(null);
-  const [initialSection, setInitialSection] = useState<PersonDetailSection>(null);
   const [initialEntityId, setInitialEntityId] = useState<string | null>(null);
 
   const effectiveVisiblePatternIds = useMemo(() => {
-    if (!hoveredPatternId || visiblePatternIds.has(hoveredPatternId)) return visiblePatternIds;
-    return new Set([...visiblePatternIds, hoveredPatternId]);
-  }, [visiblePatternIds, hoveredPatternId]);
+    if (!panels.hoveredPatternId || visiblePatternIds.has(panels.hoveredPatternId))
+      return visiblePatternIds;
+    return new Set([...visiblePatternIds, panels.hoveredPatternId]);
+  }, [visiblePatternIds, panels.hoveredPatternId]);
 
   const treeData = useTreeData(treeId!);
   const {
@@ -332,7 +329,6 @@ function TreeWorkspaceInner() {
     turningPoints,
     classifications,
     patterns,
-    journalEntries,
     isLoading,
     error,
   } = treeData;
@@ -449,14 +445,14 @@ function TreeWorkspaceInner() {
         setSelectedPersonId(null);
         setSelectedEdgeId(null);
         setPendingConnection(null);
-        setPatternPanelOpen(false);
-        setJournalPanelOpen(false);
+        panels.setPatternPanelOpen(false);
+        panels.setJournalPanelOpen(false);
         setRelationshipPromptPersonId(null);
       }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [setSelectedPersonId, panels]);
 
   // Auto-dismiss relationship prompt when user selects a different person
   useEffect(() => {
@@ -469,29 +465,37 @@ function TreeWorkspaceInner() {
     }
   }, [selectedPersonId, relationshipPromptPersonId]);
 
-  const onNodeClick = useCallback((event: React.MouseEvent, node: PersonNodeType) => {
-    const badge = (event.target as HTMLElement).closest("[data-badge-type]") as HTMLElement | null;
-    setSelectedPersonId(node.id);
-    setSelectedEdgeId(null);
-    setPatternPanelOpen(false);
-    if (badge) {
-      setInitialSection(badge.dataset.badgeType as PersonDetailSection);
-      setInitialEntityId(badge.dataset.badgeId!);
-    } else {
-      setInitialSection(null);
-      setInitialEntityId(null);
-    }
-  }, []);
+  const onNodeClick = useCallback(
+    (event: React.MouseEvent, node: PersonNodeType) => {
+      const badge = (event.target as HTMLElement).closest(
+        "[data-badge-type]",
+      ) as HTMLElement | null;
+      setSelectedPersonId(node.id);
+      setSelectedEdgeId(null);
+      panels.setPatternPanelOpen(false);
+      if (badge) {
+        panels.setInitialSection(badge.dataset.badgeType as PersonDetailSection);
+        setInitialEntityId(badge.dataset.badgeId!);
+      } else {
+        panels.setInitialSection(null);
+        setInitialEntityId(null);
+      }
+    },
+    [setSelectedPersonId, panels],
+  );
 
   const onPaneClick = useCallback(() => {
     setSelectedPersonId(null);
     setSelectedEdgeId(null);
-  }, []);
+  }, [setSelectedPersonId]);
 
-  const onEdgeClick = useCallback((_: React.MouseEvent, edge: RelationshipEdgeType) => {
-    setSelectedEdgeId(edge.id);
-    setSelectedPersonId(null);
-  }, []);
+  const onEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: RelationshipEdgeType) => {
+      setSelectedEdgeId(edge.id);
+      setSelectedPersonId(null);
+    },
+    [setSelectedPersonId],
+  );
 
   const onConnect: OnConnect = useCallback(
     (connection) => {
@@ -571,7 +575,7 @@ function TreeWorkspaceInner() {
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
         setSelectedPersonId(response.id);
-        setPatternPanelOpen(false);
+        panels.setPatternPanelOpen(false);
         if (canvasSettings.promptRelationship && persons.size > 0) {
           setRelationshipPromptPersonId(response.id);
         }
@@ -597,19 +601,12 @@ function TreeWorkspaceInner() {
     );
   }
 
-  function handleSavePerson(data: Person) {
-    if (!selectedPersonId) return;
-    mutations.updatePerson.mutate(
-      { personId: selectedPersonId, data },
-      { onSuccess: () => setSelectedPersonId(null) },
-    );
-  }
-
-  function handleDeletePerson(personId: string) {
-    mutations.deletePerson.mutate(personId, {
-      onSuccess: () => setSelectedPersonId(null),
-    });
-  }
+  const handlers = useLinkedEntityPanelHandlers({
+    mutations,
+    selectedPersonId,
+    onPersonDeleted: () => setSelectedPersonId(null),
+    onPersonSaved: () => setSelectedPersonId(null),
+  });
 
   function handleSaveRelationship(relationshipId: string, data: RelationshipData) {
     mutations.updateRelationship.mutate({ relationshipId, data });
@@ -619,24 +616,6 @@ function TreeWorkspaceInner() {
     mutations.deleteRelationship.mutate(relationshipId, {
       onSuccess: () => setSelectedEdgeId(null),
     });
-  }
-
-  const eventHandlers = linkedEntityHandlers(mutations.events);
-  const lifeEventHandlers = linkedEntityHandlers(mutations.lifeEvents);
-  const turningPointHandlers = linkedEntityHandlers(mutations.turningPoints);
-  const classificationHandlers = linkedEntityHandlers(mutations.classifications);
-  const patternHandlers = linkedEntityHandlers(mutations.patterns);
-
-  function handleSaveJournalEntry(entryId: string | null, data: JournalEntry) {
-    if (entryId) {
-      mutations.updateJournalEntry.mutate({ entryId, data });
-    } else {
-      mutations.createJournalEntry.mutate(data);
-    }
-  }
-
-  function handleDeleteJournalEntry(entryId: string) {
-    mutations.deleteJournalEntry.mutate(entryId);
   }
 
   function handleTogglePatternVisibility(patternId: string) {
@@ -732,28 +711,16 @@ function TreeWorkspaceInner() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo]);
 
-  const selectedPerson = selectedPersonId ? persons.get(selectedPersonId) : null;
+  const selectedEntities = useSelectedPersonEntities(
+    selectedPersonId,
+    relationships,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+  );
 
   const selectedRelationship = selectedEdgeId ? (relationships.get(selectedEdgeId) ?? null) : null;
-
-  const selectedRelationships = selectedPersonId
-    ? Array.from(relationships.values()).filter(
-        (r) => r.source_person_id === selectedPersonId || r.target_person_id === selectedPersonId,
-      )
-    : [];
-
-  const selectedEvents = filterByPerson(events, selectedPersonId);
-  const selectedLifeEvents = filterByPerson(lifeEvents, selectedPersonId);
-  const selectedTurningPoints = filterByPerson(turningPoints, selectedPersonId);
-  const selectedClassifications = filterByPerson(classifications, selectedPersonId);
-
-  const inferredSiblings = useMemo(() => inferSiblings(relationships), [relationships]);
-
-  const selectedInferredSiblings = selectedPersonId
-    ? inferredSiblings.filter(
-        (s) => s.personAId === selectedPersonId || s.personBId === selectedPersonId,
-      )
-    : [];
 
   if (error) {
     return (
@@ -803,19 +770,17 @@ function TreeWorkspaceInner() {
         </div>
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
-          onClick={() => setPatternPanelOpen((v) => !v)}
+          className={`tree-toolbar__icon-btn${panels.patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
+          onClick={() => panels.setPatternPanelOpen((v) => !v)}
           aria-label={t("pattern.editPatterns")}
         >
           <Waypoints size={14} />
         </button>
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
+          className={`tree-toolbar__icon-btn${panels.journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
           onClick={() => {
-            setJournalPanelOpen((v) => !v);
-            setJournalInitialPrompt("");
-            setJournalInitialLinkedRef(undefined);
+            panels.setJournalPanelOpen((v) => !v);
           }}
           aria-label={t("journal.tab")}
         >
@@ -856,17 +821,13 @@ function TreeWorkspaceInner() {
             <PatternConnectors
               patterns={patterns}
               visiblePatternIds={effectiveVisiblePatternIds}
-              onPatternClick={() => setPatternPanelOpen(true)}
+              onPatternClick={() => panels.setPatternPanelOpen(true)}
             />
-            {canvasSettings.showReflectionPrompts && !journalPanelOpen && persons.size > 0 && (
-              <ReflectionNudge
-                onOpenJournal={(prompt) => {
-                  setJournalInitialPrompt(prompt);
-                  setJournalInitialLinkedRef(undefined);
-                  setJournalPanelOpen(true);
-                }}
-              />
-            )}
+            {canvasSettings.showReflectionPrompts &&
+              !panels.journalPanelOpen &&
+              persons.size > 0 && (
+                <ReflectionNudge onOpenJournal={(prompt) => panels.openJournal(prompt)} />
+              )}
             {!isLoading && persons.size === 0 && (
               <div className="tree-canvas-empty">
                 <TreePine size={32} strokeWidth={1.5} color="var(--color-text-muted)" />
@@ -881,39 +842,6 @@ function TreeWorkspaceInner() {
           </>
         )}
 
-        {selectedPerson && (
-          <PersonDetailPanel
-            person={selectedPerson}
-            relationships={selectedRelationships}
-            inferredSiblings={selectedInferredSiblings}
-            events={selectedEvents}
-            lifeEvents={selectedLifeEvents}
-            turningPoints={selectedTurningPoints}
-            classifications={selectedClassifications}
-            allPersons={persons}
-            initialSection={initialSection}
-            initialEntityId={initialEntityId ?? undefined}
-            onSavePerson={handleSavePerson}
-            onDeletePerson={handleDeletePerson}
-            onSaveRelationship={handleSaveRelationship}
-            onSaveEvent={eventHandlers.save}
-            onDeleteEvent={eventHandlers.remove}
-            onSaveLifeEvent={lifeEventHandlers.save}
-            onDeleteLifeEvent={lifeEventHandlers.remove}
-            onSaveTurningPoint={turningPointHandlers.save}
-            onDeleteTurningPoint={turningPointHandlers.remove}
-            onSaveClassification={classificationHandlers.save}
-            onDeleteClassification={classificationHandlers.remove}
-            onClose={() => setSelectedPersonId(null)}
-            showReflectionPrompts={canvasSettings.showReflectionPrompts}
-            onOpenJournal={(prompt, linkedRef) => {
-              setJournalInitialPrompt(prompt);
-              setJournalInitialLinkedRef(linkedRef);
-              setJournalPanelOpen(true);
-            }}
-          />
-        )}
-
         {selectedRelationship && (
           <RelationshipDetailPanel
             relationship={selectedRelationship}
@@ -924,40 +852,17 @@ function TreeWorkspaceInner() {
           />
         )}
 
-        {patternPanelOpen && (
-          <PatternPanel
-            patterns={patterns}
-            events={events}
-            lifeEvents={lifeEvents}
-            turningPoints={turningPoints}
-            classifications={classifications}
-            persons={persons}
-            visiblePatternIds={visiblePatternIds}
-            onToggleVisibility={handleTogglePatternVisibility}
-            onSave={patternHandlers.save}
-            onDelete={patternHandlers.remove}
-            onClose={() => setPatternPanelOpen(false)}
-            onHoverPattern={setHoveredPatternId}
-            initialExpandedId={openPatternId}
-          />
-        )}
-
-        {journalPanelOpen && (
-          <JournalPanel
-            journalEntries={journalEntries}
-            persons={persons}
-            events={events}
-            lifeEvents={lifeEvents}
-            turningPoints={turningPoints}
-            classifications={classifications}
-            patterns={patterns}
-            onSave={handleSaveJournalEntry}
-            onDelete={handleDeleteJournalEntry}
-            onClose={() => setJournalPanelOpen(false)}
-            initialPrompt={journalInitialPrompt}
-            initialLinkedRef={journalInitialLinkedRef}
-          />
-        )}
+        <WorkspacePanelHost
+          panels={panels}
+          handlers={handlers}
+          entities={selectedEntities}
+          treeData={treeData}
+          visiblePatternIds={visiblePatternIds}
+          onTogglePatternVisibility={handleTogglePatternVisibility}
+          initialExpandedPatternId={openPatternId}
+          initialEntityId={initialEntityId ?? undefined}
+          showReflectionPrompts={canvasSettings.showReflectionPrompts}
+        />
       </div>
 
       {pendingConnection && (
