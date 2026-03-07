@@ -11,12 +11,13 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
-import { BookOpen, LayoutGrid, TreePine, Undo2, UserPlus, Waypoints } from "lucide-react";
+import { TreePine, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/BranchDecoration";
+import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
@@ -541,53 +542,18 @@ function TreeWorkspaceInner() {
   return (
     <div className="tree-workspace">
       <TreeToolbar treeId={treeId!} treeName={treeName} activeView="canvas" viewTab={canvasViewTab}>
-        <button
-          type="button"
-          className="tree-toolbar__icon-btn"
-          onClick={handleAddPerson}
-          disabled={mutations.createPerson.isPending}
-          aria-label={t("tree.addPerson")}
-        >
-          <UserPlus size={14} />
-        </button>
-        <div className="tree-toolbar__btn-group">
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={handleAutoLayout}
-            disabled={!hasPinnedNodes}
-            aria-label={t("tree.autoLayout")}
-          >
-            <LayoutGrid size={14} />
-          </button>
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={handleUndo}
-            disabled={!canUndo}
-            aria-label={t("tree.undo")}
-          >
-            <Undo2 size={14} />
-          </button>
-        </div>
-        <button
-          type="button"
-          className={`tree-toolbar__icon-btn${panels.patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
-          onClick={() => panels.setPatternPanelOpen((v) => !v)}
-          aria-label={t("pattern.editPatterns")}
-        >
-          <Waypoints size={14} />
-        </button>
-        <button
-          type="button"
-          className={`tree-toolbar__icon-btn${panels.journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
-          onClick={() => {
-            panels.setJournalPanelOpen((v) => !v);
-          }}
-          aria-label={t("journal.tab")}
-        >
-          <BookOpen size={14} />
-        </button>
+        <CanvasToolbarButtons
+          onAddPerson={handleAddPerson}
+          isAddingPerson={mutations.createPerson.isPending}
+          onAutoLayout={handleAutoLayout}
+          hasLayout={hasPinnedNodes}
+          onUndo={handleUndo}
+          canUndo={canUndo}
+          patternPanelOpen={panels.patternPanelOpen}
+          onTogglePatterns={() => panels.setPatternPanelOpen((v) => !v)}
+          journalPanelOpen={panels.journalPanelOpen}
+          onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
+        />
       </TreeToolbar>
 
       <div className="tree-canvas-wrapper bg-gradient">
