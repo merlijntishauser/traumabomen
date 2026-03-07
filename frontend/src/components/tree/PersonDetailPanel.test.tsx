@@ -131,18 +131,22 @@ const defaultProps = () => ({
   turningPoints: [] as DecryptedTurningPoint[],
   classifications: [] as DecryptedClassification[],
   allPersons: new Map([["p1", makePerson()]]),
-  onSavePerson: vi.fn(),
-  onDeletePerson: vi.fn(),
-  onSaveRelationship: vi.fn(),
-  onSaveEvent: vi.fn(),
-  onDeleteEvent: vi.fn(),
-  onSaveLifeEvent: vi.fn(),
-  onDeleteLifeEvent: vi.fn(),
-  onSaveTurningPoint: vi.fn(),
-  onDeleteTurningPoint: vi.fn(),
-  onSaveClassification: vi.fn(),
-  onDeleteClassification: vi.fn(),
-  onClose: vi.fn(),
+  handlers: {
+    onSavePerson: vi.fn(),
+    onDeletePerson: vi.fn(),
+    onSaveRelationship: vi.fn(),
+    onClose: vi.fn(),
+  },
+  entityHandlers: {
+    onSaveEvent: vi.fn(),
+    onDeleteEvent: vi.fn(),
+    onSaveLifeEvent: vi.fn(),
+    onDeleteLifeEvent: vi.fn(),
+    onSaveTurningPoint: vi.fn(),
+    onDeleteTurningPoint: vi.fn(),
+    onSaveClassification: vi.fn(),
+    onDeleteClassification: vi.fn(),
+  },
 });
 
 async function openEventsTab(
@@ -260,7 +264,7 @@ describe("PersonDetailPanel", () => {
     const props = defaultProps();
     render(<PersonDetailPanel {...props} />);
     await user.click(screen.getByText("common.close"));
-    expect(props.onClose).toHaveBeenCalledOnce();
+    expect(props.handlers.onClose).toHaveBeenCalledOnce();
   });
 
   it("has person details section open by default", () => {
@@ -313,7 +317,7 @@ describe("PersonDetailPanel", () => {
     fireEvent.change(nameInput, { target: { value: "Carol" } });
     await user.click(screen.getByText("person.save"));
 
-    expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ name: "Carol" }));
+    expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ name: "Carol" }));
   });
 
   it("requires two clicks to delete a person", async () => {
@@ -323,11 +327,11 @@ describe("PersonDetailPanel", () => {
 
     const deleteBtn = screen.getByText("person.delete");
     await user.click(deleteBtn);
-    expect(props.onDeletePerson).not.toHaveBeenCalled();
+    expect(props.handlers.onDeletePerson).not.toHaveBeenCalled();
     expect(screen.getByText("person.confirmDelete")).toBeInTheDocument();
 
     await user.click(screen.getByText("person.delete"));
-    expect(props.onDeletePerson).toHaveBeenCalledWith("p1");
+    expect(props.handlers.onDeletePerson).toHaveBeenCalledWith("p1");
   });
 
   it("shows new event form when 'New event' button is clicked", async () => {
@@ -354,7 +358,7 @@ describe("PersonDetailPanel", () => {
 
     await user.click(screen.getByText("common.save"));
 
-    expect(props.onSaveEvent).toHaveBeenCalledWith(
+    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
       null,
       expect.objectContaining({ title: "New trauma" }),
       expect.arrayContaining(["p1"]),
@@ -379,7 +383,7 @@ describe("PersonDetailPanel", () => {
 
     await user.click(screen.getByText("common.save"));
 
-    expect(props.onSaveEvent).toHaveBeenCalledWith(
+    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
       "e1",
       expect.objectContaining({ title: "Test Event" }),
       expect.arrayContaining(["p1", "p2"]),
@@ -426,7 +430,7 @@ describe("PersonDetailPanel", () => {
 
     await user.click(screen.getByText("common.save"));
 
-    expect(props.onSaveEvent).toHaveBeenCalledWith(
+    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
       "e1",
       expect.objectContaining({ title: "Test Event" }),
       ["p1"],
@@ -443,7 +447,7 @@ describe("PersonDetailPanel", () => {
       fireEvent.change(deathYearInput, { target: { value: "2020" } });
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({ death_year: 2020 }),
       );
     });
@@ -456,7 +460,7 @@ describe("PersonDetailPanel", () => {
       await user.selectOptions(screen.getByDisplayValue("person.female"), "male");
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ gender: "male" }));
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ gender: "male" }));
     });
 
     it("saves adopted checkbox toggle", async () => {
@@ -468,7 +472,7 @@ describe("PersonDetailPanel", () => {
       await user.click(adoptedCheckbox);
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({ is_adopted: true }),
       );
     });
@@ -482,7 +486,7 @@ describe("PersonDetailPanel", () => {
       fireEvent.change(notesTextarea, { target: { value: "Some notes" } });
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({ notes: "Some notes" }),
       );
     });
@@ -497,7 +501,7 @@ describe("PersonDetailPanel", () => {
       fireEvent.change(notesTextarea, { target: { value: "" } });
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ notes: null }));
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(expect.objectContaining({ notes: null }));
     });
 
     it("shows death year from person data", () => {
@@ -539,7 +543,7 @@ describe("PersonDetailPanel", () => {
 
       // Save and verify death day is null
       await user.click(screen.getByText("person.save"));
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
           death_year: 2020,
           death_month: null,
@@ -566,7 +570,7 @@ describe("PersonDetailPanel", () => {
 
       // Save and verify all death fields are null
       await user.click(screen.getByText("person.save"));
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
           death_year: null,
           death_month: null,
@@ -658,7 +662,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("person.save"));
 
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
           birth_month: 7,
           birth_day: 15,
@@ -686,7 +690,7 @@ describe("PersonDetailPanel", () => {
 
       // Save and verify month/day are null
       await user.click(screen.getByText("person.save"));
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
           birth_year: null,
           birth_month: null,
@@ -716,7 +720,7 @@ describe("PersonDetailPanel", () => {
 
       // Save and verify day is null
       await user.click(screen.getByText("person.save"));
-      expect(props.onSavePerson).toHaveBeenCalledWith(
+      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
           birth_month: null,
           birth_day: null,
@@ -904,7 +908,7 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           type: RelationshipType.Partner,
@@ -949,7 +953,7 @@ describe("PersonDetailPanel", () => {
       // Now save - should have 2 periods
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: expect.arrayContaining([
@@ -987,7 +991,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: [expect.objectContaining({ start_year: 2010, status: PartnerStatus.Together })],
@@ -1011,7 +1015,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: [expect.objectContaining({ status: PartnerStatus.Married })],
@@ -1053,7 +1057,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: [expect.objectContaining({ start_year: 2005 })],
@@ -1083,7 +1087,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: [expect.objectContaining({ end_year: 2010 })],
@@ -1111,7 +1115,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
         expect.objectContaining({
           periods: [expect.objectContaining({ end_year: null })],
@@ -1199,12 +1203,12 @@ describe("PersonDetailPanel", () => {
 
       // First click shows confirmation
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteEvent).not.toHaveBeenCalled();
+      expect(props.entityHandlers.onDeleteEvent).not.toHaveBeenCalled();
       expect(screen.getByText("trauma.confirmDelete")).toBeInTheDocument();
 
       // Second click deletes
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteEvent).toHaveBeenCalledWith("e1");
+      expect(props.entityHandlers.onDeleteEvent).toHaveBeenCalledWith("e1");
     });
 
     it("shows event approximate date in display mode", async () => {
@@ -1244,7 +1248,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveEvent).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           title: "Flood",
@@ -1415,7 +1419,7 @@ describe("PersonDetailPanel", () => {
       });
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveLifeEvent).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ title: "New Job" }),
         expect.arrayContaining(["p1"]),
@@ -1449,7 +1453,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveLifeEvent).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           title: "Moved",
@@ -1480,7 +1484,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveLifeEvent).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
         "le1",
         expect.objectContaining({ title: "PhD" }),
         expect.arrayContaining(["p1"]),
@@ -1511,11 +1515,11 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("Graduation"));
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteLifeEvent).not.toHaveBeenCalled();
+      expect(props.entityHandlers.onDeleteLifeEvent).not.toHaveBeenCalled();
       expect(screen.getByText("lifeEvent.confirmDelete")).toBeInTheDocument();
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteLifeEvent).toHaveBeenCalledWith("le1");
+      expect(props.entityHandlers.onDeleteLifeEvent).toHaveBeenCalledWith("le1");
     });
 
     it("cancels new life event form", async () => {
@@ -1607,7 +1611,7 @@ describe("PersonDetailPanel", () => {
       });
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveTurningPoint).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveTurningPoint).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ title: "Started Meditation" }),
         expect.arrayContaining(["p1"]),
@@ -1630,7 +1634,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveTurningPoint).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveTurningPoint).toHaveBeenCalledWith(
         "tp1",
         expect.objectContaining({ title: "Group Therapy" }),
         expect.arrayContaining(["p1"]),
@@ -1660,11 +1664,11 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("Therapy Start"));
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteTurningPoint).not.toHaveBeenCalled();
+      expect(props.entityHandlers.onDeleteTurningPoint).not.toHaveBeenCalled();
       expect(screen.getByText("turningPoint.confirmDelete")).toBeInTheDocument();
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteTurningPoint).toHaveBeenCalledWith("tp1");
+      expect(props.entityHandlers.onDeleteTurningPoint).toHaveBeenCalledWith("tp1");
     });
 
     it("cancels new turning point form", async () => {
@@ -1853,7 +1857,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           dsm_category: "anxiety",
@@ -1877,7 +1881,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         "cls1",
         expect.objectContaining({ dsm_category: "anxiety" }),
         expect.arrayContaining(["p1"]),
@@ -1907,11 +1911,11 @@ describe("PersonDetailPanel", () => {
       await user.click(screen.getByText("dsm.anxiety"));
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteClassification).not.toHaveBeenCalled();
+      expect(props.entityHandlers.onDeleteClassification).not.toHaveBeenCalled();
       expect(screen.getByText("classification.confirmDelete")).toBeInTheDocument();
 
       await user.click(screen.getByText("common.delete"));
-      expect(props.onDeleteClassification).toHaveBeenCalledWith("cls1");
+      expect(props.entityHandlers.onDeleteClassification).toHaveBeenCalledWith("cls1");
     });
 
     it("cancels new classification form", async () => {
@@ -1963,7 +1967,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           status: "diagnosed",
@@ -1987,7 +1991,7 @@ describe("PersonDetailPanel", () => {
       fireEvent.change(notesTextarea, { target: { value: "Some clinical notes" } });
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ notes: "Some clinical notes" }),
         expect.arrayContaining(["p1"]),
@@ -2016,7 +2020,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ periods: [] }),
         expect.arrayContaining(["p1"]),
@@ -2037,7 +2041,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ dsm_category: "depressive" }),
         expect.arrayContaining(["p1"]),
@@ -2096,7 +2100,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           periods: [expect.objectContaining({ start_year: 2015 })],
@@ -2123,7 +2127,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           periods: [expect.objectContaining({ end_year: 2020 })],
@@ -2151,7 +2155,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         "cls1",
         expect.objectContaining({
           periods: [expect.objectContaining({ start_year: 2010, end_year: null })],
@@ -2177,7 +2181,7 @@ describe("PersonDetailPanel", () => {
 
       await user.click(screen.getByText("common.save"));
 
-      expect(props.onSaveClassification).toHaveBeenCalledWith(
+      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.any(Object),
         expect.arrayContaining(["p1", "p2"]),

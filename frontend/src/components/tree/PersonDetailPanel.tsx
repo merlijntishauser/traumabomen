@@ -84,20 +84,14 @@ function sectionToEventSubTab(section: PersonDetailSection): EventSubTab | null 
   }
 }
 
-interface PersonDetailPanelProps {
-  person: DecryptedPerson;
-  relationships: DecryptedRelationship[];
-  inferredSiblings: InferredSibling[];
-  events: DecryptedEvent[];
-  lifeEvents: DecryptedLifeEvent[];
-  turningPoints: DecryptedTurningPoint[];
-  classifications: DecryptedClassification[];
-  allPersons: Map<string, DecryptedPerson>;
-  initialSection?: PersonDetailSection;
-  initialEntityId?: string;
+export interface PersonDetailHandlers {
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
+  onClose: () => void;
+}
+
+export interface EntityHandlers {
   onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
   onDeleteEvent: (eventId: string) => void;
   onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
@@ -114,7 +108,21 @@ interface PersonDetailPanelProps {
     personIds: string[],
   ) => void;
   onDeleteClassification: (classificationId: string) => void;
-  onClose: () => void;
+}
+
+interface PersonDetailPanelProps {
+  person: DecryptedPerson;
+  relationships: DecryptedRelationship[];
+  inferredSiblings: InferredSibling[];
+  events: DecryptedEvent[];
+  lifeEvents: DecryptedLifeEvent[];
+  turningPoints: DecryptedTurningPoint[];
+  classifications: DecryptedClassification[];
+  allPersons: Map<string, DecryptedPerson>;
+  initialSection?: PersonDetailSection;
+  initialEntityId?: string;
+  handlers: PersonDetailHandlers;
+  entityHandlers: EntityHandlers;
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
 }
@@ -130,21 +138,27 @@ export function PersonDetailPanel({
   allPersons,
   initialSection,
   initialEntityId,
-  onSavePerson,
-  onDeletePerson,
-  onSaveRelationship,
-  onSaveEvent,
-  onDeleteEvent,
-  onSaveLifeEvent,
-  onDeleteLifeEvent,
-  onSaveTurningPoint,
-  onDeleteTurningPoint,
-  onSaveClassification,
-  onDeleteClassification,
-  onClose,
+  handlers,
+  entityHandlers,
   showReflectionPrompts,
   onOpenJournal,
 }: PersonDetailPanelProps) {
+  const {
+    onSavePerson,
+    onDeletePerson,
+    onSaveRelationship,
+    onClose,
+  } = handlers;
+  const {
+    onSaveEvent,
+    onDeleteEvent,
+    onSaveLifeEvent,
+    onDeleteLifeEvent,
+    onSaveTurningPoint,
+    onDeleteTurningPoint,
+    onSaveClassification,
+    onDeleteClassification,
+  } = entityHandlers;
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<DetailTab>(sectionToTab(initialSection ?? null));
   const [eventSubTab, setEventSubTab] = useState<EventSubTab>(

@@ -54,18 +54,22 @@ export function WorkspacePanelHost({
           allPersons={persons}
           initialSection={panels.initialSection}
           initialEntityId={initialEntityId}
-          onSavePerson={handlers.handleSavePerson}
-          onDeletePerson={handlers.handleDeletePerson}
-          onSaveRelationship={handlers.handleSaveRelationship}
-          onSaveEvent={handlers.eventHandlers.save}
-          onDeleteEvent={handlers.eventHandlers.remove}
-          onSaveLifeEvent={handlers.lifeEventHandlers.save}
-          onDeleteLifeEvent={handlers.lifeEventHandlers.remove}
-          onSaveTurningPoint={handlers.turningPointHandlers.save}
-          onDeleteTurningPoint={handlers.turningPointHandlers.remove}
-          onSaveClassification={handlers.classificationHandlers.save}
-          onDeleteClassification={handlers.classificationHandlers.remove}
-          onClose={() => panels.setSelectedPersonId(null)}
+          handlers={{
+            onSavePerson: handlers.handleSavePerson,
+            onDeletePerson: handlers.handleDeletePerson,
+            onSaveRelationship: handlers.handleSaveRelationship,
+            onClose: () => panels.setSelectedPersonId(null),
+          }}
+          entityHandlers={{
+            onSaveEvent: handlers.eventHandlers.save,
+            onDeleteEvent: handlers.eventHandlers.remove,
+            onSaveLifeEvent: handlers.lifeEventHandlers.save,
+            onDeleteLifeEvent: handlers.lifeEventHandlers.remove,
+            onSaveTurningPoint: handlers.turningPointHandlers.save,
+            onDeleteTurningPoint: handlers.turningPointHandlers.remove,
+            onSaveClassification: handlers.classificationHandlers.save,
+            onDeleteClassification: handlers.classificationHandlers.remove,
+          }}
           showReflectionPrompts={showReflectionPrompts}
           onOpenJournal={panels.openJournal}
         />
