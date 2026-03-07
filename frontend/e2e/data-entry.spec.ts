@@ -10,6 +10,9 @@ async function setupTreeWithPerson(
   await register(page, email);
   await createTree(page);
 
+  // Let initial tree data queries settle before interacting
+  await page.waitForLoadState("networkidle");
+
   // Add a person (panel opens with new person)
   await page.getByLabel("Add person").click();
   const panel = page.locator(".detail-panel");
