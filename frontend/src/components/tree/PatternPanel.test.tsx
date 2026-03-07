@@ -191,11 +191,11 @@ describe("PatternPanel", () => {
     // Click the initial delete button
     fireEvent.click(screen.getByText("common.delete"));
 
-    // Confirm button should now appear
-    const confirmBtn = screen.getByText("pattern.confirmDelete");
-    expect(confirmBtn).toBeInTheDocument();
+    // Confirm label should now appear
+    expect(screen.getByText("pattern.confirmDelete")).toBeInTheDocument();
 
-    fireEvent.click(confirmBtn);
+    // Confirm button reuses the original label
+    fireEvent.click(screen.getByText("common.delete"));
     expect(props.onDelete).toHaveBeenCalledWith("pat1");
   });
 

@@ -264,8 +264,8 @@ describe("JournalEntryList", () => {
 
     // First click: ask for confirmation
     fireEvent.click(screen.getByText("journal.delete"));
-    // Second click: confirm
-    fireEvent.click(screen.getByText("journal.confirmDelete"));
+    // Second click: confirm (confirm button reuses the original label)
+    fireEvent.click(screen.getByText("journal.delete"));
 
     expect(props.onDelete).toHaveBeenCalledWith("j1");
   });

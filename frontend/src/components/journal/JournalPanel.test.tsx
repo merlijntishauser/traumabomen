@@ -146,9 +146,9 @@ describe("JournalPanel", () => {
     // Click on the entry card to edit
     fireEvent.click(screen.getByTestId("journal-card-j1"));
 
-    // Delete with confirmation
+    // Delete with confirmation (confirm button reuses the original label)
     fireEvent.click(screen.getByText("journal.delete"));
-    fireEvent.click(screen.getByText("journal.confirmDelete"));
+    fireEvent.click(screen.getByText("journal.delete"));
 
     expect(props.onDelete).toHaveBeenCalledWith("j1");
   });

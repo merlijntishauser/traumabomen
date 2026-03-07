@@ -350,8 +350,8 @@ describe("RelationshipDetailPanel", () => {
     expect(props.onDeleteRelationship).not.toHaveBeenCalled();
     expect(screen.getByText("relationship.confirmDelete")).toBeInTheDocument();
 
-    // Second click triggers delete
-    await user.click(screen.getByText("relationship.confirmDelete"));
+    // Second click triggers delete (confirm button reuses the original label)
+    await user.click(screen.getByText("common.delete"));
     expect(props.onDeleteRelationship).toHaveBeenCalledWith("r1");
   });
 

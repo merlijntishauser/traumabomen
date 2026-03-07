@@ -276,8 +276,8 @@ describe("JournalEntryForm", () => {
     fireEvent.click(screen.getByText("journal.delete"));
     expect(screen.getByText("journal.confirmDelete")).toBeInTheDocument();
 
-    // Second click confirms
-    fireEvent.click(screen.getByText("journal.confirmDelete"));
+    // Second click confirms (confirm button reuses the original label)
+    fireEvent.click(screen.getByText("journal.delete"));
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 

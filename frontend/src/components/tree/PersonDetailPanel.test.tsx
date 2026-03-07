@@ -326,7 +326,7 @@ describe("PersonDetailPanel", () => {
     expect(props.onDeletePerson).not.toHaveBeenCalled();
     expect(screen.getByText("person.confirmDelete")).toBeInTheDocument();
 
-    await user.click(screen.getByText("person.confirmDelete"));
+    await user.click(screen.getByText("person.delete"));
     expect(props.onDeletePerson).toHaveBeenCalledWith("p1");
   });
 
@@ -1203,7 +1203,7 @@ describe("PersonDetailPanel", () => {
       expect(screen.getByText("trauma.confirmDelete")).toBeInTheDocument();
 
       // Second click deletes
-      await user.click(screen.getByText("trauma.confirmDelete"));
+      await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteEvent).toHaveBeenCalledWith("e1");
     });
 
@@ -1514,7 +1514,7 @@ describe("PersonDetailPanel", () => {
       expect(props.onDeleteLifeEvent).not.toHaveBeenCalled();
       expect(screen.getByText("lifeEvent.confirmDelete")).toBeInTheDocument();
 
-      await user.click(screen.getByText("lifeEvent.confirmDelete"));
+      await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteLifeEvent).toHaveBeenCalledWith("le1");
     });
 
@@ -1663,7 +1663,7 @@ describe("PersonDetailPanel", () => {
       expect(props.onDeleteTurningPoint).not.toHaveBeenCalled();
       expect(screen.getByText("turningPoint.confirmDelete")).toBeInTheDocument();
 
-      await user.click(screen.getByText("turningPoint.confirmDelete"));
+      await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteTurningPoint).toHaveBeenCalledWith("tp1");
     });
 
@@ -1910,7 +1910,7 @@ describe("PersonDetailPanel", () => {
       expect(props.onDeleteClassification).not.toHaveBeenCalled();
       expect(screen.getByText("classification.confirmDelete")).toBeInTheDocument();
 
-      await user.click(screen.getByText("classification.confirmDelete"));
+      await user.click(screen.getByText("common.delete"));
       expect(props.onDeleteClassification).toHaveBeenCalledWith("cls1");
     });
 

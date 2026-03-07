@@ -180,7 +180,7 @@ describe("TurningPointsTab", () => {
     await user.click(deleteBtn);
     expect(onDelete).not.toHaveBeenCalled();
 
-    await user.click(screen.getByText("turningPoint.confirmDelete"));
+    await user.click(screen.getByText("common.delete"));
     expect(onDelete).toHaveBeenCalledWith("tp1");
   });
 
