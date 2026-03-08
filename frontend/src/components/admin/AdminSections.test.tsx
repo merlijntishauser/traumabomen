@@ -139,6 +139,34 @@ describe("FunnelSection", () => {
     expect(screen.getByText("100 (100%)")).toBeInTheDocument();
     expect(screen.getByText("10 (10%)")).toBeInTheDocument();
   });
+
+  it("handles zero registered users without division error", () => {
+    const data: FunnelStats = {
+      registered: 0,
+      verified: 0,
+      created_tree: 0,
+      added_person: 0,
+      added_relationship: 0,
+      added_event: 0,
+    };
+    render(<FunnelSection data={data} />);
+    expect(screen.getByText("admin.signupFunnel")).toBeInTheDocument();
+    // All 6 steps should show 0 (0%)
+    expect(screen.getAllByText("0 (0%)")).toHaveLength(6);
+  });
+
+  it("falls back to funnelMax=1 when registered is nullish", () => {
+    const data = {
+      verified: 1,
+      created_tree: 0,
+      added_person: 0,
+      added_relationship: 0,
+      added_event: 0,
+    } as unknown as FunnelStats;
+    render(<FunnelSection data={data} />);
+    expect(screen.getByText("admin.signupFunnel")).toBeInTheDocument();
+    expect(screen.getByText("1 (100%)")).toBeInTheDocument();
+  });
 });
 
 // GrowthSection
