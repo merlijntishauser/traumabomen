@@ -394,5 +394,28 @@
         { "entity_type": "classification", "entity_id": "demo-c3" }
       ]
     }
+  ],
+  "siblingGroups": [
+    {
+      "id": "demo-sg1",
+      "person_ids": ["demo-p7", "demo-p8"],
+      "members": [{ "name": "Emma de Vries", "birth_year": 1991, "gender": "female" }]
+    },
+    {
+      "id": "demo-sg2",
+      "person_ids": ["demo-p2"],
+      "members": [
+        { "name": "Jan van Dijk", "birth_year": 1912, "death_year": 1944, "gender": "male" },
+        { "name": "Klaas van Dijk", "birth_year": 1914, "death_year": 1998, "gender": "male" },
+        { "name": "Johanna van Dijk", "birth_year": 1916, "death_year": 2001, "gender": "female" },
+        { "name": "Cornelis van Dijk", "birth_year": 1917, "death_year": 1942, "gender": "male" },
+        { "name": "Willem van Dijk", "birth_year": 1919, "death_year": 2003, "gender": "male" },
+        { "name": "Gerrit van Dijk", "birth_year": 1921, "death_year": 1995, "gender": "male" },
+        { "name": "Jacobus van Dijk", "birth_year": 1923, "death_year": 2008, "gender": "male" },
+        { "name": "Maria van Dijk", "birth_year": 1924, "death_year": 2010, "gender": "female" },
+        { "name": "Dirk van Dijk", "birth_year": 1926, "death_year": 2015, "gender": "male" },
+        { "name": "Adriaan van Dijk", "birth_year": 1929, "death_year": 2018, "gender": "male" }
+      ]
+    }
   ]
 }

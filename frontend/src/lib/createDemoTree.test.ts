@@ -117,6 +117,7 @@ const FIXTURE: DemoFixture = {
       ],
     },
   ],
+  siblingGroups: [],
 };
 
 // Stable UUID generator for tests
@@ -414,6 +415,7 @@ describe("createDemoTree", () => {
           ],
         },
       ],
+      siblingGroups: [],
     };
 
     vi.doMock("../fixtures/demo-tree-en.json", () => ({ default: customFixture }));

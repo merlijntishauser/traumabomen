@@ -69,6 +69,17 @@ interface FixtureClassification {
   notes: string;
 }
 
+interface FixtureSiblingGroup {
+  id: string;
+  person_ids: string[];
+  members: {
+    name: string;
+    birth_year: number | null;
+    gender?: string;
+    death_year?: number | null;
+  }[];
+}
+
 interface FixtureLinkedEntity {
   entity_type: string;
   entity_id: string;
@@ -92,6 +103,7 @@ export interface DemoFixture {
   turningPoints: FixtureTurningPoint[];
   classifications: FixtureClassification[];
   patterns: FixturePattern[];
+  siblingGroups: FixtureSiblingGroup[];
 }
 
 export function buildIdMap(fixture: DemoFixture): Map<string, string> {
@@ -117,6 +129,9 @@ export function buildIdMap(fixture: DemoFixture): Map<string, string> {
   }
   for (const pat of fixture.patterns) {
     idMap.set(pat.id, crypto.randomUUID());
+  }
+  for (const sg of fixture.siblingGroups) {
+    idMap.set(sg.id, crypto.randomUUID());
   }
 
   return idMap;
@@ -156,6 +171,11 @@ export function buildSyncRequest(
       id: idMap.get(pat.id)!,
       person_ids: remapIds(pat.person_ids, idMap),
       encrypted_data: encryptedEntities.get(pat.id)!,
+    })),
+    sibling_groups_create: fixture.siblingGroups.map((sg) => ({
+      id: idMap.get(sg.id)!,
+      person_ids: remapIds(sg.person_ids, idMap),
+      encrypted_data: encryptedEntities.get(sg.id)!,
     })),
   };
 }
@@ -256,6 +276,12 @@ export async function createDemoTree(
         })),
       });
       encryptedEntities.set(pat.id, encrypted);
+    }),
+    ...fixture.siblingGroups.map(async (sg) => {
+      const encrypted = await encrypt({
+        members: sg.members,
+      });
+      encryptedEntities.set(sg.id, encrypted);
     }),
   ]);
 

@@ -394,5 +394,33 @@
         { "entity_type": "classification", "entity_id": "demo-c3" }
       ]
     }
+  ],
+  "siblingGroups": [
+    {
+      "id": "demo-sg1",
+      "person_ids": ["demo-p7", "demo-p8"],
+      "members": [{ "name": "Emily Porter", "birth_year": 1991, "gender": "female" }]
+    },
+    {
+      "id": "demo-sg2",
+      "person_ids": ["demo-p2"],
+      "members": [
+        { "name": "George Whitfield", "birth_year": 1912, "death_year": 1944, "gender": "male" },
+        { "name": "Albert Whitfield", "birth_year": 1914, "death_year": 1998, "gender": "male" },
+        { "name": "Edith Whitfield", "birth_year": 1916, "death_year": 2001, "gender": "female" },
+        { "name": "Arthur Whitfield", "birth_year": 1917, "death_year": 1942, "gender": "male" },
+        { "name": "Frederick Whitfield", "birth_year": 1919, "death_year": 2003, "gender": "male" },
+        { "name": "Edward Whitfield", "birth_year": 1921, "death_year": 1995, "gender": "male" },
+        { "name": "William Whitfield", "birth_year": 1923, "death_year": 2008, "gender": "male" },
+        {
+          "name": "Florence Whitfield",
+          "birth_year": 1924,
+          "death_year": 2010,
+          "gender": "female"
+        },
+        { "name": "Robert Whitfield", "birth_year": 1926, "death_year": 2015, "gender": "male" },
+        { "name": "Charles Whitfield", "birth_year": 1929, "death_year": 2018, "gender": "male" }
+      ]
+    }
   ]
 }
