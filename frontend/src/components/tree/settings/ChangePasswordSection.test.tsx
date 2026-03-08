@@ -2,6 +2,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const CURRENT_PW = "OldPassword1!";
+const NEW_PW = "NewStrongPass1!";
+
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -76,9 +79,9 @@ describe("ChangePasswordSection", () => {
     const user = userEvent.setup();
     render(<ChangePasswordSection />);
 
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
-    await user.type(screen.getByPlaceholderText("account.newPassword"), "NewStrongPass1!");
-    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "NewStrongPass1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
+    await user.type(screen.getByPlaceholderText("account.newPassword"), NEW_PW);
+    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), NEW_PW);
 
     expect(screen.getByText("common.save")).toBeEnabled();
   });
@@ -87,8 +90,8 @@ describe("ChangePasswordSection", () => {
     const user = userEvent.setup();
     render(<ChangePasswordSection />);
 
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
-    await user.type(screen.getByPlaceholderText("account.newPassword"), "NewStrongPass1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
+    await user.type(screen.getByPlaceholderText("account.newPassword"), NEW_PW);
     await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "DifferentPass1!");
     await user.click(screen.getByText("common.save"));
 
@@ -102,7 +105,7 @@ describe("ChangePasswordSection", () => {
 
     // Password length >= 8 but score <= 2 means "weak"
     // "abcdefgh" has length 8, only lowercase, score=1 -> weak
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
     await user.type(screen.getByPlaceholderText("account.newPassword"), "abcdefgh");
     await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "abcdefgh");
 
@@ -115,9 +118,9 @@ describe("ChangePasswordSection", () => {
     const user = userEvent.setup();
     render(<ChangePasswordSection />);
 
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
-    await user.type(screen.getByPlaceholderText("account.newPassword"), "NewStrongPass1!");
-    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "NewStrongPass1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
+    await user.type(screen.getByPlaceholderText("account.newPassword"), NEW_PW);
+    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), NEW_PW);
     await user.click(screen.getByText("common.save"));
 
     await waitFor(() => {
@@ -125,8 +128,8 @@ describe("ChangePasswordSection", () => {
     });
 
     expect(mockChangePassword).toHaveBeenCalledWith({
-      current_password: "OldPassword1!",
-      new_password: "NewStrongPass1!",
+      current_password: CURRENT_PW,
+      new_password: NEW_PW,
     });
   });
 
@@ -135,9 +138,9 @@ describe("ChangePasswordSection", () => {
     const user = userEvent.setup();
     render(<ChangePasswordSection />);
 
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
-    await user.type(screen.getByPlaceholderText("account.newPassword"), "NewStrongPass1!");
-    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "NewStrongPass1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
+    await user.type(screen.getByPlaceholderText("account.newPassword"), NEW_PW);
+    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), NEW_PW);
     await user.click(screen.getByText("common.save"));
 
     await waitFor(() => {
@@ -152,9 +155,9 @@ describe("ChangePasswordSection", () => {
     const user = userEvent.setup();
     render(<ChangePasswordSection />);
 
-    await user.type(screen.getByPlaceholderText("account.currentPassword"), "OldPassword1!");
-    await user.type(screen.getByPlaceholderText("account.newPassword"), "NewStrongPass1!");
-    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), "NewStrongPass1!");
+    await user.type(screen.getByPlaceholderText("account.currentPassword"), CURRENT_PW);
+    await user.type(screen.getByPlaceholderText("account.newPassword"), NEW_PW);
+    await user.type(screen.getByPlaceholderText("account.confirmNewPassword"), NEW_PW);
     await user.click(screen.getByText("common.save"));
 
     await waitFor(() => {

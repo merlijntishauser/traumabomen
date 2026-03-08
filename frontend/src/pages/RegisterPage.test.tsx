@@ -3,6 +3,14 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import RegisterPage from "./RegisterPage";
 
+/* eslint-disable sonarjs/no-hardcoded-passwords */
+const VALID_PW = "StrongPass1!";
+const MISMATCHED_PW = "DifferentPass1!";
+const SHORT_PASSPHRASE = "short";
+const MISMATCHED_PASSPHRASE = "different-passphrase";
+const VALID_PASSPHRASE = "my-passphrase-12";
+/* eslint-enable sonarjs/no-hardcoded-passwords */
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (k: string) => k,
@@ -161,7 +169,7 @@ describe("RegisterPage", () => {
   it("enables submit button when password is not weak", () => {
     renderPage();
     fireEvent.change(screen.getByLabelText("auth.password"), {
-      target: { value: "StrongPass1!" },
+      target: { value: VALID_PW },
     });
     const btn = screen.getByRole("button", { name: "auth.register" });
     expect(btn).not.toBeDisabled();
@@ -185,7 +193,7 @@ describe("RegisterPage", () => {
 
   it("shows error when passwords do not match", async () => {
     renderPage();
-    fillForm({ confirmPassword: "DifferentPass1!" });
+    fillForm({ confirmPassword: MISMATCHED_PW });
     fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
 
     await waitFor(() => {
@@ -197,7 +205,7 @@ describe("RegisterPage", () => {
 
   it("shows error when passphrase is shorter than 8 characters", async () => {
     renderPage();
-    fillForm({ passphrase: "short", confirmPassphrase: "short" });
+    fillForm({ passphrase: SHORT_PASSPHRASE, confirmPassphrase: SHORT_PASSPHRASE });
     fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
 
     await waitFor(() => {
@@ -209,7 +217,7 @@ describe("RegisterPage", () => {
 
   it("shows error when passphrases do not match", async () => {
     renderPage();
-    fillForm({ confirmPassphrase: "different-passphrase" });
+    fillForm({ confirmPassphrase: MISMATCHED_PASSPHRASE });
     fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
 
     await waitFor(() => {
@@ -242,7 +250,7 @@ describe("RegisterPage", () => {
       expect(mockRegister).toHaveBeenCalledWith(
         expect.objectContaining({
           email: "test@example.com",
-          password: "StrongPass1!",
+          password: VALID_PW,
           encryption_salt: "test-salt-base64",
           language: "en",
         }),
@@ -282,8 +290,8 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
 
     await waitFor(() => {
-      expect(mockDeriveKey).toHaveBeenCalledWith("my-passphrase-12", "test-salt-base64");
-      expect(mockHashPassphrase).toHaveBeenCalledWith("my-passphrase-12");
+      expect(mockDeriveKey).toHaveBeenCalledWith(VALID_PASSPHRASE, "test-salt-base64");
+      expect(mockHashPassphrase).toHaveBeenCalledWith(VALID_PASSPHRASE);
       expect(mockSetMasterKey).toHaveBeenCalled();
       expect(mockSetPassphraseHash).toHaveBeenCalledWith("hashed-passphrase");
       expect(mockLoadOrMigrateKeyRing).toHaveBeenCalled();
@@ -490,10 +498,10 @@ function fillForm(
 ) {
   const {
     email = "test@example.com",
-    password = "StrongPass1!",
-    confirmPassword = "StrongPass1!",
-    passphrase = "my-passphrase-12",
-    confirmPassphrase = "my-passphrase-12",
+    password = VALID_PW,
+    confirmPassword = VALID_PW,
+    passphrase = VALID_PASSPHRASE,
+    confirmPassphrase = VALID_PASSPHRASE,
     acknowledged = true,
   } = overrides;
 

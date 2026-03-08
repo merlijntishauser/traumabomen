@@ -2,6 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const TEST_PW = "mypassword";
+
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -91,7 +93,7 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "delete");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
 
     expect(screen.getByText("account.deleteButton")).toBeDisabled();
   });
@@ -118,7 +120,7 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
 
     expect(screen.getByText("account.deleteButton")).toBeEnabled();
   });
@@ -133,11 +135,11 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
     await user.click(screen.getByText("account.deleteButton"));
 
     await waitFor(() => {
-      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: "mypassword" });
+      expect(mockDeleteAccount).toHaveBeenCalledWith({ password: TEST_PW });
       expect(mockLogout).toHaveBeenCalled();
     });
   });
@@ -152,7 +154,7 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
     await user.click(screen.getByText("account.deleteButton"));
 
     await waitFor(() => {
@@ -171,7 +173,7 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "DELETE");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
     await user.click(screen.getByText("account.deleteButton"));
 
     await waitFor(() => {
@@ -222,7 +224,7 @@ describe("DeleteAccountSection", () => {
     await user.click(button);
 
     await user.type(screen.getByPlaceholderText("account.deleteConfirmLabel"), "Delete");
-    await user.type(screen.getByPlaceholderText("account.deletePassword"), "mypassword");
+    await user.type(screen.getByPlaceholderText("account.deletePassword"), TEST_PW);
 
     // "Delete" !== "DELETE", so button should be disabled
     expect(screen.getByText("account.deleteButton")).toBeDisabled();
