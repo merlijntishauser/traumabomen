@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
@@ -66,5 +66,43 @@ describe("RelationshipPopover", () => {
   it("renders cancel button", () => {
     render(<RelationshipPopover {...defaultProps} />);
     expect(screen.getByText("common.cancel")).toBeInTheDocument();
+  });
+
+  it("calls onClose when backdrop is clicked", () => {
+    const onClose = vi.fn();
+    const { container } = render(<RelationshipPopover {...defaultProps} onClose={onClose} />);
+    fireEvent.click(container.querySelector(".relationship-popover")!);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("does not call onClose when card is clicked (stopPropagation)", () => {
+    const onClose = vi.fn();
+    const { container } = render(<RelationshipPopover {...defaultProps} onClose={onClose} />);
+    fireEvent.click(container.querySelector(".relationship-popover__card")!);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("calls onSwap when swap button is clicked", () => {
+    const onSwap = vi.fn();
+    render(<RelationshipPopover {...defaultProps} onSwap={onSwap} />);
+    fireEvent.click(screen.getByText("relationship.swap"));
+    expect(onSwap).toHaveBeenCalled();
+  });
+
+  it("calls onSelect with the relationship type when an option is clicked", () => {
+    const onSelect = vi.fn();
+    render(<RelationshipPopover {...defaultProps} onSelect={onSelect} />);
+    const options = screen
+      .getAllByRole("button")
+      .filter((btn) => btn.classList.contains("relationship-popover__option"));
+    fireEvent.click(options[0]);
+    expect(onSelect).toHaveBeenCalledWith(Object.values(RelationshipType)[0]);
+  });
+
+  it("calls onClose when cancel button is clicked", () => {
+    const onClose = vi.fn();
+    render(<RelationshipPopover {...defaultProps} onClose={onClose} />);
+    fireEvent.click(screen.getByText("common.cancel"));
+    expect(onClose).toHaveBeenCalled();
   });
 });
