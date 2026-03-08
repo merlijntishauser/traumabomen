@@ -132,9 +132,7 @@ function _computeLayout(
 
   // Add sibling group nodes and edges
   const sgNodes = siblingGroups ? buildSiblingGroupNodes(siblingGroups, graph) : [];
-  const sgEdges = siblingGroups
-    ? buildSiblingGroupEdges(siblingGroups, relationships, graph)
-    : [];
+  const sgEdges = siblingGroups ? buildSiblingGroupEdges(siblingGroups, relationships, graph) : [];
 
   return {
     nodes: [...personNodes, ...sgNodes],

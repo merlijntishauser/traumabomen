@@ -22,13 +22,13 @@ import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
-import SiblingGroupNode from "../components/tree/SiblingGroupNode";
-import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import { RelationshipPopover } from "../components/tree/RelationshipPopover";
 import { RelationshipPrompt } from "../components/tree/RelationshipPrompt";
+import SiblingGroupNode from "../components/tree/SiblingGroupNode";
+import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
@@ -49,7 +49,12 @@ import type {
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
-import type { Person, RelationshipData, RelationshipType, SiblingGroupMember } from "../types/domain";
+import type {
+  Person,
+  RelationshipData,
+  RelationshipType,
+  SiblingGroupMember,
+} from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
@@ -477,10 +482,7 @@ function TreeWorkspaceInner() {
   function handlePromoteMember(groupId: string, memberIndex: number) {
     const group = siblingGroups.get(groupId);
     if (!group) return;
-    promoteMember.mutate(
-      { group, memberIndex },
-      { onSuccess: () => setOpenSiblingGroupId(null) },
-    );
+    promoteMember.mutate({ group, memberIndex }, { onSuccess: () => setOpenSiblingGroupId(null) });
   }
 
   function handleSaveRelationship(relationshipId: string, data: RelationshipData) {

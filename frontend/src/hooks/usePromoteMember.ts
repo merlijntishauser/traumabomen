@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEncryption } from "../contexts/useEncryption";
 import { syncTree } from "../lib/api";
-import type { Person, RelationshipData, SiblingGroupData, SiblingGroupMember } from "../types/domain";
+import type {
+  Person,
+  RelationshipData,
+  SiblingGroupData,
+  SiblingGroupMember,
+} from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import type { DecryptedSiblingGroup } from "./useTreeData";
 import { treeQueryKeys } from "./useTreeData";

@@ -11,7 +11,9 @@
   background: var(--color-bg-secondary);
   opacity: 0.85;
   cursor: pointer;
-  transition: border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .sibling-group-node:hover {

@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedSiblingGroup } from "../../hooks/useTreeData";
-import SiblingGroupNode from "./SiblingGroupNode";
 import type { SiblingGroupNodeData } from "./SiblingGroupNode";
+import SiblingGroupNode from "./SiblingGroupNode";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({

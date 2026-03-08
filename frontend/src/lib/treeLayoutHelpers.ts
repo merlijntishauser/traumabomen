@@ -1,5 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 import * as dagre from "dagre";
+import type { SiblingGroupNodeData } from "../components/tree/SiblingGroupNode";
 import type { EdgeStyle } from "../hooks/useCanvasSettings";
 import type {
   DecryptedClassification,
@@ -12,7 +13,6 @@ import type {
 } from "../hooks/useTreeData";
 import { RelationshipType } from "../types/domain";
 import type { InferredSibling } from "./inferSiblings";
-import type { SiblingGroupNodeData } from "../components/tree/SiblingGroupNode";
 
 // ---- Exported types (re-exported from useTreeLayout.ts) ----
 
