@@ -4,7 +4,8 @@ Two user classes:
 - TreeUser (weight=9): reads tree data, syncs mixed payloads, saves positions
 - AdminUser (weight=1): queries admin stats endpoints
 
-Loads perf_accounts.json for auth tokens and entity IDs.
+Loads perf_accounts.json for tree/entity IDs. Authenticates fresh on each
+user start to avoid expired JWT tokens.
 """
 
 import json
@@ -21,6 +22,16 @@ with ACCOUNTS_PATH.open() as f:
 
 TIERS = list(ACCOUNTS["trees"].keys())
 
+# Must match scripts/seed_perf_data.py
+PASSWORD = "PerfTest1234!"
+
+
+def _login(client, email: str) -> str:
+    """Login and return a fresh access token."""
+    resp = client.post("/auth/login", json={"email": email, "password": PASSWORD})
+    resp.raise_for_status()
+    return resp.json()["access_token"]
+
 
 class TreeUser(HttpUser):
     """Simulates a normal user interacting with tree data."""
@@ -29,8 +40,8 @@ class TreeUser(HttpUser):
     wait_time = between(0.5, 2.0)
 
     def on_start(self) -> None:
-        self.token = ACCOUNTS["user"]["token"]
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+        token = _login(self.client, ACCOUNTS["user"]["email"])
+        self.headers = {"Authorization": f"Bearer {token}"}
 
     @task(50)
     def read_tree_data(self) -> None:
@@ -127,8 +138,8 @@ class AdminUser(HttpUser):
     wait_time = between(1.0, 3.0)
 
     def on_start(self) -> None:
-        self.token = ACCOUNTS["admin"]["token"]
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+        token = _login(self.client, ACCOUNTS["admin"]["email"])
+        self.headers = {"Authorization": f"Bearer {token}"}
 
     @task(1)
     def admin_stats(self) -> None:
