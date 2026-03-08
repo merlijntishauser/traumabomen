@@ -26,12 +26,22 @@ Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, wri
 
 const STORAGE_KEY = "mentalHealthBannerDismissed";
 
+let mockLanguage = "en";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (k: string) => k,
-    i18n: { language: "en" },
+    i18n: {
+      get language() {
+        return mockLanguage;
+      },
+    },
   }),
-  Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
+  Trans: ({ i18nKey, values }: { i18nKey: string; values?: Record<string, string> }) => (
+    <span>
+      {i18nKey}
+      {values?.resource && <span data-testid="resource-name">{values.resource}</span>}
+    </span>
+  ),
 }));
 
 describe("MentalHealthBanner", () => {
@@ -79,5 +89,19 @@ describe("MentalHealthBanner", () => {
     render(<MentalHealthBanner />);
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("uses Dutch resource when language is nl", () => {
+    mockLanguage = "nl";
+    render(<MentalHealthBanner />);
+    expect(screen.getByTestId("resource-name").textContent).toBe("Wij zijn Mind");
+    mockLanguage = "en";
+  });
+
+  it("falls back to English resource for unsupported language", () => {
+    mockLanguage = "fr";
+    render(<MentalHealthBanner />);
+    expect(screen.getByTestId("resource-name").textContent).toBe("Crisis Text Line");
+    mockLanguage = "en";
   });
 });
