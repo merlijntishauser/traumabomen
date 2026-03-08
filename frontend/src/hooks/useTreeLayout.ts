@@ -7,6 +7,8 @@ import {
   buildJunctionForks,
   buildPersonNodes,
   buildRelationshipEdges,
+  buildSiblingGroupEdges,
+  buildSiblingGroupNodes,
   computeCoupleColors,
   findFriendOnlyIds,
   layoutDagreGraph,
@@ -20,6 +22,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedSiblingGroup,
   DecryptedTurningPoint,
 } from "./useTreeData";
 
@@ -30,6 +33,7 @@ export type {
   PersonNodeType,
   RelationshipEdgeData,
   RelationshipEdgeType,
+  SiblingGroupNodeType,
 } from "../lib/treeLayoutHelpers";
 export { MARKER_SHAPES, NODE_HEIGHT, NODE_WIDTH } from "../lib/treeLayoutHelpers";
 
@@ -42,6 +46,7 @@ export function useTreeLayout(
   canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
   turningPoints?: Map<string, DecryptedTurningPoint>,
+  siblingGroups?: Map<string, DecryptedSiblingGroup>,
 ): ReturnType<typeof _computeLayout> {
   return useMemo(
     () =>
@@ -54,6 +59,7 @@ export function useTreeLayout(
         canvasSettings,
         classifications,
         turningPoints,
+        siblingGroups,
       ),
     [
       persons,
@@ -64,6 +70,7 @@ export function useTreeLayout(
       canvasSettings,
       classifications,
       turningPoints,
+      siblingGroups,
     ],
   );
 }
@@ -77,6 +84,7 @@ function _computeLayout(
   canvasSettings?: Pick<CanvasSettings, "edgeStyle" | "showMarkers">,
   classifications?: Map<string, DecryptedClassification>,
   turningPoints?: Map<string, DecryptedTurningPoint>,
+  siblingGroups?: Map<string, DecryptedSiblingGroup>,
 ) {
   if (persons.size === 0) {
     return { nodes: [], edges: [] };
@@ -85,10 +93,16 @@ function _computeLayout(
   const friendOnlyIds = findFriendOnlyIds(persons, relationships);
   const { bioParentsOf, coupleChildren } = buildBioParentData(relationships);
   const inferred = inferSiblings(relationships);
-  const { graph } = layoutDagreGraph(persons, relationships, friendOnlyIds, inferred);
+  const { graph } = layoutDagreGraph(
+    persons,
+    relationships,
+    friendOnlyIds,
+    inferred,
+    siblingGroups,
+  );
   const friendPositions = positionFriendNodes(persons, relationships, friendOnlyIds, graph);
   const lookups = buildEntityLookups(events, lifeEvents, classifications, turningPoints);
-  const { nodes, nodeCenter } = buildPersonNodes(
+  const { nodes: personNodes, nodeCenter } = buildPersonNodes(
     persons,
     graph,
     friendOnlyIds,
@@ -103,7 +117,7 @@ function _computeLayout(
     persons,
   );
   const { childCoupleColor, useCoupleColors } = computeCoupleColors(bioParentsOf);
-  const edges = buildRelationshipEdges({
+  const relEdges = buildRelationshipEdges({
     relationships,
     persons,
     nodeCenter,
@@ -114,9 +128,18 @@ function _computeLayout(
     inferred,
     edgeStyle: canvasSettings?.edgeStyle,
   });
-  adjustEdgeOverlaps(edges, nodeCenter, canvasSettings?.showMarkers !== false);
+  adjustEdgeOverlaps(relEdges, nodeCenter, canvasSettings?.showMarkers !== false);
 
-  return { nodes, edges };
+  // Add sibling group nodes and edges
+  const sgNodes = siblingGroups ? buildSiblingGroupNodes(siblingGroups, graph) : [];
+  const sgEdges = siblingGroups
+    ? buildSiblingGroupEdges(siblingGroups, relationships, graph)
+    : [];
+
+  return {
+    nodes: [...personNodes, ...sgNodes],
+    edges: [...relEdges, ...sgEdges],
+  };
 }
 
 const EDGE_VISIBILITY_MAP: Record<

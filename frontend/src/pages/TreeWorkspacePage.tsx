@@ -22,6 +22,7 @@ import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { PatternConnectors } from "../components/tree/PatternConnectors";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
+import SiblingGroupNode from "../components/tree/SiblingGroupNode";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
@@ -38,14 +39,18 @@ import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
 import type { DecryptedPerson } from "../hooks/useTreeData";
 import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
-import type { PersonNodeType, RelationshipEdgeType } from "../hooks/useTreeLayout";
+import type {
+  PersonNodeType,
+  RelationshipEdgeType,
+  SiblingGroupNodeType,
+} from "../hooks/useTreeLayout";
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
 import type { Person, RelationshipData, RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
-const nodeTypes = { person: PersonNode };
+const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
 const edgeTypes = { relationship: RelationshipEdge };
 
 const NODE_W = 180;
@@ -97,7 +102,7 @@ function findFreePosition(
 function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
-  const { fitView, screenToFlowPosition } = useReactFlow<PersonNodeType, RelationshipEdgeType>();
+  const { fitView, screenToFlowPosition } = useReactFlow();
   const queryClient = useQueryClient();
   const location = useLocation();
   const openPatternId = (location.state as { openPatternId?: string } | null)?.openPatternId;
@@ -130,6 +135,7 @@ function TreeWorkspaceInner() {
     turningPoints,
     classifications,
     patterns,
+    siblingGroups,
     isLoading,
     error,
   } = treeData;
@@ -171,6 +177,7 @@ function TreeWorkspaceInner() {
     layoutSettings,
     classifications,
     turningPoints,
+    siblingGroups,
   );
 
   const edges = useMemo(
@@ -190,8 +197,10 @@ function TreeWorkspaceInner() {
     ],
   );
 
+  type AnyNodeType = PersonNodeType | SiblingGroupNodeType;
+
   // Local node state that accepts both layout updates and drag changes
-  const [nodes, setNodes] = useState<PersonNodeType[]>([]);
+  const [nodes, setNodes] = useState<AnyNodeType[]>([]);
   const prevNodeIdsRef = useRef("");
   const prevEdgeCountRef = useRef(0);
   const prevNodeCountRef = useRef(0);
@@ -226,7 +235,7 @@ function TreeWorkspaceInner() {
     });
   }, [layoutNodes, edges.length]);
 
-  const onNodesChange: OnNodesChange<PersonNodeType> = useCallback((changes) => {
+  const onNodesChange: OnNodesChange<AnyNodeType> = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
@@ -267,7 +276,10 @@ function TreeWorkspaceInner() {
   }, [selectedPersonId, relationshipPromptPersonId]);
 
   const onNodeClick = useCallback(
-    (event: React.MouseEvent, node: PersonNodeType) => {
+    (event: React.MouseEvent, node: AnyNodeType) => {
+      // Sibling group nodes are not selectable as persons
+      if (node.type === "siblingGroup") return;
+
       const badge = (event.target as HTMLElement).closest(
         "[data-badge-type]",
       ) as HTMLElement | null;
@@ -317,7 +329,8 @@ function TreeWorkspaceInner() {
   );
 
   const handleNodeDragStart = useCallback(
-    (_: React.MouseEvent, node: PersonNodeType) => {
+    (_: React.MouseEvent, node: AnyNodeType) => {
+      if (node.type === "siblingGroup") return;
       const person = persons.get(node.id);
       if (!person) return;
       const snapshot: PositionSnapshot = new Map([[node.id, person.position]]);
@@ -327,7 +340,8 @@ function TreeWorkspaceInner() {
   );
 
   const handleNodeDragStop = useCallback(
-    (_: React.MouseEvent, node: PersonNodeType) => {
+    (_: React.MouseEvent, node: AnyNodeType) => {
+      if (node.type === "siblingGroup") return;
       const person = persons.get(node.id);
       if (!person) return;
 

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { DecryptedSiblingGroup } from "../../hooks/useTreeData";
 import "./SiblingGroupNode.css";
 
-export interface SiblingGroupNodeData {
+export interface SiblingGroupNodeData extends Record<string, unknown> {
   group: DecryptedSiblingGroup;
 }
 

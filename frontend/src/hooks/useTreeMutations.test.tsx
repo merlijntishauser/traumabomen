@@ -482,7 +482,7 @@ describe("person mutations", () => {
     expect(mockedApi.deletePerson).toHaveBeenCalledWith(TREE_ID, "p-1");
   });
 
-  it("deletePerson invalidates 7 query keys on success", async () => {
+  it("deletePerson invalidates 8 query keys on success", async () => {
     mockedApi.deletePerson.mockResolvedValue(undefined);
 
     const wrapper = createWrapper();
@@ -515,8 +515,11 @@ describe("person mutations", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["trees", TREE_ID, "patterns"],
     });
-    // Exactly 7 invalidation calls
-    expect(invalidateSpy).toHaveBeenCalledTimes(7);
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["trees", TREE_ID, "siblingGroups"],
+    });
+    // Exactly 8 invalidation calls
+    expect(invalidateSpy).toHaveBeenCalledTimes(8);
   });
 });
 

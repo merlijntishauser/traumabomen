@@ -7,10 +7,12 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedSiblingGroup,
   DecryptedTurningPoint,
 } from "../hooks/useTreeData";
 import { RelationshipType } from "../types/domain";
 import type { InferredSibling } from "./inferSiblings";
+import type { SiblingGroupNodeData } from "../components/tree/SiblingGroupNode";
 
 // ---- Exported types (re-exported from useTreeLayout.ts) ----
 
@@ -46,12 +48,15 @@ export interface RelationshipEdgeData extends Record<string, unknown> {
 }
 
 export type PersonNodeType = Node<PersonNodeData, "person">;
+export type SiblingGroupNodeType = Node<SiblingGroupNodeData, "siblingGroup">;
 export type RelationshipEdgeType = Edge<RelationshipEdgeData>;
 
 // ---- Constants ----
 
 export const NODE_WIDTH = 180;
 export const NODE_HEIGHT = 80;
+export const SIBLING_GROUP_NODE_WIDTH = 140;
+export const SIBLING_GROUP_NODE_HEIGHT = 50;
 
 export const PARENT_TYPES = new Set([
   RelationshipType.BiologicalParent,
@@ -257,11 +262,27 @@ function addRelationshipEdges(
   return partnerPairs;
 }
 
+/** Build child-to-parents lookup from parent-type relationships. */
+function buildChildToParents(
+  relationships: Map<string, DecryptedRelationship>,
+): Map<string, string[]> {
+  const childToParents = new Map<string, string[]>();
+  for (const rel of relationships.values()) {
+    if (PARENT_TYPES.has(rel.type)) {
+      const parents = childToParents.get(rel.target_person_id) ?? [];
+      parents.push(rel.source_person_id);
+      childToParents.set(rel.target_person_id, parents);
+    }
+  }
+  return childToParents;
+}
+
 export function layoutDagreGraph(
   persons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
   friendOnlyIds: Set<string>,
   inferredSiblings?: InferredSibling[],
+  siblingGroups?: Map<string, DecryptedSiblingGroup>,
 ): DagreResult {
   const g = new dagre.graphlib.Graph();
   g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 100 });
@@ -274,6 +295,37 @@ export function layoutDagreGraph(
   }
 
   const partnerPairs = addRelationshipEdges(g, relationships, inferredSiblings);
+
+  // Add sibling group nodes before layout
+  if (siblingGroups) {
+    const childToParents = buildChildToParents(relationships);
+    for (const group of siblingGroups.values()) {
+      if (group.person_ids.length === 0) continue;
+      const nodeId = `sibling-group-${group.id}`;
+      g.setNode(nodeId, {
+        width: SIBLING_GROUP_NODE_WIDTH,
+        height: SIBLING_GROUP_NODE_HEIGHT,
+      });
+
+      let connected = false;
+      for (const pid of group.person_ids) {
+        const parents = childToParents.get(pid);
+        if (parents) {
+          for (const parentId of parents) {
+            if (g.hasNode(parentId)) {
+              g.setEdge(parentId, nodeId);
+              connected = true;
+              break;
+            }
+          }
+        }
+        if (connected) break;
+      }
+      if (!connected && g.hasNode(group.person_ids[0])) {
+        g.setEdge(group.person_ids[0], nodeId, { minlen: 0 });
+      }
+    }
+  }
 
   dagre.layout(g);
 
@@ -782,4 +834,72 @@ export function adjustEdgeOverlaps(
   if (showMarkers) {
     assignMarkerShapes(edges, sideGroups);
   }
+}
+
+/** Extract sibling group node positions from the laid-out dagre graph. */
+export function buildSiblingGroupNodes(
+  siblingGroups: Map<string, DecryptedSiblingGroup>,
+  graph: dagre.graphlib.Graph,
+): SiblingGroupNodeType[] {
+  const nodes: SiblingGroupNodeType[] = [];
+  for (const group of siblingGroups.values()) {
+    if (group.person_ids.length === 0) continue;
+    const nodeId = `sibling-group-${group.id}`;
+    const pos = graph.node(nodeId);
+    if (!pos) continue;
+    nodes.push({
+      id: nodeId,
+      type: "siblingGroup",
+      position: {
+        x: pos.x - SIBLING_GROUP_NODE_WIDTH / 2,
+        y: pos.y - SIBLING_GROUP_NODE_HEIGHT / 2,
+      },
+      data: { group },
+    });
+  }
+  return nodes;
+}
+
+/** Build dashed edges connecting sibling group nodes to their parent/anchor. */
+export function buildSiblingGroupEdges(
+  siblingGroups: Map<string, DecryptedSiblingGroup>,
+  relationships: Map<string, DecryptedRelationship>,
+  graph: dagre.graphlib.Graph,
+): Edge[] {
+  const edges: Edge[] = [];
+  const childToParents = buildChildToParents(relationships);
+
+  for (const group of siblingGroups.values()) {
+    if (group.person_ids.length === 0) continue;
+    const nodeId = `sibling-group-${group.id}`;
+    if (!graph.node(nodeId)) continue;
+
+    let sourceId: string | null = null;
+    for (const pid of group.person_ids) {
+      const parents = childToParents.get(pid);
+      if (parents) {
+        for (const parentId of parents) {
+          if (graph.hasNode(parentId)) {
+            sourceId = parentId;
+            break;
+          }
+        }
+      }
+      if (sourceId) break;
+    }
+    if (!sourceId) sourceId = group.person_ids[0];
+
+    edges.push({
+      id: `edge-sg-${group.id}`,
+      source: sourceId,
+      target: nodeId,
+      style: {
+        stroke: "var(--color-edge-default)",
+        strokeDasharray: "6 3",
+        opacity: 0.5,
+      },
+    });
+  }
+
+  return edges;
 }

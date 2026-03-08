@@ -113,6 +113,15 @@ vi.mock("../lib/api", () => ({
       }),
     },
   ]),
+  getSiblingGroups: vi.fn().mockResolvedValue([
+    {
+      id: "sg1",
+      person_ids: ["p1"],
+      encrypted_data: JSON.stringify({
+        members: [{ name: "Sibling", birth_year: 1985 }],
+      }),
+    },
+  ]),
   getJournalEntries: vi.fn().mockResolvedValue([
     {
       id: "j1",
@@ -146,6 +155,7 @@ describe("useTreeData", () => {
     expect(result.current.turningPoints.size).toBe(0);
     expect(result.current.classifications.size).toBe(0);
     expect(result.current.patterns.size).toBe(0);
+    expect(result.current.siblingGroups.size).toBe(0);
     expect(result.current.journalEntries.size).toBe(0);
     expect(result.current.isLoading).toBe(true);
   });
@@ -226,6 +236,18 @@ describe("useTreeData", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.patterns.size).toBe(1);
     expect(result.current.patterns.get("pat1")?.name).toBe("Test Pattern");
+  });
+
+  it("decrypts and returns sibling groups after loading", async () => {
+    const { result } = renderHook(() => useTreeData("tree1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.siblingGroups.size).toBe(1);
+    const sg = result.current.siblingGroups.get("sg1");
+    expect(sg?.members).toHaveLength(1);
+    expect(sg?.members[0].name).toBe("Sibling");
+    expect(sg?.person_ids).toEqual(["p1"]);
   });
 
   it("decrypts and returns journal entries after loading", async () => {
