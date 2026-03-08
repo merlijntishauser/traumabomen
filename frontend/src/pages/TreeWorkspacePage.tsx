@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { BranchDecoration } from "../components/BranchDecoration";
+import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { PatternConnectors } from "../components/tree/PatternConnectors";

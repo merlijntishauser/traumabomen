@@ -24,7 +24,7 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("../BranchDecoration", () => ({
+vi.mock("../tree/BranchDecoration", () => ({
   BranchDecoration: () => <div data-testid="branch-decoration" />,
 }));
 

@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { BranchDecoration } from "../BranchDecoration";
+import { BranchDecoration } from "./BranchDecoration";
 
 describe("BranchDecoration", () => {
   it("renders an SVG element", () => {

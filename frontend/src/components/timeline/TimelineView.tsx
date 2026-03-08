@@ -10,7 +10,7 @@ import type {
   DecryptedRelationship,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { BranchDecoration } from "../BranchDecoration";
+import { BranchDecoration } from "../tree/BranchDecoration";
 import { TimelineAgeContent } from "./TimelineAgeContent";
 import { INITIAL_TOOLTIP, TimelineTooltip, type TooltipState } from "./TimelineTooltip";
 import { TimelineYearsContent } from "./TimelineYearsContent";
