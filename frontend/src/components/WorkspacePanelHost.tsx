@@ -1,6 +1,6 @@
 import type { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import type { SelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
-import type { useTreeData } from "../hooks/useTreeData";
+import type { DecryptedSiblingGroup, useTreeData } from "../hooks/useTreeData";
 import type { WorkspacePanelState } from "../hooks/useWorkspacePanels";
 import { JournalPanel } from "./journal/JournalPanel";
 import { PatternPanel } from "./tree/PatternPanel";
@@ -18,6 +18,9 @@ export interface WorkspacePanelHostProps {
   showReflectionPrompts: boolean;
   showPersonPanel?: boolean;
   onClosePatternPanel?: () => void;
+  siblingGroup?: DecryptedSiblingGroup | null;
+  onCreateSiblingGroup?: () => void;
+  onOpenSiblingGroup?: (groupId: string) => void;
 }
 
 export function WorkspacePanelHost({
@@ -32,6 +35,9 @@ export function WorkspacePanelHost({
   showReflectionPrompts,
   showPersonPanel = true,
   onClosePatternPanel,
+  siblingGroup,
+  onCreateSiblingGroup,
+  onOpenSiblingGroup,
 }: WorkspacePanelHostProps) {
   const { persons, events, lifeEvents, turningPoints, classifications, patterns, journalEntries } =
     treeData;
@@ -72,6 +78,9 @@ export function WorkspacePanelHost({
           }}
           showReflectionPrompts={showReflectionPrompts}
           onOpenJournal={panels.openJournal}
+          siblingGroup={siblingGroup}
+          onCreateSiblingGroup={onCreateSiblingGroup}
+          onOpenSiblingGroup={onOpenSiblingGroup}
         />
       )}
 

@@ -7,6 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedSiblingGroup,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
@@ -125,6 +126,9 @@ interface PersonDetailPanelProps {
   entityHandlers: EntityHandlers;
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
+  siblingGroup?: DecryptedSiblingGroup | null;
+  onCreateSiblingGroup?: () => void;
+  onOpenSiblingGroup?: (groupId: string) => void;
 }
 
 export function PersonDetailPanel({
@@ -142,6 +146,9 @@ export function PersonDetailPanel({
   entityHandlers,
   showReflectionPrompts,
   onOpenJournal,
+  siblingGroup,
+  onCreateSiblingGroup,
+  onOpenSiblingGroup,
 }: PersonDetailPanelProps) {
   const { onSavePerson, onDeletePerson, onSaveRelationship, onClose } = handlers;
   const {
@@ -267,6 +274,9 @@ export function PersonDetailPanel({
             inferredSiblings={inferredSiblings}
             allPersons={allPersons}
             onSaveRelationship={onSaveRelationship}
+            siblingGroup={siblingGroup}
+            onCreateSiblingGroup={onCreateSiblingGroup}
+            onOpenSiblingGroup={onOpenSiblingGroup}
           />
         )}
         {activeTab === "events" && (
