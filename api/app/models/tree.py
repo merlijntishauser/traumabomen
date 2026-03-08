@@ -47,3 +47,6 @@ class Tree(Base):
     journal_entries: Mapped[list[JournalEntry]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    sibling_groups: Mapped[list[SiblingGroup]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )
