@@ -341,6 +341,42 @@ describe("computeInsights", () => {
       expect(res!.titleValues.count).toBe(1);
     });
 
+    it("does not count turning point with unparseable date", () => {
+      const input = emptyInput();
+      input.persons.set("p1", makePerson("p1"));
+      input.events.set("e1", makeEvent("e1", ["p1"], "loss", "1990"));
+      input.turningPoints.set("tp1", makeTurningPoint("tp1", ["p1"], "recovery", "unknown"));
+      input.generations.set("p1", 0);
+
+      const insights = computeInsights(input);
+      const res = insights.find((i) => i.titleKey === "insights.turningPointsFollowTrauma");
+      expect(res).toBeUndefined();
+    });
+
+    it("does not count turning point with no person ids", () => {
+      const input = emptyInput();
+      input.persons.set("p1", makePerson("p1"));
+      input.events.set("e1", makeEvent("e1", ["p1"], "loss", "1990"));
+      input.turningPoints.set("tp1", makeTurningPoint("tp1", [], "recovery", "1993"));
+      input.generations.set("p1", 0);
+
+      const insights = computeInsights(input);
+      const res = insights.find((i) => i.titleKey === "insights.turningPointsFollowTrauma");
+      expect(res).toBeUndefined();
+    });
+
+    it("does not count turning point before trauma event", () => {
+      const input = emptyInput();
+      input.persons.set("p1", makePerson("p1"));
+      input.events.set("e1", makeEvent("e1", ["p1"], "loss", "1990"));
+      input.turningPoints.set("tp1", makeTurningPoint("tp1", ["p1"], "recovery", "1985"));
+      input.generations.set("p1", 0);
+
+      const insights = computeInsights(input);
+      const res = insights.find((i) => i.titleKey === "insights.turningPointsFollowTrauma");
+      expect(res).toBeUndefined();
+    });
+
     it("does not count turning point 10 years after trauma", () => {
       const input = emptyInput();
       input.persons.set("p1", makePerson("p1"));
