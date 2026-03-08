@@ -98,10 +98,10 @@ export function RelationshipDetailPanel({
   }
 
   return (
-    <div className="detail-panel">
-      <div className="detail-panel__header">
+    <div className="panel-overlay detail-panel">
+      <div className="panel-header">
         <h2>{headerLabel}</h2>
-        <button type="button" className="detail-panel__close" onClick={onClose}>
+        <button type="button" className="panel-close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>
@@ -213,11 +213,7 @@ export function RelationshipDetailPanel({
                     {t("relationship.addPeriod")}
                   </button>
                   <div className="detail-panel__actions">
-                    <button
-                      type="button"
-                      className="detail-panel__btn detail-panel__btn--primary"
-                      onClick={handleSavePeriods}
-                    >
+                    <button type="button" className="btn btn--primary" onClick={handleSavePeriods}>
                       {t("common.save")}
                     </button>
                   </div>

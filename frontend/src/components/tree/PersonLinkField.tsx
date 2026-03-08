@@ -38,7 +38,7 @@ export function PersonLinkField({ allPersons, selectedIds, onChange }: PersonLin
         {showNames && <span className="detail-panel__person-link-names">{selectedNames}</span>}
         <button
           type="button"
-          className="detail-panel__btn detail-panel__btn--small"
+          className="btn detail-panel__btn--small"
           onClick={() => setExpanded(!expanded)}
         >
           {t("pattern.linkEntity")}

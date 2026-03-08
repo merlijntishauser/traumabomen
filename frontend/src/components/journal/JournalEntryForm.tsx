@@ -230,13 +230,13 @@ export function JournalEntryForm({
       <div className="journal-form__actions">
         <button
           type="button"
-          className="detail-panel__btn detail-panel__btn--primary"
+          className="btn btn--primary"
           onClick={handleSave}
           disabled={!text.trim()}
         >
           {t("journal.save")}
         </button>
-        <button type="button" className="detail-panel__btn" onClick={onCancel}>
+        <button type="button" className="btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
         {onDelete && (

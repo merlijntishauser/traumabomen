@@ -91,7 +91,7 @@ export function JournalEntryList({
     <div className="journal-list" data-testid="journal-entry-list">
       <button
         type="button"
-        className="detail-panel__btn detail-panel__btn--primary journal-list__new-btn"
+        className="btn btn--primary journal-list__new-btn"
         onClick={() => setEditingId("new")}
       >
         <Plus size={14} />

@@ -311,11 +311,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
       </label>
       <div className="detail-panel__actions">
-        <button
-          type="button"
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSavePerson}
-        >
+        <button type="button" className="btn btn--primary" onClick={handleSavePerson}>
           {t("person.save")}
         </button>
         <ConfirmDeleteButton

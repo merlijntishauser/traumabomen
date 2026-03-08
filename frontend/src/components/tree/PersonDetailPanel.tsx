@@ -190,7 +190,7 @@ export function PersonDetailPanel({
   }
 
   return (
-    <div className="detail-panel">
+    <div className="panel-overlay detail-panel">
       <div className="detail-panel__person-header">
         <div className="detail-panel__person-info">
           <h2 className="detail-panel__person-name">{person.name}</h2>
@@ -198,7 +198,7 @@ export function PersonDetailPanel({
             <span className="detail-panel__person-years">{formatYears()}</span>
           )}
         </div>
-        <button type="button" className="detail-panel__close" onClick={onClose}>
+        <button type="button" className="panel-close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>

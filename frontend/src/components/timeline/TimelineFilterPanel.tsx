@@ -280,8 +280,8 @@ export function TimelineFilterPanel({
   const { modeToggleClass, modeToggleLabel, nextMode } = computeModeToggle(filters.filterMode, t);
 
   return (
-    <div className="detail-panel tl-filter-panel">
-      <div className="detail-panel__header">
+    <div className="panel-overlay detail-panel tl-filter-panel">
+      <div className="panel-header">
         <h2>{t("timeline.filters")}</h2>
         <div className="tl-filter-panel__header-actions">
           {actions.activeFilterCount > 0 && (
@@ -296,7 +296,7 @@ export function TimelineFilterPanel({
           >
             {modeToggleLabel}
           </button>
-          <button type="button" className="detail-panel__close" onClick={onClose}>
+          <button type="button" className="panel-close" onClick={onClose}>
             {t("common.close")}
           </button>
         </div>

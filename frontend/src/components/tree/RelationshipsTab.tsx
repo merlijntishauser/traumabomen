@@ -133,7 +133,7 @@ export function RelationshipsTab({
           {siblingGroup && onOpenSiblingGroup ? (
             <button
               type="button"
-              className="detail-panel__btn detail-panel__btn--secondary"
+              className="btn detail-panel__btn--secondary"
               onClick={() => onOpenSiblingGroup(siblingGroup.id)}
             >
               {t("siblingGroup.edit", {
@@ -144,7 +144,7 @@ export function RelationshipsTab({
           ) : onCreateSiblingGroup ? (
             <button
               type="button"
-              className="detail-panel__btn detail-panel__btn--secondary"
+              className="btn detail-panel__btn--secondary"
               onClick={onCreateSiblingGroup}
             >
               {t("siblingGroup.add")}
@@ -271,14 +271,10 @@ function PartnerPeriodEditor({
         {t("relationship.addPeriod")}
       </button>
       <div className="detail-panel__actions">
-        <button
-          type="button"
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button type="button" className="btn btn--primary" onClick={handleSave}>
           {t(T_SAVE)}
         </button>
-        <button type="button" className="detail-panel__btn" onClick={onCancel}>
+        <button type="button" className="btn" onClick={onCancel}>
           {t(T_CANCEL)}
         </button>
       </div>

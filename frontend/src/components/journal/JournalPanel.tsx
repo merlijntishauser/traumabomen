@@ -53,10 +53,10 @@ export function JournalPanel({
   );
 
   return (
-    <div className="journal-panel" data-testid="journal-panel">
-      <div className="journal-panel__header">
+    <div className="panel-overlay journal-panel" data-testid="journal-panel">
+      <div className="panel-header">
         <h2>{t("journal.title")}</h2>
-        <button type="button" className="journal-panel__close" onClick={onClose}>
+        <button type="button" className="panel-close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>

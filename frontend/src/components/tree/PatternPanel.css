@@ -1,26 +1,8 @@
 .pattern-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
   width: 400px;
-  height: 100%;
-  background: var(--color-bg-secondary);
-  border-left: 1px solid var(--color-border-primary);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-  overflow: hidden;
-  animation: slide-in-right 0.25s ease-out;
 }
 
-.pattern-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-primary);
-}
+/* header: uses shared .panel-header */
 
 .pattern-panel__header h2 {
   margin: 0;
@@ -34,20 +16,7 @@
   align-items: center;
 }
 
-.pattern-panel__close {
-  background: none;
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--color-text-primary);
-  transition: var(--transition-colors);
-}
-
-.pattern-panel__close:hover {
-  background: var(--color-bg-hover);
-}
+/* close button: uses shared .panel-close */
 
 .pattern-panel__content {
   flex: 1;
@@ -339,39 +308,7 @@
   margin-top: 4px;
 }
 
-.pattern-panel__btn {
-  padding: 6px 14px;
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  cursor: pointer;
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  transition: var(--transition-colors);
-}
-
-.pattern-panel__btn:hover {
-  background: var(--color-bg-hover);
-}
-
-.pattern-panel__btn--primary {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  border-color: var(--color-accent);
-}
-
-.pattern-panel__btn--primary:hover {
-  background: var(--color-accent-hover);
-}
-
-.pattern-panel__btn--danger {
-  color: var(--color-danger);
-  border-color: var(--color-danger-border);
-}
-
-.pattern-panel__btn--danger:hover {
-  background: var(--color-danger-bg);
-}
+/* buttons: base uses shared .btn, variants below */
 
 .pattern-panel__btn--add {
   width: 100%;

@@ -1,25 +1,10 @@
 .sibling-group-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
   width: 400px;
-  height: 100%;
-  background: var(--color-bg-secondary);
-  border-left: 1px solid var(--color-border-primary);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
   z-index: 11;
-  overflow: hidden;
-  animation: slide-in-right 0.25s ease-out;
 }
 
 .sibling-group-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .sibling-group-panel__header h3 {
@@ -31,20 +16,7 @@
   color: var(--color-accent);
 }
 
-.sibling-group-panel__close {
-  background: none;
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--color-text-primary);
-  transition: var(--transition-colors);
-}
-
-.sibling-group-panel__close:hover {
-  background: var(--color-bg-hover);
-}
+/* close button: uses shared .panel-close */
 
 .sibling-group-panel__count {
   padding: 8px 16px;

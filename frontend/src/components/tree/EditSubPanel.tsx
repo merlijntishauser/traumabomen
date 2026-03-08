@@ -38,7 +38,7 @@ export function EditSubPanel({
         <span className="detail-panel__sub-title">{title}</span>
         <button
           type="button"
-          className="detail-panel__close"
+          className="panel-close"
           onClick={onBack}
           aria-label={t("common.close")}
         >
@@ -51,20 +51,12 @@ export function EditSubPanel({
       {hasFooter && (
         <div className="detail-panel__sub-footer">
           {onSave && (
-            <button
-              type="button"
-              className="detail-panel__btn detail-panel__btn--primary"
-              onClick={onSave}
-            >
+            <button type="button" className="btn btn--primary" onClick={onSave}>
               {t("common.save")}
             </button>
           )}
           {onDelete && (
-            <button
-              type="button"
-              className="detail-panel__btn detail-panel__btn--danger"
-              onClick={handleDelete}
-            >
+            <button type="button" className="btn btn--danger" onClick={handleDelete}>
               {confirmDelete ? `${resolvedDeleteLabel}?` : resolvedDeleteLabel}
             </button>
           )}

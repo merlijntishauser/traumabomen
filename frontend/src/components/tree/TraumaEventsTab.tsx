@@ -88,7 +88,7 @@ export function TraumaEventsTab({
       ))}
       <button
         type="button"
-        className="detail-panel__btn detail-panel__btn--secondary"
+        className="btn detail-panel__btn--secondary"
         onClick={() => setShowNew(true)}
       >
         {t("trauma.newEvent")}
@@ -190,11 +190,7 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
         onChange={setSelectedPersonIds}
       />
       <div className="detail-panel__actions">
-        <button
-          type="button"
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button type="button" className="btn btn--primary" onClick={handleSave}>
           {t(T_SAVE)}
         </button>
         {onDelete && (

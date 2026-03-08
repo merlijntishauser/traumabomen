@@ -251,7 +251,7 @@ describe("WorkspacePanelHost", () => {
         showReflectionPrompts={false}
       />,
     );
-    const closeBtn = container.querySelector(".detail-panel__close");
+    const closeBtn = container.querySelector(".panel-close");
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
     expect(setSelectedPersonId).toHaveBeenCalledWith(null);
@@ -270,7 +270,7 @@ describe("WorkspacePanelHost", () => {
         showReflectionPrompts={false}
       />,
     );
-    const closeBtn = container.querySelector(".pattern-panel__close");
+    const closeBtn = container.querySelector(".panel-close");
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
     expect(setPatternPanelOpen).toHaveBeenCalledWith(false);
@@ -289,7 +289,7 @@ describe("WorkspacePanelHost", () => {
         showReflectionPrompts={false}
       />,
     );
-    const closeBtn = container.querySelector(".journal-panel__close");
+    const closeBtn = container.querySelector(".panel-close");
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
     expect(setJournalPanelOpen).toHaveBeenCalledWith(false);

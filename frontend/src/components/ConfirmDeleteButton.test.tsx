@@ -72,7 +72,7 @@ describe("ConfirmDeleteButton", () => {
 
   it("uses default className when not provided", () => {
     render(<ConfirmDeleteButton onConfirm={vi.fn()} label="Delete" confirmLabel="Sure?" />);
-    expect(screen.getByRole("button")).toHaveClass("detail-panel__btn--danger");
+    expect(screen.getByRole("button")).toHaveClass("btn--danger");
   });
 
   it("uses custom className when provided", () => {

@@ -13,7 +13,7 @@ export function ConfirmDeleteButton({
   onConfirm,
   label,
   confirmLabel,
-  className = "detail-panel__btn detail-panel__btn--danger",
+  className = "btn btn--danger",
 }: ConfirmDeleteButtonProps) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);

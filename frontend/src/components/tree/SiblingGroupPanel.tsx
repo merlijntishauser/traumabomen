@@ -58,10 +58,10 @@ export function SiblingGroupPanel({
   }
 
   return (
-    <div className="sibling-group-panel">
-      <div className="sibling-group-panel__header">
+    <div className="panel-overlay sibling-group-panel">
+      <div className="panel-header sibling-group-panel__header">
         <h3>{t("siblingGroup.title")}</h3>
-        <button type="button" className="sibling-group-panel__close" onClick={onClose}>
+        <button type="button" className="panel-close" onClick={onClose}>
           {t("common.close")}
         </button>
       </div>
@@ -168,11 +168,7 @@ export function SiblingGroupPanel({
       </div>
 
       <div className="sibling-group-panel__footer">
-        <button
-          type="button"
-          className="detail-panel__btn detail-panel__btn--primary"
-          onClick={handleSave}
-        >
+        <button type="button" className="btn btn--primary" onClick={handleSave}>
           {t("common.save")}
         </button>
         <button

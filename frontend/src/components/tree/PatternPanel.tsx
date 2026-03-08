@@ -98,18 +98,14 @@ export function PatternPanel({
   const patternList = useMemo(() => Array.from(patterns.values()), [patterns]);
 
   return (
-    <div className="pattern-panel" data-testid="pattern-panel">
-      <div className="pattern-panel__header">
+    <div className="panel-overlay pattern-panel" data-testid="pattern-panel">
+      <div className="panel-header">
         <h2>{t("pattern.patterns")}</h2>
         <div className="pattern-panel__header-actions">
-          <button
-            type="button"
-            className="pattern-panel__btn pattern-panel__btn--primary"
-            onClick={handleStartNew}
-          >
+          <button type="button" className="btn btn--primary" onClick={handleStartNew}>
             {t("pattern.newPattern")}
           </button>
-          <button type="button" className="pattern-panel__close" onClick={onClose}>
+          <button type="button" className="panel-close" onClick={onClose}>
             {t("common.close")}
           </button>
         </div>
@@ -318,7 +314,7 @@ function PatternEditForm({
 
         <button
           type="button"
-          className="pattern-panel__btn pattern-panel__btn--add"
+          className="btn pattern-panel__btn--add"
           onClick={() => setShowLinkPicker((v) => !v)}
         >
           {showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
@@ -368,13 +364,13 @@ function PatternEditForm({
       <div className="pattern-panel__form-actions">
         <button
           type="button"
-          className="pattern-panel__btn pattern-panel__btn--primary"
+          className="btn btn--primary"
           onClick={handleSave}
           disabled={!name.trim()}
         >
           {t("common.save")}
         </button>
-        <button type="button" className="pattern-panel__btn" onClick={onCancel}>
+        <button type="button" className="btn" onClick={onCancel}>
           {t("common.cancel")}
         </button>
         {onDelete && (
@@ -382,7 +378,7 @@ function PatternEditForm({
             onConfirm={onDelete}
             label={t("common.delete")}
             confirmLabel={t("pattern.confirmDelete")}
-            className="pattern-panel__btn pattern-panel__btn--danger"
+            className="btn btn--danger"
           />
         )}
       </div>
