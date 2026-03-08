@@ -772,5 +772,18 @@
   "insights.turningPointsFollowTrauma": "{{count}} keerpunten volgen op traumagebeurtenissen binnen 5 jaar",
   "insights.turningPointsFollowTraumaDetail": "Wijst op herstel of groei na tegenslag",
   "insights.cycleBreakingGenerations": "Patronen doorbroken in {{count}} generaties",
-  "insights.mostCommonTurningPoint": "Meest voorkomend keerpunt: {{category}} ({{count}} gebeurtenissen)"
+  "insights.mostCommonTurningPoint": "Meest voorkomend keerpunt: {{category}} ({{count}} gebeurtenissen)",
+
+  "siblingGroup.label": "broers/zussen ({{count}})",
+  "siblingGroup.title": "Broers en zussen",
+  "siblingGroup.section": "Broers en zussen",
+  "siblingGroup.add": "Groep toevoegen",
+  "siblingGroup.edit": "Groep bewerken ({{count}})",
+  "siblingGroup.addMember": "Toevoegen",
+  "siblingGroup.promote": "Promoveren",
+  "siblingGroup.deleteGroup": "Groep verwijderen",
+  "siblingGroup.totalCount": "{{count}} broers/zussen totaal",
+  "siblingGroup.namePlaceholder": "Naam",
+  "siblingGroup.yearPlaceholder": "Jaar",
+  "siblingGroup.unnamedSibling": "Onbenoemde broer/zus"
 }

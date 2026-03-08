@@ -773,5 +773,18 @@
   "insights.turningPointsFollowTrauma": "{{count}} turning points follow trauma events within 5 years",
   "insights.turningPointsFollowTraumaDetail": "Suggesting recovery or growth after adversity",
   "insights.cycleBreakingGenerations": "Cycle-breaking events in {{count}} generations",
-  "insights.mostCommonTurningPoint": "Most common turning point: {{category}} ({{count}} events)"
+  "insights.mostCommonTurningPoint": "Most common turning point: {{category}} ({{count}} events)",
+
+  "siblingGroup.label": "siblings ({{count}})",
+  "siblingGroup.title": "Sibling Group",
+  "siblingGroup.section": "Sibling Group",
+  "siblingGroup.add": "Add sibling group",
+  "siblingGroup.edit": "Edit sibling group ({{count}})",
+  "siblingGroup.addMember": "Add sibling",
+  "siblingGroup.promote": "Promote",
+  "siblingGroup.deleteGroup": "Delete group",
+  "siblingGroup.totalCount": "{{count}} siblings total",
+  "siblingGroup.namePlaceholder": "Name",
+  "siblingGroup.yearPlaceholder": "Year",
+  "siblingGroup.unnamedSibling": "Unnamed sibling"
 }
