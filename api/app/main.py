@@ -18,6 +18,7 @@ from app.routers.life_events import router as life_events_router
 from app.routers.patterns import router as patterns_router
 from app.routers.persons import router as persons_router
 from app.routers.relationships import router as relationships_router
+from app.routers.sibling_groups import router as sibling_groups_router
 from app.routers.sync import router as sync_router
 from app.routers.trees import router as trees_router
 from app.routers.turning_points import router as turning_points_router
@@ -88,6 +89,7 @@ app.include_router(classifications_router)
 app.include_router(patterns_router)
 app.include_router(sync_router)
 app.include_router(turning_points_router)
+app.include_router(sibling_groups_router)
 app.include_router(waitlist_router)
 
 if _settings.ENABLE_TEST_RESET:
