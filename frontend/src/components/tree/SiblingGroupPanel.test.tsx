@@ -111,7 +111,7 @@ describe("SiblingGroupPanel", () => {
     await user.click(addButton);
 
     // Should now have 3 name inputs (2 original + 1 new empty)
-    const nameInputs = screen.getAllByPlaceholderText("siblingGroup.namePlaceholder");
+    const nameInputs = screen.getAllByLabelText("person.name");
     expect(nameInputs).toHaveLength(3);
 
     // Total count should update: 3 members + 0 other person_ids = 3
@@ -193,11 +193,11 @@ describe("SiblingGroupPanel", () => {
     render(<SiblingGroupPanel {...props} />);
 
     // Set gender on first member (Alice)
-    const genderSelects = screen.getAllByDisplayValue("person.gender");
+    const genderSelects = screen.getAllByLabelText("person.gender");
     await user.selectOptions(genderSelects[0], "female");
 
     // Set death year on first member
-    const deathYearInputs = screen.getAllByPlaceholderText("siblingGroup.deathYearPlaceholder");
+    const deathYearInputs = screen.getAllByLabelText("person.deathYear");
     await user.type(deathYearInputs[0], "2020");
 
     await user.click(screen.getByText("common.save"));

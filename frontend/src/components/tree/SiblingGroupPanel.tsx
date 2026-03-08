@@ -97,40 +97,47 @@ export function SiblingGroupPanel({
             className="sibling-group-panel__card sibling-group-panel__card--member"
           >
             <div className="sibling-group-panel__card-main">
-              <div className="sibling-group-panel__card-inputs">
-                <input
-                  type="text"
-                  className="sibling-group-panel__input-name"
-                  value={member.name}
-                  onChange={(e) => handleNameChange(index, e.target.value)}
-                  placeholder={t("siblingGroup.namePlaceholder")}
-                />
-                <input
-                  type="number"
-                  className="sibling-group-panel__input-year"
-                  value={member.birth_year ?? ""}
-                  onChange={(e) => handleFieldChange(index, "birth_year", e.target.value)}
-                  placeholder={t("siblingGroup.yearPlaceholder")}
-                />
+              <div className="sibling-group-panel__card-row">
+                <label className="detail-panel__field" style={{ flex: 1 }}>
+                  <span>{t("person.name")}</span>
+                  <input
+                    type="text"
+                    value={member.name}
+                    onChange={(e) => handleNameChange(index, e.target.value)}
+                  />
+                </label>
+                <label className="detail-panel__field">
+                  <span>{t("person.gender")}</span>
+                  <select
+                    value={member.gender ?? ""}
+                    onChange={(e) => handleFieldChange(index, "gender", e.target.value)}
+                  >
+                    <option value="">---</option>
+                    <option value="male">{t("person.male")}</option>
+                    <option value="female">{t("person.female")}</option>
+                    <option value="other">{t("person.other")}</option>
+                  </select>
+                </label>
               </div>
-              <div className="sibling-group-panel__card-extras">
-                <select
-                  className="sibling-group-panel__select-gender"
-                  value={member.gender ?? ""}
-                  onChange={(e) => handleFieldChange(index, "gender", e.target.value)}
-                >
-                  <option value="">{t("person.gender")}</option>
-                  <option value="male">{t("person.male")}</option>
-                  <option value="female">{t("person.female")}</option>
-                  <option value="other">{t("person.other")}</option>
-                </select>
-                <input
-                  type="number"
-                  className="sibling-group-panel__input-year"
-                  value={member.death_year ?? ""}
-                  onChange={(e) => handleFieldChange(index, "death_year", e.target.value)}
-                  placeholder={t("siblingGroup.deathYearPlaceholder")}
-                />
+              <div className="sibling-group-panel__card-row">
+                <label className="detail-panel__field">
+                  <span>{t("person.birthYear")}</span>
+                  <input
+                    type="number"
+                    value={member.birth_year ?? ""}
+                    onChange={(e) => handleFieldChange(index, "birth_year", e.target.value)}
+                    placeholder="---"
+                  />
+                </label>
+                <label className="detail-panel__field">
+                  <span>{t("person.deathYear")}</span>
+                  <input
+                    type="number"
+                    value={member.death_year ?? ""}
+                    onChange={(e) => handleFieldChange(index, "death_year", e.target.value)}
+                    placeholder="---"
+                  />
+                </label>
               </div>
             </div>
             <div className="sibling-group-panel__card-actions">
