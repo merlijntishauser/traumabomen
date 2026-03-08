@@ -246,6 +246,35 @@ describe("computeInsights", () => {
       expect(dense).toBeDefined();
     });
 
+    it("skips classification when person has no birth year for diagnosis age", () => {
+      const input = emptyInput();
+      input.persons.set("p1", makePerson("p1", { birth_year: null }));
+      input.persons.set("p2", makePerson("p2", { birth_year: 1970 }));
+      input.persons.set("p3", makePerson("p3", { birth_year: 1975 }));
+      input.classifications.set(
+        "c1",
+        makeClassification("c1", ["p1"], "anxiety", { diagnosis_year: 1990 }),
+      );
+      input.classifications.set(
+        "c2",
+        makeClassification("c2", ["p2"], "depressive", { diagnosis_year: 2000 }),
+      );
+      input.classifications.set(
+        "c3",
+        makeClassification("c3", ["p3"], "depressive", { diagnosis_year: 2005 }),
+      );
+      input.generations.set("p1", 0);
+      input.generations.set("p2", 1);
+      input.generations.set("p3", 1);
+
+      const insights = computeInsights(input);
+      const avg = insights.find((i) => i.titleKey === "insights.averageDiagnosisAge");
+      expect(avg).toBeDefined();
+      // p1 skipped (no birth_year), only p2 (age 30) and p3 (age 30)
+      expect(avg!.titleValues.age).toBe(30);
+      expect(avg!.detailValues.count).toBe(2);
+    });
+
     it("produces average diagnosis age from 2+ persons", () => {
       const input = emptyInput();
       input.persons.set("p1", makePerson("p1", { birth_year: 1960 }));
@@ -371,6 +400,21 @@ describe("computeInsights", () => {
       input.events.set("e1", makeEvent("e1", ["p1"], "loss", "1990"));
       input.turningPoints.set("tp1", makeTurningPoint("tp1", ["p1"], "recovery", "1985"));
       input.generations.set("p1", 0);
+
+      const insights = computeInsights(input);
+      const res = insights.find((i) => i.titleKey === "insights.turningPointsFollowTrauma");
+      expect(res).toBeUndefined();
+    });
+
+    it("skips trauma events belonging to a different person", () => {
+      const input = emptyInput();
+      input.persons.set("p1", makePerson("p1"));
+      input.persons.set("p2", makePerson("p2"));
+      // Trauma event belongs to p2, turning point belongs to p1
+      input.events.set("e1", makeEvent("e1", ["p2"], "loss", "1990"));
+      input.turningPoints.set("tp1", makeTurningPoint("tp1", ["p1"], "recovery", "1993"));
+      input.generations.set("p1", 0);
+      input.generations.set("p2", 0);
 
       const insights = computeInsights(input);
       const res = insights.find((i) => i.titleKey === "insights.turningPointsFollowTrauma");
