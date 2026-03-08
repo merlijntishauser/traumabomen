@@ -299,7 +299,7 @@
 }
 
 .welcome-card__btn--accent {
-  border-color: rgba(45, 138, 94, 0.3);
+  border-color: var(--color-accent-border);
   color: var(--color-accent);
 }
 
@@ -318,7 +318,7 @@
   line-height: 1.4;
   color: var(--color-accent);
   background: var(--color-accent-subtle);
-  border: 1px solid rgba(45, 138, 94, 0.25);
+  border: 1px solid var(--color-accent-border);
   border-radius: var(--radius-sm);
   vertical-align: middle;
 }

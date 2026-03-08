@@ -127,11 +127,11 @@
 }
 
 .pattern-view__card-entity-dot--turning-point {
-  background: var(--color-turning-point, #10b981);
+  background: var(--color-turning-point);
 }
 
 .pattern-view__card-entity-dot--classification {
-  background: var(--color-warning, #f59e0b);
+  background: var(--color-warning);
 }
 
 .pattern-view__card-more {

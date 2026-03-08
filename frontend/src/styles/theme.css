@@ -36,7 +36,21 @@
 
   /* Warning + Success */
   --color-warning: #f59e0b;
+  --color-warning-bg: rgba(251, 191, 36, 0.1);
+  --color-warning-border: rgba(251, 191, 36, 0.3);
   --color-success: #22c55e;
+
+  /* Info (blue) */
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(56, 189, 248, 0.1);
+  --color-info-border: rgba(56, 189, 248, 0.3);
+
+  /* Accent border (translucent accent for borders) */
+  --color-accent-border: rgba(45, 138, 94, 0.3);
+
+  /* Danger solid (filled danger buttons) */
+  --color-danger-solid: #b91c1c;
+  --color-danger-solid-hover: #991b1b;
 
   /* Edges */
   --color-edge-default: #8faa97;
@@ -69,6 +83,9 @@
   --color-life-health: #f472b6;
   --color-life-medication: #22d3ee;
   --color-life-other: #94a3b8;
+
+  /* Turning point */
+  --color-turning-point: #10b981;
 
   /* Turning point categories */
   --color-tp-cycle-breaking: #34d399;
@@ -147,7 +164,18 @@
   --color-danger-bg: rgba(220, 38, 38, 0.06);
   --color-danger-border: rgba(220, 38, 38, 0.2);
   --color-warning: #d97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.06);
+  --color-warning-border: rgba(217, 119, 6, 0.2);
   --color-success: #16a34a;
+
+  --color-info: #0284c7;
+  --color-info-bg: rgba(2, 132, 199, 0.06);
+  --color-info-border: rgba(2, 132, 199, 0.2);
+
+  --color-accent-border: rgba(74, 155, 181, 0.3);
+
+  --color-danger-solid: #b91c1c;
+  --color-danger-solid-hover: #991b1b;
 
   --color-edge-default: #5a6e5f;
   --color-edge-partner: #db2777;
@@ -174,6 +202,8 @@
   --color-life-health: #db2777;
   --color-life-medication: #0891b2;
   --color-life-other: #64748b;
+
+  --color-turning-point: #059669;
 
   --color-tp-cycle-breaking: #059669;
   --color-tp-protective-relationship: #2563eb;

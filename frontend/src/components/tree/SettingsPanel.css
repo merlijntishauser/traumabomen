@@ -153,7 +153,7 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  background: #fff;
+  background: var(--color-text-inverse);
   border-radius: 50%;
   transition: transform 0.2s;
 }
@@ -220,29 +220,29 @@
 }
 
 .settings-panel__btn--danger {
-  color: #fff;
-  background: #b91c1c;
-  border-color: #b91c1c;
+  color: var(--color-text-inverse);
+  background: var(--color-danger-solid);
+  border-color: var(--color-danger-solid);
 }
 
 .settings-panel__btn--danger:hover:not(:disabled) {
-  background: #991b1b;
+  background: var(--color-danger-solid-hover);
 }
 
 .settings-panel__section--danger {
-  border-top: 2px solid #b91c1c;
-  background: rgba(185, 28, 28, 0.05);
+  border-top: 2px solid var(--color-danger-solid);
+  background: var(--color-danger-bg);
 }
 
 .settings-panel__warning {
   font-size: 11px;
-  color: #d97706;
+  color: var(--color-warning);
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
 .settings-panel__section--danger .settings-panel__warning {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .settings-panel__message {
@@ -252,11 +252,11 @@
 }
 
 .settings-panel__message--success {
-  color: #16a34a;
+  color: var(--color-success);
 }
 
 .settings-panel__message--error {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .settings-panel__progress {

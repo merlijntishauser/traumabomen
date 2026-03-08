@@ -96,12 +96,12 @@
 
 .app-footer__btn--feedback {
   gap: 4px;
-  border-color: rgba(236, 72, 153, 0.3);
+  border-color: color-mix(in srgb, var(--color-edge-partner) 30%, transparent);
   color: var(--color-edge-partner);
 }
 
 .app-footer__btn--feedback:hover {
-  background: rgba(236, 72, 153, 0.08);
+  background: color-mix(in srgb, var(--color-edge-partner) 8%, transparent);
   color: var(--color-edge-partner);
 }
 

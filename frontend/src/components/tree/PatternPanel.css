@@ -237,7 +237,7 @@
 }
 
 .pattern-panel__entity-type-icon--turning-point {
-  background: var(--color-turning-point, #10b981);
+  background: var(--color-turning-point);
   clip-path: polygon(
     50% 0%,
     61% 35%,
@@ -257,7 +257,7 @@
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-bottom: 10px solid var(--color-warning, #f59e0b);
+  border-bottom: 10px solid var(--color-warning);
 }
 
 .pattern-panel__entity-label {

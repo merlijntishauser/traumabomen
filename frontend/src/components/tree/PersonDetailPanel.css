@@ -203,7 +203,7 @@
 }
 
 .detail-panel__segment--active .detail-panel__segment-badge {
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in srgb, var(--color-text-inverse) 25%, transparent);
   color: var(--color-text-inverse);
 }
 
@@ -561,13 +561,13 @@ fieldset.detail-panel__field {
 }
 
 .detail-panel__status-pill--suspected {
-  background-color: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
+  background-color: color-mix(in srgb, var(--color-classification-suspected) 15%, transparent);
+  color: var(--color-classification-suspected);
 }
 
 .detail-panel__status-pill--diagnosed {
-  background-color: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background-color: color-mix(in srgb, var(--color-classification-diagnosed) 15%, transparent);
+  color: var(--color-classification-diagnosed);
 }
 
 .detail-panel__classification-category {
