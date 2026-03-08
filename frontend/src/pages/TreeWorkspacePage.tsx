@@ -23,6 +23,7 @@ import { PatternConnectors } from "../components/tree/PatternConnectors";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import SiblingGroupNode from "../components/tree/SiblingGroupNode";
+import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
 import { RelationshipDetailPanel } from "../components/tree/RelationshipDetailPanel";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
@@ -35,9 +36,10 @@ import { useExportTree } from "../hooks/useExportTree";
 import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
+import { usePromoteMember } from "../hooks/usePromoteMember";
 import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
 import type { DecryptedPerson } from "../hooks/useTreeData";
-import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
+import { filterByPerson, treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type {
   PersonNodeType,
@@ -45,9 +47,9 @@ import type {
   SiblingGroupNodeType,
 } from "../hooks/useTreeLayout";
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
-import { useTreeMutations } from "../hooks/useTreeMutations";
+import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
-import type { Person, RelationshipData, RelationshipType } from "../types/domain";
+import type { Person, RelationshipData, RelationshipType, SiblingGroupMember } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
@@ -258,6 +260,7 @@ function TreeWorkspaceInner() {
         panels.setPatternPanelOpen(false);
         panels.setJournalPanelOpen(false);
         setRelationshipPromptPersonId(null);
+        setOpenSiblingGroupId(null);
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -422,6 +425,63 @@ function TreeWorkspaceInner() {
     onPersonDeleted: () => setSelectedPersonId(null),
     onPersonSaved: () => setSelectedPersonId(null),
   });
+
+  // --- Sibling group panel state and handlers ---
+  const [openSiblingGroupId, setOpenSiblingGroupId] = useState<string | null>(null);
+  const promoteMember = usePromoteMember(treeId!);
+
+  const siblingGroupHandlers = useMemo(
+    () => linkedEntityHandlers(mutations.siblingGroups),
+    [mutations.siblingGroups],
+  );
+
+  const selectedPersonSiblingGroup = useMemo(() => {
+    if (!selectedPersonId) return null;
+    const groups = filterByPerson(siblingGroups, selectedPersonId);
+    return groups.length > 0 ? groups[0] : null;
+  }, [selectedPersonId, siblingGroups]);
+
+  const openSiblingGroup = openSiblingGroupId
+    ? (siblingGroups.get(openSiblingGroupId) ?? null)
+    : null;
+
+  function handleCreateSiblingGroup() {
+    if (!selectedPersonId) return;
+    mutations.siblingGroups.create.mutate(
+      { personIds: [selectedPersonId], data: { members: [] } },
+      {
+        onSuccess: (response) => {
+          setOpenSiblingGroupId((response as { id: string }).id);
+        },
+      },
+    );
+  }
+
+  function handleOpenSiblingGroup(groupId: string) {
+    setOpenSiblingGroupId(groupId);
+  }
+
+  function handleSaveSiblingGroup(
+    groupId: string,
+    members: SiblingGroupMember[],
+    personIds: string[],
+  ) {
+    siblingGroupHandlers.save(groupId, { members }, personIds);
+  }
+
+  function handleDeleteSiblingGroup(groupId: string) {
+    siblingGroupHandlers.remove(groupId);
+    setOpenSiblingGroupId(null);
+  }
+
+  function handlePromoteMember(groupId: string, memberIndex: number) {
+    const group = siblingGroups.get(groupId);
+    if (!group) return;
+    promoteMember.mutate(
+      { group, memberIndex },
+      { onSuccess: () => setOpenSiblingGroupId(null) },
+    );
+  }
 
   function handleSaveRelationship(relationshipId: string, data: RelationshipData) {
     mutations.updateRelationship.mutate({ relationshipId, data });
@@ -642,7 +702,20 @@ function TreeWorkspaceInner() {
           initialExpandedPatternId={openPatternId}
           initialEntityId={initialEntityId ?? undefined}
           showReflectionPrompts={canvasSettings.showReflectionPrompts}
+          siblingGroup={selectedPersonSiblingGroup}
+          onCreateSiblingGroup={handleCreateSiblingGroup}
+          onOpenSiblingGroup={handleOpenSiblingGroup}
         />
+
+        {openSiblingGroup && (
+          <SiblingGroupPanel
+            group={openSiblingGroup}
+            onSave={handleSaveSiblingGroup}
+            onDelete={handleDeleteSiblingGroup}
+            onPromote={handlePromoteMember}
+            onClose={() => setOpenSiblingGroupId(null)}
+          />
+        )}
       </div>
 
       {pendingConnection && (
