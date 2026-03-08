@@ -285,8 +285,10 @@ function TreeWorkspaceInner() {
 
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: AnyNodeType) => {
-      // Sibling group nodes are not selectable as persons
-      if (node.type === "siblingGroup") return;
+      if (node.type === "siblingGroup") {
+        setOpenSiblingGroupId(node.id.replace("sibling-group-", ""));
+        return;
+      }
 
       const badge = (event.target as HTMLElement).closest(
         "[data-badge-type]",
