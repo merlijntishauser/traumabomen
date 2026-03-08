@@ -47,11 +47,11 @@ async def _find_conflicting_person_ids(
         return set()
 
     query = (
-        select(SiblingGroupPerson.person_id)  # type: ignore[attr-defined]
+        select(SiblingGroupPerson.person_id)
         .join(SiblingGroup, SiblingGroupPerson.sibling_group_id == SiblingGroup.id)  # type: ignore[attr-defined]
         .where(
             SiblingGroup.tree_id == tree_id,
-            SiblingGroupPerson.person_id.in_(person_ids),  # type: ignore[attr-defined]
+            SiblingGroupPerson.person_id.in_(person_ids),
         )
     )
     if exclude_group_id is not None:

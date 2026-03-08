@@ -18,18 +18,30 @@ class Base(DeclarativeBase):
     pass
 
 
+class JunctionModel(Base):
+    """Abstract base for person junction tables.
+
+    Declares ``person_id`` so mypy can resolve class-level attribute access
+    on dynamically generated junction models.
+    """
+
+    __abstract__ = True
+
+    person_id: Mapped[uuid.UUID]
+
+
 def make_junction_model(
     class_name: str,
     table_name: str,
     entity_fk_name: str,
     entity_table: str,
-) -> type[Base]:
+) -> type[JunctionModel]:
     """Create a junction table model linking an entity to persons.
 
-    Returns a real SQLAlchemy mapped class (subclass of Base) that Alembic
-    can detect for autogenerate migrations. The class has two composite
-    primary key columns: ``entity_fk_name`` -> ``entity_table.id`` and
-    ``person_id`` -> ``persons.id``, both with CASCADE deletes.
+    Returns a real SQLAlchemy mapped class (subclass of JunctionModel) that
+    Alembic can detect for autogenerate migrations. The class has two
+    composite primary key columns: ``entity_fk_name`` -> ``entity_table.id``
+    and ``person_id`` -> ``persons.id``, both with CASCADE deletes.
     """
     entity_fk_col: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(f"{entity_table}.id", ondelete="CASCADE"), primary_key=True
@@ -40,7 +52,7 @@ def make_junction_model(
 
     cls = type(
         class_name,
-        (Base,),
+        (JunctionModel,),
         {
             "__tablename__": table_name,
             "__annotations__": {
