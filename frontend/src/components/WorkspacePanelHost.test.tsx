@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import type { SelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
@@ -216,5 +216,82 @@ describe("WorkspacePanelHost", () => {
       />,
     );
     expect(screen.getByText("journal.title")).toBeInTheDocument();
+  });
+
+  it("calls setSelectedPersonId(null) when PersonDetailPanel close is clicked", () => {
+    const setSelectedPersonId = vi.fn();
+    const persons = new Map<string, DecryptedPerson>([
+      [
+        "p1",
+        {
+          id: "p1",
+          name: "Alice",
+          birth_year: 1990,
+          birth_month: null,
+          birth_day: null,
+          death_year: null,
+          death_month: null,
+          death_day: null,
+          cause_of_death: null,
+          gender: "female",
+          is_adopted: false,
+          notes: null,
+        } as DecryptedPerson,
+      ],
+    ]);
+    const treeData = { ...createMockTreeData(), persons };
+    const { container } = render(
+      <WorkspacePanelHost
+        panels={createMockPanels({ selectedPersonId: "p1", setSelectedPersonId })}
+        handlers={createMockHandlers()}
+        entities={createMockEntities()}
+        treeData={treeData}
+        visiblePatternIds={new Set()}
+        onTogglePatternVisibility={vi.fn()}
+        showReflectionPrompts={false}
+      />,
+    );
+    const closeBtn = container.querySelector(".detail-panel__close");
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    expect(setSelectedPersonId).toHaveBeenCalledWith(null);
+  });
+
+  it("calls setPatternPanelOpen(false) when PatternPanel close is clicked", () => {
+    const setPatternPanelOpen = vi.fn();
+    const { container } = render(
+      <WorkspacePanelHost
+        panels={createMockPanels({ patternPanelOpen: true, setPatternPanelOpen })}
+        handlers={createMockHandlers()}
+        entities={createMockEntities()}
+        treeData={createMockTreeData()}
+        visiblePatternIds={new Set()}
+        onTogglePatternVisibility={vi.fn()}
+        showReflectionPrompts={false}
+      />,
+    );
+    const closeBtn = container.querySelector(".pattern-panel__close");
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    expect(setPatternPanelOpen).toHaveBeenCalledWith(false);
+  });
+
+  it("calls setJournalPanelOpen(false) when JournalPanel close is clicked", () => {
+    const setJournalPanelOpen = vi.fn();
+    const { container } = render(
+      <WorkspacePanelHost
+        panels={createMockPanels({ journalPanelOpen: true, setJournalPanelOpen })}
+        handlers={createMockHandlers()}
+        entities={createMockEntities()}
+        treeData={createMockTreeData()}
+        visiblePatternIds={new Set()}
+        onTogglePatternVisibility={vi.fn()}
+        showReflectionPrompts={false}
+      />,
+    );
+    const closeBtn = container.querySelector(".journal-panel__close");
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    expect(setJournalPanelOpen).toHaveBeenCalledWith(false);
   });
 });
