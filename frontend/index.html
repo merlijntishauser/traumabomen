@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="__OG_LANG__" data-theme="dark">
   <head>
+    <script>
+      // Apply saved theme before first paint to prevent flash of dark theme.
+      (function () {
+        var t = localStorage.getItem("traumabomen-theme");
+        if (t === "light" || t === "watercolor") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="__OG_DESC__" />
