@@ -14,6 +14,7 @@ from app.routers.features import admin_router as admin_features_router
 from app.routers.features import router as features_router
 from app.routers.feedback import router as feedback_router
 from app.routers.journal import router as journal_router
+from app.routers.key_ring import router as key_ring_router
 from app.routers.life_events import router as life_events_router
 from app.routers.patterns import router as patterns_router
 from app.routers.persons import router as persons_router
@@ -77,6 +78,7 @@ app.include_router(admin_features_router)
 app.include_router(admin_feedback_router)
 app.include_router(admin_stats_router)
 app.include_router(auth_router)
+app.include_router(key_ring_router)
 app.include_router(trees_router)
 app.include_router(persons_router)
 app.include_router(relationships_router)
