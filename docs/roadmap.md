@@ -215,3 +215,4 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Cloud Monitoring dashboards (API latency, error rates, DB connections)
 - Read replicas for analytics queries (admin dashboard)
 - CDN for frontend assets if serving globally
+- Global events... not tied to a person, but visible in the timeline view and personal timeline. Think of COVID-19, WW-2, etc.
