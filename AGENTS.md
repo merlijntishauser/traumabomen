@@ -193,6 +193,13 @@ Multiple periods on the same edge support real-world complexity (e.g., marry, di
 
 Annotation layer linking multiple entities across generations to mark recurring themes. Supports linking trauma events, life events, and classifications. Visualized as connectors on the canvas and as cards on the dedicated pattern page.
 
+### SiblingGroup
+- `id`: UUID
+- `person_ids`: list of UUIDs (full Person nodes in this sibling group)
+- `members`: list of `{ name, birth_year }` (lightweight siblings not in the tree)
+
+Compact representation of siblings without creating full Person nodes. One group per person constraint (server-side 409). Members can be promoted to full persons via bulk sync. Renders as a pill node on the canvas.
+
 ### TurningPoint
 - `id`: UUID
 - `person_ids`: list of UUIDs (attached to one or more Persons)
@@ -259,6 +266,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/classifications`
 - `GET/POST/PUT/DELETE /trees/{id}/patterns`
 - `GET/POST/PUT/DELETE /trees/{id}/turning-points`
+- `GET/POST/PUT/DELETE /trees/{id}/sibling-groups`
 - `GET/POST/PUT/DELETE /trees/{id}/journal`
 
 ### Bulk Sync
@@ -389,6 +397,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - Admin feature toggles UI
 - Watercolor theme (teal-blue on warm cream, feature-flagged)
 - Three-theme system (dark/light/watercolor) with synchronized state
+- Sibling groups (compact sibling representation, promotion to full persons)
 
 ### Deferred
 - OAuth/social login
