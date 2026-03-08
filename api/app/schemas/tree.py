@@ -180,3 +180,18 @@ class PatternUpdate(_LinkedEntityUpdate):
 
 class PatternResponse(_LinkedEntityResponse):
     pass
+
+
+# --- SiblingGroup ---
+
+
+class SiblingGroupCreate(_LinkedEntityCreate):
+    pass
+
+
+class SiblingGroupUpdate(_LinkedEntityUpdate):
+    pass
+
+
+class SiblingGroupResponse(_LinkedEntityResponse):
+    pass
