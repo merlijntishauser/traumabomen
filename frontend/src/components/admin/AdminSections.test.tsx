@@ -32,10 +32,25 @@ vi.mock("react-i18next", () => ({
 }));
 
 // Mock d3 to avoid SVG rendering issues in JSDOM
-// Use a chainable proxy so any method chain (e.g. .attr().attr().attr()) works
+// Use a chainable proxy so any method chain (e.g. .attr().attr().attr()) works.
+// Any function argument passed to a chained method is invoked (like real D3 selections)
+// so that callbacks passed to .call(), .x(), .y(), .domain() etc. are covered.
 function chainable(): unknown {
   const proxy: unknown = new Proxy(() => proxy, {
-    get: () => () => proxy,
+    get:
+      () =>
+      (...args: unknown[]) => {
+        for (const arg of args) {
+          if (typeof arg === "function") {
+            try {
+              arg(proxy);
+            } catch {
+              // ignore errors from callbacks that expect real D3 objects
+            }
+          }
+        }
+        return proxy;
+      },
     apply: () => proxy,
   });
   return proxy;
