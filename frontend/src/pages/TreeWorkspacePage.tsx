@@ -338,6 +338,11 @@ function TreeWorkspaceInner() {
     [relationships],
   );
 
+  const siblingGroupHandlers = useMemo(
+    () => linkedEntityHandlers(mutations.siblingGroups),
+    [mutations.siblingGroups],
+  );
+
   const handleNodeDragStart = useCallback(
     (_: React.MouseEvent, node: AnyNodeType) => {
       if (node.type === "siblingGroup") return;
@@ -351,11 +356,18 @@ function TreeWorkspaceInner() {
 
   const handleNodeDragStop = useCallback(
     (_: React.MouseEvent, node: AnyNodeType) => {
-      if (node.type === "siblingGroup") return;
+      const position = { x: node.position.x, y: node.position.y };
+
+      if (node.type === "siblingGroup") {
+        const groupId = node.id.replace("sibling-group-", "");
+        const group = siblingGroups.get(groupId);
+        if (!group) return;
+        siblingGroupHandlers.save(groupId, { members: group.members, position }, group.person_ids);
+        return;
+      }
+
       const person = persons.get(node.id);
       if (!person) return;
-
-      const position = { x: node.position.x, y: node.position.y };
 
       // Optimistic cache update -- layout recomputes immediately with pinned position
       queryClient.setQueryData(
@@ -372,7 +384,7 @@ function TreeWorkspaceInner() {
       const { id, ...data } = person;
       mutations.updatePerson.mutate({ personId: id, data: { ...data, position } });
     },
-    [persons, queryClient, treeId, mutations.updatePerson],
+    [persons, siblingGroups, siblingGroupHandlers, queryClient, treeId, mutations.updatePerson],
   );
 
   function handleAddPerson() {
@@ -437,11 +449,6 @@ function TreeWorkspaceInner() {
   const [openSiblingGroupId, setOpenSiblingGroupId] = useState<string | null>(null);
   const promoteMember = usePromoteMember(treeId!);
 
-  const siblingGroupHandlers = useMemo(
-    () => linkedEntityHandlers(mutations.siblingGroups),
-    [mutations.siblingGroups],
-  );
-
   const selectedPersonSiblingGroup = useMemo(() => {
     if (!selectedPersonId) return null;
     const groups = filterByPerson(siblingGroups, selectedPersonId);
@@ -473,7 +480,8 @@ function TreeWorkspaceInner() {
     members: SiblingGroupMember[],
     personIds: string[],
   ) {
-    siblingGroupHandlers.save(groupId, { members }, personIds);
+    const group = siblingGroups.get(groupId);
+    siblingGroupHandlers.save(groupId, { members, position: group?.position }, personIds);
     setOpenSiblingGroupId(null);
   }
 

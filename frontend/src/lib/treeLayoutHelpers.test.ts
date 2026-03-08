@@ -6,6 +6,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedPerson,
   DecryptedRelationship,
+  DecryptedSiblingGroup,
   DecryptedTurningPoint,
 } from "../hooks/useTreeData";
 import {
@@ -22,6 +23,7 @@ import {
   buildJunctionForks,
   buildPersonNodes,
   buildRelationshipEdges,
+  buildSiblingGroupNodes,
   computeCoupleColors,
   computeFriendY,
   findFriendOnlyIds,
@@ -36,6 +38,8 @@ import {
   positionFriendNodes,
   type RelationshipEdgeType,
   resolveNodePosition,
+  SIBLING_GROUP_NODE_HEIGHT,
+  SIBLING_GROUP_NODE_WIDTH,
 } from "./treeLayoutHelpers";
 
 function makePerson(
@@ -1307,5 +1311,65 @@ describe("buildRelationshipEdges additional cases", () => {
       inferred: [],
     });
     expect(edges[0].data?.coupleColor).toBeUndefined();
+  });
+});
+
+// ---- buildSiblingGroupNodes ----
+
+function makeSiblingGroup(
+  id: string,
+  personIds: string[],
+  position?: { x: number; y: number },
+): DecryptedSiblingGroup {
+  return {
+    id,
+    person_ids: personIds,
+    members: [{ name: "Sib", birth_year: 1990 }],
+    position,
+  };
+}
+
+describe("buildSiblingGroupNodes", () => {
+  it("uses saved position when available", () => {
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["p1"], { x: 100, y: 200 }));
+
+    // Graph with a dagre position that should be ignored
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({});
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("sibling-group-sg1", { x: 500, y: 600, width: 140, height: 50 });
+
+    const nodes = buildSiblingGroupNodes(groups, g);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].position).toEqual({ x: 100, y: 200 });
+  });
+
+  it("falls back to dagre position when no saved position", () => {
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["p1"]));
+
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({});
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("sibling-group-sg1", { x: 500, y: 600, width: 140, height: 50 });
+
+    const nodes = buildSiblingGroupNodes(groups, g);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].position).toEqual({
+      x: 500 - SIBLING_GROUP_NODE_WIDTH / 2,
+      y: 600 - SIBLING_GROUP_NODE_HEIGHT / 2,
+    });
+  });
+
+  it("skips groups with no person_ids", () => {
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", []));
+
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({});
+
+    const nodes = buildSiblingGroupNodes(groups, g);
+    expect(nodes).toHaveLength(0);
   });
 });

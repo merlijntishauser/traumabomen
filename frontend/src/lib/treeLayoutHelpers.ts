@@ -857,6 +857,18 @@ export function buildSiblingGroupNodes(
   for (const group of siblingGroups.values()) {
     if (group.person_ids.length === 0) continue;
     const nodeId = `sibling-group-${group.id}`;
+
+    // Use saved position if available, otherwise fall back to Dagre layout
+    if (group.position) {
+      nodes.push({
+        id: nodeId,
+        type: "siblingGroup",
+        position: { x: group.position.x, y: group.position.y },
+        data: { group },
+      });
+      continue;
+    }
+
     const pos = graph.node(nodeId);
     if (!pos) continue;
     nodes.push({

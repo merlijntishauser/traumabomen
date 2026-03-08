@@ -244,6 +244,7 @@ export interface SiblingGroupMember {
 
 export interface SiblingGroupData {
   members: SiblingGroupMember[];
+  position?: { x: number; y: number };
 }
 
 export interface EncryptedBlob {
