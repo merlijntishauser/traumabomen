@@ -5,7 +5,28 @@ import { createElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { formatDate, useAdminData } from "./useAdminData";
 
-vi.mock("../lib/api");
+vi.mock("../lib/api", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    getAdminOverview: vi.fn().mockResolvedValue({}),
+    getAdminFunnel: vi.fn().mockResolvedValue({}),
+    getAdminGrowth: vi.fn().mockResolvedValue({}),
+    getAdminActivity: vi.fn().mockResolvedValue({}),
+    getAdminRetention: vi.fn().mockResolvedValue({}),
+    getAdminUsage: vi.fn().mockResolvedValue({}),
+    getAdminUsers: vi.fn().mockResolvedValue({}),
+    getAdminFeedback: vi.fn().mockResolvedValue({}),
+    getAdminWaitlist: vi.fn().mockResolvedValue({}),
+    getAdminWaitlistCapacity: vi.fn().mockResolvedValue({}),
+    getAdminFeatures: vi.fn().mockResolvedValue({}),
+    approveWaitlistEntry: vi.fn().mockResolvedValue(undefined),
+    deleteWaitlistEntry: vi.fn().mockResolvedValue(undefined),
+    markFeedbackRead: vi.fn().mockResolvedValue(undefined),
+    deleteFeedback: vi.fn().mockResolvedValue(undefined),
+    updateAdminFeature: vi.fn().mockResolvedValue(undefined),
+  };
+});
 vi.mock("./useFeatureFlags", () => ({
   featureQueryKeys: { flags: () => ["features"] },
 }));
