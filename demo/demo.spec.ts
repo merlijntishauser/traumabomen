@@ -325,27 +325,8 @@ test("Traumabomen demo walkthrough", async ({ page }) => {
 		await themeToggle.click();
 		await page.waitForTimeout(1000);
 		await voiceover(page, 2, "14-theme-light.png");
-
-		// Toggle to watercolor (may not be available if feature flag is off)
-		await themeToggle.click();
-		await page.waitForTimeout(1000);
-
-		// Check if we got watercolor or cycled back to dark
-		const currentTheme = await page.evaluate(() =>
-			document.documentElement.getAttribute("data-theme"),
-		);
-		if (currentTheme === "watercolor") {
-			await voiceover(page, 2, "15-theme-watercolor.png");
-			// Toggle back to dark for consistency
-			await themeToggle.click();
-			await page.waitForTimeout(500);
-		} else {
-			// Watercolor not available, screenshot current theme as fallback
-			await voiceover(page, 2, "15-theme-watercolor.png");
-		}
 	} else {
 		await voiceover(page, 2, "14-theme-light.png");
-		await voiceover(page, 2, "15-theme-watercolor.png");
 	}
 
 	// -----------------------------------------------------------------------

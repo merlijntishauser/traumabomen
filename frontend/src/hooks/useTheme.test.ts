@@ -102,7 +102,7 @@ describe("useTheme", () => {
   });
 
   it("falls back to dark when stored theme is not in available list", () => {
-    localStorage.setItem(STORAGE_KEY, "watercolor");
+    localStorage.setItem(STORAGE_KEY, "unknown");
     const themes: Theme[] = ["dark", "light"];
     const { result } = renderHook(() => useTheme(themes));
     expect(result.current.theme).toBe("dark");
@@ -128,7 +128,7 @@ describe("useTheme", () => {
 
     act(() => {
       // @ts-expect-error -- testing invalid theme value
-      result.current.setTheme("watercolor");
+      result.current.setTheme("unknown");
     });
     expect(result.current.theme).toBe("dark");
   });
