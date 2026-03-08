@@ -323,6 +323,44 @@ describe("computeGenerations", () => {
     expect(result.get("child")).toBe(2);
   });
 
+  it("handles partner relationship referencing a person not in the persons map", () => {
+    const persons = personsMap(makePerson("a"));
+    // "ghost" is in the partner relationship but not in the persons map
+    const rels = relsMap(makeRel("r1", RelationshipType.Partner, "a", "ghost"));
+    const result = computeGenerations(persons, rels);
+    expect(result.get("a")).toBe(0);
+    expect(result.has("ghost")).toBe(false);
+  });
+
+  it("handles parent relationship where parent is not in persons map", () => {
+    const persons = personsMap(makePerson("child"));
+    // "ghost-parent" is not in the persons map - gets filtered out in generation computation
+    const rels = relsMap(makeRel("r1", RelationshipType.BiologicalParent, "ghost-parent", "child"));
+    const result = computeGenerations(persons, rels);
+    // Child is treated as if it has no parents (ghost filtered out)
+    expect(result.has("child")).toBe(true);
+  });
+
+  it("handles child not in persons map referenced by parent relationship", () => {
+    const persons = personsMap(makePerson("parent"));
+    // Relationship references a child not in the persons map
+    const rels = relsMap(makeRel("r1", RelationshipType.BiologicalParent, "parent", "ghost-child"));
+    const result = computeGenerations(persons, rels);
+    expect(result.get("parent")).toBe(0);
+  });
+
+  it("handles co-parents where one parent is missing from persons map", () => {
+    const persons = personsMap(makePerson("parent"), makePerson("child"));
+    // Two parents listed for child, but "ghost" isn't in the persons map
+    const rels = relsMap(
+      makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"),
+      makeRel("r2", RelationshipType.BiologicalParent, "ghost", "child"),
+    );
+    const result = computeGenerations(persons, rels);
+    expect(result.get("parent")).toBe(0);
+    expect(result.get("child")).toBe(1);
+  });
+
   it("equalizes co-parents via step-parent without explicit partner relationship", () => {
     // 2nd wife is step-parent of child but has NO Partner relationship to father
     const persons = personsMap(
@@ -407,6 +445,28 @@ describe("buildRowLayout", () => {
     const layout = buildRowLayout(persons, new Map(), 1000);
     expect(layout.totalHeight).toBeGreaterThanOrEqual(1000);
   });
+
+  it("sorts persons with null birth_year after those with birth_year", () => {
+    const persons = personsMap(
+      makePerson("no-birth-1", { birth_year: null }),
+      makePerson("no-birth-2", { birth_year: null }),
+      makePerson("has-birth", { birth_year: 1980 }),
+    );
+    const layout = buildRowLayout(persons, new Map(), 400);
+
+    expect(layout.rows[0].person.id).toBe("has-birth");
+    expect(layout.rows[1].person.id).toMatch(/no-birth/);
+    expect(layout.rows[2].person.id).toMatch(/no-birth/);
+  });
+
+  it("falls back to generation 0 for persons missing from precomputed generations", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const emptyGenerations = new Map<string, number>();
+    const layout = buildRowLayout(persons, new Map(), 400, emptyGenerations);
+
+    expect(layout.rows).toHaveLength(1);
+    expect(layout.rows[0].generation).toBe(0);
+  });
 });
 
 // ---- computeTimeDomain ----
@@ -453,6 +513,42 @@ describe("computeTimeDomain", () => {
     const persons = personsMap(makePerson("a", { birth_year: 1980 }));
     const { minYear } = computeTimeDomain(persons, new Map(), new Map());
     expect(minYear).toBe(1975); // 1980 - 5
+  });
+
+  it("handles persons with null birth_year in time domain", () => {
+    const persons = personsMap(
+      makePerson("a", { birth_year: null }),
+      makePerson("b", { birth_year: 1980 }),
+    );
+    const { minYear } = computeTimeDomain(persons, new Map(), new Map());
+    expect(minYear).toBe(1975); // 1980 - 5, null birth_year skipped
+  });
+
+  it("ignores events with unparseable approximate_date", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const events = new Map<string, DecryptedEvent>([
+      ["e1", makeEvent("e1", ["a"], { approximate_date: "not-a-year" })],
+    ]);
+    const { minYear } = computeTimeDomain(persons, events, new Map());
+    expect(minYear).toBe(1975); // birth_year 1980 - 5, event ignored
+  });
+
+  it("ignores life events with unparseable approximate_date", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const lifeEvents = new Map<string, DecryptedLifeEvent>([
+      ["le1", makeLifeEvent("le1", ["a"], { approximate_date: "unknown" })],
+    ]);
+    const { minYear } = computeTimeDomain(persons, new Map(), lifeEvents);
+    expect(minYear).toBe(1975); // birth_year 1980 - 5, life event ignored
+  });
+
+  it("ignores turning points with unparseable approximate_date", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      ["tp1", makeTurningPoint("tp1", ["a"], { approximate_date: "circa 1990" })],
+    ]);
+    const { minYear } = computeTimeDomain(persons, new Map(), new Map(), turningPoints);
+    expect(minYear).toBe(1975); // birth_year 1980 - 5, turning point ignored
   });
 });
 
@@ -643,6 +739,30 @@ describe("buildColumnLayout", () => {
 
     expect(layout.columns[0].laneWidth).toBe(LANE_WIDTH);
     expect(layout.columns[1].laneWidth).toBe(LANE_WIDTH);
+  });
+
+  it("falls back to generation 0 for persons missing from generations map", () => {
+    const persons = personsMap(makePerson("a", { birth_year: 1980 }));
+    // Pass precomputed generations that deliberately omit person "a"
+    const emptyGenerations = new Map<string, number>();
+    const layout = buildColumnLayout(persons, new Map(), 800, emptyGenerations);
+
+    expect(layout.columns).toHaveLength(1);
+    expect(layout.columns[0].generation).toBe(0);
+  });
+
+  it("sorts persons with null birth_year after those with birth_year", () => {
+    const persons = personsMap(
+      makePerson("no-birth-1", { birth_year: null }),
+      makePerson("no-birth-2", { birth_year: null }),
+      makePerson("has-birth", { birth_year: 1980 }),
+    );
+    const layout = buildColumnLayout(persons, new Map(), 800);
+
+    expect(layout.columns[0].person.id).toBe("has-birth");
+    // Both null birth_year persons sorted after
+    expect(layout.columns[1].person.id).toMatch(/no-birth/);
+    expect(layout.columns[2].person.id).toMatch(/no-birth/);
   });
 });
 
