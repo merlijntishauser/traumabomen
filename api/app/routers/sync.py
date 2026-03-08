@@ -16,6 +16,7 @@ from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.pattern import Pattern, PatternPerson
 from app.models.person import Person
 from app.models.relationship import Relationship
+from app.models.sibling_group import SiblingGroup, SiblingGroupPerson
 from app.models.tree import Tree
 from app.models.turning_point import TurningPoint, TurningPointPerson
 from app.routers.crud_helpers import get_or_404, validate_persons_in_tree
@@ -76,6 +77,12 @@ _JUNCTION_ENTITY_SPECS: tuple[_EntitySpec, ...] = (
         "patterns",
         "Pattern",
         _JunctionSpec(PatternPerson, "pattern_id"),
+    ),
+    _EntitySpec(
+        model=SiblingGroup,
+        prefix="sibling_groups",
+        label="sibling group",
+        junction=_JunctionSpec(junction_model=SiblingGroupPerson, junction_fk="sibling_group_id"),
     ),
 )
 

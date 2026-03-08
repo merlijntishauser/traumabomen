@@ -17,6 +17,8 @@ from app.schemas.tree import (
     PersonUpdate,
     RelationshipCreate,
     RelationshipUpdate,
+    SiblingGroupCreate,
+    SiblingGroupUpdate,
     TurningPointCreate,
     TurningPointUpdate,
 )
@@ -90,6 +92,14 @@ class SyncJournalEntryUpdate(JournalEntryUpdate):
     id: uuid.UUID
 
 
+class SyncSiblingGroupCreate(SiblingGroupCreate):
+    id: uuid.UUID | None = None
+
+
+class SyncSiblingGroupUpdate(SiblingGroupUpdate):
+    id: uuid.UUID
+
+
 class SyncRequest(BaseModel):
     persons_create: list[SyncPersonCreate] = Field(default=[], max_length=500)
     persons_update: list[SyncPersonUpdate] = Field(default=[], max_length=500)
@@ -115,6 +125,9 @@ class SyncRequest(BaseModel):
     journal_entries_create: list[SyncJournalEntryCreate] = Field(default=[], max_length=500)
     journal_entries_update: list[SyncJournalEntryUpdate] = Field(default=[], max_length=500)
     journal_entries_delete: list[SyncDelete] = Field(default=[], max_length=500)
+    sibling_groups_create: list[SyncSiblingGroupCreate] = Field(default=[], max_length=500)
+    sibling_groups_update: list[SyncSiblingGroupUpdate] = Field(default=[], max_length=500)
+    sibling_groups_delete: list[SyncDelete] = Field(default=[], max_length=500)
 
 
 class SyncResponse(BaseModel):
@@ -126,6 +139,7 @@ class SyncResponse(BaseModel):
     turning_points_created: list[uuid.UUID] = []
     patterns_created: list[uuid.UUID] = []
     journal_entries_created: list[uuid.UUID] = []
+    sibling_groups_created: list[uuid.UUID] = []
     persons_updated: int = 0
     relationships_updated: int = 0
     events_updated: int = 0
@@ -134,6 +148,7 @@ class SyncResponse(BaseModel):
     turning_points_updated: int = 0
     patterns_updated: int = 0
     journal_entries_updated: int = 0
+    sibling_groups_updated: int = 0
     persons_deleted: int = 0
     relationships_deleted: int = 0
     events_deleted: int = 0
@@ -142,3 +157,4 @@ class SyncResponse(BaseModel):
     turning_points_deleted: int = 0
     patterns_deleted: int = 0
     journal_entries_deleted: int = 0
+    sibling_groups_deleted: int = 0

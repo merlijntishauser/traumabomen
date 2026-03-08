@@ -580,3 +580,51 @@ class TestSyncFullCycle:
         data = resp.json()
         assert len(data["persons_created"]) == 1
         assert data["persons_updated"] == 1
+
+
+@pytest.mark.asyncio
+class TestSyncSiblingGroups:
+    async def test_create_sibling_group_via_sync(self, client, headers, tree, person):
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "sibling_groups_create": [{"person_ids": [person["id"]], "encrypted_data": "enc"}]
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()["sibling_groups_created"]) == 1
+
+    async def test_update_sibling_group_via_sync(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "sibling_groups_create": [{"person_ids": [person["id"]], "encrypted_data": "old"}]
+            },
+            headers=headers,
+        )
+        gid = create.json()["sibling_groups_created"][0]
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"sibling_groups_update": [{"id": gid, "encrypted_data": "new"}]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["sibling_groups_updated"] == 1
+
+    async def test_delete_sibling_group_via_sync(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={
+                "sibling_groups_create": [{"person_ids": [person["id"]], "encrypted_data": "enc"}]
+            },
+            headers=headers,
+        )
+        gid = create.json()["sibling_groups_created"][0]
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"sibling_groups_delete": [{"id": gid}]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["sibling_groups_deleted"] == 1
