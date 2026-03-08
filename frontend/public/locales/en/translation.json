@@ -786,6 +786,7 @@
   "siblingGroup.totalCount": "{{count}} siblings total",
   "siblingGroup.namePlaceholder": "Sibling name",
   "siblingGroup.yearPlaceholder": "Birth year",
+  "siblingGroup.deathYearPlaceholder": "Death year",
   "siblingGroup.unnamedSibling": "Unnamed sibling",
   "siblingGroup.inTree": "In tree"
 }

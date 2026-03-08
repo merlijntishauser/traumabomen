@@ -785,6 +785,7 @@
   "siblingGroup.totalCount": "{{count}} broers/zussen totaal",
   "siblingGroup.namePlaceholder": "Naam broer/zus",
   "siblingGroup.yearPlaceholder": "Geboortejaar",
+  "siblingGroup.deathYearPlaceholder": "Overlijdensjaar",
   "siblingGroup.unnamedSibling": "Onbenoemde broer/zus",
   "siblingGroup.inTree": "In boom"
 }

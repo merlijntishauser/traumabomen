@@ -120,18 +120,58 @@
 /* Editable member card */
 .sibling-group-panel__card--member {
   gap: 4px;
+  align-items: flex-start;
 }
 
 .sibling-group-panel__card--member:hover {
   background: var(--color-bg-hover);
 }
 
-.sibling-group-panel__card-inputs {
+.sibling-group-panel__card-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sibling-group-panel__card-inputs {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.sibling-group-panel__card-extras {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sibling-group-panel__select-gender {
+  flex: 1 1 0;
+  padding: 2px 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  font-size: 11px;
+  font-family: var(--font-body);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
   min-width: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.sibling-group-panel__select-gender:hover {
+  border-bottom-color: var(--color-border-secondary);
+}
+
+.sibling-group-panel__select-gender:focus {
+  outline: none;
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text-primary);
 }
 
 .sibling-group-panel__input-name {

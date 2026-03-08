@@ -238,6 +238,8 @@ export interface Pattern {
 export interface SiblingGroupMember {
   name: string;
   birth_year: number | null;
+  gender?: string;
+  death_year?: number | null;
 }
 
 export interface SiblingGroupData {

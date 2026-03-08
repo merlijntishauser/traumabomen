@@ -33,11 +33,15 @@ export function SiblingGroupPanel({
     setMembers((prev) => prev.map((m, i) => (i === index ? { ...m, name } : m)));
   }
 
-  function handleYearChange(index: number, value: string) {
+  function handleFieldChange(index: number, field: string, value: string) {
     setMembers((prev) =>
-      prev.map((m, i) =>
-        i === index ? { ...m, birth_year: value ? parseInt(value, 10) : null } : m,
-      ),
+      prev.map((m, i) => {
+        if (i !== index) return m;
+        if (field === "birth_year" || field === "death_year") {
+          return { ...m, [field]: value ? parseInt(value, 10) : null };
+        }
+        return { ...m, [field]: value };
+      }),
     );
   }
 
@@ -92,21 +96,42 @@ export function SiblingGroupPanel({
             key={index}
             className="sibling-group-panel__card sibling-group-panel__card--member"
           >
-            <div className="sibling-group-panel__card-inputs">
-              <input
-                type="text"
-                className="sibling-group-panel__input-name"
-                value={member.name}
-                onChange={(e) => handleNameChange(index, e.target.value)}
-                placeholder={t("siblingGroup.namePlaceholder")}
-              />
-              <input
-                type="number"
-                className="sibling-group-panel__input-year"
-                value={member.birth_year ?? ""}
-                onChange={(e) => handleYearChange(index, e.target.value)}
-                placeholder={t("siblingGroup.yearPlaceholder")}
-              />
+            <div className="sibling-group-panel__card-main">
+              <div className="sibling-group-panel__card-inputs">
+                <input
+                  type="text"
+                  className="sibling-group-panel__input-name"
+                  value={member.name}
+                  onChange={(e) => handleNameChange(index, e.target.value)}
+                  placeholder={t("siblingGroup.namePlaceholder")}
+                />
+                <input
+                  type="number"
+                  className="sibling-group-panel__input-year"
+                  value={member.birth_year ?? ""}
+                  onChange={(e) => handleFieldChange(index, "birth_year", e.target.value)}
+                  placeholder={t("siblingGroup.yearPlaceholder")}
+                />
+              </div>
+              <div className="sibling-group-panel__card-extras">
+                <select
+                  className="sibling-group-panel__select-gender"
+                  value={member.gender ?? ""}
+                  onChange={(e) => handleFieldChange(index, "gender", e.target.value)}
+                >
+                  <option value="">{t("person.gender")}</option>
+                  <option value="male">{t("person.male")}</option>
+                  <option value="female">{t("person.female")}</option>
+                  <option value="other">{t("person.other")}</option>
+                </select>
+                <input
+                  type="number"
+                  className="sibling-group-panel__input-year"
+                  value={member.death_year ?? ""}
+                  onChange={(e) => handleFieldChange(index, "death_year", e.target.value)}
+                  placeholder={t("siblingGroup.deathYearPlaceholder")}
+                />
+              </div>
             </div>
             <div className="sibling-group-panel__card-actions">
               <button

@@ -187,6 +187,31 @@ describe("SiblingGroupPanel", () => {
     );
   });
 
+  it("saves gender and death_year when set", async () => {
+    const user = userEvent.setup();
+    const props = defaultProps();
+    render(<SiblingGroupPanel {...props} />);
+
+    // Set gender on first member (Alice)
+    const genderSelects = screen.getAllByDisplayValue("person.gender");
+    await user.selectOptions(genderSelects[0], "female");
+
+    // Set death year on first member
+    const deathYearInputs = screen.getAllByPlaceholderText("siblingGroup.deathYearPlaceholder");
+    await user.type(deathYearInputs[0], "2020");
+
+    await user.click(screen.getByText("common.save"));
+
+    expect(props.onSave).toHaveBeenCalledWith(
+      "sg1",
+      [
+        { name: "Alice", birth_year: 1990, gender: "female", death_year: 2020 },
+        { name: "Bob", birth_year: 1992 },
+      ],
+      ["p1"],
+    );
+  });
+
   it("shows fallback for unknown person ids", () => {
     const props = defaultProps();
     props.group = makeGroup({ person_ids: ["unknown-id"] });
