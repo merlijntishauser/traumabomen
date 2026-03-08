@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { DecryptedSiblingGroup } from "../../hooks/useTreeData";
+import type { DecryptedPerson, DecryptedSiblingGroup } from "../../hooks/useTreeData";
 import { SiblingGroupPanel } from "./SiblingGroupPanel";
 
 vi.mock("react-i18next", () => ({
@@ -12,6 +12,22 @@ vi.mock("react-i18next", () => ({
     },
   }),
 }));
+
+function makePerson(id: string, name: string, birthYear: number | null = null): DecryptedPerson {
+  return {
+    id,
+    name,
+    birth_year: birthYear,
+    birth_month: null,
+    birth_day: null,
+    death_year: null,
+    death_month: null,
+    death_day: null,
+    gender: "unknown",
+    is_adopted: false,
+    notes: "",
+  };
+}
 
 function makeGroup(overrides: Partial<DecryptedSiblingGroup> = {}): DecryptedSiblingGroup {
   return {
@@ -26,8 +42,11 @@ function makeGroup(overrides: Partial<DecryptedSiblingGroup> = {}): DecryptedSib
 }
 
 function defaultProps() {
+  const allPersons = new Map<string, DecryptedPerson>();
+  allPersons.set("p1", makePerson("p1", "Charlie", 1985));
   return {
     group: makeGroup(),
+    allPersons,
     onSave: vi.fn(),
     onDelete: vi.fn(),
     onPromote: vi.fn(),
@@ -36,6 +55,14 @@ function defaultProps() {
 }
 
 describe("SiblingGroupPanel", () => {
+  it("renders tree persons as read-only cards", () => {
+    render(<SiblingGroupPanel {...defaultProps()} />);
+
+    expect(screen.getByText("Charlie")).toBeInTheDocument();
+    expect(screen.getByText("1985")).toBeInTheDocument();
+    expect(screen.getByText("siblingGroup.inTree")).toBeInTheDocument();
+  });
+
   it("renders member rows with name and year inputs", () => {
     render(<SiblingGroupPanel {...defaultProps()} />);
 
@@ -97,7 +124,7 @@ describe("SiblingGroupPanel", () => {
     render(<SiblingGroupPanel {...props} />);
 
     // Click the second promote button (Bob, index 1)
-    const promoteButtons = screen.getAllByText("siblingGroup.promote");
+    const promoteButtons = screen.getAllByTitle("siblingGroup.promote");
     await user.click(promoteButtons[1]);
 
     expect(props.onPromote).toHaveBeenCalledWith("sg1", 1);
@@ -109,7 +136,7 @@ describe("SiblingGroupPanel", () => {
     render(<SiblingGroupPanel {...props} />);
 
     // Remove Alice (first remove button)
-    const removeButtons = screen.getAllByText("common.remove");
+    const removeButtons = screen.getAllByTitle("common.remove");
     await user.click(removeButtons[0]);
 
     // Alice should be gone, Bob should remain
@@ -158,5 +185,14 @@ describe("SiblingGroupPanel", () => {
       ],
       ["p1"],
     );
+  });
+
+  it("shows fallback for unknown person ids", () => {
+    const props = defaultProps();
+    props.group = makeGroup({ person_ids: ["unknown-id"] });
+    props.allPersons = new Map();
+    render(<SiblingGroupPanel {...props} />);
+
+    expect(screen.getByText("?")).toBeInTheDocument();
   });
 });

@@ -712,6 +712,7 @@ function TreeWorkspaceInner() {
         {openSiblingGroup && (
           <SiblingGroupPanel
             group={openSiblingGroup}
+            allPersons={persons}
             onSave={handleSaveSiblingGroup}
             onDelete={handleDeleteSiblingGroup}
             onPromote={handlePromoteMember}
