@@ -235,6 +235,15 @@ export interface Pattern {
   linked_entities: LinkedEntity[];
 }
 
+export interface SiblingGroupMember {
+  name: string;
+  birth_year: number | null;
+}
+
+export interface SiblingGroupData {
+  members: SiblingGroupMember[];
+}
+
 export interface EncryptedBlob {
   iv: string;
   ciphertext: string;

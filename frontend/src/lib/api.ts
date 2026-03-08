@@ -28,6 +28,9 @@ import type {
   PatternCreate,
   PatternResponse,
   PatternUpdate,
+  SiblingGroupCreate,
+  SiblingGroupResponse,
+  SiblingGroupUpdate,
   PersonCreate,
   PersonResponse,
   PersonUpdate,
@@ -433,6 +436,19 @@ export const getPattern = patternsApi.getOne;
 export const createPattern = patternsApi.create;
 export const updatePattern = patternsApi.update;
 export const deletePattern = patternsApi.remove;
+
+// Sibling Groups
+
+const siblingGroupsApi = makeCrudApi<
+  SiblingGroupResponse,
+  SiblingGroupCreate,
+  SiblingGroupUpdate
+>("sibling-groups");
+export const getSiblingGroups = siblingGroupsApi.getAll;
+export const getSiblingGroup = siblingGroupsApi.getOne;
+export const createSiblingGroup = siblingGroupsApi.create;
+export const updateSiblingGroup = siblingGroupsApi.update;
+export const deleteSiblingGroup = siblingGroupsApi.remove;
 
 // Sync
 

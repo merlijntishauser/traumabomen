@@ -194,6 +194,9 @@ export type ClassificationResponse = LinkedEntityResponse;
 export type PatternCreate = LinkedEntityCreate;
 export type PatternUpdate = LinkedEntityUpdate;
 export type PatternResponse = LinkedEntityResponse;
+export type SiblingGroupCreate = LinkedEntityCreate;
+export type SiblingGroupUpdate = LinkedEntityUpdate;
+export type SiblingGroupResponse = LinkedEntityResponse;
 
 // Admin stats
 export interface PeriodCounts {
@@ -379,6 +382,9 @@ export interface SyncRequest {
   journal_entries_create?: SyncSimpleCreate[];
   journal_entries_update?: SyncSimpleUpdate[];
   journal_entries_delete?: SyncDelete[];
+  sibling_groups_create?: SyncLinkedCreate[];
+  sibling_groups_update?: SyncLinkedUpdate[];
+  sibling_groups_delete?: SyncDelete[];
 }
 
 export interface SyncResponse {
@@ -406,6 +412,9 @@ export interface SyncResponse {
   turning_points_deleted: number;
   patterns_deleted: number;
   journal_entries_deleted: number;
+  sibling_groups_created: string[];
+  sibling_groups_updated: number;
+  sibling_groups_deleted: number;
 }
 
 // Feature flags
