@@ -9,6 +9,7 @@ import {
   getPatterns,
   getPersons,
   getRelationships,
+  getSiblingGroups,
   getTree,
   getTurningPoints,
 } from "../lib/api";
@@ -19,6 +20,7 @@ import type {
   Pattern,
   Person,
   RelationshipData,
+  SiblingGroupData,
   TraumaEvent,
   TurningPoint,
 } from "../types/domain";
@@ -58,6 +60,11 @@ export interface DecryptedPattern extends Pattern {
   person_ids: string[];
 }
 
+export interface DecryptedSiblingGroup extends SiblingGroupData {
+  id: string;
+  person_ids: string[];
+}
+
 export interface DecryptedJournalEntry extends JournalEntry {
   id: string;
   created_at: string;
@@ -82,6 +89,7 @@ export const treeQueryKeys = {
   turningPoints: (treeId: string) => ["trees", treeId, "turningPoints"] as const,
   classifications: (treeId: string) => ["trees", treeId, "classifications"] as const,
   patterns: (treeId: string) => ["trees", treeId, "patterns"] as const,
+  siblingGroups: (treeId: string) => ["trees", treeId, "siblingGroups"] as const,
   journalEntries: (treeId: string) => ["trees", treeId, "journalEntries"] as const,
 };
 
@@ -92,6 +100,7 @@ const EMPTY_LIFE_EVENTS = new Map<string, DecryptedLifeEvent>();
 const EMPTY_TURNING_POINTS = new Map<string, DecryptedTurningPoint>();
 const EMPTY_CLASSIFICATIONS = new Map<string, DecryptedClassification>();
 const EMPTY_PATTERNS = new Map<string, DecryptedPattern>();
+const EMPTY_SIBLING_GROUPS = new Map<string, DecryptedSiblingGroup>();
 const EMPTY_JOURNAL_ENTRIES = new Map<string, DecryptedJournalEntry>();
 
 type LinkedApiResponse = { id: string; person_ids: string[]; encrypted_data: string };
@@ -251,6 +260,14 @@ export function useTreeData(treeId: string) {
     hasKey,
   );
 
+  const siblingGroupsQuery = useLinkedEntityQuery<SiblingGroupData, DecryptedSiblingGroup>(
+    treeQueryKeys.siblingGroups(treeId),
+    getSiblingGroups,
+    treeId,
+    decrypt,
+    hasKey,
+  );
+
   const journalEntriesQuery = useQuery({
     queryKey: treeQueryKeys.journalEntries(treeId),
     queryFn: async () => {
@@ -293,6 +310,7 @@ export function useTreeData(treeId: string) {
     turningPointsQuery,
     classificationsQuery,
     patternsQuery,
+    siblingGroupsQuery,
     journalEntriesQuery,
   ];
 
@@ -305,6 +323,7 @@ export function useTreeData(treeId: string) {
     turningPoints: turningPointsQuery.data ?? EMPTY_TURNING_POINTS,
     classifications: classificationsQuery.data ?? EMPTY_CLASSIFICATIONS,
     patterns: patternsQuery.data ?? EMPTY_PATTERNS,
+    siblingGroups: siblingGroupsQuery.data ?? EMPTY_SIBLING_GROUPS,
     journalEntries: journalEntriesQuery.data ?? EMPTY_JOURNAL_ENTRIES,
     isLoading: allQueries.some((q) => q.isLoading),
     error: allQueries.find((q) => q.error)?.error ?? null,

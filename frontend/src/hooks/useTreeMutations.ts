@@ -8,6 +8,7 @@ import {
   createPattern,
   createPerson,
   createRelationship,
+  createSiblingGroup,
   createTurningPoint,
   deleteClassification,
   deleteEvent,
@@ -16,6 +17,7 @@ import {
   deletePattern,
   deletePerson,
   deleteRelationship,
+  deleteSiblingGroup,
   deleteTurningPoint,
   syncTree,
   updateClassification,
@@ -25,6 +27,7 @@ import {
   updatePattern,
   updatePerson,
   updateRelationship,
+  updateSiblingGroup,
   updateTurningPoint,
 } from "../lib/api";
 import type {
@@ -34,6 +37,7 @@ import type {
   Pattern,
   Person,
   RelationshipData,
+  SiblingGroupData,
   TraumaEvent,
   TurningPoint,
 } from "../types/domain";
@@ -153,6 +157,7 @@ export function useTreeMutations(treeId: string) {
         treeQueryKeys.turningPoints(treeId),
         treeQueryKeys.classifications(treeId),
         treeQueryKeys.patterns(treeId),
+        treeQueryKeys.siblingGroups(treeId),
       ]) {
         queryClient.invalidateQueries({ queryKey: key });
       }
@@ -258,6 +263,13 @@ export function useTreeMutations(treeId: string) {
     encrypt,
   );
 
+  const siblingGroups = useLinkedEntityMutations<SiblingGroupData>(
+    treeId,
+    treeQueryKeys.siblingGroups(treeId),
+    { create: createSiblingGroup, update: updateSiblingGroup, delete: deleteSiblingGroup },
+    encrypt,
+  );
+
   // --- Journal (simple: no person_ids, no optimistic) ---
 
   const createJournalEntryMutation = useMutation({
@@ -300,6 +312,7 @@ export function useTreeMutations(treeId: string) {
     turningPoints,
     classifications,
     patterns,
+    siblingGroups,
     createJournalEntry: createJournalEntryMutation,
     updateJournalEntry: updateJournalEntryMutation,
     deleteJournalEntry: deleteJournalEntryMutation,
