@@ -277,6 +277,45 @@ function buildChildToParents(
   return childToParents;
 }
 
+/** Find the first parent node present in the graph for any person in the group. */
+function findSiblingGroupParent(
+  group: DecryptedSiblingGroup,
+  childToParents: Map<string, string[]>,
+  graph: dagre.graphlib.Graph,
+): string | null {
+  for (const pid of group.person_ids) {
+    const parents = childToParents.get(pid);
+    if (!parents) continue;
+    for (const parentId of parents) {
+      if (graph.hasNode(parentId)) return parentId;
+    }
+  }
+  return null;
+}
+
+/** Add sibling group nodes to the dagre graph before layout. */
+function addSiblingGroupNodes(
+  g: dagre.graphlib.Graph,
+  siblingGroups: Map<string, DecryptedSiblingGroup>,
+  childToParents: Map<string, string[]>,
+): void {
+  for (const group of siblingGroups.values()) {
+    if (group.person_ids.length === 0) continue;
+    const nodeId = `sibling-group-${group.id}`;
+    g.setNode(nodeId, {
+      width: SIBLING_GROUP_NODE_WIDTH,
+      height: SIBLING_GROUP_NODE_HEIGHT,
+    });
+
+    const parentId = findSiblingGroupParent(group, childToParents, g);
+    if (parentId) {
+      g.setEdge(parentId, nodeId);
+    } else if (g.hasNode(group.person_ids[0])) {
+      g.setEdge(group.person_ids[0], nodeId, { minlen: 0 });
+    }
+  }
+}
+
 export function layoutDagreGraph(
   persons: Map<string, DecryptedPerson>,
   relationships: Map<string, DecryptedRelationship>,
@@ -296,35 +335,8 @@ export function layoutDagreGraph(
 
   const partnerPairs = addRelationshipEdges(g, relationships, inferredSiblings);
 
-  // Add sibling group nodes before layout
   if (siblingGroups) {
-    const childToParents = buildChildToParents(relationships);
-    for (const group of siblingGroups.values()) {
-      if (group.person_ids.length === 0) continue;
-      const nodeId = `sibling-group-${group.id}`;
-      g.setNode(nodeId, {
-        width: SIBLING_GROUP_NODE_WIDTH,
-        height: SIBLING_GROUP_NODE_HEIGHT,
-      });
-
-      let connected = false;
-      for (const pid of group.person_ids) {
-        const parents = childToParents.get(pid);
-        if (parents) {
-          for (const parentId of parents) {
-            if (g.hasNode(parentId)) {
-              g.setEdge(parentId, nodeId);
-              connected = true;
-              break;
-            }
-          }
-        }
-        if (connected) break;
-      }
-      if (!connected && g.hasNode(group.person_ids[0])) {
-        g.setEdge(group.person_ids[0], nodeId, { minlen: 0 });
-      }
-    }
+    addSiblingGroupNodes(g, siblingGroups, buildChildToParents(relationships));
   }
 
   dagre.layout(g);
@@ -874,20 +886,7 @@ export function buildSiblingGroupEdges(
     const nodeId = `sibling-group-${group.id}`;
     if (!graph.node(nodeId)) continue;
 
-    let sourceId: string | null = null;
-    for (const pid of group.person_ids) {
-      const parents = childToParents.get(pid);
-      if (parents) {
-        for (const parentId of parents) {
-          if (graph.hasNode(parentId)) {
-            sourceId = parentId;
-            break;
-          }
-        }
-      }
-      if (sourceId) break;
-    }
-    if (!sourceId) sourceId = group.person_ids[0];
+    const sourceId = findSiblingGroupParent(group, childToParents, graph) ?? group.person_ids[0];
 
     edges.push({
       id: `edge-sg-${group.id}`,
