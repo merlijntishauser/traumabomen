@@ -207,6 +207,39 @@ describe("buildSyncRequest", () => {
     expect(sync.patterns_create![0].encrypted_data).toBe("encrypted-demo-pat1");
   });
 
+  it("falls back to original id when remapIds encounters unknown id", () => {
+    uuidCounter = 0;
+    const idMap = buildIdMap(FIXTURE);
+
+    const encrypted = new Map<string, string>();
+    for (const [key] of idMap) {
+      encrypted.set(key, `encrypted-${key}`);
+    }
+
+    // Add an event with a person_id not in the fixture (so not in idMap)
+    const fixtureWithUnknown: DemoFixture = {
+      ...FIXTURE,
+      events: [
+        ...FIXTURE.events,
+        {
+          id: "demo-e1",
+          person_ids: ["unknown-person"],
+          title: "Test",
+          description: "",
+          category: "loss",
+          approximate_date: "1990",
+          severity: 5,
+          tags: [],
+        },
+      ],
+    };
+
+    const sync = buildSyncRequest(fixtureWithUnknown, idMap, encrypted);
+    const lastEvent = sync.events_create![sync.events_create!.length - 1];
+    // Unknown person_id should pass through unchanged
+    expect(lastEvent.person_ids).toContain("unknown-person");
+  });
+
   it("does not include life events in sync request", () => {
     uuidCounter = 0;
     const idMap = buildIdMap(FIXTURE);
@@ -333,5 +366,79 @@ describe("createDemoTree", () => {
     // First encrypt call is the tree name
     const treeNameArg = encrypt.mock.calls[0][0] as { name: string };
     expect(treeNameArg.name).toContain("Demo");
+  });
+
+  it("falls back to original entity id for unknown linked entity ids", async () => {
+    // Temporarily override the en fixture module with a custom fixture
+    // that has a pattern linking to an entity not defined in the fixture
+    const customFixture: DemoFixture = {
+      treeName: "Test",
+      persons: [
+        {
+          id: "p1",
+          name: "Alice",
+          birth_year: 1950,
+          death_year: null,
+          gender: "female",
+          is_adopted: false,
+          notes: "",
+        },
+      ],
+      relationships: [],
+      events: [],
+      lifeEvents: [
+        {
+          id: "le1",
+          person_ids: ["p1"],
+          title: "Marriage",
+          description: "",
+          category: "family",
+          approximate_date: "1970",
+          impact: 5,
+          tags: [],
+        },
+      ],
+      turningPoints: [],
+      classifications: [],
+      patterns: [
+        {
+          id: "pat1",
+          name: "Pattern",
+          description: "",
+          color: "#000",
+          person_ids: ["p1"],
+          linked_entities: [
+            // "le1" exists in fixture, "ext-1" does not
+            { entity_type: "life_event", entity_id: "le1" },
+            { entity_type: "event", entity_id: "ext-1" },
+          ],
+        },
+      ],
+    };
+
+    vi.doMock("../fixtures/demo-tree-en.json", () => ({ default: customFixture }));
+
+    // Re-import to pick up the mocked fixture
+    const { createDemoTree: createDemoTreeFresh } = await import("./createDemoTree");
+    const encrypt = vi
+      .fn()
+      .mockImplementation((data: unknown) => Promise.resolve(JSON.stringify(data)));
+
+    await createDemoTreeFresh(encrypt, "en");
+
+    const mockUpdatePattern = (await import("./api")).updatePattern as ReturnType<typeof vi.fn>;
+
+    // updatePattern should have been called for the pattern (it has a life_event link)
+    expect(mockUpdatePattern).toHaveBeenCalled();
+
+    // The encrypt call for the pattern fix-up should contain "ext-1" as the
+    // fallback entity_id (since it's not in idMap)
+    const patternFixCall = encrypt.mock.calls.find((call) => {
+      const arg = call[0] as { linked_entities?: { entity_id: string }[] };
+      return arg.linked_entities?.some((le) => le.entity_id === "ext-1");
+    });
+    expect(patternFixCall).toBeDefined();
+
+    vi.doUnmock("../fixtures/demo-tree-en.json");
   });
 });
