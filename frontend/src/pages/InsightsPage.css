@@ -1,14 +1,14 @@
 .insights-page {
   flex: 1;
   overflow-y: auto;
-  padding: 32px 40px;
+  padding: var(--space-8) var(--space-10);
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
 }
 
 .insights-page__header {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 
 .insights-page__title {
@@ -16,7 +16,7 @@
   font-weight: 300;
   font-size: 28px;
   color: var(--color-text-primary);
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
 }
 
 .insights-page__subtitle {
@@ -31,7 +31,7 @@
   text-align: center;
   color: var(--color-text-muted);
   font-size: 14px;
-  padding: 60px 20px;
+  padding: var(--space-15) var(--space-5);
 }
 
 /* Sections */
@@ -47,7 +47,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 
 /* Card grid */
@@ -55,12 +55,12 @@
 .insights-page__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 @media (max-width: 700px) {
   .insights-page {
-    padding: 20px 16px;
+    padding: var(--space-5) var(--space-4);
   }
 
   .insights-page__grid {
@@ -72,8 +72,8 @@
 
 .insight-card {
   display: flex;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: var(--space-3);
+  padding: var(--space-3\.5) var(--space-4);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md, 8px);
@@ -116,7 +116,7 @@
 }
 
 .insight-card__detail {
-  margin: 4px 0 0;
+  margin: var(--space-1) 0 0;
   font-size: 12px;
   color: var(--color-text-muted);
 }

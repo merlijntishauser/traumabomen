@@ -9,7 +9,7 @@
 }
 
 .timeline-empty {
-  padding: 40px 20px;
+  padding: var(--space-10) var(--space-5);
   text-align: center;
   color: var(--color-text-secondary);
   font-size: 14px;
@@ -48,7 +48,7 @@
   position: fixed;
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md);
   font-size: 12px;
@@ -195,13 +195,13 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  padding: 16px;
+  padding: var(--space-4);
   min-width: 280px;
   z-index: 20;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .tl-create-pattern__count {
@@ -212,9 +212,9 @@
 
 .tl-create-pattern__colors {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
-  margin: 4px 0;
+  margin: var(--space-1) 0;
 }
 
 .tl-create-pattern__color-dot {
@@ -232,13 +232,13 @@
 
 .tl-create-pattern__actions {
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 
 /* Annotate mode hint bar */
 .tl-annotate-hint {
-  padding: 6px 20px;
+  padding: var(--space-1\.5) var(--space-5);
   border-bottom: 1px solid var(--color-border-secondary);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
@@ -261,7 +261,7 @@
   right: 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-0\.5);
   z-index: 10;
 }
 
@@ -315,7 +315,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   min-width: 160px;
   max-width: 240px;
   z-index: 10;
@@ -326,7 +326,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .tl-summary-card__name {
@@ -358,7 +358,7 @@
 .tl-summary-card__years {
   font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: var(--space-0\.5);
 }
 
 .tl-summary-card__age {
@@ -368,8 +368,8 @@
 
 .tl-summary-card__counts {
   display: flex;
-  gap: 6px;
-  margin-top: 8px;
+  gap: var(--space-1\.5);
+  margin-top: var(--space-2);
 }
 
 .tl-summary-card__count {
@@ -378,7 +378,7 @@
   justify-content: center;
   min-width: 20px;
   height: 20px;
-  padding: 0 6px;
+  padding: 0 var(--space-1\.5);
   font-size: 11px;
   font-weight: 600;
   color: var(--color-text-primary);
@@ -405,6 +405,6 @@
 .tl-summary-card__person {
   font-size: 11px;
   color: var(--color-text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-1);
   font-style: italic;
 }

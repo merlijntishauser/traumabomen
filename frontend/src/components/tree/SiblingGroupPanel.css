@@ -4,7 +4,7 @@
 }
 
 .sibling-group-panel__header {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
 }
 
 .sibling-group-panel__header h3 {
@@ -19,7 +19,7 @@
 /* close button: uses shared .panel-close */
 
 .sibling-group-panel__count {
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-4);
   font-size: 12px;
   color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border-secondary);
@@ -28,18 +28,18 @@
 .sibling-group-panel__content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1\.5);
 }
 
 /* --- Card base --- */
 .sibling-group-panel__card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: var(--space-2\.5);
+  padding: var(--space-2) var(--space-3);
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--color-border-secondary);
@@ -60,7 +60,7 @@
   flex: 1;
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -81,7 +81,7 @@
 
 .sibling-group-panel__card-badge {
   font-size: 10px;
-  padding: 1px 6px;
+  padding: 1px var(--space-1\.5);
   border-radius: 4px;
   background: var(--color-accent-subtle);
   color: var(--color-accent);
@@ -91,7 +91,7 @@
 
 /* Editable member card */
 .sibling-group-panel__card--member {
-  gap: 4px;
+  gap: var(--space-1);
   align-items: flex-start;
 }
 
@@ -103,17 +103,17 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-0\.5);
   min-width: 0;
 }
 
 .sibling-group-panel__card-main .detail-panel__field {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 .sibling-group-panel__card-row {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .sibling-group-panel__card-row .detail-panel__field {
@@ -124,7 +124,7 @@
 /* Icon buttons */
 .sibling-group-panel__card-actions {
   display: flex;
-  gap: 2px;
+  gap: var(--space-0\.5);
   flex-shrink: 0;
 }
 
@@ -157,8 +157,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: var(--space-1\.5);
+  padding: var(--space-2\.5) var(--space-3);
   background: none;
   border: 1px dashed var(--color-border-secondary);
   border-radius: var(--radius-md);
@@ -183,15 +183,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-border-primary);
 }
 
 .sibling-group-panel__delete-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;

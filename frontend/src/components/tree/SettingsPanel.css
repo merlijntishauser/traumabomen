@@ -23,7 +23,7 @@
 
 .settings-panel__tab {
   flex: 1;
-  padding: 8px 14px;
+  padding: var(--space-2) var(--space-3\.5);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -45,14 +45,14 @@
 }
 
 .settings-panel__content {
-  padding: 6px 0;
+  padding: var(--space-1\.5) 0;
 }
 
 .settings-panel__toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 3px 14px;
+  gap: var(--space-2);
+  padding: 3px var(--space-3\.5);
   font-size: 13px;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -80,7 +80,7 @@
 }
 
 .settings-panel__group {
-  padding: 3px 14px 1px;
+  padding: 3px var(--space-3\.5) 1px;
 }
 
 .settings-panel__label {
@@ -90,19 +90,19 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  margin-bottom: 2px;
+  margin-bottom: var(--space-0\.5);
 }
 
 .settings-panel__radios {
   display: flex;
-  gap: 2px;
+  gap: var(--space-0\.5);
 }
 
 .settings-panel__radio {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px 2px 0;
+  gap: var(--space-1\.5);
+  padding: var(--space-0\.5) var(--space-2) var(--space-0\.5) 0;
   font-size: 13px;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -119,8 +119,8 @@
 .settings-panel__theme-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 14px 8px;
+  gap: var(--space-2\.5);
+  padding: var(--space-1) var(--space-3\.5) var(--space-2);
 }
 
 .settings-panel__theme-icon {
@@ -165,7 +165,7 @@
 /* Account tab */
 
 .settings-panel__section {
-  padding: 6px 14px;
+  padding: var(--space-1\.5) var(--space-3\.5);
 }
 
 .settings-panel__section-title {
@@ -176,14 +176,14 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  margin: 0 0 4px;
+  margin: 0 0 var(--space-1);
 }
 
 .settings-panel__input {
   display: block;
   width: 100%;
-  padding: 5px 8px;
-  margin-bottom: 4px;
+  padding: 5px var(--space-2);
+  margin-bottom: var(--space-1);
   font-size: 13px;
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
@@ -198,8 +198,8 @@
 }
 
 .settings-panel__btn {
-  margin-top: 2px;
-  padding: 4px 14px;
+  margin-top: var(--space-0\.5);
+  padding: var(--space-1) var(--space-3\.5);
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-primary);
@@ -237,7 +237,7 @@
 .settings-panel__warning {
   font-size: 11px;
   color: var(--color-warning);
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   line-height: 1.4;
 }
 
@@ -247,7 +247,7 @@
 
 .settings-panel__message {
   font-size: 11px;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   line-height: 1.4;
 }
 
@@ -262,29 +262,29 @@
 .settings-panel__progress {
   font-size: 11px;
   color: var(--color-accent);
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 .settings-panel__delete-confirm {
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 /* Export section */
 
 .settings-panel__export-actions {
-  padding: 4px 14px 6px;
+  padding: var(--space-1) var(--space-3\.5) var(--space-1\.5);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .settings-panel__export-confirm {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .settings-panel__export-confirm-actions {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1\.5);
 }

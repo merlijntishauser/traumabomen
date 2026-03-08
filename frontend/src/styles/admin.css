@@ -10,21 +10,21 @@
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-8);
 }
 
 .admin-loading {
   color: var(--color-text-secondary);
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
   text-align: center;
 }
 
 .admin-error {
   color: var(--color-danger);
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
   text-align: center;
 }
 
@@ -33,14 +33,14 @@
 .admin-overview {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .admin-card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 18px var(--space-5);
 }
 
 .admin-card__label {
@@ -54,14 +54,14 @@
   font-size: 28px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-top: 4px;
+  margin-top: var(--space-1);
   line-height: 1.2;
 }
 
 .admin-card__sub {
   font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 /* Section headings */
@@ -72,7 +72,7 @@
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 /* Retention cohort table */
@@ -89,7 +89,7 @@
 
 .admin-cohort-table th,
 .admin-cohort-table td {
-  padding: 6px 10px;
+  padding: var(--space-1\.5) var(--space-2\.5);
   text-align: center;
   border: 1px solid var(--color-border-secondary);
 }
@@ -112,7 +112,7 @@
 .admin-cohort-empty {
   color: var(--color-text-muted);
   font-size: 13px;
-  padding: 12px 0;
+  padding: var(--space-3) 0;
 }
 
 /* Usage histograms */
@@ -120,28 +120,28 @@
 .admin-usage {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .admin-usage-chart {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .admin-usage-chart__title {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .admin-bar-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1\.5);
 }
 
 .admin-bar-label {
@@ -181,14 +181,14 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
 }
 
 .admin-funnel-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .admin-funnel-row:last-child {
@@ -226,11 +226,11 @@
 .admin-heatmap {
   display: grid;
   grid-template-columns: 40px repeat(24, 1fr);
-  gap: 2px;
+  gap: var(--space-0\.5);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  padding: 12px;
+  padding: var(--space-3);
 }
 
 .admin-heatmap__corner {
@@ -252,7 +252,7 @@
   font-size: 11px;
   color: var(--color-text-muted);
   text-align: right;
-  padding-right: 6px;
+  padding-right: var(--space-1\.5);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -279,7 +279,7 @@
 
 .admin-users-table th,
 .admin-users-table td {
-  padding: 8px 10px;
+  padding: var(--space-2) var(--space-2\.5);
   text-align: left;
   border-bottom: 1px solid var(--color-border-secondary);
   white-space: nowrap;
@@ -304,8 +304,8 @@
 
 .admin-user-badge {
   display: inline-block;
-  margin-left: 6px;
-  padding: 1px 6px;
+  margin-left: var(--space-1\.5);
+  padding: 1px var(--space-1\.5);
   border-radius: 10px;
   font-size: 10px;
   font-weight: 600;
@@ -327,7 +327,7 @@
 
 .admin-feedback-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: var(--space-0\.5) var(--space-2);
   border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
@@ -367,7 +367,7 @@
 .admin-feedback-date {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1\.5);
 }
 
 .admin-feedback-unread {
@@ -381,11 +381,11 @@
 
 .admin-feedback-actions {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1\.5);
 }
 
 .admin-feedback-btn {
-  padding: 3px 10px;
+  padding: 3px var(--space-2\.5);
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
@@ -429,13 +429,13 @@
 
 .admin-waitlist-counts {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .admin-waitlist-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: var(--space-0\.5) var(--space-2);
   border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
@@ -462,11 +462,11 @@
 
 .admin-waitlist-actions {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1\.5);
 }
 
 .admin-waitlist-btn {
-  padding: 3px 10px;
+  padding: 3px var(--space-2\.5);
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
@@ -504,18 +504,18 @@
 .admin-feature-toggles {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .admin-ft-card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: var(--space-5);
 }
 
 .admin-ft-card__header {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
 
 .admin-ft-card__title {
@@ -527,7 +527,7 @@
 .admin-ft-card__desc {
   font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 4px;
+  margin-top: var(--space-1);
   line-height: 1.4;
 }
 
@@ -535,15 +535,15 @@
 
 .admin-ft-card__options {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
 .admin-ft-option {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: var(--space-1\.5);
+  padding: var(--space-1\.5) var(--space-3\.5);
   border-radius: var(--radius-full, 999px);
   border: 1px solid var(--color-border-primary);
   background: transparent;
@@ -589,7 +589,7 @@
 /* User picker for "selected" audience */
 
 .admin-ft-users {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   position: relative;
 }
 
@@ -598,7 +598,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md, 6px);
@@ -638,14 +638,14 @@
   border-radius: var(--radius-md, 6px);
   box-shadow: var(--shadow-md);
   z-index: 10;
-  padding: 4px 0;
+  padding: var(--space-1) 0;
 }
 
 .admin-ft-users__item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: var(--space-2);
+  padding: var(--space-1\.5) var(--space-3);
   cursor: pointer;
   transition: var(--transition-colors);
   font-size: 12px;
@@ -671,7 +671,7 @@
 }
 
 .admin-ft-users__empty {
-  padding: 12px;
+  padding: var(--space-3);
   text-align: center;
   color: var(--color-text-muted);
   font-size: 12px;

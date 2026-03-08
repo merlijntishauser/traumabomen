@@ -8,14 +8,14 @@
   align-items: center;
   justify-content: center;
   background: var(--color-bg-primary);
-  padding: 24px;
+  padding: var(--space-6);
   overflow-y: auto;
 }
 
 .onboarding-gate__card {
   max-width: 540px;
   width: 100%;
-  padding: 40px 32px 36px;
+  padding: var(--space-10) var(--space-8) 36px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
@@ -26,13 +26,13 @@
   font-family: var(--font-heading);
   font-size: 1.5rem;
   color: var(--color-text-primary);
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
   text-align: center;
 }
 
 .onboarding-gate__block {
-  margin-bottom: 24px;
-  padding-bottom: 24px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border-secondary);
 }
 
@@ -47,7 +47,7 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   letter-spacing: 0.01em;
 }
 
@@ -72,7 +72,7 @@
 .onboarding-gate__continue {
   display: block;
   width: 100%;
-  padding: 12px 20px;
+  padding: var(--space-3) var(--space-5);
   background: var(--color-accent);
   color: var(--color-text-inverse);
   border: none;
@@ -94,12 +94,12 @@
 
 @media (max-width: 480px) {
   .onboarding-gate {
-    padding: 16px;
+    padding: var(--space-4);
     align-items: flex-start;
     padding-top: 48px;
   }
 
   .onboarding-gate__card {
-    padding: 28px 20px 24px;
+    padding: 28px var(--space-5) var(--space-6);
   }
 }

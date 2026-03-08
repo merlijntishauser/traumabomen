@@ -132,6 +132,23 @@
   --radius-md: 8px;
   --radius-lg: 12px;
 
+  /* Spacing (4px base) */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0\.5: 2px;
+  --space-1: 4px;
+  --space-1\.5: 6px;
+  --space-2: 8px;
+  --space-2\.5: 10px;
+  --space-3: 12px;
+  --space-3\.5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-15: 60px;
+
   /* Transitions */
   --transition-colors:
     color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
@@ -402,7 +419,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border-primary);
 }
 
@@ -411,7 +428,7 @@ button {
   background: none;
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
   cursor: pointer;
   font-size: 13px;
   color: var(--color-text-primary);
@@ -424,7 +441,7 @@ button {
 
 /* --- Shared button tiers --- */
 .btn {
-  padding: 6px 14px;
+  padding: var(--space-1\.5) var(--space-3\.5);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-size: 13px;

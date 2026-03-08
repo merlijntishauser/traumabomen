@@ -11,7 +11,7 @@
 .journal-page__content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: var(--space-6);
   display: flex;
   justify-content: center;
   position: relative;

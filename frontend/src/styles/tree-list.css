@@ -12,7 +12,7 @@
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
 }
 
 .tree-list-empty {
@@ -51,7 +51,7 @@
 .tree-list-item__link {
   flex: 1;
   display: block;
-  padding: 14px 18px;
+  padding: var(--space-3\.5) 18px;
   color: var(--color-text-primary);
   font-weight: 500;
   text-decoration: none;
@@ -64,13 +64,13 @@
 
 .tree-list-item__actions {
   display: flex;
-  gap: 4px;
-  padding-right: 12px;
+  gap: var(--space-1);
+  padding-right: var(--space-3);
 }
 
 /* Shared small button for edit/delete/save/cancel */
 .tree-list-item__btn {
-  padding: 4px 10px;
+  padding: var(--space-1) var(--space-2\.5);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-size: 12px;
@@ -104,13 +104,13 @@
 .tree-list-item__edit {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
 }
 
 .tree-list-item__input {
   flex: 1;
-  padding: 6px 10px;
+  padding: var(--space-1\.5) var(--space-2\.5);
   font-size: 14px;
 }
 
@@ -118,8 +118,8 @@
 .tree-list-item__confirm {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: var(--space-2);
+  padding: var(--space-2\.5) var(--space-3);
   font-size: 13px;
   color: var(--color-text-secondary);
 }
@@ -132,8 +132,8 @@
 .tree-list-create {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
 .tree-list-loading {
@@ -143,9 +143,9 @@
 .tree-list-limit {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
+  gap: var(--space-2\.5);
+  padding: var(--space-2\.5) var(--space-3\.5);
+  margin-bottom: var(--space-4);
   font-size: 13px;
   color: var(--color-danger);
   background: var(--color-danger-bg);
@@ -161,8 +161,8 @@
   border: 1px solid var(--color-border-primary);
   border-left: 3px solid var(--color-accent);
   border-radius: var(--radius-lg);
-  padding: 24px 40px 24px 24px;
-  margin-bottom: 24px;
+  padding: var(--space-6) var(--space-10) var(--space-6) var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
 /* Background images */
@@ -249,7 +249,7 @@
   font-weight: 300;
   font-size: 20px;
   color: var(--color-text-primary);
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -262,7 +262,7 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--color-text-secondary);
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -272,12 +272,12 @@
 
 .welcome-card__actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
 .welcome-card__btn {
-  padding: 6px 14px;
+  padding: var(--space-1\.5) var(--space-3\.5);
   font-size: 13px;
   font-weight: 500;
   border: 1px solid var(--color-border-primary);
@@ -311,8 +311,8 @@
 /* Demo badge */
 .tree-list-item__demo-badge {
   display: inline-block;
-  margin-left: 8px;
-  padding: 1px 6px;
+  margin-left: var(--space-2);
+  padding: 1px var(--space-1\.5);
   font-size: 11px;
   font-weight: 500;
   line-height: 1.4;
