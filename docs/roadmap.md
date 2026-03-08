@@ -40,11 +40,7 @@ Free-positioned sticky notes on the canvas for spatial observations. Six muted c
 
 See [design doc](plans/2026-03-02-canvas-annotations-design.md).
 
-### 10. Sibling groups
-
-Compact representation of siblings without creating full Person nodes. A new SiblingGroup entity holds lightweight member records (name, optional birth year) alongside references to full Person nodes. Renders as a pill-shaped node on the canvas, connected to shared parents when available or to the anchor person otherwise. Members can be promoted to full persons with relationships in a single bulk sync call. One group per person constraint.
-
-See [design doc](plans/2026-03-02-sibling-groups-design.md).
+### ~~10. Sibling groups~~ (done)
 
 ### 11. Read-only tree sharing
 
@@ -175,6 +171,10 @@ Two-layer rate limiting: nginx (strict 5/min on login/register, general 20/min o
 ### Personal insights summary
 
 Read-only overview page at `/trees/:id/insights` surfacing basic observations from entered data. Four insight categories: generational patterns (recurring trauma/classifications across generations), temporal clustering (age-at-event patterns, dense year windows), category summaries (most common trauma type, total counts, shared classifications), resilience indicators (turning points following trauma, cycle-breaking). All computation client-side, card grid layout, no AI. [Design doc](plans/2026-03-01-personal-insights-design.md).
+
+### Sibling groups
+
+Compact representation of siblings without creating full Person nodes. SiblingGroup entity with lightweight member records (name, optional birth year) alongside full Person references. Pill-shaped nodes on the canvas connected to shared parents. Members promotable to full persons with sibling relationships in a single bulk sync call. One group per person constraint (server-side 409). Detail panel for editing members, section in RelationshipsTab. [Design doc](plans/2026-03-02-sibling-groups-design.md).
 
 ### Safety envelope
 
