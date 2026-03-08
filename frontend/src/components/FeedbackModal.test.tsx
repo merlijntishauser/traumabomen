@@ -134,4 +134,70 @@ describe("FeedbackModal", () => {
     fireEvent.change(textarea, { target: { value: "Hello" } });
     expect(screen.getByText("5 / 2000")).toBeInTheDocument();
   });
+
+  it("does not close while submitting", async () => {
+    let resolveSubmit!: () => void;
+    mockSubmitFeedback.mockImplementation(
+      () =>
+        new Promise<void>((r) => {
+          resolveSubmit = r;
+        }),
+    );
+    render(<FeedbackModal onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText("feedback.message"), {
+      target: { value: "msg" },
+    });
+    fireEvent.click(screen.getByText("feedback.submit"));
+
+    // While submitting: cancel button, overlay click, and Escape should not close
+    fireEvent.click(screen.getByText("common.cancel"));
+    fireEvent.click(screen.getByRole("dialog"));
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).not.toHaveBeenCalled();
+
+    // Resolve the submit so the component can finish
+    resolveSubmit();
+    await waitFor(() => {
+      expect(screen.getByText("feedback.success")).toBeInTheDocument();
+    });
+  });
+
+  it("does not submit when message is whitespace only", () => {
+    render(<FeedbackModal onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText("feedback.message"), {
+      target: { value: "   " },
+    });
+    fireEvent.click(screen.getByText("feedback.submit"));
+    expect(mockSubmitFeedback).not.toHaveBeenCalled();
+  });
+
+  it("ignores non-Escape keydown events", () => {
+    render(<FeedbackModal onClose={onClose} />);
+    fireEvent.keyDown(document, { key: "Enter" });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("does not double-submit while already submitting", async () => {
+    let resolveSubmit!: () => void;
+    mockSubmitFeedback.mockImplementation(
+      () =>
+        new Promise<void>((r) => {
+          resolveSubmit = r;
+        }),
+    );
+    render(<FeedbackModal onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText("feedback.message"), {
+      target: { value: "msg" },
+    });
+    // First submit
+    fireEvent.click(screen.getByText("feedback.submit"));
+    // Second submit while first is in-flight
+    fireEvent.submit(screen.getByRole("dialog").querySelector("form")!);
+    expect(mockSubmitFeedback).toHaveBeenCalledTimes(1);
+
+    resolveSubmit();
+    await waitFor(() => {
+      expect(screen.getByText("feedback.success")).toBeInTheDocument();
+    });
+  });
 });
