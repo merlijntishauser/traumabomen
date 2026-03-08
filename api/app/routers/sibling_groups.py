@@ -36,6 +36,31 @@ _config = EntityConfig(
 )
 
 
+async def _find_conflicting_person_ids(
+    person_ids: list[uuid.UUID],
+    tree_id: uuid.UUID,
+    db: AsyncSession,
+    exclude_group_id: uuid.UUID | None = None,
+) -> set[uuid.UUID]:
+    """Return person IDs that already belong to another sibling group in this tree."""
+    if not person_ids:
+        return set()
+
+    query = (
+        select(SiblingGroupPerson.person_id)  # type: ignore[attr-defined]
+        .join(SiblingGroup, SiblingGroupPerson.sibling_group_id == SiblingGroup.id)  # type: ignore[attr-defined]
+        .where(
+            SiblingGroup.tree_id == tree_id,
+            SiblingGroupPerson.person_id.in_(person_ids),  # type: ignore[attr-defined]
+        )
+    )
+    if exclude_group_id is not None:
+        query = query.where(SiblingGroup.id != exclude_group_id)
+
+    result = await db.execute(query)
+    return {row[0] for row in result.all()}
+
+
 async def _check_person_uniqueness(
     person_ids: list[uuid.UUID],
     tree_id: uuid.UUID,
@@ -43,22 +68,7 @@ async def _check_person_uniqueness(
     exclude_group_id: uuid.UUID | None = None,
 ) -> None:
     """Raise HTTP 409 if any person is already in another sibling group in this tree."""
-    if not person_ids:
-        return
-
-    query = (
-        select(SiblingGroupPerson.person_id)
-        .join(SiblingGroup, SiblingGroupPerson.sibling_group_id == SiblingGroup.id)
-        .where(
-            SiblingGroup.tree_id == tree_id,
-            SiblingGroupPerson.person_id.in_(person_ids),
-        )
-    )
-    if exclude_group_id is not None:
-        query = query.where(SiblingGroup.id != exclude_group_id)
-
-    result = await db.execute(query)
-    conflicts = {row[0] for row in result.all()}
+    conflicts = await _find_conflicting_person_ids(person_ids, tree_id, db, exclude_group_id)
     if conflicts:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
