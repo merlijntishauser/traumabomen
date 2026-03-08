@@ -16,7 +16,7 @@ export default function SiblingGroupNode({
 }: NodeProps & { data: SiblingGroupNodeData }) {
   const { t } = useTranslation();
   const { group } = data;
-  const totalCount = group.person_ids.length + group.members.length;
+  const siblingCount = Math.max(0, group.person_ids.length - 1) + group.members.length;
   const namedMembers = group.members.filter((m) => m.name.trim() !== "");
 
   return (
@@ -32,7 +32,7 @@ export default function SiblingGroupNode({
         </div>
       ) : (
         <span className="sibling-group-node__label">
-          {t("siblingGroup.label", { count: totalCount })}
+          {t("siblingGroup.label", { count: siblingCount })}
         </span>
       )}
       <Handle type="source" position={Position.Bottom} className="sibling-group-node__handle" />

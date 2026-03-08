@@ -474,6 +474,7 @@ function TreeWorkspaceInner() {
     personIds: string[],
   ) {
     siblingGroupHandlers.save(groupId, { members }, personIds);
+    setOpenSiblingGroupId(null);
   }
 
   function handleDeleteSiblingGroup(groupId: string) {

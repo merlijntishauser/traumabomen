@@ -135,7 +135,7 @@
 }
 
 .sibling-group-panel__input-name {
-  flex: 1;
+  flex: 1 1 0;
   padding: 4px 0;
   border: none;
   border-bottom: 1px solid transparent;
@@ -144,7 +144,7 @@
   background: transparent;
   color: var(--color-text-primary);
   transition: border-color 0.15s ease;
-  min-width: 0;
+  min-width: 60px;
 }
 
 .sibling-group-panel__input-name::placeholder {
@@ -162,7 +162,7 @@
 }
 
 .sibling-group-panel__input-year {
-  width: 48px;
+  flex: 0 0 72px;
   padding: 4px 0;
   border: none;
   border-bottom: 1px solid transparent;
@@ -172,7 +172,6 @@
   color: var(--color-text-muted);
   text-align: right;
   transition: border-color 0.15s ease;
-  flex-shrink: 0;
   -moz-appearance: textfield;
 }
 
