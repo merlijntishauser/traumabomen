@@ -784,8 +784,8 @@
   "siblingGroup.promote": "Promote",
   "siblingGroup.deleteGroup": "Delete group",
   "siblingGroup.totalCount": "{{count}} siblings total",
-  "siblingGroup.namePlaceholder": "Name",
-  "siblingGroup.yearPlaceholder": "Year",
+  "siblingGroup.namePlaceholder": "Sibling name",
+  "siblingGroup.yearPlaceholder": "Birth year",
   "siblingGroup.unnamedSibling": "Unnamed sibling",
   "siblingGroup.inTree": "In tree"
 }

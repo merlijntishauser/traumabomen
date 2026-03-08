@@ -25,7 +25,9 @@ export function SiblingGroupPanel({
   const { t } = useTranslation();
   const [members, setMembers] = useState<SiblingGroupMember[]>(() => [...group.members]);
 
-  const totalCount = members.length + group.person_ids.length;
+  // Exclude the person themselves (always in person_ids) from the sibling count
+  const otherPersonCount = Math.max(0, group.person_ids.length - 1);
+  const siblingCount = members.length + otherPersonCount;
 
   function handleNameChange(index: number, name: string) {
     setMembers((prev) => prev.map((m, i) => (i === index ? { ...m, name } : m)));
@@ -61,7 +63,7 @@ export function SiblingGroupPanel({
       </div>
 
       <div className="sibling-group-panel__count">
-        {t("siblingGroup.totalCount", { count: totalCount })}
+        {t("siblingGroup.totalCount", { count: siblingCount })}
       </div>
 
       <div className="sibling-group-panel__content">

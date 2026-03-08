@@ -783,8 +783,8 @@
   "siblingGroup.promote": "Promoveren",
   "siblingGroup.deleteGroup": "Groep verwijderen",
   "siblingGroup.totalCount": "{{count}} broers/zussen totaal",
-  "siblingGroup.namePlaceholder": "Naam",
-  "siblingGroup.yearPlaceholder": "Jaar",
+  "siblingGroup.namePlaceholder": "Naam broer/zus",
+  "siblingGroup.yearPlaceholder": "Geboortejaar",
   "siblingGroup.unnamedSibling": "Onbenoemde broer/zus",
   "siblingGroup.inTree": "In boom"
 }

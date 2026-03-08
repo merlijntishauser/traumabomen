@@ -137,7 +137,8 @@ export function RelationshipsTab({
               onClick={() => onOpenSiblingGroup(siblingGroup.id)}
             >
               {t("siblingGroup.edit", {
-                count: siblingGroup.members.length + siblingGroup.person_ids.length,
+                count:
+                  siblingGroup.members.length + Math.max(0, siblingGroup.person_ids.length - 1),
               })}
             </button>
           ) : onCreateSiblingGroup ? (
