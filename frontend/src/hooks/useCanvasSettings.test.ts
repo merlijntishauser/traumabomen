@@ -49,6 +49,7 @@ describe("useCanvasSettings", () => {
       showPartnerEdges: true,
       showSiblingEdges: true,
       showFriendEdges: true,
+      autoLockMinutes: 15,
     });
   });
 
@@ -112,6 +113,7 @@ describe("useCanvasSettings", () => {
       showPartnerEdges: true,
       showSiblingEdges: true,
       showFriendEdges: true,
+      autoLockMinutes: 15,
     });
   });
 

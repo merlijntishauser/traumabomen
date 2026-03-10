@@ -522,6 +522,13 @@
   "canvas.showMinimap": "Show minimap",
   "canvas.promptRelationship": "Prompt to add relationship",
 
+  "settings.autoLockTimeout": "Auto-lock timeout",
+  "settings.autoLock5min": "5 minutes",
+  "settings.autoLock15min": "15 minutes",
+  "settings.autoLock30min": "30 minutes",
+  "settings.autoLock60min": "60 minutes",
+  "settings.autoLockDisabled": "Disabled",
+
   "theme.toggle": "Cycle theme",
 
   "mentalHealth.banner": "This tool deals with sensitive topics that may be triggering. If you need support, consider reaching out to for example <a>{{resource}}</a>. We are not affiliated with this organisation.",

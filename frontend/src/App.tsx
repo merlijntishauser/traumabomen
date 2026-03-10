@@ -10,6 +10,7 @@ import { MobileBanner } from "./components/MobileBanner";
 import { OnboardingGate } from "./components/OnboardingGate";
 import { EncryptionProvider } from "./contexts/EncryptionContext";
 import { useEncryption } from "./contexts/useEncryption";
+import { useCanvasSettings } from "./hooks/useCanvasSettings";
 import { useLockScreen } from "./hooks/useLockScreen";
 import { useLogout } from "./hooks/useLogout";
 import {
@@ -165,8 +166,14 @@ function AppContent() {
     clearKey();
   }, [clearKey]);
 
+  const { settings: canvasSettings } = useCanvasSettings();
+  const fullTimeoutMs = canvasSettings.autoLockMinutes > 0
+    ? canvasSettings.autoLockMinutes * 60 * 1000
+    : Number.MAX_SAFE_INTEGER;
+
   const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
     enabled: masterKey !== null,
+    fullTimeoutMs,
     onFullLock: handleFullLock,
   });
 

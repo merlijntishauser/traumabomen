@@ -521,6 +521,13 @@
   "canvas.showMinimap": "Minimap tonen",
   "canvas.promptRelationship": "Vraag om relatie toe te voegen",
 
+  "settings.autoLockTimeout": "Automatisch vergrendelen na",
+  "settings.autoLock5min": "5 minuten",
+  "settings.autoLock15min": "15 minuten",
+  "settings.autoLock30min": "30 minuten",
+  "settings.autoLock60min": "60 minuten",
+  "settings.autoLockDisabled": "Uitgeschakeld",
+
   "theme.toggle": "Wissel thema",
 
   "mentalHealth.banner": "Deze tool behandelt mogelijk gevoelige onderwerpen die een trigger kunnen zijn. Heb je behoefte aan ondersteuning? Neem bijvoorbeeld contact op met <a>{{resource}}</a>. Wij zijn niet verbonden aan deze organisatie.",

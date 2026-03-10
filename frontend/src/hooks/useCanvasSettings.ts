@@ -14,6 +14,7 @@ export interface CanvasSettings {
   showPartnerEdges: boolean;
   showSiblingEdges: boolean;
   showFriendEdges: boolean;
+  autoLockMinutes: number;
 }
 
 const DEFAULTS: CanvasSettings = {
@@ -28,6 +29,7 @@ const DEFAULTS: CanvasSettings = {
   showPartnerEdges: true,
   showSiblingEdges: true,
   showFriendEdges: true,
+  autoLockMinutes: 15,
 };
 
 export function useCanvasSettings() {
