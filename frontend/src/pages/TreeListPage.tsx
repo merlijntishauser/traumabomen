@@ -72,6 +72,7 @@ export default function TreeListPage() {
 
   const treesQuery = useQuery({
     queryKey: ["trees"],
+    enabled: masterKey !== null,
     queryFn: async () => {
       const responses = await getTrees();
       const trees: DecryptedTree[] = await Promise.all(
