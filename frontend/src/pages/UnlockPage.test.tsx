@@ -69,7 +69,7 @@ describe("UnlockPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocationState = null;
-    mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "test-salt" });
+    mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "test-salt", passphrase_hint: null });
     mockDeriveKey.mockResolvedValue({} as CryptoKey);
     mockHashPassphrase.mockResolvedValue("hashed-passphrase");
     mockLoadOrMigrateKeyRing.mockResolvedValue({
@@ -119,6 +119,35 @@ describe("UnlockPage", () => {
     await waitFor(() => {
       expect(screen.getByText("auth.switchAccount")).toBeInTheDocument();
     });
+  });
+
+  // -- Passphrase hint display --
+
+  it("displays the passphrase hint when present in salt response", async () => {
+    mockGetEncryptionSalt.mockResolvedValue({
+      encryption_salt: "test-salt",
+      passphrase_hint: "My favorite color",
+    });
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("auth.hintLabel")).toBeInTheDocument();
+      expect(screen.getByText("My favorite color")).toBeInTheDocument();
+    });
+  });
+
+  it("does not display the hint block when passphrase_hint is null", async () => {
+    mockGetEncryptionSalt.mockResolvedValue({
+      encryption_salt: "test-salt",
+      passphrase_hint: null,
+    });
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("auth.passphrase")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("auth.hintLabel")).not.toBeInTheDocument();
   });
 
   // -- Salt loading failure: redirect --

@@ -18,6 +18,7 @@ export default function UnlockPage() {
 
   const [passphrase, setPassphrase] = useState("");
   const [salt, setSalt] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [migrating, setMigrating] = useState(false);
@@ -26,7 +27,10 @@ export default function UnlockPage() {
     let cancelled = false;
     getEncryptionSalt()
       .then((res) => {
-        if (!cancelled) setSalt(res.encryption_salt);
+        if (!cancelled) {
+          setSalt(res.encryption_salt);
+          setHint(res.passphrase_hint);
+        }
       })
       .catch((err) => {
         if (cancelled) return;
@@ -110,6 +114,13 @@ export default function UnlockPage() {
                 data-1p-ignore
               />
             </div>
+
+            {hint && (
+              <div className="auth-hint-block">
+                <span className="auth-hint-block__label">{t("auth.hintLabel")}</span>
+                <span className="auth-hint-block__text">{hint}</span>
+              </div>
+            )}
 
             {error && (
               <p className="auth-error" role="alert">

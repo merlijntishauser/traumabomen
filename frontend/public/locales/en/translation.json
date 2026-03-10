@@ -43,6 +43,7 @@
   "auth.backToLogin": "Back to login",
   "auth.passwordTooWeak": "Password is too weak",
   "auth.passwordTooLong": "Password must be 64 characters or fewer",
+  "auth.hintLabel": "Your hint",
 
   "password.weak": "Weak",
   "password.fair": "Fair",
