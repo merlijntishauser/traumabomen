@@ -127,7 +127,16 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
-  const { masterKey, clearKey, verifyPassphrase, setMasterKey, setPassphraseHash, setTreeKeys, setKeyRingBase64, setIsMigrated } = useEncryption();
+  const {
+    masterKey,
+    clearKey,
+    verifyPassphrase,
+    setMasterKey,
+    setPassphraseHash,
+    setTreeKeys,
+    setKeyRingBase64,
+    setIsMigrated,
+  } = useEncryption();
 
   const [authSalt, setAuthSalt] = useState<string | null>(null);
   const [authHint, setAuthHint] = useState<string | null>(null);
@@ -158,7 +167,9 @@ function AppContent() {
         // Token invalid, switch to re-auth
         if (!cancelled) clearTokens();
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [authModalMode]);
 
   // Full lock handler: just clear key, no navigation
@@ -167,9 +178,10 @@ function AppContent() {
   }, [clearKey]);
 
   const { settings: canvasSettings } = useCanvasSettings();
-  const fullTimeoutMs = canvasSettings.autoLockMinutes > 0
-    ? canvasSettings.autoLockMinutes * 60 * 1000
-    : Number.MAX_SAFE_INTEGER;
+  const fullTimeoutMs =
+    canvasSettings.autoLockMinutes > 0
+      ? canvasSettings.autoLockMinutes * 60 * 1000
+      : Number.MAX_SAFE_INTEGER;
 
   const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
     enabled: masterKey !== null,
@@ -191,7 +203,12 @@ function AppContent() {
     [verifyPassphrase, unlock, failedAttempt],
   );
 
-  function handleAuthModalSuccess(result: { masterKey: CryptoKey; passphraseHash: string; treeKeys: Map<string, CryptoKey>; keyRingBase64: Map<string, string> }) {
+  function handleAuthModalSuccess(result: {
+    masterKey: CryptoKey;
+    passphraseHash: string;
+    treeKeys: Map<string, CryptoKey>;
+    keyRingBase64: Map<string, string>;
+  }) {
     setMasterKey(result.masterKey);
     setPassphraseHash(result.passphraseHash);
     setTreeKeys(result.treeKeys);

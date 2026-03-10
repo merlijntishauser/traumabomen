@@ -24,8 +24,8 @@ export default function SiblingGroupNode({
       <Handle type="target" position={Position.Top} className="sibling-group-node__handle" />
       {namedMembers.length > 0 && namedMembers.length <= MAX_NAMED_DISPLAY ? (
         <div className="sibling-group-node__names">
-          {namedMembers.map((m, i) => (
-            <span key={i} className="sibling-group-node__name">
+          {namedMembers.map((m) => (
+            <span key={`${m.name}-${m.birth_year ?? ""}`} className="sibling-group-node__name">
               {m.name}
             </span>
           ))}
