@@ -1,0 +1,234 @@
+/* Auth modal overlay (unlock + re-auth) */
+
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  /* Dark mode: moonlit forest canopy */
+  background:
+    radial-gradient(1.5px 2px at 12% 8%, rgba(45, 138, 94, 0.15) 50%, transparent 50%),
+    radial-gradient(2px 1.5px at 28% 15%, rgba(45, 138, 94, 0.1) 50%, transparent 50%),
+    radial-gradient(1px 2px at 45% 5%, rgba(90, 122, 100, 0.12) 50%, transparent 50%),
+    radial-gradient(2px 1.5px at 67% 12%, rgba(45, 138, 94, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 2px at 82% 7%, rgba(90, 122, 100, 0.1) 50%, transparent 50%),
+    radial-gradient(2px 2px at 35% 22%, rgba(45, 138, 94, 0.06) 50%, transparent 50%),
+    radial-gradient(1px 1.5px at 55% 18%, rgba(90, 122, 100, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 1px at 75% 25%, rgba(45, 138, 94, 0.05) 50%, transparent 50%),
+    /* Soft moonlight from above */
+    radial-gradient(ellipse 60% 35% at 50% 0%, rgba(143, 170, 151, 0.08) 0%, transparent 70%),
+    /* Subtle ground fog at bottom */
+    linear-gradient(to top, rgba(10, 26, 15, 0.4) 0%, transparent 30%),
+    /* Base dark overlay */
+    rgba(10, 26, 15, 0.82);
+}
+
+/* Light mode: soft teal mist */
+[data-theme="light"] .auth-modal {
+  background:
+    radial-gradient(3px 3px at 18% 12%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
+    radial-gradient(2px 3px at 38% 8%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
+    radial-gradient(3px 2px at 58% 15%, rgba(74, 155, 181, 0.05) 50%, transparent 50%),
+    radial-gradient(2px 2px at 78% 10%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
+    radial-gradient(2px 3px at 25% 20%, rgba(74, 155, 181, 0.03) 50%, transparent 50%),
+    radial-gradient(3px 2px at 65% 22%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 253, 250, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 75% 10%, rgba(247, 245, 242, 0.15) 0%, transparent 60%),
+    linear-gradient(to top, rgba(247, 245, 242, 0.2) 0%, transparent 25%), rgba(247, 245, 242, 0.78);
+}
+
+.auth-modal__card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  text-align: center;
+}
+
+[data-theme="light"] .auth-modal__card {
+  border-color: transparent;
+}
+
+.auth-modal__bg {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.auth-modal__bg--dark {
+  opacity: 1;
+}
+
+.auth-modal__bg--light {
+  opacity: 0;
+}
+
+[data-theme="light"] .auth-modal__bg--dark {
+  opacity: 0;
+}
+
+[data-theme="light"] .auth-modal__bg--light {
+  opacity: 1;
+}
+
+.auth-modal__content {
+  position: relative;
+  z-index: 1;
+  padding: 36px 28px var(--space-8);
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    rgba(10, 26, 15, 0.35) 0%,
+    rgba(10, 26, 15, 0.7) 50%,
+    rgba(10, 26, 15, 0.92) 100%
+  );
+}
+
+[data-theme="light"] .auth-modal__content {
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    rgba(255, 253, 250, 0.3) 0%,
+    rgba(255, 253, 250, 0.65) 50%,
+    rgba(255, 253, 250, 0.9) 100%
+  );
+}
+
+.auth-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-4);
+  border-radius: 50%;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+}
+
+.auth-modal__title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.auth-modal__subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-5);
+}
+
+.auth-modal__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.auth-modal__step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  transition: var(--transition-colors);
+}
+
+.auth-modal__step--active {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.auth-modal__step--done {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.auth-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.auth-modal__hint {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-accent-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  text-align: left;
+}
+
+.auth-modal__hint-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-modal__hint-text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.auth-modal__submit {
+  display: block;
+  width: 100%;
+  padding: var(--space-2\.5) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.auth-modal__submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.auth-modal__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-modal__logout {
+  margin-top: var(--space-4);
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.auth-modal__logout:hover {
+  color: var(--color-text-primary);
+}
+
+/* Keyboard isolation: prevent tab-through to content behind */
+.auth-modal:focus-within ~ .app-layout * {
+  visibility: hidden;
+}
