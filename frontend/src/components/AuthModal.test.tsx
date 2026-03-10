@@ -62,7 +62,7 @@ describe("AuthModal", () => {
       fireEvent.change(screen.getByLabelText("auth.passphrase"), {
         target: { value: "my-passphrase" },
       });
-      fireEvent.submit(screen.getByRole("form"));
+      fireEvent.submit(screen.getByLabelText("auth.passphrase").closest("form")!);
       await waitFor(() => {
         expect(defaultProps.onUnlockSuccess).toHaveBeenCalled();
       });
