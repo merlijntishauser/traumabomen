@@ -58,7 +58,7 @@ describe("AuthModal", () => {
     mockLogin.mockResolvedValue({ access_token: "tok", refresh_token: "ref" });
     mockGetEncryptionSalt.mockResolvedValue({
       encryption_salt: "fetched-salt",
-      passphrase_hint: null, // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+      passphrase_hint: null,
     });
     mockDeriveKey.mockResolvedValue({} as CryptoKey);
     mockHashPassphrase.mockResolvedValue("hashed");
@@ -162,7 +162,7 @@ describe("AuthModal", () => {
       });
       expect(mockLogin).toHaveBeenCalledWith({
         email: "user@example.com",
-        password: "password123",
+        password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
       });
       expect(mockGetEncryptionSalt).toHaveBeenCalled();
     });
