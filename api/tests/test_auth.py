@@ -817,3 +817,106 @@ class TestAcknowledgeOnboarding:
         data = resp.json()
         assert "onboarding_safety_acknowledged" in data
         assert data["onboarding_safety_acknowledged"] is False
+
+
+# ---------------------------------------------------------------------------
+# Passphrase hint
+# ---------------------------------------------------------------------------
+
+
+class TestPassphraseHint:
+    """Tests for passphrase hint feature."""
+
+    @pytest.mark.asyncio
+    async def test_register_with_hint(self, client, db_session):
+        """Register with optional passphrase_hint stores it."""
+        response = await client.post(
+            "/auth/register",
+            json={
+                "email": "hint-user@example.com",
+                "password": "StrongPass123!",
+                "encryption_salt": "test-salt",
+                "passphrase_hint": "My favorite book title",
+            },
+        )
+        assert response.status_code == 201
+        # Verify hint is returned in salt endpoint
+        headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+        salt_resp = await client.get("/auth/salt", headers=headers)
+        assert salt_resp.json()["passphrase_hint"] == "My favorite book title"
+
+    @pytest.mark.asyncio
+    async def test_register_without_hint(self, client, db_session):
+        """Register without hint stores null."""
+        response = await client.post(
+            "/auth/register",
+            json={
+                "email": "nohint@example.com",
+                "password": "StrongPass123!",
+                "encryption_salt": "test-salt",
+            },
+        )
+        assert response.status_code == 201
+        headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+        salt_resp = await client.get("/auth/salt", headers=headers)
+        assert salt_resp.json()["passphrase_hint"] is None
+
+    @pytest.mark.asyncio
+    async def test_salt_returns_hint(self, client, headers, user, db_session):
+        """GET /auth/salt includes passphrase_hint field."""
+        response = await client.get("/auth/salt", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert "passphrase_hint" in data
+        assert "encryption_salt" in data
+
+    @pytest.mark.asyncio
+    async def test_update_hint(self, client, headers, db_session):
+        """PUT /auth/hint updates the hint."""
+        response = await client.put(
+            "/auth/hint",
+            headers=headers,
+            json={"passphrase_hint": "First pet name"},
+        )
+        assert response.status_code == 200
+        # Verify persisted
+        salt_resp = await client.get("/auth/salt", headers=headers)
+        assert salt_resp.json()["passphrase_hint"] == "First pet name"
+
+    @pytest.mark.asyncio
+    async def test_clear_hint(self, client, headers, db_session):
+        """PUT /auth/hint with null clears the hint."""
+        # Set a hint first
+        await client.put(
+            "/auth/hint",
+            headers=headers,
+            json={"passphrase_hint": "Temporary hint"},
+        )
+        # Clear it
+        response = await client.put(
+            "/auth/hint",
+            headers=headers,
+            json={"passphrase_hint": None},
+        )
+        assert response.status_code == 200
+        salt_resp = await client.get("/auth/salt", headers=headers)
+        assert salt_resp.json()["passphrase_hint"] is None
+
+    @pytest.mark.asyncio
+    async def test_update_hint_unauthenticated(self, client):
+        """PUT /auth/hint requires authentication."""
+        response = await client.put(
+            "/auth/hint",
+            json={"passphrase_hint": "Nope"},
+        )
+        assert response.status_code in (401, 403)
+
+    @pytest.mark.asyncio
+    async def test_hint_max_length(self, client, headers, db_session):
+        """PUT /auth/hint rejects hints over 255 characters."""
+        response = await client.put(
+            "/auth/hint",
+            headers=headers,
+            json={"passphrase_hint": "x" * 256},
+        )
+        assert response.status_code == 422

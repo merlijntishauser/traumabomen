@@ -9,6 +9,7 @@ class RegisterRequest(BaseModel):
     encryption_salt: str
     invite_token: str | None = None
     language: str = "en"
+    passphrase_hint: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -44,6 +45,7 @@ class LogoutRequest(BaseModel):
 
 class SaltResponse(BaseModel):
     encryption_salt: str
+    passphrase_hint: str | None = None
 
 
 class ResendVerificationRequest(BaseModel):
@@ -62,6 +64,10 @@ class ChangePasswordRequest(BaseModel):
 
 class UpdateSaltRequest(BaseModel):
     encryption_salt: str
+
+
+class UpdateHintRequest(BaseModel):
+    passphrase_hint: str | None = None
 
 
 class DeleteAccountRequest(BaseModel):

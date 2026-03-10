@@ -35,6 +35,7 @@ from app.schemas.auth import (
     ResendVerificationRequest,
     SaltResponse,
     TokenResponse,
+    UpdateHintRequest,
     UpdateSaltRequest,
     VerifyResponse,
 )
@@ -148,6 +149,7 @@ async def register(
         hashed_password=hash_password(body.password),
         encryption_salt=body.encryption_salt,
         email_verified=not settings.REQUIRE_EMAIL_VERIFICATION,
+        passphrase_hint=body.passphrase_hint,
     )
 
     if settings.REQUIRE_EMAIL_VERIFICATION:
@@ -327,7 +329,10 @@ async def acknowledge_onboarding(
 async def get_salt(
     user: User = Depends(get_current_user),
 ) -> SaltResponse:
-    return SaltResponse(encryption_salt=user.encryption_salt)
+    return SaltResponse(
+        encryption_salt=user.encryption_salt,
+        passphrase_hint=user.passphrase_hint,
+    )
 
 
 @router.put("/password", status_code=status.HTTP_200_OK)
@@ -355,6 +360,19 @@ async def update_salt(
     user.encryption_salt = body.encryption_salt
     await db.commit()
     return {"message": "Salt updated"}
+
+
+@router.put("/hint", status_code=status.HTTP_200_OK)
+async def update_hint(
+    body: UpdateHintRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    if body.passphrase_hint is not None and len(body.passphrase_hint) > 255:
+        raise HTTPException(status_code=422, detail="Hint too long (max 255 characters)")
+    user.passphrase_hint = body.passphrase_hint
+    await db.commit()
+    return {"message": "Hint updated"}
 
 
 @router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
