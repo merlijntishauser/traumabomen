@@ -9,9 +9,28 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: "jsdom",
-    setupFiles: ["src/test/setup.ts"],
     exclude: ["node_modules", "e2e"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.unit.test.ts"],
+          setupFiles: [],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "integration",
+          environment: "jsdom",
+          include: ["src/**/*.test.{ts,tsx}"],
+          exclude: ["src/**/*.unit.test.ts", "node_modules", "e2e"],
+          setupFiles: ["src/test/setup.ts"],
+        },
+      },
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "html"],

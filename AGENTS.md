@@ -344,17 +344,39 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 
 ## Testing Strategy
 
-### Unit Tests (Vitest)
+### Test Naming Convention (Frontend)
+
+Tests are split into two tiers with strict naming. A `vitest.workspace.ts` defines two projects (`unit` and `integration`) that run in different environments.
+
+- **`*.unit.test.ts`** -- Pure logic tests. No DOM, no React rendering, no `@testing-library/*` imports. Runs in Node (no jsdom overhead). Place next to the module being tested. Use this for: utility functions, data transformations, validators, color mappers, inference logic, API call construction, type guards.
+
+- **`*.test.ts` / `*.test.tsx`** -- Integration tests. Renders components or hooks via React Testing Library. Runs in jsdom. Use this for: component rendering, user interaction flows, hook state transitions, form behavior.
+
+**Rules (enforced in code review):**
+- If a test file imports from `@testing-library/react`, it MUST NOT be named `.unit.test.ts`
+- If a test file does NOT render components or hooks, it MUST be named `.unit.test.ts`
+- New helper/utility functions MUST have a `.unit.test.ts` companion
+- Moving a test between tiers requires renaming the file
+
+**Running tests:**
+- `make test-fe-unit` -- fast unit tests only (no DOM, seconds)
+- `make test-fe-integration` -- component/hook tests (jsdom, slower)
+- `make test-fe` -- both tiers combined
+- CI and `make quality` run unit tests first for fast failure, then full suite with coverage
+
+### Unit Tests (Vitest, `*.unit.test.ts`)
 - Encryption module: round-trip encrypt/decrypt, key derivation determinism, IV uniqueness
 - Domain logic: half-sibling inference, relationship period validation (no overlapping periods), pattern linking
+- API functions, color mappers, insight computation, timeline helpers
 
-### Component Tests (React Testing Library)
+### Integration Tests (Vitest, `*.test.ts` / `*.test.tsx`)
 - PersonNode rendering (adopted, trauma badges, various states)
 - PersonDetailPanel CRUD flows
 - Relationship period editor (add/remove periods)
+- Hook state transitions (useTreeData, useLockScreen, useCanvasSettings)
 - Tested against decrypted in-memory state, no crypto in component tests
 
-### Integration Tests (Playwright)
+### E2E Tests (Playwright)
 - Full journeys: register -> passphrase -> create tree -> add persons -> relationships -> trauma events -> timeline view
 - Crypto round-trip: logout -> login -> passphrase -> verify decryption
 - Failure path: wrong passphrase -> graceful error

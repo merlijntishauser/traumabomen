@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-component test-be coverage e2e e2e-headed e2e-ui e2e-verify \
+.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be coverage e2e e2e-headed e2e-ui e2e-verify \
        bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet \
        perf-seed perf-load perf-metrics perf-report profile-api
 
@@ -50,14 +50,14 @@ ci: lint typecheck privacy-scan quality ## Run full CI pipeline
 
 test: test-fe test-be ## Run all unit tests
 
-test-fe: ## Run frontend tests (vitest)
+test-fe: ## Run all frontend tests (unit + integration)
 	docker compose exec frontend npx vitest run
 
-test-fe-unit: ## Run fast frontend unit tests only (lib/)
-	docker compose exec frontend npx vitest run src/lib/
+test-fe-unit: ## Run fast frontend unit tests only (no DOM)
+	docker compose exec frontend npx vitest run --project unit
 
-test-fe-component: ## Run frontend component/hook tests only
-	docker compose exec frontend npx vitest run src/components/ src/hooks/
+test-fe-integration: ## Run frontend integration tests (jsdom)
+	docker compose exec frontend npx vitest run --project integration
 
 test-be: ## Run backend tests (pytest)
 	docker compose exec api uv run pytest
@@ -117,6 +117,7 @@ quality: ## Run complexity checks and coverage gates
 	docker compose exec api uv run xenon app/ --max-absolute B --max-modules B --max-average A
 	docker compose exec frontend npx eslint src/
 	docker compose exec api uv run pytest --cov=app --cov-report=json -q
+	docker compose exec frontend npx vitest run --project unit
 	docker compose exec frontend npx vitest run --coverage
 	@bash scripts/coverage-gate.sh python
 	@bash scripts/coverage-gate.sh typescript
