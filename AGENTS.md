@@ -239,12 +239,13 @@ Controls feature availability. Audience determines who sees the feature: all use
 ## Architecture
 
 ### Zero-Knowledge Encryption Flow
-1. **Registration:** Email/password for auth + separate encryption passphrase. Client generates salt (stored server-side). Passphrase + salt derive AES-256 key via Argon2id. Key held in memory only.
-2. **Login:** JWT auth -> fetch salt -> prompt for passphrase -> derive key -> decrypt tree data.
+1. **Registration:** Email/password for auth + separate encryption passphrase + optional plaintext hint (max 255 chars). Client generates salt (stored server-side). Passphrase + salt derive AES-256 key via Argon2id. Key held in memory only.
+2. **Login:** JWT auth -> fetch salt + hint -> prompt for passphrase (hint shown if set) -> derive key -> decrypt tree data.
 3. **Data operations:** All sensitive fields encrypted client-side before any API call. Server stores opaque ciphertext blobs.
 4. **Tab close / logout:** Key is garbage collected. No persistence.
 5. **Passphrase change:** Decrypt all blobs with old key -> re-encrypt with new key -> bulk sync.
-6. **Passphrase lost = data lost.** UI must make this explicit during registration with a confirmation step.
+6. **Passphrase hint:** Optional plaintext reminder stored server-side. Shown on unlock page, auth modal, and manageable in account settings. Not the passphrase itself.
+7. **Passphrase lost = data lost.** UI must make this explicit during registration with a confirmation step.
 
 ### Encryption Module (`/lib/crypto.ts`)
 - `deriveKey(passphrase, salt)` -> AES-256-GCM key via Argon2id
@@ -264,8 +265,9 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `POST /auth/verify`
 - `POST /auth/resend-verification`
 - `POST /auth/change-password`
-- `GET /auth/salt`
+- `GET /auth/salt` —returns encryption salt and passphrase hint
 - `PUT /auth/salt`
+- `PUT /auth/hint` —update or clear passphrase hint (max 255 chars)
 - `PUT /auth/onboarding` —acknowledge onboarding safety modal
 - `DELETE /auth/account`
 
@@ -328,7 +330,10 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<PatternPanel>` —Inline panel in tree workspace for pattern CRUD: create/edit/delete patterns, link entities (trauma events, life events, classifications), color picker, visibility toggle.
 - `<PatternView>` —Dedicated page showing pattern cards with linked entities, generation span, and detail expansion.
 - `<PatternConnectors>` —Canvas overlay rendering visual links between pattern-connected entities.
-- `<SettingsPanel>` —Canvas settings, theme, language, account management (password/passphrase change, account deletion).
+- `<SettingsPanel>` —Canvas settings, theme, language, account management (password/passphrase change, passphrase hint, auto-lock timeout, account deletion).
+- `<PassphraseHintSection>` —Account settings component for viewing, editing, and clearing the passphrase hint.
+- `<AutoLockSection>` —Account settings component for configuring the auto-lock timeout.
+- `<AuthModal>` —Overlay modal for unlock (passphrase entry with hint) and re-auth (session expired, re-login) flows.
 - `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
 - `<ThemeToggle>` —Toolbar button cycling through available themes (dark/light/watercolor). Icons: Moon (dark), Sun (light), Droplets (watercolor).
@@ -447,6 +452,7 @@ Backend tests are split into two directories under `api/tests/`:
 - Watercolor theme (teal-blue on warm cream, feature-flagged)
 - Three-theme system (dark/light/watercolor) with synchronized state
 - Sibling groups (compact sibling representation, promotion to full persons)
+- Passphrase hints (optional plaintext reminder, shown on unlock/auth modal, manageable in settings)
 
 ### Deferred
 - OAuth/social login
@@ -454,7 +460,6 @@ Backend tests are split into two directories under `api/tests/`:
 - PDF/image export
 - Custom category management
 - Collaborative/shared trees
-- Passphrase recovery hints
 - Offline-first with service worker
 - Additional languages
 
