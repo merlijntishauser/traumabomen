@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-      navigate("/unlock", { replace: true });
+      navigate("/trees", { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.detail === "email_not_verified") {
         setError(t("auth.emailNotVerified"));

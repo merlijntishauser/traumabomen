@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/react";
-import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
+import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";
 import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import { MobileBanner } from "./components/MobileBanner";
@@ -12,7 +12,15 @@ import { EncryptionProvider } from "./contexts/EncryptionContext";
 import { useEncryption } from "./contexts/useEncryption";
 import { useLockScreen } from "./hooks/useLockScreen";
 import { useLogout } from "./hooks/useLogout";
-import { getAccessToken, getIsAdmin, getOnboardingFlag } from "./lib/api";
+import {
+  clearTokens,
+  clearWasAuthenticated,
+  getAccessToken,
+  getEncryptionSalt,
+  getIsAdmin,
+  getOnboardingFlag,
+  getWasAuthenticated,
+} from "./lib/api";
 import "./components/MobileBanner.css";
 import LoginPage from "./pages/LoginPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -83,13 +91,8 @@ export function LazyBoundary({ children }: { children: React.ReactNode }) {
 }
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { masterKey } = useEncryption();
-  const location = useLocation();
-  if (!getAccessToken()) {
+  if (!getAccessToken() && !getWasAuthenticated()) {
     return <Navigate to="/login" replace />;
-  }
-  if (!masterKey) {
-    return <Navigate to="/unlock" replace state={{ from: location.pathname }} />;
   }
   return <>{children}</>;
 }
@@ -123,15 +126,44 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
-  const { masterKey, clearKey, verifyPassphrase } = useEncryption();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { masterKey, clearKey, verifyPassphrase, setMasterKey, setPassphraseHash, setTreeKeys, setKeyRingBase64, setIsMigrated } = useEncryption();
 
+  const [authSalt, setAuthSalt] = useState<string | null>(null);
+  const [authHint, setAuthHint] = useState<string | null>(null);
+
+  const hasAccessToken = !!getAccessToken();
+  const wasAuth = getWasAuthenticated();
+
+  // Determine auth modal mode
+  let authModalMode: "unlock" | "reauth" | null = null;
+  if (hasAccessToken && !masterKey) {
+    authModalMode = "unlock";
+  } else if (!hasAccessToken && wasAuth) {
+    authModalMode = "reauth";
+  }
+
+  // Fetch salt when in unlock mode
+  useEffect(() => {
+    if (authModalMode !== "unlock") return;
+    let cancelled = false;
+    getEncryptionSalt()
+      .then((res) => {
+        if (!cancelled) {
+          setAuthSalt(res.encryption_salt);
+          setAuthHint(res.passphrase_hint);
+        }
+      })
+      .catch(() => {
+        // Token invalid, switch to re-auth
+        if (!cancelled) clearTokens();
+      });
+    return () => { cancelled = true; };
+  }, [authModalMode]);
+
+  // Full lock handler: just clear key, no navigation
   const handleFullLock = useCallback(() => {
     clearKey();
-    queryClient.clear();
-    navigate("/unlock", { replace: true });
-  }, [clearKey, queryClient, navigate]);
+  }, [clearKey]);
 
   const { lockLevel, wrongAttempts, lock, unlock, failedAttempt } = useLockScreen({
     enabled: masterKey !== null,
@@ -152,8 +184,33 @@ function AppContent() {
     [verifyPassphrase, unlock, failedAttempt],
   );
 
+  function handleAuthModalSuccess(result: { masterKey: CryptoKey; passphraseHash: string; treeKeys: Map<string, CryptoKey>; keyRingBase64: Map<string, string> }) {
+    setMasterKey(result.masterKey);
+    setPassphraseHash(result.passphraseHash);
+    setTreeKeys(result.treeKeys);
+    setKeyRingBase64(result.keyRingBase64);
+    setIsMigrated(true);
+    setAuthSalt(null);
+    setAuthHint(null);
+  }
+
+  function handleAuthModalLogout() {
+    clearWasAuthenticated();
+    handleLogout();
+  }
+
   return (
     <OnboardingGuard>
+      {authModalMode && (
+        <AuthModal
+          mode={authModalMode}
+          hint={authHint}
+          salt={authSalt}
+          onUnlockSuccess={handleAuthModalSuccess}
+          onReauthSuccess={handleAuthModalSuccess}
+          onLogout={handleAuthModalLogout}
+        />
+      )}
       {lockLevel === "blur" && (
         <LockScreen
           wrongAttempts={wrongAttempts}

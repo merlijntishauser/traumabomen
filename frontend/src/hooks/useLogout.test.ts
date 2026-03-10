@@ -9,6 +9,7 @@ const mockClearKey = vi.fn();
 const mockLogout = vi.fn();
 const mockClearTokens = vi.fn();
 const mockGetRefreshToken = vi.fn();
+const mockClearWasAuthenticated = vi.fn();
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
@@ -23,6 +24,7 @@ vi.mock("../contexts/useEncryption", () => ({
 vi.mock("../lib/api", () => ({
   logout: (...args: unknown[]) => mockLogout(...args),
   clearTokens: () => mockClearTokens(),
+  clearWasAuthenticated: () => mockClearWasAuthenticated(),
   getRefreshToken: () => mockGetRefreshToken(),
 }));
 
@@ -47,6 +49,7 @@ describe("useLogout", () => {
     });
 
     expect(mockClearTokens).toHaveBeenCalledOnce();
+    expect(mockClearWasAuthenticated).toHaveBeenCalledOnce();
     expect(mockClearKey).toHaveBeenCalledOnce();
     expect(clearSpy).toHaveBeenCalledOnce();
     expect(mockNavigate).toHaveBeenCalledWith("/login");

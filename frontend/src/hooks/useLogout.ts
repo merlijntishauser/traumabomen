@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEncryption } from "../contexts/useEncryption";
-import { clearTokens, getRefreshToken, logout } from "../lib/api";
+import { clearTokens, clearWasAuthenticated, getRefreshToken, logout } from "../lib/api";
 
 export function useLogout() {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ export function useLogout() {
   return useCallback(() => {
     const refreshToken = getRefreshToken();
     clearTokens();
+    clearWasAuthenticated();
     clearKey();
     queryClient.clear();
     navigate("/login");

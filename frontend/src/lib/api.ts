@@ -106,6 +106,20 @@ export function setOnboardingFlag(value: boolean): void {
   localStorage.setItem(ONBOARDING_KEY, String(value));
 }
 
+// Session authentication flag management
+
+export function setWasAuthenticated(): void {
+  sessionStorage.setItem("wasAuthenticated", "true");
+}
+
+export function getWasAuthenticated(): boolean {
+  return sessionStorage.getItem("wasAuthenticated") === "true";
+}
+
+export function clearWasAuthenticated(): void {
+  sessionStorage.removeItem("wasAuthenticated");
+}
+
 // Core fetch
 
 interface FetchOptions {
@@ -209,6 +223,7 @@ export async function register(
   if ("access_token" in data) {
     setTokens(data.access_token, data.refresh_token);
     setOnboardingFlag(false);
+    setWasAuthenticated();
   }
   return data;
 }
@@ -237,6 +252,7 @@ export async function login(request: LoginRequest): Promise<TokenResponse> {
   });
   setTokens(data.access_token, data.refresh_token);
   setOnboardingFlag(data.onboarding_safety_acknowledged);
+  setWasAuthenticated();
   return data;
 }
 

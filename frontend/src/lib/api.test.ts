@@ -5,6 +5,7 @@ import {
   approveWaitlistEntry,
   changePassword,
   clearTokens,
+  clearWasAuthenticated,
   createClassification,
   createEvent,
   createLifeEvent,
@@ -46,6 +47,7 @@ import {
   getLifeEvent,
   getLifeEvents,
   getOnboardingFlag,
+  getWasAuthenticated,
   getPattern,
   getPatterns,
   getPerson,
@@ -63,6 +65,7 @@ import {
   register,
   resendVerification,
   setTokens,
+  setWasAuthenticated,
   submitFeedback,
   syncTree,
   updateAdminFeature,
@@ -146,6 +149,7 @@ function fakeJwt(payload: Record<string, unknown>): string {
 beforeEach(() => {
   mockFetch.mockReset();
   localStorage.clear();
+  sessionStorage.clear();
 });
 
 // ---------------------------------------------------------------------------
@@ -174,6 +178,63 @@ describe("token management", () => {
     clearTokens();
     expect(localStorage.getItem("traumabomen_access_token")).toBeNull();
     expect(localStorage.getItem("traumabomen_refresh_token")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Session authentication flag
+// ---------------------------------------------------------------------------
+
+describe("session authentication flag", () => {
+  it("setWasAuthenticated stores flag in sessionStorage", () => {
+    setWasAuthenticated();
+    expect(sessionStorage.getItem("wasAuthenticated")).toBe("true");
+  });
+
+  it("getWasAuthenticated returns false when not set", () => {
+    expect(getWasAuthenticated()).toBe(false);
+  });
+
+  it("getWasAuthenticated returns true after setWasAuthenticated", () => {
+    setWasAuthenticated();
+    expect(getWasAuthenticated()).toBe(true);
+  });
+
+  it("clearWasAuthenticated removes the flag", () => {
+    setWasAuthenticated();
+    clearWasAuthenticated();
+    expect(getWasAuthenticated()).toBe(false);
+    expect(sessionStorage.getItem("wasAuthenticated")).toBeNull();
+  });
+
+  it("login sets wasAuthenticated flag", async () => {
+    const tokenResp = {
+      access_token: "at",
+      refresh_token: "rt",
+      token_type: "bearer",
+      onboarding_safety_acknowledged: false,
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(tokenResp));
+    await login({ email: "a@b.com", password: DUMMY_PASS });
+    expect(getWasAuthenticated()).toBe(true);
+  });
+
+  it("register sets wasAuthenticated flag when tokens returned", async () => {
+    const tokenResp = {
+      access_token: "at",
+      refresh_token: "rt",
+      token_type: "bearer",
+    };
+    mockFetch.mockResolvedValueOnce(mockResponse(tokenResp));
+    await register({ email: "a@b.com", password: DUMMY_PASS, encryption_salt: "s" });
+    expect(getWasAuthenticated()).toBe(true);
+  });
+
+  it("register does not set wasAuthenticated when waitlisted", async () => {
+    const waitlistResp = { message: "added to waitlist" };
+    mockFetch.mockResolvedValueOnce(mockResponse(waitlistResp));
+    await register({ email: "a@b.com", password: DUMMY_PASS, encryption_salt: "s" });
+    expect(getWasAuthenticated()).toBe(false);
   });
 });
 

@@ -21,6 +21,7 @@ vi.mock("./contexts/useEncryption", () => ({
 vi.mock("./lib/api", () => ({
   getAccessToken: () => mockAccessToken,
   getOnboardingFlag: () => mockOnboardingFlag,
+  getWasAuthenticated: () => false,
   acknowledgeOnboarding: vi.fn().mockResolvedValue(undefined),
 }));
 
