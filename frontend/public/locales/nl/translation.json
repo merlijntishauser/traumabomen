@@ -44,9 +44,9 @@
   "auth.passwordTooWeak": "Wachtwoord is te zwak",
   "auth.passwordTooLong": "Wachtwoord mag maximaal 64 tekens bevatten",
   "auth.hintLabel": "Je geheugensteun",
-  "auth.hintFieldLabel": "Geheugensteun voor wachtwoord (optioneel)",
+  "auth.hintFieldLabel": "Geheugensteun voor versleutelingswachtwoord (optioneel)",
   "auth.hintPlaceholder": "Iets dat je helpt herinneren",
-  "auth.hintHelperText": "Schrijf iets dat je helpt je wachtwoord te herinneren. Schrijf niet het wachtwoord zelf.",
+  "auth.hintHelperText": "Schrijf iets dat je helpt je versleutelingswachtwoord te herinneren. Schrijf niet het versleutelingswachtwoord zelf.",
   "auth.sessionExpired": "Je sessie is verlopen. Log opnieuw in.",
   "auth.loginTitle": "Inloggen",
 
@@ -533,7 +533,7 @@
   "settings.autoLock60min": "60 minuten",
   "settings.autoLockDisabled": "Uitgeschakeld",
   "settings.passphraseHint": "Geheugensteun",
-  "settings.hintDescription": "Een herinnering die wordt getoond bij het ontgrendelen. Schrijf niet je wachtwoord zelf.",
+  "settings.hintDescription": "Een herinnering die wordt getoond bij het ontgrendelen. Schrijf niet je versleutelingswachtwoord zelf.",
   "settings.hintSaved": "Geheugensteun opgeslagen",
   "settings.hintError": "Kon geheugensteun niet opslaan",
 
