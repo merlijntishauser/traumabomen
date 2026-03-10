@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from tests.conftest import auth_headers, create_user
+from tests.integration.conftest import auth_headers, create_user
 
 
 class TestCreatePerson:
@@ -95,7 +95,9 @@ class TestDeletePerson:
 
 class TestOwnershipIsolation:
     @pytest.mark.asyncio
-    async def test_cannot_access_other_users_persons(self, client, headers, tree, person, db_session):
+    async def test_cannot_access_other_users_persons(
+        self, client, headers, tree, person, db_session
+    ):
         other = await create_user(db_session, email="other@example.com")
         other_headers = auth_headers(other.id)
 

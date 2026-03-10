@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from tests.conftest import auth_headers, create_user
+from tests.integration.conftest import auth_headers, create_user
 
 
 class TestCreateSiblingGroup:

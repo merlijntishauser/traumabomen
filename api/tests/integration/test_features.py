@@ -5,7 +5,7 @@ import uuid
 import pytest
 
 from app.models.feature_flag import FeatureFlag, FeatureFlagUser
-from tests.conftest import auth_headers, create_user
+from tests.integration.conftest import auth_headers, create_user
 
 
 class TestGetFeatures:

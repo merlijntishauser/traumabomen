@@ -17,7 +17,12 @@ from app.auth import (
     verify_password,
 )
 from app.models.user import User
-from tests.conftest import TEST_SETTINGS, auth_headers, create_test_refresh_token, create_user
+from tests.integration.conftest import (
+    TEST_SETTINGS,
+    auth_headers,
+    create_test_refresh_token,
+    create_user,
+)
 
 # ---------------------------------------------------------------------------
 # Unit tests: auth utilities

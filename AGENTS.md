@@ -68,11 +68,23 @@ docker compose exec api uv run alembic upgrade head
 ### Running Tests
 
 ```bash
-# Backend tests
+# Backend tests (all)
 docker compose exec api uv run pytest
 
-# Frontend tests
+# Backend unit tests only (fast, no DB)
+docker compose exec api uv run pytest tests/unit/
+
+# Backend integration tests only (DB + HTTP)
+docker compose exec api uv run pytest tests/integration/
+
+# Frontend tests (all)
 docker compose exec frontend npx vitest run
+
+# Frontend unit tests only (fast, no DOM)
+docker compose exec frontend npx vitest run --project unit
+
+# Frontend integration tests only (jsdom)
+docker compose exec frontend npx vitest run --project integration
 
 # Frontend e2e
 docker compose exec frontend npx playwright test
@@ -346,7 +358,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 
 ### Test Naming Convention (Frontend)
 
-Tests are split into two tiers with strict naming. A `vitest.workspace.ts` defines two projects (`unit` and `integration`) that run in different environments.
+Tests are split into two tiers with strict naming. The `vitest.config.ts` `projects` array defines two projects (`unit` and `integration`) that run in different environments.
 
 - **`*.unit.test.ts`** -- Pure logic tests. No DOM, no React rendering, no `@testing-library/*` imports. Runs in Node (no jsdom overhead). Place next to the module being tested. Use this for: utility functions, data transformations, validators, color mappers, inference logic, API call construction, type guards.
 
@@ -381,11 +393,26 @@ Tests are split into two tiers with strict naming. A `vitest.workspace.ts` defin
 - Crypto round-trip: logout -> login -> passphrase -> verify decryption
 - Failure path: wrong passphrase -> graceful error
 
-### Backend Tests (pytest)
-- API endpoints: encrypted blobs stored/returned untouched
-- Auth flows
-- Bulk sync transactionality (partial failure -> rollback)
-- Ownership isolation (user A cannot access user B's trees)
+### Test Directory Convention (Backend)
+
+Backend tests are split into two directories under `api/tests/`:
+
+- **`tests/unit/`** -- Pure logic tests. No database, no HTTP client, no `db_session`/`client` fixtures. Tests use mocks and patches only. Use this for: email sending, rate limiter logic, database module setup, Sentry hooks, utility functions.
+
+- **`tests/integration/`** -- Tests that need the DB (SQLite in-memory) and/or ASGI HTTP client. Fixtures (`db_session`, `client`, `user`, `headers`, `tree`, `person`) are defined in `tests/integration/conftest.py`. Use this for: API endpoint tests, auth flows, CRUD operations, bulk sync, ownership isolation.
+
+**Rules (enforced in code review):**
+- If a test uses `db_session`, `client`, or any DB fixture, it MUST live in `tests/integration/`
+- If a test does NOT need DB or HTTP client, it MUST live in `tests/unit/`
+- New utility/helper functions MUST have a `tests/unit/` companion test
+- Shared fixtures for integration tests go in `tests/integration/conftest.py`
+- The root `tests/conftest.py` contains only fixtures shared by both (rate limiter reset)
+
+**Running tests:**
+- `make test-be-unit` -- fast unit tests only (no DB, sub-second)
+- `make test-be-integration` -- DB + HTTP tests (slower)
+- `make test-be` -- both tiers combined
+- CI and `make quality` run unit tests first for fast failure, then full suite with coverage
 
 ## Scope
 

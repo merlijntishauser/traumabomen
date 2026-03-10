@@ -103,7 +103,9 @@ jobs:
       - run: uv sync --extra dev
       - name: Complexity check (xenon)
         run: uv run xenon app/ --max-absolute B --max-modules B --max-average A
-      - name: Coverage
+      - name: Unit tests (fast, no DB)
+        run: uv run pytest tests/unit/ -q
+      - name: All tests with coverage
         run: uv run pytest --cov=app --cov-report=json -q
       - name: Coverage gate
         working-directory: .

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.conftest import TEST_SETTINGS, create_user
+from tests.integration.conftest import TEST_SETTINGS, create_user
 
 
 @pytest.mark.asyncio

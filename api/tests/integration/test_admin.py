@@ -3,7 +3,7 @@
 import pytest
 
 from app.models.login_event import LoginEvent
-from tests.conftest import create_user
+from tests.integration.conftest import create_user
 
 # ---------------------------------------------------------------------------
 # Auth guard
