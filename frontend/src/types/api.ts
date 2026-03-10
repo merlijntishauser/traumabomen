@@ -5,6 +5,7 @@ export interface RegisterRequest {
   encryption_salt: string;
   invite_token?: string;
   language?: string;
+  passphrase_hint?: string;
 }
 
 export interface LoginRequest {
@@ -45,6 +46,7 @@ export interface RefreshResponse {
 
 export interface SaltResponse {
   encryption_salt: string;
+  passphrase_hint: string | null;
 }
 
 export interface ChangePasswordRequest {

@@ -72,6 +72,7 @@ import {
   updatePattern,
   updatePerson,
   updateRelationship,
+  updatePassphraseHint,
   updateSalt,
   updateTree,
   updateTurningPoint,
@@ -682,6 +683,19 @@ describe("auth functions (remaining)", () => {
     expect(url).toBe("/api/auth/account");
     expect(init.method).toBe("DELETE");
     expect(JSON.parse(init.body)).toEqual({ password: DUMMY_ACCOUNT_PASS });
+  });
+
+  it("updatePassphraseHint sends PUT to /auth/hint", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockResponse({ message: "Hint updated" }));
+
+    await updatePassphraseHint("My hint");
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toContain("/auth/hint");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(init.body)).toEqual({ passphrase_hint: "My hint" });
   });
 });
 

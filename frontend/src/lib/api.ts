@@ -272,6 +272,13 @@ export function deleteAccount(data: DeleteAccountRequest): Promise<void> {
   return apiFetchWithRetry("/auth/account", { method: "DELETE", body: data });
 }
 
+export function updatePassphraseHint(hint: string | null): Promise<void> {
+  return apiFetchWithRetry("/auth/hint", {
+    method: "PUT",
+    body: { passphrase_hint: hint },
+  });
+}
+
 // Key ring
 
 export function getKeyRing(): Promise<KeyRingResponse> {
