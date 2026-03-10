@@ -66,6 +66,7 @@ describe("useCanvasSettings", () => {
       showPartnerEdges: true,
       showSiblingEdges: false,
       showFriendEdges: true,
+      autoLockMinutes: 15,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
 
