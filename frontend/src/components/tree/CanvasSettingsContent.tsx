@@ -177,26 +177,6 @@ export function CanvasSettingsContent({
         </label>
       </div>
 
-      <div className="settings-panel__divider" />
-
-      <div className="settings-panel__group">
-        <span className="settings-panel__label">{t("settings.autoLockTimeout")}</span>
-      </div>
-
-      <div className="canvas-settings__field">
-        <select
-          value={settings.autoLockMinutes}
-          onChange={(e) => onUpdate({ autoLockMinutes: Number(e.target.value) })}
-          aria-label={t("settings.autoLockTimeout")}
-        >
-          <option value={5}>{t("settings.autoLock5min")}</option>
-          <option value={15}>{t("settings.autoLock15min")}</option>
-          <option value={30}>{t("settings.autoLock30min")}</option>
-          <option value={60}>{t("settings.autoLock60min")}</option>
-          <option value={0}>{t("settings.autoLockDisabled")}</option>
-        </select>
-      </div>
-
       {(onExportEncrypted || onExportPlaintext) && (
         <>
           <div className="settings-panel__divider" />

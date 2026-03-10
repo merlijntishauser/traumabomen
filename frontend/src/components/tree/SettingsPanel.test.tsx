@@ -534,6 +534,18 @@ describe("SettingsPanel", () => {
       expect(elements.length).toBeGreaterThanOrEqual(2);
     });
 
+    it("shows auto-lock timeout setting", async () => {
+      const user = userEvent.setup();
+      renderPanel();
+      await openPanel(user);
+      await switchToAccountTab(user);
+
+      expect(screen.getByText("settings.autoLockTimeout")).toBeInTheDocument();
+      expect(
+        screen.getByRole("combobox", { name: "settings.autoLockTimeout" }),
+      ).toBeInTheDocument();
+    });
+
     it("switching back to canvas tab hides account content", async () => {
       const user = userEvent.setup();
       renderPanel();

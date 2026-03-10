@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { AutoLockSection } from "./settings/AutoLockSection";
 import { ChangePassphraseSection } from "./settings/ChangePassphraseSection";
 import { ChangePasswordSection } from "./settings/ChangePasswordSection";
 import { DeleteAccountSection } from "./settings/DeleteAccountSection";
@@ -104,6 +105,8 @@ export function SettingsPanel({ viewTab, className }: Props) {
                   <ChangePassphraseSection />
                   <div className="settings-panel__divider" />
                   <PassphraseHintSection />
+                  <div className="settings-panel__divider" />
+                  <AutoLockSection />
                   <div className="settings-panel__divider" />
                   <DeleteAccountSection />
                 </>

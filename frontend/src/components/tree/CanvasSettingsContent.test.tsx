@@ -110,39 +110,6 @@ describe("CanvasSettingsContent", () => {
     expect(screen.getByRole("checkbox", { name: "canvas.showFriendEdges" })).not.toBeChecked();
   });
 
-  it("renders auto-lock timeout select with default value", () => {
-    renderComponent();
-    const select = screen.getByRole("combobox", { name: "settings.autoLockTimeout" });
-    expect(select).toBeTruthy();
-    expect((select as HTMLSelectElement).value).toBe("15");
-  });
-
-  it("renders all auto-lock timeout options", () => {
-    renderComponent();
-    const select = screen.getByRole("combobox", { name: "settings.autoLockTimeout" });
-    const options = select.querySelectorAll("option");
-    expect(options).toHaveLength(5);
-    expect(options[0].value).toBe("5");
-    expect(options[1].value).toBe("15");
-    expect(options[2].value).toBe("30");
-    expect(options[3].value).toBe("60");
-    expect(options[4].value).toBe("0");
-  });
-
-  it("calls onUpdate when auto-lock timeout is changed", async () => {
-    const { onUpdate } = renderComponent();
-    const select = screen.getByRole("combobox", { name: "settings.autoLockTimeout" });
-    await userEvent.selectOptions(select, "30");
-    expect(onUpdate).toHaveBeenCalledWith({ autoLockMinutes: 30 });
-  });
-
-  it("calls onUpdate with 0 when auto-lock is disabled", async () => {
-    const { onUpdate } = renderComponent();
-    const select = screen.getByRole("combobox", { name: "settings.autoLockTimeout" });
-    await userEvent.selectOptions(select, "0");
-    expect(onUpdate).toHaveBeenCalledWith({ autoLockMinutes: 0 });
-  });
-
   it("does not render export section when no export callbacks provided", () => {
     renderComponent();
     expect(screen.queryByText("export.title")).toBeNull();
