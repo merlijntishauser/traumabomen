@@ -17,7 +17,11 @@ const DUMMY_ACCOUNT_PW = "mypassword"; // nosonar
 
 const mockChangePassword = vi.fn();
 const mockDeleteAccount = vi.fn();
-const mockGetEncryptionSalt = vi.fn();
+const mockGetEncryptionSalt = vi.fn().mockResolvedValue({
+  encryption_salt: "salt",
+  passphrase_hint: null,
+});
+const mockUpdatePassphraseHint = vi.fn().mockResolvedValue(undefined);
 const mockGetClassifications = vi.fn();
 const mockGetEvents = vi.fn();
 const mockGetJournalEntries = vi.fn();
@@ -48,6 +52,7 @@ vi.mock("../../lib/api", () => ({
   getTurningPoints: (...args: unknown[]) => mockGetTurningPoints(...args),
   syncTree: (...args: unknown[]) => mockSyncTree(...args),
   updateKeyRing: (...args: unknown[]) => mockUpdateKeyRing(...args),
+  updatePassphraseHint: (...args: unknown[]) => mockUpdatePassphraseHint(...args),
   updateSalt: (...args: unknown[]) => mockUpdateSalt(...args),
   updateTree: vi.fn(),
 }));
@@ -159,6 +164,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockI18nLanguage = "en";
   mockIsMigrated = false;
+  mockGetEncryptionSalt.mockResolvedValue({
+    encryption_salt: "salt",
+    passphrase_hint: null,
+  });
+  mockUpdatePassphraseHint.mockResolvedValue(undefined);
 });
 
 describe("SettingsPanel", () => {

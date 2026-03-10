@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ChangePassphraseSection } from "./settings/ChangePassphraseSection";
 import { ChangePasswordSection } from "./settings/ChangePasswordSection";
 import { DeleteAccountSection } from "./settings/DeleteAccountSection";
+import { PassphraseHintSection } from "./settings/PassphraseHintSection";
 import "./SettingsPanel.css";
 
 export interface ViewTab {
@@ -101,6 +102,8 @@ export function SettingsPanel({ viewTab, className }: Props) {
                   <ChangePasswordSection />
                   <div className="settings-panel__divider" />
                   <ChangePassphraseSection />
+                  <div className="settings-panel__divider" />
+                  <PassphraseHintSection />
                   <div className="settings-panel__divider" />
                   <DeleteAccountSection />
                 </>
