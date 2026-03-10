@@ -74,15 +74,7 @@ Small optional prompt when opening the app: "How are you feeling right now?" Sto
 
 ## Planned: Infrastructure (lower priority)
 
-### 14. Passphrase hints and auth modals
-
-User-written passphrase recovery hints, auth modal overlay replacing the unlock page redirect, and auto-lock on inactivity.
-
-- **Passphrase hints**: optional hint stored server-side, shown during unlock
-- **Auth modal**: full-viewport overlay with hero background, two modes (unlock / re-auth)
-- **Auto-lock**: configurable inactivity timer (default 15 min) clears encryption key
-
-See [design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
+### ~~14. Passphrase hints and auth modals~~ (done)
 
 ### 15. Passkey authentication
 
@@ -175,6 +167,10 @@ Read-only overview page at `/trees/:id/insights` surfacing basic observations fr
 ### Sibling groups
 
 Compact representation of siblings without creating full Person nodes. SiblingGroup entity with lightweight member records (name, optional birth year) alongside full Person references. Pill-shaped nodes on the canvas connected to shared parents. Members promotable to full persons with sibling relationships in a single bulk sync call. One group per person constraint (server-side 409). Detail panel for editing members, section in RelationshipsTab. [Design doc](plans/2026-03-02-sibling-groups-design.md).
+
+### Passphrase hints and auth modals
+
+User-written passphrase recovery hints, auth modal overlay, and auto-lock on inactivity. Optional hint (max 255 chars) stored server-side, shown on unlock page and auth modal. Auth modal is a full-viewport overlay with hero background in two modes (unlock for expired encryption key, re-auth for expired JWT). Auto-lock with configurable inactivity timer (5/15/30/60 min or disabled) clears encryption key. Hint manageable in account settings. [Design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
 
 ### Safety envelope
 
