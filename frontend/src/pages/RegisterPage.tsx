@@ -33,6 +33,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passphrase, setPassphrase] = useState("");
   const [confirmPassphrase, setConfirmPassphrase] = useState("");
+  const [passphraseHint, setPassphraseHint] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,11 +67,13 @@ export default function RegisterPage() {
         encryption_salt: string;
         invite_token?: string;
         language: string;
+        passphrase_hint?: string;
       } = {
         email,
         password,
         encryption_salt: salt,
         language: i18n.language,
+        passphrase_hint: passphraseHint || undefined,
       };
       if (inviteToken) {
         registerRequest.invite_token = inviteToken;
@@ -176,6 +179,19 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassphrase(e.target.value)}
                 data-1p-ignore
               />
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="passphraseHint">{t("auth.hintFieldLabel")}</label>
+              <input
+                id="passphraseHint"
+                type="text"
+                maxLength={255}
+                value={passphraseHint}
+                onChange={(e) => setPassphraseHint(e.target.value)}
+                placeholder={t("auth.hintPlaceholder")}
+              />
+              <p className="auth-field__hint">{t("auth.hintHelperText")}</p>
             </div>
 
             <label className="auth-checkbox">
