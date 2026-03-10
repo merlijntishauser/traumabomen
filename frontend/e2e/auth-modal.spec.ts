@@ -92,7 +92,7 @@ test.describe("AuthModal", () => {
     await modal.waitFor({ state: "visible", timeout: 10_000 });
 
     // Click "switch account" / logout link
-    await modal.getByRole("button", { name: /switch account/i }).click();
+    await modal.getByRole("button", { name: /different account|ander account/i }).click();
 
     await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
   });
