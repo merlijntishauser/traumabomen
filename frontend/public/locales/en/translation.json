@@ -44,6 +44,11 @@
   "auth.passwordTooWeak": "Password is too weak",
   "auth.passwordTooLong": "Password must be 64 characters or fewer",
   "auth.hintLabel": "Your hint",
+  "auth.hintFieldLabel": "Passphrase hint (optional)",
+  "auth.hintPlaceholder": "Something that helps you remember",
+  "auth.hintHelperText": "Write something that helps you remember your passphrase. Do not write the passphrase itself.",
+  "auth.sessionExpired": "Your session has expired. Please log in again.",
+  "auth.loginTitle": "Log in",
 
   "password.weak": "Weak",
   "password.fair": "Fair",
@@ -528,6 +533,10 @@
   "settings.autoLock30min": "30 minutes",
   "settings.autoLock60min": "60 minutes",
   "settings.autoLockDisabled": "Disabled",
+  "settings.passphraseHint": "Passphrase hint",
+  "settings.hintDescription": "A reminder shown when you unlock. Do not write your passphrase itself.",
+  "settings.hintSaved": "Hint saved",
+  "settings.hintError": "Could not save hint",
 
   "theme.toggle": "Cycle theme",
 
