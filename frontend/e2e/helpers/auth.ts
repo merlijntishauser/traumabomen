@@ -19,13 +19,20 @@ export async function dismissOnboarding(page: Page): Promise<void> {
   }
 }
 
-export async function register(page: Page, email: string): Promise<void> {
+export async function register(
+  page: Page,
+  email: string,
+  options?: { hint?: string },
+): Promise<void> {
   await page.goto("/register");
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
   await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
   await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
   await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
+  if (options?.hint) {
+    await page.getByLabel(/hint/i).fill(options.hint);
+  }
   await page.getByLabel(/i understand/i).check();
 
   // Registration may fail under parallel load; retry once
@@ -54,13 +61,18 @@ export async function login(page: Page, email: string): Promise<void> {
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /log in/i }).click();
-  await page.waitForURL("**/unlock", { timeout: 10_000 });
+  // Login now redirects to /trees with AuthModal overlay
+  await page.waitForURL("**/trees", { timeout: 10_000 });
 }
 
 export async function unlock(page: Page): Promise<void> {
-  await page.getByLabel(/passphrase/i).fill(TEST_PASSPHRASE);
-  await page.getByRole("button", { name: /unlock/i }).click();
-  await page.waitForURL("**/trees", { timeout: 30_000 });
+  // Wait for AuthModal dialog to appear
+  const modal = page.locator("[role='dialog']");
+  await modal.waitFor({ state: "visible", timeout: 10_000 });
+  await modal.getByLabel(/passphrase/i).fill(TEST_PASSPHRASE);
+  await modal.getByRole("button", { name: /unlock/i }).click();
+  // Wait for modal to dismiss after successful unlock
+  await modal.waitFor({ state: "hidden", timeout: 30_000 });
 }
 
 export async function loginAndUnlock(
@@ -87,11 +99,6 @@ export async function createTree(
 
 export async function logout(page: Page): Promise<void> {
   await page.getByRole("button", { name: /log out/i }).click();
-  // Logout clears encryption key, landing on /unlock or /login.
-  // Navigate to /login directly to avoid race between /unlock redirect.
-  await page.waitForURL(/\/(unlock|login)/, { timeout: 15_000 });
-  if (!page.url().includes("/login")) {
-    await page.goto("/login");
-  }
-  await page.waitForURL("**/login", { timeout: 10_000 });
+  // Logout clears wasAuthenticated, AuthGuard redirects to /login
+  await page.waitForURL("**/login", { timeout: 15_000 });
 }

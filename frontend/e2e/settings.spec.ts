@@ -49,8 +49,10 @@ test.describe("Settings", () => {
     await page.getByLabel(/password/i).fill(newPassword);
     await page.getByRole("button", { name: /log in/i }).click();
 
-    // Should reach unlock page
-    await expect(page.getByLabel(/passphrase/i)).toBeVisible();
+    // Should reach /trees with AuthModal in unlock mode
+    const modal = page.locator("[role='dialog']");
+    await modal.waitFor({ state: "visible", timeout: 10_000 });
+    await expect(modal.getByLabel(/passphrase/i)).toBeVisible();
   });
 
   test("change passphrase and unlock with new passphrase", async ({
@@ -77,13 +79,15 @@ test.describe("Settings", () => {
       timeout: 30_000,
     });
 
-    // Logout and login, unlock with new passphrase
+    // Logout and login, unlock with new passphrase via AuthModal
     await logout(page);
     await login(page, email);
 
-    await page.getByLabel(/passphrase/i).fill(newPassphrase);
-    await page.getByRole("button", { name: /unlock/i }).click();
-    await page.waitForURL("**/trees", { timeout: 30_000 });
+    const modal = page.locator("[role='dialog']");
+    await modal.waitFor({ state: "visible", timeout: 10_000 });
+    await modal.getByLabel(/passphrase/i).fill(newPassphrase);
+    await modal.getByRole("button", { name: /unlock/i }).click();
+    await modal.waitFor({ state: "hidden", timeout: 30_000 });
   });
 
   test("delete account", async ({ page }) => {

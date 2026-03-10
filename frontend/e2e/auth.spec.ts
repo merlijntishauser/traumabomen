@@ -42,11 +42,13 @@ test.describe("Authentication @smoketest", () => {
     await logout(page);
 
     await login(page, email);
-    // Should be on unlock page
-    await page.getByLabel(/passphrase/i).fill("wrong-passphrase-value");
-    await page.getByRole("button", { name: /unlock/i }).click();
+    // AuthModal should appear in unlock mode
+    const modal = page.locator("[role='dialog']");
+    await modal.waitFor({ state: "visible", timeout: 10_000 });
+    await modal.getByLabel(/passphrase/i).fill("wrong-passphrase-value");
+    await modal.getByRole("button", { name: /unlock/i }).click();
 
-    await expect(page.locator(".auth-error")).toBeVisible();
+    await expect(modal.locator(".auth-error")).toBeVisible();
   });
 
   test("logout redirects to login", async ({ page }) => {
