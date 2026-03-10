@@ -1,7 +1,7 @@
 import { Lock, LogIn } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ApiError, getEncryptionSalt, login as apiLogin } from "../lib/api";
+import { ApiError, login as apiLogin, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import "./AuthModal.css";
@@ -22,14 +22,7 @@ interface Props {
   onLogout: () => void;
 }
 
-export function AuthModal({
-  mode,
-  hint,
-  salt,
-  onUnlockSuccess,
-  onReauthSuccess,
-  onLogout,
-}: Props) {
+export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, onLogout }: Props) {
   const { t } = useTranslation();
   const [step, setStep] = useState<"credentials" | "passphrase">(
     mode === "reauth" ? "credentials" : "passphrase",
@@ -50,7 +43,8 @@ export function AuthModal({
     setCurrentHint(hint);
   }, [salt, hint]);
 
-  // Auto-focus first input
+  // Auto-focus first input when step changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: step triggers re-focus
   useEffect(() => {
     inputRef.current?.focus();
   }, [step]);
@@ -115,14 +109,10 @@ export function AuthModal({
 
   const showCredentials = step === "credentials";
   const showPassphrase = step === "passphrase";
+  const unlockLabel = t("auth.unlock");
 
   return (
-    <div
-      className="auth-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("auth.unlock")}
-    >
+    <div className="auth-modal" role="dialog" aria-modal="true" aria-label={unlockLabel}>
       <div className="auth-modal__card">
         <picture>
           <source srcSet="/images/hero-unlock-dark.webp" type="image/webp" />
@@ -151,12 +141,10 @@ export function AuthModal({
             )}
           </div>
           <h2 className="auth-modal__title">
-            {showCredentials ? t("auth.loginTitle") : t("auth.unlock")}
+            {showCredentials ? t("auth.loginTitle") : unlockLabel}
           </h2>
           <p className="auth-modal__subtitle">
-            {showCredentials
-              ? t("auth.sessionExpired")
-              : t("auth.passphrasePrompt")}
+            {showCredentials ? t("auth.sessionExpired") : t("auth.passphrasePrompt")}
           </p>
 
           {mode === "reauth" && (
@@ -175,11 +163,7 @@ export function AuthModal({
           )}
 
           {showCredentials && (
-            <form
-              className="auth-modal__form"
-              role="form"
-              onSubmit={handleCredentialsSubmit}
-            >
+            <form className="auth-modal__form" onSubmit={handleCredentialsSubmit}>
               <div className="auth-field">
                 <label htmlFor="auth-modal-email">{t("auth.email")}</label>
                 <input
@@ -192,9 +176,7 @@ export function AuthModal({
                 />
               </div>
               <div className="auth-field">
-                <label htmlFor="auth-modal-password">
-                  {t("auth.password")}
-                </label>
+                <label htmlFor="auth-modal-password">{t("auth.password")}</label>
                 <input
                   id="auth-modal-password"
                   type="password"
@@ -208,26 +190,16 @@ export function AuthModal({
                   {error}
                 </p>
               )}
-              <button
-                className="auth-modal__submit"
-                type="submit"
-                disabled={loading}
-              >
+              <button className="auth-modal__submit" type="submit" disabled={loading}>
                 {loading ? t("common.loading") : t("auth.login")}
               </button>
             </form>
           )}
 
           {showPassphrase && (
-            <form
-              className="auth-modal__form"
-              role="form"
-              onSubmit={handlePassphraseSubmit}
-            >
+            <form className="auth-modal__form" onSubmit={handlePassphraseSubmit}>
               <div className="auth-field">
-                <label htmlFor="auth-modal-passphrase">
-                  {t("auth.passphrase")}
-                </label>
+                <label htmlFor="auth-modal-passphrase">{t("auth.passphrase")}</label>
                 <input
                   ref={showCredentials ? undefined : inputRef}
                   id="auth-modal-passphrase"
@@ -240,9 +212,7 @@ export function AuthModal({
               </div>
               {currentHint && (
                 <div className="auth-modal__hint" data-testid="auth-modal-hint">
-                  <span className="auth-modal__hint-label">
-                    {t("auth.hintLabel")}
-                  </span>
+                  <span className="auth-modal__hint-label">{t("auth.hintLabel")}</span>
                   <span className="auth-modal__hint-text">{currentHint}</span>
                 </div>
               )}
@@ -260,16 +230,12 @@ export function AuthModal({
                   ? t("auth.migratingData")
                   : loading
                     ? t("auth.derivingKey")
-                    : t("auth.unlock")}
+                    : unlockLabel}
               </button>
             </form>
           )}
 
-          <button
-            type="button"
-            className="auth-modal__logout"
-            onClick={onLogout}
-          >
+          <button type="button" className="auth-modal__logout" onClick={onLogout}>
             {t("auth.switchAccount")}
           </button>
         </div>

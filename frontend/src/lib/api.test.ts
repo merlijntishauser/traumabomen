@@ -47,7 +47,6 @@ import {
   getLifeEvent,
   getLifeEvents,
   getOnboardingFlag,
-  getWasAuthenticated,
   getPattern,
   getPatterns,
   getPerson,
@@ -58,6 +57,7 @@ import {
   getTree,
   getTrees,
   getTurningPoints,
+  getWasAuthenticated,
   joinWaitlist,
   login,
   logout,
@@ -72,10 +72,10 @@ import {
   updateClassification,
   updateEvent,
   updateLifeEvent,
+  updatePassphraseHint,
   updatePattern,
   updatePerson,
   updateRelationship,
-  updatePassphraseHint,
   updateSalt,
   updateTree,
   updateTurningPoint,
@@ -756,7 +756,7 @@ describe("auth functions (remaining)", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toContain("/auth/hint");
     expect(init.method).toBe("PUT");
-    expect(JSON.parse(init.body)).toEqual({ passphrase_hint: "My hint" });
+    expect(JSON.parse(init.body)).toEqual({ passphrase_hint: "My hint" }); // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
   });
 });
 
