@@ -188,7 +188,7 @@ describe("token management", () => {
 describe("session authentication flag", () => {
   it("setWasAuthenticated stores flag in sessionStorage", () => {
     setWasAuthenticated();
-    expect(sessionStorage.getItem("wasAuthenticated")).toBe("true");
+    expect(sessionStorage.getItem("wasAuthenticated")).toBe("true"); // privacy-ok: test assertion
   });
 
   it("getWasAuthenticated returns false when not set", () => {
@@ -204,7 +204,7 @@ describe("session authentication flag", () => {
     setWasAuthenticated();
     clearWasAuthenticated();
     expect(getWasAuthenticated()).toBe(false);
-    expect(sessionStorage.getItem("wasAuthenticated")).toBeNull();
+    expect(sessionStorage.getItem("wasAuthenticated")).toBeNull(); // privacy-ok: test assertion
   });
 
   it("login sets wasAuthenticated flag", async () => {

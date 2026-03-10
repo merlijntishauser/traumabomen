@@ -109,15 +109,15 @@ export function setOnboardingFlag(value: boolean): void {
 // Session authentication flag management
 
 export function setWasAuthenticated(): void {
-  sessionStorage.setItem("wasAuthenticated", "true");
+  sessionStorage.setItem("wasAuthenticated", "true"); // privacy-ok: non-sensitive boolean flag
 }
 
 export function getWasAuthenticated(): boolean {
-  return sessionStorage.getItem("wasAuthenticated") === "true";
+  return sessionStorage.getItem("wasAuthenticated") === "true"; // privacy-ok: non-sensitive boolean flag
 }
 
 export function clearWasAuthenticated(): void {
-  sessionStorage.removeItem("wasAuthenticated");
+  sessionStorage.removeItem("wasAuthenticated"); // privacy-ok: non-sensitive boolean flag
 }
 
 // Core fetch
