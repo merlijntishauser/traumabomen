@@ -201,9 +201,9 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Relationship prompt after person creation ([design doc](plans/2026-02-18-relationship-prompt-design.md), partially implemented)
 - Full birth/death dates ([design doc](plans/2026-02-17-full-birth-death-dates-design.md), partially implemented)
 
-### React Doctor findings
+### ~~React Doctor findings~~ (done)
 
-Issues identified by react-doctor (score: 95/100).
+All issues resolved. react-doctor score: 100/100.
 
 #### ~~20. Fix derived state in useEffect (AuthModal)~~ (done)
 
@@ -215,11 +215,7 @@ Issues identified by react-doctor (score: 95/100).
 
 #### ~~24. Parallel async operations (ChangePassphraseSection)~~ (done)
 
-#### 25. Break up large components
-
-Several components exceed recommended size. `TreeWorkspaceInner` is 665 lines. Extract logical sections into focused sub-components. Low priority; react-doctor score is already 95 with these as warnings only.
-
-Files: `src/pages/TreeWorkspacePage.tsx`, `src/pages/TreeListPage.tsx`, `src/pages/TimelinePage.tsx`, `src/components/timeline/TimelineFilterPanel.tsx`
+#### ~~25. Break up large components~~ (done)
 
 #### ~~26. Clean up dead code~~ (done)
 
