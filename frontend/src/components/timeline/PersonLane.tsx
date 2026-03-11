@@ -25,7 +25,7 @@ export interface LabelEntry {
   key: string;
 }
 
-export function collectClassificationLabelEntries(
+function collectClassificationLabelEntries(
   classifications: DecryptedClassification[],
   dims: DimSets | undefined,
   filterMode: FilterMode,

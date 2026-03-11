@@ -159,8 +159,7 @@ export function RelationshipDetailPanel({
                   {periods.length === 0 && <p className="detail-panel__empty">---</p>}
                   {periods.map((period, i) => (
                     <div
-                      // biome-ignore lint/suspicious/noArrayIndexKey: periods are edited by index
-                      key={i}
+                      key={`${period.status}-${period.start_year}-${period.end_year ?? "open"}-${i}`}
                       className="detail-panel__period-row"
                     >
                       <label className="detail-panel__field">

@@ -44,11 +44,11 @@ typecheck: ## Run type checkers (tsc + mypy)
 	cd frontend && npx tsc --noEmit
 	docker compose exec api uv run mypy app
 
-react-doctor: ## Run React Doctor health check (minimum score: 85, target: 90)
+react-doctor: ## Run React Doctor health check (minimum score: 95)
 	@SCORE=$$(cd frontend && npx -y react-doctor@latest . --score -y 2>/dev/null | tail -1); \
-	echo "React Doctor score: $$SCORE / 100 (minimum: 85)"; \
-	if [ "$$SCORE" -lt 85 ] 2>/dev/null; then \
-		echo "FAIL: React Doctor score $$SCORE is below minimum 85"; \
+	echo "React Doctor score: $$SCORE / 100 (minimum: 95)"; \
+	if [ "$$SCORE" -lt 95 ] 2>/dev/null; then \
+		echo "FAIL: React Doctor score $$SCORE is below minimum 95"; \
 		cd frontend && npx -y react-doctor@latest . --verbose -y; \
 		exit 1; \
 	fi

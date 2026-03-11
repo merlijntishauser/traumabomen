@@ -10,9 +10,6 @@ import { EditSubPanel } from "./EditSubPanel";
 import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
 
-// Re-export SeverityBar from its new home for any external consumers
-export { SeverityBar } from "./EventCard";
-
 // Shared i18n keys
 const T_SAVE = "common.save";
 const T_DELETE = "common.delete";

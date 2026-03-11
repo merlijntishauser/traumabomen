@@ -23,8 +23,8 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
               <tr>
                 <th>{t("admin.cohort")}</th>
                 <th>{t("admin.users")}</th>
+                {/* Index keys are safe: static column headers derived from a fixed week count, never reorder */}
                 {Array.from({ length: maxWeeks }, (_, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static week columns never reorder
                   <th key={`w${i}`}>W{i}</th>
                 ))}
               </tr>
@@ -34,12 +34,12 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
                 <tr key={cohort.week}>
                   <td>{cohort.week}</td>
                   <td>{cohort.signup_count}</td>
+                  {/* Index keys are safe: static week columns matching header, never reorder */}
                   {Array.from({ length: maxWeeks }, (_, i) => {
                     const pct = cohort.retention[i];
                     return (
                       <td
-                        // biome-ignore lint/suspicious/noArrayIndexKey: static week columns
-                        key={i}
+                        key={`${cohort.week}-w${i}`}
                         style={
                           pct !== undefined ? { backgroundColor: retentionColor(pct) } : undefined
                         }

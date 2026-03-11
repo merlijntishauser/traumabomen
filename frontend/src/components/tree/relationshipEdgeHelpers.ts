@@ -14,7 +14,7 @@ export const MARKER_CLIP: Record<MarkerShape, string> = {
   triangle: "polygon(50% 0%, 100% 100%, 0% 100%)",
 };
 
-export const BAR_Y_OFFSET = 50;
+const BAR_Y_OFFSET = 50;
 
 // ---- Types ----
 
@@ -24,25 +24,25 @@ export interface ForkPositions {
   barY: number;
 }
 
-export interface EdgeStyleResult {
+interface EdgeStyleResult {
   stroke: string;
   strokeWidth: number;
   strokeDasharray?: string;
 }
 
-export interface EdgePathResult {
+interface EdgePathResult {
   edgePath: string;
   hitPath: string;
   labelX: number;
   labelY: number;
 }
 
-export interface TooltipResult {
+interface TooltipResult {
   typeLabel?: string;
   periodLine?: string;
 }
 
-export interface EdgeFlags {
+interface EdgeFlags {
   isPartner: boolean;
   isExPartner: boolean;
   isHalfSibling: boolean;

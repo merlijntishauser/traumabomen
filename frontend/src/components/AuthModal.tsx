@@ -24,36 +24,37 @@ interface Props {
 
 export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, onLogout }: Props) {
   const { t } = useTranslation();
-  const [step, setStep] = useState<"credentials" | "passphrase">(
-    mode === "reauth" ? "credentials" : "passphrase",
-  );
+  const [credentialsSubmitted, setCredentialsSubmitted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passphrase, setPassphrase] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [migrating, setMigrating] = useState(false);
-  const [currentSalt, setCurrentSalt] = useState(salt);
-  const [currentHint, setCurrentHint] = useState(hint);
+  const [fetchedSalt, setFetchedSalt] = useState<string | null>(null);
+  const [fetchedHint, setFetchedHint] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Update salt/hint when props change
-  useEffect(() => {
-    setCurrentSalt(salt);
-    setCurrentHint(hint);
-  }, [salt, hint]);
+  // Derive step and effective salt/hint from props + local state
+  const step = mode === "reauth" && !credentialsSubmitted ? "credentials" : "passphrase";
+  const currentSalt = fetchedSalt ?? salt;
+  const currentHint = fetchedHint ?? hint;
+
+  // Reset local state when mode changes
+  const [prevMode, setPrevMode] = useState(mode);
+  if (mode !== prevMode) {
+    setPrevMode(mode);
+    setCredentialsSubmitted(false);
+    setFetchedSalt(null);
+    setFetchedHint(null);
+    setError("");
+  }
 
   // Auto-focus first input when step changes
   // biome-ignore lint/correctness/useExhaustiveDependencies: step triggers re-focus
   useEffect(() => {
     inputRef.current?.focus();
   }, [step]);
-
-  // Reset to correct step when mode changes
-  useEffect(() => {
-    setStep(mode === "reauth" ? "credentials" : "passphrase");
-    setError("");
-  }, [mode]);
 
   async function handleCredentialsSubmit(e: FormEvent) {
     e.preventDefault();
@@ -63,9 +64,9 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
       await apiLogin({ email, password });
       // Fetch salt + hint after login
       const saltResp = await getEncryptionSalt();
-      setCurrentSalt(saltResp.encryption_salt);
-      setCurrentHint(saltResp.passphrase_hint);
-      setStep("passphrase");
+      setFetchedSalt(saltResp.encryption_salt);
+      setFetchedHint(saltResp.passphrase_hint);
+      setCredentialsSubmitted(true);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(t(`auth.${err.detail || "loginError"}`));

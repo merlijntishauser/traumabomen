@@ -101,10 +101,7 @@ export const PartnerLine = React.memo(function PartnerLine({
         };
 
         return (
-          <g
-            // biome-ignore lint/suspicious/noArrayIndexKey: periods are positional, never reorder
-            key={i}
-          >
+          <g key={`${period.start_year}-${period.end_year ?? "ongoing"}-${period.status}`}>
             {/* Vertical connector (only when both partners visible) */}
             {srcLineY != null && tgtLineY != null && (
               <line

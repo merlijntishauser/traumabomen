@@ -162,9 +162,9 @@ export function PersonDetailPanel({
     onDeleteClassification,
   } = entityHandlers;
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<DetailTab>(sectionToTab(initialSection ?? null));
+  const [activeTab, setActiveTab] = useState<DetailTab>(() => sectionToTab(initialSection ?? null));
   const [eventSubTab, setEventSubTab] = useState<EventSubTab>(
-    sectionToEventSubTab(initialSection ?? null) ?? "trauma",
+    () => sectionToEventSubTab(initialSection ?? null) ?? "trauma",
   );
 
   useEffect(() => {

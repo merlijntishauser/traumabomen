@@ -6,7 +6,7 @@ import { JournalPanel } from "./journal/JournalPanel";
 import { PatternPanel } from "./tree/PatternPanel";
 import { PersonDetailPanel } from "./tree/PersonDetailPanel";
 
-export interface WorkspacePanelHostProps {
+interface WorkspacePanelHostProps {
   panels: WorkspacePanelState;
   handlers: ReturnType<typeof useLinkedEntityPanelHandlers>;
   entities: SelectedPersonEntities;

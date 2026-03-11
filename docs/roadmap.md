@@ -203,47 +203,25 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 
 ### React Doctor findings
 
-Issues identified by react-doctor (score: 87/100).
+Issues identified by react-doctor (score: 95/100).
 
-#### 20. Fix derived state in useEffect (AuthModal)
+#### ~~20. Fix derived state in useEffect (AuthModal)~~ (done)
 
-AuthModal computes derived state (`mode`, `hint`) in useEffect instead of during render. Also initializes useState from props (`salt`, `hint`) that should stay in sync. Refactor to compute inline and derive from props directly.
+#### ~~21. Lazy useState initialization~~ (done)
 
-Files: `src/components/AuthModal.tsx`
+#### ~~22. Accessibility: keyboard handlers and roles~~ (done)
 
-#### 21. Lazy useState initialization
+#### ~~23. Replace array index keys with stable identifiers~~ (done)
 
-Several components call `useState(fn())` which runs the initializer on every render. Convert to `useState(() => fn())` for lazy initialization.
-
-Files: `src/components/tree/PersonDetailPanel.tsx`, `src/components/tree/PersonTab.tsx`
-
-#### 22. Accessibility: keyboard handlers and roles
-
-Clickable non-interactive elements missing keyboard event listeners and/or roles. Add keyboard support and semantic roles to interactive div/span elements.
-
-Files: `src/components/FeedbackModal.tsx`, `src/components/tree/RelationshipPopover.tsx`, `src/components/PatternView.tsx`, `src/components/tree/PatternPanel.tsx`
-
-#### 23. Replace array index keys with stable identifiers
-
-12 instances of using array index as React key, which causes bugs when lists are reordered or filtered. Replace with stable unique identifiers.
-
-Files: `src/components/timeline/PartnerLine.tsx`, `src/components/tree/BranchDecoration.tsx`, `src/components/admin/RetentionSection.tsx`, `src/components/tree/RelationshipDetailPanel.tsx`, `src/components/tree/SiblingGroupPanel.tsx`, `src/components/tree/RelationshipsTab.tsx`, `src/components/tree/ClassificationsTab.tsx`, `src/components/journal/JournalDecoration.tsx`, `src/components/timeline/TimelineTooltip.tsx`, `src/components/tree/EventCard.tsx`
-
-#### 24. Parallel async operations (ChangePassphraseSection)
-
-4 sequential await statements that are independent and can run concurrently via `Promise.all()`.
-
-Files: `src/components/tree/settings/ChangePassphraseSection.tsx`
+#### ~~24. Parallel async operations (ChangePassphraseSection)~~ (done)
 
 #### 25. Break up large components
 
-Several components exceed recommended size. `TreeWorkspaceInner` is 665 lines. Extract logical sections into focused sub-components.
+Several components exceed recommended size. `TreeWorkspaceInner` is 665 lines. Extract logical sections into focused sub-components. Low priority; react-doctor score is already 95 with these as warnings only.
 
 Files: `src/pages/TreeWorkspacePage.tsx`, `src/pages/TreeListPage.tsx`, `src/pages/TimelinePage.tsx`, `src/components/timeline/TimelineFilterPanel.tsx`
 
-#### 26. Clean up dead code
-
-Unused files, exports, and types identified by react-doctor. Remove or wire up as appropriate.
+#### ~~26. Clean up dead code~~ (done)
 
 ### To think about
 - More themes

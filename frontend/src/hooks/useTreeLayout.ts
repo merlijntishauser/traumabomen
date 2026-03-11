@@ -35,7 +35,7 @@ export type {
   RelationshipEdgeType,
   SiblingGroupNodeType,
 } from "../lib/treeLayoutHelpers";
-export { MARKER_SHAPES, NODE_HEIGHT, NODE_WIDTH } from "../lib/treeLayoutHelpers";
+export { NODE_HEIGHT, NODE_WIDTH } from "../lib/treeLayoutHelpers";
 
 export function useTreeLayout(
   persons: Map<string, DecryptedPerson>,

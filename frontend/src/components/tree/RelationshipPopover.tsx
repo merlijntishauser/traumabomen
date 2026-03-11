@@ -30,7 +30,7 @@ export function RelationshipPopover({
   const targetName = persons.get(connection.target!)?.name ?? "?";
 
   return (
-    <div className="relationship-popover" onClick={onClose}>
+    <div className="relationship-popover" onClick={onClose} role="dialog" aria-modal="true">
       <div className="relationship-popover__card" onClick={(e) => e.stopPropagation()}>
         <h3>{t("relationship.selectType")}</h3>
         <div className="relationship-popover__direction">

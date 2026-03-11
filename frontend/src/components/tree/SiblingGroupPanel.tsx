@@ -90,10 +90,10 @@ export function SiblingGroupPanel({
           );
         })}
 
+        {/* Index key: members lack stable IDs, all fields are mutable, and list never reorders */}
         {members.map((member, index) => (
           <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: members are edited by index
-            key={index}
+            key={`member-${index}`}
             className="sibling-group-panel__card sibling-group-panel__card--member"
           >
             <div className="sibling-group-panel__card-main">

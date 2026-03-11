@@ -135,7 +135,8 @@ export function PatternPanel({
             onMouseEnter={() => onHoverPattern?.(pattern.id)}
             onMouseLeave={() => onHoverPattern?.(null)}
           >
-            <div
+            <button
+              type="button"
               className="pattern-panel__item-header"
               onClick={() => handleToggleExpand(pattern.id)}
             >
@@ -166,7 +167,7 @@ export function PatternPanel({
                   expandedId === pattern.id ? "pattern-panel__chevron--open" : ""
                 }`}
               />
-            </div>
+            </button>
 
             {expandedId === pattern.id && (
               <PatternEditForm
@@ -328,12 +329,14 @@ function PatternEditForm({
                 {group.entities.map((entity) => {
                   const isLinked = linkedEntitySet.has(`${entity.type}:${entity.id}`);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={`${entity.type}:${entity.id}`}
                       className={`pattern-panel__link-entity ${
                         isLinked ? "pattern-panel__link-entity--linked" : ""
                       }`}
                       onClick={() => !isLinked && handleAddEntity(entity.type, entity.id)}
+                      disabled={isLinked}
                     >
                       <div
                         className={`pattern-panel__entity-type-icon pattern-panel__entity-type-icon--${
@@ -347,7 +350,7 @@ function PatternEditForm({
                         }`}
                       />
                       <span>{entity.label}</span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

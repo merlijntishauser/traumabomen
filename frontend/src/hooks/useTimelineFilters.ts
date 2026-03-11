@@ -43,7 +43,7 @@ function toggleInDynamicSet(
 
 export type FilterMode = "dim" | "hide";
 
-export type QuickFilterPreset = "trauma" | "lifeEvents" | "classifications";
+type QuickFilterPreset = "trauma" | "lifeEvents" | "classifications";
 
 export interface TimelineFilterState {
   visiblePersonIds: Set<string> | null;
@@ -269,7 +269,7 @@ function isAllEmpty(...sets: Set<string>[]): boolean {
   return sets.every((s) => s.size === 0);
 }
 
-export function computeDimSets(
+function computeDimSets(
   filters: TimelineFilterState,
   persons: Map<string, DecryptedPerson>,
   events: Map<string, DecryptedEvent>,

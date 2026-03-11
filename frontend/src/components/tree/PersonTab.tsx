@@ -146,13 +146,13 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
     return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2000, i, 1)));
   }, [i18n.language]);
 
-  const [name, setName] = useState(person.name);
-  const [birthYear, setBirthYear] = useState(toStr(person.birth_year));
-  const [birthMonth, setBirthMonth] = useState(toStr(person.birth_month));
-  const [birthDay, setBirthDay] = useState(toStr(person.birth_day));
-  const [deathYear, setDeathYear] = useState(toStr(person.death_year));
-  const [deathMonth, setDeathMonth] = useState(toStr(person.death_month));
-  const [deathDay, setDeathDay] = useState(toStr(person.death_day));
+  const [name, setName] = useState(() => person.name);
+  const [birthYear, setBirthYear] = useState(() => toStr(person.birth_year));
+  const [birthMonth, setBirthMonth] = useState(() => toStr(person.birth_month));
+  const [birthDay, setBirthDay] = useState(() => toStr(person.birth_day));
+  const [deathYear, setDeathYear] = useState(() => toStr(person.death_year));
+  const [deathMonth, setDeathMonth] = useState(() => toStr(person.death_month));
+  const [deathDay, setDeathDay] = useState(() => toStr(person.death_day));
   const [causeOfDeath, setCauseOfDeath] = useState(person.cause_of_death ?? "");
   const [gender, setGender] = useState(person.gender);
   const [isAdopted, setIsAdopted] = useState(person.is_adopted);

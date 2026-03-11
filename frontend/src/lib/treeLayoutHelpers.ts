@@ -58,14 +58,14 @@ export const NODE_HEIGHT = 80;
 export const SIBLING_GROUP_NODE_WIDTH = 140;
 export const SIBLING_GROUP_NODE_HEIGHT = 50;
 
-export const PARENT_TYPES = new Set([
+const PARENT_TYPES = new Set([
   RelationshipType.BiologicalParent,
   RelationshipType.CoParent,
   RelationshipType.StepParent,
   RelationshipType.AdoptiveParent,
 ]);
 
-export const SIBLING_TYPES = new Set([
+const SIBLING_TYPES = new Set([
   RelationshipType.BiologicalSibling,
   RelationshipType.StepSibling,
   RelationshipType.HalfSibling,
@@ -92,24 +92,24 @@ const FRIEND_Y_GAP = 20;
 
 // ---- Helper return types ----
 
-export interface BioParentData {
+interface BioParentData {
   bioParentsOf: Map<string, Set<string>>;
   coupleChildren: Map<string, string[]>;
 }
 
-export interface DagreResult {
+interface DagreResult {
   graph: dagre.graphlib.Graph;
   partnerPairs: [string, string][];
 }
 
-export interface EntityLookups {
+interface EntityLookups {
   eventsByPerson: Map<string, DecryptedEvent[]>;
   lifeEventsByPerson: Map<string, DecryptedLifeEvent[]>;
   turningPointsByPerson: Map<string, DecryptedTurningPoint[]>;
   classificationsByPerson: Map<string, DecryptedClassification[]>;
 }
 
-export interface PersonNodesResult {
+interface PersonNodesResult {
   nodes: PersonNodeType[];
   nodeCenter: Map<string, { x: number; y: number }>;
 }
@@ -121,18 +121,18 @@ type ForkData = {
   childNames: string[];
 };
 
-export interface JunctionForkResult {
+interface JunctionForkResult {
   forkPrimaryIds: Set<string>;
   forkHiddenIds: Set<string>;
   forkDataByEdge: Map<string, ForkData>;
 }
 
-export interface CoupleColorResult {
+interface CoupleColorResult {
   childCoupleColor: Map<string, string>;
   useCoupleColors: boolean;
 }
 
-export interface BuildEdgesParams {
+interface BuildEdgesParams {
   relationships: Map<string, DecryptedRelationship>;
   persons: Map<string, DecryptedPerson>;
   nodeCenter: Map<string, { x: number; y: number }>;

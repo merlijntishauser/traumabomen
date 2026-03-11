@@ -101,35 +101,6 @@ export function ChangePassphraseSection() {
         getJournalEntries(tree.id),
       ]);
 
-      const personsUpdate = await Promise.all(
-        persons.map(async (p) => {
-          const data = await decryptFromApi(p.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          return { id: p.id, encrypted_data: enc };
-        }),
-      );
-
-      const relationshipsUpdate = await Promise.all(
-        relationships.map(async (r) => {
-          const data = await decryptFromApi(r.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          return {
-            id: r.id,
-            source_person_id: r.source_person_id,
-            target_person_id: r.target_person_id,
-            encrypted_data: enc,
-          };
-        }),
-      );
-
-      const eventsUpdate = await Promise.all(
-        events.map(async (e) => {
-          const data = await decryptFromApi(e.encrypted_data, oldKey);
-          const enc = await encryptForApi(data, newKey);
-          return { id: e.id, person_ids: e.person_ids, encrypted_data: enc };
-        }),
-      );
-
       const reencryptLinked = async (
         items: { id: string; person_ids: string[]; encrypted_data: string }[],
       ) =>
@@ -151,12 +122,29 @@ export function ChangePassphraseSection() {
         );
 
       const [
+        personsUpdate,
+        relationshipsUpdate,
+        eventsUpdate,
         lifeEventsUpdate,
         classificationsUpdate,
         patternsUpdate,
         turningPointsUpdate,
         journalEntriesUpdate,
       ] = await Promise.all([
+        reencryptSimple(persons),
+        Promise.all(
+          relationships.map(async (r) => {
+            const data = await decryptFromApi(r.encrypted_data, oldKey);
+            const enc = await encryptForApi(data, newKey);
+            return {
+              id: r.id,
+              source_person_id: r.source_person_id,
+              target_person_id: r.target_person_id,
+              encrypted_data: enc,
+            };
+          }),
+        ),
+        reencryptLinked(events),
         reencryptLinked(lifeEvents),
         reencryptLinked(classifications),
         reencryptLinked(patterns),

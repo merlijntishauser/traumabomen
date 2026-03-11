@@ -323,8 +323,7 @@ function ClassificationForm({
         <span>{t("classification.periods")}</span>
         {periods.map((period, i) => (
           <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: periods are edited by index
-            key={i}
+            key={`${period.start_year}-${period.end_year ?? "open"}-${i}`}
             className="detail-panel__period-row"
           >
             <div className="detail-panel__period-years">

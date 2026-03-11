@@ -132,7 +132,8 @@ export function PatternView({
           const generations = countGenerations(pattern, persons);
 
           return (
-            <div
+            <button
+              type="button"
               key={pattern.id}
               className="pattern-view__card"
               onClick={() => setExpandedId(pattern.id)}
@@ -175,7 +176,7 @@ export function PatternView({
               <div className="pattern-view__card-footer">
                 {t("pattern.spansGenerations", { count: generations })}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
