@@ -43,6 +43,18 @@ export default function RegisterPage() {
 
   const stepIndex = STEPS.indexOf(step);
 
+  const stepDots = (
+    <div className="auth-steps" aria-hidden="true">
+      {STEPS.map((s, i) => (
+        <span
+          key={s}
+          className={`auth-steps__dot${i === stepIndex ? " auth-steps__dot--active" : ""}${i < stepIndex ? " auth-steps__dot--done" : ""}`}
+          aria-current={i === stepIndex ? "step" : undefined}
+        />
+      ))}
+    </div>
+  );
+
   function validateAccount(): string | null {
     if (getPasswordStrength(password).level === "weak") return t("auth.passwordTooWeak");
     if (password.length > 64) return t("auth.passwordTooLong");
@@ -154,16 +166,6 @@ export default function RegisterPage() {
           <p className="auth-step-intro">{t(`auth.stepSubtitle.${step}`)}</p>
 
           {inviteToken && <div className="auth-success">{t("waitlist.approvalBanner")}</div>}
-
-          <div className="auth-steps" aria-hidden="true">
-            {STEPS.map((s, i) => (
-              <span
-                key={s}
-                className={`auth-steps__dot${i === stepIndex ? " auth-steps__dot--active" : ""}${i < stepIndex ? " auth-steps__dot--done" : ""}`}
-                aria-current={i === stepIndex ? "step" : undefined}
-              />
-            ))}
-          </div>
 
           {step === "account" && (
             <form onSubmit={handleNext} data-testid="step-account">
@@ -324,6 +326,8 @@ export default function RegisterPage() {
           <p className="auth-footer">
             <Link to="/privacy">{t("landing.readPrivacyPolicy")}</Link>
           </p>
+
+          {stepDots}
         </div>
       </div>
     </div>
