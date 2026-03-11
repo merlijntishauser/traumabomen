@@ -62,7 +62,8 @@
   "password.weak": "Weak",
   "password.fair": "Fair",
   "password.strong": "Strong",
-  "password.hint": "Use at least 12 characters with mixed case and a number or symbol. We recommend using a password manager like <1PasswordLink>1Password</1PasswordLink>.",
+  "password.hint": "Use at least 12 characters with mixed case and a number or symbol.",
+  "password.managerHint": "We recommend using a password manager like <0>1Password</0>.",
 
   "tree.myTrees": "My Trees",
   "tree.create": "Create tree",

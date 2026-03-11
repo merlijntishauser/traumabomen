@@ -23,16 +23,16 @@ export function PasswordStrengthMeter({ password }: Props) {
       <span className="password-meter__label">{t(`password.${level}`)}</span>
       {level !== "strong" && (
         <span className="password-meter__hint">
+          {t("password.hint")}
+          <br />
           <Trans
-            i18nKey="password.hint"
-            components={{
-              "1PasswordLink": (
-                // biome-ignore lint/a11y/useAnchorContent: Trans replaces children
-                <a href="https://1password.com" target="_blank" rel="noopener noreferrer">
-                  {" "}
-                </a>
-              ),
-            }}
+            i18nKey="password.managerHint"
+            components={[
+              // biome-ignore lint/correctness/useJsxKeyInIterable: Trans component array
+              <a key="pw" href="https://1password.com" target="_blank" rel="noopener noreferrer">
+                placeholder
+              </a>,
+            ]}
           />
         </span>
       )}

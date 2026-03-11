@@ -62,7 +62,8 @@
   "password.weak": "Zwak",
   "password.fair": "Redelijk",
   "password.strong": "Sterk",
-  "password.hint": "Gebruik minimaal 12 tekens met hoofd- en kleine letters en een cijfer of symbool. We raden aan om een wachtwoordmanager zoals <1PasswordLink>1Password</1PasswordLink> te gebruiken.",
+  "password.hint": "Gebruik minimaal 12 tekens met hoofd- en kleine letters en een cijfer of symbool.",
+  "password.managerHint": "We raden aan om een wachtwoordmanager zoals <0>1Password</0> te gebruiken.",
 
   "tree.myTrees": "Mijn bomen",
   "tree.create": "Boom aanmaken",
