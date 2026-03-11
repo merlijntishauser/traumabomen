@@ -169,42 +169,46 @@ export default function RegisterPage() {
 
           {step === "account" && (
             <form onSubmit={handleNext} data-testid="step-account">
-              <div className="auth-field">
-                <label htmlFor="email">{t("auth.email")}</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  data-1p-allow
-                />
+              <div className="auth-field-group">
+                <div className="auth-field">
+                  <label htmlFor="email">{t("auth.email")}</label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    data-1p-allow
+                  />
+                </div>
               </div>
 
-              <div className="auth-field">
-                <label htmlFor="password">{t("auth.password")}</label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  maxLength={64}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  data-1p-allow
-                />
-                <PasswordStrengthMeter password={password} />
-              </div>
+              <div className="auth-field-group">
+                <div className="auth-field">
+                  <label htmlFor="password">{t("auth.password")}</label>
+                  <input
+                    id="password"
+                    type="password"
+                    required
+                    maxLength={64}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    data-1p-allow
+                  />
+                  <PasswordStrengthMeter password={password} />
+                </div>
 
-              <div className="auth-field">
-                <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  data-1p-allow
-                />
+                <div className="auth-field">
+                  <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    data-1p-allow
+                  />
+                </div>
               </div>
 
               {error && (
@@ -225,42 +229,47 @@ export default function RegisterPage() {
 
           {step === "encryption" && (
             <form onSubmit={handleNext} data-testid="step-encryption">
-              <div className="auth-field">
-                <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-                <input
-                  id="passphrase"
-                  type="password"
-                  required
-                  minLength={8}
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  data-1p-ignore
-                />
+              <div className="auth-field-group">
+                <div className="auth-field">
+                  <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+                  <input
+                    id="passphrase"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    data-1p-ignore
+                  />
+                </div>
+
+                <div className="auth-field">
+                  <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
+                  <input
+                    id="confirmPassphrase"
+                    type="password"
+                    required
+                    value={confirmPassphrase}
+                    onChange={(e) => setConfirmPassphrase(e.target.value)}
+                    data-1p-ignore
+                  />
+                </div>
               </div>
 
-              <div className="auth-field">
-                <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
-                <input
-                  id="confirmPassphrase"
-                  type="password"
-                  required
-                  value={confirmPassphrase}
-                  onChange={(e) => setConfirmPassphrase(e.target.value)}
-                  data-1p-ignore
-                />
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="passphraseHint">{t("auth.hintFieldLabel")}</label>
-                <input
-                  id="passphraseHint"
-                  type="text"
-                  maxLength={255}
-                  value={passphraseHint}
-                  onChange={(e) => setPassphraseHint(e.target.value)}
-                  placeholder={t("auth.hintPlaceholder")}
-                />
-                <p className="auth-field__hint">{t("auth.hintHelperText")}</p>
+              <div className="auth-field-group">
+                <div className="auth-field">
+                  <label htmlFor="passphraseHint">{t("auth.hintFieldLabel")}</label>
+                  <input
+                    id="passphraseHint"
+                    type="text"
+                    maxLength={255}
+                    value={passphraseHint}
+                    onChange={(e) => setPassphraseHint(e.target.value)}
+                    placeholder={t("auth.hintPlaceholder")}
+                    data-1p-ignore
+                  />
+                  <p className="auth-field__hint">{t("auth.hintHelperText")}</p>
+                </div>
               </div>
 
               {error && (
