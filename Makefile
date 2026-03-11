@@ -2,7 +2,7 @@
 export
 
 .PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be test-be-unit test-be-integration coverage e2e e2e-headed e2e-ui e2e-verify \
-       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity perf-check perf-ratchet \
+       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity react-doctor perf-check perf-ratchet \
        perf-seed perf-load perf-metrics perf-report profile-api
 
 .DEFAULT_GOAL := help
@@ -44,7 +44,16 @@ typecheck: ## Run type checkers (tsc + mypy)
 	cd frontend && npx tsc --noEmit
 	docker compose exec api uv run mypy app
 
-ci: lint typecheck privacy-scan quality ## Run full CI pipeline
+react-doctor: ## Run React Doctor health check (minimum score: 85, target: 90)
+	@SCORE=$$(cd frontend && npx -y react-doctor@latest . --score -y 2>/dev/null | tail -1); \
+	echo "React Doctor score: $$SCORE / 100 (minimum: 85)"; \
+	if [ "$$SCORE" -lt 85 ] 2>/dev/null; then \
+		echo "FAIL: React Doctor score $$SCORE is below minimum 85"; \
+		cd frontend && npx -y react-doctor@latest . --verbose -y; \
+		exit 1; \
+	fi
+
+ci: lint typecheck privacy-scan quality react-doctor ## Run full CI pipeline
 
 # --- Testing ---
 
