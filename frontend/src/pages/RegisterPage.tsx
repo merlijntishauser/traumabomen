@@ -2,7 +2,6 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
-import { AuthWelcome } from "../components/AuthWelcome";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, register } from "../lib/api";
@@ -147,13 +146,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-page auth-page--landing">
+    <div className="auth-page auth-page--centered">
       <AuthHero />
       <div className="auth-content">
-        <AuthWelcome />
-
         <div className="auth-card">
-          <h2>{t("auth.register")}</h2>
+          <h2>{t(`auth.stepTitle.${step}`)}</h2>
+          <p className="auth-step-intro">{t(`auth.stepSubtitle.${step}`)}</p>
 
           {inviteToken && <div className="auth-success">{t("waitlist.approvalBanner")}</div>}
 
@@ -225,8 +223,6 @@ export default function RegisterPage() {
 
           {step === "encryption" && (
             <form onSubmit={handleNext} data-testid="step-encryption">
-              <p className="auth-step-intro">{t("auth.passphraseHint")}</p>
-
               <div className="auth-field">
                 <label htmlFor="passphrase">{t("auth.passphrase")}</label>
                 <input

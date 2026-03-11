@@ -51,6 +51,12 @@
   "auth.loginTitle": "Inloggen",
   "auth.stepNext": "Doorgaan",
   "auth.stepBack": "Terug",
+  "auth.stepTitle.account": "Maak je account aan",
+  "auth.stepTitle.encryption": "Bescherm je gegevens",
+  "auth.stepTitle.confirm": "Nog een laatste stap",
+  "auth.stepSubtitle.account": "Je e-mailadres en wachtwoord gebruik je om in te loggen.",
+  "auth.stepSubtitle.encryption": "Je versleutelingswachtwoord versleutelt je gegevens zodat zelfs wij ze niet kunnen lezen. Kies iets anders dan je wachtwoord.",
+  "auth.stepSubtitle.confirm": "Omdat je gegevens versleuteld zijn met je versleutelingswachtwoord, kunnen wij ze niet herstellen als je het vergeet. Lees dit zorgvuldig.",
 
   "password.weak": "Zwak",
   "password.fair": "Redelijk",

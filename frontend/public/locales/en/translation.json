@@ -51,6 +51,12 @@
   "auth.loginTitle": "Log in",
   "auth.stepNext": "Continue",
   "auth.stepBack": "Back",
+  "auth.stepTitle.account": "Create your account",
+  "auth.stepTitle.encryption": "Protect your data",
+  "auth.stepTitle.confirm": "One last thing",
+  "auth.stepSubtitle.account": "Your email and password are used to log in.",
+  "auth.stepSubtitle.encryption": "Your passphrase encrypts your data so that not even we can read it. Choose something different from your password.",
+  "auth.stepSubtitle.confirm": "Because your data is encrypted with your passphrase, we cannot recover it if you forget. Please read this carefully.",
 
   "password.weak": "Weak",
   "password.fair": "Fair",

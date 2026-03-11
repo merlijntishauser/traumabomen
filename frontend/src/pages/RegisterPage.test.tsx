@@ -22,10 +22,6 @@ vi.mock("../components/AuthHero", () => ({
   AuthHero: () => <div data-testid="auth-hero" />,
 }));
 
-vi.mock("../components/AuthWelcome", () => ({
-  AuthWelcome: () => <div data-testid="auth-welcome" />,
-}));
-
 vi.mock("../components/PasswordStrengthMeter", () => ({
   PasswordStrengthMeter: ({ password }: { password: string }) => (
     <div data-testid="password-strength">{password ? "meter" : ""}</div>
@@ -126,10 +122,9 @@ describe("RegisterPage", () => {
     expect(screen.queryByLabelText("auth.passphrase")).not.toBeInTheDocument();
   });
 
-  it("renders the AuthHero and AuthWelcome components", () => {
+  it("renders the AuthHero component", () => {
     renderPage();
     expect(screen.getByTestId("auth-hero")).toBeInTheDocument();
-    expect(screen.getByTestId("auth-welcome")).toBeInTheDocument();
   });
 
   it("renders password strength meter", () => {
@@ -211,7 +206,7 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     expect(screen.getByLabelText("auth.passphrase")).toBeInTheDocument();
     expect(screen.getByLabelText("auth.confirmPassphrase")).toBeInTheDocument();
-    expect(screen.getByText("auth.passphraseHint")).toBeInTheDocument();
+    expect(screen.getByText("auth.stepTitle.encryption")).toBeInTheDocument();
   });
 
   it("shows hint field on encryption step", () => {
