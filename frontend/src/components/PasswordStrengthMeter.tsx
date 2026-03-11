@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { getPasswordStrength } from "../lib/passwordStrength";
 import "./PasswordStrengthMeter.css";
 
@@ -21,6 +21,21 @@ export function PasswordStrengthMeter({ password }: Props) {
         <div className="password-meter__segment" />
       </div>
       <span className="password-meter__label">{t(`password.${level}`)}</span>
+      {level !== "strong" && (
+        <span className="password-meter__hint">
+          <Trans
+            i18nKey="password.hint"
+            components={{
+              "1PasswordLink": (
+                // biome-ignore lint/a11y/useAnchorContent: Trans replaces children
+                <a href="https://1password.com" target="_blank" rel="noopener noreferrer">
+                  {" "}
+                </a>
+              ),
+            }}
+          />
+        </span>
+      )}
     </div>
   );
 }

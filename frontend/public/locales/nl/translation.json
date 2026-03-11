@@ -11,6 +11,7 @@
   "auth.password": "Wachtwoord",
   "auth.confirmPassword": "Bevestig wachtwoord",
   "auth.passphrase": "Versleutelingswachtwoord",
+  "auth.passphraseMinLength": "Minimaal 8 tekens.",
   "auth.confirmPassphrase": "Bevestig versleutelingswachtwoord",
   "auth.passphraseHint": "Je wachtwoord beschermt je account. Je versleutelwachtwoord versleutelt je gegevens, zodat zelfs wij ze niet kunnen lezen.",
   "auth.noAccount": "Nog geen account?",
@@ -61,6 +62,7 @@
   "password.weak": "Zwak",
   "password.fair": "Redelijk",
   "password.strong": "Sterk",
+  "password.hint": "Gebruik minimaal 12 tekens met hoofd- en kleine letters en een cijfer of symbool. We raden aan om een wachtwoordmanager zoals <1PasswordLink>1Password</1PasswordLink> te gebruiken.",
 
   "tree.myTrees": "Mijn bomen",
   "tree.create": "Boom aanmaken",

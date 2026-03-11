@@ -241,6 +241,7 @@ export default function RegisterPage() {
                     onChange={(e) => setPassphrase(e.target.value)}
                     data-1p-ignore
                   />
+                  <p className="auth-field__hint">{t("auth.passphraseMinLength")}</p>
                 </div>
 
                 <div className="auth-field">
