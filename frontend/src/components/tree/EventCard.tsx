@@ -1,18 +1,19 @@
 import type { CSSProperties } from "react";
 
+const SEVERITY_DOTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+
 /** Mini-bar showing severity/impact as 10 small filled/empty blocks. */
 export function SeverityBar({ value, color }: { value: number; color: string }) {
   const clamped = Math.max(0, Math.min(10, value));
   return (
     <div className="detail-panel__severity-bar" role="img" aria-label={`${clamped}/10`}>
-      {Array.from({ length: 10 }, (_, i) => (
+      {SEVERITY_DOTS.map((dot) => (
         <span
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size static array of 10 dots
-          key={`sev-${i}`}
+          key={`sev-${dot}`}
           className="detail-panel__severity-dot"
           style={{
-            backgroundColor: i < clamped ? color : "var(--color-border-primary)",
-            opacity: i < clamped ? 1 : 0.3,
+            backgroundColor: dot < clamped ? color : "var(--color-border-primary)",
+            opacity: dot < clamped ? 1 : 0.3,
           }}
         />
       ))}

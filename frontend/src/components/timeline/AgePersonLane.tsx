@@ -13,10 +13,10 @@ import type { MarkerClickInfo, TimelineMode, TooltipLine } from "./timelineHelpe
 import { BAR_HEIGHT, MARKER_RADIUS } from "./timelineHelpers";
 import type { LaneOrientation, MarkerContext } from "./timelineMarkers";
 import {
-  renderClassificationStrips,
-  renderLifeEventMarkers,
-  renderTraumaMarkers,
-  renderTurningPointMarkers,
+  ClassificationStrips,
+  LifeEventMarkers,
+  TraumaMarkers,
+  TurningPointMarkers,
 } from "./timelineMarkers";
 
 interface AgePersonLaneProps {
@@ -203,10 +203,12 @@ export const AgePersonLane = React.memo(function AgePersonLane({
         />
       )}
 
-      {showClassifications && hasBirth && renderClassificationStrips(ctx, classifications)}
-      {renderTraumaMarkers(ctx, events)}
-      {renderTurningPointMarkers(ctx, turningPoints)}
-      {renderLifeEventMarkers(ctx, lifeEvents)}
+      {showClassifications && hasBirth && (
+        <ClassificationStrips ctx={ctx} classifications={classifications} />
+      )}
+      <TraumaMarkers ctx={ctx} events={events} />
+      <TurningPointMarkers ctx={ctx} turningPoints={turningPoints} />
+      <LifeEventMarkers ctx={ctx} lifeEvents={lifeEvents} />
     </g>
   );
 });

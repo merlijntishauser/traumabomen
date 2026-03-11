@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useCallback, useMemo, useState } from "react";
+import { createContext, type ReactNode, useCallback, useMemo, useReducer } from "react";
 import { decryptFromApi, encryptForApi, hashPassphrase, timingSafeEqual } from "../lib/crypto";
 
 interface EncryptionContextValue {
@@ -22,99 +22,164 @@ interface EncryptionContextValue {
   masterDecrypt: <T>(encryptedData: string) => Promise<T>;
 }
 
+// ---------------------------------------------------------------------------
+// Reducer state & actions
+// ---------------------------------------------------------------------------
+
+interface EncryptionState {
+  masterKey: CryptoKey | null;
+  treeKeys: Map<string, CryptoKey>;
+  keyRingBase64: Map<string, string>;
+  passphraseHash: string | null;
+  isMigrated: boolean;
+}
+
+type EncryptionAction =
+  | { type: "SET_MASTER_KEY"; key: CryptoKey }
+  | { type: "SET_TREE_KEYS"; keys: Map<string, CryptoKey> }
+  | { type: "SET_KEY_RING_BASE64"; map: Map<string, string> }
+  | { type: "SET_PASSPHRASE_HASH"; hash: string }
+  | { type: "SET_IS_MIGRATED"; value: boolean }
+  | { type: "ADD_TREE_KEY"; treeId: string; key: CryptoKey; base64: string }
+  | { type: "REMOVE_TREE_KEY"; treeId: string }
+  | { type: "CLEAR" };
+
+const initialState: EncryptionState = {
+  masterKey: null,
+  treeKeys: new Map(),
+  keyRingBase64: new Map(),
+  passphraseHash: null,
+  isMigrated: false,
+};
+
+function encryptionReducer(state: EncryptionState, action: EncryptionAction): EncryptionState {
+  switch (action.type) {
+    case "SET_MASTER_KEY":
+      return { ...state, masterKey: action.key };
+    case "SET_TREE_KEYS":
+      return { ...state, treeKeys: action.keys };
+    case "SET_KEY_RING_BASE64":
+      return { ...state, keyRingBase64: action.map };
+    case "SET_PASSPHRASE_HASH":
+      return { ...state, passphraseHash: action.hash };
+    case "SET_IS_MIGRATED":
+      return { ...state, isMigrated: action.value };
+    case "ADD_TREE_KEY": {
+      const nextTreeKeys = new Map(state.treeKeys);
+      nextTreeKeys.set(action.treeId, action.key);
+      const nextKeyRing = new Map(state.keyRingBase64);
+      nextKeyRing.set(action.treeId, action.base64);
+      return { ...state, treeKeys: nextTreeKeys, keyRingBase64: nextKeyRing };
+    }
+    case "REMOVE_TREE_KEY": {
+      const nextTreeKeys = new Map(state.treeKeys);
+      nextTreeKeys.delete(action.treeId);
+      const nextKeyRing = new Map(state.keyRingBase64);
+      nextKeyRing.delete(action.treeId);
+      return { ...state, treeKeys: nextTreeKeys, keyRingBase64: nextKeyRing };
+    }
+    case "CLEAR":
+      return { ...initialState, treeKeys: new Map(), keyRingBase64: new Map() };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Context & Provider
+// ---------------------------------------------------------------------------
+
 export const EncryptionContext = createContext<EncryptionContextValue | null>(null);
 
 export function EncryptionProvider({ children }: { children: ReactNode }) {
-  const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
-  const [treeKeys, setTreeKeys] = useState<Map<string, CryptoKey>>(new Map());
-  const [keyRingBase64, setKeyRingBase64] = useState<Map<string, string>>(new Map());
-  const [passphraseHash, setPassphraseHash] = useState<string | null>(null);
-  const [isMigrated, setIsMigrated] = useState(false);
+  const [state, dispatch] = useReducer(encryptionReducer, initialState);
 
-  const addTreeKey = useCallback((treeId: string, key: CryptoKey, base64: string) => {
-    setTreeKeys((prev) => {
-      const next = new Map(prev);
-      next.set(treeId, key);
-      return next;
-    });
-    setKeyRingBase64((prev) => {
-      const next = new Map(prev);
-      next.set(treeId, base64);
-      return next;
-    });
-  }, []);
+  const setMasterKey = useCallback(
+    (key: CryptoKey) => dispatch({ type: "SET_MASTER_KEY", key }),
+    [],
+  );
 
-  const removeTreeKey = useCallback((treeId: string) => {
-    setTreeKeys((prev) => {
-      const next = new Map(prev);
-      next.delete(treeId);
-      return next;
-    });
-    setKeyRingBase64((prev) => {
-      const next = new Map(prev);
-      next.delete(treeId);
-      return next;
-    });
-  }, []);
+  const setTreeKeys = useCallback(
+    (keys: Map<string, CryptoKey>) => dispatch({ type: "SET_TREE_KEYS", keys }),
+    [],
+  );
 
-  const clearKey = useCallback(() => {
-    setMasterKey(null);
-    setTreeKeys(new Map());
-    setKeyRingBase64(new Map());
-    setPassphraseHash(null);
-    setIsMigrated(false);
-  }, []);
+  const setKeyRingBase64 = useCallback(
+    (map: Map<string, string>) => dispatch({ type: "SET_KEY_RING_BASE64", map }),
+    [],
+  );
+
+  const setPassphraseHash = useCallback(
+    (hash: string) => dispatch({ type: "SET_PASSPHRASE_HASH", hash }),
+    [],
+  );
+
+  const setIsMigrated = useCallback(
+    (value: boolean) => dispatch({ type: "SET_IS_MIGRATED", value }),
+    [],
+  );
+
+  const addTreeKey = useCallback(
+    (treeId: string, key: CryptoKey, base64: string) =>
+      dispatch({ type: "ADD_TREE_KEY", treeId, key, base64 }),
+    [],
+  );
+
+  const removeTreeKey = useCallback(
+    (treeId: string) => dispatch({ type: "REMOVE_TREE_KEY", treeId }),
+    [],
+  );
+
+  const clearKey = useCallback(() => dispatch({ type: "CLEAR" }), []);
 
   const verifyPassphrase = useCallback(
     async (passphrase: string): Promise<boolean> => {
-      if (!passphraseHash) return false;
+      if (!state.passphraseHash) return false;
       const hash = await hashPassphrase(passphrase);
-      return timingSafeEqual(hash, passphraseHash);
+      return timingSafeEqual(hash, state.passphraseHash);
     },
-    [passphraseHash],
+    [state.passphraseHash],
   );
 
   const encrypt = useCallback(
     async (data: unknown, treeId: string): Promise<string> => {
-      const treeKey = treeKeys.get(treeId);
+      const treeKey = state.treeKeys.get(treeId);
       if (!treeKey) throw new Error(`No encryption key for tree ${treeId}`);
       return encryptForApi(data, treeKey);
     },
-    [treeKeys],
+    [state.treeKeys],
   );
 
   const decrypt = useCallback(
     async <T,>(encryptedData: string, treeId: string): Promise<T> => {
-      const treeKey = treeKeys.get(treeId);
+      const treeKey = state.treeKeys.get(treeId);
       if (!treeKey) throw new Error(`No encryption key for tree ${treeId}`);
       return decryptFromApi<T>(encryptedData, treeKey);
     },
-    [treeKeys],
+    [state.treeKeys],
   );
 
   const masterEncrypt = useCallback(
     async (data: unknown): Promise<string> => {
-      if (!masterKey) throw new Error("No master key available");
-      return encryptForApi(data, masterKey);
+      if (!state.masterKey) throw new Error("No master key available");
+      return encryptForApi(data, state.masterKey);
     },
-    [masterKey],
+    [state.masterKey],
   );
 
   const masterDecrypt = useCallback(
     async <T,>(encryptedData: string): Promise<T> => {
-      if (!masterKey) throw new Error("No master key available");
-      return decryptFromApi<T>(encryptedData, masterKey);
+      if (!state.masterKey) throw new Error("No master key available");
+      return decryptFromApi<T>(encryptedData, state.masterKey);
     },
-    [masterKey],
+    [state.masterKey],
   );
 
   const value = useMemo(
     () => ({
-      masterKey,
-      treeKeys,
-      keyRingBase64,
-      passphraseHash,
-      isMigrated,
+      masterKey: state.masterKey,
+      treeKeys: state.treeKeys,
+      keyRingBase64: state.keyRingBase64,
+      passphraseHash: state.passphraseHash,
+      isMigrated: state.isMigrated,
       setMasterKey,
       setTreeKeys,
       setKeyRingBase64,
@@ -130,14 +195,19 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       masterDecrypt,
     }),
     [
-      masterKey,
-      treeKeys,
-      keyRingBase64,
-      passphraseHash,
-      isMigrated,
+      state.masterKey,
+      state.treeKeys,
+      state.keyRingBase64,
+      state.passphraseHash,
+      state.isMigrated,
       addTreeKey,
       removeTreeKey,
       clearKey,
+      setMasterKey,
+      setTreeKeys,
+      setKeyRingBase64,
+      setPassphraseHash,
+      setIsMigrated,
       verifyPassphrase,
       encrypt,
       decrypt,

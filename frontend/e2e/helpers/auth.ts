@@ -12,7 +12,7 @@ export function uniqueEmail(): string {
 }
 
 /** Dismiss the onboarding safety gate if it appears. */
-export async function dismissOnboarding(page: Page): Promise<void> {
+async function dismissOnboarding(page: Page): Promise<void> {
   const continueButton = page.locator(".onboarding-gate__continue");
   if (await continueButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
     await continueButton.click();

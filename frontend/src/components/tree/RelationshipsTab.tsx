@@ -9,6 +9,16 @@ import type { InferredSibling } from "../../lib/inferSiblings";
 import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
 import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
 
+type KeyedPeriod = RelationshipPeriod & { _key: string };
+
+function toKeyed(period: RelationshipPeriod): KeyedPeriod {
+  return { ...period, _key: crypto.randomUUID() };
+}
+
+function stripKeys(periods: KeyedPeriod[]): RelationshipPeriod[] {
+  return periods.map(({ _key: _, ...rest }) => rest);
+}
+
 const T_EDIT = "common.edit";
 const T_SAVE = "common.save";
 const T_CANCEL = "common.cancel";
@@ -172,27 +182,37 @@ function PartnerPeriodEditor({
   onCancel,
 }: PartnerPeriodEditorProps) {
   const { t } = useTranslation();
-  const [periods, setPeriods] = useState<RelationshipPeriod[]>(() =>
+  const [periods, setPeriods] = useState<KeyedPeriod[]>(() =>
     relationship.periods.length > 0
-      ? relationship.periods
-      : [{ start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together }],
+      ? relationship.periods.map(toKeyed)
+      : [
+          toKeyed({
+            start_year: new Date().getFullYear(),
+            end_year: null,
+            status: PartnerStatus.Together,
+          }),
+        ],
   );
 
   function addPeriod() {
     setPeriods((prev) => [
       ...prev,
-      { start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together },
+      toKeyed({
+        start_year: new Date().getFullYear(),
+        end_year: null,
+        status: PartnerStatus.Together,
+      }),
     ]);
   }
 
-  function removePeriod(index: number) {
-    setPeriods((prev) => prev.filter((_, i) => i !== index));
+  function removePeriod(key: string) {
+    setPeriods((prev) => prev.filter((p) => p._key !== key));
   }
 
-  function updatePeriod(index: number, field: keyof RelationshipPeriod, value: string) {
+  function updatePeriod(key: string, field: keyof RelationshipPeriod, value: string) {
     setPeriods((prev) =>
-      prev.map((p, i) => {
-        if (i !== index) return p;
+      prev.map((p) => {
+        if (p._key !== key) return p;
         if (field === "status") return { ...p, status: value as PartnerStatus };
         if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
         return { ...p, [field]: parseInt(value, 10) || 0 };
@@ -203,7 +223,7 @@ function PartnerPeriodEditor({
   function handleSave() {
     onSave({
       type: relationship.type,
-      periods: withAutoDissolvedPeriods(periods, {
+      periods: withAutoDissolvedPeriods(stripKeys(periods), {
         source: sourceDeathYear,
         target: targetDeathYear,
       }),
@@ -213,16 +233,13 @@ function PartnerPeriodEditor({
 
   return (
     <div className="detail-panel__period-editor">
-      {periods.map((period, i) => (
-        <div
-          key={`${period.status}-${period.start_year}-${period.end_year ?? "open"}-${i}`}
-          className="detail-panel__period-row"
-        >
+      {periods.map((period) => (
+        <div key={period._key} className="detail-panel__period-row">
           <label className="detail-panel__field">
             <span>{t("relationship.status")}</span>
             <select
               value={period.status}
-              onChange={(e) => updatePeriod(i, "status", e.target.value)}
+              onChange={(e) => updatePeriod(period._key, "status", e.target.value)}
             >
               {Object.values(PartnerStatus).map((s) => (
                 <option key={s} value={s}>
@@ -237,7 +254,7 @@ function PartnerPeriodEditor({
               <input
                 type="number"
                 value={period.start_year}
-                onChange={(e) => updatePeriod(i, "start_year", e.target.value)}
+                onChange={(e) => updatePeriod(period._key, "start_year", e.target.value)}
               />
             </label>
             <label className="detail-panel__field">
@@ -245,7 +262,7 @@ function PartnerPeriodEditor({
               <input
                 type="number"
                 value={period.end_year ?? ""}
-                onChange={(e) => updatePeriod(i, "end_year", e.target.value)}
+                onChange={(e) => updatePeriod(period._key, "end_year", e.target.value)}
                 placeholder="---"
               />
             </label>
@@ -254,7 +271,7 @@ function PartnerPeriodEditor({
             <button
               type="button"
               className="detail-panel__btn--small detail-panel__btn--danger"
-              onClick={() => removePeriod(i)}
+              onClick={() => removePeriod(period._key)}
             >
               {t("relationship.removePeriod")}
             </button>
