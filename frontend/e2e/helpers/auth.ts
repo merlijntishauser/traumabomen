@@ -25,14 +25,22 @@ export async function register(
   options?: { hint?: string },
 ): Promise<void> {
   await page.goto("/register");
+
+  // Step 1: Account
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
   await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+  await page.getByRole("button", { name: /continue/i }).click();
+
+  // Step 2: Encryption
   await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
   await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
   if (options?.hint) {
     await page.getByLabel(/hint/i).fill(options.hint);
   }
+  await page.getByRole("button", { name: /continue/i }).click();
+
+  // Step 3: Confirm
   await page.getByLabel(/i understand/i).check();
 
   // Registration may fail under parallel load; retry once

@@ -16,11 +16,19 @@ test.describe("Email verification @verification", () => {
 
     // Register (with verification required, lands on /verify-pending)
     await page.goto("/register");
+
+    // Step 1: Account
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    // Step 2: Encryption
     await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
     await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    // Step 3: Confirm
     await page.getByLabel(/i understand/i).check();
     await page.getByRole("button", { name: /create account/i }).click();
     await page.waitForURL("**/verify-pending", { timeout: 30_000 });
