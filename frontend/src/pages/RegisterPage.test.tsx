@@ -115,17 +115,15 @@ describe("RegisterPage", () => {
     );
   }
 
-  // -- Rendering --
+  // -- Step 1: Account --
 
-  it("renders the registration form with all fields", () => {
+  it("renders the account step with email, password, and confirm fields", () => {
     renderPage();
     expect(screen.getByLabelText("auth.email")).toBeInTheDocument();
     expect(screen.getByLabelText("auth.password")).toBeInTheDocument();
     expect(screen.getByLabelText("auth.confirmPassword")).toBeInTheDocument();
-    expect(screen.getByLabelText("auth.passphrase")).toBeInTheDocument();
-    expect(screen.getByLabelText("auth.confirmPassphrase")).toBeInTheDocument();
-    expect(screen.getByText("auth.acknowledgeWarning")).toBeInTheDocument();
-    expect(screen.getByText("auth.passphraseWarning")).toBeInTheDocument();
+    // Passphrase fields should not be visible yet
+    expect(screen.queryByLabelText("auth.passphrase")).not.toBeInTheDocument();
   });
 
   it("renders the AuthHero and AuthWelcome components", () => {
@@ -139,6 +137,13 @@ describe("RegisterPage", () => {
     expect(screen.getByTestId("password-strength")).toBeInTheDocument();
   });
 
+  it("renders step indicator dots", () => {
+    renderPage();
+    const dots = document.querySelector(".auth-steps");
+    expect(dots).toBeInTheDocument();
+    expect(dots!.querySelectorAll(".auth-steps__dot")).toHaveLength(3);
+  });
+
   it("renders a link to login page", () => {
     renderPage();
     expect(screen.getByText("auth.login")).toBeInTheDocument();
@@ -149,92 +154,131 @@ describe("RegisterPage", () => {
     expect(screen.getByText("landing.readPrivacyPolicy")).toBeInTheDocument();
   });
 
-  it("submit button shows register label by default", () => {
+  it("continue button shows next label", () => {
     renderPage();
-    const btn = screen.getByRole("button", { name: "auth.register" });
+    const btn = screen.getByRole("button", { name: "auth.stepNext" });
     expect(btn).toBeInTheDocument();
   });
 
-  // -- Validation: weak password --
+  // -- Step 1 validation: weak password --
 
-  it("disables submit button when password is weak", () => {
+  it("disables continue button when password is weak", () => {
     renderPage();
     fireEvent.change(screen.getByLabelText("auth.password"), {
       target: { value: "short" },
     });
-    const btn = screen.getByRole("button", { name: "auth.register" });
+    const btn = screen.getByRole("button", { name: "auth.stepNext" });
     expect(btn).toBeDisabled();
   });
 
-  it("enables submit button when password is not weak", () => {
+  it("enables continue button when password is not weak", () => {
     renderPage();
     fireEvent.change(screen.getByLabelText("auth.password"), {
       target: { value: VALID_PW },
     });
-    const btn = screen.getByRole("button", { name: "auth.register" });
+    const btn = screen.getByRole("button", { name: "auth.stepNext" });
     expect(btn).not.toBeDisabled();
   });
 
-  // -- Validation: password too long --
+  // -- Step 1 validation: password too long --
 
   it("shows error when password exceeds 64 characters", async () => {
     renderPage();
     const longPassword = "A".repeat(65);
-
-    fillForm({ password: longPassword, confirmPassword: longPassword });
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAccountStep({ password: longPassword, confirmPassword: longPassword });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.passwordTooLong");
     });
   });
 
-  // -- Validation: password mismatch --
+  // -- Step 1 validation: password mismatch --
 
   it("shows error when passwords do not match", async () => {
     renderPage();
-    fillForm({ confirmPassword: MISMATCHED_PW });
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAccountStep({ confirmPassword: MISMATCHED_PW });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.passwordMismatch");
     });
   });
 
-  // -- Validation: passphrase too short --
+  // -- Step 2: Encryption --
+
+  it("advances to encryption step after valid account step", () => {
+    renderPage();
+    fillAccountStep();
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
+    expect(screen.getByLabelText("auth.passphrase")).toBeInTheDocument();
+    expect(screen.getByLabelText("auth.confirmPassphrase")).toBeInTheDocument();
+    expect(screen.getByText("auth.passphraseHint")).toBeInTheDocument();
+  });
+
+  it("shows hint field on encryption step", () => {
+    renderPage();
+    advanceToEncryptionStep();
+    expect(screen.getByLabelText("auth.hintFieldLabel")).toBeInTheDocument();
+  });
+
+  it("shows back button on encryption step", () => {
+    renderPage();
+    advanceToEncryptionStep();
+    expect(screen.getByRole("button", { name: "auth.stepBack" })).toBeInTheDocument();
+  });
+
+  it("back button returns to account step", () => {
+    renderPage();
+    advanceToEncryptionStep();
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepBack" }));
+    expect(screen.getByLabelText("auth.email")).toBeInTheDocument();
+  });
+
+  // -- Step 2 validation: passphrase too short --
 
   it("shows error when passphrase is shorter than 8 characters", async () => {
     renderPage();
-    fillForm({ passphrase: SHORT_PASSPHRASE, confirmPassphrase: SHORT_PASSPHRASE });
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    advanceToEncryptionStep();
+    fillEncryptionStep({ passphrase: SHORT_PASSPHRASE, confirmPassphrase: SHORT_PASSPHRASE });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.passphraseTooShort");
     });
   });
 
-  // -- Validation: passphrase mismatch --
+  // -- Step 2 validation: passphrase mismatch --
 
   it("shows error when passphrases do not match", async () => {
     renderPage();
-    fillForm({ confirmPassphrase: MISMATCHED_PASSPHRASE });
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    advanceToEncryptionStep();
+    fillEncryptionStep({ confirmPassphrase: MISMATCHED_PASSPHRASE });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.passphraseMismatch");
     });
   });
 
-  // -- Validation: acknowledgment not checked --
+  // -- Step 3: Confirm --
 
-  it("shows error when acknowledgment checkbox is not checked", async () => {
+  it("advances to confirm step with warning and checkbox", () => {
     renderPage();
-    fillForm({ acknowledged: false });
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
+    advanceToConfirmStep();
+    expect(screen.getByText("auth.passphraseWarning")).toBeInTheDocument();
+    expect(screen.getByText("auth.acknowledgeWarning")).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("auth.mustAcknowledgeWarning");
-    });
+  it("disables submit when acknowledgment checkbox is not checked", () => {
+    renderPage();
+    advanceToConfirmStep();
+    const btn = screen.getByRole("button", { name: "auth.register" });
+    expect(btn).toBeDisabled();
+  });
+
+  it("enables submit when acknowledgment checkbox is checked", () => {
+    renderPage();
+    advanceToConfirmStep();
+    fireEvent.click(screen.getByRole("checkbox"));
+    const btn = screen.getByRole("button", { name: "auth.register" });
+    expect(btn).not.toBeDisabled();
   });
 
   // -- Successful registration with verification flow --
@@ -242,10 +286,7 @@ describe("RegisterPage", () => {
   it("navigates to verify-pending when verification email is sent", async () => {
     mockRegister.mockResolvedValue({ message: "verification_email_sent" });
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -264,14 +305,10 @@ describe("RegisterPage", () => {
   it("does not derive key when verification email flow is used", async () => {
     mockRegister.mockResolvedValue({ message: "verification_email_sent" });
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/verify-pending", expect.anything());
     });
-
     expect(mockDeriveKey).not.toHaveBeenCalled();
     expect(mockSetMasterKey).not.toHaveBeenCalled();
   });
@@ -285,10 +322,7 @@ describe("RegisterPage", () => {
       token_type: "bearer",
     });
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(mockDeriveKey).toHaveBeenCalledWith(VALID_PASSPHRASE, "test-salt-base64");
       expect(mockHashPassphrase).toHaveBeenCalledWith(VALID_PASSPHRASE);
@@ -308,10 +342,7 @@ describe("RegisterPage", () => {
     const { ApiError } = await import("../lib/api");
     mockRegister.mockRejectedValue(new ApiError(403, "registration_closed"));
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/waitlist", { replace: true });
     });
@@ -323,10 +354,7 @@ describe("RegisterPage", () => {
     const { ApiError } = await import("../lib/api");
     mockRegister.mockRejectedValue(new ApiError(409, "email_taken"));
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.emailTaken");
     });
@@ -338,10 +366,7 @@ describe("RegisterPage", () => {
     const { ApiError } = await import("../lib/api");
     mockRegister.mockRejectedValue(new ApiError(400, "invalid_or_expired_invite"));
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("waitlist.invalidInvite");
     });
@@ -353,10 +378,7 @@ describe("RegisterPage", () => {
     const { ApiError } = await import("../lib/api");
     mockRegister.mockRejectedValue(new ApiError(400, "invite_email_mismatch"));
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("waitlist.emailMismatch");
     });
@@ -367,10 +389,7 @@ describe("RegisterPage", () => {
   it("shows generic error for unexpected failures", async () => {
     mockRegister.mockRejectedValue(new Error("Network error"));
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("auth.registerError");
     });
@@ -386,10 +405,7 @@ describe("RegisterPage", () => {
       }),
     );
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    fillAllAndSubmit();
     await waitFor(() => {
       const btn = screen.getByRole("button", { name: "auth.derivingKey" });
       expect(btn).toBeDisabled();
@@ -409,22 +425,22 @@ describe("RegisterPage", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  // -- Clears previous error on new submit attempt --
+  // -- Clears previous error on step advance --
 
-  it("clears error on new submission attempt", async () => {
-    mockRegister.mockRejectedValueOnce(new Error("fail"));
-    mockRegister.mockResolvedValueOnce({ message: "verification_email_sent" });
+  it("clears error when advancing to next step", async () => {
     renderPage();
-
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    // Trigger validation error on account step
+    fillAccountStep({ confirmPassword: MISMATCHED_PW });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
-
+    // Fix the field and advance
+    fireEvent.change(screen.getByLabelText("auth.confirmPassword"), {
+      target: { value: VALID_PW },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
     await waitFor(() => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
@@ -470,8 +486,7 @@ describe("RegisterPage with invite token", () => {
       </MemoryRouter>,
     );
 
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
+    fillAllAndSubmit();
 
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalledWith(
@@ -483,40 +498,47 @@ describe("RegisterPage with invite token", () => {
   });
 });
 
-// -- Helper --
+// -- Helpers --
 
-/** Fills the registration form with valid defaults. Individual fields can be overridden. */
-function fillForm(
-  overrides: {
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-    passphrase?: string;
-    confirmPassphrase?: string;
-    acknowledged?: boolean;
-  } = {},
+/** Fill the account step fields (step 1). */
+function fillAccountStep(
+  overrides: { email?: string; password?: string; confirmPassword?: string } = {},
 ) {
-  const {
-    email = "test@example.com",
-    password = VALID_PW,
-    confirmPassword = VALID_PW,
-    passphrase = VALID_PASSPHRASE,
-    confirmPassphrase = VALID_PASSPHRASE,
-    acknowledged = true,
-  } = overrides;
+  const { email = "test@example.com", password = VALID_PW, confirmPassword = VALID_PW } = overrides;
 
   fireEvent.change(screen.getByLabelText("auth.email"), { target: { value: email } });
   fireEvent.change(screen.getByLabelText("auth.password"), { target: { value: password } });
   fireEvent.change(screen.getByLabelText("auth.confirmPassword"), {
     target: { value: confirmPassword },
   });
+}
+
+/** Fill the encryption step fields (step 2). */
+function fillEncryptionStep(overrides: { passphrase?: string; confirmPassphrase?: string } = {}) {
+  const { passphrase = VALID_PASSPHRASE, confirmPassphrase = VALID_PASSPHRASE } = overrides;
+
   fireEvent.change(screen.getByLabelText("auth.passphrase"), { target: { value: passphrase } });
   fireEvent.change(screen.getByLabelText("auth.confirmPassphrase"), {
     target: { value: confirmPassphrase },
   });
+}
 
-  const checkbox = screen.getByRole("checkbox");
-  if (acknowledged && !checkbox.hasAttribute("checked")) {
-    fireEvent.click(checkbox);
-  }
+/** Advance to the encryption step by filling and submitting the account step. */
+function advanceToEncryptionStep() {
+  fillAccountStep();
+  fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
+}
+
+/** Advance to the confirm step by going through account and encryption steps. */
+function advanceToConfirmStep() {
+  advanceToEncryptionStep();
+  fillEncryptionStep();
+  fireEvent.click(screen.getByRole("button", { name: "auth.stepNext" }));
+}
+
+/** Fill all steps and submit the final form. */
+function fillAllAndSubmit() {
+  advanceToConfirmStep();
+  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(screen.getByRole("button", { name: "auth.register" }));
 }

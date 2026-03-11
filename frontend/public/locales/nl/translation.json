@@ -49,6 +49,8 @@
   "auth.hintHelperText": "Schrijf iets dat je helpt je versleutelingswachtwoord te herinneren. Schrijf niet het versleutelingswachtwoord zelf.",
   "auth.sessionExpired": "Je sessie is verlopen. Log opnieuw in.",
   "auth.loginTitle": "Inloggen",
+  "auth.stepNext": "Doorgaan",
+  "auth.stepBack": "Terug",
 
   "password.weak": "Zwak",
   "password.fair": "Redelijk",

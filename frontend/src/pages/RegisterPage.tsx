@@ -11,6 +11,9 @@ import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import { getPasswordStrength } from "../lib/passwordStrength";
 import "../styles/auth.css";
 
+type Step = "account" | "encryption" | "confirm";
+const STEPS: Step[] = ["account", "encryption", "confirm"];
+
 function getRegistrationError(err: unknown, t: (key: string) => string): string {
   if (err instanceof ApiError && err.status === 409) return t("auth.emailTaken");
   if (err instanceof ApiError && err.detail === "invalid_or_expired_invite")
@@ -28,6 +31,7 @@ export default function RegisterPage() {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
 
+  const [step, setStep] = useState<Step>("account");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,23 +42,60 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function validate(): string | null {
+  const stepIndex = STEPS.indexOf(step);
+
+  function validateAccount(): string | null {
     if (getPasswordStrength(password).level === "weak") return t("auth.passwordTooWeak");
     if (password.length > 64) return t("auth.passwordTooLong");
     if (password !== confirmPassword) return t("auth.passwordMismatch");
+    return null;
+  }
+
+  function validateEncryption(): string | null {
     if (passphrase.length < 8) return t("auth.passphraseTooShort");
     if (passphrase !== confirmPassphrase) return t("auth.passphraseMismatch");
+    return null;
+  }
+
+  function validateConfirm(): string | null {
     if (!acknowledged) return t("auth.mustAcknowledgeWarning");
     return null;
+  }
+
+  function handleNext(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (step === "account") {
+      const err = validateAccount();
+      if (err) {
+        setError(err);
+        return;
+      }
+      setStep("encryption");
+    } else if (step === "encryption") {
+      const err = validateEncryption();
+      if (err) {
+        setError(err);
+        return;
+      }
+      setStep("confirm");
+    }
+  }
+
+  function handleBack() {
+    setError("");
+    if (step === "encryption") setStep("account");
+    else if (step === "confirm") setStep("encryption");
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
 
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    const confirmError = validateConfirm();
+    if (confirmError) {
+      setError(confirmError);
       return;
     }
 
@@ -116,109 +157,169 @@ export default function RegisterPage() {
 
           {inviteToken && <div className="auth-success">{t("waitlist.approvalBanner")}</div>}
 
-          <form onSubmit={handleSubmit}>
-            <div className="auth-field">
-              <label htmlFor="email">{t("auth.email")}</label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                data-1p-allow
+          <div className="auth-steps" aria-hidden="true">
+            {STEPS.map((s, i) => (
+              <span
+                key={s}
+                className={`auth-steps__dot${i === stepIndex ? " auth-steps__dot--active" : ""}${i < stepIndex ? " auth-steps__dot--done" : ""}`}
+                aria-current={i === stepIndex ? "step" : undefined}
               />
-            </div>
+            ))}
+          </div>
 
-            <div className="auth-field">
-              <label htmlFor="password">{t("auth.password")}</label>
-              <input
-                id="password"
-                type="password"
-                required
-                maxLength={64}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                data-1p-allow
-              />
-              <PasswordStrengthMeter password={password} />
-            </div>
+          {step === "account" && (
+            <form onSubmit={handleNext} data-testid="step-account">
+              <div className="auth-field">
+                <label htmlFor="email">{t("auth.email")}</label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  data-1p-allow
+                />
+              </div>
 
-            <div className="auth-field">
-              <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                data-1p-allow
-              />
-            </div>
+              <div className="auth-field">
+                <label htmlFor="password">{t("auth.password")}</label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  maxLength={64}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  data-1p-allow
+                />
+                <PasswordStrengthMeter password={password} />
+              </div>
 
-            <div className="auth-field">
-              <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-              <input
-                id="passphrase"
-                type="password"
-                required
-                minLength={8}
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                data-1p-ignore
-              />
-              <p className="auth-field__hint">{t("auth.passphraseHint")}</p>
-            </div>
+              <div className="auth-field">
+                <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  data-1p-allow
+                />
+              </div>
 
-            <div className="auth-field">
-              <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
-              <input
-                id="confirmPassphrase"
-                type="password"
-                required
-                value={confirmPassphrase}
-                onChange={(e) => setConfirmPassphrase(e.target.value)}
-                data-1p-ignore
-              />
-            </div>
+              {error && (
+                <p className="auth-error" role="alert">
+                  {error}
+                </p>
+              )}
 
-            <div className="auth-field">
-              <label htmlFor="passphraseHint">{t("auth.hintFieldLabel")}</label>
-              <input
-                id="passphraseHint"
-                type="text"
-                maxLength={255}
-                value={passphraseHint}
-                onChange={(e) => setPassphraseHint(e.target.value)}
-                placeholder={t("auth.hintPlaceholder")}
-              />
-              <p className="auth-field__hint">{t("auth.hintHelperText")}</p>
-            </div>
+              <button
+                className="auth-submit"
+                type="submit"
+                disabled={getPasswordStrength(password).level === "weak"}
+              >
+                {t("auth.stepNext")}
+              </button>
+            </form>
+          )}
 
-            <label className="auth-checkbox">
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(e) => setAcknowledged(e.target.checked)}
-              />
-              {t("auth.acknowledgeWarning")}
-            </label>
+          {step === "encryption" && (
+            <form onSubmit={handleNext} data-testid="step-encryption">
+              <p className="auth-step-intro">{t("auth.passphraseHint")}</p>
 
-            <p className="auth-warning">{t("auth.passphraseWarning")}</p>
+              <div className="auth-field">
+                <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+                <input
+                  id="passphrase"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  data-1p-ignore
+                />
+              </div>
 
-            {error && (
-              <p className="auth-error" role="alert">
-                {error}
-              </p>
-            )}
+              <div className="auth-field">
+                <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
+                <input
+                  id="confirmPassphrase"
+                  type="password"
+                  required
+                  value={confirmPassphrase}
+                  onChange={(e) => setConfirmPassphrase(e.target.value)}
+                  data-1p-ignore
+                />
+              </div>
 
-            <button
-              className="auth-submit"
-              type="submit"
-              disabled={loading || getPasswordStrength(password).level === "weak"}
-            >
-              {loading ? t("auth.derivingKey") : t("auth.register")}
-            </button>
-          </form>
+              <div className="auth-field">
+                <label htmlFor="passphraseHint">{t("auth.hintFieldLabel")}</label>
+                <input
+                  id="passphraseHint"
+                  type="text"
+                  maxLength={255}
+                  value={passphraseHint}
+                  onChange={(e) => setPassphraseHint(e.target.value)}
+                  placeholder={t("auth.hintPlaceholder")}
+                />
+                <p className="auth-field__hint">{t("auth.hintHelperText")}</p>
+              </div>
+
+              {error && (
+                <p className="auth-error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <div className="auth-step-buttons">
+                <button className="auth-step-back" type="button" onClick={handleBack}>
+                  {t("auth.stepBack")}
+                </button>
+                <button className="auth-submit auth-submit--flex" type="submit">
+                  {t("auth.stepNext")}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === "confirm" && (
+            <form onSubmit={handleSubmit} data-testid="step-confirm">
+              <p className="auth-warning auth-warning--prominent">{t("auth.passphraseWarning")}</p>
+
+              <label className="auth-checkbox">
+                <input
+                  type="checkbox"
+                  checked={acknowledged}
+                  onChange={(e) => setAcknowledged(e.target.checked)}
+                />
+                {t("auth.acknowledgeWarning")}
+              </label>
+
+              {error && (
+                <p className="auth-error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <div className="auth-step-buttons">
+                <button
+                  className="auth-step-back"
+                  type="button"
+                  onClick={handleBack}
+                  disabled={loading}
+                >
+                  {t("auth.stepBack")}
+                </button>
+                <button
+                  className="auth-submit auth-submit--flex"
+                  type="submit"
+                  disabled={loading || !acknowledged}
+                >
+                  {loading ? t("auth.derivingKey") : t("auth.register")}
+                </button>
+              </div>
+            </form>
+          )}
 
           <p className="auth-footer">
             {t("auth.hasAccount")} <Link to="/login">{t("auth.login")}</Link>

@@ -49,6 +49,8 @@
   "auth.hintHelperText": "Write something that helps you remember your passphrase. Do not write the passphrase itself.",
   "auth.sessionExpired": "Your session has expired. Please log in again.",
   "auth.loginTitle": "Log in",
+  "auth.stepNext": "Continue",
+  "auth.stepBack": "Back",
 
   "password.weak": "Weak",
   "password.fair": "Fair",

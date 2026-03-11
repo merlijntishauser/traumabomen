@@ -435,6 +435,84 @@
   margin: 0;
 }
 
+.auth-warning--prominent {
+  color: var(--color-text-secondary);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-tertiary);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* --- Step indicator dots --- */
+.auth-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.auth-steps__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-bg-hover);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.auth-steps__dot--active {
+  background: var(--color-accent);
+  transform: scale(1.25);
+}
+
+.auth-steps__dot--done {
+  background: var(--color-accent-subtle);
+}
+
+/* --- Step intro text --- */
+.auth-step-intro {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-1);
+}
+
+/* --- Step navigation buttons --- */
+.auth-step-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.auth-step-back {
+  background: none;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-2\.5) var(--space-4);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+  white-space: nowrap;
+}
+
+.auth-step-back:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+.auth-step-back:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-submit--flex {
+  flex: 1;
+}
+
 .auth-error {
   font-size: 13px;
   color: var(--color-danger);
