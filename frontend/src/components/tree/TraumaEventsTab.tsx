@@ -114,10 +114,10 @@ interface EventFormState {
 type EventFormAction = { type: "SET_FIELD"; field: keyof EventFormState; value: string };
 
 function eventFormReducer(state: EventFormState, action: EventFormAction): EventFormState {
-  switch (action.type) {
-    case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
+  if (action.type === "SET_FIELD") {
+    return { ...state, [action.field]: action.value };
   }
+  return state;
 }
 
 function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: EventFormProps) {

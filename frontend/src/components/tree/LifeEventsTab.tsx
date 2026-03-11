@@ -45,10 +45,10 @@ function lifeEventFormReducer(
   state: LifeEventFormState,
   action: LifeEventFormAction,
 ): LifeEventFormState {
-  switch (action.type) {
-    case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
+  if (action.type === "SET_FIELD") {
+    return { ...state, [action.field]: action.value };
   }
+  return state;
 }
 
 function LifeEventForm({

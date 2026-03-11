@@ -53,10 +53,10 @@ function turningPointFormReducer(
   state: TurningPointFormState,
   action: TurningPointFormAction,
 ): TurningPointFormState {
-  switch (action.type) {
-    case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
+  if (action.type === "SET_FIELD") {
+    return { ...state, [action.field]: action.value };
   }
+  return state;
 }
 
 function TurningPointForm({
