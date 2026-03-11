@@ -564,6 +564,7 @@
   font-size: 13px;
   color: var(--color-text-secondary);
   line-height: 1.4;
+  margin: var(--space-3) 0;
 }
 
 .auth-checkbox input[type="checkbox"] {
@@ -582,10 +583,11 @@
 }
 
 .auth-warning--prominent {
-  color: var(--color-text-secondary);
+  color: var(--color-danger);
+  font-weight: 500;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-bg-tertiary);
-  border-left: 3px solid var(--color-accent);
+  background: rgba(220, 38, 38, 0.08);
+  border-left: 3px solid var(--color-danger);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
