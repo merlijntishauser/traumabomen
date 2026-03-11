@@ -375,7 +375,7 @@
 .auth-page--centered .auth-content {
   position: relative;
   z-index: 1;
-  width: 420px;
+  width: 480px;
   margin: 0 var(--space-5);
   padding: var(--space-8) 0;
   background: none;
@@ -389,7 +389,7 @@
   overflow-y: auto;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .auth-page--centered .auth-content {
     width: auto;
     flex: 1;
