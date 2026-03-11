@@ -22,7 +22,7 @@ import {
   importTreeKey,
 } from "./crypto";
 
-export interface KeyRingResult {
+interface KeyRingResult {
   keys: Map<string, CryptoKey>;
   base64Map: Map<string, string>;
 }

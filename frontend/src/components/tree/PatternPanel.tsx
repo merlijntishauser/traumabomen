@@ -1,5 +1,5 @@
 import { ChevronRight, Eye, EyeOff } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -193,6 +193,51 @@ interface PatternEditFormProps {
   onDelete: (() => void) | undefined;
 }
 
+interface PatternEditFormState {
+  name: string;
+  description: string;
+  color: string;
+  linkedEntities: LinkedEntity[];
+  showLinkPicker: boolean;
+}
+
+type PatternEditFormAction =
+  | { type: "SET_FIELD"; field: "name" | "description" | "color"; value: string }
+  | { type: "TOGGLE_LINK_PICKER" }
+  | { type: "ADD_ENTITY"; entityType: LinkedEntity["entity_type"]; entityId: string }
+  | { type: "REMOVE_ENTITY"; index: number };
+
+function patternEditFormReducer(
+  state: PatternEditFormState,
+  action: PatternEditFormAction,
+): PatternEditFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "TOGGLE_LINK_PICKER":
+      return { ...state, showLinkPicker: !state.showLinkPicker };
+    case "ADD_ENTITY": {
+      const key = `${action.entityType}:${action.entityId}`;
+      const alreadyLinked = state.linkedEntities.some(
+        (e) => `${e.entity_type}:${e.entity_id}` === key,
+      );
+      if (alreadyLinked) return state;
+      return {
+        ...state,
+        linkedEntities: [
+          ...state.linkedEntities,
+          { entity_type: action.entityType, entity_id: action.entityId },
+        ],
+      };
+    }
+    case "REMOVE_ENTITY":
+      return {
+        ...state,
+        linkedEntities: state.linkedEntities.filter((_, i) => i !== action.index),
+      };
+  }
+}
+
 function PatternEditForm({
   pattern,
   entityMaps,
@@ -201,45 +246,35 @@ function PatternEditForm({
   onDelete,
 }: PatternEditFormProps) {
   const { t } = useTranslation();
-  const [name, setName] = useState(pattern?.name ?? "");
-  const [description, setDescription] = useState(pattern?.description ?? "");
-  const [color, setColor] = useState(pattern?.color ?? PATTERN_COLORS[0]);
-  const [linkedEntities, setLinkedEntities] = useState<LinkedEntity[]>(
-    pattern?.linked_entities ?? [],
-  );
-  const [showLinkPicker, setShowLinkPicker] = useState(false);
+  const [state, dispatch] = useReducer(patternEditFormReducer, {
+    name: pattern?.name ?? "",
+    description: pattern?.description ?? "",
+    color: pattern?.color ?? PATTERN_COLORS[0],
+    linkedEntities: pattern?.linked_entities ?? [],
+    showLinkPicker: false,
+  });
 
   const linkedEntitySet = useMemo(
-    () => new Set(linkedEntities.map((e) => `${e.entity_type}:${e.entity_id}`)),
-    [linkedEntities],
+    () => new Set(state.linkedEntities.map((e) => `${e.entity_type}:${e.entity_id}`)),
+    [state.linkedEntities],
   );
 
   const entityInfos: EntityInfo[] = useMemo(() => {
-    return linkedEntities.map((le) => {
+    return state.linkedEntities.map((le) => {
       const resolved = resolveLinkedEntity(le, entityMaps, t);
       return { entity: le, ...resolved };
     });
-  }, [linkedEntities, entityMaps, t]);
+  }, [state.linkedEntities, entityMaps, t]);
 
   const personEntityGroups = useMemo(() => buildPersonEntityGroups(entityMaps, t), [entityMaps, t]);
 
-  function handleAddEntity(type: LinkedEntity["entity_type"], id: string) {
-    const key = `${type}:${id}`;
-    if (linkedEntitySet.has(key)) return;
-    setLinkedEntities((prev) => [...prev, { entity_type: type, entity_id: id }]);
-  }
-
-  function handleRemoveEntity(index: number) {
-    setLinkedEntities((prev) => prev.filter((_, i) => i !== index));
-  }
-
   function handleSave() {
-    if (!name.trim()) return;
+    if (!state.name.trim()) return;
     onSave({
-      name: name.trim(),
-      description: description.trim(),
-      color,
-      linked_entities: linkedEntities,
+      name: state.name.trim(),
+      description: state.description.trim(),
+      color: state.color,
+      linked_entities: state.linkedEntities,
     });
   }
 
@@ -249,15 +284,21 @@ function PatternEditForm({
         <span>{t("pattern.name")}</span>
         <input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={state.name}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "name", value: e.target.value })}
           data-testid="pattern-name-input"
         />
       </div>
 
       <div className="pattern-panel__field">
         <span>{t("pattern.description")}</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+        <textarea
+          value={state.description}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
+          }
+          rows={3}
+        />
       </div>
 
       <div className="pattern-panel__field">
@@ -268,10 +309,10 @@ function PatternEditForm({
               key={c}
               type="button"
               className={`pattern-panel__color-swatch ${
-                color === c ? "pattern-panel__color-swatch--selected" : ""
+                state.color === c ? "pattern-panel__color-swatch--selected" : ""
               }`}
               style={{ backgroundColor: getPatternColor(c) }}
-              onClick={() => setColor(c)}
+              onClick={() => dispatch({ type: "SET_FIELD", field: "color", value: c })}
               aria-label={c}
             />
           ))}
@@ -304,7 +345,7 @@ function PatternEditForm({
               <button
                 type="button"
                 className="pattern-panel__entity-remove"
-                onClick={() => handleRemoveEntity(i)}
+                onClick={() => dispatch({ type: "REMOVE_ENTITY", index: i })}
                 aria-label={t("pattern.unlinkEntity")}
               >
                 x
@@ -316,12 +357,12 @@ function PatternEditForm({
         <button
           type="button"
           className="btn pattern-panel__btn--add"
-          onClick={() => setShowLinkPicker((v) => !v)}
+          onClick={() => dispatch({ type: "TOGGLE_LINK_PICKER" })}
         >
-          {showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
+          {state.showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
         </button>
 
-        {showLinkPicker && (
+        {state.showLinkPicker && (
           <div className="pattern-panel__link-section">
             {personEntityGroups.map((group) => (
               <div key={group.personId} className="pattern-panel__link-person">
@@ -335,7 +376,14 @@ function PatternEditForm({
                       className={`pattern-panel__link-entity ${
                         isLinked ? "pattern-panel__link-entity--linked" : ""
                       }`}
-                      onClick={() => !isLinked && handleAddEntity(entity.type, entity.id)}
+                      onClick={() =>
+                        !isLinked &&
+                        dispatch({
+                          type: "ADD_ENTITY",
+                          entityType: entity.type,
+                          entityId: entity.id,
+                        })
+                      }
                       disabled={isLinked}
                     >
                       <div
@@ -369,7 +417,7 @@ function PatternEditForm({
           type="button"
           className="btn btn--primary"
           onClick={handleSave}
-          disabled={!name.trim()}
+          disabled={!state.name.trim()}
         >
           {t("common.save")}
         </button>

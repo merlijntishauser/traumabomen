@@ -78,7 +78,7 @@ export function derivePersonIds(
   return Array.from(ids);
 }
 
-export interface PersonEntityGroup {
+interface PersonEntityGroup {
   personId: string;
   personName: string;
   entities: { type: LinkedEntity["entity_type"]; id: string; label: string }[];

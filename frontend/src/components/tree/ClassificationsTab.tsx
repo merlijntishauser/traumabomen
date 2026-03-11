@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
@@ -165,6 +165,45 @@ interface ClassificationFormProps {
   onDelete?: () => void;
 }
 
+type KeyedClassificationPeriod = ClassificationPeriod & { _key: string };
+
+interface ClassificationFormState {
+  dsmCategory: string;
+  dsmSubcategory: string | null;
+  status: ClassificationStatus;
+  diagnosisYear: string;
+  periods: KeyedClassificationPeriod[];
+  notes: string;
+  categorySearch: string;
+}
+
+type ClassificationFormAction =
+  | { type: "SET_FIELD"; field: keyof ClassificationFormState; value: string | null }
+  | { type: "SET_STATUS"; status: ClassificationStatus }
+  | { type: "SET_PERIODS"; periods: KeyedClassificationPeriod[] }
+  | { type: "SET_CATEGORY"; dsmCategory: string; dsmSubcategory: string | null };
+
+function classificationFormReducer(
+  state: ClassificationFormState,
+  action: ClassificationFormAction,
+): ClassificationFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_STATUS":
+      return { ...state, status: action.status };
+    case "SET_PERIODS":
+      return { ...state, periods: action.periods };
+    case "SET_CATEGORY":
+      return {
+        ...state,
+        dsmCategory: action.dsmCategory,
+        dsmSubcategory: action.dsmSubcategory,
+        categorySearch: "",
+      };
+  }
+}
+
 function ClassificationForm({
   classification,
   allPersons,
@@ -173,28 +212,29 @@ function ClassificationForm({
   onDelete,
 }: ClassificationFormProps) {
   const { t } = useTranslation();
-  const [dsmCategory, setDsmCategory] = useState(classification?.dsm_category ?? "anxiety");
-  const [dsmSubcategory, setDsmSubcategory] = useState<string | null>(
-    classification?.dsm_subcategory ?? null,
-  );
-  const [status, setStatus] = useState<ClassificationStatus>(classification?.status ?? "suspected");
-  const [diagnosisYear, setDiagnosisYear] = useState(
-    classification?.diagnosis_year != null ? String(classification.diagnosis_year) : "",
-  );
-  const [periods, setPeriods] = useState<ClassificationPeriod[]>(classification?.periods ?? []);
-  const [notes, setNotes] = useState(classification?.notes ?? "");
+  const [state, dispatch] = useReducer(classificationFormReducer, {
+    dsmCategory: classification?.dsm_category ?? "anxiety",
+    dsmSubcategory: classification?.dsm_subcategory ?? null,
+    status: classification?.status ?? "suspected",
+    diagnosisYear:
+      classification?.diagnosis_year != null ? String(classification.diagnosis_year) : "",
+    periods: (classification?.periods ?? []).map((p) => ({ ...p, _key: crypto.randomUUID() })),
+    notes: classification?.notes ?? "",
+    categorySearch: "",
+  });
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
-  const [categorySearch, setCategorySearch] = useState("");
 
   // Build compound select value from category + subcategory
-  const selectValue = dsmSubcategory ? `${dsmCategory}::${dsmSubcategory}` : dsmCategory;
+  const selectValue = state.dsmSubcategory
+    ? `${state.dsmCategory}::${state.dsmSubcategory}`
+    : state.dsmCategory;
 
   // Filter categories and subcategories based on search
   const filteredCategories = useMemo(() => {
-    if (!categorySearch) return DSM_CATEGORIES;
-    const q = categorySearch.toLowerCase();
+    if (!state.categorySearch) return DSM_CATEGORIES;
+    const q = state.categorySearch.toLowerCase();
     return DSM_CATEGORIES.map((cat) => {
       const categoryLabel = t(`dsm.${cat.key}`).toLowerCase();
       const categoryCodeMatch = cat.code.toLowerCase().includes(q);
@@ -212,51 +252,68 @@ function ClassificationForm({
 
       return null;
     }).filter((cat): cat is DsmCategory => cat !== null);
-  }, [categorySearch, t]);
+  }, [state.categorySearch, t]);
 
   function addPeriod() {
-    setPeriods((prev) => [...prev, { start_year: new Date().getFullYear(), end_year: null }]);
+    dispatch({
+      type: "SET_PERIODS",
+      periods: [
+        ...state.periods,
+        { start_year: new Date().getFullYear(), end_year: null, _key: crypto.randomUUID() },
+      ],
+    });
   }
 
   function removePeriod(index: number) {
-    setPeriods((prev) => prev.filter((_, i) => i !== index));
+    dispatch({
+      type: "SET_PERIODS",
+      periods: state.periods.filter((_, i) => i !== index),
+    });
   }
 
   function updatePeriod(index: number, field: keyof ClassificationPeriod, value: string) {
-    setPeriods((prev) =>
-      prev.map((p, i) => {
+    dispatch({
+      type: "SET_PERIODS",
+      periods: state.periods.map((p, i) => {
         if (i !== index) return p;
         if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
         return { ...p, [field]: parseInt(value, 10) || 0 };
       }),
-    );
+    });
   }
 
   function handleSelectChange(compoundValue: string) {
     const parts = compoundValue.split("::");
-    setDsmCategory(parts[0]);
-    setDsmSubcategory(parts.length > 1 ? parts[1] : null);
-    setCategorySearch("");
+    dispatch({
+      type: "SET_CATEGORY",
+      dsmCategory: parts[0],
+      dsmSubcategory: parts.length > 1 ? parts[1] : null,
+    });
   }
 
   function handleSave() {
     const parsedDiagnosisYear =
-      status === "diagnosed" && diagnosisYear ? parseInt(diagnosisYear, 10) : null;
+      state.status === "diagnosed" && state.diagnosisYear
+        ? parseInt(state.diagnosisYear, 10)
+        : null;
+
+    // Strip internal _key before saving
+    const cleanedPeriods = state.periods.map(({ _key, ...rest }) => rest);
 
     // Auto-create a period from diagnosis year when no periods are set
     const effectivePeriods =
-      periods.length === 0 && parsedDiagnosisYear != null
+      cleanedPeriods.length === 0 && parsedDiagnosisYear != null
         ? [{ start_year: parsedDiagnosisYear, end_year: null }]
-        : periods;
+        : cleanedPeriods;
 
     onSave(
       {
-        dsm_category: dsmCategory,
-        dsm_subcategory: dsmSubcategory,
-        status,
+        dsm_category: state.dsmCategory,
+        dsm_subcategory: state.dsmSubcategory,
+        status: state.status,
         diagnosis_year: parsedDiagnosisYear,
         periods: effectivePeriods,
-        notes: notes || null,
+        notes: state.notes || null,
       },
       Array.from(selectedPersonIds),
     );
@@ -268,8 +325,10 @@ function ClassificationForm({
         <span>{t("classification.category")}</span>
         <input
           type="text"
-          value={categorySearch}
-          onChange={(e) => setCategorySearch(e.target.value)}
+          value={state.categorySearch}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "categorySearch", value: e.target.value })
+          }
           placeholder={t("classification.searchPlaceholder")}
         />
         <select value={selectValue} onChange={(e) => handleSelectChange(e.target.value)}>
@@ -292,8 +351,8 @@ function ClassificationForm({
             <input
               type="radio"
               name="cls-status"
-              checked={status === "suspected"}
-              onChange={() => setStatus("suspected")}
+              checked={state.status === "suspected"}
+              onChange={() => dispatch({ type: "SET_STATUS", status: "suspected" })}
             />
             <span>{t("classification.status.suspected")}</span>
           </label>
@@ -301,31 +360,30 @@ function ClassificationForm({
             <input
               type="radio"
               name="cls-status"
-              checked={status === "diagnosed"}
-              onChange={() => setStatus("diagnosed")}
+              checked={state.status === "diagnosed"}
+              onChange={() => dispatch({ type: "SET_STATUS", status: "diagnosed" })}
             />
             <span>{t("classification.status.diagnosed")}</span>
           </label>
         </div>
       </fieldset>
-      {status === "diagnosed" && (
+      {state.status === "diagnosed" && (
         <label className="detail-panel__field">
           <span>{t("classification.diagnosisYear")}</span>
           <input
             type="number"
-            value={diagnosisYear}
-            onChange={(e) => setDiagnosisYear(e.target.value)}
+            value={state.diagnosisYear}
+            onChange={(e) =>
+              dispatch({ type: "SET_FIELD", field: "diagnosisYear", value: e.target.value })
+            }
             placeholder="---"
           />
         </label>
       )}
       <fieldset className="detail-panel__field">
         <span>{t("classification.periods")}</span>
-        {periods.map((period, i) => (
-          <div
-            key={`${period.start_year}-${period.end_year ?? "open"}-${i}`}
-            className="detail-panel__period-row"
-          >
+        {state.periods.map((period, i) => (
+          <div key={period._key} className="detail-panel__period-row">
             <div className="detail-panel__period-years">
               <label className="detail-panel__field">
                 <span>{t("common.startYear")}</span>
@@ -364,7 +422,11 @@ function ClassificationForm({
       </fieldset>
       <label className="detail-panel__field">
         <span>{t("classification.notes")}</span>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+        <textarea
+          value={state.notes}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "notes", value: e.target.value })}
+          rows={2}
+        />
       </label>
       <PersonLinkField
         allPersons={allPersons}

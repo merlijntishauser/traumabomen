@@ -18,7 +18,7 @@ export interface TimelineZoomActions {
   resetZoom: () => void;
 }
 
-export interface UseTimelineZoomResult {
+interface UseTimelineZoomResult {
   rescaled: d3.ScaleLinear<number, number>;
   zoomK: number;
   zoomActions: TimelineZoomActions;

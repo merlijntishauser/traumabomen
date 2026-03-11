@@ -138,7 +138,7 @@ export function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-export interface GeneratedTreeKey {
+interface GeneratedTreeKey {
   key: CryptoKey;
   base64: string;
 }

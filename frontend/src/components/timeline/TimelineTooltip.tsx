@@ -33,9 +33,9 @@ export const TimelineTooltip = React.memo(function TimelineTooltip({
         top: state.y - 10,
       }}
     >
-      {state.lines.map((line, i) => (
-        <React.Fragment key={`${line.text}-${i}`}>
-          {i > 0 && <br />}
+      {state.lines.map((line, idx) => (
+        <React.Fragment key={line.text}>
+          {idx > 0 && <br />}
           <span style={line.bold ? { fontWeight: 600 } : undefined}>{line.text}</span>
         </React.Fragment>
       ))}

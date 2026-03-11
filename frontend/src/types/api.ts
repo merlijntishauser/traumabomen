@@ -34,10 +34,6 @@ export interface VerifyResponse {
   message: string;
 }
 
-export interface RefreshRequest {
-  refresh_token: string;
-}
-
 export interface RefreshResponse {
   access_token: string;
   refresh_token: string;
@@ -146,17 +142,17 @@ export interface RelationshipResponse {
 }
 
 // Linked entities (events, life events, turning points, classifications, patterns)
-export interface LinkedEntityCreate {
+interface LinkedEntityCreate {
   person_ids: string[];
   encrypted_data: string;
 }
 
-export interface LinkedEntityUpdate {
+interface LinkedEntityUpdate {
   person_ids?: string[];
   encrypted_data?: string;
 }
 
-export interface LinkedEntityResponse {
+interface LinkedEntityResponse {
   id: string;
   person_ids: string[];
   encrypted_data: string;
@@ -201,7 +197,7 @@ export type SiblingGroupUpdate = LinkedEntityUpdate;
 export type SiblingGroupResponse = LinkedEntityResponse;
 
 // Admin stats
-export interface PeriodCounts {
+interface PeriodCounts {
   day: number;
   week: number;
   month: number;
@@ -248,7 +244,7 @@ export interface FunnelStats {
   added_event: number;
 }
 
-export interface ActivityCell {
+interface ActivityCell {
   day: number;
   hour: number;
   count: number;
@@ -355,7 +351,7 @@ interface SyncRelationshipUpdate {
   encrypted_data?: string;
 }
 
-export interface SyncDelete {
+interface SyncDelete {
   id: string;
 }
 

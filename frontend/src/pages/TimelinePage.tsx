@@ -9,7 +9,15 @@ import {
   Search,
   Waypoints,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type Dispatch,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { CreatePatternMiniForm } from "../components/timeline/CreatePatternMiniForm";
 import { MarkerDetailCard } from "../components/timeline/MarkerDetailCard";
@@ -31,17 +39,448 @@ import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandl
 import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
 import { useTimelineFilters } from "../hooks/useTimelineFilters";
 import { useTimelineSettings } from "../hooks/useTimelineSettings";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedTurningPoint,
+} from "../hooks/useTreeData";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
 import { derivePersonIds } from "../lib/patternEntities";
 import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
-import type { LinkedEntity } from "../types/domain";
+import type { LinkedEntity, Pattern } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const ICON_BTN = "tree-toolbar__icon-btn";
 const ICON_BTN_ACTIVE = `${ICON_BTN} ${ICON_BTN}--active`;
+
+const tabClass = (active: boolean) =>
+  `tree-toolbar__tab${active ? " tree-toolbar__tab--active" : ""}`;
+
+/* -- Toolbar sub-components ------------------------------------------------ */
+
+interface LayoutModeTabsProps {
+  layoutMode: LayoutMode;
+  onSetLayoutMode: (mode: LayoutMode) => void;
+}
+
+function LayoutModeTabs({ layoutMode, onSetLayoutMode }: LayoutModeTabsProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="tree-toolbar__tabs">
+      <button
+        type="button"
+        className={tabClass(layoutMode === "years")}
+        onClick={() => onSetLayoutMode("years")}
+      >
+        <Calendar size={14} />
+        {t("timeline.years")}
+      </button>
+      <button
+        type="button"
+        className={tabClass(layoutMode === "age")}
+        onClick={() => onSetLayoutMode("age")}
+      >
+        <Clock size={14} />
+        {t("timeline.age")}
+      </button>
+    </div>
+  );
+}
+
+interface InteractionModeTabsProps {
+  mode: TimelineMode;
+  onSetMode: (mode: TimelineMode) => void;
+}
+
+function InteractionModeTabs({ mode, onSetMode }: InteractionModeTabsProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="tree-toolbar__tabs">
+      <button
+        type="button"
+        className={tabClass(mode === "explore")}
+        onClick={() => onSetMode("explore")}
+      >
+        <Search size={14} />
+        {t("timeline.explore")}
+      </button>
+      <button type="button" className={tabClass(mode === "edit")} onClick={() => onSetMode("edit")}>
+        <Pencil size={14} />
+        {t("timeline.edit")}
+      </button>
+      <button
+        type="button"
+        className={tabClass(mode === "annotate")}
+        onClick={() => onSetMode("annotate")}
+      >
+        <Waypoints size={14} />
+        {t("timeline.annotate")}
+      </button>
+    </div>
+  );
+}
+
+interface ToolbarActionButtonsProps {
+  showPatterns: boolean;
+  onTogglePatterns: () => void;
+  filterPanelOpen: boolean;
+  onToggleFilterPanel: () => void;
+  activeFilterCount: number;
+  journalPanelOpen: boolean;
+  onToggleJournal: () => void;
+}
+
+function ToolbarActionButtons({
+  showPatterns,
+  onTogglePatterns,
+  filterPanelOpen,
+  onToggleFilterPanel,
+  activeFilterCount,
+  journalPanelOpen,
+  onToggleJournal,
+}: ToolbarActionButtonsProps) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <button
+        type="button"
+        className={showPatterns ? ICON_BTN_ACTIVE : ICON_BTN}
+        onClick={onTogglePatterns}
+        aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
+      >
+        {showPatterns ? <Eye size={14} /> : <EyeOff size={14} />}
+      </button>
+      <button
+        type="button"
+        className={filterPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
+        onClick={onToggleFilterPanel}
+        aria-label={t("timeline.filter")}
+      >
+        <Filter size={14} />
+        {activeFilterCount > 0 && <span className="tl-filter-badge">{activeFilterCount}</span>}
+      </button>
+      <button
+        type="button"
+        className={journalPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
+        onClick={onToggleJournal}
+        aria-label={t("journal.tab")}
+      >
+        <BookOpen size={14} />
+      </button>
+    </>
+  );
+}
+
+/* -- Timeline local state -------------------------------------------------- */
+
+interface TimelineLocalState {
+  layoutMode: LayoutMode;
+  scrollMode: boolean;
+  mode: TimelineMode;
+  focusedMarker: MarkerClickInfo | null;
+  filterPanelOpen: boolean;
+  selectedEntityKeys: Set<string>;
+  showPatterns: boolean;
+  focusedPatternId: string | null;
+}
+
+type TimelineLocalAction =
+  | { type: "SET_LAYOUT_MODE"; layoutMode: LayoutMode }
+  | { type: "SET_SCROLL_MODE"; scrollMode: boolean }
+  | { type: "SET_MODE"; mode: TimelineMode }
+  | { type: "SET_FOCUSED_MARKER"; focusedMarker: MarkerClickInfo | null }
+  | { type: "SET_FILTER_PANEL_OPEN"; filterPanelOpen: boolean }
+  | { type: "SET_SELECTED_ENTITY_KEYS"; selectedEntityKeys: Set<string> }
+  | { type: "TOGGLE_ENTITY_KEY"; key: string }
+  | { type: "TOGGLE_SHOW_PATTERNS" }
+  | { type: "TOGGLE_FILTER_PANEL" }
+  | { type: "SET_FOCUSED_PATTERN_ID"; focusedPatternId: string | null };
+
+const timelineInitialState: TimelineLocalState = {
+  layoutMode: "years",
+  scrollMode: false,
+  mode: "explore",
+  focusedMarker: null,
+  filterPanelOpen: false,
+  selectedEntityKeys: new Set(),
+  showPatterns: true,
+  focusedPatternId: null,
+};
+
+function timelineLocalReducer(
+  state: TimelineLocalState,
+  action: TimelineLocalAction,
+): TimelineLocalState {
+  switch (action.type) {
+    case "SET_LAYOUT_MODE":
+      return { ...state, layoutMode: action.layoutMode };
+    case "SET_SCROLL_MODE":
+      return { ...state, scrollMode: action.scrollMode };
+    case "SET_MODE":
+      return action.mode === state.mode
+        ? state
+        : {
+            ...state,
+            mode: action.mode,
+            selectedEntityKeys: action.mode !== "annotate" ? new Set() : state.selectedEntityKeys,
+          };
+    case "SET_FOCUSED_MARKER":
+      return { ...state, focusedMarker: action.focusedMarker };
+    case "SET_FILTER_PANEL_OPEN":
+      return { ...state, filterPanelOpen: action.filterPanelOpen };
+    case "SET_SELECTED_ENTITY_KEYS":
+      return { ...state, selectedEntityKeys: action.selectedEntityKeys };
+    case "TOGGLE_ENTITY_KEY": {
+      const next = new Set(state.selectedEntityKeys);
+      if (next.has(action.key)) next.delete(action.key);
+      else next.add(action.key);
+      return { ...state, selectedEntityKeys: next };
+    }
+    case "TOGGLE_SHOW_PATTERNS":
+      return { ...state, showPatterns: !state.showPatterns };
+    case "TOGGLE_FILTER_PANEL":
+      return { ...state, filterPanelOpen: !state.filterPanelOpen };
+    case "SET_FOCUSED_PATTERN_ID":
+      return { ...state, focusedPatternId: action.focusedPatternId };
+  }
+}
+
+/* -- Derived data hook ----------------------------------------------------- */
+
+function useTimelineDerivedData(
+  persons: Map<string, DecryptedPerson>,
+  relationships: Map<string, DecryptedRelationship>,
+  events: Map<string, DecryptedEvent>,
+  lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
+  classifications: Map<string, DecryptedClassification>,
+  patterns: Map<string, Pattern>,
+  showPatterns: boolean,
+  visiblePatternsFilter: Set<string> | null,
+  hoveredPatternId: string | null,
+) {
+  const timelinePersons = useMemo(
+    () => filterTimelinePersons(persons, relationships),
+    [persons, relationships],
+  );
+  const timeDomain = useMemo(
+    () => computeTimeDomain(timelinePersons, events, lifeEvents, turningPoints),
+    [timelinePersons, events, lifeEvents, turningPoints],
+  );
+  const generations = useMemo(
+    () => computeGenerations(timelinePersons, relationships),
+    [timelinePersons, relationships],
+  );
+  const smartGroups = useMemo(
+    () => computeSmartFilterGroups(timelinePersons, relationships, generations),
+    [timelinePersons, relationships, generations],
+  );
+  const usedTraumaCategories = useMemo(() => {
+    const cats = new Set<string>();
+    for (const e of events.values()) cats.add(e.category);
+    return cats;
+  }, [events]);
+  const usedLifeEventCategories = useMemo(() => {
+    const cats = new Set<string>();
+    for (const le of lifeEvents.values()) cats.add(le.category);
+    return cats;
+  }, [lifeEvents]);
+  const usedClassifications = useMemo(() => {
+    const cats = new Map<string, Set<string>>();
+    for (const c of classifications.values()) {
+      if (!cats.has(c.dsm_category)) cats.set(c.dsm_category, new Set());
+      if (c.dsm_subcategory) cats.get(c.dsm_category)!.add(c.dsm_subcategory);
+    }
+    return cats;
+  }, [classifications]);
+  const visiblePatternIds = useMemo(() => {
+    if (!showPatterns) return new Set<string>();
+    if (visiblePatternsFilter !== null) return visiblePatternsFilter;
+    return new Set(patterns.keys());
+  }, [showPatterns, patterns, visiblePatternsFilter]);
+  const effectiveVisiblePatternIds = useMemo(() => {
+    if (!hoveredPatternId || visiblePatternIds.has(hoveredPatternId)) return visiblePatternIds;
+    return new Set([...visiblePatternIds, hoveredPatternId]);
+  }, [visiblePatternIds, hoveredPatternId]);
+
+  return {
+    timeDomain,
+    smartGroups,
+    usedTraumaCategories,
+    usedLifeEventCategories,
+    usedClassifications,
+    visiblePatternIds,
+    effectiveVisiblePatternIds,
+  };
+}
+
+/* -- Timeline handlers hook ------------------------------------------------ */
+
+function useTimelineHandlers(
+  dispatch: Dispatch<TimelineLocalAction>,
+  localRef: RefObject<TimelineLocalState>,
+  panels: ReturnType<typeof useWorkspacePanels>,
+  selectedPersonId: string | null,
+  setSelectedPersonId: (id: string | null) => void,
+  filterActions: { togglePatternFilter: (id: string) => void },
+  selectedEntityKeys: Set<string>,
+  mode: TimelineMode,
+  relationships: Map<string, DecryptedRelationship>,
+  events: Map<string, DecryptedEvent>,
+  lifeEvents: Map<string, DecryptedLifeEvent>,
+  turningPoints: Map<string, DecryptedTurningPoint>,
+  classifications: Map<string, DecryptedClassification>,
+  mutations: ReturnType<typeof useTreeMutations>,
+) {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const s = localRef.current;
+      if (s.selectedEntityKeys.size > 0) {
+        dispatch({ type: "SET_SELECTED_ENTITY_KEYS", selectedEntityKeys: new Set() });
+        return;
+      }
+      if (panels.journalPanelOpen) {
+        panels.setJournalPanelOpen(false);
+        return;
+      }
+      if (panels.patternPanelOpen) {
+        panels.setPatternPanelOpen(false);
+        dispatch({ type: "SET_FOCUSED_PATTERN_ID", focusedPatternId: null });
+        return;
+      }
+      if (selectedPersonId) {
+        setSelectedPersonId(null);
+        return;
+      }
+      if (s.filterPanelOpen) {
+        dispatch({ type: "SET_FILTER_PANEL_OPEN", filterPanelOpen: false });
+        return;
+      }
+      if (s.mode === "edit" || s.mode === "annotate") {
+        dispatch({ type: "SET_MODE", mode: "explore" });
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [dispatch, localRef, panels, selectedPersonId, setSelectedPersonId]);
+
+  const handleTogglePatternVisibility = useCallback(
+    (patternId: string) => {
+      filterActions.togglePatternFilter(patternId);
+    },
+    [filterActions],
+  );
+
+  const handleToggleScrollMode = useCallback(() => {
+    dispatch({ type: "SET_SCROLL_MODE", scrollMode: !localRef.current.scrollMode });
+  }, [dispatch, localRef]);
+
+  const handleToggleEntitySelect = useCallback(
+    (key: string) => {
+      dispatch({ type: "TOGGLE_ENTITY_KEY", key });
+    },
+    [dispatch],
+  );
+
+  const handleCreatePattern = useCallback(
+    (name: string, description: string, color: string) => {
+      const linked_entities: LinkedEntity[] = Array.from(selectedEntityKeys).map((key) => {
+        const [entity_type, entity_id] = key.split(":");
+        return { entity_type: entity_type as LinkedEntity["entity_type"], entity_id };
+      });
+      const personIds = derivePersonIds(linked_entities, {
+        events,
+        lifeEvents,
+        turningPoints,
+        classifications,
+      });
+      mutations.patterns.create.mutate({
+        personIds,
+        data: { name, description, color, linked_entities },
+      });
+      dispatch({ type: "SET_SELECTED_ENTITY_KEYS", selectedEntityKeys: new Set() });
+    },
+    [selectedEntityKeys, events, lifeEvents, turningPoints, classifications, mutations, dispatch],
+  );
+
+  const handleClickPartnerLine = useCallback(
+    (relationshipId: string) => {
+      if (mode !== "edit") return;
+      const rel = relationships.get(relationshipId);
+      if (!rel) return;
+      setSelectedPersonId(rel.source_person_id);
+      panels.setInitialSection("relationships");
+      dispatch({ type: "SET_FILTER_PANEL_OPEN", filterPanelOpen: false });
+    },
+    [mode, relationships, setSelectedPersonId, panels, dispatch],
+  );
+
+  const handlePatternClick = useCallback(
+    (patternId: string) => {
+      dispatch({ type: "SET_FOCUSED_PATTERN_ID", focusedPatternId: patternId });
+      panels.setPatternPanelOpen(true);
+    },
+    [panels, dispatch],
+  );
+
+  const handleSelectPerson = useCallback(
+    (personId: string | null) => {
+      setSelectedPersonId(personId);
+      dispatch({ type: "SET_FOCUSED_MARKER", focusedMarker: null });
+      if (personId && localRef.current.mode === "edit") {
+        panels.setInitialSection("person");
+        dispatch({ type: "SET_FILTER_PANEL_OPEN", filterPanelOpen: false });
+      }
+    },
+    [setSelectedPersonId, panels, dispatch, localRef],
+  );
+
+  const handleClickMarker = useCallback(
+    (info: MarkerClickInfo) => {
+      const m = localRef.current.mode;
+      if (m === "explore") {
+        dispatch({
+          type: "SET_FOCUSED_MARKER",
+          focusedMarker: localRef.current.focusedMarker?.entityId === info.entityId ? null : info,
+        });
+      } else if (m === "edit") {
+        setSelectedPersonId(info.personId);
+        panels.setInitialSection(info.entityType);
+        dispatch({ type: "SET_FILTER_PANEL_OPEN", filterPanelOpen: false });
+      }
+    },
+    [setSelectedPersonId, panels, dispatch, localRef],
+  );
+
+  const handleSetMode = useCallback(
+    (newMode: TimelineMode) => {
+      dispatch({ type: "SET_MODE", mode: newMode });
+      setSelectedPersonId(null);
+    },
+    [setSelectedPersonId, dispatch],
+  );
+
+  return {
+    handleTogglePatternVisibility,
+    handleToggleScrollMode,
+    handleToggleEntitySelect,
+    handleCreatePattern,
+    handleClickPartnerLine,
+    handlePatternClick,
+    handleSelectPerson,
+    handleClickMarker,
+    handleSetMode,
+  };
+}
+
+/* -- Main component -------------------------------------------------------- */
 
 export default function TimelinePage() {
   const treeId = useTreeId();
@@ -76,16 +515,17 @@ export default function TimelinePage() {
   const panels = useWorkspacePanels();
   const { selectedPersonId, setSelectedPersonId } = panels;
 
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("years");
-  const [scrollMode, setScrollMode] = useState(false);
-  const [mode, setMode] = useState<TimelineMode>("explore");
-  const [focusedMarker, setFocusedMarker] = useState<MarkerClickInfo | null>(null);
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-
-  // Pattern state
-  const [selectedEntityKeys, setSelectedEntityKeys] = useState<Set<string>>(new Set());
-  const [showPatterns, setShowPatterns] = useState(true);
-  const [focusedPatternId, setFocusedPatternId] = useState<string | null>(null);
+  const [local, dispatch] = useReducer(timelineLocalReducer, timelineInitialState);
+  const {
+    layoutMode,
+    scrollMode,
+    mode,
+    focusedMarker,
+    filterPanelOpen,
+    selectedEntityKeys,
+    showPatterns,
+    focusedPatternId,
+  } = local;
 
   const { settings: canvasSettings } = useCanvasSettings();
 
@@ -95,63 +535,26 @@ export default function TimelinePage() {
     dims,
   } = useTimelineFilters(persons, events, lifeEvents, turningPoints, classifications, patterns);
 
-  // Compute time domain for filter panel
-  const timelinePersons = useMemo(
-    () => filterTimelinePersons(persons, relationships),
-    [persons, relationships],
+  const {
+    timeDomain,
+    smartGroups,
+    usedTraumaCategories,
+    usedLifeEventCategories,
+    usedClassifications,
+    effectiveVisiblePatternIds,
+  } = useTimelineDerivedData(
+    persons,
+    relationships,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    patterns,
+    showPatterns,
+    filters.visiblePatterns,
+    panels.hoveredPatternId,
   );
-  const timeDomain = useMemo(
-    () => computeTimeDomain(timelinePersons, events, lifeEvents, turningPoints),
-    [timelinePersons, events, lifeEvents, turningPoints],
-  );
 
-  const generations = useMemo(
-    () => computeGenerations(timelinePersons, relationships),
-    [timelinePersons, relationships],
-  );
-
-  const smartGroups = useMemo(
-    () => computeSmartFilterGroups(timelinePersons, relationships, generations),
-    [timelinePersons, relationships, generations],
-  );
-
-  const usedTraumaCategories = useMemo(() => {
-    const cats = new Set<string>();
-    for (const e of events.values()) cats.add(e.category);
-    return cats;
-  }, [events]);
-
-  const usedLifeEventCategories = useMemo(() => {
-    const cats = new Set<string>();
-    for (const le of lifeEvents.values()) cats.add(le.category);
-    return cats;
-  }, [lifeEvents]);
-
-  const usedClassifications = useMemo(() => {
-    const cats = new Map<string, Set<string>>();
-    for (const c of classifications.values()) {
-      if (!cats.has(c.dsm_category)) cats.set(c.dsm_category, new Set());
-      if (c.dsm_subcategory) cats.get(c.dsm_category)!.add(c.dsm_subcategory);
-    }
-    return cats;
-  }, [classifications]);
-
-  // Visible pattern IDs (show all when showPatterns is on, unless filter overrides)
-  const visiblePatternIds = useMemo(() => {
-    if (!showPatterns) return new Set<string>();
-    // If pattern filter is active, only show filtered patterns
-    if (filters.visiblePatterns !== null) return filters.visiblePatterns;
-    return new Set(patterns.keys());
-  }, [showPatterns, patterns, filters.visiblePatterns]);
-
-  // Include hovered pattern even if not in visible set
-  const effectiveVisiblePatternIds = useMemo(() => {
-    if (!panels.hoveredPatternId || visiblePatternIds.has(panels.hoveredPatternId))
-      return visiblePatternIds;
-    return new Set([...visiblePatternIds, panels.hoveredPatternId]);
-  }, [visiblePatternIds, panels.hoveredPatternId]);
-
-  // Derived state for PersonDetailPanel
   const selectedPerson = selectedPersonId ? (persons.get(selectedPersonId) ?? null) : null;
 
   const selectedEntities = useSelectedPersonEntities(
@@ -163,142 +566,41 @@ export default function TimelinePage() {
     classifications,
   );
 
-  const handlers = useLinkedEntityPanelHandlers({
+  const entityHandlers = useLinkedEntityPanelHandlers({
     mutations,
     selectedPersonId,
     onPersonDeleted: () => setSelectedPersonId(null),
   });
 
-  // Clear entity selection when leaving annotate mode
-  useEffect(() => {
-    if (mode !== "annotate") {
-      setSelectedEntityKeys(new Set());
-    }
-  }, [mode]);
+  const localRef = useRef(local);
+  localRef.current = local;
 
-  // Escape key handler
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        // Priority: clear entity selection -> close panels -> exit mode
-        if (selectedEntityKeys.size > 0) {
-          setSelectedEntityKeys(new Set());
-          return;
-        }
-        if (panels.journalPanelOpen) {
-          panels.setJournalPanelOpen(false);
-          return;
-        }
-        if (panels.patternPanelOpen) {
-          panels.setPatternPanelOpen(false);
-          setFocusedPatternId(null);
-          return;
-        }
-        if (selectedPersonId) {
-          setSelectedPersonId(null);
-          return;
-        }
-        if (filterPanelOpen) {
-          setFilterPanelOpen(false);
-          return;
-        }
-        if (mode === "edit" || mode === "annotate") {
-          setMode("explore");
-        }
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedEntityKeys, panels, selectedPersonId, setSelectedPersonId, filterPanelOpen, mode]);
-
-  function handleTogglePatternVisibility(patternId: string) {
-    // This toggles individual pattern visibility in the filter
-    filterActions.togglePatternFilter(patternId);
-  }
-
-  const handleToggleScrollMode = useCallback(() => {
-    setScrollMode((v) => !v);
-  }, []);
-
-  // Annotate mode handlers
-  const handleToggleEntitySelect = useCallback((key: string) => {
-    setSelectedEntityKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }, []);
-
-  const handleCreatePattern = useCallback(
-    (name: string, description: string, color: string) => {
-      const linked_entities: LinkedEntity[] = Array.from(selectedEntityKeys).map((key) => {
-        const [entity_type, entity_id] = key.split(":");
-        return { entity_type: entity_type as LinkedEntity["entity_type"], entity_id };
-      });
-      const personIds = derivePersonIds(linked_entities, {
-        events,
-        lifeEvents,
-        turningPoints,
-        classifications,
-      });
-      mutations.patterns.create.mutate({
-        personIds,
-        data: { name, description, color, linked_entities },
-      });
-      setSelectedEntityKeys(new Set());
-    },
-    [selectedEntityKeys, events, lifeEvents, turningPoints, classifications, mutations],
+  const {
+    handleTogglePatternVisibility,
+    handleToggleScrollMode,
+    handleToggleEntitySelect,
+    handleCreatePattern,
+    handleClickPartnerLine,
+    handlePatternClick,
+    handleSelectPerson,
+    handleClickMarker,
+    handleSetMode,
+  } = useTimelineHandlers(
+    dispatch,
+    localRef,
+    panels,
+    selectedPersonId,
+    setSelectedPersonId,
+    filterActions,
+    selectedEntityKeys,
+    mode,
+    relationships,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    mutations,
   );
-
-  const handleClickPartnerLine = useCallback(
-    (relationshipId: string) => {
-      if (mode !== "edit") return;
-      const rel = relationships.get(relationshipId);
-      if (!rel) return;
-      setSelectedPersonId(rel.source_person_id);
-      panels.setInitialSection("relationships");
-      setFilterPanelOpen(false);
-    },
-    [mode, relationships, setSelectedPersonId, panels],
-  );
-
-  const handlePatternClick = useCallback(
-    (patternId: string) => {
-      setFocusedPatternId(patternId);
-      panels.setPatternPanelOpen(true);
-    },
-    [panels],
-  );
-
-  // Timeline interaction handlers
-  const handleSelectPerson = useCallback(
-    (personId: string | null) => {
-      setSelectedPersonId(personId);
-      setFocusedMarker(null);
-      if (personId && mode === "edit") {
-        panels.setInitialSection("person");
-        setFilterPanelOpen(false);
-      }
-    },
-    [mode, setSelectedPersonId, panels],
-  );
-
-  const handleClickMarker = useCallback(
-    (info: MarkerClickInfo) => {
-      if (mode === "explore") {
-        setFocusedMarker((prev) => (prev?.entityId === info.entityId ? null : info));
-      } else if (mode === "edit") {
-        setSelectedPersonId(info.personId);
-        panels.setInitialSection(info.entityType);
-        setFilterPanelOpen(false);
-      }
-    },
-    [mode, setSelectedPersonId, panels],
-  );
-
-  const tabClass = (active: boolean) =>
-    `tree-toolbar__tab${active ? " tree-toolbar__tab--active" : ""}`;
 
   if (error) {
     return (
@@ -322,94 +624,21 @@ export default function TimelinePage() {
         activeView="timeline"
         viewTab={timelineViewTab}
       >
-        {/* Layout mode segment control */}
-        <div className="tree-toolbar__tabs">
-          <button
-            type="button"
-            className={tabClass(layoutMode === "years")}
-            onClick={() => setLayoutMode("years")}
-          >
-            <Calendar size={14} />
-            {t("timeline.years")}
-          </button>
-          <button
-            type="button"
-            className={tabClass(layoutMode === "age")}
-            onClick={() => setLayoutMode("age")}
-          >
-            <Clock size={14} />
-            {t("timeline.age")}
-          </button>
-        </div>
-
-        {/* Interaction mode segment control */}
-        <div className="tree-toolbar__tabs">
-          <button
-            type="button"
-            className={tabClass(mode === "explore")}
-            onClick={() => {
-              setMode("explore");
-              setSelectedPersonId(null);
-            }}
-          >
-            <Search size={14} />
-            {t("timeline.explore")}
-          </button>
-          <button
-            type="button"
-            className={tabClass(mode === "edit")}
-            onClick={() => {
-              setMode("edit");
-              setSelectedPersonId(null);
-            }}
-          >
-            <Pencil size={14} />
-            {t("timeline.edit")}
-          </button>
-          <button
-            type="button"
-            className={tabClass(mode === "annotate")}
-            onClick={() => {
-              setMode("annotate");
-              setSelectedPersonId(null);
-            }}
-          >
-            <Waypoints size={14} />
-            {t("timeline.annotate")}
-          </button>
-        </div>
-
+        <LayoutModeTabs
+          layoutMode={layoutMode}
+          onSetLayoutMode={(m) => dispatch({ type: "SET_LAYOUT_MODE", layoutMode: m })}
+        />
+        <InteractionModeTabs mode={mode} onSetMode={handleSetMode} />
         <div className="tree-toolbar__separator" />
-
-        <button
-          type="button"
-          className={showPatterns ? ICON_BTN_ACTIVE : ICON_BTN}
-          onClick={() => setShowPatterns((v) => !v)}
-          aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
-        >
-          {showPatterns ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <button
-          type="button"
-          className={filterPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
-          onClick={() => setFilterPanelOpen((v) => !v)}
-          aria-label={t("timeline.filter")}
-        >
-          <Filter size={14} />
-          {filterActions.activeFilterCount > 0 && (
-            <span className="tl-filter-badge">{filterActions.activeFilterCount}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          className={panels.journalPanelOpen ? ICON_BTN_ACTIVE : ICON_BTN}
-          onClick={() => {
-            panels.setJournalPanelOpen((v) => !v);
-          }}
-          aria-label={t("journal.tab")}
-        >
-          <BookOpen size={14} />
-        </button>
+        <ToolbarActionButtons
+          showPatterns={showPatterns}
+          onTogglePatterns={() => dispatch({ type: "TOGGLE_SHOW_PATTERNS" })}
+          filterPanelOpen={filterPanelOpen}
+          onToggleFilterPanel={() => dispatch({ type: "TOGGLE_FILTER_PANEL" })}
+          activeFilterCount={filterActions.activeFilterCount}
+          journalPanelOpen={panels.journalPanelOpen}
+          onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
+        />
       </TreeToolbar>
 
       {filterActions.activeFilterCount > 0 && (
@@ -469,7 +698,7 @@ export default function TimelinePage() {
             lifeEvents={lifeEvents}
             turningPoints={turningPoints}
             classifications={classifications}
-            onClose={() => setFocusedMarker(null)}
+            onClose={() => dispatch({ type: "SET_FOCUSED_MARKER", focusedMarker: null })}
           />
         )}
 
@@ -487,7 +716,9 @@ export default function TimelinePage() {
           <CreatePatternMiniForm
             selectedCount={selectedEntityKeys.size}
             onSubmit={handleCreatePattern}
-            onCancel={() => setSelectedEntityKeys(new Set())}
+            onCancel={() =>
+              dispatch({ type: "SET_SELECTED_ENTITY_KEYS", selectedEntityKeys: new Set() })
+            }
           />
         )}
 
@@ -502,13 +733,13 @@ export default function TimelinePage() {
             usedTraumaCategories={usedTraumaCategories}
             usedLifeEventCategories={usedLifeEventCategories}
             usedClassifications={usedClassifications}
-            onClose={() => setFilterPanelOpen(false)}
+            onClose={() => dispatch({ type: "SET_FILTER_PANEL_OPEN", filterPanelOpen: false })}
           />
         )}
 
         <WorkspacePanelHost
           panels={panels}
-          handlers={handlers}
+          handlers={entityHandlers}
           entities={selectedEntities}
           treeData={treeData}
           visiblePatternIds={effectiveVisiblePatternIds}
@@ -518,7 +749,7 @@ export default function TimelinePage() {
           showPersonPanel={mode === "edit"}
           onClosePatternPanel={() => {
             panels.setPatternPanelOpen(false);
-            setFocusedPatternId(null);
+            dispatch({ type: "SET_FOCUSED_PATTERN_ID", focusedPatternId: null });
           }}
         />
       </div>

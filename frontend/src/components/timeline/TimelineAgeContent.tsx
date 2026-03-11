@@ -32,6 +32,55 @@ import {
   filterTimelinePersons,
 } from "./timelineHelpers";
 
+interface PartnerLineData {
+  key: string;
+  sourceName: string;
+  targetName: string;
+  sourceX: number | null;
+  targetX: number | null;
+  sourceLaneWidth: number;
+  targetLaneWidth: number;
+  periods: Array<{ start_year: number; end_year: number | null; status: PartnerStatus }>;
+  birthYears: { source: number; target: number };
+}
+
+function computePartnerLineData(
+  columns: Array<{ person: DecryptedPerson; x: number; laneWidth: number }>,
+  relationships: Map<string, DecryptedRelationship>,
+  persons: Map<string, DecryptedPerson>,
+): PartnerLineData[] {
+  const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
+  const result: PartnerLineData[] = [];
+
+  for (const rel of relationships.values()) {
+    if (rel.type !== RelationshipType.Partner) continue;
+    const col1 = colByPersonId.get(rel.source_person_id);
+    const col2 = colByPersonId.get(rel.target_person_id);
+    if (!col1 && !col2) continue;
+
+    const sourcePerson = persons.get(rel.source_person_id);
+    const targetPerson = persons.get(rel.target_person_id);
+    if (sourcePerson?.birth_year == null || targetPerson?.birth_year == null) continue;
+
+    result.push({
+      key: rel.id,
+      sourceName: sourcePerson.name ?? "?",
+      targetName: targetPerson.name ?? "?",
+      sourceX: col1?.x ?? null,
+      targetX: col2?.x ?? null,
+      sourceLaneWidth: col1?.laneWidth ?? 0,
+      targetLaneWidth: col2?.laneWidth ?? 0,
+      periods: capPeriodsAtDeath(rel.periods, {
+        source: sourcePerson.death_year,
+        target: targetPerson.death_year,
+      }),
+      birthYears: { source: sourcePerson.birth_year, target: targetPerson.birth_year },
+    });
+  }
+
+  return result;
+}
+
 interface TimelineAgeContentProps {
   persons: Map<string, DecryptedPerson>;
   relationships: Map<string, DecryptedRelationship>;
@@ -64,6 +113,141 @@ interface TimelineAgeContentProps {
   scrollMode?: boolean;
   onToggleScrollMode?: () => void;
 }
+
+/* -- Sub-components -------------------------------------------------------- */
+
+interface AgeBackgroundProps {
+  genBands: Array<{ gen: number; x: number; width: number; isEven: boolean }>;
+  columns: ReturnType<typeof buildColumnLayout>["columns"];
+  ageTicks: Array<{ value: number; y: number }>;
+  height: number;
+  totalWidth: number;
+  selectedPersonId: string | null;
+  dims?: DimSets;
+  cssVar: (name: string) => string;
+  onSelectPerson: (personId: string) => void;
+  onTooltip: (state: TooltipState) => void;
+  showGridlines: boolean;
+  patterns?: Map<string, DecryptedPattern>;
+  visiblePatternIds?: Set<string>;
+  hoveredPatternId?: string | null;
+  onPatternHover?: (patternId: string | null) => void;
+  onPatternClick?: (patternId: string) => void;
+}
+
+function AgeBackground({
+  genBands,
+  columns,
+  ageTicks,
+  height,
+  totalWidth,
+  selectedPersonId,
+  dims,
+  cssVar,
+  onSelectPerson,
+  onTooltip,
+  showGridlines,
+  patterns,
+  visiblePatternIds,
+  hoveredPatternId,
+  onPatternHover,
+  onPatternClick,
+}: AgeBackgroundProps) {
+  const { t } = useTranslation();
+  return (
+    <g className="tl-bg">
+      {genBands.map((band) => (
+        <React.Fragment key={band.gen}>
+          <rect
+            x={band.x}
+            y={0}
+            width={band.width}
+            height={height}
+            fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
+          />
+          <text x={band.x + band.width / 2} y={16} className="tl-col-header">
+            {t("timeline.generation", { number: band.gen + 1 })}
+          </text>
+        </React.Fragment>
+      ))}
+
+      {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+        <TimelinePatternLanes
+          patterns={patterns}
+          visiblePatternIds={visiblePatternIds}
+          hoveredPatternId={hoveredPatternId ?? null}
+          onPatternHover={onPatternHover}
+          onPatternClick={onPatternClick}
+          direction="vertical"
+          columns={columns}
+          height={height}
+        />
+      )}
+
+      {columns.map((col) => {
+        const isSelected = selectedPersonId === col.person.id;
+        const isDimmed =
+          dims?.dimmedPersonIds.has(col.person.id) || (selectedPersonId != null && !isSelected);
+        const labelClassName = [
+          "tl-col-person-name",
+          isSelected && "tl-person-label--selected",
+          isDimmed && "tl-person-label--dimmed",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        return (
+          <text
+            key={col.person.id}
+            x={col.x + col.laneWidth / 2}
+            y={36}
+            className={labelClassName}
+            style={{ cursor: "pointer" }}
+            onClick={() => onSelectPerson(col.person.id)}
+            onMouseEnter={(e) =>
+              onTooltip({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                lines: [{ text: col.person.name, bold: true }],
+              })
+            }
+            onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
+          >
+            {(() => {
+              const CHAR_W = 7;
+              const maxChars = Math.max(3, Math.floor(col.laneWidth / CHAR_W));
+              return col.person.name.length > maxChars
+                ? `${col.person.name.slice(0, maxChars - 2)}..`
+                : col.person.name;
+            })()}
+          </text>
+        );
+      })}
+
+      {ageTicks.map((tick) => (
+        <text key={tick.value} x={AGE_LABEL_WIDTH - 4} y={tick.y + 4} className="tl-age-axis-text">
+          {tick.value}
+        </text>
+      ))}
+
+      {showGridlines &&
+        ageTicks.map((tick) => (
+          <line
+            key={`grid-${tick.value}`}
+            x1={AGE_LABEL_WIDTH}
+            x2={totalWidth}
+            y1={tick.y}
+            y2={tick.y}
+            stroke={cssVar("--color-text-muted")}
+            strokeOpacity={0.25}
+          />
+        ))}
+    </g>
+  );
+}
+
+/* -- Main component -------------------------------------------------------- */
 
 export function TimelineAgeContent({
   persons,
@@ -153,48 +337,10 @@ export function TimelineAgeContent({
     [patterns, visiblePatternIds],
   );
 
-  const partnerLines = useMemo(() => {
-    const colByPersonId = new Map(columns.map((c) => [c.person.id, c]));
-    const result: Array<{
-      key: string;
-      sourceName: string;
-      targetName: string;
-      sourceX: number | null;
-      targetX: number | null;
-      sourceLaneWidth: number;
-      targetLaneWidth: number;
-      periods: Array<{ start_year: number; end_year: number | null; status: PartnerStatus }>;
-      birthYears: { source: number; target: number };
-    }> = [];
-
-    for (const rel of relationships.values()) {
-      if (rel.type !== RelationshipType.Partner) continue;
-      const col1 = colByPersonId.get(rel.source_person_id);
-      const col2 = colByPersonId.get(rel.target_person_id);
-      if (!col1 && !col2) continue;
-
-      const sourcePerson = persons.get(rel.source_person_id);
-      const targetPerson = persons.get(rel.target_person_id);
-      if (sourcePerson?.birth_year == null || targetPerson?.birth_year == null) continue;
-
-      result.push({
-        key: rel.id,
-        sourceName: sourcePerson.name ?? "?",
-        targetName: targetPerson.name ?? "?",
-        sourceX: col1?.x ?? null,
-        targetX: col2?.x ?? null,
-        sourceLaneWidth: col1?.laneWidth ?? 0,
-        targetLaneWidth: col2?.laneWidth ?? 0,
-        periods: capPeriodsAtDeath(rel.periods, {
-          source: sourcePerson.death_year,
-          target: targetPerson.death_year,
-        }),
-        birthYears: { source: sourcePerson.birth_year, target: targetPerson.birth_year },
-      });
-    }
-
-    return result;
-  }, [columns, relationships, persons]);
+  const partnerLines = useMemo(
+    () => computePartnerLineData(columns, relationships, persons),
+    [columns, relationships, persons],
+  );
 
   const {
     rescaled: rescaledAge,
@@ -263,105 +409,24 @@ export function TimelineAgeContent({
           </clipPath>
         </defs>
 
-        {/* Background: column bands + headers */}
-        <g className="tl-bg">
-          {genBands.map((band) => (
-            <React.Fragment key={band.gen}>
-              <rect
-                x={band.x}
-                y={0}
-                width={band.width}
-                height={height}
-                fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
-              />
-              <text x={band.x + band.width / 2} y={16} className="tl-col-header">
-                {t("timeline.generation", { number: band.gen + 1 })}
-              </text>
-            </React.Fragment>
-          ))}
-
-          {/* Pattern lane tints */}
-          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-            <TimelinePatternLanes
-              patterns={patterns}
-              visiblePatternIds={visiblePatternIds}
-              hoveredPatternId={hoveredPatternId ?? null}
-              onPatternHover={onPatternHover}
-              onPatternClick={onPatternClick}
-              direction="vertical"
-              columns={columns}
-              height={height}
-            />
-          )}
-
-          {/* Person name labels in column headers */}
-          {columns.map((col) => {
-            const isSelected = selectedPersonId === col.person.id;
-            const isDimmed =
-              dims?.dimmedPersonIds.has(col.person.id) || (selectedPersonId != null && !isSelected);
-            const labelClassName = [
-              "tl-col-person-name",
-              isSelected && "tl-person-label--selected",
-              isDimmed && "tl-person-label--dimmed",
-            ]
-              .filter(Boolean)
-              .join(" ");
-
-            return (
-              <text
-                key={col.person.id}
-                x={col.x + col.laneWidth / 2}
-                y={36}
-                className={labelClassName}
-                style={{ cursor: "pointer" }}
-                onClick={() => handleSelectPerson(col.person.id)}
-                onMouseEnter={(e) =>
-                  onTooltip({
-                    visible: true,
-                    x: e.clientX,
-                    y: e.clientY,
-                    lines: [{ text: col.person.name, bold: true }],
-                  })
-                }
-                onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
-              >
-                {(() => {
-                  const CHAR_W = 7;
-                  const maxChars = Math.max(3, Math.floor(col.laneWidth / CHAR_W));
-                  return col.person.name.length > maxChars
-                    ? `${col.person.name.slice(0, maxChars - 2)}..`
-                    : col.person.name;
-                })()}
-              </text>
-            );
-          })}
-
-          {/* Age axis labels (left) */}
-          {ageTicks.map((tick) => (
-            <text
-              key={tick.value}
-              x={AGE_LABEL_WIDTH - 4}
-              y={tick.y + 4}
-              className="tl-age-axis-text"
-            >
-              {tick.value}
-            </text>
-          ))}
-
-          {/* Horizontal grid lines at age ticks */}
-          {showGridlines &&
-            ageTicks.map((tick) => (
-              <line
-                key={`grid-${tick.value}`}
-                x1={AGE_LABEL_WIDTH}
-                x2={totalWidth}
-                y1={tick.y}
-                y2={tick.y}
-                stroke={cssVar("--color-text-muted")}
-                strokeOpacity={0.25}
-              />
-            ))}
-        </g>
+        <AgeBackground
+          genBands={genBands}
+          columns={columns}
+          ageTicks={ageTicks}
+          height={height}
+          totalWidth={totalWidth}
+          selectedPersonId={selectedPersonId}
+          dims={dims}
+          cssVar={cssVar}
+          onSelectPerson={handleSelectPerson}
+          onTooltip={onTooltip}
+          showGridlines={showGridlines}
+          patterns={patterns}
+          visiblePatternIds={visiblePatternIds}
+          hoveredPatternId={hoveredPatternId}
+          onPatternHover={onPatternHover}
+          onPatternClick={onPatternClick}
+        />
 
         {/* Transparent background rect for deselect on click */}
         <rect

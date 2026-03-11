@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminFeatureFlag, AdminFeaturesResponse, UserRow } from "../../types/api";
 
-export type AudienceValue = AdminFeatureFlag["audience"];
+type AudienceValue = AdminFeatureFlag["audience"];
 
 const AUDIENCE_OPTIONS: AudienceValue[] = ["disabled", "all", "admins", "selected"];
 

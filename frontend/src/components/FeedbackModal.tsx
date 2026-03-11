@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { submitFeedback } from "../lib/api";
@@ -12,18 +12,52 @@ interface Props {
   onClose: () => void;
 }
 
+interface FeedbackState {
+  category: FeedbackCreate["category"];
+  message: string;
+  anonymous: boolean;
+  submitting: boolean;
+  success: boolean;
+}
+
+type FeedbackAction =
+  | { type: "SET_CATEGORY"; category: FeedbackCreate["category"] }
+  | { type: "SET_MESSAGE"; message: string }
+  | { type: "SET_ANONYMOUS"; anonymous: boolean }
+  | { type: "SET_SUBMITTING"; submitting: boolean }
+  | { type: "SET_SUCCESS" };
+
+const feedbackInitialState: FeedbackState = {
+  category: "general",
+  message: "",
+  anonymous: false,
+  submitting: false,
+  success: false,
+};
+
+function feedbackReducer(state: FeedbackState, action: FeedbackAction): FeedbackState {
+  switch (action.type) {
+    case "SET_CATEGORY":
+      return { ...state, category: action.category };
+    case "SET_MESSAGE":
+      return { ...state, message: action.message };
+    case "SET_ANONYMOUS":
+      return { ...state, anonymous: action.anonymous };
+    case "SET_SUBMITTING":
+      return { ...state, submitting: action.submitting };
+    case "SET_SUCCESS":
+      return { ...state, success: true };
+  }
+}
+
 export function FeedbackModal({ onClose }: Props) {
   const { t } = useTranslation();
-  const [category, setCategory] = useState<FeedbackCreate["category"]>("general");
-  const [message, setMessage] = useState("");
-  const [anonymous, setAnonymous] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [state, dispatch] = useReducer(feedbackReducer, feedbackInitialState);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleClose = useCallback(() => {
-    if (!submitting) onClose();
-  }, [submitting, onClose]);
+    if (!state.submitting) onClose();
+  }, [state.submitting, onClose]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -34,10 +68,10 @@ export function FeedbackModal({ onClose }: Props) {
   }, [handleClose]);
 
   useEffect(() => {
-    if (!success) return;
+    if (!state.success) return;
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
-  }, [success, onClose]);
+  }, [state.success, onClose]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) handleClose();
@@ -45,30 +79,37 @@ export function FeedbackModal({ onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || submitting) return;
+    if (!state.message.trim() || state.submitting) return;
 
-    setSubmitting(true);
+    dispatch({ type: "SET_SUBMITTING", submitting: true });
     try {
-      await submitFeedback({ category, message: message.trim(), anonymous });
-      setSuccess(true);
+      await submitFeedback({
+        category: state.category,
+        message: state.message.trim(),
+        anonymous: state.anonymous,
+      });
+      dispatch({ type: "SET_SUCCESS" });
     } finally {
-      setSubmitting(false);
+      dispatch({ type: "SET_SUBMITTING", submitting: false });
     }
   };
 
-  const canSubmit = message.trim().length > 0 && !submitting;
+  const canSubmit = state.message.trim().length > 0 && !state.submitting;
 
   return createPortal(
     <div
       className="feedback-overlay"
       ref={overlayRef}
       onClick={handleOverlayClick}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") handleClose();
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={t("feedback.title")}
     >
       <div className="feedback-card">
-        {success ? (
+        {state.success ? (
           <div className="feedback-success">{t("feedback.success")}</div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -82,8 +123,8 @@ export function FeedbackModal({ onClose }: Props) {
                     type="radio"
                     name="feedback-category"
                     value={cat}
-                    checked={category === cat}
-                    onChange={() => setCategory(cat)}
+                    checked={state.category === cat}
+                    onChange={() => dispatch({ type: "SET_CATEGORY", category: cat })}
                   />
                   {t(`feedback.category${cat.charAt(0).toUpperCase()}${cat.slice(1)}`)}
                 </label>
@@ -97,13 +138,21 @@ export function FeedbackModal({ onClose }: Props) {
               <textarea
                 id="feedback-message"
                 className="feedback-message__textarea"
-                value={message}
-                onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+                value={state.message}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_MESSAGE",
+                    message: e.target.value.slice(0, MAX_MESSAGE_LENGTH),
+                  })
+                }
                 placeholder={t("feedback.messagePlaceholder")}
                 maxLength={MAX_MESSAGE_LENGTH}
               />
               <div className="feedback-message__counter">
-                {t("feedback.charCount", { count: message.length, max: MAX_MESSAGE_LENGTH })}
+                {t("feedback.charCount", {
+                  count: state.message.length,
+                  max: MAX_MESSAGE_LENGTH,
+                })}
               </div>
             </div>
 
@@ -111,8 +160,8 @@ export function FeedbackModal({ onClose }: Props) {
               <label className="feedback-anonymous__toggle">
                 <input
                   type="checkbox"
-                  checked={anonymous}
-                  onChange={(e) => setAnonymous(e.target.checked)}
+                  checked={state.anonymous}
+                  onChange={(e) => dispatch({ type: "SET_ANONYMOUS", anonymous: e.target.checked })}
                 />
                 {t("feedback.anonymous")}
               </label>
@@ -124,12 +173,12 @@ export function FeedbackModal({ onClose }: Props) {
                 type="button"
                 className="feedback-actions__cancel"
                 onClick={handleClose}
-                disabled={submitting}
+                disabled={state.submitting}
               >
                 {t("common.cancel")}
               </button>
               <button type="submit" className="feedback-actions__submit" disabled={!canSubmit}>
-                {submitting ? t("feedback.sending") : t("feedback.submit")}
+                {state.submitting ? t("feedback.sending") : t("feedback.submit")}
               </button>
             </div>
           </form>

@@ -15,23 +15,26 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
   const [shaking, setShaking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevAttemptsRef = useRef(wrongAttempts);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Auto-focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Shake animation on wrong attempt
-  useEffect(() => {
-    if (wrongAttempts > prevAttemptsRef.current) {
-      setShaking(true);
-      setPassphrase("");
-      const timer = setTimeout(() => setShaking(false), 400);
-      prevAttemptsRef.current = wrongAttempts;
-      return () => clearTimeout(timer);
-    }
+  // Shake animation on wrong attempt (previous prop pattern)
+  if (wrongAttempts > prevAttemptsRef.current) {
     prevAttemptsRef.current = wrongAttempts;
-  }, [wrongAttempts]);
+    setShaking(true);
+    setPassphrase("");
+    clearTimeout(shakeTimerRef.current);
+    shakeTimerRef.current = setTimeout(() => setShaking(false), 400);
+  }
+
+  // Clean up shake timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(shakeTimerRef.current);
+  }, []);
 
   // Capture all keyboard events except those in the passphrase input
   useEffect(() => {

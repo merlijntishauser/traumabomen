@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
-import { SettingsPanel } from "../components/tree/SettingsPanel";
+import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
 import { useImportTree } from "../hooks/useImportTree";
@@ -35,6 +35,317 @@ interface DecryptedTree {
   is_demo: boolean;
 }
 
+/* -- Local state ----------------------------------------------------------- */
+
+interface TreeListLocalState {
+  editingId: string | null;
+  editName: string;
+  deletingId: string | null;
+  creating: boolean;
+  newName: string;
+  welcomeDismissed: boolean;
+  showFeedback: boolean;
+  showDemoLimit: boolean;
+  importing: boolean;
+  importError: string | null;
+}
+
+type TreeListLocalAction =
+  | { type: "START_EDITING"; id: string; name: string }
+  | { type: "SET_EDIT_NAME"; name: string }
+  | { type: "CANCEL_EDIT" }
+  | { type: "SET_DELETING"; id: string | null }
+  | { type: "START_CREATING" }
+  | { type: "STOP_CREATING" }
+  | { type: "SET_NEW_NAME"; name: string }
+  | { type: "DISMISS_WELCOME" }
+  | { type: "SET_SHOW_FEEDBACK"; value: boolean }
+  | { type: "SET_SHOW_DEMO_LIMIT"; value: boolean }
+  | { type: "SET_IMPORTING"; value: boolean }
+  | { type: "SET_IMPORT_ERROR"; error: string | null };
+
+function treeListLocalReducer(
+  state: TreeListLocalState,
+  action: TreeListLocalAction,
+): TreeListLocalState {
+  switch (action.type) {
+    case "START_EDITING":
+      return { ...state, editingId: action.id, editName: action.name };
+    case "SET_EDIT_NAME":
+      return { ...state, editName: action.name };
+    case "CANCEL_EDIT":
+      return { ...state, editingId: null };
+    case "SET_DELETING":
+      return { ...state, deletingId: action.id };
+    case "START_CREATING":
+      return { ...state, creating: true, newName: "" };
+    case "STOP_CREATING":
+      return { ...state, creating: false };
+    case "SET_NEW_NAME":
+      return { ...state, newName: action.name };
+    case "DISMISS_WELCOME":
+      return { ...state, welcomeDismissed: true };
+    case "SET_SHOW_FEEDBACK":
+      return { ...state, showFeedback: action.value };
+    case "SET_SHOW_DEMO_LIMIT":
+      return { ...state, showDemoLimit: action.value };
+    case "SET_IMPORTING":
+      return { ...state, importing: action.value };
+    case "SET_IMPORT_ERROR":
+      return { ...state, importError: action.error };
+  }
+}
+
+/* -- Sub-components -------------------------------------------------------- */
+
+interface WelcomeCardProps {
+  onDismiss: () => void;
+  onSendMessage: () => void;
+  onCreateTree: () => void;
+  showCreateButton: boolean;
+  createDisabled: boolean;
+}
+
+function WelcomeCard({
+  onDismiss,
+  onSendMessage,
+  onCreateTree,
+  showCreateButton,
+  createDisabled,
+}: WelcomeCardProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="welcome-card" data-testid="welcome-card">
+      <picture>
+        <source srcSet="/images/welcome-dark.webp" type="image/webp" />
+        <img
+          src="/images/welcome-dark.jpg"
+          alt=""
+          aria-hidden="true"
+          className="welcome-card__img welcome-card__img--dark"
+        />
+      </picture>
+      <picture>
+        <source srcSet="/images/welcome-light.webp" type="image/webp" />
+        <img
+          src="/images/welcome-light.jpg"
+          alt=""
+          aria-hidden="true"
+          className="welcome-card__img welcome-card__img--light"
+        />
+      </picture>
+      <button
+        type="button"
+        className="welcome-card__dismiss"
+        onClick={onDismiss}
+        aria-label={t("common.close")}
+      >
+        <X size={16} />
+      </button>
+      <h2 className="welcome-card__title">{t("welcome.title")}</h2>
+      <p className="welcome-card__body">{t("welcome.body")}</p>
+      <div className="welcome-card__actions">
+        <button
+          type="button"
+          className="welcome-card__btn welcome-card__btn--accent"
+          onClick={onSendMessage}
+        >
+          {t("welcome.sendMessage")}
+        </button>
+        {showCreateButton && (
+          <button
+            type="button"
+            className="welcome-card__btn"
+            onClick={onCreateTree}
+            disabled={createDisabled}
+          >
+            {t("welcome.createTree")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface TreeListItemProps {
+  tree: DecryptedTree;
+  editingId: string | null;
+  editName: string;
+  deletingId: string | null;
+  renamePending: boolean;
+  deletePending: boolean;
+  onEditNameChange: (name: string) => void;
+  onRenameSubmit: (e: FormEvent) => void;
+  onStartEditing: (tree: DecryptedTree) => void;
+  onCancelEdit: () => void;
+  onConfirmDelete: (id: string) => void;
+  onCancelDelete: () => void;
+  onDelete: (id: string) => void;
+}
+
+function TreeListItemRow({
+  tree,
+  editingId,
+  editName,
+  deletingId,
+  renamePending,
+  deletePending,
+  onEditNameChange,
+  onRenameSubmit,
+  onStartEditing,
+  onCancelEdit,
+  onConfirmDelete,
+  onCancelDelete,
+  onDelete,
+}: TreeListItemProps) {
+  const { t } = useTranslation();
+
+  if (editingId === tree.id) {
+    return (
+      <form className="tree-list-item__edit" onSubmit={onRenameSubmit}>
+        <input
+          className="tree-list-item__input"
+          value={editName}
+          onChange={(e) => onEditNameChange(e.target.value)}
+        />
+        <button className="tree-list-item__btn" type="submit" disabled={renamePending}>
+          {t("common.save")}
+        </button>
+        <button className="tree-list-item__btn" type="button" onClick={onCancelEdit}>
+          {t(T_CANCEL)}
+        </button>
+      </form>
+    );
+  }
+
+  if (deletingId === tree.id) {
+    return (
+      <div className="tree-list-item__confirm">
+        <span>{t("tree.confirmDelete")}</span>
+        <button
+          type="button"
+          className="tree-list-item__btn tree-list-item__btn--danger"
+          onClick={() => onDelete(tree.id)}
+          disabled={deletePending}
+        >
+          {t(T_DELETE)}
+        </button>
+        <button type="button" className="tree-list-item__btn" onClick={onCancelDelete}>
+          {t(T_CANCEL)}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tree-list-item">
+      <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+        {tree.name}
+        {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
+      </Link>
+      <div className="tree-list-item__actions">
+        <button
+          type="button"
+          className="tree-list-item__btn"
+          onClick={() => onStartEditing(tree)}
+          title={t("common.edit")}
+        >
+          {t("common.edit")}
+        </button>
+        <button
+          type="button"
+          className="tree-list-item__btn tree-list-item__btn--danger"
+          onClick={() => onConfirmDelete(tree.id)}
+          title={t(T_DELETE)}
+        >
+          {t(T_DELETE)}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TreeListToolbar({
+  demoMutationPending,
+  onDemoCreate,
+  createDisabled,
+  onStartCreating,
+  importing,
+  onImportClick,
+  fileInputRef,
+  onImportFile,
+  viewTab,
+  onLogout,
+}: {
+  demoMutationPending: boolean;
+  onDemoCreate: () => void;
+  createDisabled: boolean;
+  onStartCreating: () => void;
+  importing: boolean;
+  onImportClick: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onImportFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  viewTab: ViewTab;
+  onLogout: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="tree-toolbar">
+      <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
+      <div className="tree-toolbar__spacer" />
+      <button
+        type="button"
+        className="tree-toolbar__btn"
+        onClick={onDemoCreate}
+        disabled={demoMutationPending}
+      >
+        {demoMutationPending ? t("demo.creating") : t("demo.createButton")}
+      </button>
+      <button
+        type="button"
+        className="tree-toolbar__btn tree-toolbar__btn--primary"
+        onClick={onStartCreating}
+        disabled={createDisabled}
+      >
+        {t("tree.create")}
+      </button>
+      <button
+        type="button"
+        className="tree-toolbar__icon-btn"
+        onClick={onImportClick}
+        disabled={importing}
+        aria-label={t("tree.import")}
+        title={t("tree.import")}
+      >
+        <Upload size={14} />
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: "none" }}
+        onChange={onImportFile}
+      />
+      <SettingsPanel viewTab={viewTab} className="tree-toolbar__icon-btn" />
+      {getIsAdmin() && (
+        <Link to="/admin" className="tree-toolbar__btn">
+          Admin
+        </Link>
+      )}
+      <button
+        type="button"
+        className="tree-toolbar__icon-btn"
+        onClick={onLogout}
+        aria-label={t("nav.logout")}
+      >
+        <LogOut size={14} />
+      </button>
+    </div>
+  );
+}
+
+/* -- Main component -------------------------------------------------------- */
+
 export default function TreeListPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -42,18 +353,19 @@ export default function TreeListPage() {
   const { encrypt, decrypt, masterKey, addTreeKey, removeTreeKey } = useEncryption();
   const queryClient = useQueryClient();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [welcomeDismissed, setWelcomeDismissed] = useState(
-    () => localStorage.getItem(WELCOME_DISMISSED_KEY) === "true",
-  );
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showDemoLimit, setShowDemoLimit] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(treeListLocalReducer, {
+    editingId: null,
+    editName: "",
+    deletingId: null,
+    creating: false,
+    newName: "",
+    welcomeDismissed: localStorage.getItem(WELCOME_DISMISSED_KEY) === "true",
+    showFeedback: false,
+    showDemoLimit: false,
+    importing: false,
+    importError: null,
+  });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { importTree } = useImportTree();
 
@@ -67,7 +379,7 @@ export default function TreeListPage() {
 
   const dismissWelcome = useCallback(() => {
     localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
-    setWelcomeDismissed(true);
+    dispatch({ type: "DISMISS_WELCOME" });
   }, []);
 
   const treesQuery = useQuery({
@@ -89,10 +401,7 @@ export default function TreeListPage() {
     },
   });
 
-  const demoTreeCount = useMemo(
-    () => (treesQuery.data ?? []).filter((t) => t.is_demo).length,
-    [treesQuery.data],
-  );
+  const demoTreeCount = (treesQuery.data ?? []).filter((t) => t.is_demo).length;
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -137,7 +446,7 @@ export default function TreeListPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
-      setEditingId(null);
+      dispatch({ type: "CANCEL_EDIT" });
     },
   });
 
@@ -153,30 +462,20 @@ export default function TreeListPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
-      setDeletingId(null);
+      dispatch({ type: "SET_DELETING", id: null });
     },
   });
 
-  function startEditing(tree: DecryptedTree) {
-    setEditingId(tree.id);
-    setEditName(tree.name);
-  }
-
   function handleRenameSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!editingId || !editName.trim()) return;
-    renameMutation.mutate({ id: editingId, name: editName.trim() });
+    if (!state.editingId || !state.editName.trim()) return;
+    renameMutation.mutate({ id: state.editingId, name: state.editName.trim() });
   }
 
   function handleCreateSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!newName.trim()) return;
-    createMutation.mutate(newName.trim());
-  }
-
-  function startCreating() {
-    setCreating(true);
-    setNewName("");
+    if (!state.newName.trim()) return;
+    createMutation.mutate(state.newName.trim());
   }
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -184,173 +483,94 @@ export default function TreeListPage() {
     if (!file) return;
     // Reset input so re-selecting the same file triggers onChange
     e.target.value = "";
-    setImporting(true);
-    setImportError(null);
+    dispatch({ type: "SET_IMPORTING", value: true });
+    dispatch({ type: "SET_IMPORT_ERROR", error: null });
     try {
       const treeId = await importTree(file);
       queryClient.invalidateQueries({ queryKey: ["trees"] });
       navigate(`/trees/${uuidToCompact(treeId)}`);
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : t("tree.importError"));
+      dispatch({
+        type: "SET_IMPORT_ERROR",
+        error: err instanceof Error ? err.message : t("tree.importError"),
+      });
     } finally {
-      setImporting(false);
+      dispatch({ type: "SET_IMPORTING", value: false });
     }
   }
 
   return (
     <>
       <div className="tree-list-page bg-gradient">
-        <div className="tree-toolbar">
-          <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
-          <div className="tree-toolbar__spacer" />
-          <button
-            type="button"
-            className="tree-toolbar__btn"
-            onClick={() => {
-              if (demoTreeCount >= MAX_DEMO_TREES) {
-                setShowDemoLimit(true);
-              } else {
-                setShowDemoLimit(false);
-                demoMutation.mutate();
-              }
-            }}
-            disabled={demoMutation.isPending}
-          >
-            {demoMutation.isPending ? t("demo.creating") : t("demo.createButton")}
-          </button>
-          <button
-            type="button"
-            className="tree-toolbar__btn tree-toolbar__btn--primary"
-            onClick={startCreating}
-            disabled={creating || createMutation.isPending}
-          >
-            {t("tree.create")}
-          </button>
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-            aria-label={t("tree.import")}
-            title={t("tree.import")}
-          >
-            <Upload size={14} />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            style={{ display: "none" }}
-            onChange={handleImportFile}
-          />
-          <SettingsPanel viewTab={treeListViewTab} className="tree-toolbar__icon-btn" />
-          {getIsAdmin() && (
-            <Link to="/admin" className="tree-toolbar__btn">
-              Admin
-            </Link>
-          )}
-          <button
-            type="button"
-            className="tree-toolbar__icon-btn"
-            onClick={logout}
-            aria-label={t("nav.logout")}
-          >
-            <LogOut size={14} />
-          </button>
-        </div>
+        <TreeListToolbar
+          demoMutationPending={demoMutation.isPending}
+          onDemoCreate={() => {
+            if (demoTreeCount >= MAX_DEMO_TREES) {
+              dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: true });
+            } else {
+              dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: false });
+              demoMutation.mutate();
+            }
+          }}
+          createDisabled={state.creating || createMutation.isPending}
+          onStartCreating={() => dispatch({ type: "START_CREATING" })}
+          importing={state.importing}
+          onImportClick={() => fileInputRef.current?.click()}
+          fileInputRef={fileInputRef}
+          onImportFile={handleImportFile}
+          viewTab={treeListViewTab}
+          onLogout={logout}
+        />
 
         <div className="tree-list-content">
-          {!(treesQuery.data && treesQuery.data.length > 0 && welcomeDismissed) && (
-            <div className="welcome-card" data-testid="welcome-card">
-              <picture>
-                <source srcSet="/images/welcome-dark.webp" type="image/webp" />
-                <img
-                  src="/images/welcome-dark.jpg"
-                  alt=""
-                  aria-hidden="true"
-                  className="welcome-card__img welcome-card__img--dark"
-                />
-              </picture>
-              <picture>
-                <source srcSet="/images/welcome-light.webp" type="image/webp" />
-                <img
-                  src="/images/welcome-light.jpg"
-                  alt=""
-                  aria-hidden="true"
-                  className="welcome-card__img welcome-card__img--light"
-                />
-              </picture>
-              <button
-                type="button"
-                className="welcome-card__dismiss"
-                onClick={dismissWelcome}
-                aria-label={t("common.close")}
-              >
-                <X size={16} />
-              </button>
-              <h2 className="welcome-card__title">{t("welcome.title")}</h2>
-              <p className="welcome-card__body">{t("welcome.body")}</p>
-              <div className="welcome-card__actions">
-                <button
-                  type="button"
-                  className="welcome-card__btn welcome-card__btn--accent"
-                  onClick={() => setShowFeedback(true)}
-                >
-                  {t("welcome.sendMessage")}
-                </button>
-                {(!treesQuery.data || treesQuery.data.length === 0) && (
-                  <button
-                    type="button"
-                    className="welcome-card__btn"
-                    onClick={startCreating}
-                    disabled={creating || createMutation.isPending}
-                  >
-                    {t("welcome.createTree")}
-                  </button>
-                )}
-              </div>
-            </div>
+          {!(treesQuery.data && treesQuery.data.length > 0 && state.welcomeDismissed) && (
+            <WelcomeCard
+              onDismiss={dismissWelcome}
+              onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
+              onCreateTree={() => dispatch({ type: "START_CREATING" })}
+              showCreateButton={!treesQuery.data || treesQuery.data.length === 0}
+              createDisabled={state.creating || createMutation.isPending}
+            />
           )}
 
-          {creating && (
+          {state.creating && (
             <form className="tree-list-create" onSubmit={handleCreateSubmit}>
               <input
                 className="tree-list-item__input"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                value={state.newName}
+                onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
                 placeholder={t("tree.namePlaceholder")}
-                autoFocus
               />
               <button
                 className="tree-list-item__btn"
                 type="submit"
-                disabled={!newName.trim() || createMutation.isPending}
+                disabled={!state.newName.trim() || createMutation.isPending}
               >
                 {t("tree.create")}
               </button>
               <button
                 className="tree-list-item__btn"
                 type="button"
-                onClick={() => setCreating(false)}
+                onClick={() => dispatch({ type: "STOP_CREATING" })}
               >
                 {t(T_CANCEL)}
               </button>
             </form>
           )}
 
-          {showDemoLimit && demoTreeCount >= MAX_DEMO_TREES && (
+          {state.showDemoLimit && demoTreeCount >= MAX_DEMO_TREES && (
             <div className="tree-list-limit">
               <AlertTriangle size={16} />
               <span>{t("demo.limitReachedHint")}</span>
             </div>
           )}
 
-          {importing && <p className="tree-list-loading">{t("tree.importing")}</p>}
+          {state.importing && <p className="tree-list-loading">{t("tree.importing")}</p>}
 
-          {importError && (
+          {state.importError && (
             <div className="tree-list-limit">
               <AlertTriangle size={16} />
-              <span>{importError}</span>
+              <span>{state.importError}</span>
             </div>
           )}
 
@@ -364,86 +584,32 @@ export default function TreeListPage() {
             <ul className="tree-list">
               {treesQuery.data.map((tree) => (
                 <li key={tree.id}>
-                  {editingId === tree.id ? (
-                    <form className="tree-list-item__edit" onSubmit={handleRenameSubmit}>
-                      <input
-                        className="tree-list-item__input"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        autoFocus
-                      />
-                      <button
-                        className="tree-list-item__btn"
-                        type="submit"
-                        disabled={renameMutation.isPending}
-                      >
-                        {t("common.save")}
-                      </button>
-                      <button
-                        className="tree-list-item__btn"
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                      >
-                        {t(T_CANCEL)}
-                      </button>
-                    </form>
-                  ) : deletingId === tree.id ? (
-                    <div className="tree-list-item__confirm">
-                      <span>{t("tree.confirmDelete")}</span>
-                      <button
-                        type="button"
-                        className="tree-list-item__btn tree-list-item__btn--danger"
-                        onClick={() => deleteMutation.mutate(tree.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        {t(T_DELETE)}
-                      </button>
-                      <button
-                        type="button"
-                        className="tree-list-item__btn"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t(T_CANCEL)}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="tree-list-item">
-                      <Link
-                        className="tree-list-item__link"
-                        to={`/trees/${uuidToCompact(tree.id)}`}
-                      >
-                        {tree.name}
-                        {tree.is_demo && (
-                          <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>
-                        )}
-                      </Link>
-                      <div className="tree-list-item__actions">
-                        <button
-                          type="button"
-                          className="tree-list-item__btn"
-                          onClick={() => startEditing(tree)}
-                          title={t("common.edit")}
-                        >
-                          {t("common.edit")}
-                        </button>
-                        <button
-                          type="button"
-                          className="tree-list-item__btn tree-list-item__btn--danger"
-                          onClick={() => setDeletingId(tree.id)}
-                          title={t(T_DELETE)}
-                        >
-                          {t(T_DELETE)}
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <TreeListItemRow
+                    tree={tree}
+                    editingId={state.editingId}
+                    editName={state.editName}
+                    deletingId={state.deletingId}
+                    renamePending={renameMutation.isPending}
+                    deletePending={deleteMutation.isPending}
+                    onEditNameChange={(name) => dispatch({ type: "SET_EDIT_NAME", name })}
+                    onRenameSubmit={handleRenameSubmit}
+                    onStartEditing={(tree) =>
+                      dispatch({ type: "START_EDITING", id: tree.id, name: tree.name })
+                    }
+                    onCancelEdit={() => dispatch({ type: "CANCEL_EDIT" })}
+                    onConfirmDelete={(id) => dispatch({ type: "SET_DELETING", id })}
+                    onCancelDelete={() => dispatch({ type: "SET_DELETING", id: null })}
+                    onDelete={(id) => deleteMutation.mutate(id)}
+                  />
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
-      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
+      {state.showFeedback && (
+        <FeedbackModal onClose={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: false })} />
+      )}
     </>
   );
 }

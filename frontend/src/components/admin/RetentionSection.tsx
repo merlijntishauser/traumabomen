@@ -12,6 +12,10 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
   const maxWeeks = data
     ? Math.max(0, ...data.cohorts.map((c: CohortRow) => c.retention.length))
     : 0;
+  const weekColumns = Array.from({ length: maxWeeks }, (_, w) => ({
+    index: w,
+    key: `week${w}`,
+  }));
 
   return (
     <section>
@@ -23,9 +27,8 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
               <tr>
                 <th>{t("admin.cohort")}</th>
                 <th>{t("admin.users")}</th>
-                {/* Index keys are safe: static column headers derived from a fixed week count, never reorder */}
-                {Array.from({ length: maxWeeks }, (_, i) => (
-                  <th key={`w${i}`}>W{i}</th>
+                {weekColumns.map((col) => (
+                  <th key={col.key}>W{col.index}</th>
                 ))}
               </tr>
             </thead>
@@ -34,12 +37,11 @@ export function RetentionSection({ data }: { data: RetentionStats | undefined })
                 <tr key={cohort.week}>
                   <td>{cohort.week}</td>
                   <td>{cohort.signup_count}</td>
-                  {/* Index keys are safe: static week columns matching header, never reorder */}
-                  {Array.from({ length: maxWeeks }, (_, i) => {
-                    const pct = cohort.retention[i];
+                  {weekColumns.map((col) => {
+                    const pct = cohort.retention[col.index];
                     return (
                       <td
-                        key={`${cohort.week}-w${i}`}
+                        key={`${cohort.week}-${col.key}`}
                         style={
                           pct !== undefined ? { backgroundColor: retentionColor(pct) } : undefined
                         }

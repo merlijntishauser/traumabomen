@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
@@ -8,6 +8,39 @@ import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import "../styles/auth.css";
 
+interface UnlockFormState {
+  passphrase: string;
+  error: string;
+  loading: boolean;
+  migrating: boolean;
+}
+
+type UnlockFormAction =
+  | { type: "SET_PASSPHRASE"; passphrase: string }
+  | { type: "SET_ERROR"; error: string }
+  | { type: "SET_LOADING"; loading: boolean }
+  | { type: "SET_MIGRATING"; migrating: boolean };
+
+const unlockFormInitialState: UnlockFormState = {
+  passphrase: "",
+  error: "",
+  loading: false,
+  migrating: false,
+};
+
+function unlockFormReducer(state: UnlockFormState, action: UnlockFormAction): UnlockFormState {
+  switch (action.type) {
+    case "SET_PASSPHRASE":
+      return { ...state, passphrase: action.passphrase };
+    case "SET_ERROR":
+      return { ...state, error: action.error };
+    case "SET_LOADING":
+      return { ...state, loading: action.loading };
+    case "SET_MIGRATING":
+      return { ...state, migrating: action.migrating };
+  }
+}
+
 export default function UnlockPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -16,12 +49,9 @@ export default function UnlockPage() {
     useEncryption();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
-  const [passphrase, setPassphrase] = useState("");
   const [salt, setSalt] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [migrating, setMigrating] = useState(false);
+  const [form, dispatch] = useReducer(unlockFormReducer, unlockFormInitialState);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,28 +78,28 @@ export default function UnlockPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!salt) return;
-    setError("");
-    setLoading(true);
+    dispatch({ type: "SET_ERROR", error: "" });
+    dispatch({ type: "SET_LOADING", loading: true });
 
     try {
-      const derivedKey = await deriveKey(passphrase, salt);
-      const hash = await hashPassphrase(passphrase);
+      const derivedKey = await deriveKey(form.passphrase, salt);
+      const hash = await hashPassphrase(form.passphrase);
       setMasterKey(derivedKey);
       setPassphraseHash(hash);
 
-      setMigrating(true);
+      dispatch({ type: "SET_MIGRATING", migrating: true });
       const { keys, base64Map } = await loadOrMigrateKeyRing(derivedKey);
       setTreeKeys(keys);
       setKeyRingBase64(base64Map);
       setIsMigrated(true);
-      setMigrating(false);
+      dispatch({ type: "SET_MIGRATING", migrating: false });
 
       navigate(returnTo, { replace: true });
     } catch {
-      setMigrating(false);
-      setError(t("auth.passphraseError"));
+      dispatch({ type: "SET_MIGRATING", migrating: false });
+      dispatch({ type: "SET_ERROR", error: t("auth.passphraseError") });
     } finally {
-      setLoading(false);
+      dispatch({ type: "SET_LOADING", loading: false });
     }
   }
 
@@ -108,9 +138,8 @@ export default function UnlockPage() {
                 id="passphrase"
                 type="password"
                 required
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                autoFocus
+                value={form.passphrase}
+                onChange={(e) => dispatch({ type: "SET_PASSPHRASE", passphrase: e.target.value })}
                 data-1p-ignore
               />
             </div>
@@ -122,16 +151,16 @@ export default function UnlockPage() {
               </div>
             )}
 
-            {error && (
+            {form.error && (
               <p className="auth-error" role="alert">
-                {error}
+                {form.error}
               </p>
             )}
 
-            <button className="auth-submit" type="submit" disabled={loading}>
-              {migrating
+            <button className="auth-submit" type="submit" disabled={form.loading}>
+              {form.migrating
                 ? t("auth.migratingData")
-                : loading
+                : form.loading
                   ? t("auth.derivingKey")
                   : t("auth.unlock")}
             </button>

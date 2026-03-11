@@ -1,5 +1,5 @@
 import { CalendarDays, Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -38,7 +38,7 @@ export type PersonDetailSection =
   | "classification"
   | null;
 
-export type DetailTab = "person" | "relationships" | "events" | "classifications";
+type DetailTab = "person" | "relationships" | "events" | "classifications";
 
 type EventSubTab = "trauma" | "life" | "turning";
 
@@ -85,14 +85,14 @@ function sectionToEventSubTab(section: PersonDetailSection): EventSubTab | null 
   }
 }
 
-export interface PersonDetailHandlers {
+interface PersonDetailHandlers {
   onSavePerson: (data: Person) => void;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
   onClose: () => void;
 }
 
-export interface EntityHandlers {
+interface EntityHandlers {
   onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
   onDeleteEvent: (eventId: string) => void;
   onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
@@ -167,13 +167,13 @@ export function PersonDetailPanel({
     () => sectionToEventSubTab(initialSection ?? null) ?? "trauma",
   );
 
-  useEffect(() => {
-    if (initialSection) {
-      setActiveTab(sectionToTab(initialSection));
-      const sub = sectionToEventSubTab(initialSection);
-      if (sub) setEventSubTab(sub);
-    }
-  }, [initialSection]);
+  const prevSectionRef = useRef(initialSection);
+  if (initialSection && initialSection !== prevSectionRef.current) {
+    setActiveTab(sectionToTab(initialSection));
+    const sub = sectionToEventSubTab(initialSection);
+    if (sub) setEventSubTab(sub);
+  }
+  prevSectionRef.current = initialSection;
 
   // Stable prompt per person (re-rolls when selecting a different person)
   // biome-ignore lint/correctness/useExhaustiveDependencies: stable per person

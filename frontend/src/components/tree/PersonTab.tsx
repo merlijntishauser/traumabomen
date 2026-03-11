@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { formatAge } from "../../lib/age";
@@ -132,6 +132,79 @@ function AgeHint({
   return <span className="detail-panel__age-hint">{t(key, { age: hint.age })}</span>;
 }
 
+interface PersonFormState {
+  name: string;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
+  deathYear: string;
+  deathMonth: string;
+  deathDay: string;
+  causeOfDeath: string;
+  gender: string;
+  isAdopted: boolean;
+  notes: string;
+}
+
+type PersonFormAction =
+  | { type: "SET_FIELD"; field: keyof PersonFormState; value: string | boolean }
+  | { type: "SET_BIRTH_YEAR"; value: string; currentMonth: string; currentDay: string }
+  | { type: "SET_BIRTH_MONTH"; value: string; currentDay: string }
+  | { type: "SET_DEATH_YEAR"; value: string; currentMonth: string; currentDay: string }
+  | { type: "SET_DEATH_MONTH"; value: string; currentDay: string }
+  | { type: "RESET"; state: PersonFormState };
+
+function personFormReducer(state: PersonFormState, action: PersonFormAction): PersonFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_BIRTH_YEAR":
+      return {
+        ...state,
+        birthYear: action.value,
+        birthMonth: action.value ? action.currentMonth : "",
+        birthDay: action.value ? action.currentDay : "",
+      };
+    case "SET_BIRTH_MONTH":
+      return {
+        ...state,
+        birthMonth: action.value,
+        birthDay: action.value ? action.currentDay : "",
+      };
+    case "SET_DEATH_YEAR":
+      return {
+        ...state,
+        deathYear: action.value,
+        deathMonth: action.value ? action.currentMonth : "",
+        deathDay: action.value ? action.currentDay : "",
+      };
+    case "SET_DEATH_MONTH":
+      return {
+        ...state,
+        deathMonth: action.value,
+        deathDay: action.value ? action.currentDay : "",
+      };
+    case "RESET":
+      return action.state;
+  }
+}
+
+function buildInitialState(person: DecryptedPerson): PersonFormState {
+  return {
+    name: person.name,
+    birthYear: toStr(person.birth_year),
+    birthMonth: toStr(person.birth_month),
+    birthDay: toStr(person.birth_day),
+    deathYear: toStr(person.death_year),
+    deathMonth: toStr(person.death_month),
+    deathDay: toStr(person.death_day),
+    causeOfDeath: person.cause_of_death ?? "",
+    gender: person.gender,
+    isAdopted: person.is_adopted,
+    notes: person.notes ?? "",
+  };
+}
+
 interface PersonTabProps {
   person: DecryptedPerson;
   onSavePerson: (data: Person) => void;
@@ -146,81 +219,29 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
     return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2000, i, 1)));
   }, [i18n.language]);
 
-  const [name, setName] = useState(() => person.name);
-  const [birthYear, setBirthYear] = useState(() => toStr(person.birth_year));
-  const [birthMonth, setBirthMonth] = useState(() => toStr(person.birth_month));
-  const [birthDay, setBirthDay] = useState(() => toStr(person.birth_day));
-  const [deathYear, setDeathYear] = useState(() => toStr(person.death_year));
-  const [deathMonth, setDeathMonth] = useState(() => toStr(person.death_month));
-  const [deathDay, setDeathDay] = useState(() => toStr(person.death_day));
-  const [causeOfDeath, setCauseOfDeath] = useState(person.cause_of_death ?? "");
-  const [gender, setGender] = useState(person.gender);
-  const [isAdopted, setIsAdopted] = useState(person.is_adopted);
-  const [notes, setNotes] = useState(person.notes ?? "");
+  const [state, dispatch] = useReducer(personFormReducer, person, buildInitialState);
 
-  // Reset form when person changes
-  useEffect(() => {
-    setName(person.name);
-    setBirthYear(toStr(person.birth_year));
-    setBirthMonth(toStr(person.birth_month));
-    setBirthDay(toStr(person.birth_day));
-    setDeathYear(toStr(person.death_year));
-    setDeathMonth(toStr(person.death_month));
-    setDeathDay(toStr(person.death_day));
-    setCauseOfDeath(person.cause_of_death ?? "");
-    setGender(person.gender);
-    setIsAdopted(person.is_adopted);
-    setNotes(person.notes ?? "");
-  }, [
-    person.birth_year,
-    person.birth_month,
-    person.birth_day,
-    person.cause_of_death,
-    person.death_year,
-    person.death_month,
-    person.death_day,
-    person.gender,
-    person.is_adopted,
-    person.name,
-    person.notes,
-  ]);
-
-  function handleBirthYearChange(value: string) {
-    setBirthYear(value);
-    // Clear dependent fields when year is removed
-    setBirthMonth(value ? birthMonth : "");
-    setBirthDay(value ? birthDay : "");
-  }
-
-  function handleBirthMonthChange(value: string) {
-    setBirthMonth(value);
-    setBirthDay(value ? birthDay : "");
-  }
-
-  function handleDeathYearChange(value: string) {
-    setDeathYear(value);
-    setDeathMonth(value ? deathMonth : "");
-    setDeathDay(value ? deathDay : "");
-  }
-
-  function handleDeathMonthChange(value: string) {
-    setDeathMonth(value);
-    setDeathDay(value ? deathDay : "");
+  // Reset form when person changes (previous prop pattern)
+  const personKey = `${person.name}|${person.birth_year}|${person.birth_month}|${person.birth_day}|${person.death_year}|${person.death_month}|${person.death_day}|${person.cause_of_death}|${person.gender}|${person.is_adopted}|${person.notes}`;
+  const prevPersonKeyRef = useRef(personKey);
+  if (prevPersonKeyRef.current !== personKey) {
+    prevPersonKeyRef.current = personKey;
+    dispatch({ type: "RESET", state: buildInitialState(person) });
   }
 
   function handleSavePerson() {
     onSavePerson({
-      name,
-      birth_year: parseOptionalInt(birthYear),
-      birth_month: parseOptionalInt(birthMonth),
-      birth_day: parseOptionalInt(birthDay),
-      death_year: parseOptionalInt(deathYear),
-      death_month: parseOptionalInt(deathMonth),
-      death_day: parseOptionalInt(deathDay),
-      cause_of_death: causeOfDeath || null,
-      gender,
-      is_adopted: isAdopted,
-      notes: notes || null,
+      name: state.name,
+      birth_year: parseOptionalInt(state.birthYear),
+      birth_month: parseOptionalInt(state.birthMonth),
+      birth_day: parseOptionalInt(state.birthDay),
+      death_year: parseOptionalInt(state.deathYear),
+      death_month: parseOptionalInt(state.deathMonth),
+      death_day: parseOptionalInt(state.deathDay),
+      cause_of_death: state.causeOfDeath || null,
+      gender: state.gender,
+      is_adopted: state.isAdopted,
+      notes: state.notes || null,
     });
   }
 
@@ -231,8 +252,8 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
           <span>{t("person.name")}</span>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={state.name}
+            onChange={(e) => dispatch({ type: "SET_FIELD", field: "name", value: e.target.value })}
             onFocus={(e) => {
               const target = e.target;
               requestAnimationFrame(() => target.select());
@@ -241,7 +262,12 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         </label>
         <label className="detail-panel__field">
           <span>{t("person.gender")}</span>
-          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+          <select
+            value={state.gender}
+            onChange={(e) =>
+              dispatch({ type: "SET_FIELD", field: "gender", value: e.target.value })
+            }
+          >
             <option value="male">{t("person.male")}</option>
             <option value="female">{t("person.female")}</option>
             <option value="other">{t("person.other")}</option>
@@ -251,31 +277,42 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
       <div className="detail-panel__field-group">
         <DateFields
           yearLabel={t("person.birthYear")}
-          yearValue={birthYear}
+          yearValue={state.birthYear}
           monthLabel={t("person.birthMonth")}
           dayLabel={t("person.birthDay")}
-          month={birthMonth}
-          day={birthDay}
+          month={state.birthMonth}
+          day={state.birthDay}
           monthNames={monthNames}
-          onYearChange={handleBirthYearChange}
-          onMonthChange={handleBirthMonthChange}
-          onDayChange={setBirthDay}
+          onYearChange={(value) =>
+            dispatch({
+              type: "SET_BIRTH_YEAR",
+              value,
+              currentMonth: state.birthMonth,
+              currentDay: state.birthDay,
+            })
+          }
+          onMonthChange={(value) =>
+            dispatch({ type: "SET_BIRTH_MONTH", value, currentDay: state.birthDay })
+          }
+          onDayChange={(value) => dispatch({ type: "SET_FIELD", field: "birthDay", value })}
         />
         <div className="detail-panel__field-group-footer">
           <AgeHint
-            birthYear={birthYear}
-            deathYear={deathYear}
-            birthMonth={birthMonth}
-            birthDay={birthDay}
-            deathMonth={deathMonth}
-            deathDay={deathDay}
+            birthYear={state.birthYear}
+            deathYear={state.deathYear}
+            birthMonth={state.birthMonth}
+            birthDay={state.birthDay}
+            deathMonth={state.deathMonth}
+            deathDay={state.deathDay}
             t={t}
           />
           <label className="detail-panel__field detail-panel__field--checkbox">
             <input
               type="checkbox"
-              checked={isAdopted}
-              onChange={(e) => setIsAdopted(e.target.checked)}
+              checked={state.isAdopted}
+              onChange={(e) =>
+                dispatch({ type: "SET_FIELD", field: "isAdopted", value: e.target.checked })
+              }
             />
             <span>{t("person.isAdopted")}</span>
           </label>
@@ -284,31 +321,46 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
       <div className="detail-panel__field-group">
         <DateFields
           yearLabel={t("person.deathYear")}
-          yearValue={deathYear}
+          yearValue={state.deathYear}
           monthLabel={t("person.deathMonth")}
           dayLabel={t("person.deathDay")}
-          month={deathMonth}
-          day={deathDay}
+          month={state.deathMonth}
+          day={state.deathDay}
           monthNames={monthNames}
-          onYearChange={handleDeathYearChange}
-          onMonthChange={handleDeathMonthChange}
-          onDayChange={setDeathDay}
+          onYearChange={(value) =>
+            dispatch({
+              type: "SET_DEATH_YEAR",
+              value,
+              currentMonth: state.deathMonth,
+              currentDay: state.deathDay,
+            })
+          }
+          onMonthChange={(value) =>
+            dispatch({ type: "SET_DEATH_MONTH", value, currentDay: state.deathDay })
+          }
+          onDayChange={(value) => dispatch({ type: "SET_FIELD", field: "deathDay", value })}
           yearPlaceholder="---"
         />
-        {deathYear && (
+        {state.deathYear && (
           <label className="detail-panel__field" style={{ marginTop: 8 }}>
             <span>{t("person.causeOfDeath")}</span>
             <input
               type="text"
-              value={causeOfDeath}
-              onChange={(e) => setCauseOfDeath(e.target.value)}
+              value={state.causeOfDeath}
+              onChange={(e) =>
+                dispatch({ type: "SET_FIELD", field: "causeOfDeath", value: e.target.value })
+              }
             />
           </label>
         )}
       </div>
       <label className="detail-panel__field">
         <span>{t("person.notes")}</span>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+        <textarea
+          value={state.notes}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "notes", value: e.target.value })}
+          rows={3}
+        />
       </label>
       <div className="detail-panel__actions">
         <button type="button" className="btn btn--primary" onClick={handleSavePerson}>

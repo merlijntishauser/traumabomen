@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TimelineFilterActions, TimelineFilterState } from "../../hooks/useTimelineFilters";
@@ -218,6 +219,234 @@ function ClassificationsBody({
   );
 }
 
+/* -- Filter section sub-components ----------------------------------------- */
+
+interface CollapsibleSectionProps {
+  title: string;
+  badge?: string | null;
+  badgeDot?: boolean;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+function CollapsibleSection({
+  title,
+  badge,
+  badgeDot,
+  open,
+  onToggle,
+  children,
+}: CollapsibleSectionProps) {
+  return (
+    <section className="detail-panel__section">
+      <button type="button" className="detail-panel__section-toggle" onClick={onToggle}>
+        {open ? "\u25BC" : "\u25B6"} {title}
+        {badge && <span className="tl-filter-panel__badge">{badge}</span>}
+        {badgeDot && <span className="tl-filter-panel__badge tl-filter-panel__badge--dot" />}
+      </button>
+      {open && children}
+    </section>
+  );
+}
+
+interface PeopleSectionBodyProps {
+  persons: Map<string, DecryptedPerson>;
+  filters: TimelineFilterState;
+  actions: TimelineFilterActions;
+  groups?: SmartFilterGroups;
+  pillClass: (g: FilterGroup) => string;
+}
+
+function PeopleSectionBody({
+  persons,
+  filters,
+  actions,
+  groups,
+  pillClass,
+}: PeopleSectionBodyProps) {
+  const { t } = useTranslation();
+  const [peopleListOpen, setPeopleListOpen] = useState(false);
+
+  const allPersonIds = Array.from(persons.keys());
+  const allVisible =
+    filters.visiblePersonIds === null || filters.visiblePersonIds.size === allPersonIds.length;
+
+  const hasGroups =
+    groups !== undefined &&
+    (groups.demographic.length > 0 || groups.roles.length > 0 || groups.generations.length > 0);
+
+  return (
+    <div className="detail-panel__section-body">
+      {hasGroups && (
+        <div className="tl-filter-panel__groups">
+          <GroupRow
+            label={t("timeline.groupDemographic")}
+            groups={groups.demographic}
+            pillClass={pillClass}
+            onToggle={actions.togglePersonGroup}
+            t={t}
+          />
+          <GroupRow
+            label={t("timeline.groupRoles")}
+            groups={groups.roles}
+            pillClass={pillClass}
+            onToggle={actions.togglePersonGroup}
+            t={t}
+          />
+          <GroupRow
+            label={t("timeline.groupGenerations")}
+            groups={groups.generations}
+            pillClass={pillClass}
+            onToggle={actions.togglePersonGroup}
+            t={t}
+          />
+        </div>
+      )}
+      <button
+        type="button"
+        className="tl-filter-panel__sub-toggle"
+        onClick={() => setPeopleListOpen(!peopleListOpen)}
+      >
+        {peopleListOpen ? "\u25BC" : "\u25B6"} {t("timeline.individualPersons")}
+      </button>
+      {peopleListOpen && (
+        <>
+          <div className="tl-filter-panel__toggle-all">
+            <button
+              type="button"
+              className="tl-filter-panel__toggle-btn"
+              onClick={() => actions.toggleAllPersons(!allVisible)}
+            >
+              {allVisible ? t("timeline.deselectAll") : t("timeline.selectAll")}
+            </button>
+          </div>
+          {Array.from(persons.entries()).map(([id, person]) => (
+            <label key={id} className="tl-filter-panel__checkbox">
+              <input
+                type="checkbox"
+                checked={isFilterActive(id, filters.visiblePersonIds)}
+                onChange={() => actions.togglePerson(id)}
+              />
+              <span>{person.name}</span>
+            </label>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+interface CategoryChecklistBodyProps {
+  categories: string[];
+  activeSet: Set<string> | null;
+  onToggle: (cat: string) => void;
+  colorPrefix: string;
+  labelPrefix: string;
+}
+
+function CategoryChecklistBody({
+  categories,
+  activeSet,
+  onToggle,
+  colorPrefix,
+  labelPrefix,
+}: CategoryChecklistBodyProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="detail-panel__section-body">
+      {categories.map((cat) => (
+        <label key={cat} className="tl-filter-panel__checkbox">
+          <input
+            type="checkbox"
+            checked={isFilterActive(cat, activeSet)}
+            onChange={() => onToggle(cat)}
+          />
+          <span
+            className="tl-filter-panel__color-dot"
+            data-category={cat}
+            style={{ background: `var(--color-${colorPrefix}-${cat})` }}
+          />
+          <span>{t(`${labelPrefix}.${cat}`)}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+interface PatternsSectionBodyProps {
+  patterns: Map<string, DecryptedPattern>;
+  visiblePatterns: Set<string> | null;
+  onToggle: (id: string) => void;
+}
+
+function PatternsSectionBody({ patterns, visiblePatterns, onToggle }: PatternsSectionBodyProps) {
+  return (
+    <div className="detail-panel__section-body">
+      {Array.from(patterns.entries()).map(([id, pattern]) => {
+        const isActive = visiblePatterns === null || visiblePatterns.has(id);
+        return (
+          <label key={id} className="tl-filter-panel__checkbox">
+            <input type="checkbox" checked={isActive} onChange={() => onToggle(id)} />
+            <span
+              className="tl-filter-panel__color-dot"
+              style={{ background: getPatternColor(pattern.color) }}
+            />
+            <span>{pattern.name}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+interface TimeRangeSectionBodyProps {
+  localMin: number;
+  localMax: number;
+  setTimeRange: (range: { min: number; max: number } | null) => void;
+}
+
+function TimeRangeSectionBody({ localMin, localMax, setTimeRange }: TimeRangeSectionBodyProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="detail-panel__section-body">
+      <p className="tl-filter-panel__hint">{t("timeline.timeRangeHint")}</p>
+      <div className="tl-filter-panel__time-range">
+        <label className="tl-filter-panel__time-field">
+          <span>{t("timeline.minYear")}</span>
+          <input
+            type="number"
+            value={localMin}
+            onChange={(e) =>
+              parseYearInput(e.target.value, setTimeRange, (num) => ({
+                min: num,
+                max: localMax,
+              }))
+            }
+            className="detail-panel__input"
+          />
+        </label>
+        <label className="tl-filter-panel__time-field">
+          <span>{t("timeline.maxYear")}</span>
+          <input
+            type="number"
+            value={localMax}
+            onChange={(e) =>
+              parseYearInput(e.target.value, setTimeRange, (num) => ({
+                min: localMin,
+                max: num,
+              }))
+            }
+            className="detail-panel__input"
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+/* -- Main component -------------------------------------------------------- */
+
 export function TimelineFilterPanel({
   persons,
   filters,
@@ -232,17 +461,16 @@ export function TimelineFilterPanel({
 }: TimelineFilterPanelProps) {
   const { t } = useTranslation();
 
-  const [peopleOpen, setPeopleOpen] = useState(true);
-  const [peopleListOpen, setPeopleListOpen] = useState(false);
-  const [traumaOpen, setTraumaOpen] = useState(false);
-  const [lifeEventsOpen, setLifeEventsOpen] = useState(false);
-  const [classificationsOpen, setClassificationsOpen] = useState(false);
-  const [patternsOpen, setPatternsOpen] = useState(false);
-  const [timeRangeOpen, setTimeRangeOpen] = useState(false);
-
-  const allPersonIds = Array.from(persons.keys());
-  const allVisible =
-    filters.visiblePersonIds === null || filters.visiblePersonIds.size === allPersonIds.length;
+  const [openSections, setOpenSections] = useState({
+    people: true,
+    trauma: false,
+    lifeEvents: false,
+    classifications: false,
+    patterns: false,
+    timeRange: false,
+  });
+  const toggleSection = (section: keyof typeof openSections) =>
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
 
   const localMin = filters.timeRange?.min ?? timeDomain.minYear;
   const localMax = filters.timeRange?.max ?? timeDomain.maxYear;
@@ -252,19 +480,16 @@ export function TimelineFilterPanel({
     return active ? PILL_ACTIVE : PILL_BASE;
   }
 
-  // Quick filter active state
   const isQuickTraumaActive = isQuickPresetActive(filters, "trauma");
   const isQuickLifeEventsActive = isQuickPresetActive(filters, "lifeEvents");
   const isQuickClassificationsActive = isQuickPresetActive(filters, "classifications");
 
-  // Filter to used categories only
   const { traumaCats, lifeEventCats, classificationCats } = computeUsedCategories(
     usedTraumaCategories,
     usedLifeEventCategories,
     usedClassifications,
   );
 
-  // Section count badges
   const peopleBadge = computeBadge(filters.visiblePersonIds, persons.size, t);
   const traumaBadge = computeBadge(filters.traumaCategories, traumaCats.length, t);
   const lifeEventBadge = computeBadge(filters.lifeEventCategories, lifeEventCats.length, t);
@@ -274,9 +499,6 @@ export function TimelineFilterPanel({
   const timeRangeBadge =
     filters.timeRange !== null ? `${filters.timeRange.min} - ${filters.timeRange.max}` : null;
 
-  const hasGroups =
-    groups !== undefined &&
-    (groups.demographic.length > 0 || groups.roles.length > 0 || groups.generations.length > 0);
   const { modeToggleClass, modeToggleLabel, nextMode } = computeModeToggle(filters.filterMode, t);
 
   return (
@@ -303,7 +525,6 @@ export function TimelineFilterPanel({
       </div>
 
       <div className="detail-panel__content">
-        {/* Quick filter pills */}
         <div className="tl-filter-panel__quick-filters">
           <span className="tl-filter-panel__quick-label">{t("timeline.quickFilterLabel")}</span>
           <button
@@ -329,250 +550,99 @@ export function TimelineFilterPanel({
           </button>
         </div>
 
-        {/* People section */}
-        <section className="detail-panel__section">
-          <button
-            type="button"
-            className="detail-panel__section-toggle"
-            onClick={() => setPeopleOpen(!peopleOpen)}
-          >
-            {peopleOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterPeople")}
-            {peopleBadge && <span className="tl-filter-panel__badge">{peopleBadge}</span>}
-          </button>
-          {peopleOpen && (
-            <div className="detail-panel__section-body">
-              {hasGroups && (
-                <div className="tl-filter-panel__groups">
-                  <GroupRow
-                    label={t("timeline.groupDemographic")}
-                    groups={groups.demographic}
-                    pillClass={pillClass}
-                    onToggle={actions.togglePersonGroup}
-                    t={t}
-                  />
-                  <GroupRow
-                    label={t("timeline.groupRoles")}
-                    groups={groups.roles}
-                    pillClass={pillClass}
-                    onToggle={actions.togglePersonGroup}
-                    t={t}
-                  />
-                  <GroupRow
-                    label={t("timeline.groupGenerations")}
-                    groups={groups.generations}
-                    pillClass={pillClass}
-                    onToggle={actions.togglePersonGroup}
-                    t={t}
-                  />
-                </div>
-              )}
-              <button
-                type="button"
-                className="tl-filter-panel__sub-toggle"
-                onClick={() => setPeopleListOpen(!peopleListOpen)}
-              >
-                {peopleListOpen ? "\u25BC" : "\u25B6"} {t("timeline.individualPersons")}
-              </button>
-              {peopleListOpen && (
-                <>
-                  <div className="tl-filter-panel__toggle-all">
-                    <button
-                      type="button"
-                      className="tl-filter-panel__toggle-btn"
-                      onClick={() => actions.toggleAllPersons(!allVisible)}
-                    >
-                      {allVisible ? t("timeline.deselectAll") : t("timeline.selectAll")}
-                    </button>
-                  </div>
-                  {Array.from(persons.entries()).map(([id, person]) => (
-                    <label key={id} className="tl-filter-panel__checkbox">
-                      <input
-                        type="checkbox"
-                        checked={isFilterActive(id, filters.visiblePersonIds)}
-                        onChange={() => actions.togglePerson(id)}
-                      />
-                      <span>{person.name}</span>
-                    </label>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </section>
+        <CollapsibleSection
+          title={t("timeline.filterPeople")}
+          badge={peopleBadge}
+          open={openSections.people}
+          onToggle={() => toggleSection("people")}
+        >
+          <PeopleSectionBody
+            persons={persons}
+            filters={filters}
+            actions={actions}
+            groups={groups}
+            pillClass={pillClass}
+          />
+        </CollapsibleSection>
 
-        {/* Trauma categories section */}
         {traumaCats.length > 0 && (
-          <section className="detail-panel__section">
-            <button
-              type="button"
-              className="detail-panel__section-toggle"
-              onClick={() => setTraumaOpen(!traumaOpen)}
-            >
-              {traumaOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTrauma")}
-              {traumaBadge && <span className="tl-filter-panel__badge">{traumaBadge}</span>}
-            </button>
-            {traumaOpen && (
-              <div className="detail-panel__section-body">
-                {traumaCats.map((cat) => (
-                  <label key={cat} className="tl-filter-panel__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={isFilterActive(cat, filters.traumaCategories)}
-                      onChange={() => actions.toggleTraumaCategory(cat)}
-                    />
-                    <span
-                      className="tl-filter-panel__color-dot"
-                      data-category={cat}
-                      style={{ background: `var(--color-trauma-${cat})` }}
-                    />
-                    <span>{t(`trauma.category.${cat}`)}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Life event categories section */}
-        {lifeEventCats.length > 0 && (
-          <section className="detail-panel__section">
-            <button
-              type="button"
-              className="detail-panel__section-toggle"
-              onClick={() => setLifeEventsOpen(!lifeEventsOpen)}
-            >
-              {lifeEventsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterLifeEvents")}
-              {lifeEventBadge && <span className="tl-filter-panel__badge">{lifeEventBadge}</span>}
-            </button>
-            {lifeEventsOpen && (
-              <div className="detail-panel__section-body">
-                {lifeEventCats.map((cat) => (
-                  <label key={cat} className="tl-filter-panel__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={isFilterActive(cat, filters.lifeEventCategories)}
-                      onChange={() => actions.toggleLifeEventCategory(cat)}
-                    />
-                    <span
-                      className="tl-filter-panel__color-dot"
-                      data-category={cat}
-                      style={{ background: `var(--color-life-${cat})` }}
-                    />
-                    <span>{t(`lifeEvent.category.${cat}`)}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Classifications section */}
-        {classificationCats.length > 0 && (
-          <section className="detail-panel__section">
-            <button
-              type="button"
-              className="detail-panel__section-toggle"
-              onClick={() => setClassificationsOpen(!classificationsOpen)}
-            >
-              {classificationsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterClassifications")}
-              {classificationsBadgeActive && (
-                <span className="tl-filter-panel__badge tl-filter-panel__badge--dot" />
-              )}
-            </button>
-            {classificationsOpen && (
-              <ClassificationsBody
-                classificationCats={classificationCats}
-                usedClassifications={usedClassifications}
-                filters={filters}
-                actions={actions}
-                t={t}
-              />
-            )}
-          </section>
-        )}
-
-        {/* Patterns section */}
-        {patterns && patterns.size > 0 && (
-          <section className="detail-panel__section">
-            <button
-              type="button"
-              className="detail-panel__section-toggle"
-              onClick={() => setPatternsOpen(!patternsOpen)}
-            >
-              {patternsOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterPatterns")}
-              {patternsBadge && <span className="tl-filter-panel__badge">{patternsBadge}</span>}
-            </button>
-            {patternsOpen && (
-              <div className="detail-panel__section-body">
-                {Array.from(patterns.entries()).map(([id, pattern]) => {
-                  const isActive =
-                    filters.visiblePatterns === null || filters.visiblePatterns.has(id);
-                  return (
-                    <label key={id} className="tl-filter-panel__checkbox">
-                      <input
-                        type="checkbox"
-                        checked={isActive}
-                        onChange={() => actions.togglePatternFilter(id)}
-                      />
-                      <span
-                        className="tl-filter-panel__color-dot"
-                        style={{ background: getPatternColor(pattern.color) }}
-                      />
-                      <span>{pattern.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Time range section */}
-        <section className="detail-panel__section">
-          <button
-            type="button"
-            className="detail-panel__section-toggle"
-            onClick={() => setTimeRangeOpen(!timeRangeOpen)}
+          <CollapsibleSection
+            title={t("timeline.filterTrauma")}
+            badge={traumaBadge}
+            open={openSections.trauma}
+            onToggle={() => toggleSection("trauma")}
           >
-            {timeRangeOpen ? "\u25BC" : "\u25B6"} {t("timeline.filterTimeRange")}
-            {timeRangeBadge && <span className="tl-filter-panel__badge">{timeRangeBadge}</span>}
-          </button>
-          {timeRangeOpen && (
-            <div className="detail-panel__section-body">
-              <p className="tl-filter-panel__hint">{t("timeline.timeRangeHint")}</p>
-              <div className="tl-filter-panel__time-range">
-                <label className="tl-filter-panel__time-field">
-                  <span>{t("timeline.minYear")}</span>
-                  <input
-                    type="number"
-                    value={localMin}
-                    onChange={(e) =>
-                      parseYearInput(e.target.value, actions.setTimeRange, (num) => ({
-                        min: num,
-                        max: localMax,
-                      }))
-                    }
-                    className="detail-panel__input"
-                  />
-                </label>
-                <label className="tl-filter-panel__time-field">
-                  <span>{t("timeline.maxYear")}</span>
-                  <input
-                    type="number"
-                    value={localMax}
-                    onChange={(e) =>
-                      parseYearInput(e.target.value, actions.setTimeRange, (num) => ({
-                        min: localMin,
-                        max: num,
-                      }))
-                    }
-                    className="detail-panel__input"
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-        </section>
+            <CategoryChecklistBody
+              categories={traumaCats}
+              activeSet={filters.traumaCategories}
+              onToggle={actions.toggleTraumaCategory as (cat: string) => void}
+              colorPrefix="trauma"
+              labelPrefix="trauma.category"
+            />
+          </CollapsibleSection>
+        )}
+
+        {lifeEventCats.length > 0 && (
+          <CollapsibleSection
+            title={t("timeline.filterLifeEvents")}
+            badge={lifeEventBadge}
+            open={openSections.lifeEvents}
+            onToggle={() => toggleSection("lifeEvents")}
+          >
+            <CategoryChecklistBody
+              categories={lifeEventCats}
+              activeSet={filters.lifeEventCategories}
+              onToggle={actions.toggleLifeEventCategory as (cat: string) => void}
+              colorPrefix="life"
+              labelPrefix="lifeEvent.category"
+            />
+          </CollapsibleSection>
+        )}
+
+        {classificationCats.length > 0 && (
+          <CollapsibleSection
+            title={t("timeline.filterClassifications")}
+            badgeDot={classificationsBadgeActive}
+            open={openSections.classifications}
+            onToggle={() => toggleSection("classifications")}
+          >
+            <ClassificationsBody
+              classificationCats={classificationCats}
+              usedClassifications={usedClassifications}
+              filters={filters}
+              actions={actions}
+              t={t}
+            />
+          </CollapsibleSection>
+        )}
+
+        {patterns && patterns.size > 0 && (
+          <CollapsibleSection
+            title={t("timeline.filterPatterns")}
+            badge={patternsBadge}
+            open={openSections.patterns}
+            onToggle={() => toggleSection("patterns")}
+          >
+            <PatternsSectionBody
+              patterns={patterns}
+              visiblePatterns={filters.visiblePatterns}
+              onToggle={actions.togglePatternFilter}
+            />
+          </CollapsibleSection>
+        )}
+
+        <CollapsibleSection
+          title={t("timeline.filterTimeRange")}
+          badge={timeRangeBadge}
+          open={openSections.timeRange}
+          onToggle={() => toggleSection("timeRange")}
+        >
+          <TimeRangeSectionBody
+            localMin={localMin}
+            localMax={localMax}
+            setTimeRange={actions.setTimeRange}
+          />
+        </CollapsibleSection>
       </div>
     </div>
   );

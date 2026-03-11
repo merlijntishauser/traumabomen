@@ -1,6 +1,6 @@
-export type PasswordLevel = "weak" | "fair" | "strong";
+type PasswordLevel = "weak" | "fair" | "strong";
 
-export interface PasswordStrength {
+interface PasswordStrength {
   score: number;
   level: PasswordLevel;
 }

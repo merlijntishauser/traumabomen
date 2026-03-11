@@ -34,6 +34,7 @@ function catmullRomPath(points: { x: number; y: number }[]): string {
 }
 
 interface ContourLine {
+  id: string;
   d: string;
   strokeWidth: number;
   opacity: number;
@@ -94,6 +95,7 @@ function generateContours(): ContourLine[] {
     const isIndex = i % 5 === 0;
 
     lines.push({
+      id: `contour-${i}`,
       d: catmullRomPath(points),
       strokeWidth: isIndex ? rand(1.2, 1.8) : rand(0.4, 0.8),
       opacity: isIndex ? rand(0.55, 0.75) : rand(0.2, 0.4),
@@ -114,10 +116,9 @@ export function BranchDecoration() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {contours.map((line, i) => (
+      {contours.map((line) => (
         <path
-          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
-          key={`contour-${i}`}
+          key={line.id}
           d={line.d}
           stroke="var(--color-accent)"
           strokeWidth={line.strokeWidth}

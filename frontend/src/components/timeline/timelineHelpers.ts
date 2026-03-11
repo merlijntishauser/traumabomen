@@ -44,7 +44,7 @@ export interface TooltipLine {
   bold?: boolean;
 }
 
-export interface RowLayout {
+interface RowLayout {
   rows: PersonRow[];
   sortedGens: number[];
   personsByGen: Map<number, DecryptedPerson[]>;
@@ -58,7 +58,7 @@ export interface PersonColumn {
   laneWidth: number;
 }
 
-export interface ColumnLayout {
+interface ColumnLayout {
   columns: PersonColumn[];
   sortedGens: number[];
   personsByGen: Map<number, DecryptedPerson[]>;
@@ -67,7 +67,7 @@ export interface ColumnLayout {
   totalWidth: number;
 }
 
-export interface PersonDataMaps {
+interface PersonDataMaps {
   eventsByPerson: Map<string, DecryptedEvent[]>;
   lifeEventsByPerson: Map<string, DecryptedLifeEvent[]>;
   classificationsByPerson: Map<string, DecryptedClassification[]>;

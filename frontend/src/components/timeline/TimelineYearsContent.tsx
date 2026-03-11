@@ -33,6 +33,48 @@ import {
   ROW_HEIGHT,
 } from "./timelineHelpers";
 
+interface YearsPartnerLineData {
+  key: string;
+  sourceName: string;
+  targetName: string;
+  sourceY: number | null;
+  targetY: number | null;
+  periods: DecryptedRelationship["periods"];
+}
+
+function computeYearsPartnerLines(
+  rows: Array<{ person: DecryptedPerson; y: number }>,
+  relationships: Map<string, DecryptedRelationship>,
+  persons: Map<string, DecryptedPerson>,
+): YearsPartnerLineData[] {
+  const rowByPersonId = new Map(rows.map((r) => [r.person.id, r]));
+  const result: YearsPartnerLineData[] = [];
+
+  for (const rel of relationships.values()) {
+    if (rel.type !== RelationshipType.Partner) continue;
+    const row1 = rowByPersonId.get(rel.source_person_id);
+    const row2 = rowByPersonId.get(rel.target_person_id);
+    if (!row1 && !row2) continue;
+
+    const sourcePerson = persons.get(rel.source_person_id);
+    const targetPerson = persons.get(rel.target_person_id);
+
+    result.push({
+      key: rel.id,
+      sourceName: sourcePerson?.name ?? "?",
+      targetName: targetPerson?.name ?? "?",
+      sourceY: row1?.y ?? null,
+      targetY: row2?.y ?? null,
+      periods: capPeriodsAtDeath(rel.periods, {
+        source: sourcePerson?.death_year,
+        target: targetPerson?.death_year,
+      }),
+    });
+  }
+
+  return result;
+}
+
 interface TimelineYearsContentProps {
   persons: Map<string, DecryptedPerson>;
   relationships: Map<string, DecryptedRelationship>;
@@ -65,6 +107,111 @@ interface TimelineYearsContentProps {
   scrollMode?: boolean;
   onToggleScrollMode?: () => void;
 }
+
+/* -- Sub-components -------------------------------------------------------- */
+
+interface YearsBackgroundProps {
+  genBands: Array<{ gen: number; y: number; height: number; isEven: boolean }>;
+  rows: ReturnType<typeof buildRowLayout>["rows"];
+  width: number;
+  selectedPersonId: string | null;
+  dims?: DimSets;
+  cssVar: (name: string) => string;
+  onSelectPerson: (personId: string) => void;
+  onTooltip: (state: TooltipState) => void;
+  patterns?: Map<string, DecryptedPattern>;
+  visiblePatternIds?: Set<string>;
+  hoveredPatternId?: string | null;
+  onPatternHover?: (patternId: string | null) => void;
+  onPatternClick?: (patternId: string) => void;
+}
+
+function YearsBackground({
+  genBands,
+  rows,
+  width,
+  selectedPersonId,
+  dims,
+  cssVar,
+  onSelectPerson,
+  onTooltip,
+  patterns,
+  visiblePatternIds,
+  hoveredPatternId,
+  onPatternHover,
+  onPatternClick,
+}: YearsBackgroundProps) {
+  const { t } = useTranslation();
+  return (
+    <g className="tl-bg">
+      {genBands.map((band) => (
+        <React.Fragment key={band.gen}>
+          <rect
+            x={0}
+            y={band.y}
+            width={width}
+            height={band.height}
+            fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
+          />
+          <text x={20} y={band.y + GEN_HEADER_HEIGHT - 5} className="tl-gen-label">
+            {t("timeline.generation", { number: band.gen + 1 })}
+          </text>
+        </React.Fragment>
+      ))}
+
+      {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
+        <TimelinePatternLanes
+          patterns={patterns}
+          visiblePatternIds={visiblePatternIds}
+          hoveredPatternId={hoveredPatternId ?? null}
+          onPatternHover={onPatternHover}
+          onPatternClick={onPatternClick}
+          direction="horizontal"
+          rows={rows}
+          rowHeight={ROW_HEIGHT}
+          labelX={24}
+        />
+      )}
+
+      {rows.map((row) => {
+        const isSelected = selectedPersonId === row.person.id;
+        const isDimmed =
+          dims?.dimmedPersonIds.has(row.person.id) || (selectedPersonId != null && !isSelected);
+        const labelClassName = [
+          "tl-person-label",
+          isSelected && "tl-person-label--selected",
+          isDimmed && "tl-person-label--dimmed",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        return (
+          <text
+            key={row.person.id}
+            x={24}
+            y={row.y + ROW_HEIGHT / 2 + 4}
+            className={labelClassName}
+            style={{ cursor: "pointer" }}
+            onClick={() => onSelectPerson(row.person.id)}
+            onMouseEnter={(e) =>
+              onTooltip({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                lines: [{ text: row.person.name, bold: true }],
+              })
+            }
+            onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
+          >
+            {row.person.name}
+          </text>
+        );
+      })}
+    </g>
+  );
+}
+
+/* -- Main component -------------------------------------------------------- */
 
 export function TimelineYearsContent({
   persons,
@@ -183,39 +330,7 @@ export function TimelineYearsContent({
   }, [rescaledX, width]);
 
   const partnerLines = useMemo(() => {
-    const rowByPersonId = new Map(rows.map((r) => [r.person.id, r]));
-    const result: Array<{
-      key: string;
-      sourceName: string;
-      targetName: string;
-      sourceY: number | null;
-      targetY: number | null;
-      periods: DecryptedRelationship["periods"];
-    }> = [];
-
-    for (const rel of relationships.values()) {
-      if (rel.type !== RelationshipType.Partner) continue;
-      const row1 = rowByPersonId.get(rel.source_person_id);
-      const row2 = rowByPersonId.get(rel.target_person_id);
-      if (!row1 && !row2) continue;
-
-      const sourcePerson = persons.get(rel.source_person_id);
-      const targetPerson = persons.get(rel.target_person_id);
-
-      result.push({
-        key: rel.id,
-        sourceName: sourcePerson?.name ?? "?",
-        targetName: targetPerson?.name ?? "?",
-        sourceY: row1?.y ?? null,
-        targetY: row2?.y ?? null,
-        periods: capPeriodsAtDeath(rel.periods, {
-          source: sourcePerson?.death_year,
-          target: targetPerson?.death_year,
-        }),
-      });
-    }
-
-    return result;
+    return computeYearsPartnerLines(rows, relationships, persons);
   }, [rows, relationships, persons]);
 
   const genBands = useMemo(() => {
@@ -255,74 +370,21 @@ export function TimelineYearsContent({
           </clipPath>
         </defs>
 
-        {/* Background: generation bands + labels */}
-        <g className="tl-bg">
-          {genBands.map((band) => (
-            <React.Fragment key={band.gen}>
-              <rect
-                x={0}
-                y={band.y}
-                width={width}
-                height={band.height}
-                fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
-              />
-              <text x={20} y={band.y + GEN_HEADER_HEIGHT - 5} className="tl-gen-label">
-                {t("timeline.generation", { number: band.gen + 1 })}
-              </text>
-            </React.Fragment>
-          ))}
-
-          {/* Pattern lane tints (below person labels, above bands) */}
-          {patterns && visiblePatternIds && onPatternHover && onPatternClick && (
-            <TimelinePatternLanes
-              patterns={patterns}
-              visiblePatternIds={visiblePatternIds}
-              hoveredPatternId={hoveredPatternId ?? null}
-              onPatternHover={onPatternHover}
-              onPatternClick={onPatternClick}
-              direction="horizontal"
-              rows={rows}
-              rowHeight={ROW_HEIGHT}
-              labelX={24}
-            />
-          )}
-
-          {/* Person name labels */}
-          {rows.map((row) => {
-            const isSelected = selectedPersonId === row.person.id;
-            const isDimmed =
-              dims?.dimmedPersonIds.has(row.person.id) || (selectedPersonId != null && !isSelected);
-            const labelClassName = [
-              "tl-person-label",
-              isSelected && "tl-person-label--selected",
-              isDimmed && "tl-person-label--dimmed",
-            ]
-              .filter(Boolean)
-              .join(" ");
-
-            return (
-              <text
-                key={row.person.id}
-                x={24}
-                y={row.y + ROW_HEIGHT / 2 + 4}
-                className={labelClassName}
-                style={{ cursor: "pointer" }}
-                onClick={() => handleSelectPerson(row.person.id)}
-                onMouseEnter={(e) =>
-                  onTooltip({
-                    visible: true,
-                    x: e.clientX,
-                    y: e.clientY,
-                    lines: [{ text: row.person.name, bold: true }],
-                  })
-                }
-                onMouseLeave={() => onTooltip({ visible: false, x: 0, y: 0, lines: [] })}
-              >
-                {row.person.name}
-              </text>
-            );
-          })}
-        </g>
+        <YearsBackground
+          genBands={genBands}
+          rows={rows}
+          width={width}
+          selectedPersonId={selectedPersonId}
+          dims={dims}
+          cssVar={cssVar}
+          onSelectPerson={handleSelectPerson}
+          onTooltip={onTooltip}
+          patterns={patterns}
+          visiblePatternIds={visiblePatternIds}
+          hoveredPatternId={hoveredPatternId}
+          onPatternHover={onPatternHover}
+          onPatternClick={onPatternClick}
+        />
 
         {/* Axis */}
         <g className="tl-axis" transform={`translate(0, ${GEN_HEADER_HEIGHT - 2})`}>

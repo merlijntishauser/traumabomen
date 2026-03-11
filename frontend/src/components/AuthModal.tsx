@@ -1,5 +1,5 @@
 import { Lock, LogIn } from "lucide-react";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError, login as apiLogin, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
@@ -22,32 +22,83 @@ interface Props {
   onLogout: () => void;
 }
 
+interface AuthModalFormState {
+  credentialsSubmitted: boolean;
+  email: string;
+  password: string;
+  passphrase: string;
+  error: string;
+  loading: boolean;
+  migrating: boolean;
+  fetchedSalt: string | null;
+  fetchedHint: string | null;
+  prevMode: "unlock" | "reauth";
+}
+
+type AuthModalFormAction =
+  | { type: "SET_FIELD"; field: "email" | "password" | "passphrase"; value: string }
+  | { type: "SET_ERROR"; error: string }
+  | { type: "SET_LOADING"; loading: boolean }
+  | { type: "SET_MIGRATING"; migrating: boolean }
+  | { type: "CREDENTIALS_SUCCESS"; salt: string; hint: string | null }
+  | { type: "MODE_CHANGED"; mode: "unlock" | "reauth" };
+
+function authModalFormReducer(
+  state: AuthModalFormState,
+  action: AuthModalFormAction,
+): AuthModalFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_ERROR":
+      return { ...state, error: action.error };
+    case "SET_LOADING":
+      return { ...state, loading: action.loading };
+    case "SET_MIGRATING":
+      return { ...state, migrating: action.migrating };
+    case "CREDENTIALS_SUCCESS":
+      return {
+        ...state,
+        credentialsSubmitted: true,
+        fetchedSalt: action.salt,
+        fetchedHint: action.hint,
+      };
+    case "MODE_CHANGED":
+      return {
+        ...state,
+        prevMode: action.mode,
+        credentialsSubmitted: false,
+        fetchedSalt: null,
+        fetchedHint: null,
+        error: "",
+      };
+  }
+}
+
 export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, onLogout }: Props) {
   const { t } = useTranslation();
-  const [credentialsSubmitted, setCredentialsSubmitted] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [passphrase, setPassphrase] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [migrating, setMigrating] = useState(false);
-  const [fetchedSalt, setFetchedSalt] = useState<string | null>(null);
-  const [fetchedHint, setFetchedHint] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(authModalFormReducer, {
+    credentialsSubmitted: false,
+    email: "",
+    password: "",
+    passphrase: "",
+    error: "",
+    loading: false,
+    migrating: false,
+    fetchedSalt: null,
+    fetchedHint: null,
+    prevMode: mode,
+  });
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Derive step and effective salt/hint from props + local state
-  const step = mode === "reauth" && !credentialsSubmitted ? "credentials" : "passphrase";
-  const currentSalt = fetchedSalt ?? salt;
-  const currentHint = fetchedHint ?? hint;
+  const step = mode === "reauth" && !state.credentialsSubmitted ? "credentials" : "passphrase";
+  const currentSalt = state.fetchedSalt ?? salt;
+  const currentHint = state.fetchedHint ?? hint;
 
   // Reset local state when mode changes
-  const [prevMode, setPrevMode] = useState(mode);
-  if (mode !== prevMode) {
-    setPrevMode(mode);
-    setCredentialsSubmitted(false);
-    setFetchedSalt(null);
-    setFetchedHint(null);
-    setError("");
+  if (mode !== state.prevMode) {
+    dispatch({ type: "MODE_CHANGED", mode });
   }
 
   // Auto-focus first input when step changes
@@ -58,37 +109,39 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
 
   async function handleCredentialsSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    dispatch({ type: "SET_ERROR", error: "" });
+    dispatch({ type: "SET_LOADING", loading: true });
     try {
-      await apiLogin({ email, password });
+      await apiLogin({ email: state.email, password: state.password });
       // Fetch salt + hint after login
       const saltResp = await getEncryptionSalt();
-      setFetchedSalt(saltResp.encryption_salt);
-      setFetchedHint(saltResp.passphrase_hint);
-      setCredentialsSubmitted(true);
+      dispatch({
+        type: "CREDENTIALS_SUCCESS",
+        salt: saltResp.encryption_salt,
+        hint: saltResp.passphrase_hint,
+      });
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(t(`auth.${err.detail || "loginError"}`));
+        dispatch({ type: "SET_ERROR", error: t(`auth.${err.detail || "loginError"}`) });
       } else {
-        setError(t("auth.loginError"));
+        dispatch({ type: "SET_ERROR", error: t("auth.loginError") });
       }
     } finally {
-      setLoading(false);
+      dispatch({ type: "SET_LOADING", loading: false });
     }
   }
 
   async function handlePassphraseSubmit(e: FormEvent) {
     e.preventDefault();
     if (!currentSalt) return;
-    setError("");
-    setLoading(true);
+    dispatch({ type: "SET_ERROR", error: "" });
+    dispatch({ type: "SET_LOADING", loading: true });
     try {
-      const derivedKey = await deriveKey(passphrase, currentSalt);
-      const hash = await hashPassphrase(passphrase);
-      setMigrating(true);
+      const derivedKey = await deriveKey(state.passphrase, currentSalt);
+      const hash = await hashPassphrase(state.passphrase);
+      dispatch({ type: "SET_MIGRATING", migrating: true });
       const { keys, base64Map } = await loadOrMigrateKeyRing(derivedKey);
-      setMigrating(false);
+      dispatch({ type: "SET_MIGRATING", migrating: false });
       const result: UnlockResult = {
         masterKey: derivedKey,
         passphraseHash: hash,
@@ -101,10 +154,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
         onUnlockSuccess(result);
       }
     } catch {
-      setMigrating(false);
-      setError(t("auth.passphraseError"));
+      dispatch({ type: "SET_MIGRATING", migrating: false });
+      dispatch({ type: "SET_ERROR", error: t("auth.passphraseError") });
     } finally {
-      setLoading(false);
+      dispatch({ type: "SET_LOADING", loading: false });
     }
   }
 
@@ -172,8 +225,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
                   id="auth-modal-email"
                   type="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={state.email}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })
+                  }
                 />
               </div>
               <div className="auth-field">
@@ -182,17 +237,19 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
                   id="auth-modal-password"
                   type="password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={state.password}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "password", value: e.target.value })
+                  }
                 />
               </div>
-              {error && (
+              {state.error && (
                 <p className="auth-error" role="alert">
-                  {error}
+                  {state.error}
                 </p>
               )}
-              <button className="auth-modal__submit" type="submit" disabled={loading}>
-                {loading ? t("common.loading") : t("auth.login")}
+              <button className="auth-modal__submit" type="submit" disabled={state.loading}>
+                {state.loading ? t("common.loading") : t("auth.login")}
               </button>
             </form>
           )}
@@ -206,8 +263,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
                   id="auth-modal-passphrase"
                   type="password"
                   required
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
+                  value={state.passphrase}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "passphrase", value: e.target.value })
+                  }
                   data-1p-ignore
                 />
               </div>
@@ -217,19 +276,19 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
                   <span className="auth-modal__hint-text">{currentHint}</span>
                 </div>
               )}
-              {error && (
+              {state.error && (
                 <p className="auth-error" role="alert">
-                  {error}
+                  {state.error}
                 </p>
               )}
               <button
                 className="auth-modal__submit"
                 type="submit"
-                disabled={loading || !currentSalt}
+                disabled={state.loading || !currentSalt}
               >
-                {migrating
+                {state.migrating
                   ? t("auth.migratingData")
-                  : loading
+                  : state.loading
                     ? t("auth.derivingKey")
                     : unlockLabel}
               </button>

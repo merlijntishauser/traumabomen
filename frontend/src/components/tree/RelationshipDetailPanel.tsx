@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
 import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
 import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
+
+type KeyedRelationshipPeriod = RelationshipPeriod & { _key: string };
+
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import "./PersonDetailPanel.css";
 
@@ -31,14 +34,22 @@ export function RelationshipDetailPanel({
   const { t } = useTranslation();
 
   const [type, setType] = useState(relationship.type);
-  const [periods, setPeriods] = useState<RelationshipPeriod[]>(relationship.periods);
+  const [periods, setPeriods] = useState<KeyedRelationshipPeriod[]>(() =>
+    relationship.periods.map((p) => ({ ...p, _key: crypto.randomUUID() })),
+  );
   const [editingPeriods, setEditingPeriods] = useState(false);
 
-  useEffect(() => {
+  // Reset form when relationship prop changes (previous prop pattern)
+  const prevRelRef = useRef({ type: relationship.type, periods: relationship.periods });
+  if (
+    prevRelRef.current.type !== relationship.type ||
+    prevRelRef.current.periods !== relationship.periods
+  ) {
+    prevRelRef.current = { type: relationship.type, periods: relationship.periods };
     setType(relationship.type);
-    setPeriods(relationship.periods);
+    setPeriods(relationship.periods.map((p) => ({ ...p, _key: crypto.randomUUID() })));
     setEditingPeriods(false);
-  }, [relationship.periods, relationship.type]);
+  }
 
   const sourcePerson = allPersons.get(relationship.source_person_id);
   const targetPerson = allPersons.get(relationship.target_person_id);
@@ -64,9 +75,10 @@ export function RelationshipDetailPanel({
   }
 
   function handleSavePeriods() {
+    const cleanedPeriods = periods.map(({ _key, ...rest }) => rest);
     onSaveRelationship(relationship.id, {
       type: relationship.type,
-      periods: withAutoDissolvedPeriods(periods, {
+      periods: withAutoDissolvedPeriods(cleanedPeriods, {
         source: sourcePerson?.death_year,
         target: targetPerson?.death_year,
       }),
@@ -78,18 +90,23 @@ export function RelationshipDetailPanel({
   function addPeriod() {
     setPeriods((prev) => [
       ...prev,
-      { start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together },
+      {
+        start_year: new Date().getFullYear(),
+        end_year: null,
+        status: PartnerStatus.Together,
+        _key: crypto.randomUUID(),
+      },
     ]);
   }
 
-  function removePeriod(index: number) {
-    setPeriods((prev) => prev.filter((_, i) => i !== index));
+  function removePeriod(key: string) {
+    setPeriods((prev) => prev.filter((p) => p._key !== key));
   }
 
-  function updatePeriod(index: number, field: keyof RelationshipPeriod, value: string) {
+  function updatePeriod(key: string, field: keyof RelationshipPeriod, value: string) {
     setPeriods((prev) =>
-      prev.map((p, i) => {
-        if (i !== index) return p;
+      prev.map((p) => {
+        if (p._key !== key) return p;
         if (field === "status") return { ...p, status: value as PartnerStatus };
         if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
         return { ...p, [field]: parseInt(value, 10) || 0 };
@@ -157,16 +174,13 @@ export function RelationshipDetailPanel({
               <div className="detail-panel__section-body">
                 <div className="detail-panel__period-editor">
                   {periods.length === 0 && <p className="detail-panel__empty">---</p>}
-                  {periods.map((period, i) => (
-                    <div
-                      key={`${period.status}-${period.start_year}-${period.end_year ?? "open"}-${i}`}
-                      className="detail-panel__period-row"
-                    >
+                  {periods.map((period) => (
+                    <div key={period._key} className="detail-panel__period-row">
                       <label className="detail-panel__field">
                         <span>{t("relationship.status")}</span>
                         <select
                           value={period.status}
-                          onChange={(e) => updatePeriod(i, "status", e.target.value)}
+                          onChange={(e) => updatePeriod(period._key, "status", e.target.value)}
                         >
                           {Object.values(PartnerStatus).map((s) => (
                             <option key={s} value={s}>
@@ -181,7 +195,9 @@ export function RelationshipDetailPanel({
                           <input
                             type="number"
                             value={period.start_year}
-                            onChange={(e) => updatePeriod(i, "start_year", e.target.value)}
+                            onChange={(e) =>
+                              updatePeriod(period._key, "start_year", e.target.value)
+                            }
                           />
                         </label>
                         <label className="detail-panel__field">
@@ -189,7 +205,7 @@ export function RelationshipDetailPanel({
                           <input
                             type="number"
                             value={period.end_year ?? ""}
-                            onChange={(e) => updatePeriod(i, "end_year", e.target.value)}
+                            onChange={(e) => updatePeriod(period._key, "end_year", e.target.value)}
                             placeholder="---"
                           />
                         </label>
@@ -197,7 +213,7 @@ export function RelationshipDetailPanel({
                       <button
                         type="button"
                         className="detail-panel__btn--small detail-panel__btn--danger"
-                        onClick={() => removePeriod(i)}
+                        onClick={() => removePeriod(period._key)}
                       >
                         {t("relationship.removePeriod")}
                       </button>

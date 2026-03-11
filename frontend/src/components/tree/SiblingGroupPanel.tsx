@@ -5,7 +5,9 @@ import type { DecryptedPerson, DecryptedSiblingGroup } from "../../hooks/useTree
 import type { SiblingGroupMember } from "../../types/domain";
 import "./SiblingGroupPanel.css";
 
-export interface SiblingGroupPanelProps {
+type KeyedSiblingGroupMember = SiblingGroupMember & { _key: string };
+
+interface SiblingGroupPanelProps {
   group: DecryptedSiblingGroup;
   allPersons: Map<string, DecryptedPerson>;
   onSave: (groupId: string, members: SiblingGroupMember[], personIds: string[]) => void;
@@ -23,20 +25,22 @@ export function SiblingGroupPanel({
   onClose,
 }: SiblingGroupPanelProps) {
   const { t } = useTranslation();
-  const [members, setMembers] = useState<SiblingGroupMember[]>(() => [...group.members]);
+  const [members, setMembers] = useState<KeyedSiblingGroupMember[]>(() =>
+    group.members.map((m) => ({ ...m, _key: crypto.randomUUID() })),
+  );
 
   // Exclude the person themselves (always in person_ids) from the sibling count
   const otherPersonCount = Math.max(0, group.person_ids.length - 1);
   const siblingCount = members.length + otherPersonCount;
 
-  function handleNameChange(index: number, name: string) {
-    setMembers((prev) => prev.map((m, i) => (i === index ? { ...m, name } : m)));
+  function handleNameChange(key: string, name: string) {
+    setMembers((prev) => prev.map((m) => (m._key === key ? { ...m, name } : m)));
   }
 
-  function handleFieldChange(index: number, field: string, value: string) {
+  function handleFieldChange(key: string, field: string, value: string) {
     setMembers((prev) =>
-      prev.map((m, i) => {
-        if (i !== index) return m;
+      prev.map((m) => {
+        if (m._key !== key) return m;
         if (field === "birth_year" || field === "death_year") {
           return { ...m, [field]: value ? parseInt(value, 10) : null };
         }
@@ -46,15 +50,16 @@ export function SiblingGroupPanel({
   }
 
   function handleAddMember() {
-    setMembers((prev) => [...prev, { name: "", birth_year: null }]);
+    setMembers((prev) => [...prev, { name: "", birth_year: null, _key: crypto.randomUUID() }]);
   }
 
-  function handleRemoveMember(index: number) {
-    setMembers((prev) => prev.filter((_, i) => i !== index));
+  function handleRemoveMember(key: string) {
+    setMembers((prev) => prev.filter((m) => m._key !== key));
   }
 
   function handleSave() {
-    onSave(group.id, members, group.person_ids);
+    const cleanedMembers = members.map(({ _key, ...rest }) => rest);
+    onSave(group.id, cleanedMembers, group.person_ids);
   }
 
   return (
@@ -90,10 +95,9 @@ export function SiblingGroupPanel({
           );
         })}
 
-        {/* Index key: members lack stable IDs, all fields are mutable, and list never reorders */}
-        {members.map((member, index) => (
+        {members.map((member) => (
           <div
-            key={`member-${index}`}
+            key={member._key}
             className="sibling-group-panel__card sibling-group-panel__card--member"
           >
             <div className="sibling-group-panel__card-main">
@@ -103,14 +107,14 @@ export function SiblingGroupPanel({
                   <input
                     type="text"
                     value={member.name}
-                    onChange={(e) => handleNameChange(index, e.target.value)}
+                    onChange={(e) => handleNameChange(member._key, e.target.value)}
                   />
                 </label>
                 <label className="detail-panel__field">
                   <span>{t("person.gender")}</span>
                   <select
                     value={member.gender ?? ""}
-                    onChange={(e) => handleFieldChange(index, "gender", e.target.value)}
+                    onChange={(e) => handleFieldChange(member._key, "gender", e.target.value)}
                   >
                     <option value="">---</option>
                     <option value="male">{t("person.male")}</option>
@@ -125,7 +129,7 @@ export function SiblingGroupPanel({
                   <input
                     type="number"
                     value={member.birth_year ?? ""}
-                    onChange={(e) => handleFieldChange(index, "birth_year", e.target.value)}
+                    onChange={(e) => handleFieldChange(member._key, "birth_year", e.target.value)}
                     placeholder="---"
                   />
                 </label>
@@ -134,7 +138,7 @@ export function SiblingGroupPanel({
                   <input
                     type="number"
                     value={member.death_year ?? ""}
-                    onChange={(e) => handleFieldChange(index, "death_year", e.target.value)}
+                    onChange={(e) => handleFieldChange(member._key, "death_year", e.target.value)}
                     placeholder="---"
                   />
                 </label>
@@ -145,7 +149,12 @@ export function SiblingGroupPanel({
                 type="button"
                 className="sibling-group-panel__icon-btn"
                 title={t("siblingGroup.promote")}
-                onClick={() => onPromote(group.id, index)}
+                onClick={() =>
+                  onPromote(
+                    group.id,
+                    members.findIndex((m) => m._key === member._key),
+                  )
+                }
               >
                 <ArrowUpRight size={14} />
               </button>
@@ -153,7 +162,7 @@ export function SiblingGroupPanel({
                 type="button"
                 className="sibling-group-panel__icon-btn sibling-group-panel__icon-btn--danger"
                 title={t("common.remove")}
-                onClick={() => handleRemoveMember(index)}
+                onClick={() => handleRemoveMember(member._key)}
               >
                 <X size={14} />
               </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -30,6 +30,27 @@ interface LifeEventFormProps {
   onDelete?: () => void;
 }
 
+interface LifeEventFormState {
+  title: string;
+  description: string;
+  category: LifeEventCategory;
+  approximateDate: string;
+  impact: string;
+  tags: string;
+}
+
+type LifeEventFormAction = { type: "SET_FIELD"; field: keyof LifeEventFormState; value: string };
+
+function lifeEventFormReducer(
+  state: LifeEventFormState,
+  action: LifeEventFormAction,
+): LifeEventFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+  }
+}
+
 function LifeEventForm({
   event,
   allPersons,
@@ -38,14 +59,14 @@ function LifeEventForm({
   onDelete,
 }: LifeEventFormProps) {
   const { t } = useTranslation();
-  const [title, setTitle] = useState(event?.title ?? "");
-  const [description, setDescription] = useState(event?.description ?? "");
-  const [category, setCategory] = useState<LifeEventCategory>(
-    event?.category ?? LifeEventCategory.Family,
-  );
-  const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
-  const [impact, setImpact] = useState(event?.impact != null ? String(event.impact) : "");
-  const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
+  const [state, dispatch] = useReducer(lifeEventFormReducer, {
+    title: event?.title ?? "",
+    description: event?.description ?? "",
+    category: event?.category ?? LifeEventCategory.Family,
+    approximateDate: event?.approximate_date ?? "",
+    impact: event?.impact != null ? String(event.impact) : "",
+    tags: event?.tags?.join(", ") ?? "",
+  });
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -53,12 +74,12 @@ function LifeEventForm({
   function handleSave() {
     onSave(
       {
-        title,
-        description,
-        category,
-        approximate_date: approximateDate,
-        impact: impact ? parseInt(impact, 10) || null : null,
-        tags: tags
+        title: state.title,
+        description: state.description,
+        category: state.category,
+        approximate_date: state.approximateDate,
+        impact: state.impact ? parseInt(state.impact, 10) || null : null,
+        tags: state.tags
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
@@ -71,15 +92,30 @@ function LifeEventForm({
     <div className="detail-panel__event-form">
       <label className="detail-panel__field">
         <span>{t("lifeEvent.title")}</span>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input
+          type="text"
+          value={state.title}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("lifeEvent.description")}</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+        <textarea
+          value={state.description}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
+          }
+          rows={2}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("lifeEvent.category")}</span>
-        <select value={category} onChange={(e) => setCategory(e.target.value as LifeEventCategory)}>
+        <select
+          value={state.category}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })
+          }
+        >
           {Object.values(LifeEventCategory).map((cat) => (
             <option key={cat} value={cat}>
               {t(`lifeEvent.category.${cat}`)}
@@ -91,29 +127,31 @@ function LifeEventForm({
         <span>{t("lifeEvent.approximateDate")}</span>
         <input
           type="text"
-          value={approximateDate}
-          onChange={(e) => setApproximateDate(e.target.value)}
+          value={state.approximateDate}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "approximateDate", value: e.target.value })
+          }
           placeholder={t("lifeEvent.datePlaceholder")}
         />
       </label>
       <label className="detail-panel__field">
         <span>
-          {t("lifeEvent.impact")} ({impact})
+          {t("lifeEvent.impact")} ({state.impact})
         </span>
         <input
           type="range"
           min="1"
           max="10"
-          value={impact}
-          onChange={(e) => setImpact(e.target.value)}
+          value={state.impact}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "impact", value: e.target.value })}
         />
       </label>
       <label className="detail-panel__field">
         <span>{t("lifeEvent.tags")}</span>
         <input
           type="text"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
+          value={state.tags}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "tags", value: e.target.value })}
           placeholder={t("lifeEvent.tagsPlaceholder")}
         />
       </label>

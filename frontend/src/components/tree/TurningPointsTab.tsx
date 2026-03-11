@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedPerson, DecryptedTurningPoint } from "../../hooks/useTreeData";
@@ -34,6 +34,31 @@ interface TurningPointFormProps {
   onDelete?: () => void;
 }
 
+interface TurningPointFormState {
+  title: string;
+  description: string;
+  category: TurningPointCategory;
+  approximateDate: string;
+  significance: string;
+  tags: string;
+}
+
+type TurningPointFormAction = {
+  type: "SET_FIELD";
+  field: keyof TurningPointFormState;
+  value: string;
+};
+
+function turningPointFormReducer(
+  state: TurningPointFormState,
+  action: TurningPointFormAction,
+): TurningPointFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+  }
+}
+
 function TurningPointForm({
   turningPoint,
   allPersons,
@@ -42,16 +67,14 @@ function TurningPointForm({
   onDelete,
 }: TurningPointFormProps) {
   const { t } = useTranslation();
-  const [title, setTitle] = useState(turningPoint?.title ?? "");
-  const [description, setDescription] = useState(turningPoint?.description ?? "");
-  const [category, setCategory] = useState<TurningPointCategory>(
-    turningPoint?.category ?? TurningPointCategory.CycleBreaking,
-  );
-  const [approximateDate, setApproximateDate] = useState(turningPoint?.approximate_date ?? "");
-  const [significance, setSignificance] = useState(
-    turningPoint?.significance != null ? String(turningPoint.significance) : "",
-  );
-  const [tags, setTags] = useState(turningPoint?.tags?.join(", ") ?? "");
+  const [state, dispatch] = useReducer(turningPointFormReducer, {
+    title: turningPoint?.title ?? "",
+    description: turningPoint?.description ?? "",
+    category: turningPoint?.category ?? TurningPointCategory.CycleBreaking,
+    approximateDate: turningPoint?.approximate_date ?? "",
+    significance: turningPoint?.significance != null ? String(turningPoint.significance) : "",
+    tags: turningPoint?.tags?.join(", ") ?? "",
+  });
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -59,12 +82,12 @@ function TurningPointForm({
   function handleSave() {
     onSave(
       {
-        title,
-        description,
-        category,
-        approximate_date: approximateDate,
-        significance: significance ? parseInt(significance, 10) || null : null,
-        tags: tags
+        title: state.title,
+        description: state.description,
+        category: state.category,
+        approximate_date: state.approximateDate,
+        significance: state.significance ? parseInt(state.significance, 10) || null : null,
+        tags: state.tags
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
@@ -77,17 +100,29 @@ function TurningPointForm({
     <div className="detail-panel__event-form">
       <label className="detail-panel__field">
         <span>{t("turningPoint.titleField")}</span>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input
+          type="text"
+          value={state.title}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("turningPoint.description")}</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+        <textarea
+          value={state.description}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
+          }
+          rows={2}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("turningPoint.category")}</span>
         <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as TurningPointCategory)}
+          value={state.category}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })
+          }
         >
           {Object.values(TurningPointCategory).map((cat) => (
             <option key={cat} value={cat}>
@@ -100,29 +135,33 @@ function TurningPointForm({
         <span>{t("turningPoint.approximate_date")}</span>
         <input
           type="text"
-          value={approximateDate}
-          onChange={(e) => setApproximateDate(e.target.value)}
+          value={state.approximateDate}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "approximateDate", value: e.target.value })
+          }
           placeholder={t("turningPoint.datePlaceholder")}
         />
       </label>
       <label className="detail-panel__field">
         <span>
-          {t("turningPoint.significance")} ({significance})
+          {t("turningPoint.significance")} ({state.significance})
         </span>
         <input
           type="range"
           min="1"
           max="10"
-          value={significance}
-          onChange={(e) => setSignificance(e.target.value)}
+          value={state.significance}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "significance", value: e.target.value })
+          }
         />
       </label>
       <label className="detail-panel__field">
         <span>{t("turningPoint.tags")}</span>
         <input
           type="text"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
+          value={state.tags}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "tags", value: e.target.value })}
           placeholder={t("turningPoint.tagsPlaceholder")}
         />
       </label>

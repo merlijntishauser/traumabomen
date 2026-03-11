@@ -10,15 +10,13 @@ export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    token ? "loading" : "error",
+  );
   const calledRef = useRef(false);
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      return;
-    }
-    if (calledRef.current) return;
+    if (!token || calledRef.current) return;
     calledRef.current = true;
 
     verifyEmail(token)

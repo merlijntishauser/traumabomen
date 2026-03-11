@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type LockLevel = "none" | "blur" | "full";
+type LockLevel = "none" | "blur" | "full";
 
 const DOUBLE_ESC_WINDOW_MS = 500;
 const ACTIVITY_DEBOUNCE_MS = 1000;

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Link2, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
 import type {
@@ -19,6 +19,57 @@ import { ALLOWED_MARKDOWN_ELEMENTS } from "./allowedMarkdownElements";
 import { EntityLinkPicker } from "./EntityLinkPicker";
 
 type FormMode = "write" | "preview";
+
+interface JournalFormState {
+  text: string;
+  linkedEntities: JournalLinkedRef[];
+  mode: FormMode;
+  showPicker: boolean;
+  showPrompts: boolean;
+}
+
+type JournalFormAction =
+  | { type: "SET_TEXT"; value: string }
+  | { type: "SET_MODE"; mode: FormMode }
+  | { type: "TOGGLE_PICKER" }
+  | { type: "CLOSE_PICKER" }
+  | { type: "SET_SHOW_PROMPTS"; value: boolean }
+  | { type: "ADD_LINK"; ref: JournalLinkedRef }
+  | { type: "REMOVE_LINK"; index: number }
+  | { type: "APPLY_PROMPT"; prompt: string };
+
+function journalFormReducer(state: JournalFormState, action: JournalFormAction): JournalFormState {
+  switch (action.type) {
+    case "SET_TEXT":
+      return { ...state, text: action.value };
+    case "SET_MODE":
+      return { ...state, mode: action.mode };
+    case "TOGGLE_PICKER":
+      return { ...state, showPicker: !state.showPicker };
+    case "CLOSE_PICKER":
+      return { ...state, showPicker: false };
+    case "SET_SHOW_PROMPTS":
+      return { ...state, showPrompts: action.value };
+    case "ADD_LINK": {
+      const alreadyLinked = state.linkedEntities.some(
+        (e) => e.entity_type === action.ref.entity_type && e.entity_id === action.ref.entity_id,
+      );
+      if (alreadyLinked) return state;
+      return { ...state, linkedEntities: [...state.linkedEntities, action.ref] };
+    }
+    case "REMOVE_LINK":
+      return {
+        ...state,
+        linkedEntities: state.linkedEntities.filter((_, i) => i !== action.index),
+      };
+    case "APPLY_PROMPT":
+      return {
+        ...state,
+        text: state.text ? `${state.text}\n\n${action.prompt}` : action.prompt,
+        showPrompts: false,
+      };
+  }
+}
 
 interface JournalEntryFormProps {
   entry: DecryptedJournalEntry | null;
@@ -52,13 +103,13 @@ export function JournalEntryForm({
   const { t } = useTranslation();
   const isNew = entry === null;
 
-  const [text, setText] = useState(entry?.text ?? initialPrompt ?? "");
-  const [linkedEntities, setLinkedEntities] = useState<JournalLinkedRef[]>(
-    entry?.linked_entities ?? (initialLinkedRef ? [initialLinkedRef] : []),
-  );
-  const [mode, setMode] = useState<FormMode>("write");
-  const [showPicker, setShowPicker] = useState(false);
-  const [showPrompts, setShowPrompts] = useState(false);
+  const [state, dispatch] = useReducer(journalFormReducer, {
+    text: entry?.text ?? initialPrompt ?? "",
+    linkedEntities: entry?.linked_entities ?? (initialLinkedRef ? [initialLinkedRef] : []),
+    mode: "write" as FormMode,
+    showPicker: false,
+    showPrompts: false,
+  });
   const [prompts] = useState(() => getRandomJournalPrompts(t));
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,32 +120,14 @@ export function JournalEntryForm({
       el.style.height = "auto";
       el.style.height = `${el.scrollHeight}px`;
     }
-  }, [text, mode]);
+  }, [state.text, state.mode]);
 
   useEffect(() => {
     autoGrow();
   }, [autoGrow]);
 
   function handleSave() {
-    onSave({ text: text.trim(), linked_entities: linkedEntities });
-  }
-
-  function handleAddLink(ref: JournalLinkedRef) {
-    const alreadyLinked = linkedEntities.some(
-      (e) => e.entity_type === ref.entity_type && e.entity_id === ref.entity_id,
-    );
-    if (!alreadyLinked) {
-      setLinkedEntities([...linkedEntities, ref]);
-    }
-  }
-
-  function handleRemoveLink(index: number) {
-    setLinkedEntities(linkedEntities.filter((_, i) => i !== index));
-  }
-
-  function handlePromptClick(prompt: string) {
-    setText((prev) => (prev ? `${prev}\n\n${prompt}` : prompt));
-    setShowPrompts(false);
+    onSave({ text: state.text.trim(), linked_entities: state.linkedEntities });
   }
 
   const WRITE_CLASS = "journal-form__mode-btn";
@@ -105,35 +138,35 @@ export function JournalEntryForm({
       <div className="journal-form__mode-toggle">
         <button
           type="button"
-          className={mode === "write" ? WRITE_ACTIVE : WRITE_CLASS}
-          onClick={() => setMode("write")}
+          className={state.mode === "write" ? WRITE_ACTIVE : WRITE_CLASS}
+          onClick={() => dispatch({ type: "SET_MODE", mode: "write" })}
         >
           {t("journal.write")}
         </button>
         <button
           type="button"
-          className={mode === "preview" ? WRITE_ACTIVE : WRITE_CLASS}
-          onClick={() => setMode("preview")}
+          className={state.mode === "preview" ? WRITE_ACTIVE : WRITE_CLASS}
+          onClick={() => dispatch({ type: "SET_MODE", mode: "preview" })}
         >
           {t("journal.preview")}
         </button>
       </div>
 
-      {mode === "write" ? (
+      {state.mode === "write" ? (
         <textarea
           ref={textareaRef}
           className="journal-form__textarea"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={state.text}
+          onChange={(e) => dispatch({ type: "SET_TEXT", value: e.target.value })}
           placeholder={t("journal.textPlaceholder")}
           rows={4}
           data-testid="journal-textarea"
         />
       ) : (
         <div className="journal-form__preview" data-testid="journal-preview">
-          {text ? (
+          {state.text ? (
             <Markdown allowedElements={ALLOWED_MARKDOWN_ELEMENTS} unwrapDisallowed>
-              {text}
+              {state.text}
             </Markdown>
           ) : (
             <p className="journal-form__preview-empty">{t("journal.textPlaceholder")}</p>
@@ -145,13 +178,13 @@ export function JournalEntryForm({
         <button
           type="button"
           className="detail-panel__btn--small journal-form__link-btn"
-          onClick={() => setShowPicker(!showPicker)}
+          onClick={() => dispatch({ type: "TOGGLE_PICKER" })}
         >
           <Link2 size={12} />
           {t("journal.linkEntity")}
         </button>
 
-        {showPicker && (
+        {state.showPicker && (
           <EntityLinkPicker
             persons={persons}
             events={events}
@@ -159,15 +192,15 @@ export function JournalEntryForm({
             turningPoints={turningPoints}
             classifications={classifications}
             patterns={patterns}
-            onSelect={handleAddLink}
-            onClose={() => setShowPicker(false)}
+            onSelect={(ref) => dispatch({ type: "ADD_LINK", ref })}
+            onClose={() => dispatch({ type: "CLOSE_PICKER" })}
           />
         )}
       </div>
 
-      {linkedEntities.length > 0 && (
+      {state.linkedEntities.length > 0 && (
         <div className="journal-form__chips" data-testid="journal-chips">
-          {linkedEntities.map((ref, index) => (
+          {state.linkedEntities.map((ref, index) => (
             <span
               key={`${ref.entity_type}-${ref.entity_id}`}
               className="journal-form__chip"
@@ -190,7 +223,7 @@ export function JournalEntryForm({
               <button
                 type="button"
                 className="journal-form__chip-remove"
-                onClick={() => handleRemoveLink(index)}
+                onClick={() => dispatch({ type: "REMOVE_LINK", index })}
                 aria-label={t("common.remove")}
               >
                 <X size={10} />
@@ -205,19 +238,19 @@ export function JournalEntryForm({
           <button
             type="button"
             className="journal-form__prompts-toggle"
-            onClick={() => setShowPrompts(!showPrompts)}
+            onClick={() => dispatch({ type: "SET_SHOW_PROMPTS", value: !state.showPrompts })}
           >
-            {showPrompts ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {state.showPrompts ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             {t("journal.inspiration")}
           </button>
-          {showPrompts && (
+          {state.showPrompts && (
             <div className="journal-form__prompts-list" data-testid="journal-prompts">
               {prompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   className="journal-form__prompt-item"
-                  onClick={() => handlePromptClick(prompt)}
+                  onClick={() => dispatch({ type: "APPLY_PROMPT", prompt })}
                 >
                   {prompt}
                 </button>
@@ -232,7 +265,7 @@ export function JournalEntryForm({
           type="button"
           className="btn btn--primary"
           onClick={handleSave}
-          disabled={!text.trim()}
+          disabled={!state.text.trim()}
         >
           {t("journal.save")}
         </button>

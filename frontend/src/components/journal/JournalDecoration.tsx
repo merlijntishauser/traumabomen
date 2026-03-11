@@ -74,28 +74,29 @@ export function JournalDecoration() {
       </defs>
 
       {/* Ruled lines like a notebook page */}
-      {Array.from({ length: LINE_COUNT }, (_, i) => (
-        <line
-          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
-          key={`rule-${i}`}
-          x1="0"
-          y1={LINE_START_Y + i * LINE_STEP}
-          x2="100"
-          y2={LINE_START_Y + i * LINE_STEP}
-          stroke="currentColor"
-          strokeWidth="0.15"
-          opacity="0.08"
-        />
-      ))}
+      {Array.from({ length: LINE_COUNT }, (_, i) => {
+        const y = LINE_START_Y + i * LINE_STEP;
+        return (
+          <line
+            key={`rule-y${y}`}
+            x1="0"
+            y1={y}
+            x2="100"
+            y2={y}
+            stroke="currentColor"
+            strokeWidth="0.15"
+            opacity="0.08"
+          />
+        );
+      })}
 
       {/* Left margin line */}
       <line x1="14" y1="4" x2="14" y2="96" stroke="currentColor" strokeWidth="0.2" opacity="0.06" />
 
       {/* Script words sitting on the ruled lines */}
-      {words.map((w, i) => (
+      {words.map((w) => (
         <text
-          // biome-ignore lint/suspicious/noArrayIndexKey: static decorative SVG, never reorders
-          key={`w-${i}`}
+          key={`w-${w.lineIndex}`}
           x={w.x}
           y={LINE_START_Y + w.lineIndex * LINE_STEP}
           fontSize={4.5}

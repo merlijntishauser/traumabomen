@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -102,14 +102,34 @@ interface EventFormProps {
   onDelete?: () => void;
 }
 
+interface EventFormState {
+  title: string;
+  description: string;
+  category: TraumaCategory;
+  approximateDate: string;
+  severity: string;
+  tags: string;
+}
+
+type EventFormAction = { type: "SET_FIELD"; field: keyof EventFormState; value: string };
+
+function eventFormReducer(state: EventFormState, action: EventFormAction): EventFormState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+  }
+}
+
 function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: EventFormProps) {
   const { t } = useTranslation();
-  const [title, setTitle] = useState(event?.title ?? "");
-  const [description, setDescription] = useState(event?.description ?? "");
-  const [category, setCategory] = useState<TraumaCategory>(event?.category ?? TraumaCategory.Loss);
-  const [approximateDate, setApproximateDate] = useState(event?.approximate_date ?? "");
-  const [severity, setSeverity] = useState(String(event?.severity ?? 5));
-  const [tags, setTags] = useState(event?.tags?.join(", ") ?? "");
+  const [state, dispatch] = useReducer(eventFormReducer, {
+    title: event?.title ?? "",
+    description: event?.description ?? "",
+    category: event?.category ?? TraumaCategory.Loss,
+    approximateDate: event?.approximate_date ?? "",
+    severity: String(event?.severity ?? 5),
+    tags: event?.tags?.join(", ") ?? "",
+  });
   const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
     () => new Set(initialPersonIds),
   );
@@ -117,12 +137,12 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
   function handleSave() {
     onSave(
       {
-        title,
-        description,
-        category,
-        approximate_date: approximateDate,
-        severity: parseInt(severity, 10) || 1,
-        tags: tags
+        title: state.title,
+        description: state.description,
+        category: state.category,
+        approximate_date: state.approximateDate,
+        severity: parseInt(state.severity, 10) || 1,
+        tags: state.tags
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
@@ -135,15 +155,30 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
     <div className="detail-panel__event-form">
       <label className="detail-panel__field">
         <span>{t("trauma.title")}</span>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input
+          type="text"
+          value={state.title}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("trauma.description")}</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+        <textarea
+          value={state.description}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
+          }
+          rows={2}
+        />
       </label>
       <label className="detail-panel__field">
         <span>{t("trauma.category")}</span>
-        <select value={category} onChange={(e) => setCategory(e.target.value as TraumaCategory)}>
+        <select
+          value={state.category}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })
+          }
+        >
           {Object.values(TraumaCategory).map((cat) => (
             <option key={cat} value={cat}>
               {t(`trauma.category.${cat}`)}
@@ -155,29 +190,33 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
         <span>{t("trauma.approximateDate")}</span>
         <input
           type="text"
-          value={approximateDate}
-          onChange={(e) => setApproximateDate(e.target.value)}
+          value={state.approximateDate}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "approximateDate", value: e.target.value })
+          }
           placeholder={t("trauma.datePlaceholder")}
         />
       </label>
       <label className="detail-panel__field">
         <span>
-          {t("trauma.severity")} ({severity})
+          {t("trauma.severity")} ({state.severity})
         </span>
         <input
           type="range"
           min="1"
           max="10"
-          value={severity}
-          onChange={(e) => setSeverity(e.target.value)}
+          value={state.severity}
+          onChange={(e) =>
+            dispatch({ type: "SET_FIELD", field: "severity", value: e.target.value })
+          }
         />
       </label>
       <label className="detail-panel__field">
         <span>{t("trauma.tags")}</span>
         <input
           type="text"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
+          value={state.tags}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "tags", value: e.target.value })}
           placeholder={t("trauma.tagsPlaceholder")}
         />
       </label>

@@ -1,6 +1,6 @@
 import { Settings } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { AutoLockSection } from "./settings/AutoLockSection";
@@ -30,34 +30,29 @@ export function SettingsPanel({ viewTab, className }: Props) {
 
   const [tab, setTab] = useState<"view" | "account">("view");
 
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    const target = e.target as Node;
-    if (
-      triggerRef.current &&
-      !triggerRef.current.contains(target) &&
-      dropdownRef.current &&
-      !dropdownRef.current.contains(target)
-    ) {
-      setOpen(false);
+  useEffect(() => {
+    function handleMouseDown(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
     }
+    document.addEventListener("mousedown", handleMouseDown, true);
+    return () => document.removeEventListener("mousedown", handleMouseDown, true);
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside, true);
-      return () => document.removeEventListener("mousedown", handleClickOutside, true);
-    }
-  }, [open, handleClickOutside]);
-
-  useEffect(() => {
-    if (open && triggerRef.current) {
+  function handleToggle() {
+    if (!open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      setPos({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
-      });
+      setPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
     }
-  }, [open]);
+    setOpen(!open);
+  }
 
   return (
     <>
@@ -65,7 +60,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
         type="button"
         ref={triggerRef}
         className={`settings-panel__trigger ${className ?? ""}`}
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         aria-label={t("settings.title")}
       >
         <Settings size={14} />

@@ -1,46 +1,81 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { getEncryptionSalt, updatePassphraseHint } from "../../../lib/api";
 
+interface HintState {
+  hint: string;
+  savedHint: string;
+  loading: boolean;
+  saving: boolean;
+  success: boolean;
+  error: string;
+}
+
+type HintAction =
+  | { type: "LOADED"; hint: string }
+  | { type: "LOAD_FAILED" }
+  | { type: "SET_HINT"; hint: string }
+  | { type: "SAVE_START" }
+  | { type: "SAVE_SUCCESS"; savedHint: string }
+  | { type: "SAVE_ERROR"; error: string }
+  | { type: "SAVE_END" };
+
+const hintInitialState: HintState = {
+  hint: "",
+  savedHint: "",
+  loading: true,
+  saving: false,
+  success: false,
+  error: "",
+};
+
+function hintReducer(state: HintState, action: HintAction): HintState {
+  switch (action.type) {
+    case "LOADED":
+      return { ...state, hint: action.hint, savedHint: action.hint, loading: false };
+    case "LOAD_FAILED":
+      return { ...state, loading: false };
+    case "SET_HINT":
+      return { ...state, hint: action.hint, success: false };
+    case "SAVE_START":
+      return { ...state, saving: true, error: "", success: false };
+    case "SAVE_SUCCESS":
+      return { ...state, savedHint: action.savedHint, success: true };
+    case "SAVE_ERROR":
+      return { ...state, error: action.error };
+    case "SAVE_END":
+      return { ...state, saving: false };
+  }
+}
+
 export function PassphraseHintSection() {
   const { t } = useTranslation();
-  const [hint, setHint] = useState("");
-  const [savedHint, setSavedHint] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [state, dispatch] = useReducer(hintReducer, hintInitialState);
 
   useEffect(() => {
     getEncryptionSalt()
       .then((res) => {
-        const h = res.passphrase_hint ?? "";
-        setHint(h);
-        setSavedHint(h);
-        setLoading(false);
+        dispatch({ type: "LOADED", hint: res.passphrase_hint ?? "" });
       })
-      .catch(() => setLoading(false));
+      .catch(() => dispatch({ type: "LOAD_FAILED" }));
   }, []);
 
   async function handleSave() {
-    setSaving(true);
-    setError("");
-    setSuccess(false);
+    dispatch({ type: "SAVE_START" });
     try {
-      const value = hint.trim() || null;
+      const value = state.hint.trim() || null;
       await updatePassphraseHint(value);
-      setSavedHint(hint.trim());
-      setSuccess(true);
+      dispatch({ type: "SAVE_SUCCESS", savedHint: state.hint.trim() });
     } catch {
-      setError(t("settings.hintError"));
+      dispatch({ type: "SAVE_ERROR", error: t("settings.hintError") });
     } finally {
-      setSaving(false);
+      dispatch({ type: "SAVE_END" });
     }
   }
 
-  const isDirty = hint !== savedHint;
+  const isDirty = state.hint !== state.savedHint;
 
-  if (loading) return null;
+  if (state.loading) return null;
 
   return (
     <div className="settings-panel__section">
@@ -49,23 +84,20 @@ export function PassphraseHintSection() {
       <input
         type="text"
         className="settings-panel__input"
-        value={hint}
-        onChange={(e) => {
-          setHint(e.target.value);
-          setSuccess(false);
-        }}
+        value={state.hint}
+        onChange={(e) => dispatch({ type: "SET_HINT", hint: e.target.value })}
         maxLength={255}
         placeholder={t("auth.hintPlaceholder")}
       />
-      {error && <p className="auth-error">{error}</p>}
-      {success && <p className="auth-success">{t("settings.hintSaved")}</p>}
+      {state.error && <p className="auth-error">{state.error}</p>}
+      {state.success && <p className="auth-success">{t("settings.hintSaved")}</p>}
       <button
         type="button"
         className="settings-panel__btn"
         onClick={handleSave}
-        disabled={saving || !isDirty}
+        disabled={state.saving || !isDirty}
       >
-        {saving ? t("common.saving") : t("common.save")}
+        {state.saving ? t("common.saving") : t("common.save")}
       </button>
     </div>
   );
