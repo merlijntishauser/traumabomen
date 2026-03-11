@@ -117,6 +117,7 @@ vi.mock("react-i18next", () => ({
       changeLanguage: mockChangeLanguage,
     },
   }),
+  Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,
 }));
 
 // ---------------------------------------------------------------------------

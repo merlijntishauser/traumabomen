@@ -20,6 +20,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => key,
     i18n: { language: "en", changeLanguage: vi.fn() },
   }),
+  Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,
 }));
 
 import { ChangePasswordSection } from "./ChangePasswordSection";
