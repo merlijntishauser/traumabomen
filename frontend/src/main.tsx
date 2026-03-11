@@ -7,7 +7,15 @@ import "./styles/theme.css";
 import "./i18n";
 import App from "./App";
 
-function stripSensitiveBreadcrumbs(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
+const BOT_UA_PATTERN = /bot|crawler|spider|crawling|iubenda|semrush|ahref|mj12bot|dotbot/i;
+
+function isBot(): boolean {
+  return BOT_UA_PATTERN.test(navigator.userAgent);
+}
+
+function stripSensitiveBreadcrumbs(event: Sentry.ErrorEvent): Sentry.ErrorEvent | null {
+  if (isBot()) return null;
+
   for (const crumb of event.breadcrumbs ?? []) {
     if (!crumb.data || typeof crumb.data !== "object") continue;
     for (const key of Object.keys(crumb.data)) {
