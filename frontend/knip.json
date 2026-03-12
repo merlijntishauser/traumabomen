@@ -1,0 +1,3 @@
+{
+  "ignore": ["e2e/port-forward.cjs", "public/argon2-bundled.min.js"]
+}
