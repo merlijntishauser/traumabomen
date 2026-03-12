@@ -13,8 +13,8 @@ function isBot(): boolean {
   return BOT_UA_PATTERN.test(navigator.userAgent);
 }
 
-function stripSensitiveBreadcrumbs(event: Sentry.ErrorEvent): Sentry.ErrorEvent | null {
-  if (isBot()) return null;
+function stripSensitiveBreadcrumbs(event: Sentry.ErrorEvent | null): Sentry.ErrorEvent | null {
+  if (!event || isBot()) return null;
 
   for (const crumb of event.breadcrumbs ?? []) {
     if (!crumb.data || typeof crumb.data !== "object") continue;
