@@ -149,10 +149,19 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - uses: millionco/react-doctor@main
+      - name: React Doctor
+        id: react_doctor
+        uses: millionco/react-doctor@main
         with:
-          working-directory: frontend
-          min-score: 100
+          directory: frontend
+      - name: Check React Doctor score
+        run: |
+          score="${{ steps.react_doctor.outputs.score }}"
+          echo "React Doctor score: ${score:-unknown}/100"
+          if [ -z "$score" ] || [ "$score" -lt 100 ]; then
+            echo "::error::React Doctor score below 100 (got: ${score:-unknown})"
+            exit 1
+          fi
 
   e2e:
     name: E2E tests
