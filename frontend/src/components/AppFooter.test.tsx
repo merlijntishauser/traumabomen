@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppFooter } from "./AppFooter";
 
 let mockLanguage = "en";
-let mockAccessToken: string | null = "mock-token";
+let mockIsLoggedIn = true;
 const mockChangeLanguage = vi.fn();
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -19,7 +19,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("../lib/api", () => ({
-  getAccessToken: () => mockAccessToken,
+  getAccessToken: () => (mockIsLoggedIn ? "stub" : null),
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -59,7 +59,7 @@ vi.mock("./FeedbackModal", () => ({
 describe("AppFooter", () => {
   afterEach(() => {
     mockLanguage = "en";
-    mockAccessToken = "mock-token";
+    mockIsLoggedIn = true;
   });
 
   it("renders without crashing", () => {
@@ -219,13 +219,13 @@ describe("AppFooter", () => {
   });
 
   it("hides feedback button when not authenticated", () => {
-    mockAccessToken = null;
+    mockIsLoggedIn = false;
     render(<AppFooter />);
     expect(screen.queryByLabelText("feedback.button")).not.toBeInTheDocument();
   });
 
   it("shows feedback button when authenticated", () => {
-    mockAccessToken = "mock-token";
+    mockIsLoggedIn = true;
     render(<AppFooter />);
     expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
   });
