@@ -12,6 +12,164 @@ The two strategic gaps identified in February are now largely resolved:
 
 Priority: ship high-impact UX features that make the tree more useful for everyday work.
 
+## Planned: UX improvements (high priority)
+
+Findings from the March 2026 UX review, prioritised by user impact.
+
+### Critical
+
+#### UX-1. Login form invisible on mobile
+
+On screens below 900px the login form sits inside a nested `overflow-y: auto` container below the hero text. Users see only the welcome copy; the form is unreachable without discovering the nested scroll. Mobile users cannot log in.
+
+Fix: on mobile, stack the login card above the welcome text (or collapse the welcome into a short intro) so the form is visible in the first viewport.
+
+#### UX-2. No password reset flow
+
+There is no "forgot password" link on the login page and no reset mechanism anywhere. Users who forget their account password are permanently locked out with no guidance. (Distinct from passphrase loss, which is unrecoverable by design.)
+
+Fix: add a password reset flow (email link with time-limited token) and a "Forgot password?" link on the login page.
+
+### High
+
+#### UX-3. No password / passphrase visibility toggle
+
+None of the password or passphrase fields have show/hide toggles. Users manage two separate credentials (account password + encryption passphrase) and cannot verify what they are typing, increasing misentry risk.
+
+#### UX-4. Registration step indicator lacks labels
+
+The 3-step registration shows only dots. Users cannot see what is ahead (e.g., "Account > Encryption > Confirm"). Important because step 2 introduces the unfamiliar concept of an encryption passphrase.
+
+#### UX-5. Disabled buttons without explaining why
+
+Registration step 1 disables "Continue" when the password is weak, but there is no message explaining why. The strength meter is present but the cause-effect relationship with the button state is unclear.
+
+#### UX-6. Toolbar icon-only buttons lack discoverability
+
+The workspace toolbar right section has ~6 icon-only action buttons (auto-layout, undo, edit patterns, journal, my trees, settings, log out). New users must hover each one to learn what they do. The nav tabs on the left have labels; the action buttons do not.
+
+#### UX-7. Person node shows "? -" for missing birth year
+
+When a person has no birth year, the node displays "? -". Most users will not understand this notation. Show nothing, or "Birth year unknown".
+
+### Medium
+
+#### UX-8. Welcome banner competes with create form
+
+After clicking "Create your first tree" in the welcome banner, the tree name form appears below it. The banner stays visible with its own CTA still showing, creating two competing prompts.
+
+#### UX-9. Delete and Save buttons adjacent
+
+In the person detail panel, "Save" and "Delete" sit next to each other. Spatial separation or placing Delete elsewhere would reduce misclick risk for this sensitive tool. (Color coding already helps.)
+
+#### UX-10. No unsaved changes warning
+
+Editing person fields and clicking Close or selecting another node silently discards changes. For sensitive data entry this is a meaningful data-loss risk.
+
+#### UX-11. Gender defaults to "Other"
+
+When adding a person, gender defaults to "Other." In a family tree context this forces an extra interaction for the majority case. A neutral prompt ("Select") or no default would be better.
+
+#### UX-12. Footer is overloaded
+
+The footer contains 6-7 interactive elements (lock, feedback, privacy, GitHub, language, theme) plus disclaimer text, mental health resource, and copyright. It is doing too much, especially on mobile.
+
+#### UX-13. Auth modal blocks public routes
+
+When a session expires the AuthModal covers everything, including public pages like /privacy. Users who just want to read the privacy policy are forced to authenticate first.
+
+### Low
+
+#### UX-14. No keyboard shortcuts for canvas actions
+
+No keyboard shortcuts for frequent workspace operations (add person, undo, save). Slows down power users building large trees.
+
+#### UX-15. Demo tree button placement
+
+The "Create demo tree" button is in the toolbar, easy to miss. The onboarding gate mentions demo data but has no direct CTA to create one.
+
+#### UX-16. Theme toggle is cycle-only
+
+The footer theme button cycles through themes. Users cannot directly pick a specific theme from the footer; they must cycle or find the radio buttons in settings.
+
+## Planned: UI polish (medium priority)
+
+Findings from the March 2026 UI review, covering both dark and light themes.
+
+### Dark theme
+
+#### UI-D1. Text contrast on glass panels (login/register)
+
+Welcome panel uses `rgba(10, 26, 15, 0.68)` with `backdrop-filter: blur(20px)`. Secondary text (`#8faa97`) over this translucent background on a variable hero image produces inconsistent contrast that may fall below WCAG AA 4.5:1 in bright image areas.
+
+#### UI-D2. Muted text is too muted
+
+`--color-text-muted: #5a7a64` on `--color-bg-primary: #0a1a0f` gives ~3.2:1 contrast, below WCAG AA (4.5:1). Used for helper text, char counters, footer, and labels. Footer text at 10-11px is particularly hard to read.
+
+#### UI-D3. Canvas background lacks intended depth
+
+The `.bg-gradient` radial is at 12% opacity, the noise texture at 3.5%. On typical monitors the canvas reads as solid dark rather than the intended atmospheric depth.
+
+#### UI-D4. Person node looks bare
+
+Node is a dark rectangle with thin border, no interior structure beyond name and "? -" text. No visual weight difference between name and metadata. Lacks the richness of the rest of the UI.
+
+#### UI-D5. Toolbar groups blur together
+
+The 1px separator between nav tabs and action buttons is easy to miss. The toolbar shadow (`rgba(0, 0, 0, 0.25)`) is barely visible against the dark canvas, reducing perceived layering.
+
+### Light theme
+
+#### UI-L1. Accent color diverges between themes
+
+Dark theme uses forest green (`#2d8a5e`), light uses teal-blue (`#4a9bb5`). This is a different hue, not a lightness adjustment. Users switching themes may find the identity inconsistent. Affects focus rings, selected states, and all accent-derived UI.
+
+#### UI-L2. Canvas decoration lines barely visible
+
+BranchDecoration SVG at 9% opacity on `#f4f1ed` canvas appears as faint scratches rather than an intentional design element.
+
+#### UI-L3. Mental health banner blends in
+
+The banner uses the same surface colors as the page, making it blend in rather than standing out as an important notice. Has more presence on dark theme.
+
+#### UI-L4. Footer border too subtle
+
+`--color-border-secondary: #e4dfd9` is very close to the surface colors. The footer top border nearly disappears.
+
+#### UI-L5. Shadow system too weak
+
+Light theme shadows (`rgba(44, 51, 64, 0.06)` sm, `0.08` md) are barely perceptible. Panels, cards, and toolbar lack visual lift, making the UI feel flat rather than layered.
+
+### Cross-theme
+
+#### UI-C1. Heading font weight lacks variation
+
+`Playwrite NZ Basic` is set to `font-weight: 400` for all headings. Design intent is 200-300 for large display, 300-400 for compact headers. Everything at 400 loses the weight hierarchy.
+
+#### UI-C2. No smooth theme transition
+
+Hero images, canvas decorations, and fixed backgrounds snap on theme change rather than crossfading. The color transitions work but the overall switch feels choppy.
+
+#### UI-C3. Colophon double-dimmed
+
+`.app-footer__colophon` applies `opacity: 0.75` to the row, which contains text already using `--color-text-muted`. The double dimming makes copyright text nearly invisible in both themes.
+
+#### UI-C4. Feedback button pink is jarring in footer
+
+The feedback button uses `--color-edge-partner` (pink) for its accent. Visually jarring among the otherwise muted footer elements, drawing disproportionate attention for a secondary action.
+
+#### UI-C5. Active nav tab is visually heavy
+
+The active tab uses solid accent fill + inverse text. In light theme this reads as a heavy teal block. A bottom-border indicator or subtle background tint would be more refined for the app's understated palette.
+
+#### UI-C6. Registration form input grouping
+
+Password and Confirm Password are visually grouped in a card, but Email is in a separate one. This creates an odd split where the email feels disconnected from the other account creation fields.
+
+#### UI-C7. Empty workspace has no visual anchor
+
+The empty canvas shows a small icon + heading + button in a large void. No background grid, dot pattern, or subtle illustration to orient the user in the spatial canvas context.
+
 ## ~~Planned: Reflection~~ (done)
 
 ### ~~1. Resilience and strengths layer~~ (done)
