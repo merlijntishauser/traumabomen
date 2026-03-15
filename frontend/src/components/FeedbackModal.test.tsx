@@ -200,4 +200,19 @@ describe("FeedbackModal", () => {
       expect(screen.getByText("feedback.success")).toBeInTheDocument();
     });
   });
+
+  it("shows error message when submit fails", async () => {
+    mockSubmitFeedback.mockRejectedValueOnce(new Error("Not authenticated"));
+    render(<FeedbackModal onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText("feedback.message"), {
+      target: { value: "Test" },
+    });
+    fireEvent.click(screen.getByText("feedback.submit"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("common.error");
+    });
+    // Should not show success
+    expect(screen.queryByText("feedback.success")).not.toBeInTheDocument();
+  });
 });

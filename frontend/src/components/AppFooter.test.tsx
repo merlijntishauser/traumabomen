@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppFooter } from "./AppFooter";
 
 let mockLanguage = "en";
+let mockAccessToken: string | null = "mock-token";
 const mockChangeLanguage = vi.fn();
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -15,6 +16,10 @@ vi.mock("react-i18next", () => ({
     },
   }),
   Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
+}));
+
+vi.mock("../lib/api", () => ({
+  getAccessToken: () => mockAccessToken,
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -54,6 +59,7 @@ vi.mock("./FeedbackModal", () => ({
 describe("AppFooter", () => {
   afterEach(() => {
     mockLanguage = "en";
+    mockAccessToken = "mock-token";
   });
 
   it("renders without crashing", () => {
@@ -210,5 +216,17 @@ describe("AppFooter", () => {
     render(<AppFooter onLock={onLock} />);
     fireEvent.click(screen.getByLabelText("safety.footer.lock"));
     expect(onLock).toHaveBeenCalled();
+  });
+
+  it("hides feedback button when not authenticated", () => {
+    mockAccessToken = null;
+    render(<AppFooter />);
+    expect(screen.queryByLabelText("feedback.button")).not.toBeInTheDocument();
+  });
+
+  it("shows feedback button when authenticated", () => {
+    mockAccessToken = "mock-token";
+    render(<AppFooter />);
+    expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
   });
 });

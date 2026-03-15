@@ -18,6 +18,7 @@ interface FeedbackState {
   anonymous: boolean;
   submitting: boolean;
   success: boolean;
+  error: string;
 }
 
 type FeedbackAction =
@@ -25,7 +26,8 @@ type FeedbackAction =
   | { type: "SET_MESSAGE"; message: string }
   | { type: "SET_ANONYMOUS"; anonymous: boolean }
   | { type: "SET_SUBMITTING"; submitting: boolean }
-  | { type: "SET_SUCCESS" };
+  | { type: "SET_SUCCESS" }
+  | { type: "SET_ERROR"; error: string };
 
 const feedbackInitialState: FeedbackState = {
   category: "general",
@@ -33,6 +35,7 @@ const feedbackInitialState: FeedbackState = {
   anonymous: false,
   submitting: false,
   success: false,
+  error: "",
 };
 
 function feedbackReducer(state: FeedbackState, action: FeedbackAction): FeedbackState {
@@ -47,6 +50,8 @@ function feedbackReducer(state: FeedbackState, action: FeedbackAction): Feedback
       return { ...state, submitting: action.submitting };
     case "SET_SUCCESS":
       return { ...state, success: true };
+    case "SET_ERROR":
+      return { ...state, error: action.error };
   }
 }
 
@@ -82,6 +87,7 @@ export function FeedbackModal({ onClose }: Props) {
     if (!state.message.trim() || state.submitting) return;
 
     dispatch({ type: "SET_SUBMITTING", submitting: true });
+    dispatch({ type: "SET_ERROR", error: "" });
     try {
       await submitFeedback({
         category: state.category,
@@ -89,6 +95,8 @@ export function FeedbackModal({ onClose }: Props) {
         anonymous: state.anonymous,
       });
       dispatch({ type: "SET_SUCCESS" });
+    } catch {
+      dispatch({ type: "SET_ERROR", error: t("common.error") });
     } finally {
       dispatch({ type: "SET_SUBMITTING", submitting: false });
     }
@@ -167,6 +175,12 @@ export function FeedbackModal({ onClose }: Props) {
               </label>
               <div className="feedback-anonymous__note">{t("feedback.anonymousNote")}</div>
             </div>
+
+            {state.error && (
+              <p className="feedback-error" role="alert">
+                {state.error}
+              </p>
+            )}
 
             <div className="feedback-actions">
               <button

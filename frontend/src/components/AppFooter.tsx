@@ -2,6 +2,7 @@ import { Github, Heart, Lock, MessageSquare, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { getAccessToken } from "../lib/api";
 import { FeedbackModal } from "./FeedbackModal";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
@@ -20,6 +21,7 @@ interface Props {
 export function AppFooter({ onLock }: Props) {
   const { t, i18n } = useTranslation();
   const [showFeedback, setShowFeedback] = useState(false);
+  const isAuthenticated = !!getAccessToken();
   const resource = resources[i18n.language] ?? resources.en;
 
   const year = new Date().getFullYear();
@@ -73,16 +75,18 @@ export function AppFooter({ onLock }: Props) {
                 <Lock size={14} aria-hidden="true" />
               </button>
             )}
-            <button
-              type="button"
-              className="app-footer__btn app-footer__btn--feedback"
-              onClick={() => setShowFeedback(true)}
-              aria-label={t(T_FEEDBACK)}
-              title={t(T_FEEDBACK)}
-            >
-              <MessageSquare size={14} aria-hidden="true" />
-              <span>{t(T_FEEDBACK)}</span>
-            </button>
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="app-footer__btn app-footer__btn--feedback"
+                onClick={() => setShowFeedback(true)}
+                aria-label={t(T_FEEDBACK)}
+                title={t(T_FEEDBACK)}
+              >
+                <MessageSquare size={14} aria-hidden="true" />
+                <span>{t(T_FEEDBACK)}</span>
+              </button>
+            )}
             <Link
               to="/privacy"
               className="app-footer__btn"
