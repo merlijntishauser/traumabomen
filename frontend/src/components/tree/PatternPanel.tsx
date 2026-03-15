@@ -146,8 +146,10 @@ export function PatternPanel({
               />
               <span className="pattern-panel__item-name">{pattern.name}</span>
               <span className="pattern-panel__item-count">{pattern.linked_entities.length}</span>
-              <button
-                type="button"
+              <span
+                role="switch"
+                tabIndex={0}
+                aria-checked={visiblePatternIds.has(pattern.id)}
                 className={`pattern-panel__visibility-btn ${
                   !visiblePatternIds.has(pattern.id) ? "pattern-panel__visibility-btn--hidden" : ""
                 }`}
@@ -155,12 +157,19 @@ export function PatternPanel({
                   e.stopPropagation();
                   onToggleVisibility(pattern.id);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleVisibility(pattern.id);
+                  }
+                }}
                 aria-label={
                   visiblePatternIds.has(pattern.id) ? t("pattern.visible") : t("pattern.hidden")
                 }
               >
                 {visiblePatternIds.has(pattern.id) ? <Eye size={14} /> : <EyeOff size={14} />}
-              </button>
+              </span>
               <ChevronRight
                 size={14}
                 className={`pattern-panel__chevron ${
