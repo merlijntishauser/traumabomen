@@ -46,6 +46,8 @@ vi.mock("../lib/api", () => ({
   },
 }));
 
+const STUB_CREDENTIAL = "StrongPass123!";
+
 describe("ResetPasswordPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -84,17 +86,17 @@ describe("ResetPasswordPage", () => {
   it("calls resetPassword on successful submit", async () => {
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith({
         token: "test-token",
-        new_password: "StrongPass123!",
+        new_password: STUB_CREDENTIAL, // eslint-disable-line sonarjs/no-hardcoded-passwords
       });
     });
   });
@@ -102,10 +104,10 @@ describe("ResetPasswordPage", () => {
   it("shows success message after successful reset", async () => {
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 
@@ -119,10 +121,10 @@ describe("ResetPasswordPage", () => {
     mockResetPassword.mockRejectedValueOnce(new ApiError(400, "invalid_or_expired_token"));
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: "StrongPass123!" },
+      target: { value: STUB_CREDENTIAL },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 
