@@ -96,7 +96,7 @@ describe("ResetPasswordPage", () => {
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith({
         token: "test-token",
-        new_password: STUB_CREDENTIAL, // eslint-disable-line sonarjs/no-hardcoded-passwords
+        new_password: STUB_CREDENTIAL,
       });
     });
   });
