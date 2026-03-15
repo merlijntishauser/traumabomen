@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Theme } from "./useAvailableThemes";
 import { useTheme } from "./useTheme";
 
@@ -23,7 +23,7 @@ const localStorageMock = (() => {
     key: (index: number) => Object.keys(store)[index] ?? null,
   };
 })();
-Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, writable: true });
+vi.stubGlobal("localStorage", localStorageMock);
 
 const STORAGE_KEY = "traumabomen-theme";
 

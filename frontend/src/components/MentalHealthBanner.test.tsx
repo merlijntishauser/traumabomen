@@ -22,7 +22,7 @@ const localStorageMock = (() => {
     key: (index: number) => Object.keys(store)[index] ?? null,
   };
 })();
-Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, writable: true });
+vi.stubGlobal("localStorage", localStorageMock);
 
 const STORAGE_KEY = "mentalHealthBannerDismissed";
 

@@ -1,27 +1,25 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLocalStorageSettings } from "./useLocalStorageSettings";
 
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-    get length() {
-      return Object.keys(store).length;
-    },
-    key: (index: number) => Object.keys(store)[index] ?? null,
-  };
-})();
-Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, writable: true });
+let store: Record<string, string> = {};
+const localStorageMock = {
+  getItem: (key: string) => store[key] ?? null,
+  setItem: (key: string, value: string) => {
+    store[key] = value;
+  },
+  removeItem: (key: string) => {
+    delete store[key];
+  },
+  clear: () => {
+    store = {};
+  },
+  get length() {
+    return Object.keys(store).length;
+  },
+  key: (index: number) => Object.keys(store)[index] ?? null,
+};
+vi.stubGlobal("localStorage", localStorageMock);
 
 const KEY = "test-settings";
 const DEFAULTS = { enabled: false, count: 5, label: "default" };
