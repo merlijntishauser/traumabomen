@@ -240,6 +240,17 @@
   }
 }
 
+/* Mobile: show login card first, welcome text below */
+.auth-page--landing .auth-card {
+  order: -1;
+}
+
+@media (min-width: 900px) {
+  .auth-page--landing .auth-card {
+    order: 0;
+  }
+}
+
 /* --- Welcome: glass panel matching the card treatment --- */
 .auth-page--landing .auth-welcome {
   max-width: none;

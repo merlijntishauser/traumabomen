@@ -18,11 +18,9 @@ Findings from the March 2026 UX review, prioritised by user impact.
 
 ### Critical
 
-#### UX-1. Login form invisible on mobile
+#### ~~UX-1. Login form invisible on mobile~~ (done)
 
-On screens below 900px the login form sits inside a nested `overflow-y: auto` container below the hero text. Users see only the welcome copy; the form is unreachable without discovering the nested scroll. Mobile users cannot log in.
-
-Fix: on mobile, stack the login card above the welcome text (or collapse the welcome into a short intro) so the form is visible in the first viewport.
+On mobile the login card now renders above the welcome text via CSS `order: -1`, ensuring the form is immediately visible in the first viewport. Desktop side-by-side layout unchanged.
 
 #### UX-2. No password reset flow
 
