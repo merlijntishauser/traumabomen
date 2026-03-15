@@ -100,6 +100,16 @@ class MigrateKeysTree(BaseModel):
     journal_entries: list[MigrateKeysEntity]
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    language: str = "en"
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
 class MigrateKeysRequest(BaseModel):
     encrypted_key_ring: str
     trees: list[MigrateKeysTree]

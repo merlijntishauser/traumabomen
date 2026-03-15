@@ -23,9 +23,11 @@ import {
   getWasAuthenticated,
 } from "./lib/api";
 import "./components/MobileBanner.css";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import LoginPage from "./pages/LoginPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import TreeListPage from "./pages/TreeListPage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
@@ -254,6 +256,8 @@ function AppContent() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/verify-pending" element={<VerificationPendingPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unlock" element={<UnlockPage />} />
               <Route
                 path="/trees"

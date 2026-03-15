@@ -58,6 +58,16 @@ export interface DeleteAccountRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+  language?: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
 export interface KeyRingResponse {
   encrypted_key_ring: string;
 }

@@ -13,6 +13,7 @@ import type {
   FeatureFlags,
   FeedbackCreate,
   FeedbackItem,
+  ForgotPasswordRequest,
   FunnelStats,
   GrowthStats,
   JournalEntryCreate,
@@ -38,6 +39,7 @@ import type {
   RelationshipResponse,
   RelationshipUpdate,
   ResendVerificationRequest,
+  ResetPasswordRequest,
   RetentionStats,
   SaltResponse,
   SiblingGroupCreate,
@@ -238,6 +240,22 @@ export async function resendVerification(
   request: ResendVerificationRequest,
 ): Promise<RegisterResponse> {
   return apiFetch<RegisterResponse>("/auth/resend-verification", {
+    method: "POST",
+    body: request,
+    requiresAuth: false,
+  });
+}
+
+export async function forgotPassword(request: ForgotPasswordRequest): Promise<VerifyResponse> {
+  return apiFetch<VerifyResponse>("/auth/forgot-password", {
+    method: "POST",
+    body: request,
+    requiresAuth: false,
+  });
+}
+
+export async function resetPassword(request: ResetPasswordRequest): Promise<VerifyResponse> {
+  return apiFetch<VerifyResponse>("/auth/reset-password", {
     method: "POST",
     body: request,
     requiresAuth: false,

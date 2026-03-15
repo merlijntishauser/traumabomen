@@ -18,7 +18,7 @@ from app.auth import (
 from app.capacity import is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.email import send_email_background, send_verification_email
+from app.email import send_email_background, send_password_reset_email, send_verification_email
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
@@ -26,6 +26,7 @@ from app.rate_limiter import check_and_tarpit, check_endpoint_rate_limit, clear,
 from app.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
+    ForgotPasswordRequest,
     LoginRequest,
     LogoutRequest,
     RefreshRequest,
@@ -33,6 +34,7 @@ from app.schemas.auth import (
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    ResetPasswordRequest,
     SaltResponse,
     TokenResponse,
     UpdateHintRequest,
@@ -43,6 +45,7 @@ from app.schemas.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 VERIFICATION_TOKEN_EXPIRY_HOURS = 24
+PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 1
 RESEND_RATE_LIMIT_PER_HOUR = 3
 
 
@@ -272,6 +275,72 @@ async def resend_verification(
 
     send_email_background(send_verification_email, user.email, token, settings, body.language)
     return RegisterResponse(message="verification_email_sent")
+
+
+@router.post("/forgot-password", response_model=VerifyResponse)
+async def forgot_password(
+    request: Request,
+    body: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> VerifyResponse:
+    ip = request.client.host if request.client else "unknown"
+    check_endpoint_rate_limit(ip, "forgot-password")
+
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    # Always return success to prevent email enumeration
+    if user is None or not user.email_verified:
+        return VerifyResponse(message="password_reset_email_sent")
+
+    # Don't regenerate if a token was created recently (within last hour)
+    if user.password_reset_expires_at and user.password_reset_expires_at > datetime.now(
+        UTC
+    ) + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRY_HOURS - 1):
+        return VerifyResponse(message="password_reset_email_sent")
+
+    token, hashed = _generate_verification_token()
+    user.password_reset_token = hashed
+    user.password_reset_expires_at = datetime.now(UTC) + timedelta(
+        hours=PASSWORD_RESET_TOKEN_EXPIRY_HOURS
+    )
+    await db.commit()
+
+    send_email_background(send_password_reset_email, email, token, settings, body.language)
+    return VerifyResponse(message="password_reset_email_sent")
+
+
+@router.post("/reset-password", response_model=VerifyResponse)
+async def reset_password(
+    request: Request,
+    body: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> VerifyResponse:
+    ip = request.client.host if request.client else "unknown"
+    check_endpoint_rate_limit(ip, "reset-password")
+
+    _validate_password(body.new_password)
+
+    token_hash = hashlib.sha256(body.token.encode()).hexdigest()
+    result = await db.execute(select(User).where(User.password_reset_token == token_hash))
+    user = result.scalar_one_or_none()
+
+    if user is None or (
+        user.password_reset_expires_at and user.password_reset_expires_at <= datetime.now(UTC)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_token",
+        )
+
+    user.hashed_password = hash_password(body.new_password)
+    user.password_reset_token = None
+    user.password_reset_expires_at = None
+    await db.commit()
+
+    return VerifyResponse(message="password_reset_complete")
 
 
 @router.post("/refresh", response_model=RefreshResponse)

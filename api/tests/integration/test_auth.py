@@ -925,3 +925,170 @@ class TestPassphraseHint:
             json={"passphrase_hint": "x" * 256},
         )
         assert response.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Password reset: forgot-password
+# ---------------------------------------------------------------------------
+
+
+class TestForgotPassword:
+    @pytest.mark.asyncio
+    async def test_forgot_password_returns_success(self, client, user):
+        """Existing verified user receives 200 with password_reset_email_sent."""
+        with patch("app.routers.auth.send_email_background"):
+            resp = await client.post(
+                "/auth/forgot-password",
+                json={"email": "test@example.com"},
+            )
+        assert resp.status_code == 200
+        assert resp.json()["message"] == "password_reset_email_sent"
+
+    @pytest.mark.asyncio
+    async def test_forgot_password_unknown_email(self, client):
+        """Unknown email still returns 200 to prevent enumeration."""
+        resp = await client.post(
+            "/auth/forgot-password",
+            json={"email": "nobody@example.com"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["message"] == "password_reset_email_sent"
+
+    @pytest.mark.asyncio
+    async def test_forgot_password_unverified_email(self, client, db_session):
+        """Unverified user gets 200 but no reset email is sent."""
+        unverified = User(
+            email="unverified-reset@example.com",
+            hashed_password=hash_password("TestPassword1"),
+            encryption_salt="salt",
+            email_verified=False,
+        )
+        db_session.add(unverified)
+        await db_session.commit()
+
+        resp = await client.post(
+            "/auth/forgot-password",
+            json={"email": "unverified-reset@example.com"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["message"] == "password_reset_email_sent"
+
+
+# ---------------------------------------------------------------------------
+# Password reset: reset-password
+# ---------------------------------------------------------------------------
+
+
+class TestResetPassword:
+    @pytest.mark.asyncio
+    async def test_reset_password_success(self, client, db_session):
+        """Valid token resets the password; login with new password works."""
+        token = "reset-token-abc123"
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        user = User(
+            email="reset-success@example.com",
+            hashed_password=hash_password("TestPassword1"),
+            encryption_salt="salt",
+            email_verified=True,
+            password_reset_token=token_hash,
+            password_reset_expires_at=_utcnow_naive() + timedelta(hours=1),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        resp = await client.post(
+            "/auth/reset-password",
+            json={"token": token, "new_password": "NewStrongPass1"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["message"] == "password_reset_complete"
+
+        # Verify login with new password works
+        login_resp = await client.post(
+            "/auth/login",
+            json={"email": "reset-success@example.com", "password": "NewStrongPass1"},
+        )
+        assert login_resp.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_reset_password_invalid_token(self, client):
+        """Bogus token returns 400."""
+        resp = await client.post(
+            "/auth/reset-password",
+            json={"token": "totally-bogus-token", "new_password": "NewStrongPass1"},
+        )
+        assert resp.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_reset_password_expired_token(self, client, db_session):
+        """Expired token returns 400."""
+        token = "expired-reset-token"
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        user = User(
+            email="reset-expired@example.com",
+            hashed_password=hash_password("TestPassword1"),
+            encryption_salt="salt",
+            email_verified=True,
+            password_reset_token=token_hash,
+            password_reset_expires_at=_utcnow_naive() - timedelta(hours=1),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        resp = await client.post(
+            "/auth/reset-password",
+            json={"token": token, "new_password": "NewStrongPass1"},
+        )
+        assert resp.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_reset_password_weak_password(self, client, db_session):
+        """Weak password returns 422."""
+        token = "weak-pw-reset-token"
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        user = User(
+            email="reset-weak@example.com",
+            hashed_password=hash_password("TestPassword1"),
+            encryption_salt="salt",
+            email_verified=True,
+            password_reset_token=token_hash,
+            password_reset_expires_at=_utcnow_naive() + timedelta(hours=1),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        resp = await client.post(
+            "/auth/reset-password",
+            json={"token": token, "new_password": "abc"},
+        )
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_reset_password_clears_token(self, client, db_session):
+        """Token is single-use; reusing it after a successful reset returns 400."""
+        token = "single-use-reset-token"
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        user = User(
+            email="reset-reuse@example.com",
+            hashed_password=hash_password("TestPassword1"),
+            encryption_salt="salt",
+            email_verified=True,
+            password_reset_token=token_hash,
+            password_reset_expires_at=_utcnow_naive() + timedelta(hours=1),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        # First reset succeeds
+        resp = await client.post(
+            "/auth/reset-password",
+            json={"token": token, "new_password": "NewStrongPass1"},
+        )
+        assert resp.status_code == 200
+
+        # Second attempt with same token fails
+        resp2 = await client.post(
+            "/auth/reset-password",
+            json={"token": token, "new_password": "AnotherStrongPass1"},
+        )
+        assert resp2.status_code == 400

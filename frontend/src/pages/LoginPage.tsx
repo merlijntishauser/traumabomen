@@ -70,6 +70,10 @@ export default function LoginPage() {
               />
             </div>
 
+            <p className="auth-footer" style={{ marginTop: 0, textAlign: "right" }}>
+              <Link to="/forgot-password">{t("auth.forgotPassword")}</Link>
+            </p>
+
             {error && (
               <p className="auth-error" role="alert">
                 {error}

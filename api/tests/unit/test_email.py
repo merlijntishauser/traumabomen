@@ -12,6 +12,7 @@ from app.email import (
     _send_smtp,
     send_email_background,
     send_feedback_email,
+    send_password_reset_email,
     send_verification_email,
     send_waitlist_approval_email,
 )
@@ -359,3 +360,50 @@ class TestSendEmailBackground:
 
         assert len(started_threads) == 1
         assert started_threads[0].daemon is True
+
+
+class TestSendPasswordResetEmail:
+    @patch("app.email.smtplib.SMTP")
+    def test_sends_email_with_auth(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
+
+        send_password_reset_email("user@example.com", "testtoken123", smtp_settings)
+
+        mock_smtp_cls.assert_called_once_with("smtp.example.com", 587)
+        mock_server.starttls.assert_called_once()
+        mock_server.login.assert_called_once_with("user", "pass")
+        mock_server.sendmail.assert_called_once()
+        args = mock_server.sendmail.call_args
+        assert args[0][0] == "noreply@example.com"
+        assert args[0][1] == "user@example.com"
+
+    @patch("app.email.smtplib.SMTP")
+    def test_email_contains_reset_url(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
+
+        send_password_reset_email("user@example.com", "testtoken123", smtp_settings)
+
+        sent_msg = mock_server.sendmail.call_args[0][2]
+        assert "https://app.example.com/reset-password?token=testtoken123" in sent_msg
+
+    @patch("app.email.smtplib.SMTP")
+    def test_dutch_email_uses_nl_base_url(self, mock_smtp_cls, smtp_settings):
+        smtp_settings.APP_BASE_URL_NL = "https://www.traumabomen.nl"
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
+
+        send_password_reset_email("user@example.com", "testtoken123", smtp_settings, language="nl")
+
+        raw = mock_server.sendmail.call_args[0][2]
+        msg = email.message_from_string(raw)
+        parts = [
+            p.get_payload(decode=True).decode()
+            for p in msg.walk()
+            if p.get_content_type() in ("text/plain", "text/html")
+        ]
+        body = "\n".join(parts)
+        assert "https://www.traumabomen.nl/reset-password?token=testtoken123" in body
+        assert "Traumabomen" in body
+        assert "Wachtwoord resetten" in body

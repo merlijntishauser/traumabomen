@@ -22,11 +22,9 @@ Findings from the March 2026 UX review, prioritised by user impact.
 
 On mobile the login card now renders above the welcome text via CSS `order: -1`, ensuring the form is immediately visible in the first viewport. Desktop side-by-side layout unchanged.
 
-#### UX-2. No password reset flow
+#### ~~UX-2. No password reset flow~~ (done)
 
-There is no "forgot password" link on the login page and no reset mechanism anywhere. Users who forget their account password are permanently locked out with no guidance. (Distinct from passphrase loss, which is unrecoverable by design.)
-
-Fix: add a password reset flow (email link with time-limited token) and a "Forgot password?" link on the login page.
+Password reset via email link: `POST /auth/forgot-password` (anti-enumeration, rate-limited), `POST /auth/reset-password` (token validation, password strength check, single-use). "Forgot your password?" link on login page, ForgotPasswordPage, ResetPasswordPage. EN + NL translations.
 
 ### High
 

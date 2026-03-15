@@ -254,6 +254,48 @@ def send_verification_email(to: str, token: str, settings: Settings, language: s
 
 
 # ---------------------------------------------------------------------------
+# Password reset email
+# ---------------------------------------------------------------------------
+
+_PASSWORD_RESET_STRINGS = {
+    "en": {
+        "heading": "Traumatrees",
+        "body": "Click the button below to reset your account password.",
+        "button": "Reset password",
+        "copy": "Or copy this link:",
+        "expiry": "This link expires in 1 hour. If you did not request a password reset, you can ignore this email.",
+        "subject": "Reset your password",
+        "text_heading": "Traumatrees",
+        "text_body": "Click the link below to reset your password:",
+    },
+    "nl": {
+        "heading": "Traumabomen",
+        "body": "Klik op de knop hieronder om je accountwachtwoord te resetten.",
+        "button": "Wachtwoord resetten",
+        "copy": "Of kopieer deze link:",
+        "expiry": "Deze link verloopt na 1 uur. Als je geen wachtwoordreset hebt aangevraagd, kun je deze e-mail negeren.",
+        "subject": "Reset je wachtwoord",
+        "text_heading": "Traumabomen",
+        "text_body": "Klik op de onderstaande link om je wachtwoord te resetten:",
+    },
+}
+
+
+def send_password_reset_email(
+    to: str, token: str, settings: Settings, language: str = "en"
+) -> None:
+    base_url = _get_base_url(settings, language)
+    _send_cta_email(
+        to,
+        f"{base_url}/reset-password?token={token}",
+        _PASSWORD_RESET_STRINGS,
+        settings,
+        language,
+        "password reset email",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Waitlist approval email
 # ---------------------------------------------------------------------------
 
