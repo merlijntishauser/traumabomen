@@ -277,6 +277,16 @@ async def resend_verification(
     return RegisterResponse(message="verification_email_sent")
 
 
+def _should_skip_password_reset(user: User) -> bool:
+    """Return True if we should silently return without generating a token."""
+    if not user.email_verified:
+        return True
+    if not user.password_reset_expires_at:
+        return False
+    min_expiry = datetime.now(UTC) + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRY_HOURS - 1)
+    return user.password_reset_expires_at > min_expiry
+
+
 @router.post("/forgot-password", response_model=VerifyResponse)
 async def forgot_password(
     request: Request,
@@ -292,13 +302,7 @@ async def forgot_password(
     user = result.scalar_one_or_none()
 
     # Always return success to prevent email enumeration
-    if user is None or not user.email_verified:
-        return VerifyResponse(message="password_reset_email_sent")
-
-    # Don't regenerate if a token was created recently (within last hour)
-    if user.password_reset_expires_at and user.password_reset_expires_at > datetime.now(
-        UTC
-    ) + timedelta(hours=PASSWORD_RESET_TOKEN_EXPIRY_HOURS - 1):
+    if user is None or _should_skip_password_reset(user):
         return VerifyResponse(message="password_reset_email_sent")
 
     token, hashed = _generate_verification_token()
