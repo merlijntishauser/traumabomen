@@ -170,14 +170,14 @@ describe("PersonNode", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders unknown birth year as question mark without age", () => {
-    renderNode(makePerson({ birth_year: null, death_year: null }));
-    expect(screen.getByText("? -")).toBeInTheDocument();
+  it("hides years row when both birth and death year are missing", () => {
+    const { container } = renderNode(makePerson({ birth_year: null, death_year: null }));
+    expect(container.querySelector(".person-node__years")).toBeNull();
   });
 
-  it("renders unknown birth year with known death year without age", () => {
+  it("renders death year only when birth year is missing", () => {
     renderNode(makePerson({ birth_year: null, death_year: 1995 }));
-    expect(screen.getByText("? - 1995")).toBeInTheDocument();
+    expect(screen.getByText("- 1995")).toBeInTheDocument();
   });
 
   it("shows adopted label when is_adopted is true", () => {

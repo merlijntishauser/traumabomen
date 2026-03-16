@@ -44,9 +44,9 @@ Registration step 1 now shows "Choose a stronger password to continue." hint whe
 
 Icon-only action buttons keep their compact 32x32 form with CSS tooltips on hover and focus-visible (keyboard accessible). Primary navigation (ViewTabs) and view-specific tabs (timeline modes) already had visible labels. Responsive: tab labels collapse to icon-only below 960px, title truncates with ellipsis.
 
-#### UX-7. Person node shows "? -" for missing birth year
+#### ~~UX-7. Person node shows "? -" for missing birth year~~ (done)
 
-When a person has no birth year, the node displays "? -". Most users will not understand this notation. Show nothing, or "Birth year unknown".
+When both years are missing, the years row is hidden entirely. When only death year is known, shows "- 1995" without the question mark.
 
 ### Medium
 

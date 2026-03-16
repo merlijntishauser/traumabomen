@@ -31,7 +31,6 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
   const showClassInitials = classifications.length > 1;
   const showTpInitials = turningPoints.length > 1;
 
-  const birthStr = person.birth_year != null ? String(person.birth_year) : "?";
   const age = formatAge(
     person.birth_year,
     person.death_year,
@@ -42,9 +41,15 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
   );
   const agePrefix = person.death_year ? "\u2020\u2009" : "";
   const ageStr = age != null ? ` (${agePrefix}${age})` : "";
-  const yearRange = person.death_year
-    ? `${birthStr} - ${person.death_year}${ageStr}`
-    : `${birthStr} -${ageStr}`;
+
+  let yearRange: string | null = null;
+  if (person.birth_year != null && person.death_year) {
+    yearRange = `${person.birth_year} - ${person.death_year}${ageStr}`;
+  } else if (person.birth_year != null) {
+    yearRange = `${person.birth_year} -${ageStr}`;
+  } else if (person.death_year) {
+    yearRange = `- ${person.death_year}`;
+  }
 
   const classNames = [
     "person-node",
@@ -88,12 +93,16 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
       />
 
       <div className="person-node__name">{person.name}</div>
-      <div className="person-node__years">
-        {yearRange}
-        {person.is_adopted && (
-          <span className="person-node__adopted"> ({t("person.isAdopted").toLowerCase()})</span>
-        )}
-      </div>
+      {(yearRange || person.is_adopted) && (
+        <div className="person-node__years">
+          {yearRange}
+          {person.is_adopted && (
+            <span className="person-node__adopted">
+              {yearRange ? " " : ""}({t("person.isAdopted").toLowerCase()})
+            </span>
+          )}
+        </div>
+      )}
       {(events.length > 0 ||
         lifeEvents.length > 0 ||
         classifications.length > 0 ||
