@@ -84,9 +84,9 @@ No keyboard shortcuts for frequent workspace operations (add person, undo, save)
 
 The "Create demo tree" button is in the toolbar, easy to miss. The onboarding gate mentions demo data but has no direct CTA to create one.
 
-#### UX-16. Theme toggle is cycle-only
+#### ~~UX-16. Theme toggle is cycle-only~~ (done)
 
-The footer theme button cycles through themes. Users cannot directly pick a specific theme from the footer; they must cycle or find the radio buttons in settings.
+Resolved by UX-12: theme toggle removed from footer. The Settings panel radio buttons are the primary control for theme selection.
 
 ## Planned: UI polish (medium priority)
 
