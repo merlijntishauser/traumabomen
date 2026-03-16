@@ -285,6 +285,8 @@
   gap: var(--space-3);
   z-index: 4;
   pointer-events: none;
+  background-image: radial-gradient(var(--color-border-secondary) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .tree-canvas-empty__title {

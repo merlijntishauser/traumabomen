@@ -212,10 +212,10 @@ describe("TreeListPage demo tree", () => {
     return render(<TreeListPage />);
   }
 
-  it("renders demo tree button in toolbar", () => {
+  it("renders demo tree button in toolbar and welcome card", () => {
     mockQueryReturn = { data: [], isLoading: false };
     renderPage();
-    expect(screen.getByText("demo.createButton")).toBeInTheDocument();
+    expect(screen.getAllByText("demo.createButton").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows demo badge on demo trees", () => {

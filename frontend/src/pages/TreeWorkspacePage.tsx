@@ -435,11 +435,19 @@ function useCanvasActions(opts: {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+
       if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (isInput) return;
         e.preventDefault();
         handleUndo();
+      }
+
+      if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (isInput) return;
+        e.preventDefault();
+        handleAddPerson();
       }
     }
     window.addEventListener("keydown", handleKeyDown);

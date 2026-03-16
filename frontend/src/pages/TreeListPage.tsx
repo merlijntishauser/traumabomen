@@ -102,16 +102,20 @@ interface WelcomeCardProps {
   onDismiss: () => void;
   onSendMessage: () => void;
   onCreateTree: () => void;
+  onDemoCreate: () => void;
   showCreateButton: boolean;
   createDisabled: boolean;
+  demoDisabled: boolean;
 }
 
 function WelcomeCard({
   onDismiss,
   onSendMessage,
   onCreateTree,
+  onDemoCreate,
   showCreateButton,
   createDisabled,
+  demoDisabled,
 }: WelcomeCardProps) {
   const { t } = useTranslation();
   return (
@@ -162,6 +166,14 @@ function WelcomeCard({
             {t("welcome.createTree")}
           </button>
         )}
+        <button
+          type="button"
+          className="welcome-card__btn"
+          onClick={onDemoCreate}
+          disabled={demoDisabled}
+        >
+          {t("demo.createButton")}
+        </button>
       </div>
     </div>
   );
@@ -528,8 +540,17 @@ export default function TreeListPage() {
                 onDismiss={dismissWelcome}
                 onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
                 onCreateTree={() => dispatch({ type: "START_CREATING" })}
+                onDemoCreate={() => {
+                  if (demoTreeCount >= MAX_DEMO_TREES) {
+                    dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: true });
+                  } else {
+                    dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: false });
+                    demoMutation.mutate();
+                  }
+                }}
                 showCreateButton={!treesQuery.data || treesQuery.data.length === 0}
                 createDisabled={createMutation.isPending}
+                demoDisabled={demoMutation.isPending}
               />
             )}
 

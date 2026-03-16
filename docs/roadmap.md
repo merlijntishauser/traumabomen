@@ -76,13 +76,13 @@ AuthModal is suppressed on public routes (/privacy, /login, /register, /waitlist
 
 ### Low
 
-#### UX-14. No keyboard shortcuts for canvas actions
+#### ~~UX-14. No keyboard shortcuts for canvas actions~~ (done)
 
-No keyboard shortcuts for frequent workspace operations (add person, undo, save). Slows down power users building large trees.
+Added `N` for add person (was already Ctrl+Z for undo). Both skip when focus is in an input/textarea/select.
 
-#### UX-15. Demo tree button placement
+#### ~~UX-15. Demo tree button placement~~ (done)
 
-The "Create demo tree" button is in the toolbar, easy to miss. The onboarding gate mentions demo data but has no direct CTA to create one.
+Added "Create demo tree" button to the welcome card alongside "Create tree" and "Send message".
 
 #### ~~UX-16. Theme toggle is cycle-only~~ (done)
 
@@ -142,9 +142,9 @@ Increased light theme shadow opacities (sm: 0.06 to 0.12, md: 0.08 to 0.16, lg: 
 
 Set h1 to font-weight 200 (large display), h2 to 300 (default), h3/h4 to 400 (compact headers).
 
-#### UI-C2. No smooth theme transition
+#### ~~UI-C2. No smooth theme transition~~ (done)
 
-Hero images, canvas decorations, and fixed backgrounds snap on theme change rather than crossfading. The color transitions work but the overall switch feels choppy.
+Added `transition: background 0.4s ease` to `.bg-gradient` and `transition: opacity 0.4s ease` to `.branch-decoration`. Auth hero images already had 0.4s opacity transitions.
 
 #### ~~UI-C3. Colophon double-dimmed~~ (done)
 
@@ -162,9 +162,9 @@ Replaced solid accent fill with subtle accent background tint and bottom-border 
 
 Merged email field into the same `auth-field-group` as password and confirm password fields.
 
-#### UI-C7. Empty workspace has no visual anchor
+#### ~~UI-C7. Empty workspace has no visual anchor~~ (done)
 
-The empty canvas shows a small icon + heading + button in a large void. No background grid, dot pattern, or subtle illustration to orient the user in the spatial canvas context.
+Added a subtle dot grid (24px spacing) to the empty canvas background using a radial gradient pattern.
 
 ## ~~Planned: Reflection~~ (done)
 
