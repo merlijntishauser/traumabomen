@@ -169,6 +169,27 @@ describe("RegisterPage", () => {
     expect(btn).toBeDisabled();
   });
 
+  it("shows hint explaining why button is disabled when password is weak", () => {
+    renderPage();
+    fireEvent.change(screen.getByLabelText("auth.password"), {
+      target: { value: "short" },
+    });
+    expect(screen.getByText("auth.passwordWeakHint")).toBeInTheDocument();
+  });
+
+  it("does not show weak password hint when password is empty", () => {
+    renderPage();
+    expect(screen.queryByText("auth.passwordWeakHint")).not.toBeInTheDocument();
+  });
+
+  it("does not show weak password hint when password is strong", () => {
+    renderPage();
+    fireEvent.change(screen.getByLabelText("auth.password"), {
+      target: { value: VALID_PW },
+    });
+    expect(screen.queryByText("auth.passwordWeakHint")).not.toBeInTheDocument();
+  });
+
   it("enables continue button when password is not weak", () => {
     renderPage();
     fireEvent.change(screen.getByLabelText("auth.password"), {

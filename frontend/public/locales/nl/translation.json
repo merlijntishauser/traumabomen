@@ -43,6 +43,7 @@
   "auth.emailNotVerified": "Verifieer je e-mailadres voordat je inlogt",
   "auth.backToLogin": "Terug naar inloggen",
   "auth.passwordTooWeak": "Wachtwoord is te zwak",
+  "auth.passwordWeakHint": "Kies een sterker wachtwoord om door te gaan.",
   "auth.passwordTooLong": "Wachtwoord mag maximaal 64 tekens bevatten",
   "auth.hintLabel": "Je geheugensteun",
   "auth.hintFieldLabel": "Geheugensteun voor versleutelingswachtwoord (optioneel)",

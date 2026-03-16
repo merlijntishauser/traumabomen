@@ -178,6 +178,10 @@ function AccountStepForm({
         </p>
       )}
 
+      {password && getPasswordStrength(password).level === "weak" && (
+        <p className="auth-field__hint">{t("auth.passwordWeakHint")}</p>
+      )}
+
       <button
         className="auth-submit"
         type="submit"

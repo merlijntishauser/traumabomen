@@ -36,9 +36,9 @@ Reusable `PasswordInput` and `PassphraseInput` components with eye/eye-off visib
 
 Replaced plain dots with a labeled step indicator showing numbered circles ("Account", "Encryption", "Confirm") connected by lines. Active step is accent-colored with bold label, done steps show a checkmark, future steps are muted. Accessible `nav` element with aria-label. EN + NL translations.
 
-#### UX-5. Disabled buttons without explaining why
+#### ~~UX-5. Disabled buttons without explaining why~~ (done)
 
-Registration step 1 disables "Continue" when the password is weak, but there is no message explaining why. The strength meter is present but the cause-effect relationship with the button state is unclear.
+Registration step 1 now shows "Choose a stronger password to continue." hint when the password is non-empty and weak, making the cause-effect relationship with the disabled button explicit. EN + NL translations.
 
 #### UX-6. Toolbar icon-only buttons lack discoverability
 
