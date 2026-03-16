@@ -32,9 +32,9 @@ Password reset via email link: `POST /auth/forgot-password` (anti-enumeration, r
 
 Reusable `PasswordInput` and `PassphraseInput` components with eye/eye-off visibility toggles. Applied to all 15 password and passphrase inputs across login, register, unlock, reset password, auth modal, lock screen, and settings (change password/passphrase). `PassphraseInput` wraps `PasswordInput` with `data-1p-ignore` and passphrase-specific aria labels. EN + NL translations.
 
-#### UX-4. Registration step indicator lacks labels
+#### ~~UX-4. Registration step indicator lacks labels~~ (done)
 
-The 3-step registration shows only dots. Users cannot see what is ahead (e.g., "Account > Encryption > Confirm"). Important because step 2 introduces the unfamiliar concept of an encryption passphrase.
+Replaced plain dots with a labeled step indicator showing numbered circles ("Account", "Encryption", "Confirm") connected by lines. Active step is accent-colored with bold label, done steps show a checkmark, future steps are muted. Accessible `nav` element with aria-label. EN + NL translations.
 
 #### UX-5. Disabled buttons without explaining why
 

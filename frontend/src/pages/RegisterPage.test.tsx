@@ -132,11 +132,14 @@ describe("RegisterPage", () => {
     expect(screen.getByTestId("password-strength")).toBeInTheDocument();
   });
 
-  it("renders step indicator dots", () => {
+  it("renders step indicator with labels", () => {
     renderPage();
-    const dots = document.querySelector(".auth-steps");
-    expect(dots).toBeInTheDocument();
-    expect(dots!.querySelectorAll(".auth-steps__dot")).toHaveLength(3);
+    const steps = screen.getByRole("navigation", { name: "auth.stepProgress" });
+    expect(steps).toBeInTheDocument();
+    expect(steps.querySelectorAll(".auth-steps__item")).toHaveLength(3);
+    expect(screen.getByText("auth.stepLabel.account")).toBeInTheDocument();
+    expect(screen.getByText("auth.stepLabel.encryption")).toBeInTheDocument();
+    expect(screen.getByText("auth.stepLabel.confirm")).toBeInTheDocument();
   });
 
   it("renders a link to login page", () => {

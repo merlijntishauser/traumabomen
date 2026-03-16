@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import type React from "react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
@@ -72,18 +73,34 @@ function registerReducer(state: RegisterState, action: RegisterAction): Register
 
 /* -- Sub-components -------------------------------------------------------- */
 
-function StepDots({ currentStep }: { currentStep: Step }) {
+function StepIndicator({ currentStep }: { currentStep: Step }) {
+  const { t } = useTranslation();
   const stepIndex = STEPS.indexOf(currentStep);
   return (
-    <div className="auth-steps" aria-hidden="true">
-      {STEPS.map((s, i) => (
-        <span
-          key={s}
-          className={`auth-steps__dot${i === stepIndex ? " auth-steps__dot--active" : ""}${i < stepIndex ? " auth-steps__dot--done" : ""}`}
-          aria-current={i === stepIndex ? "step" : undefined}
-        />
-      ))}
-    </div>
+    <nav className="auth-steps" aria-label={t("auth.stepProgress")}>
+      {STEPS.map((s, i) => {
+        const isDone = i < stepIndex;
+        const isActive = i === stepIndex;
+        const modifier = isDone
+          ? " auth-steps__item--done"
+          : isActive
+            ? " auth-steps__item--active"
+            : "";
+        return (
+          <div key={s} className={`auth-steps__item${modifier}`}>
+            {i > 0 && (
+              <span
+                className={`auth-steps__line${i <= stepIndex ? " auth-steps__line--done" : ""}`}
+              />
+            )}
+            <span className="auth-steps__circle" aria-current={isActive ? "step" : undefined}>
+              {isDone ? <Check size={12} aria-hidden="true" /> : i + 1}
+            </span>
+            <span className="auth-steps__label">{t(`auth.stepLabel.${s}`)}</span>
+          </div>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -499,7 +516,7 @@ export default function RegisterPage() {
             <Link to="/privacy">{t("landing.readPrivacyPolicy")}</Link>
           </p>
 
-          <StepDots currentStep={step} />
+          <StepIndicator currentStep={step} />
         </div>
       </div>
     </div>
