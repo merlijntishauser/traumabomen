@@ -58,9 +58,9 @@ Welcome banner now hides when the create form is open, eliminating the competing
 
 Delete button moved to a separate danger zone below Save, separated by a divider line.
 
-#### UX-10. No unsaved changes warning
+#### UX-10. No unsaved changes warning (backlog)
 
-Editing person fields and clicking Close or selecting another node silently discards changes. For sensitive data entry this is a meaningful data-loss risk.
+Editing person fields and clicking Close or selecting another node silently discards changes. For sensitive data entry this is a meaningful data-loss risk. Requires dirty state tracking in PersonDetailPanel and a confirmation dialog.
 
 #### ~~UX-11. Gender defaults to "Other"~~ (done)
 
