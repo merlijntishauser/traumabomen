@@ -38,7 +38,6 @@ export function CanvasToolbarButtons({
         aria-label={t("tree.addPerson")}
       >
         <UserPlus size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.add")}</span>
       </button>
       <div className="tree-toolbar__btn-group">
         <button
@@ -49,7 +48,6 @@ export function CanvasToolbarButtons({
           aria-label={t("tree.autoLayout")}
         >
           <LayoutGrid size={14} />
-          <span className="tree-toolbar__btn-label">{t("toolbar.layout")}</span>
         </button>
         <button
           type="button"
@@ -59,7 +57,6 @@ export function CanvasToolbarButtons({
           aria-label={t("tree.undo")}
         >
           <Undo2 size={14} />
-          <span className="tree-toolbar__btn-label">{t("toolbar.undo")}</span>
         </button>
       </div>
       <button
@@ -69,7 +66,6 @@ export function CanvasToolbarButtons({
         aria-label={t("pattern.editPatterns")}
       >
         <Waypoints size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.patterns")}</span>
       </button>
       <button
         type="button"
@@ -78,7 +74,6 @@ export function CanvasToolbarButtons({
         aria-label={t("journal.tab")}
       >
         <BookOpen size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.journal")}</span>
       </button>
     </>
   );

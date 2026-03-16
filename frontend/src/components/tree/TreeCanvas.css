@@ -164,9 +164,10 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  width: 32px;
   height: 32px;
-  padding: 0 var(--space-2);
+  padding: 0;
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-size: 11px;
@@ -175,7 +176,6 @@
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   text-decoration: none;
-  white-space: nowrap;
   transition: var(--transition-colors);
 }
 
@@ -196,43 +196,33 @@
   color: var(--color-accent);
 }
 
-/* Responsive: collapse action button labels first, then tab labels */
-@media (max-width: 1280px) {
-  .tree-toolbar__btn-label {
-    display: none;
-  }
-
-  .tree-toolbar__icon-btn {
-    justify-content: center;
-    width: 32px;
-    padding: 0;
-  }
-
-  .tree-toolbar__icon-btn::after {
-    content: attr(aria-label);
-    display: none;
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border-primary);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-lg);
-    padding: var(--space-1) var(--space-2\.5);
-    white-space: nowrap;
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--color-text-primary);
-    pointer-events: none;
-    z-index: 50;
-  }
-
-  .tree-toolbar__icon-btn:hover::after {
-    display: block;
-  }
+/* Tooltips for icon-only buttons */
+.tree-toolbar__icon-btn::after {
+  content: attr(aria-label);
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-1) var(--space-2\.5);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  pointer-events: none;
+  z-index: 50;
 }
 
+.tree-toolbar__icon-btn:hover::after,
+.tree-toolbar__icon-btn:focus-visible::after {
+  display: block;
+}
+
+/* Responsive: collapse tab labels on narrow screens */
 @media (max-width: 960px) {
   .tree-toolbar__tab-label {
     display: none;

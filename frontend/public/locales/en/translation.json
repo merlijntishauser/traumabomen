@@ -3,18 +3,6 @@
 
   "nav.trees": "My Trees",
   "nav.logout": "Log out",
-
-  "toolbar.add": "Add",
-  "toolbar.layout": "Layout",
-  "toolbar.undo": "Undo",
-  "toolbar.patterns": "Patterns",
-  "toolbar.journal": "Journal",
-  "toolbar.filter": "Filter",
-  "toolbar.home": "Home",
-  "toolbar.import": "Import",
-  "toolbar.theme": "Theme",
-  "toolbar.settings": "Settings",
-  "toolbar.logout": "Log out",
   "nav.language": "Language",
 
   "auth.login": "Log in",

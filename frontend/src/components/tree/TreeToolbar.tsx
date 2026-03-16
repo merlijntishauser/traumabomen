@@ -39,7 +39,6 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
       <div className="tree-toolbar__group">
         <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
           <House size={14} />
-          <span className="tree-toolbar__btn-label">{t("toolbar.home")}</span>
         </Link>
         <SettingsPanel viewTab={viewTab} className="tree-toolbar__icon-btn" />
         <button
@@ -49,7 +48,6 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
           aria-label={t("nav.logout")}
         >
           <LogOut size={14} />
-          <span className="tree-toolbar__btn-label">{t("toolbar.logout")}</span>
         </button>
       </div>
     </div>

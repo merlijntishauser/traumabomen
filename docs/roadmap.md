@@ -42,7 +42,7 @@ Registration step 1 now shows "Choose a stronger password to continue." hint whe
 
 #### ~~UX-6. Toolbar icon-only buttons lack discoverability~~ (done)
 
-All toolbar icon buttons now show visible text labels (Add, Layout, Undo, Patterns, Journal, Home, Settings, Log out) next to their icons, matching the ViewTabs pattern. Removed hover-only CSS tooltips. EN + NL translations.
+Icon-only action buttons keep their compact 32x32 form with CSS tooltips on hover and focus-visible (keyboard accessible). Primary navigation (ViewTabs) and view-specific tabs (timeline modes) already had visible labels. Responsive: tab labels collapse to icon-only below 960px, title truncates with ellipsis.
 
 #### UX-7. Person node shows "? -" for missing birth year
 

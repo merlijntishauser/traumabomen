@@ -64,7 +64,6 @@ export function SettingsPanel({ viewTab, className }: Props) {
         aria-label={t("settings.title")}
       >
         <Settings size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.settings")}</span>
       </button>
 
       {open &&

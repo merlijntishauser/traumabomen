@@ -164,7 +164,6 @@ function ToolbarActionButtons({
         aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
       >
         {showPatterns ? <Eye size={14} /> : <EyeOff size={14} />}
-        <span className="tree-toolbar__btn-label">{t("toolbar.patterns")}</span>
       </button>
       <button
         type="button"
@@ -173,7 +172,6 @@ function ToolbarActionButtons({
         aria-label={t("timeline.filter")}
       >
         <Filter size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.filter")}</span>
         {activeFilterCount > 0 && <span className="tl-filter-badge">{activeFilterCount}</span>}
       </button>
       <button
@@ -183,7 +181,6 @@ function ToolbarActionButtons({
         aria-label={t("journal.tab")}
       >
         <BookOpen size={14} />
-        <span className="tree-toolbar__btn-label">{t("toolbar.journal")}</span>
       </button>
     </>
   );
