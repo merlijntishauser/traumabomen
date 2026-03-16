@@ -10,21 +10,31 @@ import {
 
 test.describe("Settings", () => {
   /**
-   * Open settings panel on the tree list page and switch to Account tab.
-   * We stay on /trees (not the workspace) because the settings panel here
-   * renders in normal DOM flow without portal re-rendering issues.
+   * Open settings modal and navigate to the Security tab.
    */
-  async function openAccountSettings(page: import("@playwright/test").Page) {
+  async function openSecuritySettings(page: import("@playwright/test").Page) {
     await page.getByRole("button", { name: "Settings" }).click();
-    await page.getByRole("button", { name: "Account" }).click();
+    const modal = page.getByRole("dialog", { name: "Settings" });
+    await expect(modal).toBeVisible();
+    await modal.getByRole("button", { name: "Security" }).click();
     await expect(page.getByRole("heading", { name: /change password/i })).toBeVisible();
+  }
+
+  /**
+   * Open settings modal and navigate to the Delete account tab.
+   */
+  async function openDeleteSettings(page: import("@playwright/test").Page) {
+    await page.getByRole("button", { name: "Settings" }).click();
+    const modal = page.getByRole("dialog", { name: "Settings" });
+    await expect(modal).toBeVisible();
+    await modal.getByRole("button", { name: "Delete account" }).click();
   }
 
   test("change password and login with new password", async ({ page }) => {
     const email = uniqueEmail();
     await register(page, email);
 
-    await openAccountSettings(page);
+    await openSecuritySettings(page);
 
     const newPassword = "NewPassword456!";
     await page.getByPlaceholder("Current password").fill(TEST_PASSWORD);
@@ -61,7 +71,7 @@ test.describe("Settings", () => {
     const email = uniqueEmail();
     await register(page, email);
 
-    await openAccountSettings(page);
+    await openSecuritySettings(page);
 
     const newPassphrase = "my-new-secure-passphrase";
     await page.getByPlaceholder("Current passphrase").fill(TEST_PASSPHRASE);
@@ -94,7 +104,7 @@ test.describe("Settings", () => {
     const email = uniqueEmail();
     await register(page, email);
 
-    await openAccountSettings(page);
+    await openDeleteSettings(page);
 
     // Click the initial "Delete account" button to expand confirmation form
     await page.getByRole("button", { name: "Delete account" }).click();
