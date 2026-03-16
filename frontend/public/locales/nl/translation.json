@@ -3,6 +3,15 @@
 
   "nav.trees": "Mijn bomen",
   "nav.logout": "Uitloggen",
+
+  "toolbar.add": "Toevoegen",
+  "toolbar.layout": "Indeling",
+  "toolbar.undo": "Ongedaan",
+  "toolbar.patterns": "Patronen",
+  "toolbar.journal": "Dagboek",
+  "toolbar.home": "Home",
+  "toolbar.settings": "Instellingen",
+  "toolbar.logout": "Uitloggen",
   "nav.language": "Taal",
 
   "auth.login": "Inloggen",

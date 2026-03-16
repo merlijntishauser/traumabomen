@@ -155,13 +155,11 @@
 }
 
 .tree-toolbar__icon-btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
+  gap: 5px;
   height: 32px;
-  padding: 0;
+  padding: 0 var(--space-2);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-size: 11px;
@@ -170,6 +168,7 @@
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   text-decoration: none;
+  white-space: nowrap;
   transition: var(--transition-colors);
 }
 
@@ -188,31 +187,6 @@
   background: var(--color-accent-subtle);
   border-color: var(--color-accent);
   color: var(--color-accent);
-}
-
-/* Toolbar tooltips */
-.tree-toolbar__icon-btn::after {
-  content: attr(aria-label);
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-1) var(--space-2\.5);
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--color-text-primary);
-  pointer-events: none;
-  z-index: 50;
-}
-
-.tree-toolbar__icon-btn:hover::after {
-  display: block;
 }
 
 .tree-canvas-wrapper {

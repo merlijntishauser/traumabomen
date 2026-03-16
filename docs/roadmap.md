@@ -40,9 +40,9 @@ Replaced plain dots with a labeled step indicator showing numbered circles ("Acc
 
 Registration step 1 now shows "Choose a stronger password to continue." hint when the password is non-empty and weak, making the cause-effect relationship with the disabled button explicit. EN + NL translations.
 
-#### UX-6. Toolbar icon-only buttons lack discoverability
+#### ~~UX-6. Toolbar icon-only buttons lack discoverability~~ (done)
 
-The workspace toolbar right section has ~6 icon-only action buttons (auto-layout, undo, edit patterns, journal, my trees, settings, log out). New users must hover each one to learn what they do. The nav tabs on the left have labels; the action buttons do not.
+All toolbar icon buttons now show visible text labels (Add, Layout, Undo, Patterns, Journal, Home, Settings, Log out) next to their icons, matching the ViewTabs pattern. Removed hover-only CSS tooltips. EN + NL translations.
 
 #### UX-7. Person node shows "? -" for missing birth year
 
