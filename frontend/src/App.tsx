@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
 import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";
@@ -145,13 +145,23 @@ function AppContent() {
 
   const hasAccessToken = !!getAccessToken();
   const wasAuth = getWasAuthenticated();
+  const { pathname } = useLocation();
 
-  // Determine auth modal mode
+  const isPublicRoute =
+    pathname === "/privacy" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/waitlist" ||
+    pathname.startsWith("/verify");
+
+  // Determine auth modal mode (skip on public routes)
   let authModalMode: "unlock" | "reauth" | null = null;
-  if (hasAccessToken && !masterKey) {
-    authModalMode = "unlock";
-  } else if (!hasAccessToken && wasAuth) {
-    authModalMode = "reauth";
+  if (!isPublicRoute) {
+    if (hasAccessToken && !masterKey) {
+      authModalMode = "unlock";
+    } else if (!hasAccessToken && wasAuth) {
+      authModalMode = "reauth";
+    }
   }
 
   // Fetch salt when in unlock mode

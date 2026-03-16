@@ -369,6 +369,8 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         <button type="button" className="btn btn--primary" onClick={handleSavePerson}>
           {t("person.save")}
         </button>
+      </div>
+      <div className="detail-panel__danger-zone">
         <ConfirmDeleteButton
           onConfirm={() => onDeletePerson(person.id)}
           label={t("person.delete")}

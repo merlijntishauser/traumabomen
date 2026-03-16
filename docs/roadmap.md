@@ -50,13 +50,13 @@ When both years are missing, the years row is hidden entirely. When only death y
 
 ### Medium
 
-#### UX-8. Welcome banner competes with create form
+#### ~~UX-8. Welcome banner competes with create form~~ (done)
 
-After clicking "Create your first tree" in the welcome banner, the tree name form appears below it. The banner stays visible with its own CTA still showing, creating two competing prompts.
+Welcome banner now hides when the create form is open, eliminating the competing prompts.
 
-#### UX-9. Delete and Save buttons adjacent
+#### ~~UX-9. Delete and Save buttons adjacent~~ (done)
 
-In the person detail panel, "Save" and "Delete" sit next to each other. Spatial separation or placing Delete elsewhere would reduce misclick risk for this sensitive tool. (Color coding already helps.)
+Delete button moved to a separate danger zone below Save, separated by a divider line.
 
 #### UX-10. No unsaved changes warning
 
@@ -70,9 +70,9 @@ New persons now have an empty gender with a disabled "Select" placeholder option
 
 Reduced footer actions from 6 buttons to 2 (lock, feedback). Removed language and theme toggles (already in Settings panel). Moved privacy and GitHub links to the colophon row alongside copyright and license.
 
-#### UX-13. Auth modal blocks public routes
+#### ~~UX-13. Auth modal blocks public routes~~ (done)
 
-When a session expires the AuthModal covers everything, including public pages like /privacy. Users who just want to read the privacy policy are forced to authenticate first.
+AuthModal is suppressed on public routes (/privacy, /login, /register, /waitlist, /verify*).
 
 ### Low
 
@@ -106,9 +106,9 @@ Lightened `--color-text-muted` from `#5a7a64` to `#7a9a84`, reaching WCAG AA 4.5
 
 Increased noise texture opacity from 3.5% to 6% for more visible atmospheric depth.
 
-#### UI-D4. Person node looks bare
+#### ~~UI-D4. Person node looks bare~~ (done)
 
-Node is a dark rectangle with thin border, no interior structure beyond name and "? -" text. No visual weight difference between name and metadata. Lacks the richness of the rest of the UI.
+Added accent top border, bolder name (700 weight), and a separator line above badges for visual structure.
 
 #### ~~UI-D5. Toolbar groups blur together~~ (done)
 
@@ -154,9 +154,9 @@ Removed `opacity: 0.75` from `.app-footer__colophon`. Text already uses `--color
 
 Changed feedback button from pink (`--color-edge-partner`) to muted default style with accent hover, matching other footer buttons.
 
-#### UI-C5. Active nav tab is visually heavy
+#### ~~UI-C5. Active nav tab is visually heavy~~ (done)
 
-The active tab uses solid accent fill + inverse text. In light theme this reads as a heavy teal block. A bottom-border indicator or subtle background tint would be more refined for the app's understated palette.
+Replaced solid accent fill with subtle accent background tint and bottom-border indicator.
 
 #### ~~UI-C6. Registration form input grouping~~ (done)
 

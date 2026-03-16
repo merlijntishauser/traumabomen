@@ -522,15 +522,16 @@ export default function TreeListPage() {
         />
 
         <div className="tree-list-content">
-          {!(treesQuery.data && treesQuery.data.length > 0 && state.welcomeDismissed) && (
-            <WelcomeCard
-              onDismiss={dismissWelcome}
-              onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
-              onCreateTree={() => dispatch({ type: "START_CREATING" })}
-              showCreateButton={!treesQuery.data || treesQuery.data.length === 0}
-              createDisabled={state.creating || createMutation.isPending}
-            />
-          )}
+          {!(treesQuery.data && treesQuery.data.length > 0 && state.welcomeDismissed) &&
+            !state.creating && (
+              <WelcomeCard
+                onDismiss={dismissWelcome}
+                onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
+                onCreateTree={() => dispatch({ type: "START_CREATING" })}
+                showCreateButton={!treesQuery.data || treesQuery.data.length === 0}
+                createDisabled={createMutation.isPending}
+              />
+            )}
 
           {state.creating && (
             <form className="tree-list-create" onSubmit={handleCreateSubmit}>
