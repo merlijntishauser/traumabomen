@@ -315,9 +315,9 @@ function TreeListToolbar({
         onClick={onImportClick}
         disabled={importing}
         aria-label={t("tree.import")}
-        title={t("tree.import")}
       >
         <Upload size={14} />
+        <span className="tree-toolbar__btn-label">{t("toolbar.import")}</span>
       </button>
       <input
         ref={fileInputRef}
@@ -339,6 +339,7 @@ function TreeListToolbar({
         aria-label={t("nav.logout")}
       >
         <LogOut size={14} />
+        <span className="tree-toolbar__btn-label">{t("toolbar.logout")}</span>
       </button>
     </div>
   );

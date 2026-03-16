@@ -10,7 +10,7 @@ const icons: Record<Theme, typeof Sun> = {
   light: Moon,
 };
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, showLabel }: { className?: string; showLabel?: boolean }) {
   const availableThemes = useAvailableThemes();
   const { theme, toggle } = useTheme(availableThemes);
   const { t } = useTranslation();
@@ -19,6 +19,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <button type="button" onClick={toggle} className={className} aria-label={t("theme.toggle")}>
       <Icon size={16} />
+      {showLabel && <span className="tree-toolbar__btn-label">{t("toolbar.theme")}</span>}
     </button>
   );
 }

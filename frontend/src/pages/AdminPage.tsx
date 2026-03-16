@@ -34,13 +34,14 @@ export default function AdminPage() {
         <div className="tree-toolbar__group">
           <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
             <House size={16} />
+            <span className="tree-toolbar__btn-label">{t("toolbar.home")}</span>
           </Link>
         </div>
 
         <div className="tree-toolbar__separator" />
 
         <div className="tree-toolbar__group">
-          <ThemeToggle className="tree-toolbar__icon-btn" />
+          <ThemeToggle className="tree-toolbar__icon-btn" showLabel />
           <button
             type="button"
             className="tree-toolbar__icon-btn"
@@ -48,6 +49,7 @@ export default function AdminPage() {
             aria-label={t("nav.logout")}
           >
             <LogOut size={16} />
+            <span className="tree-toolbar__btn-label">{t("toolbar.logout")}</span>
           </button>
         </div>
       </div>

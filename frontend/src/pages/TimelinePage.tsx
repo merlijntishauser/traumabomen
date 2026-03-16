@@ -77,17 +77,19 @@ function LayoutModeTabs({ layoutMode, onSetLayoutMode }: LayoutModeTabsProps) {
         type="button"
         className={tabClass(layoutMode === "years")}
         onClick={() => onSetLayoutMode("years")}
+        aria-label={t("timeline.years")}
       >
         <Calendar size={14} />
-        {t("timeline.years")}
+        <span className="tree-toolbar__tab-label">{t("timeline.years")}</span>
       </button>
       <button
         type="button"
         className={tabClass(layoutMode === "age")}
         onClick={() => onSetLayoutMode("age")}
+        aria-label={t("timeline.age")}
       >
         <Clock size={14} />
-        {t("timeline.age")}
+        <span className="tree-toolbar__tab-label">{t("timeline.age")}</span>
       </button>
     </div>
   );
@@ -106,21 +108,28 @@ function InteractionModeTabs({ mode, onSetMode }: InteractionModeTabsProps) {
         type="button"
         className={tabClass(mode === "explore")}
         onClick={() => onSetMode("explore")}
+        aria-label={t("timeline.explore")}
       >
         <Search size={14} />
-        {t("timeline.explore")}
+        <span className="tree-toolbar__tab-label">{t("timeline.explore")}</span>
       </button>
-      <button type="button" className={tabClass(mode === "edit")} onClick={() => onSetMode("edit")}>
+      <button
+        type="button"
+        className={tabClass(mode === "edit")}
+        onClick={() => onSetMode("edit")}
+        aria-label={t("timeline.edit")}
+      >
         <Pencil size={14} />
-        {t("timeline.edit")}
+        <span className="tree-toolbar__tab-label">{t("timeline.edit")}</span>
       </button>
       <button
         type="button"
         className={tabClass(mode === "annotate")}
         onClick={() => onSetMode("annotate")}
+        aria-label={t("timeline.annotate")}
       >
         <Waypoints size={14} />
-        {t("timeline.annotate")}
+        <span className="tree-toolbar__tab-label">{t("timeline.annotate")}</span>
       </button>
     </div>
   );
@@ -155,6 +164,7 @@ function ToolbarActionButtons({
         aria-label={showPatterns ? t("timeline.hidePatterns") : t("timeline.showPatterns")}
       >
         {showPatterns ? <Eye size={14} /> : <EyeOff size={14} />}
+        <span className="tree-toolbar__btn-label">{t("toolbar.patterns")}</span>
       </button>
       <button
         type="button"
@@ -163,6 +173,7 @@ function ToolbarActionButtons({
         aria-label={t("timeline.filter")}
       >
         <Filter size={14} />
+        <span className="tree-toolbar__btn-label">{t("toolbar.filter")}</span>
         {activeFilterCount > 0 && <span className="tl-filter-badge">{activeFilterCount}</span>}
       </button>
       <button
@@ -172,6 +183,7 @@ function ToolbarActionButtons({
         aria-label={t("journal.tab")}
       >
         <BookOpen size={14} />
+        <span className="tree-toolbar__btn-label">{t("toolbar.journal")}</span>
       </button>
     </>
   );
