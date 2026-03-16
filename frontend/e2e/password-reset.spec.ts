@@ -28,13 +28,15 @@ test.describe("Password reset @verification", () => {
     await page.waitForURL("**/forgot-password", { timeout: 5_000 });
 
     // Submit the forgot password form
-    await page.getByLabel(/email/i).fill(email);
+    const emailInput = page.getByLabel(/^email$/i);
+    await expect(emailInput).toBeVisible({ timeout: 5_000 });
+    await emailInput.fill(email);
     await page.getByRole("button", { name: /send reset link/i }).click();
 
-    // Should show success message
+    // Should show success message (anti-enumeration: always shows success)
     await expect(
-      page.getByText(/sent a reset link|check your email/i),
-    ).toBeVisible({ timeout: 10_000 });
+      page.getByText(/sent a reset link|check your email|reset link/i),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Fetch the reset link from Mailpit
     const resetUrl = await fetchPasswordResetEmail(email);

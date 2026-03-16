@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { fetchVerificationEmail } from "./mailpit";
 
 export const TEST_PASSWORD = "TestPassword123!";
 export const TEST_PASSPHRASE = "my-secure-test-passphrase";
@@ -49,10 +50,23 @@ export async function register(
     await submitBtn.click();
     const result = await Promise.race([
       page.waitForURL("**/trees", { timeout: 20_000 }).then(() => "ok" as const),
+      page.waitForURL("**/verify-pending", { timeout: 20_000 }).then(() => "verify" as const),
       page.getByText(/registration failed/i).waitFor({ state: "visible", timeout: 20_000 }).then(() => "retry" as const),
       page.getByText(/already exists/i).waitFor({ state: "visible", timeout: 20_000 }).then(() => "exists" as const),
     ]);
     if (result === "ok") break;
+    if (result === "verify") {
+      // Email verification required: fetch link from Mailpit and verify
+      const verifyUrl = await fetchVerificationEmail(email);
+      await page.goto(verifyUrl);
+      await page.waitForURL("**/verify*", { timeout: 10_000 });
+      await page.getByText(/verified|success/i).waitFor({ state: "visible", timeout: 10_000 }).catch(() => {});
+      // After verification, login and unlock
+      await login(page, email);
+      await unlock(page);
+      await dismissOnboarding(page);
+      return;
+    }
     if (result === "exists") {
       // Account was created (e.g. by a parallel worker); login instead
       await login(page, email);
@@ -74,12 +88,12 @@ export async function login(page: Page, email: string): Promise<void> {
 }
 
 export async function unlock(page: Page): Promise<void> {
-  // Wait for AuthModal dialog to appear
-  const modal = page.locator("[role='dialog']");
+  // Wait for AuthModal dialog to appear (target specifically, not any dialog)
+  const modal = page.locator(".auth-modal");
   await modal.waitFor({ state: "visible", timeout: 10_000 });
   await modal.getByLabel(/encryption passphrase/i).fill(TEST_PASSPHRASE);
   await modal.getByRole("button", { name: /unlock/i }).click();
-  // Wait for modal to dismiss after successful unlock
+  // Wait for auth-modal to dismiss after successful unlock
   await modal.waitFor({ state: "hidden", timeout: 30_000 });
 }
 

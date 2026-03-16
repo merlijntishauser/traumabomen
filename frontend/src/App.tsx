@@ -152,6 +152,8 @@ function AppContent() {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/waitlist" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
     pathname.startsWith("/verify");
 
   // Determine auth modal mode (skip on public routes)
