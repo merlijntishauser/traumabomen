@@ -4,6 +4,7 @@ import { AppFooter } from "./AppFooter";
 
 let mockLanguage = "en";
 let mockIsLoggedIn = true;
+const mockChangeLanguage = vi.fn();
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (k: string) => k,
@@ -11,7 +12,7 @@ vi.mock("react-i18next", () => ({
       get language() {
         return mockLanguage;
       },
-      changeLanguage: vi.fn(),
+      changeLanguage: mockChangeLanguage,
     },
   }),
   Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
@@ -34,6 +35,14 @@ vi.mock("react-router-dom", () => ({
     <a href={to} {...rest}>
       {children}
     </a>
+  ),
+}));
+
+vi.mock("./ThemeToggle", () => ({
+  ThemeToggle: ({ className }: { className?: string }) => (
+    <button type="button" className={className}>
+      theme-toggle
+    </button>
   ),
 }));
 
@@ -120,6 +129,28 @@ describe("AppFooter", () => {
     mockIsLoggedIn = true;
     render(<AppFooter />);
     expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
+  });
+
+  it("renders a language toggle button", () => {
+    render(<AppFooter />);
+    expect(screen.getByText("NL")).toBeInTheDocument();
+  });
+
+  it("renders the theme toggle", () => {
+    render(<AppFooter />);
+    expect(screen.getByText("theme-toggle")).toBeInTheDocument();
+  });
+
+  it("toggles language when language button is clicked", () => {
+    render(<AppFooter />);
+    fireEvent.click(screen.getByText("NL"));
+    expect(mockChangeLanguage).toHaveBeenCalledWith("nl");
+  });
+
+  it("shows EN button when language is nl", () => {
+    mockLanguage = "nl";
+    render(<AppFooter />);
+    expect(screen.getByText("EN")).toBeInTheDocument();
   });
 
   it("renders privacy link in colophon", () => {

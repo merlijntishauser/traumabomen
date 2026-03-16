@@ -4,6 +4,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { getAccessToken } from "../lib/api";
 import { FeedbackModal } from "./FeedbackModal";
+import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
 const T_FEEDBACK = "feedback.button";
@@ -86,6 +87,14 @@ export function AppFooter({ onLock }: Props) {
                 <span>{t(T_FEEDBACK)}</span>
               </button>
             )}
+            <button
+              type="button"
+              className="app-footer__btn"
+              onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
+            >
+              {i18n.language === "nl" ? "EN" : "NL"}
+            </button>
+            <ThemeToggle className="app-footer__btn" />
           </div>
         </div>
 
