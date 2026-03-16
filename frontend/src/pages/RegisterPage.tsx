@@ -136,9 +136,6 @@ function AccountStepForm({
             data-1p-allow
           />
         </div>
-      </div>
-
-      <div className="auth-field-group">
         <div className="auth-field">
           <label htmlFor="password">{t("auth.password")}</label>
           <PasswordInput

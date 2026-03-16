@@ -145,7 +145,7 @@ describe("usePromoteMember", () => {
       expect.objectContaining({
         name: "Alice",
         birth_year: 1990,
-        gender: "other",
+        gender: "",
       }),
       TREE_ID,
     );

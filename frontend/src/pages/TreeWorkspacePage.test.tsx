@@ -489,7 +489,7 @@ describe("TreeWorkspacePage", () => {
     expect(mockCreatePersonMutate).toHaveBeenCalledTimes(1);
     const calledWith = mockCreatePersonMutate.mock.calls[0][0];
     expect(calledWith).toHaveProperty("name", "person.newPerson");
-    expect(calledWith).toHaveProperty("gender", "other");
+    expect(calledWith).toHaveProperty("gender", "");
     expect(calledWith).toHaveProperty("is_adopted", false);
     expect(calledWith).toHaveProperty("position");
   });

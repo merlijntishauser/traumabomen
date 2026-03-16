@@ -268,6 +268,9 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
               dispatch({ type: "SET_FIELD", field: "gender", value: e.target.value })
             }
           >
+            <option value="" disabled>
+              {t("person.selectGender")}
+            </option>
             <option value="male">{t("person.male")}</option>
             <option value="female">{t("person.female")}</option>
             <option value="other">{t("person.other")}</option>

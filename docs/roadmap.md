@@ -62,9 +62,9 @@ In the person detail panel, "Save" and "Delete" sit next to each other. Spatial 
 
 Editing person fields and clicking Close or selecting another node silently discards changes. For sensitive data entry this is a meaningful data-loss risk.
 
-#### UX-11. Gender defaults to "Other"
+#### ~~UX-11. Gender defaults to "Other"~~ (done)
 
-When adding a person, gender defaults to "Other." In a family tree context this forces an extra interaction for the majority case. A neutral prompt ("Select") or no default would be better.
+New persons now have an empty gender with a disabled "Select" placeholder option. Users must explicitly choose male, female, or other.
 
 #### ~~UX-12. Footer is overloaded~~ (done)
 
@@ -158,9 +158,9 @@ Changed feedback button from pink (`--color-edge-partner`) to muted default styl
 
 The active tab uses solid accent fill + inverse text. In light theme this reads as a heavy teal block. A bottom-border indicator or subtle background tint would be more refined for the app's understated palette.
 
-#### UI-C6. Registration form input grouping
+#### ~~UI-C6. Registration form input grouping~~ (done)
 
-Password and Confirm Password are visually grouped in a card, but Email is in a separate one. This creates an odd split where the email feels disconnected from the other account creation fields.
+Merged email field into the same `auth-field-group` as password and confirm password fields.
 
 #### UI-C7. Empty workspace has no visual anchor
 

@@ -121,6 +121,7 @@
   "person.delete": "Verwijderen",
   "person.male": "Man",
   "person.female": "Vrouw",
+  "person.selectGender": "Selecteer",
   "person.other": "Anders",
 
   "relationship.type": "Type",
