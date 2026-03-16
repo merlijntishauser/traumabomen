@@ -1,4 +1,4 @@
-import { Lock, Settings, Shield, Trash2, X } from "lucide-react";
+import { Settings, Shield, Trash2, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -20,7 +20,7 @@ interface Props {
   className?: string;
 }
 
-type TabId = "view" | "security" | "autolock" | "delete";
+type TabId = "view" | "security" | "delete";
 
 interface SidebarTab {
   id: TabId;
@@ -58,7 +58,6 @@ export function SettingsPanel({ viewTab, className }: Props) {
   const tabs: SidebarTab[] = [
     { id: "view", label: viewTab.label, icon: <Settings size={16} /> },
     { id: "security", label: t("settings.security"), icon: <Shield size={16} /> },
-    { id: "autolock", label: t("settings.autoLock"), icon: <Lock size={16} /> },
     { id: "delete", label: t("settings.deleteAccount"), icon: <Trash2 size={16} />, danger: true },
   ];
 
@@ -123,10 +122,10 @@ export function SettingsPanel({ viewTab, className }: Props) {
                     <ChangePassphraseSection />
                     <div className="settings-panel__divider" />
                     <PassphraseHintSection />
+                    <div className="settings-panel__divider" />
+                    <AutoLockSection />
                   </>
                 )}
-
-                {tab === "autolock" && <AutoLockSection />}
 
                 {tab === "delete" && <DeleteAccountSection />}
               </div>

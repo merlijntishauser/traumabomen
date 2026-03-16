@@ -517,11 +517,11 @@ describe("SettingsPanel", () => {
       expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("auto-lock tab shows timeout setting", async () => {
+    it("security tab includes auto-lock timeout setting", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToTab(user, "settings.autoLock");
+      await switchToTab(user, "settings.security");
 
       expect(screen.getByText("settings.autoLockTimeout")).toBeInTheDocument();
       expect(
