@@ -97,7 +97,7 @@
 }
 
 .tree-toolbar__separator {
-  width: 1px;
+  width: 2px;
   height: 20px;
   background: var(--color-border-primary);
   flex-shrink: 0;

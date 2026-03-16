@@ -20,7 +20,7 @@
   /* Text */
   --color-text-primary: #e0e8e3;
   --color-text-secondary: #8faa97;
-  --color-text-muted: #5a7a64;
+  --color-text-muted: #7a9a84;
   --color-text-inverse: #0a1a0f;
 
   /* Accent */
@@ -164,7 +164,7 @@
   --color-bg-overlay: rgba(44, 51, 64, 0.35);
 
   --color-border-primary: #d4cec6;
-  --color-border-secondary: #e4dfd9;
+  --color-border-secondary: #d4cfc9;
   --color-border-focus: #4a9bb5;
 
   --color-text-primary: #2c3340;
@@ -172,10 +172,10 @@
   --color-text-muted: #9aa5b2;
   --color-text-inverse: #ffffff;
 
-  --color-accent: #4a9bb5;
-  --color-accent-hover: #3d8499;
-  --color-accent-subtle: rgba(74, 155, 181, 0.08);
-  --color-accent-focus-ring: rgba(74, 155, 181, 0.25);
+  --color-accent: #34a066;
+  --color-accent-hover: #2b8a56;
+  --color-accent-subtle: rgba(52, 160, 102, 0.08);
+  --color-accent-focus-ring: rgba(52, 160, 102, 0.25);
 
   --color-danger: #dc2626;
   --color-danger-bg: rgba(220, 38, 38, 0.06);
@@ -189,7 +189,7 @@
   --color-info-bg: rgba(2, 132, 199, 0.06);
   --color-info-border: rgba(2, 132, 199, 0.2);
 
-  --color-accent-border: rgba(74, 155, 181, 0.3);
+  --color-accent-border: rgba(52, 160, 102, 0.3);
 
   --color-danger-solid: #b91c1c;
   --color-danger-solid-hover: #991b1b;
@@ -239,18 +239,18 @@
 
   --color-node-bg: #ffffff;
   --color-node-border: #d4cec6;
-  --color-node-selected: #4a9bb5;
+  --color-node-selected: #34a066;
   --color-node-handle: #9aa5b2;
 
-  --color-lifebar-fill: rgba(74, 155, 181, 0.12);
-  --color-lifebar-stroke: #4a9bb5;
+  --color-lifebar-fill: rgba(52, 160, 102, 0.12);
+  --color-lifebar-stroke: #34a066;
 
   --color-band-even: rgba(0, 0, 0, 0.02);
   --color-band-odd: transparent;
 
-  --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.06), 0 1px 2px rgba(74, 155, 181, 0.03);
-  --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.08), 0 2px 8px rgba(74, 155, 181, 0.04);
-  --shadow-lg: 0 8px 24px rgba(44, 51, 64, 0.1), 0 4px 16px rgba(74, 155, 181, 0.05);
+  --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.12), 0 1px 2px rgba(52, 160, 102, 0.04);
+  --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.16), 0 2px 8px rgba(52, 160, 102, 0.06);
+  --shadow-lg: 0 8px 24px rgba(44, 51, 64, 0.18), 0 4px 16px rgba(52, 160, 102, 0.08);
 }
 
 /* --- Reset & Base --- */
@@ -305,19 +305,24 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.35;
   color: var(--color-text-primary);
 }
 
 h1 {
   font-size: 1.75rem;
+  font-weight: 200;
 }
 h2 {
   font-size: 1.35rem;
 }
 h3 {
   font-size: 1.1rem;
+  font-weight: 400;
+}
+h4 {
+  font-weight: 400;
 }
 
 a {
@@ -492,7 +497,7 @@ button {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.035;
+  opacity: 0.06;
   pointer-events: none;
   z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -507,5 +512,5 @@ button {
   height: 100%;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.09;
+  opacity: 0.16;
 }

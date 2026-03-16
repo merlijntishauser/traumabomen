@@ -94,65 +94,65 @@ Findings from the March 2026 UI review, covering both dark and light themes.
 
 ### Dark theme
 
-#### UI-D1. Text contrast on glass panels (login/register)
+#### ~~UI-D1. Text contrast on glass panels (login/register)~~ (done)
 
-Welcome panel uses `rgba(10, 26, 15, 0.68)` with `backdrop-filter: blur(20px)`. Secondary text (`#8faa97`) over this translucent background on a variable hero image produces inconsistent contrast that may fall below WCAG AA 4.5:1 in bright image areas.
+Increased glass panel background opacity from 0.68 to 0.80 with backdrop-filter for better text contrast on variable hero images.
 
-#### UI-D2. Muted text is too muted
+#### ~~UI-D2. Muted text is too muted~~ (done)
 
-`--color-text-muted: #5a7a64` on `--color-bg-primary: #0a1a0f` gives ~3.2:1 contrast, below WCAG AA (4.5:1). Used for helper text, char counters, footer, and labels. Footer text at 10-11px is particularly hard to read.
+Lightened `--color-text-muted` from `#5a7a64` to `#7a9a84`, reaching WCAG AA 4.5:1 contrast ratio.
 
-#### UI-D3. Canvas background lacks intended depth
+#### ~~UI-D3. Canvas background lacks intended depth~~ (done)
 
-The `.bg-gradient` radial is at 12% opacity, the noise texture at 3.5%. On typical monitors the canvas reads as solid dark rather than the intended atmospheric depth.
+Increased noise texture opacity from 3.5% to 6% for more visible atmospheric depth.
 
 #### UI-D4. Person node looks bare
 
 Node is a dark rectangle with thin border, no interior structure beyond name and "? -" text. No visual weight difference between name and metadata. Lacks the richness of the rest of the UI.
 
-#### UI-D5. Toolbar groups blur together
+#### ~~UI-D5. Toolbar groups blur together~~ (done)
 
-The 1px separator between nav tabs and action buttons is easy to miss. The toolbar shadow (`rgba(0, 0, 0, 0.25)`) is barely visible against the dark canvas, reducing perceived layering.
+Increased separator width from 1px to 2px for clearer visual grouping.
 
 ### Light theme
 
-#### UI-L1. Accent color diverges between themes
+#### ~~UI-L1. Accent color diverges between themes~~ (done)
 
-Dark theme uses forest green (`#2d8a5e`), light uses teal-blue (`#4a9bb5`). This is a different hue, not a lightness adjustment. Users switching themes may find the identity inconsistent. Affects focus rings, selected states, and all accent-derived UI.
+Unified light theme accent from teal-blue (`#4a9bb5`) to forest green (`#34a066`), matching the dark theme hue. Updated all derived values (subtle, focus-ring, border, lifebar, node-selected, shadows).
 
-#### UI-L2. Canvas decoration lines barely visible
+#### ~~UI-L2. Canvas decoration lines barely visible~~ (done)
 
-BranchDecoration SVG at 9% opacity on `#f4f1ed` canvas appears as faint scratches rather than an intentional design element.
+Increased BranchDecoration opacity from 9% to 16%.
 
-#### UI-L3. Mental health banner blends in
+#### ~~UI-L3. Mental health banner blends in~~ (done)
 
-The banner uses the same surface colors as the page, making it blend in rather than standing out as an important notice. Has more presence on dark theme.
+Added accent left border and subtle accent background to the banner in light theme.
 
-#### UI-L4. Footer border too subtle
+#### ~~UI-L4. Footer border too subtle~~ (done)
 
-`--color-border-secondary: #e4dfd9` is very close to the surface colors. The footer top border nearly disappears.
+Darkened `--color-border-secondary` from `#e4dfd9` to `#d4cfc9`.
 
-#### UI-L5. Shadow system too weak
+#### ~~UI-L5. Shadow system too weak~~ (done)
 
-Light theme shadows (`rgba(44, 51, 64, 0.06)` sm, `0.08` md) are barely perceptible. Panels, cards, and toolbar lack visual lift, making the UI feel flat rather than layered.
+Increased light theme shadow opacities (sm: 0.06 to 0.12, md: 0.08 to 0.16, lg: 0.10 to 0.18).
 
 ### Cross-theme
 
-#### UI-C1. Heading font weight lacks variation
+#### ~~UI-C1. Heading font weight lacks variation~~ (done)
 
-`Playwrite NZ Basic` is set to `font-weight: 400` for all headings. Design intent is 200-300 for large display, 300-400 for compact headers. Everything at 400 loses the weight hierarchy.
+Set h1 to font-weight 200 (large display), h2 to 300 (default), h3/h4 to 400 (compact headers).
 
 #### UI-C2. No smooth theme transition
 
 Hero images, canvas decorations, and fixed backgrounds snap on theme change rather than crossfading. The color transitions work but the overall switch feels choppy.
 
-#### UI-C3. Colophon double-dimmed
+#### ~~UI-C3. Colophon double-dimmed~~ (done)
 
-`.app-footer__colophon` applies `opacity: 0.75` to the row, which contains text already using `--color-text-muted`. The double dimming makes copyright text nearly invisible in both themes.
+Removed `opacity: 0.75` from `.app-footer__colophon`. Text already uses `--color-text-muted`.
 
-#### UI-C4. Feedback button pink is jarring in footer
+#### ~~UI-C4. Feedback button pink is jarring in footer~~ (done)
 
-The feedback button uses `--color-edge-partner` (pink) for its accent. Visually jarring among the otherwise muted footer elements, drawing disproportionate attention for a secondary action.
+Changed feedback button from pink (`--color-edge-partner`) to muted default style with accent hover, matching other footer buttons.
 
 #### UI-C5. Active nav tab is visually heavy
 

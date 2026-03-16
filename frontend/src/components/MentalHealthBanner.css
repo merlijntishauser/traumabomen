@@ -47,3 +47,8 @@
 .mh-banner__close:hover {
   color: var(--color-text-primary);
 }
+
+[data-theme="light"] .mh-banner {
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-accent-subtle);
+}
