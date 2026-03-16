@@ -30,7 +30,7 @@ test.describe("Authentication @smoketest", () => {
 
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill("WrongPassword123!");
+    await page.getByLabel(/^password$/i).fill("WrongPassword123!");
     await page.getByRole("button", { name: /log in/i }).click();
 
     await expect(page.locator(".auth-error")).toBeVisible();
@@ -45,7 +45,7 @@ test.describe("Authentication @smoketest", () => {
     // AuthModal should appear in unlock mode
     const modal = page.locator("[role='dialog']");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await modal.getByLabel(/passphrase/i).fill("wrong-passphrase-value");
+    await modal.getByLabel(/encryption passphrase/i).fill("wrong-passphrase-value");
     await modal.getByRole("button", { name: /unlock/i }).click();
 
     await expect(modal.locator(".auth-error")).toBeVisible();

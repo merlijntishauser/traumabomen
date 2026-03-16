@@ -52,17 +52,20 @@ test.describe("Settings", () => {
       timeout: 10_000,
     });
 
+    // Close settings modal before logging out
+    await page.getByRole("dialog", { name: "Settings" }).getByLabel("Close").click();
+
     // Logout and login with new password
     await logout(page);
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(newPassword);
+    await page.getByLabel(/^password$/i).fill(newPassword);
     await page.getByRole("button", { name: /log in/i }).click();
 
     // Should reach /trees with AuthModal in unlock mode
     const modal = page.locator("[role='dialog']");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await expect(modal.getByLabel(/passphrase/i)).toBeVisible();
+    await expect(modal.getByLabel(/encryption passphrase/i)).toBeVisible();
   });
 
   test("change passphrase and unlock with new passphrase", async ({
@@ -89,13 +92,16 @@ test.describe("Settings", () => {
       timeout: 30_000,
     });
 
+    // Close settings modal before logging out
+    await page.getByRole("dialog", { name: "Settings" }).getByLabel("Close").click();
+
     // Logout and login, unlock with new passphrase via AuthModal
     await logout(page);
     await login(page, email);
 
     const modal = page.locator("[role='dialog']");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await modal.getByLabel(/passphrase/i).fill(newPassphrase);
+    await modal.getByLabel(/encryption passphrase/i).fill(newPassphrase);
     await modal.getByRole("button", { name: /unlock/i }).click();
     await modal.waitFor({ state: "hidden", timeout: 30_000 });
   });
@@ -106,8 +112,9 @@ test.describe("Settings", () => {
 
     await openDeleteSettings(page);
 
-    // Click the initial "Delete account" button to expand confirmation form
-    await page.getByRole("button", { name: "Delete account" }).click();
+    // Click the initial "Delete account" button in the content area to expand
+    const content = page.locator(".settings-modal__content");
+    await content.getByRole("button", { name: "Delete account" }).click();
 
     // Fill confirmation fields
     await page.getByPlaceholder("Type DELETE to confirm").fill("DELETE");
@@ -121,7 +128,7 @@ test.describe("Settings", () => {
 
     // Verify account is deleted (login should fail)
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+    await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
     await page.getByRole("button", { name: /log in/i }).click();
     await expect(page.getByText(/invalid email or password/i)).toBeVisible();
   });

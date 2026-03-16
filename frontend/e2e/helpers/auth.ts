@@ -67,7 +67,7 @@ export async function register(
 export async function login(page: Page, email: string): Promise<void> {
   await page.goto("/login");
   await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+  await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /log in/i }).click();
   // Login now redirects to /trees with AuthModal overlay
   await page.waitForURL("**/trees", { timeout: 10_000 });
@@ -77,7 +77,7 @@ export async function unlock(page: Page): Promise<void> {
   // Wait for AuthModal dialog to appear
   const modal = page.locator("[role='dialog']");
   await modal.waitFor({ state: "visible", timeout: 10_000 });
-  await modal.getByLabel(/passphrase/i).fill(TEST_PASSPHRASE);
+  await modal.getByLabel(/encryption passphrase/i).fill(TEST_PASSPHRASE);
   await modal.getByRole("button", { name: /unlock/i }).click();
   // Wait for modal to dismiss after successful unlock
   await modal.waitFor({ state: "hidden", timeout: 30_000 });

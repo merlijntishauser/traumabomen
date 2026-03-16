@@ -59,7 +59,7 @@ test.describe("Password reset @verification", () => {
 
     // Log in with new password
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(newPassword);
+    await page.getByLabel(/^password$/i).fill(newPassword);
     await page.getByRole("button", { name: /log in/i }).click();
 
     // Should reach /trees (with auth modal overlay)
