@@ -4,7 +4,6 @@ import { AppFooter } from "./AppFooter";
 
 let mockLanguage = "en";
 let mockIsLoggedIn = true;
-const mockChangeLanguage = vi.fn();
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (k: string) => k,
@@ -12,7 +11,7 @@ vi.mock("react-i18next", () => ({
       get language() {
         return mockLanguage;
       },
-      changeLanguage: mockChangeLanguage,
+      changeLanguage: vi.fn(),
     },
   }),
   Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
@@ -35,14 +34,6 @@ vi.mock("react-router-dom", () => ({
     <a href={to} {...rest}>
       {children}
     </a>
-  ),
-}));
-
-vi.mock("./ThemeToggle", () => ({
-  ThemeToggle: ({ className }: { className?: string }) => (
-    <button type="button" className={className}>
-      theme-toggle
-    </button>
   ),
 }));
 
@@ -72,30 +63,9 @@ describe("AppFooter", () => {
     expect(screen.getByText("safety.footer.disclaimer")).toBeInTheDocument();
   });
 
-  it("contains a privacy link", () => {
-    render(<AppFooter />);
-    expect(screen.getByLabelText("safety.footer.privacy")).toBeInTheDocument();
-  });
-
-  it("contains a GitHub link", () => {
-    render(<AppFooter />);
-    expect(screen.getByLabelText("GitHub")).toBeInTheDocument();
-  });
-
-  it("renders a language toggle button", () => {
-    render(<AppFooter />);
-    // When language is "en", button text is "NL"
-    expect(screen.getByText("NL")).toBeInTheDocument();
-  });
-
   it("renders the mental health footer text", () => {
     render(<AppFooter />);
     expect(screen.getByText("mentalHealth.footer")).toBeInTheDocument();
-  });
-
-  it("renders the theme toggle", () => {
-    render(<AppFooter />);
-    expect(screen.getByText("theme-toggle")).toBeInTheDocument();
   });
 
   it("renders lock button when onLock is provided", () => {
@@ -125,18 +95,44 @@ describe("AppFooter", () => {
     expect(screen.getByTestId("feedback-modal")).toBeInTheDocument();
   });
 
-  it("toggles language when language button is clicked", () => {
-    render(<AppFooter />);
-    fireEvent.click(screen.getByText("NL"));
-    expect(mockChangeLanguage).toHaveBeenCalledWith("nl");
-  });
-
   it("closes feedback modal via onClose", () => {
     render(<AppFooter />);
     fireEvent.click(screen.getByLabelText("feedback.button"));
     expect(screen.getByTestId("feedback-modal")).toBeInTheDocument();
     fireEvent.click(screen.getByText("close"));
     expect(screen.queryByTestId("feedback-modal")).not.toBeInTheDocument();
+  });
+
+  it("calls onLock when lock button is clicked", () => {
+    const onLock = vi.fn();
+    render(<AppFooter onLock={onLock} />);
+    fireEvent.click(screen.getByLabelText("safety.footer.lock"));
+    expect(onLock).toHaveBeenCalled();
+  });
+
+  it("hides feedback button when not authenticated", () => {
+    mockIsLoggedIn = false;
+    render(<AppFooter />);
+    expect(screen.queryByLabelText("feedback.button")).not.toBeInTheDocument();
+  });
+
+  it("shows feedback button when authenticated", () => {
+    mockIsLoggedIn = true;
+    render(<AppFooter />);
+    expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
+  });
+
+  it("renders privacy link in colophon", () => {
+    render(<AppFooter />);
+    const colophon = document.querySelector(".app-footer__colophon");
+    expect(colophon?.textContent).toContain("nav.privacy");
+  });
+
+  it("renders GitHub link in colophon", () => {
+    render(<AppFooter />);
+    const githubLink = screen.getByText("GitHub");
+    expect(githubLink.tagName).toBe("A");
+    expect(githubLink).toHaveAttribute("href", "https://github.com/merlijntishauser/traumabomen");
   });
 
   it("renders copyright with current year in colophon", () => {
@@ -200,33 +196,5 @@ describe("AppFooter", () => {
     render(<AppFooter />);
     const version = document.querySelector(".app-footer__version");
     expect(version).toBeNull();
-  });
-
-  it("shows EN button and calls changeLanguage with en when language is nl", () => {
-    mockLanguage = "nl";
-    render(<AppFooter />);
-    const btn = screen.getByText("EN");
-    expect(btn).toBeInTheDocument();
-    fireEvent.click(btn);
-    expect(mockChangeLanguage).toHaveBeenCalledWith("en");
-  });
-
-  it("calls onLock when lock button is clicked", () => {
-    const onLock = vi.fn();
-    render(<AppFooter onLock={onLock} />);
-    fireEvent.click(screen.getByLabelText("safety.footer.lock"));
-    expect(onLock).toHaveBeenCalled();
-  });
-
-  it("hides feedback button when not authenticated", () => {
-    mockIsLoggedIn = false;
-    render(<AppFooter />);
-    expect(screen.queryByLabelText("feedback.button")).not.toBeInTheDocument();
-  });
-
-  it("shows feedback button when authenticated", () => {
-    mockIsLoggedIn = true;
-    render(<AppFooter />);
-    expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
   });
 });

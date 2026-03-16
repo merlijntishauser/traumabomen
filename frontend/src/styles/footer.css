@@ -45,8 +45,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: center;
-  flex-shrink: 1;
+  text-align: right;
+  flex: 1;
   min-width: 0;
 }
 

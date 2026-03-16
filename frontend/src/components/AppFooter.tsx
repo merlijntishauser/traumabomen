@@ -1,10 +1,9 @@
-import { Github, Heart, Lock, MessageSquare, ShieldCheck } from "lucide-react";
+import { Heart, Lock, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { getAccessToken } from "../lib/api";
 import { FeedbackModal } from "./FeedbackModal";
-import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
 const T_FEEDBACK = "feedback.button";
@@ -87,31 +86,6 @@ export function AppFooter({ onLock }: Props) {
                 <span>{t(T_FEEDBACK)}</span>
               </button>
             )}
-            <Link
-              to="/privacy"
-              className="app-footer__btn"
-              aria-label={t("safety.footer.privacy")}
-              title={t("safety.footer.privacy")}
-            >
-              <ShieldCheck size={14} aria-hidden="true" />
-            </Link>
-            <a
-              className="app-footer__btn"
-              href="https://github.com/merlijntishauser/traumabomen"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub"
-            >
-              <Github size={14} />
-            </a>
-            <button
-              type="button"
-              className="app-footer__btn"
-              onClick={() => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl")}
-            >
-              {i18n.language === "nl" ? "EN" : "NL"}
-            </button>
-            <ThemeToggle className="app-footer__btn" />
           </div>
         </div>
 
@@ -124,6 +98,16 @@ export function AppFooter({ onLock }: Props) {
             rel="noopener noreferrer"
           >
             AGPL-3.0
+          </a>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to="/privacy">{t("nav.privacy")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <a
+            href="https://github.com/merlijntishauser/traumabomen"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
           </a>
           {(__APP_VERSION__ || __APP_COMMIT__) && (
             <>

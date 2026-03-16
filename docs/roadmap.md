@@ -66,9 +66,9 @@ Editing person fields and clicking Close or selecting another node silently disc
 
 When adding a person, gender defaults to "Other." In a family tree context this forces an extra interaction for the majority case. A neutral prompt ("Select") or no default would be better.
 
-#### UX-12. Footer is overloaded
+#### ~~UX-12. Footer is overloaded~~ (done)
 
-The footer contains 6-7 interactive elements (lock, feedback, privacy, GitHub, language, theme) plus disclaimer text, mental health resource, and copyright. It is doing too much, especially on mobile.
+Reduced footer actions from 6 buttons to 2 (lock, feedback). Removed language and theme toggles (already in Settings panel). Moved privacy and GitHub links to the colophon row alongside copyright and license.
 
 #### UX-13. Auth modal blocks public routes
 
