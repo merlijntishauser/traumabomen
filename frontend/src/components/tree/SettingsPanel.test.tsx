@@ -153,8 +153,8 @@ async function openPanel(user: ReturnType<typeof userEvent.setup>) {
   await user.click(trigger);
 }
 
-async function switchToAccountTab(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByText("settings.account"));
+async function switchToTab(user: ReturnType<typeof userEvent.setup>, label: string) {
+  await user.click(screen.getByRole("button", { name: label }));
 }
 
 // ---------------------------------------------------------------------------
@@ -183,48 +183,44 @@ describe("SettingsPanel", () => {
       expect(screen.getByRole("button", { name: "settings.title" })).toBeInTheDocument();
     });
 
-    it("clicking trigger opens dropdown panel", async () => {
+    it("clicking trigger opens settings modal", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      expect(screen.getByText("settings.canvas")).toBeInTheDocument();
-      expect(screen.getByText("settings.account")).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("settings.title")).toBeInTheDocument();
     });
 
-    it("clicking trigger again closes dropdown panel", async () => {
+    it("close button closes modal", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      expect(screen.getByText("settings.canvas")).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
 
-      // Click trigger again to close
-      await user.click(screen.getByRole("button", { name: "settings.title" }));
-      expect(screen.queryByText("settings.canvas")).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "common.close" }));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    it("clicking outside closes dropdown", async () => {
+    it("clicking backdrop closes modal", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      expect(screen.getByText("settings.canvas")).toBeInTheDocument();
 
-      // Click on body (outside the dropdown and trigger)
-      // Use fireEvent.mouseDown directly on document.body
-      fireEvent.mouseDown(document.body);
+      const backdrop = document.querySelector(".settings-modal__backdrop") as HTMLElement;
+      fireEvent.click(backdrop);
 
       await waitFor(() => {
-        expect(screen.queryByText("settings.canvas")).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       });
     });
 
-    it("clicking inside dropdown does not close it", async () => {
+    it("clicking inside modal does not close it", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
 
-      // Click inside the dropdown content
-      await user.click(screen.getByText("settings.canvas"));
-      expect(screen.getByText("settings.canvas")).toBeInTheDocument();
+      await user.click(screen.getByText("settings.title"));
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
   });
 
@@ -498,48 +494,34 @@ describe("SettingsPanel", () => {
   // Account tab
   // -----------------------------------------------------------------------
 
-  describe("account tab", () => {
-    it("switching to account tab shows password change form", async () => {
+  describe("sidebar navigation", () => {
+    it("security tab shows password and passphrase forms", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       expect(screen.getByText("account.changePassword")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("account.currentPassword")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("account.newPassword")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("account.confirmNewPassword")).toBeInTheDocument();
-    });
-
-    it("shows passphrase change section", async () => {
-      const user = userEvent.setup();
-      renderPanel();
-      await openPanel(user);
-      await switchToAccountTab(user);
-
       expect(screen.getByText("account.changePassphrase")).toBeInTheDocument();
-      expect(screen.getByText("account.passphraseWarning")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("account.currentPassphrase")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("account.newPassphrase")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("account.confirmNewPassphrase")).toBeInTheDocument();
     });
 
-    it("shows delete account section", async () => {
+    it("delete tab shows delete account section", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // Both the heading and the button contain "account.deleteAccount"
       const elements = screen.getAllByText("account.deleteAccount");
-      expect(elements.length).toBeGreaterThanOrEqual(2);
+      expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("shows auto-lock timeout setting", async () => {
+    it("auto-lock tab shows timeout setting", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.autoLock");
 
       expect(screen.getByText("settings.autoLockTimeout")).toBeInTheDocument();
       expect(
@@ -547,15 +529,15 @@ describe("SettingsPanel", () => {
       ).toBeInTheDocument();
     });
 
-    it("switching back to canvas tab hides account content", async () => {
+    it("switching back to view tab hides security content", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       expect(screen.getByText("account.changePassword")).toBeInTheDocument();
 
-      await user.click(screen.getByText("settings.canvas"));
+      await switchToTab(user, "settings.canvas");
       expect(screen.queryByText("account.changePassword")).not.toBeInTheDocument();
       expect(screen.getByText("canvas.gridSettings")).toBeInTheDocument();
     });
@@ -570,7 +552,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       // There are multiple "common.save" buttons; get the first one (password section)
       const saveButtons = screen.getAllByText("common.save");
@@ -581,7 +563,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
         target: { value: DUMMY_OLD_PW },
@@ -601,7 +583,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
         target: { value: DUMMY_OLD_PW },
@@ -625,7 +607,7 @@ describe("SettingsPanel", () => {
       mockChangePassword.mockResolvedValue(undefined);
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
         target: { value: DUMMY_OLD_PW },
@@ -655,7 +637,7 @@ describe("SettingsPanel", () => {
       mockChangePassword.mockRejectedValue(new Error("failed"));
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
         target: { value: DUMMY_OLD_PW },
@@ -679,7 +661,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassword"), {
         target: { value: DUMMY_OLD_PW },
@@ -699,7 +681,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       // Use a password that is fair (not weak) for the disabled check to pass,
       // but we test the handleChangePassword guard directly by using fireEvent
@@ -727,7 +709,7 @@ describe("SettingsPanel", () => {
       mockChangePassword.mockResolvedValue(undefined);
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       const currentPw = screen.getByPlaceholderText("account.currentPassword");
       const newPw = screen.getByPlaceholderText("account.newPassword");
@@ -759,7 +741,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       const saveButtons = screen.getAllByText("common.save");
       // Second save button is for passphrase
@@ -770,7 +752,7 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -795,7 +777,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "wrongpp" },
@@ -841,7 +823,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -904,7 +886,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -960,7 +942,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       const currentPp = screen.getByPlaceholderText("account.currentPassphrase");
       const newPp = screen.getByPlaceholderText("account.newPassphrase");
@@ -995,7 +977,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -1028,7 +1010,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -1068,7 +1050,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -1124,7 +1106,7 @@ describe("SettingsPanel", () => {
 
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
       fireEvent.change(screen.getByPlaceholderText("account.currentPassphrase"), {
         target: { value: "oldpp" },
@@ -1171,14 +1153,11 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // The delete account button should be visible
       const deleteButtons = screen.getAllByText("account.deleteAccount");
-      // One is the heading h4, the other is the button
-      expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
+      expect(deleteButtons.length).toBeGreaterThanOrEqual(1);
 
-      // Confirmation inputs should NOT be visible
       expect(screen.queryByPlaceholderText("account.deleteConfirmLabel")).not.toBeInTheDocument();
       expect(screen.queryByPlaceholderText("account.deletePassword")).not.toBeInTheDocument();
     });
@@ -1187,9 +1166,8 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // Click the delete button to expand
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
@@ -1203,28 +1181,24 @@ describe("SettingsPanel", () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // Expand delete section
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
       const confirmDeleteButton = screen.getByText("account.deleteButton");
       expect(confirmDeleteButton).toBeDisabled();
 
-      // Type partial confirmation
       fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
         target: { value: "DELET" },
       });
       expect(confirmDeleteButton).toBeDisabled();
 
-      // Type full confirmation but no password
       fireEvent.change(screen.getByPlaceholderText("account.deleteConfirmLabel"), {
         target: { value: "DELETE" },
       });
       expect(confirmDeleteButton).toBeDisabled();
 
-      // Add password
       fireEvent.change(screen.getByPlaceholderText("account.deletePassword"), {
         target: { value: DUMMY_ACCOUNT_PW },
       });
@@ -1236,9 +1210,8 @@ describe("SettingsPanel", () => {
       mockDeleteAccount.mockResolvedValue(undefined);
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // Expand delete section
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
@@ -1262,9 +1235,8 @@ describe("SettingsPanel", () => {
       mockDeleteAccount.mockRejectedValue(new Error("failed"));
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.deleteAccount");
 
-      // Expand delete section
       const dangerButton = screen.getByRole("button", { name: "account.deleteAccount" });
       await user.click(dangerButton);
 
@@ -1281,7 +1253,6 @@ describe("SettingsPanel", () => {
         expect(screen.getByText("account.deleteError")).toBeInTheDocument();
       });
 
-      // logout should NOT have been called
       expect(mockLogout).not.toHaveBeenCalled();
     });
   });
@@ -1291,29 +1262,26 @@ describe("SettingsPanel", () => {
   // -----------------------------------------------------------------------
 
   describe("tab styling", () => {
-    it("canvas tab has active class by default", async () => {
+    it("view tab has active class by default", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
 
-      const canvasTab = screen.getByText("settings.canvas");
-      expect(canvasTab.className).toContain("settings-panel__tab--active");
-
-      const accountTab = screen.getByText("settings.account");
-      expect(accountTab.className).not.toContain("settings-panel__tab--active");
+      const viewTab = screen.getByRole("button", { name: "settings.canvas" });
+      expect(viewTab.className).toContain("settings-modal__nav-item--active");
     });
 
-    it("account tab has active class when selected", async () => {
+    it("security tab has active class when selected", async () => {
       const user = userEvent.setup();
       renderPanel();
       await openPanel(user);
-      await switchToAccountTab(user);
+      await switchToTab(user, "settings.security");
 
-      const canvasTab = screen.getByText("settings.canvas");
-      expect(canvasTab.className).not.toContain("settings-panel__tab--active");
+      const viewTab = screen.getByRole("button", { name: "settings.canvas" });
+      expect(viewTab.className).not.toContain("settings-modal__nav-item--active");
 
-      const accountTab = screen.getByText("settings.account");
-      expect(accountTab.className).toContain("settings-panel__tab--active");
+      const securityTab = screen.getByRole("button", { name: "settings.security" });
+      expect(securityTab.className).toContain("settings-modal__nav-item--active");
     });
   });
 });

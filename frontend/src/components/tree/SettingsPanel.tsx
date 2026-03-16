@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { Lock, Settings, Shield, Trash2, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -20,47 +20,54 @@ interface Props {
   className?: string;
 }
 
+type TabId = "view" | "security" | "autolock" | "delete";
+
+interface SidebarTab {
+  id: TabId;
+  label: string;
+  icon: ReactNode;
+  danger?: boolean;
+}
+
 export function SettingsPanel({ viewTab, className }: Props) {
   const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const [tab, setTab] = useState<TabId>("view");
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  const [tab, setTab] = useState<"view" | "account">("view");
-
+  // Close on Escape
   useEffect(() => {
-    function handleMouseDown(e: MouseEvent) {
-      const target = e.target as Node;
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(target) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target)
-      ) {
-        setOpen(false);
-      }
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
     }
-    document.addEventListener("mousedown", handleMouseDown, true);
-    return () => document.removeEventListener("mousedown", handleMouseDown, true);
-  }, []);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
-  function handleToggle() {
-    if (!open && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
-    }
-    setOpen(!open);
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget) setOpen(false);
   }
+
+  function handleOpen() {
+    setTab("view");
+    setOpen(true);
+  }
+
+  const tabs: SidebarTab[] = [
+    { id: "view", label: viewTab.label, icon: <Settings size={16} /> },
+    { id: "security", label: t("settings.security"), icon: <Shield size={16} /> },
+    { id: "autolock", label: t("settings.autoLock"), icon: <Lock size={16} /> },
+    { id: "delete", label: t("settings.deleteAccount"), icon: <Trash2 size={16} />, danger: true },
+  ];
 
   return (
     <>
       <button
         type="button"
-        ref={triggerRef}
         className={`settings-panel__trigger ${className ?? ""}`}
-        onClick={handleToggle}
+        onClick={handleOpen}
         aria-label={t("settings.title")}
       >
         <Settings size={14} />
@@ -69,43 +76,60 @@ export function SettingsPanel({ viewTab, className }: Props) {
       {open &&
         createPortal(
           <div
-            ref={dropdownRef}
-            className="settings-panel__dropdown"
-            style={{ top: pos.top, right: pos.right }}
+            className="settings-modal__backdrop"
+            onClick={handleBackdropClick}
+            role="presentation"
           >
-            <div className="settings-panel__tabs">
-              <button
-                type="button"
-                className={`settings-panel__tab ${tab === "view" ? "settings-panel__tab--active" : ""}`}
-                onClick={() => setTab("view")}
-              >
-                {viewTab.label}
-              </button>
-              <button
-                type="button"
-                className={`settings-panel__tab ${tab === "account" ? "settings-panel__tab--active" : ""}`}
-                onClick={() => setTab("account")}
-              >
-                {t("settings.account")}
-              </button>
-            </div>
+            <div
+              ref={modalRef}
+              className="settings-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("settings.title")}
+            >
+              <div className="settings-modal__sidebar">
+                <h2 className="settings-modal__title">{t("settings.title")}</h2>
+                <nav className="settings-modal__nav">
+                  {tabs.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`settings-modal__nav-item${tab === item.id ? " settings-modal__nav-item--active" : ""}${item.danger ? " settings-modal__nav-item--danger" : ""}`}
+                      onClick={() => setTab(item.id)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
 
-            <div className="settings-panel__content">
-              {tab === "view" && viewTab.content}
+              <div className="settings-modal__content">
+                <button
+                  type="button"
+                  className="settings-modal__close"
+                  onClick={() => setOpen(false)}
+                  aria-label={t("common.close")}
+                >
+                  <X size={18} />
+                </button>
 
-              {tab === "account" && (
-                <>
-                  <ChangePasswordSection />
-                  <div className="settings-panel__divider" />
-                  <ChangePassphraseSection />
-                  <div className="settings-panel__divider" />
-                  <PassphraseHintSection />
-                  <div className="settings-panel__divider" />
-                  <AutoLockSection />
-                  <div className="settings-panel__divider" />
-                  <DeleteAccountSection />
-                </>
-              )}
+                {tab === "view" && viewTab.content}
+
+                {tab === "security" && (
+                  <>
+                    <ChangePasswordSection />
+                    <div className="settings-panel__divider" />
+                    <ChangePassphraseSection />
+                    <div className="settings-panel__divider" />
+                    <PassphraseHintSection />
+                  </>
+                )}
+
+                {tab === "autolock" && <AutoLockSection />}
+
+                {tab === "delete" && <DeleteAccountSection />}
+              </div>
             </div>
           </div>,
           document.body,
