@@ -310,7 +310,7 @@
 
 @supports (backdrop-filter: blur(1px)) {
   .auth-page--landing .auth-card {
-    background: rgba(10, 26, 15, 0.80);
+    background: rgba(10, 26, 15, 0.8);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
   }
