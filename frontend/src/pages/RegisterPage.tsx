@@ -3,6 +3,8 @@ import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { PassphraseInput } from "../components/PassphraseInput";
+import { PasswordInput } from "../components/PasswordInput";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, register } from "../lib/api";
@@ -122,9 +124,8 @@ function AccountStepForm({
       <div className="auth-field-group">
         <div className="auth-field">
           <label htmlFor="password">{t("auth.password")}</label>
-          <input
+          <PasswordInput
             id="password"
-            type="password"
             required
             maxLength={64}
             value={password}
@@ -138,9 +139,8 @@ function AccountStepForm({
 
         <div className="auth-field">
           <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
-          <input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             required
             value={confirmPassword}
             onChange={(e) =>
@@ -197,25 +197,22 @@ function EncryptionStepForm({
       <div className="auth-field-group">
         <div className="auth-field">
           <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-          <input
+          <PassphraseInput
             id="passphrase"
-            type="password"
             required
             minLength={8}
             value={passphrase}
             onChange={(e) =>
               dispatch({ type: "SET_FIELD", field: "passphrase", value: e.target.value })
             }
-            data-1p-ignore
           />
           <p className="auth-field__hint">{t("auth.passphraseMinLength")}</p>
         </div>
 
         <div className="auth-field">
           <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
-          <input
+          <PassphraseInput
             id="confirmPassphrase"
-            type="password"
             required
             value={confirmPassphrase}
             onChange={(e) =>
@@ -225,7 +222,6 @@ function EncryptionStepForm({
                 value: e.target.value,
               })
             }
-            data-1p-ignore
           />
         </div>
       </div>

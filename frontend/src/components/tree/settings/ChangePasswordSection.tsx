@@ -2,6 +2,7 @@ import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { changePassword } from "../../../lib/api";
 import { getPasswordStrength } from "../../../lib/passwordStrength";
+import { PasswordInput } from "../../PasswordInput";
 import { PasswordStrengthMeter } from "../../PasswordStrengthMeter";
 
 interface PasswordState {
@@ -85,16 +86,14 @@ export function ChangePasswordSection() {
           {state.message.text}
         </div>
       )}
-      <input
-        type="password"
+      <PasswordInput
         className="settings-panel__input"
         placeholder={t("account.currentPassword")}
         value={state.current}
         onChange={(e) => dispatch({ type: "SET_FIELD", field: "current", value: e.target.value })}
         autoComplete="current-password"
       />
-      <input
-        type="password"
+      <PasswordInput
         className="settings-panel__input"
         placeholder={t("account.newPassword")}
         value={state.newPw}
@@ -103,8 +102,7 @@ export function ChangePasswordSection() {
         autoComplete="new-password"
       />
       <PasswordStrengthMeter password={state.newPw} />
-      <input
-        type="password"
+      <PasswordInput
         className="settings-panel__input"
         placeholder={t("account.confirmNewPassword")}
         value={state.confirm}

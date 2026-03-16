@@ -2,6 +2,7 @@ import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { useLogout } from "../../../hooks/useLogout";
 import { deleteAccount } from "../../../lib/api";
+import { PasswordInput } from "../../PasswordInput";
 
 interface DeleteAccountState {
   expanded: boolean;
@@ -93,8 +94,7 @@ export function DeleteAccountSection() {
               dispatch({ type: "SET_FIELD", field: "confirmText", value: e.target.value })
             }
           />
-          <input
-            type="password"
+          <PasswordInput
             className="settings-panel__input"
             placeholder={t("account.deletePassword")}
             value={state.password}

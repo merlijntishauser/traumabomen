@@ -173,6 +173,10 @@
   "common.endYear": "Eindjaar",
   "common.ongoing": "lopend",
   "common.notAvailable": "n.v.t.",
+  "common.showPassword": "Wachtwoord tonen",
+  "common.hidePassword": "Wachtwoord verbergen",
+  "common.showPassphrase": "Wachtwoordzin tonen",
+  "common.hidePassphrase": "Wachtwoordzin verbergen",
 
   "tree.untitled": "Naamloze boom",
   "tree.namePlaceholder": "Naam van de boom",

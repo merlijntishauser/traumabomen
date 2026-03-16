@@ -28,9 +28,9 @@ Password reset via email link: `POST /auth/forgot-password` (anti-enumeration, r
 
 ### High
 
-#### UX-3. No password / passphrase visibility toggle
+#### ~~UX-3. No password / passphrase visibility toggle~~ (done)
 
-None of the password or passphrase fields have show/hide toggles. Users manage two separate credentials (account password + encryption passphrase) and cannot verify what they are typing, increasing misentry risk.
+Reusable `PasswordInput` and `PassphraseInput` components with eye/eye-off visibility toggles. Applied to all 15 password and passphrase inputs across login, register, unlock, reset password, auth modal, lock screen, and settings (change password/passphrase). `PassphraseInput` wraps `PasswordInput` with `data-1p-ignore` and passphrase-specific aria labels. EN + NL translations.
 
 #### UX-4. Registration step indicator lacks labels
 

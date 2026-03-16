@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { ApiError, login as apiLogin, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
+import { PassphraseInput } from "./PassphraseInput";
+import { PasswordInput } from "./PasswordInput";
 import "./AuthModal.css";
 
 interface UnlockResult {
@@ -233,9 +235,8 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
               </div>
               <div className="auth-field">
                 <label htmlFor="auth-modal-password">{t("auth.password")}</label>
-                <input
+                <PasswordInput
                   id="auth-modal-password"
-                  type="password"
                   required
                   value={state.password}
                   onChange={(e) =>
@@ -258,16 +259,14 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
             <form className="auth-modal__form" onSubmit={handlePassphraseSubmit}>
               <div className="auth-field">
                 <label htmlFor="auth-modal-passphrase">{t("auth.passphrase")}</label>
-                <input
+                <PassphraseInput
                   ref={showCredentials ? undefined : inputRef}
                   id="auth-modal-passphrase"
-                  type="password"
                   required
                   value={state.passphrase}
                   onChange={(e) =>
                     dispatch({ type: "SET_FIELD", field: "passphrase", value: e.target.value })
                   }
-                  data-1p-ignore
                 />
               </div>
               {currentHint && (

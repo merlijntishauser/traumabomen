@@ -27,6 +27,7 @@ import {
   generateSalt,
   hashPassphrase,
 } from "../../../lib/crypto";
+import { PassphraseInput } from "../../PassphraseInput";
 
 async function reencryptTree(
   tree: { id: string; encrypted_data: string },
@@ -265,29 +266,23 @@ export function ChangePassphraseSection() {
         </div>
       )}
       {state.progress && <div className="settings-panel__progress">{state.progress}</div>}
-      <input
-        type="password"
+      <PassphraseInput
         className="settings-panel__input"
         placeholder={t("account.currentPassphrase")}
         value={state.current}
         onChange={(e) => dispatch({ type: "SET_FIELD", field: "current", value: e.target.value })}
-        data-1p-ignore
       />
-      <input
-        type="password"
+      <PassphraseInput
         className="settings-panel__input"
         placeholder={t("account.newPassphrase")}
         value={state.newPp}
         onChange={(e) => dispatch({ type: "SET_FIELD", field: "newPp", value: e.target.value })}
-        data-1p-ignore
       />
-      <input
-        type="password"
+      <PassphraseInput
         className="settings-panel__input"
         placeholder={t("account.confirmNewPassphrase")}
         value={state.confirm}
         onChange={(e) => dispatch({ type: "SET_FIELD", field: "confirm", value: e.target.value })}
-        data-1p-ignore
       />
       <button
         type="button"

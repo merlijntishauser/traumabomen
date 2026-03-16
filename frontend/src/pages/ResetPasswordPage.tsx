@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, resetPassword } from "../lib/api";
 import "../styles/auth.css";
 
@@ -85,9 +86,8 @@ export default function ResetPasswordPage() {
 
               <div className="auth-field">
                 <label htmlFor="new-password">{t("auth.newPassword")}</label>
-                <input
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -96,9 +96,8 @@ export default function ResetPasswordPage() {
 
               <div className="auth-field">
                 <label htmlFor="confirm-password">{t("auth.confirmNewPassword")}</label>
-                <input
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
                   required
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}

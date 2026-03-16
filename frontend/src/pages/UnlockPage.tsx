@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
+import { PassphraseInput } from "../components/PassphraseInput";
 import { useEncryption } from "../contexts/useEncryption";
 import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
@@ -134,13 +135,11 @@ export default function UnlockPage() {
           <form onSubmit={handleSubmit}>
             <div className="auth-field">
               <label htmlFor="passphrase">{t("auth.passphrase")}</label>
-              <input
+              <PassphraseInput
                 id="passphrase"
-                type="password"
                 required
                 value={form.passphrase}
                 onChange={(e) => dispatch({ type: "SET_PASSPHRASE", passphrase: e.target.value })}
-                data-1p-ignore
               />
             </div>
 

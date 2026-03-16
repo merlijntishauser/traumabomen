@@ -173,6 +173,10 @@
   "common.endYear": "End year",
   "common.ongoing": "ongoing",
   "common.notAvailable": "n/a",
+  "common.showPassword": "Show password",
+  "common.hidePassword": "Hide password",
+  "common.showPassphrase": "Show passphrase",
+  "common.hidePassphrase": "Hide passphrase",
 
   "tree.untitled": "Untitled tree",
   "tree.namePlaceholder": "Tree name",

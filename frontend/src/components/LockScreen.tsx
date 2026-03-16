@@ -2,6 +2,7 @@ import { Lock } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./LockScreen.css";
+import { PassphraseInput } from "./PassphraseInput";
 
 interface Props {
   wrongAttempts: number;
@@ -92,14 +93,12 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
 
           <form className="lock-screen__form" onSubmit={handleSubmit}>
             <div className="lock-screen__input-wrapper">
-              <input
+              <PassphraseInput
                 ref={inputRef}
-                type="password"
                 className={`lock-screen__input${shaking ? " lock-screen__input--shake" : ""}`}
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 autoComplete="off"
-                data-1p-ignore
               />
             </div>
             <div className="lock-screen__error" role="alert">

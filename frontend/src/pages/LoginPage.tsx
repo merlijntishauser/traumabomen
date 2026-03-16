@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
 import { AuthWelcome } from "../components/AuthWelcome";
+import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, login } from "../lib/api";
 import "../styles/auth.css";
 
@@ -60,9 +61,8 @@ export default function LoginPage() {
 
             <div className="auth-field">
               <label htmlFor="password">{t("auth.password")}</label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
