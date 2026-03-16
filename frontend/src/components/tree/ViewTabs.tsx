@@ -38,12 +38,12 @@ export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
         return tab.view === activeView ? (
           <span key={tab.view} className="tree-toolbar__tab tree-toolbar__tab--active">
             <Icon size={14} />
-            {tab.label}
+            <span className="tree-toolbar__tab-label">{tab.label}</span>
           </span>
         ) : (
-          <Link key={tab.view} to={tab.to} className="tree-toolbar__tab">
+          <Link key={tab.view} to={tab.to} className="tree-toolbar__tab" aria-label={tab.label}>
             <Icon size={14} />
-            {tab.label}
+            <span className="tree-toolbar__tab-label">{tab.label}</span>
           </Link>
         );
       })}
