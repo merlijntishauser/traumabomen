@@ -29,6 +29,8 @@ interface SidebarTab {
   danger?: boolean;
 }
 
+const T_TITLE = "settings.title";
+
 export function SettingsPanel({ viewTab, className }: Props) {
   const { t } = useTranslation();
 
@@ -67,7 +69,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
         type="button"
         className={`settings-panel__trigger ${className ?? ""}`}
         onClick={handleOpen}
-        aria-label={t("settings.title")}
+        aria-label={t(T_TITLE)}
       >
         <Settings size={14} />
       </button>
@@ -84,10 +86,10 @@ export function SettingsPanel({ viewTab, className }: Props) {
               className="settings-modal"
               role="dialog"
               aria-modal="true"
-              aria-label={t("settings.title")}
+              aria-label={t(T_TITLE)}
             >
               <div className="settings-modal__sidebar">
-                <h2 className="settings-modal__title">{t("settings.title")}</h2>
+                <h2 className="settings-modal__title">{t(T_TITLE)}</h2>
                 <nav className="settings-modal__nav">
                   {tabs.map((item) => (
                     <button
