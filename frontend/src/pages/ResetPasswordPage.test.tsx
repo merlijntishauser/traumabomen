@@ -46,7 +46,7 @@ vi.mock("../lib/api", () => ({
   },
 }));
 
-const STUB_CREDENTIAL = "StrongPass123!";
+const TEST_PW = "StrongPass123!";
 
 describe("ResetPasswordPage", () => {
   beforeEach(() => {
@@ -86,17 +86,17 @@ describe("ResetPasswordPage", () => {
   it("calls resetPassword on successful submit", async () => {
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith({
         token: "test-token",
-        new_password: STUB_CREDENTIAL,
+        new_password: TEST_PW,
       });
     });
   });
@@ -104,10 +104,10 @@ describe("ResetPasswordPage", () => {
   it("shows success message after successful reset", async () => {
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 
@@ -121,10 +121,10 @@ describe("ResetPasswordPage", () => {
     mockResetPassword.mockRejectedValueOnce(new ApiError(400, "invalid_or_expired_token"));
     render(<ResetPasswordPage />);
     fireEvent.change(screen.getByLabelText("auth.newPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
-      target: { value: STUB_CREDENTIAL },
+      target: { value: TEST_PW },
     });
     fireEvent.click(screen.getByText("auth.resetPassword"));
 

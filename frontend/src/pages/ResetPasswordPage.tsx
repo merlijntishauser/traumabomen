@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
@@ -6,40 +6,73 @@ import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, resetPassword } from "../lib/api";
 import "../styles/auth.css";
 
+interface ResetState {
+  password: string;
+  confirm: string;
+  loading: boolean;
+  success: boolean;
+  error: string;
+}
+
+type ResetAction =
+  | { type: "SET_PASSWORD"; value: string }
+  | { type: "SET_CONFIRM"; value: string }
+  | { type: "SET_ERROR"; error: string }
+  | { type: "SET_LOADING"; loading: boolean }
+  | { type: "SET_SUCCESS" };
+
+const initialState: ResetState = {
+  password: "",
+  confirm: "",
+  loading: false,
+  success: false,
+  error: "",
+};
+
+function resetReducer(state: ResetState, action: ResetAction): ResetState {
+  switch (action.type) {
+    case "SET_PASSWORD":
+      return { ...state, password: action.value };
+    case "SET_CONFIRM":
+      return { ...state, confirm: action.value };
+    case "SET_ERROR":
+      return { ...state, error: action.error };
+    case "SET_LOADING":
+      return { ...state, loading: action.loading };
+    case "SET_SUCCESS":
+      return { ...state, success: true };
+  }
+}
+
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [state, dispatch] = useReducer(resetReducer, initialState);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    dispatch({ type: "SET_ERROR", error: "" });
 
-    if (password !== confirm) {
-      setError(t("auth.newPasswordMismatch"));
+    if (state.password !== state.confirm) {
+      dispatch({ type: "SET_ERROR", error: t("auth.newPasswordMismatch") });
       return;
     }
 
-    setLoading(true);
+    dispatch({ type: "SET_LOADING", loading: true });
     try {
-      await resetPassword({ token: token!, new_password: password });
-      setSuccess(true);
+      await resetPassword({ token: token!, new_password: state.password });
+      dispatch({ type: "SET_SUCCESS" });
     } catch (err) {
       if (err instanceof ApiError && err.detail === "invalid_or_expired_token") {
-        setError(t("auth.resetPasswordFailed"));
+        dispatch({ type: "SET_ERROR", error: t("auth.resetPasswordFailed") });
       } else if (err instanceof ApiError && err.detail === "password_too_weak") {
-        setError(t("auth.passwordTooWeak"));
+        dispatch({ type: "SET_ERROR", error: t("auth.passwordTooWeak") });
       } else {
-        setError(t("common.error"));
+        dispatch({ type: "SET_ERROR", error: t("common.error") });
       }
     } finally {
-      setLoading(false);
+      dispatch({ type: "SET_LOADING", loading: false });
     }
   }
 
@@ -69,7 +102,7 @@ export default function ResetPasswordPage() {
         <div className="auth-card">
           <h2>{t("auth.resetPasswordTitle")}</h2>
 
-          {success ? (
+          {state.success ? (
             <>
               <p className="auth-success">{t("auth.resetPasswordSuccess")}</p>
               <Link
@@ -89,8 +122,8 @@ export default function ResetPasswordPage() {
                 <PasswordInput
                   id="new-password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={state.password}
+                  onChange={(e) => dispatch({ type: "SET_PASSWORD", value: e.target.value })}
                 />
               </div>
 
@@ -99,19 +132,19 @@ export default function ResetPasswordPage() {
                 <PasswordInput
                   id="confirm-password"
                   required
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+                  value={state.confirm}
+                  onChange={(e) => dispatch({ type: "SET_CONFIRM", value: e.target.value })}
                 />
               </div>
 
-              {error && (
+              {state.error && (
                 <p className="auth-error" role="alert">
-                  {error}
+                  {state.error}
                 </p>
               )}
 
-              <button className="auth-submit" type="submit" disabled={loading}>
-                {loading ? t("common.loading") : t("auth.resetPassword")}
+              <button className="auth-submit" type="submit" disabled={state.loading}>
+                {state.loading ? t("common.loading") : t("auth.resetPassword")}
               </button>
             </form>
           )}
