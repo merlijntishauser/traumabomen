@@ -54,13 +54,16 @@ export default defineConfig({
   ],
   build: {
     sourcemap: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-reactflow": ["@xyflow/react", "dagre"],
-          "vendor-d3": ["d3"],
-          "vendor-query": ["@tanstack/react-query"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (/[\\/]@xyflow[\\/]/.test(id) || /[\\/]dagre[\\/]/.test(id))
+            return "vendor-reactflow";
+          if (/[\\/]@tanstack[\\/]/.test(id)) return "vendor-query";
+          if (/[\\/]d3(-[^\\/]*)?[\\/]/.test(id)) return "vendor-d3";
+          if (/[\\/](react-dom|react-router-dom|react)[\\/]/.test(id))
+            return "vendor-react";
         },
       },
     },
