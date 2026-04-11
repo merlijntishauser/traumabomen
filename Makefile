@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: help up down nuke rebuild logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be test-be-unit test-be-integration coverage e2e e2e-headed e2e-ui e2e-verify \
+.PHONY: help up down nuke rebuild update-deps logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be test-be-unit test-be-integration coverage e2e e2e-headed e2e-ui e2e-verify \
        bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity react-doctor perf-check perf-ratchet \
        perf-seed perf-load perf-metrics perf-report profile-api
 
@@ -25,6 +25,9 @@ nuke: ## Stop all services and delete database volume
 rebuild: ## Rebuild images from scratch and restart
 	docker compose build --pull --no-cache
 	docker compose up -d
+
+update-deps: ## Sync host npm changes into Docker (fixes native bindings)
+	docker compose exec frontend npm ci
 
 logs: ## Follow service logs
 	docker compose logs -f
