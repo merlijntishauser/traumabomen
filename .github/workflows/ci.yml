@@ -140,6 +140,11 @@ jobs:
     name: React Doctor
     needs: [lint-fe, typecheck-fe]
     runs-on: ubuntu-latest
+    env:
+      # Pin react-doctor to a known-good version. The upstream millionco/react-doctor action
+      # invokes react-doctor@latest internally, which makes CI non-reproducible when new
+      # rules ship upstream. Bump this deliberately after reviewing release notes.
+      REACT_DOCTOR_VERSION: "0.0.37"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -150,13 +155,16 @@ jobs:
       - run: npm ci
         working-directory: frontend
       - name: React Doctor
-        id: react_doctor
-        uses: millionco/react-doctor@main
-        with:
-          directory: frontend
-      - name: Check React Doctor score
+        working-directory: frontend
+        env:
+          NO_COLOR: "1"
+        run: npx -y "react-doctor@${REACT_DOCTOR_VERSION}" . --fail-on error --verbose
+      - name: React Doctor score
+        id: react_doctor_score
+        if: always()
+        working-directory: frontend
         run: |
-          score="${{ steps.react_doctor.outputs.score }}"
+          score=$(npx -y "react-doctor@${REACT_DOCTOR_VERSION}" . --score 2>/dev/null | tail -1 | tr -d '[:space:]')
           echo "React Doctor score: ${score:-unknown}/100"
           if [ -z "$score" ] || [ "$score" -lt 100 ]; then
             echo "::error::React Doctor score below 100 (got: ${score:-unknown})"

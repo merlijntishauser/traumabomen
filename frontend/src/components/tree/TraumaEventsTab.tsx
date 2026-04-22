@@ -142,10 +142,10 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
         category: state.category,
         approximate_date: state.approximateDate,
         severity: parseInt(state.severity, 10) || 1,
-        tags: state.tags
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        tags: state.tags.split(",").flatMap((s) => {
+          const trimmed = s.trim();
+          return trimmed ? [trimmed] : [];
+        }),
       },
       Array.from(selectedPersonIds),
     );
