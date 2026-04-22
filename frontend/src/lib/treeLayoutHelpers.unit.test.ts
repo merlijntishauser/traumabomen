@@ -23,6 +23,7 @@ import {
   buildJunctionForks,
   buildPersonNodes,
   buildRelationshipEdges,
+  buildSiblingGroupEdges,
   buildSiblingGroupNodes,
   computeCoupleColors,
   computeFriendY,
@@ -1371,5 +1372,199 @@ describe("buildSiblingGroupNodes", () => {
 
     const nodes = buildSiblingGroupNodes(groups, g);
     expect(nodes).toHaveLength(0);
+  });
+});
+
+// ---- buildSiblingGroupEdges ----
+
+describe("buildSiblingGroupEdges", () => {
+  function graphWithNodes(ids: string[]): dagre.graphlib.Graph {
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({});
+    g.setDefaultEdgeLabel(() => ({}));
+    for (const id of ids) g.setNode(id, { width: 10, height: 10 });
+    return g;
+  }
+
+  it("returns empty when no sibling groups are provided", () => {
+    const g = graphWithNodes(["p1"]);
+    expect(buildSiblingGroupEdges(new Map(), new Map(), g)).toEqual([]);
+  });
+
+  it("returns empty when group has no person_ids", () => {
+    const g = graphWithNodes(["p1"]);
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", []));
+    expect(buildSiblingGroupEdges(groups, new Map(), g)).toEqual([]);
+  });
+
+  it("returns empty when sibling-group node is not yet in the graph", () => {
+    const g = graphWithNodes(["p1"]); // no "sibling-group-sg1"
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["p1"]));
+    expect(buildSiblingGroupEdges(groups, new Map(), g)).toEqual([]);
+  });
+
+  it("connects sibling-group node to the first in-graph parent", () => {
+    const g = graphWithNodes(["parent", "child", "sibling-group-sg1"]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["child"]));
+
+    const edges = buildSiblingGroupEdges(groups, rels, g);
+    expect(edges).toHaveLength(1);
+    expect(edges[0]).toMatchObject({
+      id: "edge-sg-sg1",
+      source: "parent",
+      target: "sibling-group-sg1",
+    });
+    // Edges are dashed overlays.
+    expect(edges[0].style?.strokeDasharray).toBe("6 3");
+  });
+
+  it("falls back to the first person in the group when no parent is in-graph", () => {
+    // Group member has a parent, but that parent is missing from the graph, so
+    // the fallback source is the first person in the group.
+    const g = graphWithNodes(["child", "sibling-group-sg1"]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "orphaned-parent", "child"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["child"]));
+
+    const edges = buildSiblingGroupEdges(groups, rels, g);
+    expect(edges).toHaveLength(1);
+    expect(edges[0].source).toBe("child");
+    expect(edges[0].target).toBe("sibling-group-sg1");
+  });
+
+  it("falls back to first person when relationships have no parent entries at all", () => {
+    const g = graphWithNodes(["solo", "sibling-group-sg1"]);
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["solo"]));
+    const edges = buildSiblingGroupEdges(groups, new Map(), g);
+    expect(edges).toHaveLength(1);
+    expect(edges[0].source).toBe("solo");
+  });
+
+  it("emits one edge per group across a mixed batch", () => {
+    const g = graphWithNodes([
+      "parentA",
+      "childA",
+      "childB",
+      "sibling-group-sg1",
+      "sibling-group-sg2",
+    ]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "parentA", "childA"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["childA"]));
+    groups.set("sg2", makeSiblingGroup("sg2", ["childB"]));
+
+    const edges = buildSiblingGroupEdges(groups, rels, g);
+    expect(edges).toHaveLength(2);
+    const byTarget = new Map(edges.map((e) => [e.target, e.source]));
+    expect(byTarget.get("sibling-group-sg1")).toBe("parentA");
+    expect(byTarget.get("sibling-group-sg2")).toBe("childB");
+  });
+});
+
+// ---- layoutDagreGraph: overlap resolution ----
+
+describe("layoutDagreGraph overlap resolution", () => {
+  it("separates siblings that dagre placed at an identical x on the same rank", () => {
+    // Two children of one parent end up at the same x after partner-pair
+    // alignment in pathological cases. resolveOverlaps should push the second
+    // sibling to the right by at least NODE_WIDTH + 20.
+    const persons = new Map<string, DecryptedPerson>([
+      ["mum", makePerson("mum", "Mum")],
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "mum", "a"));
+    rels.set("r2", makeRel("r2", RelationshipType.BiologicalParent, "mum", "b"));
+
+    const { graph } = layoutDagreGraph(persons, rels, new Set());
+    const na = graph.node("a");
+    const nb = graph.node("b");
+    expect(na).toBeDefined();
+    expect(nb).toBeDefined();
+    // After resolveOverlaps, siblings on the same rank must be at least
+    // NODE_WIDTH + 20 apart.
+    const [left, right] = na.x <= nb.x ? [na, nb] : [nb, na];
+    expect(right.x - left.x).toBeGreaterThanOrEqual(NODE_WIDTH + 20);
+  });
+
+  it("attaches the sibling group to an in-graph parent when one exists", () => {
+    const persons = new Map<string, DecryptedPerson>([
+      ["mum", makePerson("mum", "Mum")],
+      ["a", makePerson("a", "A")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "mum", "a"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["a"]));
+
+    const { graph } = layoutDagreGraph(persons, rels, new Set(), undefined, groups);
+    expect(graph.hasNode("sibling-group-sg1")).toBe(true);
+    // Edge should originate at the parent, not at the sibling itself.
+    const inEdges = graph.inEdges("sibling-group-sg1") ?? [];
+    expect(inEdges.some((e) => e.v === "mum")).toBe(true);
+  });
+
+  it("anchors sibling group to first person when no parent is present in the graph", () => {
+    // No parent relationships: addSiblingGroupNodes' fallback path fires
+    // (setEdge with minlen: 0 at line 314).
+    const persons = new Map<string, DecryptedPerson>([["loner", makePerson("loner", "Loner")]]);
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["loner"]));
+
+    const { graph } = layoutDagreGraph(persons, new Map(), new Set(), undefined, groups);
+    expect(graph.hasNode("sibling-group-sg1")).toBe(true);
+    const inEdges = graph.inEdges("sibling-group-sg1") ?? [];
+    // Edge originates at the loner (the fallback anchor).
+    expect(inEdges.some((e) => e.v === "loner")).toBe(true);
+  });
+
+  it("spreads overlapping siblings on the same rank when dagre stacks them", () => {
+    // With many siblings sharing a single parent, dagre often crowds the row.
+    // resolveOverlaps must ensure a minimum horizontal gap between every pair.
+    const persons = new Map<string, DecryptedPerson>();
+    const rels = new Map<string, DecryptedRelationship>();
+    persons.set("mum", makePerson("mum", "Mum"));
+    for (let i = 0; i < 6; i++) {
+      const id = `c${i}`;
+      persons.set(id, makePerson(id, `C${i}`));
+      rels.set(`r-${id}`, makeRel(`r-${id}`, RelationshipType.BiologicalParent, "mum", id));
+    }
+
+    const { graph } = layoutDagreGraph(persons, rels, new Set());
+    const xs = [0, 1, 2, 3, 4, 5].map((i) => graph.node(`c${i}`)!.x).sort((a, b) => a - b);
+    for (let i = 1; i < xs.length; i++) {
+      // Each consecutive sibling is at least NODE_WIDTH apart — proves the
+      // overlap-resolution pass ran (line 406 territory).
+      expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(NODE_WIDTH - 1);
+    }
+  });
+
+  it("aligns partners on the same y coordinate after layout", () => {
+    // Partner edges feed partnerPairs; layoutDagreGraph averages their y via
+    // alignPartnerPair (line 358-359).
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+      ["c", makePerson("c", "Child")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r-partner", makeRel("r-partner", RelationshipType.Partner, "a", "b"));
+    rels.set("r-a", makeRel("r-a", RelationshipType.BiologicalParent, "a", "c"));
+    rels.set("r-b", makeRel("r-b", RelationshipType.BiologicalParent, "b", "c"));
+
+    const { graph, partnerPairs } = layoutDagreGraph(persons, rels, new Set());
+    expect(partnerPairs.length).toBeGreaterThan(0);
+    const na = graph.node("a");
+    const nb = graph.node("b");
+    expect(na.y).toBe(nb.y);
   });
 });

@@ -2231,4 +2231,90 @@ describe("PersonDetailPanel", () => {
       });
     });
   });
+
+  describe("tab selection", () => {
+    it("maps initialSection='person' to the person tab", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} initialSection="person" />);
+      const personTab = screen.getByRole("tab", { name: /person.tab/ });
+      expect(personTab).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("maps initialSection='relationships' to the relationships tab", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} initialSection="relationships" />);
+      const relsTab = screen.getByRole("tab", { name: /relationship.tab/ });
+      expect(relsTab).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("maps initialSection='life_event' to the events tab with life sub-tab", () => {
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent()];
+      render(<PersonDetailPanel {...props} initialSection="life_event" />);
+      const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+      expect(eventsTab).toHaveAttribute("aria-selected", "true");
+      // Life event title should be visible; sub-tab defaulted to life
+      expect(screen.getByText("Graduation")).toBeInTheDocument();
+    });
+
+    it("switches back to the person tab when clicked", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent()];
+      render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
+      // Starts on events tab
+      const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
+      expect(eventsTab).toHaveAttribute("aria-selected", "true");
+
+      await user.click(screen.getByRole("tab", { name: /person.tab/ }));
+      const personTab = screen.getByRole("tab", { name: /person.tab/ });
+      expect(personTab).toHaveAttribute("aria-selected", "true");
+      expect(eventsTab).toHaveAttribute("aria-selected", "false");
+    });
+
+    it("resets the active tab and event sub-tab when initialSection prop changes", () => {
+      const props = defaultProps();
+      props.events = [makeEvent()];
+      props.lifeEvents = [makeLifeEvent()];
+      props.turningPoints = [makeTurningPoint()];
+      const { rerender } = render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
+      expect(screen.getByRole("tab", { name: /events.tab/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      // Trauma sub-tab selected: event title visible.
+      expect(screen.getByText("Test Event")).toBeInTheDocument();
+
+      // Re-render with a different initialSection — mid-render effect should
+      // switch the active tab *and* the events sub-tab.
+      rerender(<PersonDetailPanel {...props} initialSection="turning_point" />);
+      expect(screen.getByRole("tab", { name: /events.tab/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
+
+      // Switching to relationships should change the active tab.
+      rerender(<PersonDetailPanel {...props} initialSection="relationships" />);
+      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+    });
+
+    it("ignores initialSection changes that are undefined", () => {
+      const props = defaultProps();
+      const { rerender } = render(<PersonDetailPanel {...props} initialSection="relationships" />);
+      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      // Removing initialSection should not force a reset — the current tab stays.
+      rerender(<PersonDetailPanel {...props} />);
+      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+    });
+  });
 });

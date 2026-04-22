@@ -5,8 +5,9 @@ import type {
   DecryptedEvent,
   DecryptedLifeEvent,
   DecryptedPerson,
+  DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { LifeEventCategory, TraumaCategory } from "../../types/domain";
+import { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
 import { MarkerDetailCard } from "./MarkerDetailCard";
 
 vi.mock("react-i18next", () => ({
@@ -319,6 +320,126 @@ describe("MarkerDetailCard", () => {
     const details = container.querySelectorAll(".tl-summary-card__detail");
     expect(details).toHaveLength(1);
     expect(details[0].textContent).toBe("1990");
+  });
+
+  it("renders turning point details", () => {
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      [
+        "tp1",
+        {
+          id: "tp1",
+          person_ids: ["p1"],
+          title: "Started therapy",
+          description: "",
+          category: TurningPointCategory.Recovery,
+          approximate_date: "2018",
+          significance: 8,
+          tags: [],
+        },
+      ],
+    ]);
+    render(
+      <MarkerDetailCard
+        info={{ personId: "p1", entityType: "turning_point", entityId: "tp1" }}
+        persons={persons}
+        events={emptyEvents}
+        lifeEvents={emptyLifeEvents}
+        turningPoints={turningPoints}
+        classifications={emptyClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Started therapy")).toBeTruthy();
+    expect(screen.getByText("turningPoint.category.recovery")).toBeTruthy();
+    expect(screen.getByText("2018")).toBeTruthy();
+    expect(screen.getByText("significance: 8")).toBeTruthy();
+    expect(screen.getByText("Alice")).toBeTruthy();
+  });
+
+  it("returns null when turning point is not in the map", () => {
+    const { container } = render(
+      <MarkerDetailCard
+        info={{ personId: "p1", entityType: "turning_point", entityId: "missing" }}
+        persons={persons}
+        events={emptyEvents}
+        lifeEvents={emptyLifeEvents}
+        turningPoints={new Map()}
+        classifications={emptyClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(container.querySelector(".tl-summary-card")).toBeNull();
+  });
+
+  it("returns null when turningPoints map prop is undefined", () => {
+    const { container } = render(
+      <MarkerDetailCard
+        info={{ personId: "p1", entityType: "turning_point", entityId: "tp1" }}
+        persons={persons}
+        events={emptyEvents}
+        lifeEvents={emptyLifeEvents}
+        classifications={emptyClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(container.querySelector(".tl-summary-card")).toBeNull();
+  });
+
+  it("hides significance row when turning point significance is null or zero", () => {
+    const turningPoints = new Map<string, DecryptedTurningPoint>([
+      [
+        "tp2",
+        {
+          id: "tp2",
+          person_ids: ["p1"],
+          title: "Low-key moment",
+          description: "",
+          category: TurningPointCategory.PositiveChange,
+          approximate_date: "2020",
+          significance: null,
+          tags: [],
+        },
+      ],
+      [
+        "tp3",
+        {
+          id: "tp3",
+          person_ids: ["p1"],
+          title: "Zero-significance",
+          description: "",
+          category: TurningPointCategory.PositiveChange,
+          approximate_date: "2021",
+          significance: 0,
+          tags: [],
+        },
+      ],
+    ]);
+
+    const { rerender, container } = render(
+      <MarkerDetailCard
+        info={{ personId: "p1", entityType: "turning_point", entityId: "tp2" }}
+        persons={persons}
+        events={emptyEvents}
+        lifeEvents={emptyLifeEvents}
+        turningPoints={turningPoints}
+        classifications={emptyClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(container.querySelectorAll(".tl-summary-card__detail")).toHaveLength(1);
+
+    rerender(
+      <MarkerDetailCard
+        info={{ personId: "p1", entityType: "turning_point", entityId: "tp3" }}
+        persons={persons}
+        events={emptyEvents}
+        lifeEvents={emptyLifeEvents}
+        turningPoints={turningPoints}
+        classifications={emptyClassifications}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(container.querySelectorAll(".tl-summary-card__detail")).toHaveLength(1);
   });
 
   it("hides severity row when trauma event severity is zero", () => {

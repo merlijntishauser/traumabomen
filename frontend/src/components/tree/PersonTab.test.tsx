@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
@@ -241,6 +241,135 @@ describe("PersonTab", () => {
       await user.click(screen.getByText("person.save"));
 
       expect(onSavePerson.mock.calls[0][0].gender).toBe("other");
+    });
+  });
+
+  describe("person prop changes reset the form", () => {
+    it("resets edited fields when a different person is passed in", () => {
+      const onSavePerson = vi.fn();
+      const onDeletePerson = vi.fn();
+      const { rerender } = render(
+        <PersonTab
+          person={makePerson({ id: "p1", name: "Alice" })}
+          onSavePerson={onSavePerson}
+          onDeletePerson={onDeletePerson}
+        />,
+      );
+      // Edit the name via fireEvent.change to avoid the onFocus selection
+      // handler interfering with keyboard-simulated typing.
+      fireEvent.change(screen.getByDisplayValue("Alice"), { target: { value: "Edited" } });
+      expect(screen.getByDisplayValue("Edited")).toBeInTheDocument();
+
+      // Switching to a different person should blow away the dirty state.
+      rerender(
+        <PersonTab
+          person={makePerson({ id: "p2", name: "Carol", birth_year: 1975 })}
+          onSavePerson={onSavePerson}
+          onDeletePerson={onDeletePerson}
+        />,
+      );
+      expect(screen.queryByDisplayValue("Edited")).not.toBeInTheDocument();
+      expect(screen.getByDisplayValue("Carol")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("1975")).toBeInTheDocument();
+    });
+
+    it("does not reset when the same person prop is re-rendered", () => {
+      const onSavePerson = vi.fn();
+      const onDeletePerson = vi.fn();
+      const person = makePerson({ id: "p1", name: "Alice" });
+      const { rerender } = render(
+        <PersonTab person={person} onSavePerson={onSavePerson} onDeletePerson={onDeletePerson} />,
+      );
+      fireEvent.change(screen.getByDisplayValue("Alice"), { target: { value: "Edited" } });
+      rerender(
+        <PersonTab person={person} onSavePerson={onSavePerson} onDeletePerson={onDeletePerson} />,
+      );
+      // Edit survives because the person key didn't change.
+      expect(screen.getByDisplayValue("Edited")).toBeInTheDocument();
+    });
+  });
+
+  describe("death fields", () => {
+    it("renders and saves cause of death once a death year is set", async () => {
+      const user = userEvent.setup();
+      const { onSavePerson } = renderTab({ birth_year: 1950 });
+
+      // Cause-of-death input is hidden until a death year is entered.
+      expect(screen.queryByText("person.causeOfDeath")).not.toBeInTheDocument();
+
+      const deathYearInput = screen.getByPlaceholderText("---");
+      await user.type(deathYearInput, "2020");
+
+      const causeLabel = screen.getByText("person.causeOfDeath");
+      const causeInput = causeLabel.parentElement!.querySelector("input")!;
+      await user.type(causeInput, "illness");
+
+      await user.click(screen.getByText("person.save"));
+      const saved = onSavePerson.mock.calls[0][0] as Person;
+      expect(saved.death_year).toBe(2020);
+      expect(saved.cause_of_death).toBe("illness");
+    });
+
+    it("saves death month and day when selected", async () => {
+      const user = userEvent.setup();
+      const { onSavePerson } = renderTab({
+        birth_year: 1950,
+        death_year: 2020,
+      });
+
+      const deathMonthLabel = screen.getByText("person.deathMonth").parentElement as HTMLElement;
+      const deathMonthSelect = within(deathMonthLabel).getByRole("combobox") as HTMLSelectElement;
+      await user.selectOptions(deathMonthSelect, "7");
+
+      const deathDayLabel = screen.getByText("person.deathDay").parentElement as HTMLElement;
+      const deathDaySelect = within(deathDayLabel).getByRole("combobox") as HTMLSelectElement;
+      await user.selectOptions(deathDaySelect, "15");
+
+      await user.click(screen.getByText("person.save"));
+      const saved = onSavePerson.mock.calls[0][0] as Person;
+      expect(saved.death_year).toBe(2020);
+      expect(saved.death_month).toBe(7);
+      expect(saved.death_day).toBe(15);
+    });
+
+    it("clears death month and day when death year is removed", async () => {
+      const user = userEvent.setup();
+      renderTab({ birth_year: 1950, death_year: 2020, death_month: 6, death_day: 15 });
+
+      expect(screen.getByText("person.deathMonth")).toBeInTheDocument();
+
+      const deathYearInput = screen.getByDisplayValue("2020");
+      await user.clear(deathYearInput);
+
+      expect(screen.queryByText("person.deathMonth")).not.toBeInTheDocument();
+      expect(screen.queryByText("person.deathDay")).not.toBeInTheDocument();
+      expect(screen.queryByText("person.causeOfDeath")).not.toBeInTheDocument();
+    });
+
+    it("clears death day when death month is changed back to empty", async () => {
+      const user = userEvent.setup();
+      renderTab({ birth_year: 1950, death_year: 2020, death_month: 6, death_day: 15 });
+
+      const deathMonthLabel = screen.getByText("person.deathMonth").parentElement as HTMLElement;
+      const deathMonthSelect = within(deathMonthLabel).getByRole("combobox") as HTMLSelectElement;
+      await user.selectOptions(deathMonthSelect, ""); // back to ---
+
+      expect(screen.queryByText("person.deathDay")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("birth day field", () => {
+    it("persists the birth day selection when saved", async () => {
+      const user = userEvent.setup();
+      const { onSavePerson } = renderTab({ birth_year: 1990, birth_month: 6 });
+
+      const birthDayLabel = screen.getByText("person.birthDay").parentElement as HTMLElement;
+      const birthDaySelect = within(birthDayLabel).getByRole("combobox") as HTMLSelectElement;
+      await user.selectOptions(birthDaySelect, "15");
+
+      await user.click(screen.getByText("person.save"));
+      const saved = onSavePerson.mock.calls[0][0] as Person;
+      expect(saved.birth_day).toBe(15);
     });
   });
 });
