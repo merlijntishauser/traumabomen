@@ -389,8 +389,10 @@ function TraumaMarkersInner({ ctx, events }: TraumaMarkersProps) {
         const { x: mx, y: my } = orientation.pointAt(year);
         const primaryPos = orientation.primaryPos(year);
         const linkedNames = event.person_ids
-          .map((pid) => persons.get(pid)?.name)
-          .filter(Boolean)
+          .flatMap((pid) => {
+            const name = persons.get(pid)?.name;
+            return name ? [name] : [];
+          })
           .join(", ");
 
         const isMarkerDimmed = dims?.dimmedEventIds.has(event.id);
@@ -486,8 +488,10 @@ function TurningPointMarkersInner({ ctx, turningPoints }: TurningPointMarkersPro
         const path = starPath(mx, my, r);
 
         const linkedNames = tp.person_ids
-          .map((pid) => persons.get(pid)?.name)
-          .filter(Boolean)
+          .flatMap((pid) => {
+            const name = persons.get(pid)?.name;
+            return name ? [name] : [];
+          })
           .join(", ");
 
         const lines: TooltipLine[] = [
@@ -576,8 +580,10 @@ function LifeEventMarkersInner({ ctx, lifeEvents }: LifeEventMarkersProps) {
         const primaryPos = orientation.primaryPos(year);
         const diamondSize = MARKER_RADIUS * 0.9;
         const linkedNames = le.person_ids
-          .map((pid) => persons.get(pid)?.name)
-          .filter(Boolean)
+          .flatMap((pid) => {
+            const name = persons.get(pid)?.name;
+            return name ? [name] : [];
+          })
           .join(", ");
 
         const lines: TooltipLine[] = [

@@ -79,10 +79,10 @@ function LifeEventForm({
         category: state.category,
         approximate_date: state.approximateDate,
         impact: state.impact ? parseInt(state.impact, 10) || null : null,
-        tags: state.tags
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        tags: state.tags.split(",").flatMap((s) => {
+          const trimmed = s.trim();
+          return trimmed ? [trimmed] : [];
+        }),
       },
       Array.from(selectedPersonIds),
     );

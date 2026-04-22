@@ -13,8 +13,10 @@ export function PersonLinkField({ allPersons, selectedIds, onChange }: PersonLin
   const [expanded, setExpanded] = useState(false);
 
   const selectedNames = [...selectedIds]
-    .map((id) => allPersons.get(id)?.name)
-    .filter(Boolean)
+    .flatMap((id) => {
+      const name = allPersons.get(id)?.name;
+      return name ? [name] : [];
+    })
     .join(", ");
 
   const sortedPersons = [...allPersons.values()].sort((a, b) => a.name.localeCompare(b.name));
