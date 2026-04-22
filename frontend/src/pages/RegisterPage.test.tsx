@@ -3,13 +3,11 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import RegisterPage from "./RegisterPage";
 
-/* eslint-disable sonarjs/no-hardcoded-passwords */
 const VALID_PW = "StrongPass1!";
 const MISMATCHED_PW = "DifferentPass1!";
 const SHORT_PASSPHRASE = "short";
 const MISMATCHED_PASSPHRASE = "different-passphrase";
 const VALID_PASSPHRASE = "my-passphrase-12";
-/* eslint-enable sonarjs/no-hardcoded-passwords */
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({

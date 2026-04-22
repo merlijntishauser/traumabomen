@@ -162,7 +162,7 @@ describe("AuthModal", () => {
       });
       expect(mockLogin).toHaveBeenCalledWith({
         email: "user@example.com",
-        password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+        password: "password123",
       });
       expect(mockGetEncryptionSalt).toHaveBeenCalled();
     });
@@ -234,7 +234,7 @@ describe("AuthModal", () => {
     it("displays hint fetched after login", async () => {
       mockGetEncryptionSalt.mockResolvedValueOnce({
         encryption_salt: "fetched-salt",
-        passphrase_hint: "Remember your cat", // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+        passphrase_hint: "Remember your cat",
       });
       render(<AuthModal {...makeProps({ mode: "reauth" })} />);
 

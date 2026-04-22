@@ -756,7 +756,7 @@ describe("auth functions (remaining)", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toContain("/auth/hint");
     expect(init.method).toBe("PUT");
-    expect(JSON.parse(init.body)).toEqual({ passphrase_hint: "My hint" }); // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+    expect(JSON.parse(init.body)).toEqual({ passphrase_hint: "My hint" });
   });
 });
 

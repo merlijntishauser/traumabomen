@@ -129,7 +129,7 @@ describe("UnlockPage", () => {
   it("displays the passphrase hint when present in salt response", async () => {
     mockGetEncryptionSalt.mockResolvedValue({
       encryption_salt: "test-salt",
-      passphrase_hint: "My favorite color", // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+      passphrase_hint: "My favorite color",
     });
     renderPage();
 

@@ -14,7 +14,7 @@ vi.mock("../../../lib/api", () => ({
   updatePassphraseHint: (...args: unknown[]) => mockUpdateHint(...args),
   getEncryptionSalt: vi.fn().mockResolvedValue({
     encryption_salt: "salt",
-    passphrase_hint: "Old hint", // eslint-disable-line sonarjs/no-hardcoded-passwords -- test fixture
+    passphrase_hint: "Old hint",
   }),
 }));
 
