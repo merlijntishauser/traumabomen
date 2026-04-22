@@ -55,6 +55,16 @@ docker compose up
 # API via frontend proxy: http://localhost:5173/api/health
 ```
 
+### Version control
+
+This project uses **trunk-based development**. Commit directly to `main`.
+
+- Do **not** open pull requests for your own work. No feature branches, no review branches, no "let me run it through CI first" detours.
+- Run the relevant tests, typecheck, and lint locally (see Quality guidelines) before pushing. Pre-commit hooks must pass.
+- Keep commits small and self-contained so `git bisect` stays useful.
+- The only PRs that live in this repo are from Dependabot, or exceptional cases where a human explicitly asks for review before merge.
+- If CI fails on `main` after a push, fix-forward with another commit to `main`, don't revert unless the breakage is broad.
+
 ### Database Migrations
 
 ```bash
