@@ -24,6 +24,7 @@ services:
       target: dev
     volumes:
       - ./api:/app
+      - /app/.venv
     ports:
       - "8000:8000"
     env_file: .env
