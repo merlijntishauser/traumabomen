@@ -238,6 +238,18 @@ describe("ChangePassphraseSection", () => {
     });
     mockGetEncryptionSalt.mockReturnValue(pendingPromise);
 
+    // Configure the downstream operation mocks before resolving so the full
+    // re-encryption chain can complete synchronously once unblocked. Without
+    // these, the state updates after resolve() happen outside act() and React
+    // warns.
+    mockDeriveKey.mockResolvedValue("key");
+    mockGetKeyRing.mockResolvedValue({ encrypted_key_ring: "ring" });
+    mockDecryptKeyRing.mockResolvedValue({});
+    mockGenerateSalt.mockReturnValue("new-salt");
+    mockEncryptKeyRing.mockResolvedValue("new-ring");
+    mockUpdateSalt.mockResolvedValue(undefined);
+    mockUpdateKeyRing.mockResolvedValue(undefined);
+
     const user = userEvent.setup();
     render(<ChangePassphraseSection />);
 
@@ -248,15 +260,13 @@ describe("ChangePassphraseSection", () => {
 
     expect(screen.getByText("account.reencrypting")).toBeInTheDocument();
 
-    // Resolve to let the async operation finish and prevent act warnings
     resolveGetSalt!({ encryption_salt: "salt" });
-    mockDeriveKey.mockResolvedValue("key");
-    mockGetKeyRing.mockResolvedValue({ encrypted_key_ring: "ring" });
-    mockDecryptKeyRing.mockResolvedValue({});
-    mockGenerateSalt.mockReturnValue("new-salt");
-    mockEncryptKeyRing.mockResolvedValue("new-ring");
-    mockUpdateSalt.mockResolvedValue(undefined);
-    mockUpdateKeyRing.mockResolvedValue(undefined);
+
+    // Wait for the progress indicator to disappear so all async state updates
+    // flush inside act() before the test exits.
+    await waitFor(() => {
+      expect(screen.queryByText("account.reencrypting")).not.toBeInTheDocument();
+    });
   });
 
   it("all inputs have type password", () => {
