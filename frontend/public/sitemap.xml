@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap-0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>__OG_ORIGIN__/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/" />
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>__OG_ORIGIN__/login</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/login" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/login" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/login" />
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>__OG_ORIGIN__/register</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/register" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/register" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/register" />
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>__OG_ORIGIN__/waitlist</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/waitlist" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/waitlist" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/waitlist" />
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>__OG_ORIGIN__/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/privacy" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/privacy" />
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

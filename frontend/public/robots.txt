@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+# Auth and transactional pages are user-specific and should not be indexed.
+Disallow: /verify
+Disallow: /verify-pending
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /unlock
+Disallow: /trees
+Disallow: /journal
+Disallow: /admin
+
+Sitemap: /sitemap.xml

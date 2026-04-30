@@ -16,11 +16,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>__OG_TITLE__</title>
 
+    <!-- Canonical and language alternates (nginx substitutes per host). -->
+    <link rel="canonical" href="__OG_CANONICAL__" />
+    <link rel="alternate" hreflang="en" href="__OG_ALT_EN__" />
+    <link rel="alternate" hreflang="nl" href="__OG_ALT_NL__" />
+    <link rel="alternate" hreflang="x-default" href="__OG_ALT_EN__" />
+
     <!-- Open Graph -->
     <meta property="og:title" content="__OG_TITLE__" />
     <meta property="og:description" content="__OG_DESC__" />
     <meta property="og:image" content="__OG_ORIGIN__/images/og-card.jpg" />
-    <meta property="og:url" content="__OG_ORIGIN__" />
+    <meta property="og:url" content="__OG_CANONICAL__" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="__OG_LOCALE__" />
 
