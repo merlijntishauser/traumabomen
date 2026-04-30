@@ -78,8 +78,11 @@ describe("EventCard", () => {
 
   it("applies custom dot style", () => {
     const { container } = render(<EventCard {...defaultProps} dotStyle={{ borderRadius: 2 }} />);
-    const dot = container.querySelector(".detail-panel__event-card-dot");
-    expect(dot).toHaveStyle({ borderRadius: "2px" });
+    const dot = container.querySelector<HTMLElement>(".detail-panel__event-card-dot");
+    // Read the inline style attribute directly. jsdom 29.0.2 expands
+    // border-radius to longhand properties on getComputedStyle, so
+    // toHaveStyle({ borderRadius: "2px" }) no longer matches the shorthand.
+    expect(dot?.style.borderRadius).toBe("2px");
   });
 
   it("applies category pill color from color prop", () => {
