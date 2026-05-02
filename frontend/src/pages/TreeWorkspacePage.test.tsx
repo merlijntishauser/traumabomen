@@ -138,6 +138,7 @@ vi.mock("../hooks/useTreeData", () => ({
 }));
 
 const mockCreatePersonMutate = vi.fn();
+const mockCreateRelationshipMutate = vi.fn();
 
 vi.mock("../hooks/useTreeMutations", () => {
   function makeMockEntityMuts() {
@@ -152,7 +153,7 @@ vi.mock("../hooks/useTreeMutations", () => {
       createPerson: { mutate: mockCreatePersonMutate, isPending: false },
       updatePerson: { mutate: vi.fn() },
       deletePerson: { mutate: vi.fn() },
-      createRelationship: { mutate: vi.fn() },
+      createRelationship: { mutate: mockCreateRelationshipMutate },
       updateRelationship: { mutate: vi.fn() },
       deleteRelationship: { mutate: vi.fn() },
       batchUpdatePersons: { mutate: vi.fn() },

@@ -49,12 +49,9 @@ import type {
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
-import type {
-  Person,
-  RelationshipData,
-  RelationshipType,
-  SiblingGroupMember,
-} from "../types/domain";
+import { buildSiblingParentInheritance } from "../lib/parentInheritance";
+import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
+import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
@@ -619,6 +616,7 @@ function RelationshipPromptOverlay({
   selectedPersonId,
   selectedEdgeId,
   persons,
+  relationships,
   mutations,
   dispatchCanvas,
 }: {
@@ -626,6 +624,7 @@ function RelationshipPromptOverlay({
   selectedPersonId: string | null;
   selectedEdgeId: string | null;
   persons: Map<string, DecryptedPerson>;
+  relationships: ReturnType<typeof useTreeData>["relationships"];
   mutations: ReturnType<typeof useTreeMutations>;
   dispatchCanvas: React.Dispatch<CanvasInteractionAction>;
 }) {
@@ -636,6 +635,21 @@ function RelationshipPromptOverlay({
       person={person}
       allPersons={persons}
       onCreateRelationship={(sourceId, targetId, type) => {
+        // When adding a freshly-created person as a biological sibling of an
+        // existing person, clone the existing sibling's biological parents so
+        // the new person is attached to the same parents. The existing
+        // sibling's family is left untouched.
+        const newPersonId = person.id;
+        const existingSiblingId = sourceId === newPersonId ? targetId : sourceId;
+        const followupEdges = buildSiblingParentInheritance(
+          type,
+          newPersonId,
+          existingSiblingId,
+          relationships,
+        );
+
+        const finalize = () => dispatchCanvas({ type: "SET_RELATIONSHIP_PROMPT", personId: null });
+
         mutations.createRelationship.mutate(
           {
             sourcePersonId: sourceId,
@@ -643,7 +657,31 @@ function RelationshipPromptOverlay({
             data: { type, periods: [], active_period: null },
           },
           {
-            onSuccess: () => dispatchCanvas({ type: "SET_RELATIONSHIP_PROMPT", personId: null }),
+            onSuccess: () => {
+              if (followupEdges.length === 0) {
+                finalize();
+                return;
+              }
+              let pending = followupEdges.length;
+              const settle = () => {
+                pending -= 1;
+                if (pending === 0) finalize();
+              };
+              for (const edge of followupEdges) {
+                mutations.createRelationship.mutate(
+                  {
+                    sourcePersonId: edge.sourcePersonId,
+                    targetPersonId: edge.targetPersonId,
+                    data: {
+                      type: RelationshipType.BiologicalParent,
+                      periods: [],
+                      active_period: null,
+                    },
+                  },
+                  { onSuccess: settle, onError: settle },
+                );
+              }
+            },
           },
         );
       }}
@@ -1067,6 +1105,7 @@ function TreeWorkspaceInner() {
           selectedPersonId={selectedPersonId}
           selectedEdgeId={canvasState.selectedEdgeId}
           persons={persons}
+          relationships={relationships}
           mutations={mutations}
           dispatchCanvas={dispatchCanvas}
         />
