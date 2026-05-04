@@ -80,14 +80,62 @@ Workspace is the biggest divergence. The kit fakes a canvas with absolute
 divs; our implementation is React Flow. The goal is **node, edge, and
 side-panel styling parity** — don't replace React Flow.
 
-### Suggested approach
+### Phase 3 — open design decisions
 
-1. Side-by-side review: open the dev server and the kit's `index.html`
-   (it bundles Babel-in-the-browser, suitable for local preview only).
-2. Pixel-spot the differences per screen. Lock down the gaps in this file
-   under "Phase 3 deltas" before touching code.
-3. One commit per screen, kept narrow. Visual regressions are easy to
-   catch with the existing Playwright e2e tests + manual review.
+Phase 3 is **blocked on user input** rather than implementation effort.
+The kit and the existing app diverge in ways that require a product
+choice, not a code change:
+
+**AuthLanding ↔ Register / Login / Unlock pages**
+
+- The kit puts a `<Logo>` (Logomark + wordmark) overlay on the **hero
+  photo** with the tagline *"A quiet place to map the patterns you
+  carry."* underneath it. The existing pages keep the photo decorative
+  (`aria-hidden="true"`) and put the wordmark inside `<AuthWelcome>`
+  on the right side. Phase 2 added a Logomark next to the wordmark
+  there. Decisions needed:
+  - Move the brand mark to the hero overlay (kit-aligned), keeping
+    AuthWelcome as a marketing column without a brand mark? Or keep
+    the current placement?
+  - Adopt the kit's poetic tagline as the new `landing.tagline`
+    EN/NL string, replacing the literal *"Map intergenerational
+    trauma onto visual family trees."*?
+  - The kit's auth card is much sparser than ours: no welcome
+    column, no feature bullets, no privacy paragraph. Existing
+    layout retains those because they explain the product. Keep
+    them, or drop them in favor of the kit's minimalism?
+- The kit's auth card uses 36px / 32px padding (`padding: 36px 32px`).
+  Existing `.auth-page--landing .auth-card` uses `28px 24px 24px`.
+  Bumping to the kit's values is a small visual change with no
+  functional risk.
+
+**TreeList ↔ TreeListPage**
+
+- The kit's list items show a `<Logomark size={28}>` on the left of
+  every tree row. Existing rows show neither logomark nor any per-tree
+  glyph. Worth adopting?
+- The kit's welcome card uses `welcome-dark.webp` / `welcome-light.webp`
+  as a right-aligned background image. Existing welcome card may or
+  may not use this — verify before changing.
+- The kit shows a `Demo` eyebrow tag next to demo trees. Existing demo
+  trees use a different visual treatment — confirm before changing.
+
+**Workspace ↔ TreeWorkspacePage**
+
+- The kit fakes a canvas with absolute-positioned divs. Our React Flow
+  canvas is the real implementation; do not replace it.
+- Side panel styling, toolbar, mini-map placement: the kit's anatomy
+  matches ours roughly; spot-checks against `Workspace.jsx` would
+  catch any subtle padding/border deltas. Best done interactively.
+
+### Recommended way to proceed
+
+1. Open `http://localhost:5173/login` and the kit's
+   `docs/design_handoff/ui_kits/traumatrees-app/index.html` (Babel-in-the-
+   browser, local-only preview) side by side.
+2. Pick decisions per the bullets above and record them here under
+   "Phase 3 deltas — agreed".
+3. Each agreed delta becomes one focused commit on main.
 
 ### Out of scope
 
