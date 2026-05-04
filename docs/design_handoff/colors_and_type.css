@@ -1,0 +1,342 @@
+/* =============================================
+   Traumabomen / Traumatrees — Foundation
+   Design tokens: colors, typography, spacing, shadows.
+   Three themes: dark (default), light, watercolor (planned).
+   Source of truth: traumabomen/frontend/src/styles/theme.css
+   ============================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap");
+
+/* ---------- DARK theme (default — forest at dusk) ---------- */
+:root {
+  /* Surfaces */
+  --color-bg-primary: #0a1a0f;
+  --color-bg-secondary: #0f261a;
+  --color-bg-tertiary: #163027;
+  --color-bg-canvas: #0d1f14;
+  --color-bg-hover: #1a3d2a;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+
+  /* Borders */
+  --color-border-primary: #1f4d35;
+  --color-border-secondary: #163027;
+  --color-border-focus: #2d8a5e;
+
+  /* Text */
+  --color-text-primary: #e0e8e3;
+  --color-text-secondary: #8faa97;
+  --color-text-muted: #7a9a84;
+  --color-text-inverse: #0a1a0f;
+
+  /* Accent (forest green) */
+  --color-accent: #2d8a5e;
+  --color-accent-hover: #24704c;
+  --color-accent-subtle: rgba(45, 138, 94, 0.12);
+  --color-accent-focus-ring: rgba(45, 138, 94, 0.35);
+  --color-accent-border: rgba(45, 138, 94, 0.3);
+
+  /* Status */
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-border: rgba(239, 68, 68, 0.3);
+  --color-danger-solid: #b91c1c;
+  --color-danger-solid-hover: #991b1b;
+
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(251, 191, 36, 0.1);
+  --color-warning-border: rgba(251, 191, 36, 0.3);
+
+  --color-success: #22c55e;
+
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(56, 189, 248, 0.1);
+  --color-info-border: rgba(56, 189, 248, 0.3);
+
+  /* Tree edges (relationship types) */
+  --color-edge-default: #8faa97;
+  --color-edge-partner: #ec4899;
+  --color-edge-half-sibling: #a855f7;
+  --color-edge-step: #5a7a64;
+  --color-edge-friend: #e8863a;
+
+  --color-node-bg: #0f261a;
+  --color-node-border: #1f4d35;
+  --color-node-selected: #2d8a5e;
+  --color-node-handle: #5a7a64;
+  --color-node-friend: #e8863a;
+
+  /* Trauma categories */
+  --color-trauma-loss: #818cf8;
+  --color-trauma-abuse: #f87171;
+  --color-trauma-addiction: #fbbf24;
+  --color-trauma-war: #a8a29e;
+  --color-trauma-displacement: #e879f9;
+  --color-trauma-illness: #22d3ee;
+  --color-trauma-poverty: #a78bfa;
+
+  /* Classification status */
+  --color-classification-suspected: #fbbf24;
+  --color-classification-diagnosed: #38bdf8;
+
+  /* Life-event categories */
+  --color-life-family: #60a5fa;
+  --color-life-education: #a78bfa;
+  --color-life-career: #fbbf24;
+  --color-life-relocation: #2dd4bf;
+  --color-life-health: #f472b6;
+  --color-life-medication: #22d3ee;
+  --color-life-other: #94a3b8;
+
+  /* Turning points */
+  --color-turning-point: #10b981;
+  --color-tp-cycle-breaking: #34d399;
+  --color-tp-protective-relationship: #60a5fa;
+  --color-tp-recovery: #a78bfa;
+  --color-tp-achievement: #fbbf24;
+  --color-tp-positive-change: #2dd4bf;
+
+  /* Pattern colors (annotation rotation) */
+  --color-pattern-0: #818cf8;
+  --color-pattern-1: #f472b6;
+  --color-pattern-2: #fb923c;
+  --color-pattern-3: #facc15;
+  --color-pattern-4: #34d399;
+  --color-pattern-5: #38bdf8;
+  --color-pattern-6: #a78bfa;
+  --color-pattern-7: #f87171;
+
+  /* Timeline */
+  --color-lifebar-fill: rgba(45, 138, 94, 0.2);
+  --color-lifebar-stroke: #2d8a5e;
+  --color-band-even: rgba(255, 255, 255, 0.02);
+  --color-band-odd: transparent;
+
+  /* Typography */
+  --font-heading: "Playwrite NZ Basic", "Georgia", cursive;
+  --font-body: "Lato", "Helvetica Neue", sans-serif;
+
+  /* Shadows (soft + green-tinted) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(45, 138, 94, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(45, 138, 94, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(45, 138, 94, 0.1);
+  --shadow-glass: 0 8px 40px rgba(0, 0, 0, 0.35);
+
+  /* Radii (small — never rounded pills) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Spacing — 4px base */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0\.5: 2px;
+  --space-1: 4px;
+  --space-1\.5: 6px;
+  --space-2: 8px;
+  --space-2\.5: 10px;
+  --space-3: 12px;
+  --space-3\.5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-15: 60px;
+
+  /* Transitions */
+  --transition-colors:
+    color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ---------- LIGHT theme (warm cream) ---------- */
+[data-theme="light"] {
+  --color-bg-primary: #f7f5f2;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f0edea;
+  --color-bg-canvas: #f4f1ed;
+  --color-bg-hover: #ebe7e2;
+  --color-bg-overlay: rgba(44, 51, 64, 0.35);
+
+  --color-border-primary: #d4cec6;
+  --color-border-secondary: #d4cfc9;
+  --color-border-focus: #4a9bb5;
+
+  --color-text-primary: #2c3340;
+  --color-text-secondary: #6b7a8d;
+  --color-text-muted: #9aa5b2;
+  --color-text-inverse: #ffffff;
+
+  --color-accent: #34a066;
+  --color-accent-hover: #2b8a56;
+  --color-accent-subtle: rgba(52, 160, 102, 0.08);
+  --color-accent-focus-ring: rgba(52, 160, 102, 0.25);
+  --color-accent-border: rgba(52, 160, 102, 0.3);
+
+  --color-danger: #dc2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.06);
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+  --color-warning: #d97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.06);
+  --color-warning-border: rgba(217, 119, 6, 0.2);
+  --color-success: #16a34a;
+  --color-info: #0284c7;
+  --color-info-bg: rgba(2, 132, 199, 0.06);
+  --color-info-border: rgba(2, 132, 199, 0.2);
+
+  --color-edge-default: #5a6e5f;
+  --color-edge-partner: #db2777;
+  --color-edge-half-sibling: #9333ea;
+  --color-edge-step: #8a9a8e;
+  --color-edge-friend: #c96a1e;
+  --color-node-friend: #c96a1e;
+
+  --color-trauma-loss: #6366f1;
+  --color-trauma-abuse: #ef4444;
+  --color-trauma-addiction: #d97706;
+  --color-trauma-war: #78716c;
+  --color-trauma-displacement: #c026d3;
+  --color-trauma-illness: #0891b2;
+  --color-trauma-poverty: #7c3aed;
+
+  --color-classification-suspected: #d97706;
+  --color-classification-diagnosed: #0284c7;
+
+  --color-life-family: #3b82f6;
+  --color-life-education: #7c3aed;
+  --color-life-career: #d97706;
+  --color-life-relocation: #0d9488;
+  --color-life-health: #db2777;
+  --color-life-medication: #0891b2;
+  --color-life-other: #64748b;
+
+  --color-turning-point: #059669;
+  --color-tp-cycle-breaking: #059669;
+  --color-tp-protective-relationship: #2563eb;
+  --color-tp-recovery: #7c3aed;
+  --color-tp-achievement: #d97706;
+  --color-tp-positive-change: #0d9488;
+
+  --color-pattern-0: #6366f1;
+  --color-pattern-1: #db2777;
+  --color-pattern-2: #ea580c;
+  --color-pattern-3: #ca8a04;
+  --color-pattern-4: #059669;
+  --color-pattern-5: #0284c7;
+  --color-pattern-6: #7c3aed;
+  --color-pattern-7: #dc2626;
+
+  --color-node-bg: #ffffff;
+  --color-node-border: #d4cec6;
+  --color-node-selected: #34a066;
+  --color-node-handle: #9aa5b2;
+
+  --color-lifebar-fill: rgba(52, 160, 102, 0.12);
+  --color-lifebar-stroke: #34a066;
+  --color-band-even: rgba(0, 0, 0, 0.02);
+
+  --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.12), 0 1px 2px rgba(52, 160, 102, 0.04);
+  --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.16), 0 2px 8px rgba(52, 160, 102, 0.06);
+  --shadow-lg: 0 8px 24px rgba(44, 51, 64, 0.18), 0 4px 16px rgba(52, 160, 102, 0.08);
+  --shadow-glass: 0 8px 40px rgba(44, 51, 64, 0.1);
+}
+
+/* ============================================================
+   Semantic type roles
+   Use --text-h1 etc. when the element isn't an h1/h2/h3 itself.
+   Note Playwrite NZ Basic is a handwriting face — light weight,
+   loose tracking, line-height 1.35 to give the strokes air.
+   ============================================================ */
+:root {
+  --text-h1-family: var(--font-heading);
+  --text-h1-size: 2rem;
+  --text-h1-weight: 200;
+  --text-h1-leading: 1.2;
+
+  --text-h2-family: var(--font-heading);
+  --text-h2-size: 1.35rem;
+  --text-h2-weight: 300;
+  --text-h2-leading: 1.35;
+
+  --text-h3-family: var(--font-heading);
+  --text-h3-size: 1.1rem;
+  --text-h3-weight: 400;
+  --text-h3-leading: 1.4;
+
+  --text-tagline-family: var(--font-heading);
+  --text-tagline-size: 1.1rem;
+  --text-tagline-weight: 300;
+  --text-tagline-leading: 1.4;
+
+  --text-body-family: var(--font-body);
+  --text-body-size: 15px;
+  --text-body-weight: 400;
+  --text-body-leading: 1.5;
+
+  --text-small-family: var(--font-body);
+  --text-small-size: 13px;
+  --text-small-weight: 400;
+  --text-small-leading: 1.5;
+
+  --text-micro-family: var(--font-body);
+  --text-micro-size: 11px;
+  --text-micro-weight: 600;
+  --text-micro-leading: 1.4;
+  --text-micro-tracking: 0.03em;
+
+  --text-label-family: var(--font-body);
+  --text-label-size: 13px;
+  --text-label-weight: 700;
+
+  --text-eyebrow-family: var(--font-body);
+  --text-eyebrow-size: 10px;
+  --text-eyebrow-weight: 600;
+  --text-eyebrow-tracking: 0.05em;
+  --text-eyebrow-transform: uppercase;
+}
+
+/* Helper utility classes (apply roles where the element tag doesn't match) */
+.t-h1 {
+  font: var(--text-h1-weight) var(--text-h1-size) / var(--text-h1-leading) var(--text-h1-family);
+  color: var(--color-text-primary);
+}
+.t-h2 {
+  font: var(--text-h2-weight) var(--text-h2-size) / var(--text-h2-leading) var(--text-h2-family);
+  color: var(--color-text-primary);
+}
+.t-h3 {
+  font: var(--text-h3-weight) var(--text-h3-size) / var(--text-h3-leading) var(--text-h3-family);
+  color: var(--color-text-primary);
+}
+.t-tagline {
+  font: var(--text-tagline-weight) var(--text-tagline-size) / var(--text-tagline-leading)
+    var(--text-tagline-family);
+  color: var(--color-text-primary);
+}
+.t-body {
+  font: var(--text-body-weight) var(--text-body-size) / var(--text-body-leading)
+    var(--text-body-family);
+  color: var(--color-text-primary);
+}
+.t-small {
+  font: var(--text-small-weight) var(--text-small-size) / var(--text-small-leading)
+    var(--text-small-family);
+  color: var(--color-text-secondary);
+}
+.t-micro {
+  font: var(--text-micro-weight) var(--text-micro-size) / var(--text-micro-leading)
+    var(--text-micro-family);
+  letter-spacing: var(--text-micro-tracking);
+  color: var(--color-text-muted);
+}
+.t-eyebrow {
+  font: var(--text-eyebrow-weight) var(--text-eyebrow-size) / 1.4 var(--text-eyebrow-family);
+  letter-spacing: var(--text-eyebrow-tracking);
+  text-transform: var(--text-eyebrow-transform);
+  color: var(--color-text-muted);
+}
+.t-label {
+  font-family: var(--text-label-family);
+  font-size: var(--text-label-size);
+  font-weight: var(--text-label-weight);
+  color: var(--color-text-secondary);
+}

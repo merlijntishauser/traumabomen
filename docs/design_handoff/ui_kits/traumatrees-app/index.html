@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Traumatrees · UI kit</title>
+    <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+    <link rel="stylesheet" href="../../colors_and_type.css" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-body); }
+      .demo-nav {
+        position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1000;
+        display: inline-flex; gap: 4px; padding: 6px;
+        background: rgba(10,26,15,0.85); backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.08); border-radius: 999px;
+        box-shadow: var(--shadow-md);
+      }
+      [data-theme="light"] .demo-nav {
+        background: rgba(255,255,255,0.85);
+        border-color: rgba(0,0,0,0.06);
+      }
+      .demo-nav button {
+        font-family: var(--font-body); font-size: 12px; font-weight: 600;
+        padding: 7px 14px; border-radius: 999px; border: none;
+        background: transparent; color: var(--color-text-secondary); cursor: pointer;
+      }
+      .demo-nav button.is-active { background: var(--color-accent); color: var(--color-text-inverse); }
+      .demo-nav__sep { width: 1px; align-self: stretch; background: rgba(255,255,255,0.1); margin: 0 4px; }
+      [data-theme="light"] .demo-nav__sep { background: rgba(0,0,0,0.08); }
+      .demo-nav__theme {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; border-radius: 999px;
+        background: transparent; color: var(--color-text-secondary); border: none; cursor: pointer;
+      }
+      .demo-nav__theme:hover { background: rgba(255,255,255,0.06); color: var(--color-text-primary); }
+      [data-theme="light"] .demo-nav__theme:hover { background: rgba(0,0,0,0.04); }
+      #root > div { min-height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+    <script type="text/babel" src="components.jsx"></script>
+    <script type="text/babel" src="AuthLanding.jsx"></script>
+    <script type="text/babel" src="TreeList.jsx"></script>
+    <script type="text/babel" src="Workspace.jsx"></script>
+
+    <script type="text/babel">
+      function Demo() {
+        const [screen, setScreen] = React.useState(() => localStorage.getItem("tt-demo-screen") || "auth");
+        const [theme, setTheme] = React.useState(() => localStorage.getItem("tt-demo-theme") || "dark");
+        React.useEffect(() => { localStorage.setItem("tt-demo-screen", screen); }, [screen]);
+        React.useEffect(() => {
+          localStorage.setItem("tt-demo-theme", theme);
+          document.documentElement.setAttribute("data-theme", theme);
+        }, [theme]);
+        const View = screen === "auth" ? AuthLanding : screen === "trees" ? TreeList : Workspace;
+        return (
+          <>
+            <nav className="demo-nav">
+              <button className={screen === "auth" ? "is-active" : ""} onClick={() => setScreen("auth")}>Auth</button>
+              <button className={screen === "trees" ? "is-active" : ""} onClick={() => setScreen("trees")}>My Trees</button>
+              <button className={screen === "workspace" ? "is-active" : ""} onClick={() => setScreen("workspace")}>Workspace</button>
+              <span className="demo-nav__sep" />
+              <button
+                className="demo-nav__theme"
+                aria-label="Toggle theme"
+                title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? <IconSun size={14} /> : <IconMoon size={14} />}
+              </button>
+            </nav>
+            <View />
+          </>
+        );
+      }
+      ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+    </script>
+  </body>
+</html>

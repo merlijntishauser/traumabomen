@@ -524,6 +524,34 @@ When modifying the frontend, follow these principles:
 - **Button heights are uniform within a bar.** All toolbar buttons (text and icon) share `height: 32px`. All footer buttons and links share `height: 24px`. Never let padding alone determine button height —use an explicit `height` so elements align.
 - **Badge shapes encode meaning.** Circles = trauma events, squares = life events, triangles = classifications. These shapes are part of the visual language, don't repurpose them.
 - **Never use `--` or `—` in text strings.** Use proper punctuation (`,` `;` `:` or parentheses) instead. This applies to translation files, UI copy, and any other user-facing text.
+- **Body is 15px.** Not 14, not 16. The base font-size on `body` is `var(--text-body-size)` and components inherit from it.
+- **Headings are always light** (weight 200-400). Never bold the handwriting face. Use `var(--text-h1-*)` / `.t-h1` etc. when an element's tag does not match the desired role.
+- **Sentence case for every label**, including buttons. *"Add person"*, not *"Add Person"*. Only proper nouns capitalize.
+- **Lucide icons only** for stock UI. Import individually (`import { Heart, Lock } from "lucide-react"`), never the whole pack. For domain marks not in Lucide, draw a 24×24 / 2px-stroke SVG matching Lucide's grammar.
+- **Glass surfaces are reserved.** Use `tt-card--glass` / `--shadow-glass` only on auth and lock cards over hero photography. Never on workspace, settings, panels, or any data-dense surface — readability of dense data wins over depth.
+- **No press shrink, no scale transforms, no springs.** Every transition goes through `var(--transition-colors)` (0.15s ease). The two named animations (`auth-reveal`, `slide-in-right`) are the only motion grammar.
+
+### What we do NOT do
+
+A pattern set observed by absence in the existing app — preserve it:
+
+- No glassmorphism on data-dense surfaces (workspace, panels, settings).
+- No bluish-purple gradients. The only gradient is the radial accent wash (`bg-gradient`) and the radial vignette over hero photography.
+- No emoji cards or emoji icons. The subject matter is too sensitive — emoji is non-negotiable banned in UI, copy, and translations.
+- No left-border-only "callout" cards as a system. Specific exceptions only: `auth-warning--prominent` (3px left border, danger) and `auth-hint-block` (2px left border, accent).
+- No drop caps, no decorative quote marks.
+- No icon-with-rounded-square-background pattern.
+- No skeleton loaders with shimmer. Loading is plain text: *"Loading…"*.
+- No toast notifications with bouncy entrances.
+
+### Voice & content
+
+- **Pronouns: "you" and "your".** Use "we" sparingly, only for technical guarantees ("We can never read your data").
+- **Glance + depth.** Lead with reassurance in plain English; follow with proof (Argon2id, AES-256-GCM, etc.) in a "depth" section. The privacy policy is the canonical example.
+- **Honest about hard truths, never softened.** Example: *"If you lose your passphrase, your data is unrecoverable. This is by design."* Never wrap that in apologetic language.
+- **Reflection prompts are open questions, not imperatives.** *"What was never spoken about, but everyone knew?"* — not *"Try writing about…"*.
+- **No exclamation marks** in product copy. Allowed exception: genuine good news such as the waitlist approval banner.
+- **Bilingual EN/NL stay in lockstep.** Every key in `frontend/src/locales/en/translation.json` has a peer in `nl/translation.json`. The Dutch voice is equally restrained.
 
 ### Quality guidelines
 

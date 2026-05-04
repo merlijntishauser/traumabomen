@@ -122,10 +122,12 @@
   --font-heading: "Playwrite NZ Basic", "Georgia", cursive;
   --font-body: "Lato", "Helvetica Neue", sans-serif;
 
-  /* Shadows */
+  /* Shadows (soft + green-tinted) */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(45, 138, 94, 0.06);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(45, 138, 94, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(45, 138, 94, 0.1);
+  /* Used ONLY on glass cards (auth/lock surfaces over hero photography). */
+  --shadow-glass: 0 8px 40px rgba(0, 0, 0, 0.35);
 
   /* Radii */
   --radius-sm: 6px;
@@ -152,6 +154,56 @@
   /* Transitions */
   --transition-colors:
     color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  /* ---- Semantic type roles ----
+     Use these (or the .t-* helper classes below) when an element's tag does
+     not match the desired role — e.g. a <span> rendering display copy. The
+     handwriting face needs air: light weights, line-height 1.35+. */
+  --text-h1-family: var(--font-heading);
+  --text-h1-size: 2rem;
+  --text-h1-weight: 200;
+  --text-h1-leading: 1.2;
+
+  --text-h2-family: var(--font-heading);
+  --text-h2-size: 1.35rem;
+  --text-h2-weight: 300;
+  --text-h2-leading: 1.35;
+
+  --text-h3-family: var(--font-heading);
+  --text-h3-size: 1.1rem;
+  --text-h3-weight: 400;
+  --text-h3-leading: 1.4;
+
+  --text-tagline-family: var(--font-heading);
+  --text-tagline-size: 1.1rem;
+  --text-tagline-weight: 300;
+  --text-tagline-leading: 1.4;
+
+  --text-body-family: var(--font-body);
+  --text-body-size: 15px;
+  --text-body-weight: 400;
+  --text-body-leading: 1.5;
+
+  --text-small-family: var(--font-body);
+  --text-small-size: 13px;
+  --text-small-weight: 400;
+  --text-small-leading: 1.5;
+
+  --text-micro-family: var(--font-body);
+  --text-micro-size: 11px;
+  --text-micro-weight: 600;
+  --text-micro-leading: 1.4;
+  --text-micro-tracking: 0.03em;
+
+  --text-label-family: var(--font-body);
+  --text-label-size: 13px;
+  --text-label-weight: 700;
+
+  --text-eyebrow-family: var(--font-body);
+  --text-eyebrow-size: 10px;
+  --text-eyebrow-weight: 600;
+  --text-eyebrow-tracking: 0.05em;
+  --text-eyebrow-transform: uppercase;
 }
 
 /* --- Light theme (teal-blue on warm cream) --- */
@@ -251,6 +303,7 @@
   --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.12), 0 1px 2px rgba(52, 160, 102, 0.04);
   --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.16), 0 2px 8px rgba(52, 160, 102, 0.06);
   --shadow-lg: 0 8px 24px rgba(44, 51, 64, 0.18), 0 4px 16px rgba(52, 160, 102, 0.08);
+  --shadow-glass: 0 8px 40px rgba(44, 51, 64, 0.1);
 }
 
 /* --- Reset & Base --- */
@@ -311,18 +364,79 @@ h6 {
 }
 
 h1 {
-  font-size: 1.75rem;
-  font-weight: 200;
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-leading);
 }
 h2 {
-  font-size: 1.35rem;
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-leading);
 }
 h3 {
-  font-size: 1.1rem;
-  font-weight: 400;
+  font-size: var(--text-h3-size);
+  font-weight: var(--text-h3-weight);
+  line-height: var(--text-h3-leading);
 }
 h4 {
   font-weight: 400;
+}
+
+/* --- Type-role helper classes ---
+   Apply these to elements whose tag doesn't match the role
+   (e.g. a <span> styled as h2-display copy). */
+.t-h1 {
+  font:
+    var(--text-h1-weight) var(--text-h1-size) / var(--text-h1-leading) var(--text-h1-family);
+  color: var(--color-text-primary);
+}
+.t-h2 {
+  font:
+    var(--text-h2-weight) var(--text-h2-size) / var(--text-h2-leading) var(--text-h2-family);
+  color: var(--color-text-primary);
+}
+.t-h3 {
+  font:
+    var(--text-h3-weight) var(--text-h3-size) / var(--text-h3-leading) var(--text-h3-family);
+  color: var(--color-text-primary);
+}
+.t-tagline {
+  font:
+    var(--text-tagline-weight) var(--text-tagline-size) / var(--text-tagline-leading)
+    var(--text-tagline-family);
+  color: var(--color-text-primary);
+}
+.t-body {
+  font:
+    var(--text-body-weight) var(--text-body-size) / var(--text-body-leading)
+    var(--text-body-family);
+  color: var(--color-text-primary);
+}
+.t-small {
+  font:
+    var(--text-small-weight) var(--text-small-size) / var(--text-small-leading)
+    var(--text-small-family);
+  color: var(--color-text-secondary);
+}
+.t-micro {
+  font:
+    var(--text-micro-weight) var(--text-micro-size) / var(--text-micro-leading)
+    var(--text-micro-family);
+  letter-spacing: var(--text-micro-tracking);
+  color: var(--color-text-muted);
+}
+.t-eyebrow {
+  font:
+    var(--text-eyebrow-weight) var(--text-eyebrow-size) / 1.4 var(--text-eyebrow-family);
+  letter-spacing: var(--text-eyebrow-tracking);
+  text-transform: var(--text-eyebrow-transform);
+  color: var(--color-text-muted);
+}
+.t-label {
+  font-family: var(--text-label-family);
+  font-size: var(--text-label-size);
+  font-weight: var(--text-label-weight);
+  color: var(--color-text-secondary);
 }
 
 a {

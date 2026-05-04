@@ -259,7 +259,7 @@
   background: rgba(10, 26, 15, 0.78);
   border: 1px solid rgba(31, 77, 53, 0.5);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-glass);
   animation: auth-reveal 0.6s ease-out both;
 }
 
@@ -302,7 +302,7 @@
   background: rgba(10, 26, 15, 0.78);
   border: 1px solid rgba(31, 77, 53, 0.5);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-glass);
   padding: 28px var(--space-6) var(--space-6);
   max-width: none;
   animation: auth-reveal 0.6s ease-out 0.15s both;
@@ -411,7 +411,7 @@
   background: rgba(10, 26, 15, 0.78);
   border: 1px solid rgba(31, 77, 53, 0.5);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-glass);
   padding: 28px var(--space-6) var(--space-6);
   max-width: none;
   width: 100%;
