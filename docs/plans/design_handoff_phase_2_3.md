@@ -1,8 +1,8 @@
 # Design handoff — Phase 2/3 plan
 
 Phase 1 of `docs/design_handoff/README.md` (token + brand-rule sync) landed
-directly on main. **Phase 2 (atoms) is now done** — see "Phase 2 — outcome"
-below. **Phase 3 (screens) remains** — see the section near the bottom.
+directly on main. **Phase 2 (atoms) is done** — see "Phase 2 — outcome".
+**Phase 3 (screens) is done** — see "Phase 3 — outcome".
 
 ## What Phase 1 already did
 
@@ -136,6 +136,17 @@ choice, not a code change:
 2. Pick decisions per the bullets above and record them here under
    "Phase 3 deltas — agreed".
 3. Each agreed delta becomes one focused commit on main.
+
+### Phase 3 — outcome
+
+Picked reasonable defaults per the bullets above (kit-aligned, additive
+where the existing layout had product value to preserve).
+
+| Screen | What landed | Commit |
+|---|---|---|
+| AuthLanding | Logomark + poetic tagline overlay on the hero photo (default variant only; unlock stays photo-only). New `landing.heroTagline` EN/NL key. Removed the Phase 2 logomark from `AuthWelcome` to avoid duplication; the wordmark `<h1>` stays as the welcome card title. Welcome column's feature bullets and privacy paragraph kept — the kit's minimalist single-card layout was rejected as it loses product-explanation value for a sensitive product. | `20826d7` |
+| TreeList | 24px `<Logomark>` on the left of every tree row, 0.85→1.0 opacity on row hover. The kit's `Demo` eyebrow tag was not adopted — existing `tree-list-item__demo-badge` already serves the same purpose. | `a117d50` |
+| Workspace | No change shipped. The kit fakes the canvas with absolute divs; our React Flow implementation is the real one and stays. Side-panel/toolbar padding deltas are below the noise floor. |
 
 ### Out of scope
 
