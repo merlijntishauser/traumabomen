@@ -1,16 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Logomark } from "./Logomark";
 
 export function AuthWelcome() {
   const { t } = useTranslation();
 
   return (
     <div className="auth-welcome">
-      <div className="auth-welcome__brand">
-        <Logomark size={32} className="auth-welcome__logomark" />
-        <h1 className="auth-welcome__title">{t("app.title")}</h1>
-      </div>
+      <h1 className="auth-welcome__title">{t("app.title")}</h1>
       <p className="auth-welcome__tagline">{t("landing.tagline")}</p>
       <p className="auth-welcome__about">{t("landing.about")}</p>
 

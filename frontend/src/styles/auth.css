@@ -52,6 +52,46 @@
   pointer-events: none;
 }
 
+/* Landing brand-mark overlay: Logomark + tagline, top-left of the hero. */
+.auth-hero__overlay {
+  position: absolute;
+  left: var(--space-6);
+  top: var(--space-6);
+  z-index: 2;
+  max-width: 320px;
+  pointer-events: none;
+}
+
+.auth-hero__logomark {
+  display: block;
+  filter: drop-shadow(0 2px 18px rgba(0, 0, 0, 0.55));
+}
+
+.auth-hero__tagline {
+  margin-top: var(--space-4);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  /* Off-white that reads on every hero variant; matches the kit. */
+  color: #f4efe6;
+  text-shadow:
+    0 2px 18px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 900px) {
+  .auth-hero__overlay {
+    left: var(--space-8);
+    top: var(--space-8);
+    max-width: 380px;
+  }
+
+  .auth-hero__tagline {
+    font-size: 1.4rem;
+  }
+}
+
 @media (min-width: 900px) {
   .auth-page {
     flex-direction: row;
@@ -821,25 +861,13 @@
   }
 }
 
-/* Brand block: logomark next to the wordmark, vertically centered. */
-.auth-welcome__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-2);
-}
-
-.auth-welcome__logomark {
-  flex-shrink: 0;
-}
-
 .auth-welcome__title {
   font-family: var(--font-heading);
   font-size: var(--text-h1-size);
   font-weight: var(--text-h1-weight);
   line-height: var(--text-h1-leading);
   color: var(--color-text-primary);
-  margin: 0;
+  margin-bottom: var(--space-2);
 }
 
 .auth-welcome__tagline {

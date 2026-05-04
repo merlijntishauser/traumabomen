@@ -1,6 +1,12 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AuthHero } from "./AuthHero";
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
 
 describe("AuthHero", () => {
   it("renders without crashing", () => {
@@ -46,9 +52,31 @@ describe("AuthHero", () => {
     expect(sources[1].getAttribute("srcset")).toBe("/images/hero-light.webp");
   });
 
-  it("marks the container as aria-hidden", () => {
+  it("does not mark the container as aria-hidden, leaving the overlay visible to AT", () => {
     const { container } = render(<AuthHero />);
     const hero = container.querySelector(".auth-hero");
-    expect(hero?.getAttribute("aria-hidden")).toBe("true");
+    expect(hero?.getAttribute("aria-hidden")).toBeNull();
+  });
+
+  it("marks the decorative images with empty alt so screen readers skip them", () => {
+    const { container } = render(<AuthHero />);
+    const images = container.querySelectorAll("img");
+    for (const img of images) {
+      expect(img.getAttribute("alt")).toBe("");
+    }
+  });
+
+  it("renders the brand overlay (logomark + tagline) on the default variant", () => {
+    const { container } = render(<AuthHero />);
+    const overlay = container.querySelector(".auth-hero__overlay");
+    expect(overlay).toBeTruthy();
+    expect(overlay?.querySelector("svg")).toBeTruthy();
+    expect(overlay?.querySelector(".auth-hero__tagline")?.textContent).toBe("landing.heroTagline");
+  });
+
+  it("hides the brand overlay on the unlock variant", () => {
+    // Unlock is the "locked door" surface — the kit keeps it visually quiet.
+    const { container } = render(<AuthHero variant="unlock" />);
+    expect(container.querySelector(".auth-hero__overlay")).toBeNull();
   });
 });

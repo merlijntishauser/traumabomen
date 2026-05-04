@@ -583,6 +583,7 @@
   "mentalHealth.banner": "This tool deals with sensitive topics that may be triggering. If you need support, consider reaching out to for example <a>{{resource}}</a>. We are not affiliated with this organisation.",
   "mentalHealth.footer": "Need support? For example <a>{{resource}}</a>",
 
+  "landing.heroTagline": "A quiet place to map the patterns you carry.",
   "landing.tagline": "Map intergenerational trauma onto visual family trees.",
   "landing.about": "Traumatrees is a personal reflection tool for exploring patterns of trauma across generations. Build your family tree, record events, and visualize how experiences ripple through time.",
   "landing.feature1": "Build visual family trees with relationships across generations",
