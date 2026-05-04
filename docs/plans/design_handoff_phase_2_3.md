@@ -1,9 +1,8 @@
 # Design handoff — Phase 2/3 plan
 
 Phase 1 of `docs/design_handoff/README.md` (token + brand-rule sync) landed
-directly on main. This file lists the remaining work for Phases 2 (atoms)
-and 3 (screens) so it can be picked up incrementally without re-doing the
-audit.
+directly on main. **Phase 2 (atoms) is now done** — see "Phase 2 — outcome"
+below. **Phase 3 (screens) remains** — see the section near the bottom.
 
 ## What Phase 1 already did
 
@@ -56,6 +55,16 @@ The goal is **parity of styling and anatomy**, not renaming everything.
 4. Extract `Logomark` component, swap inline SVG in `AppFooter`.
 5. Audit badge usages — most stay shape-locked; only convert the few
    pill-style places (`detail-panel__category-pill`).
+
+## Phase 2 — outcome
+
+| Step | Result | Commit |
+|---|---|---|
+| 1. Input font-size 14 → 15px | **Done** — `theme.css` form input rule now uses `var(--text-body-size)`. | `af0e687` |
+| 2. `.btn` padding 6×14 → 9×16, weight 700 | **Done** — chunkier in detail panels; toolbar/footer keep their explicit heights, so layout stays stable. | `6a2f432` |
+| 3. Shared `.field-group` class | **Skipped** — only `.auth-field-group` exists in the codebase, no second consumer to factor out. Adding a duplicate shared class would be dead code. Revisit when a second use site appears. | — |
+| 4. `Logomark` component | **Done** — new `Logomark.tsx` (tree-of-life SVG, 5 unit tests), composed into `AuthWelcome` next to the wordmark. | `af0e687` |
+| 5. Badge audit | **No change needed** — the existing badge classes (`.detail-panel__category-pill`, `.detail-panel__tab-badge`, `.admin-feedback-badge--*`, `.admin-waitlist-badge--*`) are domain-specific pills with their own visual language. The kit's `tt-badge` is generic but doesn't add anything we lack. The shape-encoded markers (circle = trauma, square = life event, triangle = classification) are SVG markers on `PersonNode`, not CSS badges, and stay locked per AGENTS.md. |
 
 ## Phase 3 — screen alignment
 
