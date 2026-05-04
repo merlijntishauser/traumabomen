@@ -37,7 +37,7 @@
   border-bottom: none;
 }
 
-/* Default row: link + action buttons */
+/* Default row: logomark + link + action buttons */
 .tree-list-item {
   display: flex;
   align-items: center;
@@ -48,10 +48,22 @@
   background: var(--color-bg-hover);
 }
 
+/* Brand mark on the left of every tree row — kit-aligned. */
+.tree-list-item__mark {
+  flex-shrink: 0;
+  margin-left: 18px;
+  opacity: 0.85;
+  transition: var(--transition-colors);
+}
+
+.tree-list-item:hover .tree-list-item__mark {
+  opacity: 1;
+}
+
 .tree-list-item__link {
   flex: 1;
   display: block;
-  padding: var(--space-3\.5) 18px;
+  padding: var(--space-3\.5) 18px var(--space-3\.5) var(--space-3);
   color: var(--color-text-primary);
   font-weight: 500;
   text-decoration: none;

@@ -4,6 +4,7 @@ import { type FormEvent, useCallback, useMemo, useReducer, useRef } from "react"
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
+import { Logomark } from "../components/Logomark";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
@@ -251,6 +252,7 @@ function TreeListItemRow({
 
   return (
     <div className="tree-list-item">
+      <Logomark size={24} className="tree-list-item__mark" />
       <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
         {tree.name}
         {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
