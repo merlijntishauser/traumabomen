@@ -386,18 +386,15 @@ h4 {
    Apply these to elements whose tag doesn't match the role
    (e.g. a <span> styled as h2-display copy). */
 .t-h1 {
-  font:
-    var(--text-h1-weight) var(--text-h1-size) / var(--text-h1-leading) var(--text-h1-family);
+  font: var(--text-h1-weight) var(--text-h1-size) / var(--text-h1-leading) var(--text-h1-family);
   color: var(--color-text-primary);
 }
 .t-h2 {
-  font:
-    var(--text-h2-weight) var(--text-h2-size) / var(--text-h2-leading) var(--text-h2-family);
+  font: var(--text-h2-weight) var(--text-h2-size) / var(--text-h2-leading) var(--text-h2-family);
   color: var(--color-text-primary);
 }
 .t-h3 {
-  font:
-    var(--text-h3-weight) var(--text-h3-size) / var(--text-h3-leading) var(--text-h3-family);
+  font: var(--text-h3-weight) var(--text-h3-size) / var(--text-h3-leading) var(--text-h3-family);
   color: var(--color-text-primary);
 }
 .t-tagline {
@@ -408,8 +405,7 @@ h4 {
 }
 .t-body {
   font:
-    var(--text-body-weight) var(--text-body-size) / var(--text-body-leading)
-    var(--text-body-family);
+    var(--text-body-weight) var(--text-body-size) / var(--text-body-leading) var(--text-body-family);
   color: var(--color-text-primary);
 }
 .t-small {
@@ -426,8 +422,7 @@ h4 {
   color: var(--color-text-muted);
 }
 .t-eyebrow {
-  font:
-    var(--text-eyebrow-weight) var(--text-eyebrow-size) / 1.4 var(--text-eyebrow-family);
+  font: var(--text-eyebrow-weight) var(--text-eyebrow-size) / 1.4 var(--text-eyebrow-family);
   letter-spacing: var(--text-eyebrow-tracking);
   text-transform: var(--text-eyebrow-transform);
   color: var(--color-text-muted);
@@ -457,7 +452,7 @@ input[type="number"],
 select,
 textarea {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: var(--text-body-size);
   padding: 8px 12px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-primary);

@@ -821,13 +821,25 @@
   }
 }
 
+/* Brand block: logomark next to the wordmark, vertically centered. */
+.auth-welcome__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.auth-welcome__logomark {
+  flex-shrink: 0;
+}
+
 .auth-welcome__title {
   font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: 300;
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-leading);
   color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-  line-height: 1.2;
+  margin: 0;
 }
 
 .auth-welcome__tagline {
