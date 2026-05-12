@@ -33,7 +33,7 @@
 
 .privacy-back:hover {
   background: var(--color-bg-hover);
-  border-color: var(--color-accent);
+  border-color: var(--color-action);
   color: var(--color-text-primary);
 }
 
@@ -79,8 +79,8 @@
 }
 
 .privacy-tab--active {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
+  color: var(--color-action);
+  border-bottom-color: var(--color-action);
 }
 
 .privacy-section {
@@ -236,5 +236,5 @@
 .privacy-email {
   margin-top: var(--space-2);
   font-weight: 500;
-  color: var(--color-accent);
+  color: var(--color-action);
 }

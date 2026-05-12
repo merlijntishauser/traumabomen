@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Side panel — person detail</title>
+    <link rel="stylesheet" href="_card.css" />
+  </head>
+  <body>
+    <div class="card" style="padding: 0;">
+      <div style="display: flex; height: 480px;">
+        <div style="flex: 1; background:
+          radial-gradient(ellipse at 20% 100%, rgba(45,138,94,0.12), transparent 60%),
+          var(--color-bg-canvas);
+          background-image:
+            radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 18px 18px;
+          padding: 20px;
+          color: var(--color-text-muted); font-size: 11px;
+        ">canvas</div>
+        <aside style="width: 290px; background: var(--color-bg-secondary); border-left: 1px solid var(--color-border-primary); padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--shadow-lg);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="eyebrow">Person</div>
+            <button style="background: transparent; border: none; color: var(--color-text-muted); cursor: pointer;" aria-label="Close">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div>
+            <div style="font-family: var(--font-heading); font-weight: 300; font-size: 1.35rem; color: var(--color-text-primary); line-height: 1.35;">Margriet</div>
+            <div class="muted" style="margin-top: 2px;">Born 1952, Den Haag · died 2019</div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <span style="font-size: 11px; padding: 3px 8px; background: rgba(129,140,248,0.12); color: #818cf8; border-radius: 4px;">Loss</span>
+            <span style="font-size: 11px; padding: 3px 8px; background: rgba(34,211,238,0.12); color: #22d3ee; border-radius: 4px;">Illness</span>
+          </div>
+          <div class="divider" style="margin: 4px 0;"></div>
+          <div class="stack" style="gap: 4px;">
+            <div class="eyebrow">Story</div>
+            <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.5; color: var(--color-text-primary);">Eldest of four. Took care of her mother through the long illness. Met Wim at a dance in '74.</p>
+          </div>
+          <div class="divider" style="margin: 4px 0;"></div>
+          <div class="stack" style="gap: 8px;">
+            <div class="eyebrow">Linked</div>
+            <div style="font-size: 13px; color: var(--color-text-primary); padding: 7px 10px; background: var(--color-bg-tertiary); border-radius: var(--radius-sm); display: flex; justify-content: space-between;">
+              <span>Wim de Vries</span>
+              <span class="muted">partner</span>
+            </div>
+            <div style="font-size: 13px; color: var(--color-text-primary); padding: 7px 10px; background: var(--color-bg-tertiary); border-radius: var(--radius-sm); display: flex; justify-content: space-between;">
+              <span>Anna</span>
+              <span class="muted">daughter</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

@@ -61,19 +61,19 @@
 .onboarding-gate__privacy-link {
   display: inline;
   font-size: 14px;
-  color: var(--color-accent);
+  color: var(--color-action);
   font-weight: 500;
 }
 
 .onboarding-gate__privacy-link:hover {
-  color: var(--color-accent-hover);
+  color: var(--color-action-hover);
 }
 
 .onboarding-gate__continue {
   display: block;
   width: 100%;
   padding: var(--space-3) var(--space-5);
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -84,7 +84,7 @@
 }
 
 .onboarding-gate__continue:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }
 
 .onboarding-gate__continue:disabled {

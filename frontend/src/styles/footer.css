@@ -99,8 +99,8 @@
 }
 
 .app-footer__btn--feedback:hover {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  color: var(--color-action);
+  border-color: var(--color-action);
 }
 
 /* Colophon: copyright & license */

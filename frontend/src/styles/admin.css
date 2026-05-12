@@ -401,12 +401,12 @@
 }
 
 .admin-feedback-btn--read {
-  color: var(--color-accent);
-  border-color: var(--color-accent-border);
+  color: var(--color-action);
+  border-color: var(--color-action-border);
 }
 
 .admin-feedback-btn--read:hover:not(:disabled) {
-  background: var(--color-accent-subtle);
+  background: var(--color-action-subtle);
 }
 
 .admin-feedback-btn--delete {
@@ -482,12 +482,12 @@
 }
 
 .admin-waitlist-btn--approve {
-  color: var(--color-accent);
-  border-color: var(--color-accent-border);
+  color: var(--color-action);
+  border-color: var(--color-action-border);
 }
 
 .admin-waitlist-btn--approve:hover:not(:disabled) {
-  background: var(--color-accent-subtle);
+  background: var(--color-action-subtle);
 }
 
 .admin-waitlist-btn--delete {
@@ -560,9 +560,9 @@
 }
 
 .admin-ft-option--active {
-  border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  border-color: var(--color-action);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
   font-weight: 600;
 }
 
@@ -577,8 +577,8 @@
 }
 
 .admin-ft-option--active .admin-ft-option__radio {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
+  border-color: var(--color-action);
+  background: var(--color-action);
   box-shadow: inset 0 0 0 2px var(--color-bg-secondary);
 }
 
@@ -657,7 +657,7 @@
 }
 
 .admin-ft-users__item input[type="checkbox"] {
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
   cursor: pointer;
   flex-shrink: 0;
 }

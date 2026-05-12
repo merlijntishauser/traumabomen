@@ -151,13 +151,13 @@
 }
 
 .auth-modal__step--active {
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
 }
 
 .auth-modal__step--done {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 .auth-modal__form {
@@ -195,7 +195,7 @@
   display: block;
   width: 100%;
   padding: var(--space-2\.5) var(--space-4);
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -206,7 +206,7 @@
 }
 
 .auth-modal__submit:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }
 
 .auth-modal__submit:disabled {

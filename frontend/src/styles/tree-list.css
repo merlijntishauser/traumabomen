@@ -71,7 +71,7 @@
 }
 
 .tree-list-item:hover .tree-list-item__link {
-  color: var(--color-accent);
+  color: var(--color-action);
 }
 
 .tree-list-item__actions {
@@ -311,13 +311,13 @@
 }
 
 .welcome-card__btn--accent {
-  border-color: var(--color-accent-border);
-  color: var(--color-accent);
+  border-color: var(--color-action-border);
+  color: var(--color-action);
 }
 
 .welcome-card__btn--accent:hover {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 /* Demo badge */

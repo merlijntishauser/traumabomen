@@ -137,7 +137,7 @@
 .pattern-panel__field textarea:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
 }
 
 .pattern-panel__field textarea {

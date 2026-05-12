@@ -22,7 +22,7 @@
 .pattern-view__empty a {
   display: inline-block;
   padding: var(--space-2) var(--space-5);
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   border-radius: var(--radius-sm);
   text-decoration: none;
@@ -31,7 +31,7 @@
 }
 
 .pattern-view__empty a:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }
 
 .pattern-view__grid {
@@ -212,7 +212,7 @@
 .pattern-view__detail-link {
   display: inline-block;
   padding: var(--space-1\.5) var(--space-3\.5);
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   border-radius: var(--radius-sm);
   text-decoration: none;
@@ -221,5 +221,5 @@
 }
 
 .pattern-view__detail-link:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }

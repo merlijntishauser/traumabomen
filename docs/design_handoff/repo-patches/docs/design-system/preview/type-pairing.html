@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Type pairing</title>
+    <link rel="stylesheet" href="_card.css" />
+  </head>
+  <body>
+    <div class="card">
+      <div class="stack" style="gap: 16px;">
+        <div class="eyebrow">Typography · the two voices</div>
+        <div class="row" style="gap: 16px; align-items: stretch;">
+          <div class="stack" style="flex: 1; padding: 18px; background: var(--color-bg-secondary); border: 1px solid var(--color-border-secondary); border-radius: 10px; gap: 8px;">
+            <div class="muted">For headings &amp; taglines</div>
+            <div style="font-family: 'Playwrite NZ Basic', Georgia, cursive; font-size: 26px; font-weight: 200; line-height: 1.3; color: var(--color-text-primary);">Playwrite NZ</div>
+            <div style="font-family: 'Lato', sans-serif; font-size: 13px; line-height: 1.5; color: var(--color-text-secondary);">A handwriting face. Always at light weights (100–400). Loose, human, slightly fragile — it says <em>"this is your story, in your handwriting."</em></div>
+            <div class="token" style="margin-top: 6px;">--font-heading</div>
+          </div>
+          <div class="stack" style="flex: 1; padding: 18px; background: var(--color-bg-secondary); border: 1px solid var(--color-border-secondary); border-radius: 10px; gap: 8px;">
+            <div class="muted">For everything else</div>
+            <div style="font-family: 'Lato', sans-serif; font-size: 26px; font-weight: 700; line-height: 1.3; color: var(--color-text-primary);">Lato</div>
+            <div style="font-family: 'Lato', sans-serif; font-size: 13px; line-height: 1.5; color: var(--color-text-secondary);">Humanist sans for body, buttons, menus, forms, panels, metadata. Weights 300 / 400 / 700 / 900 + italic 400.</div>
+            <div class="token" style="margin-top: 6px;">--font-body</div>
+          </div>
+        </div>
+        <div class="muted">Fallbacks: Lato → Helvetica Neue → sans-serif. Playwrite → Georgia → cursive. Both load from Google Fonts.</div>
+      </div>
+    </div>
+  </body>
+</html>

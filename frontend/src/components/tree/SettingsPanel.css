@@ -77,8 +77,8 @@
 }
 
 .settings-modal__nav-item--active {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 .settings-modal__nav-item--danger {
@@ -178,7 +178,7 @@
 }
 
 .settings-panel__toggle input[type="checkbox"] {
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
   cursor: pointer;
 }
 
@@ -221,7 +221,7 @@
 }
 
 .settings-panel__radio input[type="radio"] {
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
   cursor: pointer;
   margin: 0;
 }
@@ -255,8 +255,8 @@
 }
 
 .settings-panel__theme-switch--dark {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-action);
+  border-color: var(--color-action);
 }
 
 .settings-panel__theme-knob {
@@ -304,7 +304,7 @@
 
 .settings-panel__input:focus {
   outline: none;
-  border-color: var(--color-accent);
+  border-color: var(--color-action);
 }
 
 .settings-panel__btn {
@@ -313,15 +313,15 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-inverse);
-  background: var(--color-accent);
-  border: 1px solid var(--color-accent);
+  background: var(--color-action);
+  border: 1px solid var(--color-action);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-colors);
 }
 
 .settings-panel__btn:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }
 
 .settings-panel__btn:disabled {
@@ -371,7 +371,7 @@
 
 .settings-panel__progress {
   font-size: 12px;
-  color: var(--color-accent);
+  color: var(--color-action);
   margin-bottom: var(--space-1\.5);
 }
 

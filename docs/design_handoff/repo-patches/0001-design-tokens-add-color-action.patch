@@ -1,0 +1,129 @@
+From: Design System
+Subject: [PATCH] design-tokens: split --color-accent into brand + --color-action
+
+Introduces `--color-action` as a sibling to `--color-accent` so the
+interactive accent can shift register per theme without dragging the
+brand color with it.
+
+- Dark theme: --color-action == --color-accent (both forest green).
+  Visually identical to current behavior.
+- Light theme: --color-action becomes indigo (#4f46e5). Buttons, links,
+  focused inputs, focus rings, segmented-toggle active states, and the
+  SELECTED node ring shift to indigo on cream. Logo, leaf icon, tree
+  edges, and ambient gradients stay green via --color-accent.
+
+Rationale: green-on-cream reads generic-wellness; indigo-on-cream reads
+editorial / "reflection, not therapy" — fits the brand voice better.
+The forest stays the forest; only the *actions* shift register. Dark
+theme is unchanged because the dark forest already carries the
+editorial weight on its own.
+
+---
+ frontend/src/styles/theme.css | 41 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 38 insertions(+), 3 deletions(-)
+
+diff --git a/frontend/src/styles/theme.css b/frontend/src/styles/theme.css
+--- a/frontend/src/styles/theme.css
++++ b/frontend/src/styles/theme.css
+@@ -25,12 +25,29 @@
+   --color-text-muted: #7a9a84;
+   --color-text-inverse: #0a1a0f;
+ 
+-  /* Accent */
++  /* Accent — brand / content color.
++     Used for the logomark, leaf icon, tree-edge "default", ambient hover
++     tints, soft surface gradients. Stays GREEN in both themes so brand
++     identity is consistent. */
+   --color-accent: #2d8a5e;
+   --color-accent-hover: #24704c;
+   --color-accent-subtle: rgba(45, 138, 94, 0.12);
+   --color-accent-focus-ring: rgba(45, 138, 94, 0.35);
+ 
++  /* Action — interactive accent.
++     Used for primary buttons, links, focused input borders, focus rings,
++     checkbox checked state, segmented-toggle active state, the SELECTED
++     ring on a node. GREEN in dark, INDIGO in light — see [data-theme="light"]
++     override below. Rule of thumb: anything the user *does* uses --color-action;
++     anything that *represents the brand or a tree* uses --color-accent. */
++  --color-action: #2d8a5e;
++  --color-action-hover: #24704c;
++  --color-action-subtle: rgba(45, 138, 94, 0.12);
++  --color-action-focus-ring: rgba(45, 138, 94, 0.35);
++  --color-action-border: rgba(45, 138, 94, 0.3);
++
+   /* Danger */
+   --color-danger: #ef4444;
+   --color-danger-bg: rgba(239, 68, 68, 0.1);
+@@ -224,6 +241,17 @@
+   --color-accent-subtle: rgba(52, 160, 102, 0.08);
+   --color-accent-focus-ring: rgba(52, 160, 102, 0.25);
+ 
++  /* Action turns INDIGO in light — editorial / "reflection, not therapy".
++     Green-on-cream reads generic-wellness; indigo-on-cream reads literary
++     and considered, which fits the brand voice better. The forest stays the
++     forest (logo, leaf, tree edges keep --color-accent green); only the
++     *actions* shift register. */
++  --color-action: #4f46e5;
++  --color-action-hover: #4338ca;
++  --color-action-subtle: rgba(79, 70, 229, 0.07);
++  --color-action-focus-ring: rgba(79, 70, 229, 0.25);
++  --color-action-border: rgba(79, 70, 229, 0.3);
++
+   --color-danger: #dc2626;
+   --color-danger-bg: rgba(220, 38, 38, 0.06);
+   --color-danger-border: rgba(220, 38, 38, 0.2);
+@@ -276,7 +304,7 @@
+ 
+   --color-node-bg: #ffffff;
+   --color-node-border: #d4cec6;
+-  --color-node-selected: #34a066;
++  --color-node-selected: #4f46e5;
+   --color-node-handle: #9aa5b2;
+ 
+   --color-lifebar-fill: rgba(52, 160, 102, 0.12);
+@@ -340,12 +368,12 @@ h4 {
+ }
+ 
+ a {
+-  color: var(--color-accent);
++  color: var(--color-action);
+   text-decoration: none;
+   transition: var(--transition-colors);
+ }
+ 
+ a:hover {
+-  color: var(--color-accent-hover);
++  color: var(--color-action-hover);
+ }
+ 
+ /* --- Form defaults --- */
+@@ -369,8 +397,8 @@ textarea {
+ select:focus,
+ textarea:focus {
+   outline: none;
+-  border-color: var(--color-border-focus);
+-  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
++  border-color: var(--color-action);
++  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
+ }
+ 
+ label {
+@@ -430,14 +458,14 @@ button {
+ }
+ 
+ .btn--primary {
+-  background: var(--color-accent);
++  background: var(--color-action);
+   color: var(--color-text-inverse);
+-  border-color: var(--color-accent);
++  border-color: var(--color-action);
+ }
+ 
+ .btn--primary:hover {
+-  background: var(--color-accent-hover);
++  background: var(--color-action-hover);
+ }
+ 
+ .btn--danger {
+-- 
+2.40.0

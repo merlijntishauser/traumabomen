@@ -24,7 +24,7 @@
 .sibling-group-node--selected {
   border-color: var(--color-node-selected);
   opacity: 1;
-  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
 }
 
 .sibling-group-node__label {

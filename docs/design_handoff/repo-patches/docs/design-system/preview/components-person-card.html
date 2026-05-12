@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Person card — canvas node</title>
+    <link rel="stylesheet" href="_card.css" />
+  </head>
+  <body>
+    <div class="card">
+      <div class="stack" style="gap: 14px;">
+        <div class="eyebrow">Person card · React Flow node</div>
+        <div class="row" style="gap: 14px; align-items: flex-start;">
+          <!-- normal -->
+          <div style="width: 200px; padding: 14px; background: var(--color-node-bg); border: 1px solid var(--color-node-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-bg-tertiary); border: 1px solid var(--color-border-primary); color: var(--color-text-secondary); font-family: var(--font-heading); font-weight: 300; display: flex; align-items: center; justify-content: center; font-size: 13px;">WV</div>
+              <div>
+                <div style="font-family: var(--font-heading); font-weight: 300; font-size: 15px; color: var(--color-text-primary); line-height: 1.2;">Wim de Vries</div>
+                <div class="muted" style="font-size: 11px;">1948 — present</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+              <span style="font-size: 10px; padding: 2px 7px; background: rgba(168,162,158,0.12); color: #a8a29e; border-radius: 4px;">War</span>
+              <span style="font-size: 10px; padding: 2px 7px; background: rgba(251,191,36,0.12); color: #fbbf24; border-radius: 4px;">Addiction</span>
+            </div>
+          </div>
+          <!-- selected -->
+          <div style="width: 200px; padding: 14px; background: var(--color-node-bg); border: 1px solid var(--color-action); border-radius: var(--radius-md); box-shadow: 0 0 0 2px var(--color-action-focus-ring), var(--shadow-md);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-bg-tertiary); border: 1px solid var(--color-border-primary); color: var(--color-text-secondary); font-family: var(--font-heading); font-weight: 300; display: flex; align-items: center; justify-content: center; font-size: 13px;">M</div>
+              <div>
+                <div style="font-family: var(--font-heading); font-weight: 300; font-size: 15px; color: var(--color-text-primary); line-height: 1.2;">Margriet</div>
+                <div class="muted" style="font-size: 11px;">1952 — 2019</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+              <span style="font-size: 10px; padding: 2px 7px; background: rgba(129,140,248,0.12); color: #818cf8; border-radius: 4px;">Loss</span>
+            </div>
+            <div style="margin-top: 8px; font-size: 11px; color: var(--color-action); font-weight: 600; letter-spacing: 0.03em;">SELECTED</div>
+          </div>
+          <!-- deceased + sensitive -->
+          <div style="width: 200px; padding: 14px; background: var(--color-node-bg); border: 1px dashed var(--color-border-primary); border-radius: var(--radius-md); opacity: 0.85;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-bg-tertiary); border: 1px solid var(--color-border-primary); color: var(--color-text-muted); font-family: var(--font-heading); font-weight: 300; display: flex; align-items: center; justify-content: center; font-size: 13px;">J</div>
+              <div>
+                <div style="font-family: var(--font-heading); font-weight: 300; font-size: 15px; color: var(--color-text-secondary); line-height: 1.2;">Jan</div>
+                <div class="muted" style="font-size: 11px;">1920 — 1991</div>
+              </div>
+            </div>
+            <div class="muted" style="margin-top: 10px; font-style: italic; font-size: 12px;">Sensitive · click to expand</div>
+          </div>
+        </div>
+        <div class="muted">Initials in handwriting face. Trauma chips never solid (12% bg). Sensitive nodes use dashed border + dimmed text. Avatars are flat surface tones — no gradients.</div>
+      </div>
+    </div>
+  </body>
+</html>

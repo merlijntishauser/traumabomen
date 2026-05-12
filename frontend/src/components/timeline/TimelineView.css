@@ -80,7 +80,7 @@
 
 .tl-person-label--selected {
   font-weight: 600;
-  fill: var(--color-accent);
+  fill: var(--color-action);
 }
 
 .tl-lane-hitarea {
@@ -100,7 +100,7 @@
   min-width: 14px;
   height: 14px;
   border-radius: 7px;
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   font-size: 10px;
   font-weight: 600;
@@ -154,7 +154,7 @@
 /* Selection ring around markers in annotate mode */
 .tl-selection-ring {
   fill: none;
-  stroke: var(--color-accent);
+  stroke: var(--color-action);
   stroke-width: 2;
   pointer-events: none;
 }
@@ -207,7 +207,7 @@
 .tl-create-pattern__count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-action);
 }
 
 .tl-create-pattern__colors {
@@ -294,16 +294,16 @@
 }
 
 .tl-zoom-controls__btn:active {
-  background: var(--color-accent-subtle);
+  background: var(--color-action-subtle);
 }
 
 .tl-zoom-controls__btn--active {
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
 }
 
 .tl-zoom-controls__btn--active:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
   color: var(--color-text-inverse);
 }
 

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Inputs &amp; forms</title>
+    <link rel="stylesheet" href="_card.css" />
+    <style>
+      .field-label { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--color-text-secondary); }
+      .input {
+        width: 100%; font-family: var(--font-body); font-size: 15px;
+        padding: 9px 12px; background: rgba(255,255,255,0.03);
+        color: var(--color-text-primary);
+        border: 1px solid var(--color-border-primary); border-radius: var(--radius-sm);
+        outline: none; transition: var(--transition-colors);
+      }
+      .input:focus { border-color: var(--color-action); box-shadow: 0 0 0 2px var(--color-action-focus-ring); }
+      .input::placeholder { color: var(--color-text-muted); }
+      .field-group {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--color-border-secondary);
+        border-radius: var(--radius-md);
+        padding: 14px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-primary); cursor: pointer; }
+      .checkbox-box { width: 14px; height: 14px; border: 1.5px solid var(--color-border-primary); border-radius: 3px; background: rgba(255,255,255,0.03); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+      .checkbox-box.checked { background: var(--color-action); border-color: var(--color-action); color: var(--color-text-inverse); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="stack" style="gap: 14px;">
+        <div class="eyebrow">Forms · grouped fields</div>
+        <div class="field-group">
+          <div class="stack" style="gap: 6px;">
+            <label class="field-label">Name</label>
+            <input class="input" placeholder="e.g. Margriet" value="Wim de Vries" />
+          </div>
+          <div class="row" style="gap: 12px;">
+            <div class="stack" style="gap: 6px; flex: 1;">
+              <label class="field-label">Born</label>
+              <input class="input" placeholder="YYYY" value="1948" />
+            </div>
+            <div class="stack" style="gap: 6px; flex: 1;">
+              <label class="field-label">Died (optional)</label>
+              <input class="input" placeholder="YYYY" />
+            </div>
+          </div>
+        </div>
+        <div class="row" style="gap: 16px; padding-top: 4px;">
+          <span class="checkbox"><span class="checkbox-box checked">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>Living</span>
+          <span class="checkbox"><span class="checkbox-box"></span>Hide from canvas</span>
+          <span class="checkbox"><span class="checkbox-box"></span>Mark sensitive</span>
+        </div>
+        <div class="muted">Field groups use a sub-tint background (rgba(255,255,255,0.03) on dark, rgba(0,0,0,0.02) on light) to chunk related fields. Body is 15px.</div>
+      </div>
+    </div>
+  </body>
+</html>

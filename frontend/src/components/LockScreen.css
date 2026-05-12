@@ -154,7 +154,7 @@
 .lock-screen__input:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
 }
 
 .lock-screen__input--shake {
@@ -193,7 +193,7 @@
   display: block;
   width: 100%;
   padding: var(--space-2\.5) var(--space-4);
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -204,7 +204,7 @@
 }
 
 .lock-screen__submit:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-action-hover);
 }
 
 .lock-screen__submit:disabled {

@@ -19,7 +19,7 @@
 
 .person-node--selected {
   border-color: var(--color-node-selected);
-  box-shadow: 0 0 0 3px var(--color-accent-focus-ring);
+  box-shadow: 0 0 0 3px var(--color-action-focus-ring);
 }
 
 .person-node--friend-only {
@@ -200,7 +200,7 @@
 .person-node .react-flow__handle {
   width: 10px;
   height: 10px;
-  background: var(--color-accent);
+  background: var(--color-action);
   border: 2px solid var(--color-node-border);
   transition:
     background 0.15s ease,
@@ -209,9 +209,9 @@
 }
 
 .person-node .react-flow__handle:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-focus-ring);
+  background: var(--color-action-hover);
+  border-color: var(--color-action);
+  box-shadow: 0 0 0 3px var(--color-action-focus-ring);
 }
 
 /* Larger touch targets on touch devices */

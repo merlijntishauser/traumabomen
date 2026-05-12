@@ -144,7 +144,7 @@
 
 .sibling-group-panel__icon-btn:hover {
   background: var(--color-bg-secondary);
-  color: var(--color-accent);
+  color: var(--color-action);
 }
 
 .sibling-group-panel__icon-btn--danger:hover {
@@ -173,9 +173,9 @@
 }
 
 .sibling-group-panel__add-card:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: var(--color-accent-subtle);
+  border-color: var(--color-action);
+  color: var(--color-action);
+  background: var(--color-action-subtle);
 }
 
 /* Footer */

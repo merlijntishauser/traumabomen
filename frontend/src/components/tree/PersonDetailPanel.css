@@ -53,7 +53,7 @@
 }
 
 .detail-panel__prompt:hover {
-  border-bottom-color: var(--color-accent);
+  border-bottom-color: var(--color-action);
   color: var(--color-text-secondary);
   background: var(--color-bg-hover);
 }
@@ -98,8 +98,8 @@
 }
 
 .detail-panel__tab--active {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
+  color: var(--color-action);
+  border-bottom-color: var(--color-action);
   background: var(--color-bg-secondary);
 }
 
@@ -112,8 +112,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 7px;
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 /* close button: uses shared .panel-close */
@@ -160,7 +160,7 @@
 }
 
 .detail-panel__segment--active {
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-text-inverse);
 }
 
@@ -173,8 +173,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 7px;
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 .detail-panel__segment--active .detail-panel__segment-badge {
@@ -263,7 +263,7 @@ fieldset.detail-panel__field {
 .detail-panel__field textarea:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px var(--color-accent-focus-ring);
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
 }
 
 .detail-panel__field input[type="range"] {
@@ -271,7 +271,7 @@ fieldset.detail-panel__field {
   border: none;
   padding: var(--space-1) 0;
   background: transparent;
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
 }
 
 .detail-panel__field input[type="range"]:focus {
@@ -289,7 +289,7 @@ fieldset.detail-panel__field {
 .detail-panel__field--checkbox input[type="radio"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
 }
 
 .detail-panel__radios {

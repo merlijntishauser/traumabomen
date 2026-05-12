@@ -11,7 +11,7 @@
 .tl-filter-panel__reset {
   background: none;
   border: none;
-  color: var(--color-accent);
+  color: var(--color-action);
   font-size: 12px;
   cursor: pointer;
   padding: var(--space-0\.5) var(--space-1\.5);
@@ -19,7 +19,7 @@
 }
 
 .tl-filter-panel__reset:hover {
-  background: var(--color-accent-subtle);
+  background: var(--color-action-subtle);
 }
 
 .tl-filter-panel__mode-toggle {
@@ -42,9 +42,9 @@
 }
 
 .tl-filter-panel__mode-toggle--active {
-  background: var(--color-accent-subtle);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  border-color: var(--color-action);
+  color: var(--color-action);
 }
 
 .tl-filter-panel__quick-filters {
@@ -86,7 +86,7 @@
 .tl-filter-panel__toggle-btn {
   background: none;
   border: none;
-  color: var(--color-accent);
+  color: var(--color-action);
   font-size: 12px;
   cursor: pointer;
   padding: var(--space-0\.5) var(--space-1);
@@ -122,7 +122,7 @@
 
 .tl-filter-panel__checkbox input[type="checkbox"] {
   margin: 0;
-  accent-color: var(--color-accent);
+  accent-color: var(--color-action);
 }
 
 .tl-filter-panel__color-dot {
@@ -221,7 +221,7 @@
 }
 
 .tl-filter-panel__pill--active {
-  background: var(--color-accent-subtle);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  border-color: var(--color-action);
+  color: var(--color-action);
 }
