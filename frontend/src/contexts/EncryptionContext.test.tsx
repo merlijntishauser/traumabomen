@@ -110,8 +110,7 @@ describe("addTreeKey", () => {
 
   it("preserves existing keys when adding new ones", async () => {
     const { result } = renderEncryption();
-    const key1 = await createMockKey();
-    const key2 = await createMockKey();
+    const [key1, key2] = await Promise.all([createMockKey(), createMockKey()]);
 
     act(() => result.current.addTreeKey("tree-1", key1, "b64-1"));
     act(() => result.current.addTreeKey("tree-2", key2, "b64-2"));
@@ -124,8 +123,7 @@ describe("addTreeKey", () => {
 describe("removeTreeKey", () => {
   it("removes key and base64 from both maps", async () => {
     const { result } = renderEncryption();
-    const key1 = await createMockKey();
-    const key2 = await createMockKey();
+    const [key1, key2] = await Promise.all([createMockKey(), createMockKey()]);
 
     act(() => {
       result.current.addTreeKey("tree-1", key1, "b64-1");

@@ -19,7 +19,9 @@ export function PersonLinkField({ allPersons, selectedIds, onChange }: PersonLin
     })
     .join(", ");
 
-  const sortedPersons = [...allPersons.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedPersons = Array.from(allPersons.values()).toSorted((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   function handleToggle(personId: string) {
     if (selectedIds.has(personId) && selectedIds.size <= 1) return;

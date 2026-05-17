@@ -69,6 +69,13 @@ function makeBaseProps() {
     mode: "full" as const,
     selectedPersonId: null,
     onTooltip: vi.fn(),
+    display: {
+      showPartnerLines: true,
+      showPartnerLabels: true,
+      showClassifications: true,
+      showGridlines: false,
+      showMarkerLabels: true,
+    },
   };
 }
 
@@ -239,7 +246,17 @@ describe("TimelineAgeContent", () => {
   it("renders horizontal gridlines when showGridlines is true", () => {
     const p1 = makePerson("p1", { name: "Alice", birth_year: 1960 });
     const { container } = render(
-      <TimelineAgeContent {...makeBaseProps()} persons={new Map([["p1", p1]])} showGridlines />,
+      <TimelineAgeContent
+        {...makeBaseProps()}
+        persons={new Map([["p1", p1]])}
+        display={{
+          showPartnerLines: true,
+          showPartnerLabels: true,
+          showClassifications: true,
+          showGridlines: true,
+          showMarkerLabels: true,
+        }}
+      />,
     );
     const bgGroup = container.querySelector(".tl-bg");
     const gridLines = bgGroup?.querySelectorAll("line");

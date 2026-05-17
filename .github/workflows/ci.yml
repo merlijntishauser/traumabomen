@@ -144,7 +144,7 @@ jobs:
       # Pin react-doctor to a known-good version. The upstream millionco/react-doctor action
       # invokes react-doctor@latest internally, which makes CI non-reproducible when new
       # rules ship upstream. Bump this deliberately after reviewing release notes.
-      REACT_DOCTOR_VERSION: "0.0.37"
+      REACT_DOCTOR_VERSION: "0.1.6"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

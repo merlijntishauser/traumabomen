@@ -689,11 +689,7 @@ export default function TimelinePage() {
             onToggleEntitySelect={handleToggleEntitySelect}
             onPatternHover={panels.setHoveredPatternId}
             onPatternClick={handlePatternClick}
-            showPartnerLines={timelineSettings.showPartnerLines}
-            showPartnerLabels={timelineSettings.showPartnerLabels}
-            showClassifications={timelineSettings.showClassifications}
-            showGridlines={timelineSettings.showGridlines}
-            showMarkerLabels={timelineSettings.showMarkerLabels}
+            display={timelineSettings}
             scrollMode={scrollMode}
             onToggleScrollMode={handleToggleScrollMode}
           />

@@ -334,8 +334,10 @@ export async function modifyKeyRing(
   masterKey: CryptoKey,
   transform: (entries: Record<string, string>) => Record<string, string>,
 ): Promise<void> {
-  const { decryptKeyRing, encryptKeyRing } = await import("./crypto");
-  const { encrypted_key_ring } = await getKeyRing();
+  const [{ decryptKeyRing, encryptKeyRing }, { encrypted_key_ring }] = await Promise.all([
+    import("./crypto"),
+    getKeyRing(),
+  ]);
   const current = await decryptKeyRing(encrypted_key_ring, masterKey);
   const updated = transform(current);
   const encrypted = await encryptKeyRing(updated, masterKey);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * Shared editing state for event tab components.
@@ -8,13 +8,15 @@ import { useEffect, useState } from "react";
 export function useEditingState(initialEditId?: string) {
   const [editingId, setEditingId] = useState<string | null>(initialEditId ?? null);
   const [showNew, setShowNew] = useState(false);
+  const [lastInitial, setLastInitial] = useState(initialEditId);
 
-  useEffect(() => {
+  if (initialEditId !== lastInitial) {
+    setLastInitial(initialEditId);
     if (initialEditId) {
       setEditingId(initialEditId);
       setShowNew(false);
     }
-  }, [initialEditId]);
+  }
 
   const isEditing = editingId !== null || showNew;
 

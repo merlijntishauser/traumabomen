@@ -1,4 +1,4 @@
-export interface DsmSubcategory {
+interface DsmSubcategory {
   key: string;
   code: string;
 }

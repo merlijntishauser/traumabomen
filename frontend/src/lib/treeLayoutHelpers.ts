@@ -592,10 +592,11 @@ function classifyCoupleForkEdges(
   result: JunctionForkResult,
 ): void {
   let primaryId: string | null = null;
+  const childIdSet = new Set(childIds);
   for (const rel of relationships.values()) {
     if (rel.type !== RelationshipType.BiologicalParent) continue;
     if (rel.source_person_id !== parentAId && rel.source_person_id !== parentBId) continue;
-    if (!childIds.includes(rel.target_person_id)) continue;
+    if (!childIdSet.has(rel.target_person_id)) continue;
 
     if (primaryId === null) {
       primaryId = rel.id;

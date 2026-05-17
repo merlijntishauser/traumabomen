@@ -155,7 +155,9 @@ describe("ChangePassphraseSection", () => {
 
   it("calls migrated flow and clears fields on success", async () => {
     mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "old-salt" });
-    mockDeriveKey.mockResolvedValueOnce("old-key").mockResolvedValueOnce("new-key");
+    mockDeriveKey.mockImplementation(async (passphrase: string) =>
+      passphrase === "new-pass" ? "new-key" : "old-key",
+    );
     mockGetKeyRing.mockResolvedValue({ encrypted_key_ring: "encrypted-ring" });
     mockDecryptKeyRing.mockResolvedValue({ tree1: "key1" });
     mockGenerateSalt.mockReturnValue("new-salt");

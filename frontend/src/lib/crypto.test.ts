@@ -62,14 +62,15 @@ describe("encrypt / decrypt", () => {
 
   it("produces different IVs for the same plaintext", async () => {
     const key = await createTestKey();
-    const blob1 = await encrypt("same input", key);
-    const blob2 = await encrypt("same input", key);
+    const [blob1, blob2] = await Promise.all([
+      encrypt("same input", key),
+      encrypt("same input", key),
+    ]);
     expect(blob1.iv).not.toBe(blob2.iv);
   });
 
   it("throws when decrypting with wrong key", async () => {
-    const key = await createTestKey();
-    const wrongKey = await createDifferentKey();
+    const [key, wrongKey] = await Promise.all([createTestKey(), createDifferentKey()]);
     const blob = await encrypt("secret", key);
     await expect(decrypt(blob, wrongKey)).rejects.toThrow();
   });
@@ -135,14 +136,18 @@ describe("hashPassphrase", () => {
   });
 
   it("returns same hash for same input", async () => {
-    const hash1 = await hashPassphrase("deterministic");
-    const hash2 = await hashPassphrase("deterministic");
+    const [hash1, hash2] = await Promise.all([
+      hashPassphrase("deterministic"),
+      hashPassphrase("deterministic"),
+    ]);
     expect(hash1).toBe(hash2);
   });
 
   it("returns different hash for different input", async () => {
-    const hash1 = await hashPassphrase("passphrase-one");
-    const hash2 = await hashPassphrase("passphrase-two");
+    const [hash1, hash2] = await Promise.all([
+      hashPassphrase("passphrase-one"),
+      hashPassphrase("passphrase-two"),
+    ]);
     expect(hash1).not.toBe(hash2);
   });
 });
@@ -290,8 +295,7 @@ describe("generateTreeKey", () => {
   });
 
   it("produces different keys on each call", async () => {
-    const result1 = await generateTreeKey();
-    const result2 = await generateTreeKey();
+    const [result1, result2] = await Promise.all([generateTreeKey(), generateTreeKey()]);
     expect(result1.base64).not.toBe(result2.base64);
   });
 });

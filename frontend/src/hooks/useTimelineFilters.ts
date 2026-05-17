@@ -518,9 +518,9 @@ export function useTimelineFilters(
   const allUsedSubcategories = useMemo(
     () =>
       new Set(
-        Array.from(classifications.values())
-          .map((cls) => cls.dsm_subcategory)
-          .filter((s): s is string => s !== null),
+        Array.from(classifications.values()).flatMap((cls) =>
+          cls.dsm_subcategory !== null ? [cls.dsm_subcategory] : [],
+        ),
       ),
     [classifications],
   );

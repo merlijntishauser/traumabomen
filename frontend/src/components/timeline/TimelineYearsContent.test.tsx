@@ -82,6 +82,13 @@ function makeBaseProps() {
     mode: "explore" as const,
     selectedPersonId: null,
     onTooltip: vi.fn(),
+    display: {
+      showPartnerLines: true,
+      showPartnerLabels: true,
+      showClassifications: true,
+      showGridlines: false,
+      showMarkerLabels: true,
+    },
   };
 }
 
@@ -393,7 +400,13 @@ describe("TimelineYearsContent", () => {
             },
           ],
         ]),
-        showPartnerLines: false,
+        display: {
+          showPartnerLines: false,
+          showPartnerLabels: true,
+          showClassifications: true,
+          showGridlines: false,
+          showMarkerLabels: true,
+        },
       };
       const { container } = render(<TimelineYearsContent {...props} />);
       // Only axis tick lines should be present, no partner lines in the time group
@@ -430,7 +443,13 @@ describe("TimelineYearsContent", () => {
       const props = {
         ...makeBaseProps(),
         persons: new Map<string, DecryptedPerson>([["p1", p1]]),
-        showGridlines: true,
+        display: {
+          showPartnerLines: true,
+          showPartnerLabels: true,
+          showClassifications: true,
+          showGridlines: true,
+          showMarkerLabels: true,
+        },
       };
       const { container } = render(<TimelineYearsContent {...props} />);
       // Gridlines start at y1=0 and extend to totalHeight

@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
+import type { TimelineSettings } from "../../hooks/useTimelineSettings";
 import { useTimelineZoom } from "../../hooks/useTimelineZoom";
 import type {
   DecryptedClassification,
@@ -105,11 +106,7 @@ interface TimelineAgeContentProps {
   onToggleEntitySelect?: (key: string) => void;
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
-  showPartnerLines?: boolean;
-  showPartnerLabels?: boolean;
-  showClassifications?: boolean;
-  showGridlines?: boolean;
-  showMarkerLabels?: boolean;
+  display: TimelineSettings;
   scrollMode?: boolean;
   onToggleScrollMode?: () => void;
 }
@@ -273,14 +270,17 @@ export function TimelineAgeContent({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
-  showPartnerLines = true,
-  showPartnerLabels = true,
-  showClassifications = true,
-  showGridlines = false,
-  showMarkerLabels = true,
+  display,
   scrollMode,
   onToggleScrollMode,
 }: TimelineAgeContentProps) {
+  const {
+    showPartnerLines,
+    showPartnerLabels,
+    showClassifications,
+    showGridlines,
+    showMarkerLabels,
+  } = display;
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomGroupRef = useRef<SVGGElement>(null);
   const { t } = useTranslation();

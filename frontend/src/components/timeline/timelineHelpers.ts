@@ -112,7 +112,7 @@ export function assignBaseGenerations(
     }
 
     const maxParentGen = Math.max(
-      ...parents.filter((pid) => persons.has(pid)).map((pid) => getGeneration(pid, visited)),
+      ...parents.flatMap((pid) => (persons.has(pid) ? [getGeneration(pid, visited)] : [])),
     );
     const gen = maxParentGen + 1;
     generations.set(personId, gen);
@@ -153,9 +153,10 @@ function equalizeCoParents(
   let changed = false;
   for (const parentIds of childToParents.values()) {
     if (parentIds.length < 2) continue;
-    const parentGens = parentIds
-      .filter((pid) => generations.has(pid))
-      .map((pid) => generations.get(pid)!);
+    const parentGens = parentIds.flatMap((pid) => {
+      const gen = generations.get(pid);
+      return gen != null ? [gen] : [];
+    });
     if (parentGens.length < 2) continue;
     const maxGen = Math.max(...parentGens);
     for (const pid of parentIds) {
@@ -184,9 +185,10 @@ function propagateToChildren(
 ): boolean {
   let changed = false;
   for (const [childId, parentIds] of childToParents) {
-    const parentGens = parentIds
-      .filter((pid) => generations.has(pid))
-      .map((pid) => generations.get(pid)!);
+    const parentGens = parentIds.flatMap((pid) => {
+      const gen = generations.get(pid);
+      return gen != null ? [gen] : [];
+    });
     if (parentGens.length === 0) continue;
     const expectedGen = Math.max(...parentGens) + 1;
     const currentGen = generations.get(childId) ?? 0;

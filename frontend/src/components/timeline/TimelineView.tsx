@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
+import type { TimelineSettings } from "../../hooks/useTimelineSettings";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -41,14 +42,18 @@ interface TimelineViewProps {
   onToggleEntitySelect?: (key: string) => void;
   onPatternHover?: (patternId: string | null) => void;
   onPatternClick?: (patternId: string) => void;
-  showPartnerLines?: boolean;
-  showPartnerLabels?: boolean;
-  showClassifications?: boolean;
-  showGridlines?: boolean;
-  showMarkerLabels?: boolean;
+  display?: Partial<TimelineSettings>;
   scrollMode?: boolean;
   onToggleScrollMode?: () => void;
 }
+
+const DEFAULT_DISPLAY: TimelineSettings = {
+  showPartnerLines: true,
+  showPartnerLabels: true,
+  showClassifications: true,
+  showGridlines: false,
+  showMarkerLabels: true,
+};
 
 export function TimelineView({
   persons,
@@ -72,14 +77,11 @@ export function TimelineView({
   onToggleEntitySelect,
   onPatternHover,
   onPatternClick,
-  showPartnerLines = true,
-  showPartnerLabels = true,
-  showClassifications = true,
-  showGridlines = false,
-  showMarkerLabels = true,
+  display,
   scrollMode,
   onToggleScrollMode,
 }: TimelineViewProps) {
+  const resolvedDisplay: TimelineSettings = { ...DEFAULT_DISPLAY, ...display };
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -143,11 +145,7 @@ export function TimelineView({
     onToggleEntitySelect,
     onPatternHover,
     onPatternClick,
-    showPartnerLines,
-    showPartnerLabels,
-    showClassifications,
-    showGridlines,
-    showMarkerLabels,
+    display: resolvedDisplay,
     scrollMode,
     onToggleScrollMode,
   };

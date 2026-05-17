@@ -173,16 +173,20 @@ export function ChangePassphraseSection() {
   async function handleChangePassphraseMigrated() {
     // Simplified flow: only re-encrypt the key ring (tree keys stay the same)
     dispatch({ type: "SET_PROGRESS", progress: t("account.reencrypting") });
-    const { encryption_salt: currentSalt } = await getEncryptionSalt();
+    const newSalt = generateSalt();
+    const [{ encryption_salt: currentSalt }, { encrypted_key_ring }, newKey, newHash] =
+      await Promise.all([
+        getEncryptionSalt(),
+        getKeyRing(),
+        deriveKey(state.newPp, newSalt),
+        hashPassphrase(state.newPp),
+      ]);
     const oldKey = await deriveKey(state.current, currentSalt);
 
     // Verify old passphrase by attempting to decrypt key ring
-    const { encrypted_key_ring } = await getKeyRing();
     const keyRingData = await decryptKeyRing(encrypted_key_ring, oldKey);
 
-    // Derive new key and re-encrypt key ring
-    const newSalt = generateSalt();
-    const newKey = await deriveKey(state.newPp, newSalt);
+    // Re-encrypt key ring with new key
     const newEncryptedRing = await encryptKeyRing(keyRingData, newKey);
 
     // Persist salt first: if key-ring update fails, old key-ring + old salt
@@ -192,7 +196,6 @@ export function ChangePassphraseSection() {
     await updateKeyRing(newEncryptedRing);
 
     // Update context
-    const newHash = await hashPassphrase(state.newPp);
     setMasterKey(newKey);
     setPassphraseHash(newHash);
   }
@@ -200,26 +203,19 @@ export function ChangePassphraseSection() {
   async function handleChangePassphraseLegacy() {
     // Legacy flow: re-encrypt every entity (pre-migration users)
     dispatch({ type: "SET_PROGRESS", progress: t("account.reencrypting") });
-    const [{ encryption_salt: currentSalt }, trees] = await Promise.all([
+    const newSalt = generateSalt();
+    const [{ encryption_salt: currentSalt }, trees, newKey, newHash] = await Promise.all([
       getEncryptionSalt(),
       getTrees(),
-    ]);
-    const newSalt = generateSalt();
-    const [oldKey, newKey] = await Promise.all([
-      deriveKey(state.current, currentSalt),
       deriveKey(state.newPp, newSalt),
+      hashPassphrase(state.newPp),
     ]);
-    for (const tree of trees) {
-      await reencryptTree(tree, oldKey, newKey);
-    }
+    const oldKey = await deriveKey(state.current, currentSalt);
+    await Promise.all(trees.map((tree) => reencryptTree(tree, oldKey, newKey)));
 
-    await Promise.all([
-      updateSalt({ encryption_salt: newSalt }),
-      hashPassphrase(state.newPp).then((newHash) => {
-        setMasterKey(newKey);
-        setPassphraseHash(newHash);
-      }),
-    ]);
+    await updateSalt({ encryption_salt: newSalt });
+    setMasterKey(newKey);
+    setPassphraseHash(newHash);
   }
 
   async function handleChangePassphrase() {

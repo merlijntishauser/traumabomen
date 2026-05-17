@@ -41,31 +41,28 @@ export function usePromoteMember(treeId: string) {
         notes: null,
       };
 
-      const personEncrypted = await encrypt(newPerson, treeId);
-
       // 2. Build biological sibling relationships to all existing person_ids
-      const relationshipCreates = await Promise.all(
-        group.person_ids.map(async (existingPersonId) => {
-          const relData: RelationshipData = {
-            type: RelationshipType.BiologicalSibling,
-            periods: [],
-            active_period: null,
-          };
-          const relEncrypted = await encrypt(relData, treeId);
-          return {
-            source_person_id: existingPersonId,
-            target_person_id: "__PROMOTED__",
-            encrypted_data: relEncrypted,
-          };
-        }),
-      );
-
-      // 3. Update the sibling group: remove promoted member, add new person_id
-      const updatedMembers = group.members.filter((_, i) => i !== memberIndex);
-      const updatedGroupData: SiblingGroupData = {
-        members: updatedMembers,
+      const relData: RelationshipData = {
+        type: RelationshipType.BiologicalSibling,
+        periods: [],
+        active_period: null,
       };
-      const groupEncrypted = await encrypt(updatedGroupData, treeId);
+
+      // 3. Build the updated sibling group data (remove promoted member)
+      const updatedMembers = group.members.filter((_, i) => i !== memberIndex);
+      const updatedGroupData: SiblingGroupData = { members: updatedMembers };
+
+      // Encrypt everything in parallel
+      const [personEncrypted, groupEncrypted, ...relEncrypteds] = await Promise.all([
+        encrypt(newPerson, treeId),
+        encrypt(updatedGroupData, treeId),
+        ...group.person_ids.map(() => encrypt(relData, treeId)),
+      ]);
+      const relationshipCreates = group.person_ids.map((existingPersonId, i) => ({
+        source_person_id: existingPersonId,
+        target_person_id: "__PROMOTED__",
+        encrypted_data: relEncrypteds[i],
+      }));
 
       // 4. Execute sync in a single transaction
       // We need to create the person first to get the ID, then use it

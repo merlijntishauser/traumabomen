@@ -39,7 +39,10 @@ function ageAtEvent(birthYear: number | null, eventYear: number | null): number 
 
 /** Get the generation number for any person linked to an entity. */
 function getEntityGenerations(personIds: string[], generations: Map<string, number>): number[] {
-  return personIds.map((pid) => generations.get(pid)).filter((g): g is number => g != null);
+  return personIds.flatMap((pid) => {
+    const gen = generations.get(pid);
+    return gen != null ? [gen] : [];
+  });
 }
 
 /** Standard deviation of a number array. */
@@ -241,7 +244,7 @@ function mostCommonCategoryInsight(events: Map<string, DecryptedEvent>): Insight
   for (const event of events.values()) {
     counts.set(event.category, (counts.get(event.category) ?? 0) + 1);
   }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const sorted = Array.from(counts.entries()).toSorted((a, b) => b[1] - a[1]);
   if (sorted.length === 0) return null;
   const [category, count] = sorted[0];
   return {
@@ -405,7 +408,7 @@ function computeResilienceInsights(input: InsightInput): Insight[] {
     for (const tp of turningPoints.values()) {
       counts.set(tp.category, (counts.get(tp.category) ?? 0) + 1);
     }
-    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const sorted = Array.from(counts.entries()).toSorted((a, b) => b[1] - a[1]);
     if (sorted.length > 0) {
       const [category, count] = sorted[0];
       insights.push({

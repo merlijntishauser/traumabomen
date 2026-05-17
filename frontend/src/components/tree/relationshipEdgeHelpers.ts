@@ -93,7 +93,7 @@ function buildChildSegments(
 
 export function buildCurvedForkPath(fp: ForkPositions): string {
   const R = 16;
-  const [lp, rp] = [...fp.parents].sort((a, b) => a.cx - b.cx);
+  const [lp, rp] = fp.parents.toSorted((a, b) => a.cx - b.cx);
   const lr = Math.min(R, Math.abs(fp.barY - lp.bottom) / 2);
   const rr = Math.min(R, Math.abs(fp.barY - rp.bottom) / 2);
 

@@ -74,13 +74,13 @@ describe("PasswordInput", () => {
   });
 
   it("calls onChange when typing", async () => {
-    const handleChange = vi.fn();
+    const recordPasswordChange = vi.fn();
     const user = userEvent.setup();
-    render(<PasswordInput value="" onChange={handleChange} />);
+    render(<PasswordInput value="" onChange={recordPasswordChange} />);
 
     const input = document.querySelector("input") as HTMLInputElement;
     await user.type(input, "a");
-    expect(handleChange).toHaveBeenCalled();
+    expect(recordPasswordChange).toHaveBeenCalled();
   });
 
   it("adds paddingRight to prevent text overlapping toggle", () => {

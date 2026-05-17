@@ -3,6 +3,10 @@
 // Fully reversible, no backend changes needed.
 
 const CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const CHAR_INDEX = new Map<string, number>();
+for (let i = 0; i < CHARS.length; i++) {
+  CHAR_INDEX.set(CHARS[i], i);
+}
 const BASE = BigInt(CHARS.length);
 
 export function uuidToCompact(uuid: string): string {
@@ -20,8 +24,8 @@ export function uuidToCompact(uuid: string): string {
 export function compactToUuid(compact: string): string {
   let num = 0n;
   for (const ch of compact) {
-    const idx = CHARS.indexOf(ch);
-    if (idx === -1) throw new Error("Invalid compact ID character");
+    const idx = CHAR_INDEX.get(ch);
+    if (idx === undefined) throw new Error("Invalid compact ID character");
     num = num * BASE + BigInt(idx);
   }
   const hex = num.toString(16).padStart(32, "0");

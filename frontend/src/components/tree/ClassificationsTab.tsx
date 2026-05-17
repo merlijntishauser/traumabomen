@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
 import { getClassificationColor } from "../../lib/classificationColors";
-import { DSM_CATEGORIES, type DsmCategory } from "../../lib/dsmCategories";
+import { DSM_CATEGORIES } from "../../lib/dsmCategories";
 import type {
   Classification,
   ClassificationPeriod,
@@ -235,23 +235,23 @@ function ClassificationForm({
   const filteredCategories = useMemo(() => {
     if (!state.categorySearch) return DSM_CATEGORIES;
     const q = state.categorySearch.toLowerCase();
-    return DSM_CATEGORIES.map((cat) => {
+    return DSM_CATEGORIES.flatMap((cat) => {
       const categoryLabel = t(`dsm.${cat.key}`).toLowerCase();
       const categoryCodeMatch = cat.code.toLowerCase().includes(q);
       const categoryLabelMatch = categoryLabel.includes(q);
 
-      if (categoryLabelMatch || categoryCodeMatch) return cat;
+      if (categoryLabelMatch || categoryCodeMatch) return [cat];
 
       if (cat.subcategories) {
         const matchedSubs = cat.subcategories.filter((sub) => {
           const subLabel = t(`dsm.sub.${sub.key}`).toLowerCase();
           return subLabel.includes(q) || sub.code.toLowerCase().includes(q);
         });
-        if (matchedSubs.length > 0) return { ...cat, subcategories: matchedSubs };
+        if (matchedSubs.length > 0) return [{ ...cat, subcategories: matchedSubs }];
       }
 
-      return null;
-    }).filter((cat): cat is DsmCategory => cat !== null);
+      return [];
+    });
   }, [state.categorySearch, t]);
 
   function addPeriod() {

@@ -3,7 +3,7 @@ import type { DecryptedPattern } from "../../hooks/useTreeData";
 import { getPatternColor } from "../../lib/patternColors";
 import type { PersonColumn, PersonRow } from "./timelineHelpers";
 
-export interface PatternRing {
+interface PatternRing {
   color: string;
   patternId: string;
 }

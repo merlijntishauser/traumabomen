@@ -181,8 +181,9 @@ export function buildSyncRequest(
 }
 
 async function loadFixture(language: string): Promise<DemoFixture> {
-  const lang = language.startsWith("nl") ? "nl" : "en";
-  const module = await import(`../fixtures/demo-tree-${lang}.json`);
+  const module = language.startsWith("nl")
+    ? await import("../fixtures/demo-tree-nl.json")
+    : await import("../fixtures/demo-tree-en.json");
   return module.default as DemoFixture;
 }
 
@@ -198,92 +199,101 @@ export async function createDemoTree(
   const tree = await createTree({ encrypted_data: encryptedTreeName, is_demo: true });
   const treeId = tree.id;
 
-  // Encrypt all entities
-  const encryptedEntities = new Map<string, string>();
-
-  await Promise.all([
-    ...fixture.persons.map(async (p) => {
-      const encrypted = await encrypt({
-        name: p.name,
-        birth_year: p.birth_year,
-        death_year: p.death_year,
-        cause_of_death: null,
-        gender: p.gender,
-        is_adopted: p.is_adopted,
-        notes: p.notes,
-      });
-      encryptedEntities.set(p.id, encrypted);
-    }),
-    ...fixture.relationships.map(async (r) => {
-      const encrypted = await encrypt({
-        type: r.type,
-        periods: r.periods,
-      });
-      encryptedEntities.set(r.id, encrypted);
-    }),
-    ...fixture.events.map(async (e) => {
-      const encrypted = await encrypt({
-        title: e.title,
-        description: e.description,
-        category: e.category,
-        approximate_date: e.approximate_date,
-        severity: e.severity,
-        tags: e.tags,
-      });
-      encryptedEntities.set(e.id, encrypted);
-    }),
-    ...fixture.lifeEvents.map(async (le) => {
-      const encrypted = await encrypt({
-        title: le.title,
-        description: le.description,
-        category: le.category,
-        approximate_date: le.approximate_date,
-        impact: le.impact,
-        tags: le.tags,
-      });
-      encryptedEntities.set(le.id, encrypted);
-    }),
-    ...fixture.turningPoints.map(async (tp) => {
-      const encrypted = await encrypt({
-        title: tp.title,
-        description: tp.description,
-        category: tp.category,
-        approximate_date: tp.approximate_date,
-        significance: tp.significance,
-        tags: tp.tags,
-      });
-      encryptedEntities.set(tp.id, encrypted);
-    }),
-    ...fixture.classifications.map(async (c) => {
-      const encrypted = await encrypt({
-        dsm_category: c.dsm_category,
-        dsm_subcategory: c.dsm_subcategory,
-        status: c.status,
-        diagnosis_year: c.diagnosis_year,
-        periods: c.periods,
-        notes: c.notes,
-      });
-      encryptedEntities.set(c.id, encrypted);
-    }),
-    ...fixture.patterns.map(async (pat) => {
-      const encrypted = await encrypt({
-        name: pat.name,
-        description: pat.description,
-        color: pat.color,
-        linked_entities: pat.linked_entities.map((le) => ({
-          entity_type: le.entity_type,
-          entity_id: idMap.get(le.entity_id) ?? le.entity_id,
-        })),
-      });
-      encryptedEntities.set(pat.id, encrypted);
-    }),
-    ...fixture.siblingGroups.map(async (sg) => {
-      const encrypted = await encrypt({
-        members: sg.members,
-      });
-      encryptedEntities.set(sg.id, encrypted);
-    }),
-  ]);
+  // Encrypt all entities — collect (id, plaintext) tuples, then encrypt in one batch
+  const toEncrypt: Array<readonly [string, unknown]> = [
+    ...fixture.persons.map(
+      (p) =>
+        [
+          p.id,
+          {
+            name: p.name,
+            birth_year: p.birth_year,
+            death_year: p.death_year,
+            cause_of_death: null,
+            gender: p.gender,
+            is_adopted: p.is_adopted,
+            notes: p.notes,
+          },
+        ] as const,
+    ),
+    ...fixture.relationships.map((r) => [r.id, { type: r.type, periods: r.periods }] as const),
+    ...fixture.events.map(
+      (e) =>
+        [
+          e.id,
+          {
+            title: e.title,
+            description: e.description,
+            category: e.category,
+            approximate_date: e.approximate_date,
+            severity: e.severity,
+            tags: e.tags,
+          },
+        ] as const,
+    ),
+    ...fixture.lifeEvents.map(
+      (le) =>
+        [
+          le.id,
+          {
+            title: le.title,
+            description: le.description,
+            category: le.category,
+            approximate_date: le.approximate_date,
+            impact: le.impact,
+            tags: le.tags,
+          },
+        ] as const,
+    ),
+    ...fixture.turningPoints.map(
+      (tp) =>
+        [
+          tp.id,
+          {
+            title: tp.title,
+            description: tp.description,
+            category: tp.category,
+            approximate_date: tp.approximate_date,
+            significance: tp.significance,
+            tags: tp.tags,
+          },
+        ] as const,
+    ),
+    ...fixture.classifications.map(
+      (c) =>
+        [
+          c.id,
+          {
+            dsm_category: c.dsm_category,
+            dsm_subcategory: c.dsm_subcategory,
+            status: c.status,
+            diagnosis_year: c.diagnosis_year,
+            periods: c.periods,
+            notes: c.notes,
+          },
+        ] as const,
+    ),
+    ...fixture.patterns.map(
+      (pat) =>
+        [
+          pat.id,
+          {
+            name: pat.name,
+            description: pat.description,
+            color: pat.color,
+            linked_entities: pat.linked_entities.map((le) => ({
+              entity_type: le.entity_type,
+              entity_id: idMap.get(le.entity_id) ?? le.entity_id,
+            })),
+          },
+        ] as const,
+    ),
+    ...fixture.siblingGroups.map((sg) => [sg.id, { members: sg.members }] as const),
+  ];
+  const encryptedPairs = await Promise.all(
+    toEncrypt.map(([id, data]) => encrypt(data).then((enc) => [id, enc] as const)),
+  );
+  const encryptedEntities = new Map<string, string>(encryptedPairs);
 
   // Sync persons, relationships, events, classifications, and patterns
   const syncRequest = buildSyncRequest(fixture, idMap, encryptedEntities);
@@ -293,21 +303,26 @@ export async function createDemoTree(
   // individually and capture server-assigned IDs so pattern references resolve.
   const serverIdMap = new Map<string, string>();
 
-  for (const le of fixture.lifeEvents) {
-    const response = await createLifeEvent(treeId, {
-      person_ids: remapIds(le.person_ids, idMap),
-      encrypted_data: encryptedEntities.get(le.id)!,
-    });
-    serverIdMap.set(idMap.get(le.id)!, response.id);
-  }
-
-  for (const tp of fixture.turningPoints) {
-    const response = await createTurningPoint(treeId, {
-      person_ids: remapIds(tp.person_ids, idMap),
-      encrypted_data: encryptedEntities.get(tp.id)!,
-    });
-    serverIdMap.set(idMap.get(tp.id)!, response.id);
-  }
+  const [lifeEventResponses, turningPointResponses] = await Promise.all([
+    Promise.all(
+      fixture.lifeEvents.map((le) =>
+        createLifeEvent(treeId, {
+          person_ids: remapIds(le.person_ids, idMap),
+          encrypted_data: encryptedEntities.get(le.id)!,
+        }).then((response) => [idMap.get(le.id)!, response.id] as const),
+      ),
+    ),
+    Promise.all(
+      fixture.turningPoints.map((tp) =>
+        createTurningPoint(treeId, {
+          person_ids: remapIds(tp.person_ids, idMap),
+          encrypted_data: encryptedEntities.get(tp.id)!,
+        }).then((response) => [idMap.get(tp.id)!, response.id] as const),
+      ),
+    ),
+  ]);
+  for (const [clientId, serverId] of lifeEventResponses) serverIdMap.set(clientId, serverId);
+  for (const [clientId, serverId] of turningPointResponses) serverIdMap.set(clientId, serverId);
 
   // Re-encrypt and update patterns whose linked_entities reference life events
   // or turning points (their IDs were reassigned by the server).
@@ -317,22 +332,24 @@ export async function createDemoTree(
     ),
   );
 
-  for (const pat of patternsToFix) {
-    const patternServerId = idMap.get(pat.id)!;
-    const fixedEncrypted = await encrypt({
-      name: pat.name,
-      description: pat.description,
-      color: pat.color,
-      linked_entities: pat.linked_entities.map((le) => {
-        const clientId = idMap.get(le.entity_id) ?? le.entity_id;
-        return {
-          entity_type: le.entity_type,
-          entity_id: serverIdMap.get(clientId) ?? clientId,
-        };
-      }),
-    });
-    await updatePattern(treeId, patternServerId, { encrypted_data: fixedEncrypted });
-  }
+  await Promise.all(
+    patternsToFix.map(async (pat) => {
+      const patternServerId = idMap.get(pat.id)!;
+      const fixedEncrypted = await encrypt({
+        name: pat.name,
+        description: pat.description,
+        color: pat.color,
+        linked_entities: pat.linked_entities.map((le) => {
+          const clientId = idMap.get(le.entity_id) ?? le.entity_id;
+          return {
+            entity_type: le.entity_type,
+            entity_id: serverIdMap.get(clientId) ?? clientId,
+          };
+        }),
+      });
+      await updatePattern(treeId, patternServerId, { encrypted_data: fixedEncrypted });
+    }),
+  );
 
   return treeId;
 }

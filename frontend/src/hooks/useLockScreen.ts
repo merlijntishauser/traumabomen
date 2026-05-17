@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 
 type LockLevel = "none" | "blur" | "full";
 
@@ -23,14 +23,43 @@ interface UseLockScreenReturn {
   failedAttempt: () => void;
 }
 
+interface LockState {
+  lockLevel: LockLevel;
+  wrongAttempts: number;
+}
+
+type LockAction =
+  | { type: "RESET" }
+  | { type: "LOCK_BLUR" }
+  | { type: "LOCK_FULL" }
+  | { type: "UNLOCK" }
+  | { type: "WRONG_ATTEMPT" };
+
+function lockReducer(state: LockState, action: LockAction): LockState {
+  switch (action.type) {
+    case "RESET":
+      return { lockLevel: "none", wrongAttempts: 0 };
+    case "LOCK_BLUR":
+      return { ...state, lockLevel: "blur" };
+    case "LOCK_FULL":
+      return { lockLevel: "full", wrongAttempts: 0 };
+    case "UNLOCK":
+      return { lockLevel: "none", wrongAttempts: 0 };
+    case "WRONG_ATTEMPT":
+      return { ...state, wrongAttempts: state.wrongAttempts + 1 };
+  }
+}
+
 export function useLockScreen({
   enabled,
   blurTimeoutMs = DEFAULT_BLUR_TIMEOUT_MS,
   fullTimeoutMs = DEFAULT_FULL_TIMEOUT_MS,
   onFullLock,
 }: UseLockScreenOptions): UseLockScreenReturn {
-  const [lockLevel, setLockLevel] = useState<LockLevel>("none");
-  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [{ lockLevel, wrongAttempts }, dispatch] = useReducer(lockReducer, {
+    lockLevel: "none",
+    wrongAttempts: 0,
+  });
 
   const lastEscRef = useRef(0);
   const lastActivityRef = useRef(Date.now());
@@ -41,36 +70,30 @@ export function useLockScreen({
   // Reset lock state when disabled (e.g. logout)
   useEffect(() => {
     if (!enabled) {
-      setLockLevel("none");
-      setWrongAttempts(0);
+      dispatch({ type: "RESET" });
     }
   }, [enabled]);
 
   const triggerFullLock = useCallback(() => {
-    setLockLevel("full");
-    setWrongAttempts(0);
+    dispatch({ type: "LOCK_FULL" });
     onFullLock();
   }, [onFullLock]);
 
   const lock = useCallback(() => {
-    setLockLevel("blur");
+    dispatch({ type: "LOCK_BLUR" });
   }, []);
 
   const unlock = useCallback(() => {
-    setLockLevel("none");
-    setWrongAttempts(0);
+    dispatch({ type: "UNLOCK" });
     lastActivityRef.current = Date.now();
   }, []);
 
   const failedAttempt = useCallback(() => {
-    setWrongAttempts((prev) => {
-      const next = prev + 1;
-      if (next >= MAX_WRONG_ATTEMPTS) {
-        triggerFullLock();
-      }
-      return next;
-    });
-  }, [triggerFullLock]);
+    dispatch({ type: "WRONG_ATTEMPT" });
+    if (wrongAttempts + 1 >= MAX_WRONG_ATTEMPTS) {
+      triggerFullLock();
+    }
+  }, [triggerFullLock, wrongAttempts]);
 
   // Double-Esc detection (capturing phase)
   useEffect(() => {

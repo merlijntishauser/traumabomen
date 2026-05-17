@@ -116,10 +116,13 @@ export function JournalEntryForm({
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally depends on text/mode so autoGrow re-triggers on content and tab changes
   const autoGrow = useCallback(() => {
     const el = textareaRef.current;
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    }
+    if (!el) return;
+    // Reset to auto so scrollHeight reflects the true content height, then
+    // read scrollHeight once and apply it in a single assignment to avoid
+    // layout thrashing.
+    el.style.height = "auto";
+    const target = `${el.scrollHeight}px`;
+    el.style.height = target;
   }, [state.text, state.mode]);
 
   useEffect(() => {

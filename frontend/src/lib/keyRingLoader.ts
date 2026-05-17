@@ -34,8 +34,14 @@ async function decryptAndImportKeyRing(
   const keyRingData = await decryptKeyRing(encryptedKeyRing, masterKey);
   const keys = new Map<string, CryptoKey>();
   const base64Map = new Map<string, string>();
-  for (const [treeId, base64Key] of Object.entries(keyRingData)) {
-    keys.set(treeId, await importTreeKey(base64Key));
+  const entries = await Promise.all(
+    Object.entries(keyRingData).map(async ([treeId, base64Key]) => {
+      const key = await importTreeKey(base64Key);
+      return [treeId, key, base64Key] as const;
+    }),
+  );
+  for (const [treeId, key, base64Key] of entries) {
+    keys.set(treeId, key);
     base64Map.set(treeId, base64Key);
   }
   return { keys, base64Map };
@@ -62,58 +68,68 @@ async function performMigration(masterKey: CryptoKey): Promise<KeyRingResult> {
   const base64Map = new Map<string, string>();
   const migrationTrees: MigrateKeysTree[] = [];
 
-  for (const tree of trees) {
-    const { key: treeKey, base64: rawKeyBase64 } = await generateTreeKey();
-    keyRingData[tree.id] = rawKeyBase64;
-    keys.set(tree.id, treeKey);
-    base64Map.set(tree.id, rawKeyBase64);
+  const perTree = await Promise.all(
+    trees.map(async (tree) => {
+      const [
+        { key: treeKey, base64: rawKeyBase64 },
+        treeData,
+        persons,
+        relationships,
+        events,
+        lifeEvents,
+        turningPoints,
+        classifications,
+        patterns,
+        journalEntries,
+      ] = await Promise.all([
+        generateTreeKey(),
+        decryptFromApi(tree.encrypted_data, masterKey),
+        getPersons(tree.id),
+        getRelationships(tree.id),
+        getEvents(tree.id),
+        getLifeEvents(tree.id),
+        getTurningPoints(tree.id),
+        getClassifications(tree.id),
+        getPatterns(tree.id),
+        getJournalEntries(tree.id),
+      ]);
 
-    const treeData = await decryptFromApi(tree.encrypted_data, masterKey);
-    const newTreeEncrypted = await encryptForApi(treeData, treeKey);
+      const [newTreeEncrypted, mp, mr, me, ml, mt, mc, mpa, mj] = await Promise.all([
+        encryptForApi(treeData, treeKey),
+        reencryptEntities(persons, masterKey, treeKey),
+        reencryptEntities(relationships, masterKey, treeKey),
+        reencryptEntities(events, masterKey, treeKey),
+        reencryptEntities(lifeEvents, masterKey, treeKey),
+        reencryptEntities(turningPoints, masterKey, treeKey),
+        reencryptEntities(classifications, masterKey, treeKey),
+        reencryptEntities(patterns, masterKey, treeKey),
+        reencryptEntities(journalEntries, masterKey, treeKey),
+      ]);
 
-    const [
-      persons,
-      relationships,
-      events,
-      lifeEvents,
-      turningPoints,
-      classifications,
-      patterns,
-      journalEntries,
-    ] = await Promise.all([
-      getPersons(tree.id),
-      getRelationships(tree.id),
-      getEvents(tree.id),
-      getLifeEvents(tree.id),
-      getTurningPoints(tree.id),
-      getClassifications(tree.id),
-      getPatterns(tree.id),
-      getJournalEntries(tree.id),
-    ]);
-
-    const [mp, mr, me, ml, mt, mc, mpa, mj] = await Promise.all([
-      reencryptEntities(persons, masterKey, treeKey),
-      reencryptEntities(relationships, masterKey, treeKey),
-      reencryptEntities(events, masterKey, treeKey),
-      reencryptEntities(lifeEvents, masterKey, treeKey),
-      reencryptEntities(turningPoints, masterKey, treeKey),
-      reencryptEntities(classifications, masterKey, treeKey),
-      reencryptEntities(patterns, masterKey, treeKey),
-      reencryptEntities(journalEntries, masterKey, treeKey),
-    ]);
-
-    migrationTrees.push({
-      tree_id: tree.id,
-      encrypted_data: newTreeEncrypted,
-      persons: mp,
-      relationships: mr,
-      events: me,
-      life_events: ml,
-      turning_points: mt,
-      classifications: mc,
-      patterns: mpa,
-      journal_entries: mj,
-    });
+      return {
+        treeId: tree.id,
+        treeKey,
+        rawKeyBase64,
+        migrationTree: {
+          tree_id: tree.id,
+          encrypted_data: newTreeEncrypted,
+          persons: mp,
+          relationships: mr,
+          events: me,
+          life_events: ml,
+          turning_points: mt,
+          classifications: mc,
+          patterns: mpa,
+          journal_entries: mj,
+        },
+      };
+    }),
+  );
+  for (const { treeId, treeKey, rawKeyBase64, migrationTree } of perTree) {
+    keyRingData[treeId] = rawKeyBase64;
+    keys.set(treeId, treeKey);
+    base64Map.set(treeId, rawKeyBase64);
+    migrationTrees.push(migrationTree);
   }
 
   const encryptedKeyRing = await encryptKeyRing(keyRingData, masterKey);

@@ -14,7 +14,7 @@ import { MARKER_RADIUS } from "./timelineHelpers";
 
 // ---- Orientation strategy ----
 
-export interface LabelProps {
+interface LabelProps {
   x: number;
   y: number;
   textAnchor?: "start" | "middle" | "end" | "inherit";

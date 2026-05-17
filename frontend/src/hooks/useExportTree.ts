@@ -42,9 +42,9 @@ export function useExportTree(treeId: string, treeData: ReturnType<typeof useTre
     const treeKey = treeKeys.get(treeId);
     const rawKeyBase64 = keyRingBase64.get(treeId);
     if (!treeKey || !rawKeyBase64 || !masterKey) throw new Error("Missing encryption keys");
-    const encryptedTreeKey = await encryptForApi(rawKeyBase64, masterKey);
 
     const [
+      encryptedTreeKey,
       tree,
       persons,
       relationships,
@@ -55,6 +55,7 @@ export function useExportTree(treeId: string, treeData: ReturnType<typeof useTre
       patterns,
       journalEntries,
     ] = await Promise.all([
+      encryptForApi(rawKeyBase64, masterKey),
       getTree(treeId),
       getPersons(treeId),
       getRelationships(treeId),

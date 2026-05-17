@@ -496,7 +496,9 @@ describe("TimelineView", () => {
 
     it("renders horizontal gridlines when showGridlines is true in age mode", () => {
       const props = makePopulatedProps();
-      const { container } = render(<TimelineView {...props} layoutMode="age" showGridlines />);
+      const { container } = render(
+        <TimelineView {...props} layoutMode="age" display={{ showGridlines: true }} />,
+      );
       const ageLabels = container.querySelectorAll(".tl-age-axis-text");
       // There should be at least one gridline (one per tick)
       const lines = container.querySelectorAll("line");

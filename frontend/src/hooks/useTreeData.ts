@@ -129,12 +129,7 @@ function useLinkedEntityQuery<
       if (rejected.length > 0) {
         Sentry.captureMessage(`Failed to decrypt ${rejected.length} linked entities`, "warning");
       }
-      const entries = results
-        .filter(
-          (r): r is PromiseFulfilledResult<readonly [string, TDecrypted]> =>
-            r.status === "fulfilled",
-        )
-        .map((r) => r.value);
+      const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
     enabled: hasKey,
@@ -176,12 +171,7 @@ export function useTreeData(treeId: string) {
       if (rejected.length > 0) {
         Sentry.captureMessage(`Failed to decrypt ${rejected.length} persons`, "warning");
       }
-      const entries = results
-        .filter(
-          (r): r is PromiseFulfilledResult<readonly [string, DecryptedPerson]> =>
-            r.status === "fulfilled",
-        )
-        .map((r) => r.value);
+      const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
     enabled: hasKey,
@@ -209,12 +199,7 @@ export function useTreeData(treeId: string) {
       if (rejected.length > 0) {
         Sentry.captureMessage(`Failed to decrypt ${rejected.length} relationships`, "warning");
       }
-      const entries = results
-        .filter(
-          (r): r is PromiseFulfilledResult<readonly [string, DecryptedRelationship]> =>
-            r.status === "fulfilled",
-        )
-        .map((r) => r.value);
+      const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
     enabled: hasKey,
@@ -290,12 +275,7 @@ export function useTreeData(treeId: string) {
       if (rejected.length > 0) {
         Sentry.captureMessage(`Failed to decrypt ${rejected.length} journal entries`, "warning");
       }
-      const entries = results
-        .filter(
-          (r): r is PromiseFulfilledResult<readonly [string, DecryptedJournalEntry]> =>
-            r.status === "fulfilled",
-        )
-        .map((r) => r.value);
+      const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
     enabled: hasKey,
