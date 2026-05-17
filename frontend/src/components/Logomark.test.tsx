@@ -35,11 +35,12 @@ describe("Logomark", () => {
     // and text-muted — proves the mark is wired to the theme variables, not
     // hard-coded colors.
     const { container } = render(<Logomark />);
-    const fills = Array.from(container.querySelectorAll("circle, path"))
-      .map((el) => el.getAttribute("fill") ?? el.getAttribute("stroke"))
-      .filter(Boolean);
-    expect(fills.some((f) => f?.includes("--color-accent"))).toBe(true);
-    expect(fills.some((f) => f?.includes("--color-trauma-loss"))).toBe(true);
-    expect(fills.some((f) => f?.includes("--color-classification-suspected"))).toBe(true);
+    const fills = Array.from(container.querySelectorAll("circle, path")).flatMap((el) => {
+      const value = el.getAttribute("fill") ?? el.getAttribute("stroke");
+      return value ? [value] : [];
+    });
+    expect(fills.some((f) => f.includes("--color-accent"))).toBe(true);
+    expect(fills.some((f) => f.includes("--color-trauma-loss"))).toBe(true);
+    expect(fills.some((f) => f.includes("--color-classification-suspected"))).toBe(true);
   });
 });
