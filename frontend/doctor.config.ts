@@ -1,0 +1,84 @@
+import type { ReactDoctorConfig } from "react-doctor/api";
+
+export default {
+  ignore: {
+    rules: [
+      "react-doctor/rerender-state-only-in-handlers"
+    ],
+    overrides: [
+      {
+        files: [
+          "**/api.test.ts"
+        ],
+        rules: [
+          "react-doctor/js-cache-storage"
+        ]
+      },
+      {
+        files: [
+          "**/mailpit.ts"
+        ],
+        rules: [
+          "react-doctor/async-await-in-loop",
+          "react-doctor/js-index-maps",
+          "react-doctor/js-set-map-lookups"
+        ]
+      },
+      {
+        files: [
+          "**/e2e/**"
+        ],
+        rules: [
+          "react-doctor/async-parallel",
+          "react-doctor/async-await-in-loop",
+          "react-doctor/server-sequential-independent-await"
+        ]
+      },
+      {
+        files: [
+          "**/main.tsx",
+          "**/computeInsights.ts"
+        ],
+        rules: [
+          "react-doctor/js-set-map-lookups"
+        ]
+      },
+      {
+        files: [
+          "**/api.ts",
+          "**/ChangePassphraseSection.tsx"
+        ],
+        rules: [
+          "react-doctor/server-sequential-independent-await",
+          "react-doctor/async-parallel"
+        ]
+      },
+      {
+        files: [
+          "**/useTimelineZoom.ts",
+          "**/useLockScreen.ts"
+        ],
+        rules: [
+          "react-doctor/no-cascading-set-state",
+          "react-doctor/no-derived-state-effect"
+        ]
+      },
+      {
+        files: [
+          "**/RelationshipDetailPanel.tsx"
+        ],
+        rules: [
+          "react-doctor/no-derived-useState"
+        ]
+      },
+      {
+        files: [
+          "**/PersonTab.tsx"
+        ],
+        rules: [
+          "react-doctor/js-hoist-intl"
+        ]
+      }
+    ]
+  }
+} satisfies ReactDoctorConfig;
