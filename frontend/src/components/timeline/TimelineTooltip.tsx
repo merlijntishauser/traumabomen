@@ -1,19 +1,7 @@
 import React from "react";
-import type { TooltipLine } from "./timelineHelpers";
+import type { TooltipState } from "./timelineTooltipState";
 
-export interface TooltipState {
-  visible: boolean;
-  x: number;
-  y: number;
-  lines: TooltipLine[];
-}
-
-export const INITIAL_TOOLTIP: TooltipState = {
-  visible: false,
-  x: 0,
-  y: 0,
-  lines: [],
-};
+export type { TooltipState } from "./timelineTooltipState";
 
 interface TimelineTooltipProps {
   state: TooltipState;

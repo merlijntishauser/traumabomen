@@ -294,6 +294,7 @@ function PatternEditForm({
         <input
           type="text"
           value={state.name}
+          aria-label={t("pattern.name")}
           onChange={(e) => dispatch({ type: "SET_FIELD", field: "name", value: e.target.value })}
           data-testid="pattern-name-input"
         />
@@ -303,6 +304,7 @@ function PatternEditForm({
         <span>{t("pattern.description")}</span>
         <textarea
           value={state.description}
+          aria-label={t("pattern.description")}
           onChange={(e) =>
             dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
           }

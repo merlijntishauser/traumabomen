@@ -32,7 +32,8 @@ vi.mock("react-markdown", () => ({
 
 vi.mock("../lib/reflectionPrompts", () => ({
   getRandomJournalPrompts: () => ["Prompt 1"],
-  getPersonPrompt: () => "Person reflection prompt",
+  pickPersonPromptIndex: () => 1,
+  personPromptText: () => "Person reflection prompt",
 }));
 
 const emptyMaps = {

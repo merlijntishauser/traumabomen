@@ -92,7 +92,7 @@ describe("TraumaEventsTab", () => {
       const props = defaultProps();
       props.events = [makeEvent({ severity: 8 })];
       render(<TraumaEventsTab {...props} />);
-      expect(screen.getByRole("img", { name: "8/10" })).toBeInTheDocument();
+      expect(screen.getByText("8/10")).toBeInTheDocument();
     });
 
     it("renders add button even when events exist", () => {

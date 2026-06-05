@@ -18,18 +18,26 @@ async function setupTreeWithPerson(
   const panel = page.locator(".detail-panel");
   await expect(panel).toBeVisible();
 
+  // Settle any in-flight tree-data refetch before filling: a React Query
+  // refetch triggers a useEffect that re-syncs (and clears) the controlled
+  // inputs, which would otherwise race the fill.
+  await page.waitForLoadState("networkidle");
+
   const nameInput = panel.getByLabel(/^name$/i);
   const birthYearInput = panel.getByLabel(/birth year/i);
 
-  // Fill form with retry: a React Query refetch can trigger a useEffect
-  // that resets controlled inputs between fills.
+  // Fill with retry as a safety net in case a late refetch still resets the
+  // inputs between fills. Re-fill until both values stick.
   await expect(async () => {
     await nameInput.fill(name);
     await birthYearInput.fill("1980");
     await expect(nameInput).toHaveValue(name);
     await expect(birthYearInput).toHaveValue("1980");
-  }).toPass({ timeout: 10_000 });
+  }).toPass({ timeout: 30_000 });
 
+  // Guard against a refetch clearing the inputs between the last check and the
+  // click: confirm the values immediately before saving.
+  await expect(nameInput).toHaveValue(name);
   await panel.getByRole("button", { name: /save/i }).first().click();
 
   // Wait for save to complete (panel closes on success), then reopen

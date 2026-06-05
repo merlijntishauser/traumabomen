@@ -41,11 +41,28 @@ export function useTimelineZoom({
   const scrollModeRef = useRef(scrollMode);
   scrollModeRef.current = scrollMode;
 
-  // Keep React state in sync when scale changes (even without a mounted SVG)
-  useEffect(() => {
+  // Reset zoom state during render whenever a layout input changes, rather than
+  // syncing it from props inside an effect. This keeps React state aligned with
+  // the d3 transform (reset in the effect below) without an extra render showing
+  // stale UI, and covers the case where no SVG is mounted yet.
+  const [prevLayout, setPrevLayout] = useState({
+    scale,
+    direction,
+    fixedOffset,
+    width,
+    height,
+  });
+  if (
+    prevLayout.scale !== scale ||
+    prevLayout.direction !== direction ||
+    prevLayout.fixedOffset !== fixedOffset ||
+    prevLayout.width !== width ||
+    prevLayout.height !== height
+  ) {
+    setPrevLayout({ scale, direction, fixedOffset, width, height });
     setRescaled(() => scale);
     setZoomK(1);
-  }, [scale]);
+  }
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -102,13 +119,12 @@ export function useTimelineZoom({
 
     const svgSel = d3.select(svg);
 
-    // Reset D3 zoom state and DOM transform so React state (zoomK=1) stays in sync
-    // when the effect re-runs (e.g., due to scale/width/height changing)
+    // Reset the D3 zoom state and DOM transform when the effect re-runs (e.g. due
+    // to scale/width/height changing). The matching React state reset (zoomK=1,
+    // rescaled=scale) happens during render via the prevLayout comparison above.
     svgSel.property("__zoom", d3.zoomIdentity);
     const g = zoomGroupRef.current;
     if (g) g.removeAttribute("transform");
-    setRescaled(() => scale);
-    setZoomK(1);
 
     svgSel.call(zoom);
 

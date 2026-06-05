@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getNudgePrompt } from "../../lib/reflectionPrompts";
+import { journalPromptText, pickJournalPromptIndex } from "../../lib/reflectionPrompts";
 
 interface ReflectionNudgeProps {
   onOpenJournal: (promptText: string) => void;
@@ -11,9 +11,10 @@ export function ReflectionNudge({ onOpenJournal }: ReflectionNudgeProps) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
 
-  // Pick one random prompt, stable for the session (empty deps)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per mount
-  const prompt = useMemo(() => getNudgePrompt(t), []);
+  // Pick one random prompt index, stable for the session; translate live so the
+  // text follows the active language without re-rolling the selection.
+  const [promptIndex] = useState(pickJournalPromptIndex);
+  const prompt = journalPromptText(t, promptIndex);
 
   if (dismissed) return null;
 

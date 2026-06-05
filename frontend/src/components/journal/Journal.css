@@ -56,6 +56,7 @@
 
 /* --- Entry card --- */
 .journal-list__card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-tertiary);
@@ -70,11 +71,25 @@
   color: inherit;
 }
 
+/* Transparent button stretched over the whole card to make it activatable
+   without nesting the block-level markdown body inside a <button>. */
+.journal-list__card-button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
 .journal-list__card:hover {
   border-left-color: var(--color-action);
 }
 
-.journal-list__card:focus-visible {
+.journal-list__card-button:focus-visible {
   outline: 2px solid var(--color-action);
   outline-offset: 1px;
 }

@@ -89,6 +89,7 @@ export function DeleteAccountSection() {
             type="text"
             className="settings-panel__input"
             placeholder={t("account.deleteConfirmLabel")}
+            aria-label={t("account.deleteConfirmLabel")}
             value={state.confirmText}
             onChange={(e) =>
               dispatch({ type: "SET_FIELD", field: "confirmText", value: e.target.value })

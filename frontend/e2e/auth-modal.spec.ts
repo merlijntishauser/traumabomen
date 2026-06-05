@@ -16,7 +16,7 @@ test.describe("AuthModal", () => {
     await login(page, email);
 
     // AuthModal should appear as a dialog overlay
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 10_000 });
     // Should show passphrase input (unlock mode, no credentials step)
     await expect(modal.getByLabel(/encryption passphrase/i)).toBeVisible();
@@ -31,7 +31,7 @@ test.describe("AuthModal", () => {
     await unlock(page);
 
     // Modal should be gone, trees page visible
-    await expect(page.locator("[role='dialog']")).not.toBeVisible();
+    await expect(page.getByRole("dialog")).not.toBeVisible();
     await expect(page).toHaveURL(/\/trees$/);
   });
 
@@ -43,7 +43,7 @@ test.describe("AuthModal", () => {
     await login(page, email);
 
     // Wait for AuthModal
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 10_000 });
 
     // Hint should be displayed
@@ -57,7 +57,7 @@ test.describe("AuthModal", () => {
     await logout(page);
     await login(page, email);
 
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 10_000 });
 
     // Hint block should not be present
@@ -70,7 +70,7 @@ test.describe("AuthModal", () => {
     await logout(page);
     await login(page, email);
 
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
     await modal.getByLabel(/encryption passphrase/i).fill("totally-wrong-passphrase");
     await modal.getByRole("button", { name: /unlock/i }).click();
@@ -88,7 +88,7 @@ test.describe("AuthModal", () => {
     await logout(page);
     await login(page, email);
 
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
 
     // Click "switch account" / logout link

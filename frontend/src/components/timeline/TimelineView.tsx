@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DimSets, FilterMode } from "../../hooks/useTimelineFilters";
 import type { TimelineSettings } from "../../hooks/useTimelineSettings";
@@ -13,9 +13,10 @@ import type {
 } from "../../hooks/useTreeData";
 import { BranchDecoration } from "../tree/BranchDecoration";
 import { TimelineAgeContent } from "./TimelineAgeContent";
-import { INITIAL_TOOLTIP, TimelineTooltip, type TooltipState } from "./TimelineTooltip";
+import { TimelineTooltip } from "./TimelineTooltip";
 import { TimelineYearsContent } from "./TimelineYearsContent";
 import type { MarkerClickInfo, TimelineMode } from "./timelineHelpers";
+import { INITIAL_TOOLTIP, type TooltipState } from "./timelineTooltipState";
 import "./TimelineView.css";
 
 export type LayoutMode = "years" | "age";
@@ -82,16 +83,22 @@ export function TimelineView({
   onToggleScrollMode,
 }: TimelineViewProps) {
   const resolvedDisplay: TimelineSettings = { ...DEFAULT_DISPLAY, ...display };
-  const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [tooltip, setTooltip] = useState<TooltipState>(INITIAL_TOOLTIP);
+  const observerRef = useRef<ResizeObserver | null>(null);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
+  // Attach a ResizeObserver via a ref callback so the first measurement happens
+  // synchronously when the container mounts (before paint), rather than setting
+  // the initial size from a mount effect that renders an empty frame first.
+  const setContainer = useCallback((container: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    if (!container) {
+      observerRef.current = null;
+      return;
+    }
+    setDimensions({ width: container.clientWidth, height: container.clientHeight });
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) {
@@ -101,9 +108,8 @@ export function TimelineView({
         });
       }
     });
-
     observer.observe(container);
-    return () => observer.disconnect();
+    observerRef.current = observer;
   }, []);
 
   const { width, height } = dimensions;
@@ -114,7 +120,7 @@ export function TimelineView({
 
   if (persons.size === 0) {
     return (
-      <div className="timeline-container bg-gradient" ref={containerRef}>
+      <div className="timeline-container bg-gradient" ref={setContainer}>
         <BranchDecoration />
         <div className="timeline-empty">{t("timeline.noData")}</div>
       </div>
@@ -151,7 +157,7 @@ export function TimelineView({
   };
 
   return (
-    <div className="timeline-container bg-gradient" ref={containerRef}>
+    <div className="timeline-container bg-gradient" ref={setContainer}>
       <BranchDecoration />
       {layoutMode === "years" ? (
         <TimelineYearsContent {...contentProps} />

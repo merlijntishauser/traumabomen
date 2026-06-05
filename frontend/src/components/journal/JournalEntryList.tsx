@@ -123,21 +123,16 @@ export function JournalEntryList({
       )}
 
       {entries.map((entry) => (
-        // biome-ignore lint/a11y/useSemanticElements: card contains block-level markdown (h1, p, div) which is invalid inside <button>
-        <div
-          key={entry.id}
-          className="journal-list__card"
-          onClick={() => setEditingId(entry.id)}
-          data-testid={`journal-card-${entry.id}`}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setEditingId(entry.id);
-            }
-          }}
-        >
+        // The card body renders block-level markdown, which cannot nest inside a
+        // <button>, so a stretched transparent button overlays the card instead.
+        <div key={entry.id} className="journal-list__card" data-testid={`journal-card-${entry.id}`}>
+          <button
+            type="button"
+            className="journal-list__card-button"
+            onClick={() => setEditingId(entry.id)}
+            aria-label={t("journal.editEntry")}
+            data-testid={`journal-edit-${entry.id}`}
+          />
           <div className="journal-list__card-header">
             <span className="journal-list__card-time">
               {formatRelativeTime(entry.created_at, t)}

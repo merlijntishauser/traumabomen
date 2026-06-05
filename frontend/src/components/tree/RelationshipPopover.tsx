@@ -1,4 +1,5 @@
 import type { Connection } from "@xyflow/react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
@@ -26,18 +27,29 @@ export function RelationshipPopover({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const sourceName = persons.get(connection.source!)?.name ?? "?";
   const targetName = persons.get(connection.target!)?.name ?? "?";
 
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    function handleBackdropClick(e: MouseEvent) {
+      if (e.target === dialog) onClose();
+    }
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
+  }, [onClose]);
+
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="relationship-popover"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
       }}
-      role="dialog"
-      aria-modal="true"
     >
       <div
         className="relationship-popover__card"
@@ -76,6 +88,6 @@ export function RelationshipPopover({
           {t(T_COMMON_CANCEL)}
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }

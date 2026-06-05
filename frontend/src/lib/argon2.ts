@@ -1,6 +1,8 @@
-// argon2-browser is loaded via <script> tag in index.html (the self-contained
-// bundled build with WASM inlined). It sets self.argon2 as a global.
-// This module re-exports it with types for use in the rest of the app.
+// argon2-browser is loaded via a <script> tag in index.html: the self-contained
+// bundled build with WASM inlined, committed at public/argon2-bundled.min.js
+// (sourced from the argon2-browser npm package, v1.18.0). It sets self.argon2 as
+// a global. Because the runtime uses the committed bundle, the npm package itself
+// is not a code dependency. This module re-exports the global with types.
 
 interface Argon2 {
   ArgonType: { Argon2d: 0; Argon2i: 1; Argon2id: 2 };

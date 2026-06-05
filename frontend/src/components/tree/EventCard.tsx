@@ -6,7 +6,8 @@ const SEVERITY_DOTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export function SeverityBar({ value, color }: { value: number; color: string }) {
   const clamped = Math.max(0, Math.min(10, value));
   return (
-    <div className="detail-panel__severity-bar" role="img" aria-label={`${clamped}/10`}>
+    <div className="detail-panel__severity-bar">
+      <span className="sr-only">{`${clamped}/10`}</span>
       {SEVERITY_DOTS.map((dot) => (
         <span
           key={`sev-${dot}`}

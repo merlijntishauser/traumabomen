@@ -10,6 +10,18 @@
   background: var(--color-bg-primary);
   padding: var(--space-6);
   overflow-y: auto;
+  /* native <dialog> resets */
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: none;
+  color: inherit;
+}
+
+.onboarding-gate::backdrop {
+  background: transparent;
 }
 
 .onboarding-gate__card {

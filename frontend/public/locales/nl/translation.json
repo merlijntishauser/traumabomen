@@ -275,6 +275,7 @@
   "journal.linkedPersons": "Gekoppelde personen",
   "journal.inspiration": "Inspiratie nodig?",
   "journal.textPlaceholder": "Schrijf hier je reflectie...",
+  "journal.entryLabel": "Reflectie",
   "journal.entityType.person": "Personen",
   "journal.entityType.traumaEvent": "Trauma-gebeurtenissen",
   "journal.entityType.lifeEvent": "Levensgebeurtenissen",

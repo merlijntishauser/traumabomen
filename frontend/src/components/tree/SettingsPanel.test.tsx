@@ -206,8 +206,8 @@ describe("SettingsPanel", () => {
       renderPanel();
       await openPanel(user);
 
-      const backdrop = document.querySelector(".settings-modal__backdrop") as HTMLElement;
-      fireEvent.click(backdrop);
+      // The native <dialog> is the click target when its backdrop is clicked.
+      fireEvent.click(screen.getByRole("dialog"));
 
       await waitFor(() => {
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

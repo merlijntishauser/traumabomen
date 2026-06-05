@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
-import { emitCellSegments, PatternConnectors } from "./PatternConnectors";
+import { PatternConnectors } from "./PatternConnectors";
+import { emitCellSegments } from "./patternConnectors.helpers";
 
 // Mock @xyflow/react -- mutable so tests can override
 let mockNodes = [

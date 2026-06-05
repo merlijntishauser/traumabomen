@@ -58,18 +58,21 @@ function feedbackReducer(state: FeedbackState, action: FeedbackAction): Feedback
 export function FeedbackModal({ onClose }: Props) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(feedbackReducer, feedbackInitialState);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const handleClose = useCallback(() => {
     if (!state.submitting) onClose();
   }, [state.submitting, onClose]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    function handleBackdropClick(e: MouseEvent) {
+      if (e.target === dialog) handleClose();
+    }
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
   }, [handleClose]);
 
   useEffect(() => {
@@ -77,10 +80,6 @@ export function FeedbackModal({ onClose }: Props) {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
   }, [state.success, onClose]);
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) handleClose();
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,15 +104,13 @@ export function FeedbackModal({ onClose }: Props) {
   const canSubmit = state.message.trim().length > 0 && !state.submitting;
 
   return createPortal(
-    <div
+    <dialog
       className="feedback-overlay"
-      ref={overlayRef}
-      onClick={handleOverlayClick}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") handleClose();
+      ref={dialogRef}
+      onCancel={(e) => {
+        e.preventDefault();
+        handleClose();
       }}
-      role="dialog"
-      aria-modal="true"
       aria-label={t("feedback.title")}
     >
       <div className="feedback-card">
@@ -198,7 +195,7 @@ export function FeedbackModal({ onClose }: Props) {
           </form>
         )}
       </div>
-    </div>,
+    </dialog>,
     document.body,
   );
 }

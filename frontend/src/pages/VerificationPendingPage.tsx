@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
@@ -13,13 +13,16 @@ export default function VerificationPendingPage() {
   const [cooldown, setCooldown] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Tick the resend cooldown down to zero while it is active. The interval id is
+  // local, so the cleanup never reads a stale ref; it is cleared on unmount and
+  // when the cooldown reaches zero (active flips to false).
+  const cooldownActive = cooldown > 0;
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+    if (!cooldownActive) return;
+    const id = setInterval(() => setCooldown((prev) => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldownActive]);
 
   async function handleResend() {
     if (!email || cooldown > 0) return;
@@ -30,16 +33,6 @@ export default function VerificationPendingPage() {
       await resendVerification({ email, language: i18n.language });
       setMessage(t("auth.resendSuccess"));
       setCooldown(60);
-      intervalRef.current = setInterval(() => {
-        setCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            intervalRef.current = null;
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
         setError(t("auth.resendTooSoon"));

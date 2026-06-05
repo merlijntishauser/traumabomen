@@ -92,7 +92,7 @@ describe("LifeEventsTab", () => {
       const props = defaultProps();
       props.lifeEvents = [makeLifeEvent({ impact: 7 })];
       render(<LifeEventsTab {...props} />);
-      expect(screen.getByRole("img", { name: "7/10" })).toBeInTheDocument();
+      expect(screen.getByText("7/10")).toBeInTheDocument();
     });
   });
 

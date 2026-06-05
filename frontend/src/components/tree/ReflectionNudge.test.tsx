@@ -10,7 +10,8 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("../../lib/reflectionPrompts", () => ({
-  getNudgePrompt: () => "Test nudge prompt",
+  pickJournalPromptIndex: () => 1,
+  journalPromptText: () => "Test nudge prompt",
 }));
 
 describe("ReflectionNudge", () => {

@@ -14,12 +14,15 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
   const { t } = useTranslation();
   const [passphrase, setPassphrase] = useState("");
   const [shaking, setShaking] = useState(false);
+  const [shakeNonce, setShakeNonce] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevAttemptsRef = useRef(wrongAttempts);
-  const shakeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Auto-focus input on mount
+  // Open as a modal dialog and auto-focus the input on mount
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
     inputRef.current?.focus();
   }, []);
 
@@ -28,14 +31,16 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
     prevAttemptsRef.current = wrongAttempts;
     setShaking(true);
     setPassphrase("");
-    clearTimeout(shakeTimerRef.current);
-    shakeTimerRef.current = setTimeout(() => setShaking(false), 400);
+    setShakeNonce((n) => n + 1);
   }
 
-  // Clean up shake timer on unmount
+  // Clear the shake flag 400ms after each wrong attempt. The timer id is local,
+  // so the cleanup never reads a stale ref; it is cleared on unmount or re-shake.
   useEffect(() => {
-    return () => clearTimeout(shakeTimerRef.current);
-  }, []);
+    if (shakeNonce === 0) return;
+    const id = setTimeout(() => setShaking(false), 400);
+    return () => clearTimeout(id);
+  }, [shakeNonce]);
 
   // Capture all keyboard events except those in the passphrase input
   useEffect(() => {
@@ -59,11 +64,11 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
   }
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="lock-screen"
-      role="dialog"
-      aria-modal="true"
       aria-label={t("safety.lock.title")}
+      onCancel={(e) => e.preventDefault()}
     >
       <div className="lock-screen__card">
         <picture>
@@ -113,6 +118,6 @@ export function LockScreen({ wrongAttempts, onUnlock, onLogout }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

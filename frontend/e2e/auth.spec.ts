@@ -43,7 +43,7 @@ test.describe("Authentication @smoketest", () => {
 
     await login(page, email);
     // AuthModal should appear in unlock mode
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
     await modal.getByLabel(/encryption passphrase/i).fill("wrong-passphrase-value");
     await modal.getByRole("button", { name: /unlock/i }).click();

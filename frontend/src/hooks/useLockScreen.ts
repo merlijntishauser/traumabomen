@@ -62,17 +62,20 @@ export function useLockScreen({
   });
 
   const lastEscRef = useRef(0);
-  const lastActivityRef = useRef(Date.now());
+  // Initialize once on first render rather than recomputing Date.now() every render.
+  const lastActivityRef = useRef(0);
+  if (lastActivityRef.current === 0) lastActivityRef.current = Date.now();
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const fullTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hiddenAtRef = useRef<number | null>(null);
 
-  // Reset lock state when disabled (e.g. logout)
-  useEffect(() => {
-    if (!enabled) {
-      dispatch({ type: "RESET" });
-    }
-  }, [enabled]);
+  // Reset lock state when disabled (e.g. logout). Handled during render via a
+  // previous-value comparison instead of an effect, which would run a frame late.
+  const prevEnabledRef = useRef(enabled);
+  if (prevEnabledRef.current !== enabled) {
+    prevEnabledRef.current = enabled;
+    if (!enabled) dispatch({ type: "RESET" });
+  }
 
   const triggerFullLock = useCallback(() => {
     dispatch({ type: "LOCK_FULL" });

@@ -19,7 +19,7 @@ import { getTurningPointColors } from "../../lib/turningPointColors";
 import { capPeriodsAtDeath, type PartnerStatus, RelationshipType } from "../../types/domain";
 import { AgePartnerLine } from "./AgePartnerLine";
 import { AgePersonLane } from "./AgePersonLane";
-import { computePatternRings, TimelinePatternLanes } from "./TimelinePatternLanes";
+import { TimelinePatternLanes } from "./TimelinePatternLanes";
 import type { TooltipState } from "./TimelineTooltip";
 import { TimelineZoomControls } from "./TimelineZoomControls";
 import type { MarkerClickInfo, TimelineMode } from "./timelineHelpers";
@@ -32,6 +32,7 @@ import {
   computeGenerations,
   filterTimelinePersons,
 } from "./timelineHelpers";
+import { computePatternRings } from "./timelinePatternLanes.helpers";
 
 interface PartnerLineData {
   key: string;

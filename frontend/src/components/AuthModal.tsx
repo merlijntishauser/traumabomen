@@ -92,6 +92,12 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
     prevMode: mode,
   });
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
 
   // Derive step and effective salt/hint from props + local state
   const step = mode === "reauth" && !state.credentialsSubmitted ? "credentials" : "passphrase";
@@ -168,7 +174,12 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
   const unlockLabel = t("auth.unlock");
 
   return (
-    <div className="auth-modal" role="dialog" aria-modal="true" aria-label={unlockLabel}>
+    <dialog
+      ref={dialogRef}
+      className="auth-modal"
+      aria-label={unlockLabel}
+      onCancel={(e) => e.preventDefault()}
+    >
       <div className="auth-modal__card">
         <picture>
           <source srcSet="/images/hero-unlock-dark.webp" type="image/webp" />
@@ -299,6 +310,6 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

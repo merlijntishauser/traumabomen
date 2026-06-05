@@ -163,7 +163,7 @@ describe("JournalEntryList", () => {
   it("clicking a card opens the form for that entry", () => {
     renderList({ entries: [mockEntry] });
 
-    fireEvent.click(screen.getByTestId("journal-card-j1"));
+    fireEvent.click(screen.getByTestId("journal-edit-j1"));
 
     expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
     // The textarea should contain the entry text
@@ -189,7 +189,7 @@ describe("JournalEntryList", () => {
   it("saving an existing entry calls onSave with the entry id", () => {
     const props = renderList({ entries: [mockEntry] });
 
-    fireEvent.click(screen.getByTestId("journal-card-j1"));
+    fireEvent.click(screen.getByTestId("journal-edit-j1"));
     fireEvent.click(screen.getByText("journal.save"));
 
     expect(props.onSave).toHaveBeenCalledWith("j1", {
@@ -221,29 +221,16 @@ describe("JournalEntryList", () => {
     expect(screen.getByText("journal.justNow")).toBeInTheDocument();
   });
 
-  it("opens form when pressing Enter on a card", () => {
+  it("renders each entry's edit control as a native button (keyboard accessible)", () => {
     renderList({ entries: [mockEntry] });
 
-    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: "Enter" });
+    const trigger = screen.getByTestId("journal-edit-j1");
+    expect(trigger.tagName).toBe("BUTTON");
 
+    // Native buttons are activated by Enter/Space at the platform level; a click
+    // exercises the same activation path.
+    fireEvent.click(trigger);
     expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
-    expect(screen.getByTestId("journal-textarea")).toHaveValue(mockEntry.text);
-  });
-
-  it("opens form when pressing Space on a card", () => {
-    renderList({ entries: [mockEntry] });
-
-    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: " " });
-
-    expect(screen.getByTestId("journal-entry-form")).toBeInTheDocument();
-  });
-
-  it("ignores other keys on a card", () => {
-    renderList({ entries: [mockEntry] });
-
-    fireEvent.keyDown(screen.getByTestId("journal-card-j1"), { key: "Tab" });
-
-    expect(screen.queryByTestId("journal-entry-form")).not.toBeInTheDocument();
   });
 
   it("passes allowedElements and unwrapDisallowed to Markdown in entry cards", () => {
@@ -260,7 +247,7 @@ describe("JournalEntryList", () => {
   it("delete flow on existing entry calls onDelete", () => {
     const props = renderList({ entries: [mockEntry] });
 
-    fireEvent.click(screen.getByTestId("journal-card-j1"));
+    fireEvent.click(screen.getByTestId("journal-edit-j1"));
 
     // First click: ask for confirmation
     fireEvent.click(screen.getByText("journal.delete"));

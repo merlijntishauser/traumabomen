@@ -112,14 +112,12 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
   const isAuthenticated = !!getAccessToken();
 
-  // Re-sync with localStorage: login() updates the flag after this component
-  // has already mounted with the stale pre-login value.
-  const flagFromStorage = getOnboardingFlag();
-  useEffect(() => {
-    if (flagFromStorage && !acknowledged) {
-      setAcknowledged(true);
-    }
-  }, [flagFromStorage, acknowledged]);
+  // login() updates the localStorage flag after this component already mounted
+  // with the stale pre-login value. Re-sync during render rather than through an
+  // effect, which would otherwise cost an extra render showing the stale value.
+  if (!acknowledged && getOnboardingFlag()) {
+    setAcknowledged(true);
+  }
 
   if (isAuthenticated && masterKey && !acknowledged) {
     return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;

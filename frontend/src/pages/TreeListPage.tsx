@@ -29,6 +29,7 @@ const MAX_DEMO_TREES = 3;
 
 const T_CANCEL = "common.cancel";
 const T_DELETE = "common.delete";
+const T_NAME_PLACEHOLDER = "tree.namePlaceholder";
 
 interface DecryptedTree {
   id: string;
@@ -220,6 +221,7 @@ function TreeListItemRow({
           className="tree-list-item__input"
           value={editName}
           onChange={(e) => onEditNameChange(e.target.value)}
+          aria-label={t(T_NAME_PLACEHOLDER)}
         />
         <button className="tree-list-item__btn" type="submit" disabled={renamePending}>
           {t("common.save")}
@@ -338,6 +340,7 @@ function TreeListToolbar({
         accept=".json"
         style={{ display: "none" }}
         onChange={onImportFile}
+        aria-label={t("tree.import")}
       />
       <SettingsPanel viewTab={viewTab} className="tree-toolbar__icon-btn" />
       {getIsAdmin() && (
@@ -562,7 +565,8 @@ export default function TreeListPage() {
                 className="tree-list-item__input"
                 value={state.newName}
                 onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
-                placeholder={t("tree.namePlaceholder")}
+                placeholder={t(T_NAME_PLACEHOLDER)}
+                aria-label={t(T_NAME_PLACEHOLDER)}
               />
               <button
                 className="tree-list-item__btn"

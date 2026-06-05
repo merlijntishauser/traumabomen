@@ -33,6 +33,7 @@ export function CreatePatternMiniForm({
         type="text"
         className="detail-panel__input"
         placeholder={t("timeline.patternName")}
+        aria-label={t("timeline.patternName")}
         value={name}
         onChange={(e) => setName(e.target.value)}
         data-testid="pattern-mini-name"
@@ -41,6 +42,7 @@ export function CreatePatternMiniForm({
       <textarea
         className="detail-panel__input"
         placeholder={t("timeline.patternDescription")}
+        aria-label={t("timeline.patternDescription")}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={2}

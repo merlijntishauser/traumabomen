@@ -63,7 +63,7 @@ test.describe("Settings", () => {
     await page.getByRole("button", { name: /log in/i }).click();
 
     // Should reach /trees with AuthModal in unlock mode
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
     await expect(modal.getByLabel(/encryption passphrase/i)).toBeVisible();
   });
@@ -99,7 +99,7 @@ test.describe("Settings", () => {
     await logout(page);
     await login(page, email);
 
-    const modal = page.locator("[role='dialog']");
+    const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
     await modal.getByLabel(/encryption passphrase/i).fill(newPassphrase);
     await modal.getByRole("button", { name: /unlock/i }).click();

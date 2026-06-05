@@ -8,7 +8,8 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import { LifeEventCategory, TraumaCategory, TurningPointCategory } from "../../types/domain";
-import { collectDateLabelEntries, type LabelEntry, PersonLane, stackLabels } from "./PersonLane";
+import { PersonLane } from "./PersonLane";
+import { collectDateLabelEntries, type LabelEntry, stackLabels } from "./personLane.helpers";
 import type { PatternRingsMap } from "./TimelinePatternLanes";
 import { BAR_HEIGHT, MARKER_RADIUS, ROW_HEIGHT } from "./timelineHelpers";
 

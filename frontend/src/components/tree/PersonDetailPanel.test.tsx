@@ -26,7 +26,8 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("../../lib/reflectionPrompts", () => ({
-  getPersonPrompt: (_t: unknown, name: string) => `Reflect on ${name}`,
+  pickPersonPromptIndex: () => 1,
+  personPromptText: (_t: unknown, _index: number, name: string) => `Reflect on ${name}`,
 }));
 
 function makePerson(overrides: Partial<DecryptedPerson> = {}): DecryptedPerson {
@@ -1288,7 +1289,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await openEventsTab(user, "trauma.tab");
-      const severityBar = screen.getByLabelText("7/10");
+      const severityBar = screen.getByText("7/10").closest(".detail-panel__severity-bar")!;
       expect(severityBar).toBeInTheDocument();
       const dots = severityBar.querySelectorAll(".detail-panel__severity-dot");
       expect(dots).toHaveLength(10);
@@ -1346,7 +1347,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await openEventsTab(user, "lifeEvent.tab");
-      const impactBar = screen.getByLabelText("4/10");
+      const impactBar = screen.getByText("4/10").closest(".detail-panel__severity-bar")!;
       expect(impactBar).toBeInTheDocument();
       const dots = impactBar.querySelectorAll(".detail-panel__severity-dot");
       expect(dots).toHaveLength(10);
@@ -1728,7 +1729,7 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       await openEventsTab(user, "turningPoint.tab");
-      const sigBar = screen.getByLabelText("6/10");
+      const sigBar = screen.getByText("6/10").closest(".detail-panel__severity-bar")!;
       expect(sigBar).toBeInTheDocument();
       const dots = sigBar.querySelectorAll(".detail-panel__severity-dot");
       expect(dots).toHaveLength(10);

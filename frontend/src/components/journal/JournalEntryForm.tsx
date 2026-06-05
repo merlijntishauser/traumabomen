@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Link2, X } from "lucide-react";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
 import type {
@@ -71,6 +71,13 @@ function journalFormReducer(state: JournalFormState, action: JournalFormAction):
   }
 }
 
+/** Grow a textarea to fit its content: reset to auto so scrollHeight reflects the
+ * true content height, then apply it in one assignment to avoid layout thrashing. */
+function resizeTextarea(el: HTMLTextAreaElement): void {
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+}
+
 interface JournalEntryFormProps {
   entry: DecryptedJournalEntry | null;
   persons: Map<string, DecryptedPerson>;
@@ -111,23 +118,14 @@ export function JournalEntryForm({
     showPrompts: false,
   });
   const [prompts] = useState(() => getRandomJournalPrompts(t));
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally depends on text/mode so autoGrow re-triggers on content and tab changes
-  const autoGrow = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    // Reset to auto so scrollHeight reflects the true content height, then
-    // read scrollHeight once and apply it in a single assignment to avoid
-    // layout thrashing.
-    el.style.height = "auto";
-    const target = `${el.scrollHeight}px`;
-    el.style.height = target;
-  }, [state.text, state.mode]);
-
-  useEffect(() => {
-    autoGrow();
-  }, [autoGrow]);
+  // Measure on mount and whenever the textarea re-appears (switching back into
+  // write mode). Typing and applied prompts resize it in their event handlers.
+  const attachTextarea = useCallback((el: HTMLTextAreaElement | null) => {
+    textareaRef.current = el;
+    if (el) resizeTextarea(el);
+  }, []);
 
   function handleSave() {
     onSave({ text: state.text.trim(), linked_entities: state.linkedEntities });
@@ -157,11 +155,15 @@ export function JournalEntryForm({
 
       {state.mode === "write" ? (
         <textarea
-          ref={textareaRef}
+          ref={attachTextarea}
           className="journal-form__textarea"
           value={state.text}
-          onChange={(e) => dispatch({ type: "SET_TEXT", value: e.target.value })}
+          onChange={(e) => {
+            dispatch({ type: "SET_TEXT", value: e.target.value });
+            resizeTextarea(e.currentTarget);
+          }}
           placeholder={t("journal.textPlaceholder")}
+          aria-label={t("journal.entryLabel")}
           rows={4}
           data-testid="journal-textarea"
         />
@@ -253,7 +255,12 @@ export function JournalEntryForm({
                   key={prompt}
                   type="button"
                   className="journal-form__prompt-item"
-                  onClick={() => dispatch({ type: "APPLY_PROMPT", prompt })}
+                  onClick={() => {
+                    dispatch({ type: "APPLY_PROMPT", prompt });
+                    requestAnimationFrame(() => {
+                      if (textareaRef.current) resizeTextarea(textareaRef.current);
+                    });
+                  }}
                 >
                   {prompt}
                 </button>

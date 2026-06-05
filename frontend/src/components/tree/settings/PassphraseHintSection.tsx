@@ -88,6 +88,7 @@ export function PassphraseHintSection() {
         onChange={(e) => dispatch({ type: "SET_HINT", hint: e.target.value })}
         maxLength={255}
         placeholder={t("auth.hintPlaceholder")}
+        aria-label={t("settings.passphraseHint")}
       />
       {state.error && <p className="auth-error">{state.error}</p>}
       {state.success && <p className="auth-success">{t("settings.hintSaved")}</p>}

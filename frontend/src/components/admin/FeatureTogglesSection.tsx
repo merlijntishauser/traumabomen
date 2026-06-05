@@ -40,11 +40,15 @@ export function FeatureToggleCard({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [userDropdownOpen]);
 
-  // Sync selected users when flag data changes from server
-  useEffect(() => {
+  // Re-sync the editable selection when the flag data changes on the server.
+  // Done during render via a previous-value comparison instead of an effect,
+  // and cancel any pending local persist that the server data now supersedes.
+  const prevFlagUserIdsRef = useRef(flag.selected_user_ids);
+  if (prevFlagUserIdsRef.current !== flag.selected_user_ids) {
+    prevFlagUserIdsRef.current = flag.selected_user_ids;
     setSelectedUsers(new Set(flag.selected_user_ids));
     clearTimeout(debounceRef.current);
-  }, [flag.selected_user_ids]);
+  }
 
   // Clean up debounce timeout on unmount
   useEffect(() => () => clearTimeout(debounceRef.current), []);

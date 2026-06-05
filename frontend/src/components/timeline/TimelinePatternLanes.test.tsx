@@ -1,8 +1,9 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPattern, DecryptedPerson } from "../../hooks/useTreeData";
-import { computePatternRings, TimelinePatternLanes } from "./TimelinePatternLanes";
+import { TimelinePatternLanes } from "./TimelinePatternLanes";
 import type { PersonColumn, PersonRow } from "./timelineHelpers";
+import { computePatternRings } from "./timelinePatternLanes.helpers";
 
 vi.mock("../../lib/patternColors", () => ({
   getPatternColor: (hex: string) => hex,

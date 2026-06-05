@@ -128,7 +128,7 @@ describe("JournalPanel", () => {
     const props = renderPanel({ journalEntries: entries });
 
     // Click on the entry card to edit
-    fireEvent.click(screen.getByTestId("journal-card-j1"));
+    fireEvent.click(screen.getByTestId("journal-edit-j1"));
 
     // Save
     fireEvent.click(screen.getByText("journal.save"));
@@ -144,7 +144,7 @@ describe("JournalPanel", () => {
     const props = renderPanel({ journalEntries: entries });
 
     // Click on the entry card to edit
-    fireEvent.click(screen.getByTestId("journal-card-j1"));
+    fireEvent.click(screen.getByTestId("journal-edit-j1"));
 
     // Delete with confirmation (confirm button reuses the original label)
     fireEvent.click(screen.getByText("journal.delete"));

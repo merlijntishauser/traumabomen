@@ -106,10 +106,14 @@ describe("RelationshipPopover", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("calls onClose when Escape is pressed on the backdrop", () => {
+  it("calls onClose when the dialog is cancelled (Escape)", () => {
     const onClose = vi.fn();
     const { container } = render(<RelationshipPopover {...defaultProps} onClose={onClose} />);
-    fireEvent.keyDown(container.querySelector(".relationship-popover")!, { key: "Escape" });
+    // Native <dialog> turns Escape into a cancel event.
+    fireEvent(
+      container.querySelector(".relationship-popover")!,
+      new Event("cancel", { cancelable: true }),
+    );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

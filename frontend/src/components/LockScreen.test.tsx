@@ -16,8 +16,10 @@ describe("LockScreen", () => {
     render(<LockScreen wrongAttempts={0} onUnlock={onUnlock} onLogout={vi.fn()} />);
 
     expect(screen.getByText("safety.lock.title")).toBeInTheDocument();
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    // Native <dialog> conveys modality itself (opened via showModal).
+    expect(dialog.tagName).toBe("DIALOG");
 
     // Password input is present
     const input = document.querySelector("input[type='password']");

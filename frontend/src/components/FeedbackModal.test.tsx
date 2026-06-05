@@ -79,7 +79,8 @@ describe("FeedbackModal", () => {
 
   it("closes on Escape key", () => {
     render(<FeedbackModal onClose={onClose} />);
-    fireEvent.keyDown(document, { key: "Escape" });
+    // Native <dialog> handles Escape via the cancel event.
+    fireEvent(screen.getByRole("dialog"), new Event("cancel", { cancelable: true }));
     expect(onClose).toHaveBeenCalled();
   });
 

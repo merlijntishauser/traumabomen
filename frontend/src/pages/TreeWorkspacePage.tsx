@@ -210,8 +210,14 @@ function useCanvasNodes(
   const prevNodeCountRef = useRef(0);
   const layoutRevisionRef = useRef(0);
   const prevLayoutRevisionRef = useRef(0);
+  const prevLayoutNodesRef = useRef<AnyNodeType[] | null>(null);
 
-  useEffect(() => {
+  // Reconcile React Flow nodes with the latest layout during render rather than
+  // in a useEffect (which would commit a stale frame first). When the structure
+  // changes we adopt the fresh layout positions; otherwise we keep the user's
+  // drag positions and only refresh node data. Runs whenever the layout input
+  // reference or the edge count changes, then converges on the next render.
+  if (prevLayoutNodesRef.current !== layoutNodes || edgeCount !== prevEdgeCountRef.current) {
     const currentIds = layoutNodes
       .map((n) => n.id)
       .sort()
@@ -223,6 +229,7 @@ function useCanvasNodes(
     prevNodeIdsRef.current = currentIds;
     prevEdgeCountRef.current = edgeCount;
     prevLayoutRevisionRef.current = layoutRevisionRef.current;
+    prevLayoutNodesRef.current = layoutNodes;
 
     setNodes((prev) => {
       const prevMap = new Map(prev.map((n) => [n.id, n]));
@@ -235,7 +242,7 @@ function useCanvasNodes(
         return { ...n, position: existing.position, measured: existing.measured };
       });
     });
-  }, [layoutNodes, edgeCount]);
+  }
 
   const onNodesChange: OnNodesChange<AnyNodeType> = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
@@ -430,6 +437,11 @@ function useCanvasActions(opts: {
     applyPositions(snapshot);
   }, [popPositionSnapshot, applyPositions]);
 
+  // Keep the latest handleAddPerson in a ref so the global key listener can call
+  // it without re-subscribing on every render (handleAddPerson is not memoized).
+  const handleAddPersonRef = useRef(handleAddPerson);
+  handleAddPersonRef.current = handleAddPerson;
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -444,7 +456,7 @@ function useCanvasActions(opts: {
       if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (isInput) return;
         e.preventDefault();
-        handleAddPerson();
+        handleAddPersonRef.current();
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -730,7 +742,16 @@ function useCanvasEventHandlers(opts: {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [dismissAll]);
 
-  useEffect(() => {
+  // Clear the relationship prompt during render when the selection moves to a
+  // different person, instead of reacting a frame later from an effect.
+  const prevSelectedForPromptRef = useRef(selectedPersonId);
+  const prevPromptIdRef = useRef(canvasState.relationshipPromptPersonId);
+  if (
+    prevSelectedForPromptRef.current !== selectedPersonId ||
+    prevPromptIdRef.current !== canvasState.relationshipPromptPersonId
+  ) {
+    prevSelectedForPromptRef.current = selectedPersonId;
+    prevPromptIdRef.current = canvasState.relationshipPromptPersonId;
     if (
       canvasState.relationshipPromptPersonId &&
       selectedPersonId &&
@@ -738,7 +759,7 @@ function useCanvasEventHandlers(opts: {
     ) {
       dispatchCanvas({ type: "SET_RELATIONSHIP_PROMPT", personId: null });
     }
-  }, [selectedPersonId, canvasState.relationshipPromptPersonId, dispatchCanvas]);
+  }
 
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: AnyNodeType) => {

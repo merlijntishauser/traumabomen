@@ -4,6 +4,10 @@ import type { DecryptedPerson } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
 import { DIRECTIONAL_TYPES, T_COMMON_CANCEL } from "./RelationshipPopover";
 
+function formatPersonLabel(p: DecryptedPerson) {
+  return p.birth_year ? `${p.name} (${p.birth_year})` : p.name;
+}
+
 export function RelationshipPrompt({
   person,
   allPersons,
@@ -35,10 +39,6 @@ export function RelationshipPrompt({
   const targetName = sourceIsNew ? (targetPerson?.name ?? "") : person.name;
 
   const otherPersons = Array.from(allPersons.entries()).filter(([id]) => id !== person.id);
-
-  function formatPersonLabel(p: DecryptedPerson) {
-    return p.birth_year ? `${p.name} (${p.birth_year})` : p.name;
-  }
 
   if (step === "ask") {
     return (

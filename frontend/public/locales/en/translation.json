@@ -275,6 +275,7 @@
   "journal.linkedPersons": "Linked persons",
   "journal.inspiration": "Need inspiration?",
   "journal.textPlaceholder": "Write your reflection here...",
+  "journal.entryLabel": "Reflection",
   "journal.entityType.person": "People",
   "journal.entityType.traumaEvent": "Trauma events",
   "journal.entityType.lifeEvent": "Life events",

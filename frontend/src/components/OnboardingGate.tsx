@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { acknowledgeOnboarding } from "../lib/api";
@@ -11,6 +11,12 @@ interface Props {
 export function OnboardingGate({ onAcknowledged }: Props) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
 
   async function handleContinue() {
     setLoading(true);
@@ -25,7 +31,12 @@ export function OnboardingGate({ onAcknowledged }: Props) {
   }
 
   return (
-    <div className="onboarding-gate" role="dialog" aria-modal="true" aria-label={t("app.title")}>
+    <dialog
+      ref={dialogRef}
+      className="onboarding-gate"
+      aria-label={t("app.title")}
+      onCancel={(e) => e.preventDefault()}
+    >
       <div className="onboarding-gate__card">
         <h1 className="onboarding-gate__title">{t("app.title")}</h1>
 
@@ -72,6 +83,6 @@ export function OnboardingGate({ onAcknowledged }: Props) {
           {t("safety.onboarding.continue")}
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }

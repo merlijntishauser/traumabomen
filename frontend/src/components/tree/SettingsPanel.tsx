@@ -36,21 +36,21 @@ export function SettingsPanel({ viewTab, className }: Props) {
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<TabId>("view");
-  const modalRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Close on Escape
+  // Open as a modal dialog when shown; Escape closes it via the cancel event,
+  // and a click on the backdrop (the dialog element itself) closes it too.
   useEffect(() => {
     if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    function handleBackdropClick(e: MouseEvent) {
+      if (e.target === dialog) setOpen(false);
     }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
   }, [open]);
-
-  function handleBackdropClick(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) setOpen(false);
-  }
 
   function handleOpen() {
     setTab("view");
@@ -76,63 +76,59 @@ export function SettingsPanel({ viewTab, className }: Props) {
 
       {open &&
         createPortal(
-          <div
-            className="settings-modal__backdrop"
-            onClick={handleBackdropClick}
-            role="presentation"
+          <dialog
+            ref={dialogRef}
+            className="settings-modal"
+            aria-label={t(T_TITLE)}
+            onCancel={(e) => {
+              e.preventDefault();
+              setOpen(false);
+            }}
           >
-            <div
-              ref={modalRef}
-              className="settings-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-label={t(T_TITLE)}
-            >
-              <div className="settings-modal__sidebar">
-                <h2 className="settings-modal__title">{t(T_TITLE)}</h2>
-                <nav className="settings-modal__nav">
-                  {tabs.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`settings-modal__nav-item${tab === item.id ? " settings-modal__nav-item--active" : ""}${item.danger ? " settings-modal__nav-item--danger" : ""}`}
-                      onClick={() => setTab(item.id)}
-                    >
-                      {item.icon}
-                      {item.label}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-
-              <div className="settings-modal__content">
-                <button
-                  type="button"
-                  className="settings-modal__close"
-                  onClick={() => setOpen(false)}
-                  aria-label={t("common.close")}
-                >
-                  <X size={18} />
-                </button>
-
-                {tab === "view" && viewTab.content}
-
-                {tab === "security" && (
-                  <>
-                    <ChangePasswordSection />
-                    <div className="settings-panel__divider" />
-                    <ChangePassphraseSection />
-                    <div className="settings-panel__divider" />
-                    <PassphraseHintSection />
-                    <div className="settings-panel__divider" />
-                    <AutoLockSection />
-                  </>
-                )}
-
-                {tab === "delete" && <DeleteAccountSection />}
-              </div>
+            <div className="settings-modal__sidebar">
+              <h2 className="settings-modal__title">{t(T_TITLE)}</h2>
+              <nav className="settings-modal__nav">
+                {tabs.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`settings-modal__nav-item${tab === item.id ? " settings-modal__nav-item--active" : ""}${item.danger ? " settings-modal__nav-item--danger" : ""}`}
+                    onClick={() => setTab(item.id)}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
             </div>
-          </div>,
+
+            <div className="settings-modal__content">
+              <button
+                type="button"
+                className="settings-modal__close"
+                onClick={() => setOpen(false)}
+                aria-label={t("common.close")}
+              >
+                <X size={18} />
+              </button>
+
+              {tab === "view" && viewTab.content}
+
+              {tab === "security" && (
+                <>
+                  <ChangePasswordSection />
+                  <div className="settings-panel__divider" />
+                  <ChangePassphraseSection />
+                  <div className="settings-panel__divider" />
+                  <PassphraseHintSection />
+                  <div className="settings-panel__divider" />
+                  <AutoLockSection />
+                </>
+              )}
+
+              {tab === "delete" && <DeleteAccountSection />}
+            </div>
+          </dialog>,
           document.body,
         )}
     </>

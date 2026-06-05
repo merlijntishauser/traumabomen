@@ -4,29 +4,25 @@
   justify-content: center;
 }
 
-/* Modal backdrop */
-.settings-modal__backdrop {
-  position: fixed;
-  inset: 0;
+/* Modal dim (native <dialog> backdrop) */
+.settings-modal::backdrop {
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
 }
 
-/* Modal container */
+/* Modal container (native <dialog>, centered by the UA) */
 .settings-modal {
   display: flex;
   width: 640px;
   max-width: 90vw;
   height: 480px;
   max-height: 80vh;
+  padding: 0;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  color: inherit;
 }
 
 /* Sidebar */

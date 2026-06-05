@@ -1,5 +1,5 @@
 import { CalendarDays, Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -11,7 +11,7 @@ import type {
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
-import { getPersonPrompt } from "../../lib/reflectionPrompts";
+import { personPromptText, pickPersonPromptIndex } from "../../lib/reflectionPrompts";
 import type {
   Classification,
   JournalLinkedRef,
@@ -175,9 +175,16 @@ export function PersonDetailPanel({
   }
   prevSectionRef.current = initialSection;
 
-  // Stable prompt per person (re-rolls when selecting a different person)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per person
-  const personPrompt = useMemo(() => getPersonPrompt(t, person.name), [person.id]);
+  // Stable prompt per person: re-roll the random selection during render when a
+  // different person is shown, then translate live (also follows name edits).
+  const [promptPick, setPromptPick] = useState(() => ({
+    id: person.id,
+    index: pickPersonPromptIndex(),
+  }));
+  if (promptPick.id !== person.id) {
+    setPromptPick({ id: person.id, index: pickPersonPromptIndex() });
+  }
+  const personPrompt = personPromptText(t, promptPick.index, person.name);
 
   const relsCount = relationships.length + inferredSiblings.length;
   const eventsCount = events.length + lifeEvents.length + turningPoints.length;

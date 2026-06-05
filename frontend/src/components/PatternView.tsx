@@ -12,7 +12,7 @@ import type {
 import { uuidToCompact } from "../lib/compactId";
 import { getPatternColor } from "../lib/patternColors";
 import { type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
-import { getPatternPrompt } from "../lib/reflectionPrompts";
+import { patternPromptText, pickPatternPromptIndex } from "../lib/reflectionPrompts";
 import type { JournalLinkedRef, LinkedEntity } from "../types/domain";
 import "./PatternView.css";
 
@@ -201,9 +201,16 @@ function PatternDetail({
 }) {
   const { t } = useTranslation();
 
-  // Stable prompt per pattern (re-rolls when selecting a different pattern)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per pattern
-  const patternPrompt = useMemo(() => getPatternPrompt(t), [pattern.id]);
+  // Stable prompt per pattern: re-roll the random selection during render when a
+  // different pattern is shown, then translate live so it follows the language.
+  const [promptPick, setPromptPick] = useState(() => ({
+    id: pattern.id,
+    index: pickPatternPromptIndex(),
+  }));
+  if (promptPick.id !== pattern.id) {
+    setPromptPick({ id: pattern.id, index: pickPatternPromptIndex() });
+  }
+  const patternPrompt = patternPromptText(t, promptPick.index);
   const displays = getEntityDisplays(pattern, entityMaps, t);
 
   return (

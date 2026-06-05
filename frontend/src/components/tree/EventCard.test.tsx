@@ -20,9 +20,9 @@ describe("SeverityBar", () => {
     expect(filled).toHaveLength(10);
   });
 
-  it("renders aria-label with clamped value", () => {
+  it("renders the clamped value as screen-reader text", () => {
     render(<SeverityBar value={3} color="#ff0000" />);
-    expect(screen.getByRole("img")).toHaveAttribute("aria-label", "3/10");
+    expect(screen.getByText("3/10")).toBeInTheDocument();
   });
 });
 
@@ -53,17 +53,17 @@ describe("EventCard", () => {
 
   it("renders severity bar when barValue is positive", () => {
     render(<EventCard {...defaultProps} barValue={6} />);
-    expect(screen.getByRole("img", { name: "6/10" })).toBeInTheDocument();
+    expect(screen.getByText("6/10")).toBeInTheDocument();
   });
 
   it("does not render severity bar when barValue is null", () => {
-    render(<EventCard {...defaultProps} barValue={null} />);
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    const { container } = render(<EventCard {...defaultProps} barValue={null} />);
+    expect(container.querySelector(".detail-panel__severity-bar")).not.toBeInTheDocument();
   });
 
   it("does not render severity bar when barValue is 0", () => {
-    render(<EventCard {...defaultProps} barValue={0} />);
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    const { container } = render(<EventCard {...defaultProps} barValue={0} />);
+    expect(container.querySelector(".detail-panel__severity-bar")).not.toBeInTheDocument();
   });
 
   it("does not render date when approximateDate is undefined", () => {

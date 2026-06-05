@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { INITIAL_TOOLTIP, TimelineTooltip, type TooltipState } from "./TimelineTooltip";
+import { TimelineTooltip } from "./TimelineTooltip";
+import { INITIAL_TOOLTIP, type TooltipState } from "./timelineTooltipState";
 
 describe("TimelineTooltip", () => {
   it("returns null when not visible", () => {
