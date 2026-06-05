@@ -47,12 +47,15 @@ typecheck: ## Run type checkers (tsc + mypy)
 	cd frontend && npx tsc --noEmit
 	docker compose exec api uv run mypy app
 
+# Pin react-doctor to the same version as CI (.github/workflows/ci.yml
+# REACT_DOCTOR_VERSION) so local `make` and CI stay reproducible and in lockstep.
+REACT_DOCTOR_VERSION ?= 0.4.0
 react-doctor: ## Run React Doctor health check (minimum score: 100)
-	@SCORE=$$(cd frontend && npx -y react-doctor@latest . --score -y 2>/dev/null | tail -1); \
+	@SCORE=$$(cd frontend && npx -y react-doctor@$(REACT_DOCTOR_VERSION) . --score -y 2>/dev/null | tail -1); \
 	echo "React Doctor score: $$SCORE / 100 (minimum: 100)"; \
 	if [ "$$SCORE" -lt 100 ] 2>/dev/null; then \
 		echo "FAIL: React Doctor score $$SCORE is below minimum 100"; \
-		cd frontend && npx -y react-doctor@latest . --verbose -y; \
+		cd frontend && npx -y react-doctor@$(REACT_DOCTOR_VERSION) . --verbose -y; \
 		exit 1; \
 	fi
 
