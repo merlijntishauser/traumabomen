@@ -9,13 +9,16 @@
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* Modal container (native <dialog>, centered by the UA) */
+/* Modal container (native <dialog>). The global `* { margin: 0 }` reset
+   overrides the UA's `dialog { margin: auto }`, so re-assert it to keep the
+   modal centered in the viewport (with position:fixed + inset:0 from :modal). */
 .settings-modal {
   display: flex;
   width: 640px;
   max-width: 90vw;
   height: 480px;
   max-height: 80vh;
+  margin: auto;
   padding: 0;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);

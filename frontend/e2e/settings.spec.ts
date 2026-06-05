@@ -30,6 +30,27 @@ test.describe("Settings", () => {
     await modal.getByRole("button", { name: "Delete account" }).click();
   }
 
+  test("settings modal is centered in the viewport", async ({ page }) => {
+    const email = uniqueEmail();
+    await register(page, email);
+
+    await page.getByRole("button", { name: "Settings" }).click();
+    const modal = page.getByRole("dialog", { name: "Settings" });
+    await expect(modal).toBeVisible();
+
+    const box = await modal.boundingBox();
+    const viewport = page.viewportSize();
+    if (!box || !viewport) throw new Error("missing layout info");
+
+    // The native <dialog> must stay centered. A global `* { margin: 0 }` reset
+    // overrides the UA's `dialog { margin: auto }`, so the component re-asserts
+    // margin: auto; this guards against it regressing to the top-left corner.
+    const dialogCenterX = box.x + box.width / 2;
+    const dialogCenterY = box.y + box.height / 2;
+    expect(Math.abs(dialogCenterX - viewport.width / 2)).toBeLessThan(20);
+    expect(Math.abs(dialogCenterY - viewport.height / 2)).toBeLessThan(20);
+  });
+
   test("change password and login with new password", async ({ page }) => {
     const email = uniqueEmail();
     await register(page, email);
