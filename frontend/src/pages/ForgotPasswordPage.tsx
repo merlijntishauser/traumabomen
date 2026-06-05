@@ -71,9 +71,11 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
-          <p className="auth-footer">
-            <Link to="/login">{t("auth.backToLogin")}</Link>
-          </p>
+          {!sent && (
+            <p className="auth-footer">
+              <Link to="/login">{t("auth.backToLogin")}</Link>
+            </p>
+          )}
         </div>
       </div>
     </div>

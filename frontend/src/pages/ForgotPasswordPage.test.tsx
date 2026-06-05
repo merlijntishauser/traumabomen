@@ -91,4 +91,17 @@ describe("ForgotPasswordPage", () => {
     expect(link).toBeInTheDocument();
     expect(link.closest("a")).toHaveAttribute("href", "/login");
   });
+
+  it("shows a single back-to-login CTA after submit (no duplicate footer link)", async () => {
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByLabelText("auth.email"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.click(screen.getByText("auth.sendResetLink"));
+
+    await waitFor(() => {
+      expect(screen.getByText("auth.forgotPasswordSent")).toBeInTheDocument();
+    });
+    expect(screen.getAllByText("auth.backToLogin")).toHaveLength(1);
+  });
 });
