@@ -8,6 +8,16 @@
   width: 100%;
 }
 
+/* The shared <AuthHero> relies on the flex .auth-page layout for its height on
+   desktop (a global `@media (min-width: 900px) { .auth-hero { height: auto;
+   flex: 1 } }` rule). Outside that flex context it would collapse to 0, so pin
+   a real height for the landing hero. */
+.landing .auth-hero {
+  flex: none;
+  height: 40vh;
+  min-height: 280px;
+}
+
 /* Intro / CTA band below the photo hero (<AuthHero /> = 40vh banner) */
 .landing__intro {
   max-width: 720px;
