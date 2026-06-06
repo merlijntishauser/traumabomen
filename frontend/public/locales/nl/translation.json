@@ -593,7 +593,7 @@
   "landing.privacyHeading": "Jouw gegevens blijven van jou",
   "landing.privacy": "Alles wat je invoert wordt op je eigen apparaat versleuteld voordat het onze server bereikt. We gebruiken zero-knowledge-versleuteling, dat betekent dat wij je gegevens niet kunnen lezen, zelfs als we dat zouden willen. Je versleutelingswachtwoord is de enige sleutel die je informatie kan ontgrendelen. Wij slaan het niet op en we kunnen het niet herstellen. Als je je wachtwoord verliest, zijn je gegevens voorgoed verdwenen. Dit is bewust zo ontworpen: jouw verhaal is van niemand anders dan van jou.",
   "landing.readPrivacyPolicy": "Lees ons volledige privacybeleid",
-  "landing.heroIntro": "Traumabomen helpt je de traumapatronen die door een familie bewegen in kaart te brengen, stap voor stap, in alle rust.",
+  "landing.heroIntro": "Breng je familie over generaties heen in kaart, markeer de gebeurtenissen en patronen die je opvallen.",
   "landing.ctaCreate": "Maak je account aan",
   "landing.ctaSignIn": "Inloggen",
   "landing.haveAccount": "Heb je al een account?",
