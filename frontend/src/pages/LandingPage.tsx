@@ -88,44 +88,6 @@ export default function LandingPage() {
               </Link>
             </div>
           </header>
-
-          <div className="landing__map-preview" aria-hidden="true">
-            <div className="landing__preview-grid">
-              <span className="landing__preview-line landing__preview-line--left" />
-              <span className="landing__preview-line landing__preview-line--right" />
-              <span className="landing__preview-line landing__preview-line--center" />
-              <span className="landing__preview-person landing__preview-person--ancestor-a">
-                <span className="landing__preview-initial">A</span>
-                <span className="landing__preview-badges">
-                  <span className="landing__preview-badge landing__preview-badge--trauma" />
-                  <span className="landing__preview-badge landing__preview-badge--life" />
-                </span>
-              </span>
-              <span className="landing__preview-person landing__preview-person--ancestor-b">
-                <span className="landing__preview-initial">B</span>
-                <span className="landing__preview-badges">
-                  <span className="landing__preview-badge landing__preview-badge--classification" />
-                </span>
-              </span>
-              <span className="landing__preview-person landing__preview-person--parent">
-                <span className="landing__preview-initial">C</span>
-                <span className="landing__preview-badges">
-                  <span className="landing__preview-badge landing__preview-badge--life" />
-                  <span className="landing__preview-badge landing__preview-badge--classification" />
-                </span>
-              </span>
-              <span className="landing__preview-person landing__preview-person--self">
-                <span className="landing__preview-initial">D</span>
-                <span className="landing__preview-badges">
-                  <span className="landing__preview-badge landing__preview-badge--trauma" />
-                  <span className="landing__preview-badge landing__preview-badge--life" />
-                  <span className="landing__preview-badge landing__preview-badge--classification" />
-                </span>
-              </span>
-              <span className="landing__preview-pattern landing__preview-pattern--one" />
-              <span className="landing__preview-pattern landing__preview-pattern--two" />
-            </div>
-          </div>
         </div>
       </section>
 
