@@ -2,6 +2,8 @@
 
 Zero-knowledge encrypted web app for mapping intergenerational trauma onto visual family trees. Personal reflection tool — all sensitive data is encrypted client-side; the server never sees plaintext.
 
+@docs/design_handoff/SKILL.md
+
 ## Project Structure
 
 ```
