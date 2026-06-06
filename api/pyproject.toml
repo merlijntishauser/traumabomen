@@ -15,6 +15,11 @@ dependencies = [
     "bcrypt>=4.0.0",
     "email-validator>=2.0.0",
     "sentry-sdk[fastapi]>=2.53.0",
+    # Required at runtime by sentry-sdk's Starlette integration: starlette >=1.0
+    # raises ImportError on `from starlette.templating import Jinja2Templates`
+    # when jinja2 is absent, which crashes sentry_sdk.init() in production (where
+    # SENTRY_DSN is set). The API itself does not render templates.
+    "jinja2>=3.1.0",
 ]
 
 [project.optional-dependencies]
