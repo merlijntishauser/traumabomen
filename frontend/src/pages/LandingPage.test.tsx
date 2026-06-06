@@ -1,0 +1,89 @@
+import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import LandingPage from "./LandingPage";
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: "en" },
+  }),
+}));
+
+vi.mock("react-router-dom", () => ({
+  Link: ({
+    to,
+    children,
+    ...rest
+  }: {
+    to: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
+  Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
+}));
+
+vi.mock("../components/AuthHero", () => ({
+  AuthHero: () => <div data-testid="auth-hero" />,
+}));
+
+const mockGetAccessToken = vi.fn();
+vi.mock("../lib/api", () => ({
+  getAccessToken: () => mockGetAccessToken(),
+}));
+
+describe("LandingPage", () => {
+  afterEach(() => {
+    mockGetAccessToken.mockReset();
+    for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
+      s.remove();
+    }
+  });
+
+  it("renders title, CTAs, and sections when logged out", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    render(<LandingPage />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "app.title" })).toBeInTheDocument();
+
+    // Primary CTA goes to register, secondary to login.
+    expect(screen.getAllByText("landing.ctaCreate")[0].closest("a")).toHaveAttribute(
+      "href",
+      "/register",
+    );
+    expect(screen.getByText("landing.ctaSignIn").closest("a")).toHaveAttribute("href", "/login");
+
+    // Key sections are present.
+    expect(screen.getByText("landing.whatTitle")).toBeInTheDocument();
+    expect(screen.getByText("landing.howTitle")).toBeInTheDocument();
+    expect(screen.getByText("landing.faqTitle")).toBeInTheDocument();
+    expect(screen.getByText("landing.faqQ1")).toBeInTheDocument();
+    expect(screen.getByText("landing.readPrivacyPolicy").closest("a")).toHaveAttribute(
+      "href",
+      "/privacy",
+    );
+  });
+
+  it("injects FAQ structured data for search engines", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    render(<LandingPage />);
+
+    const ld = document.querySelector('script[type="application/ld+json"]');
+    expect(ld).toBeTruthy();
+    expect(ld?.textContent).toContain("FAQPage");
+    expect(ld?.textContent).toContain("SoftwareApplication");
+  });
+
+  it("redirects logged-in visitors to the trees page", () => {
+    mockGetAccessToken.mockReturnValue("a-token");
+    render(<LandingPage />);
+
+    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/trees");
+    // No marketing content or structured data when redirecting.
+    expect(screen.queryByText("landing.howTitle")).not.toBeInTheDocument();
+    expect(document.querySelector('script[type="application/ld+json"]')).toBeNull();
+  });
+});

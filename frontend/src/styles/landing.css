@@ -1,0 +1,223 @@
+/* =============================================
+   Landing page (logged-out marketing + SEO content)
+   Solid surfaces only (glass is reserved for auth/lock).
+   All color via theme tokens so dark/light both hold.
+   ============================================= */
+
+.landing {
+  width: 100%;
+}
+
+/* Intro / CTA band below the photo hero (<AuthHero /> = 40vh banner) */
+.landing__intro {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-6);
+  text-align: center;
+}
+
+.landing__title {
+  font-family: var(--text-h1-family);
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-leading);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3);
+}
+
+.landing__lede {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0 auto var(--space-6);
+  max-width: 56ch;
+}
+
+.landing__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.landing__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 var(--space-6);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.landing__cta--primary {
+  background: var(--color-action);
+  color: var(--color-text-inverse);
+  border-color: var(--color-action);
+}
+
+.landing__cta--primary:hover {
+  background: var(--color-action-hover);
+  border-color: var(--color-action-hover);
+}
+
+.landing__cta--ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+}
+
+.landing__cta--ghost:hover {
+  background: var(--color-bg-hover);
+}
+
+.landing__cta:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+/* Content sections */
+.landing__sections {
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+  box-sizing: border-box;
+}
+
+.landing__section {
+  margin-bottom: var(--space-10);
+}
+
+.landing__section-title {
+  font-family: var(--text-h2-family);
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-leading);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4);
+}
+
+.landing__prose {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-width: 65ch;
+  margin: 0 0 var(--space-3);
+}
+
+/* How it works */
+.landing__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.landing__step {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+}
+
+.landing__step-num {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.6rem;
+  color: var(--color-action);
+  margin-bottom: var(--space-2);
+}
+
+.landing__step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.landing__step .landing__prose {
+  margin-bottom: 0;
+}
+
+/* Privacy reassurance line (handwriting face, light) */
+.landing__glance {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3);
+}
+
+/* FAQ */
+.landing__faq {
+  margin: 0;
+}
+
+.landing__faq-item {
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.landing__faq-item:last-child {
+  border-bottom: none;
+}
+
+.landing__faq-q {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.landing__faq-a {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-width: 65ch;
+  margin: 0;
+}
+
+.landing__link {
+  color: var(--color-action);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.landing__link:hover {
+  color: var(--color-action-hover);
+  text-decoration: underline;
+}
+
+/* Final CTA (solid card) */
+.landing__final {
+  text-align: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8) var(--space-6);
+}
+
+.landing__final .landing__prose {
+  margin: 0 auto var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .landing__steps {
+    grid-template-columns: 1fr;
+  }
+
+  .landing__intro {
+    padding-top: var(--space-8);
+  }
+}

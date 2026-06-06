@@ -2,7 +2,6 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthHero } from "../components/AuthHero";
-import { AuthWelcome } from "../components/AuthWelcome";
 import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, login } from "../lib/api";
 import "../styles/auth.css";
@@ -38,11 +37,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-page auth-page--landing">
+    <div className="auth-page auth-page--centered">
       <AuthHero />
       <div className="auth-content">
-        <AuthWelcome />
-
         <div className="auth-card">
           <h2>{t("auth.login")}</h2>
 

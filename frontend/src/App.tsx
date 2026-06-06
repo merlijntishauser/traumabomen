@@ -24,6 +24,7 @@ import {
 } from "./lib/api";
 import "./components/MobileBanner.css";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -260,6 +261,7 @@ function AppContent() {
         <main className="app-main">
           <Suspense fallback={null}>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/waitlist" element={<WaitlistPage />} />
