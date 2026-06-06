@@ -8,14 +8,75 @@
   width: 100%;
 }
 
-/* The shared <AuthHero> relies on the flex .auth-page layout for its height on
-   desktop (a global `@media (min-width: 900px) { .auth-hero { height: auto;
-   flex: 1 } }` rule). Outside that flex context it would collapse to 0, so pin
-   a real height for the landing hero. */
-.landing .auth-hero {
-  flex: none;
-  height: 40vh;
-  min-height: 280px;
+/* Hero: theme-aware photo with a bold, legible message overlay (no logo mark). */
+.landing__hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 48vh;
+  min-height: 320px;
+  overflow: hidden;
+}
+
+.landing__hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.4s ease;
+}
+
+.landing__hero-img--dark {
+  opacity: 1;
+}
+
+.landing__hero-img--light {
+  opacity: 0;
+}
+
+[data-theme="light"] .landing__hero-img--dark {
+  opacity: 0;
+}
+
+[data-theme="light"] .landing__hero-img--light {
+  opacity: 1;
+}
+
+/* Dark scrim at the foot so the off-white message reads on any photo/theme. */
+.landing__hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.15) 35%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.landing__hero-overlay {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.landing__hero-message {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 5vw, 3.1rem);
+  line-height: 1.2;
+  color: #f4efe6;
+  text-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Intro / CTA band below the photo hero (<AuthHero /> = 40vh banner) */
@@ -73,6 +134,9 @@
 .landing__cta--primary:hover {
   background: var(--color-action-hover);
   border-color: var(--color-action-hover);
+  /* Re-assert text color: the global `a:hover` rule would otherwise tint it
+     green (matching the background) and make the label vanish. */
+  color: var(--color-text-inverse);
 }
 
 .landing__cta--ghost {
@@ -83,6 +147,7 @@
 
 .landing__cta--ghost:hover {
   background: var(--color-bg-hover);
+  color: var(--color-text-primary);
 }
 
 .landing__cta:focus-visible {

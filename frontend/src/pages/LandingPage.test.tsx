@@ -26,10 +26,6 @@ vi.mock("react-router-dom", () => ({
   Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
 }));
 
-vi.mock("../components/AuthHero", () => ({
-  AuthHero: () => <div data-testid="auth-hero" />,
-}));
-
 const mockGetAccessToken = vi.fn();
 vi.mock("../lib/api", () => ({
   getAccessToken: () => mockGetAccessToken(),
@@ -48,6 +44,7 @@ describe("LandingPage", () => {
     render(<LandingPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "app.title" })).toBeInTheDocument();
+    expect(screen.getByText("landing.heroTagline")).toBeInTheDocument();
 
     // Primary CTA goes to register, secondary to login.
     expect(screen.getAllByText("landing.ctaCreate")[0].closest("a")).toHaveAttribute(

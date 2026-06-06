@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
-import { AuthHero } from "../components/AuthHero";
 import { getAccessToken } from "../lib/api";
 import "../styles/landing.css";
 
@@ -58,7 +57,29 @@ export default function LandingPage() {
 
   return (
     <div className="landing">
-      <AuthHero />
+      <section className="landing__hero">
+        <picture>
+          <source srcSet="/images/hero-dark.webp" type="image/webp" />
+          <img
+            className="landing__hero-img landing__hero-img--dark"
+            src="/images/hero-dark.jpg"
+            alt=""
+            decoding="async"
+          />
+        </picture>
+        <picture>
+          <source srcSet="/images/hero-light.webp" type="image/webp" />
+          <img
+            className="landing__hero-img landing__hero-img--light"
+            src="/images/hero-light.jpg"
+            alt=""
+            decoding="async"
+          />
+        </picture>
+        <div className="landing__hero-overlay">
+          <p className="landing__hero-message">{t("landing.heroTagline")}</p>
+        </div>
+      </section>
 
       <header className="landing__intro">
         <h1 className="landing__title">{t("app.title")}</h1>
