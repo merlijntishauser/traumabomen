@@ -1,3 +1,4 @@
+import { Lock, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -45,7 +46,10 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="auth-field">
-              <label htmlFor="email">{t("auth.email")}</label>
+              <label htmlFor="email">
+                <Mail size={13} className="auth-label-icon" aria-hidden="true" />
+                {t("auth.email")}
+              </label>
               <input
                 id="email"
                 type="email"
@@ -57,7 +61,10 @@ export default function LoginPage() {
             </div>
 
             <div className="auth-field">
-              <label htmlFor="password">{t("auth.password")}</label>
+              <label htmlFor="password">
+                <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+                {t("auth.password")}
+              </label>
               <PasswordInput
                 id="password"
                 required

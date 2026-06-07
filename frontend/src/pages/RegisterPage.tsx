@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Key, Lock, Mail } from "lucide-react";
 import type React from "react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
@@ -126,7 +126,10 @@ function AccountStepForm({
     <form onSubmit={onNext} data-testid="step-account">
       <div className="auth-field-group">
         <div className="auth-field">
-          <label htmlFor="email">{t("auth.email")}</label>
+          <label htmlFor="email">
+            <Mail size={13} className="auth-label-icon" aria-hidden="true" />
+            {t("auth.email")}
+          </label>
           <input
             id="email"
             type="email"
@@ -137,7 +140,10 @@ function AccountStepForm({
           />
         </div>
         <div className="auth-field">
-          <label htmlFor="password">{t("auth.password")}</label>
+          <label htmlFor="password">
+            <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+            {t("auth.password")}
+          </label>
           <PasswordInput
             id="password"
             required
@@ -214,7 +220,10 @@ function EncryptionStepForm({
     <form onSubmit={onNext} data-testid="step-encryption">
       <div className="auth-field-group">
         <div className="auth-field">
-          <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+          <label htmlFor="passphrase">
+            <Key size={13} className="auth-label-icon" aria-hidden="true" />
+            {t("auth.passphrase")}
+          </label>
           <PassphraseInput
             id="passphrase"
             required

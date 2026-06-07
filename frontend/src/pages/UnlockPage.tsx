@@ -1,3 +1,4 @@
+import { Key } from "lucide-react";
 import { type FormEvent, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -134,7 +135,10 @@ export default function UnlockPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="auth-field">
-              <label htmlFor="passphrase">{t("auth.passphrase")}</label>
+              <label htmlFor="passphrase">
+                <Key size={13} className="auth-label-icon" aria-hidden="true" />
+                {t("auth.passphrase")}
+              </label>
               <PassphraseInput
                 id="passphrase"
                 required

@@ -403,6 +403,13 @@
   color: var(--color-text-secondary);
 }
 
+/* Small cue distinguishing the password (lock) from the encryption key (key). */
+.auth-label-icon {
+  vertical-align: -2px;
+  margin-right: 5px;
+  color: var(--color-text-muted);
+}
+
 .auth-field input {
   width: 100%;
 }

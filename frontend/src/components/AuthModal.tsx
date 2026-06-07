@@ -1,4 +1,4 @@
-import { Lock, LogIn } from "lucide-react";
+import { Key, Lock, LogIn, Mail } from "lucide-react";
 import { type FormEvent, useEffect, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError, login as apiLogin, getEncryptionSalt } from "../lib/api";
@@ -232,7 +232,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
           {showCredentials && (
             <form className="auth-modal__form" onSubmit={handleCredentialsSubmit}>
               <div className="auth-field">
-                <label htmlFor="auth-modal-email">{t("auth.email")}</label>
+                <label htmlFor="auth-modal-email">
+                  <Mail size={13} className="auth-label-icon" aria-hidden="true" />
+                  {t("auth.email")}
+                </label>
                 <input
                   ref={inputRef}
                   id="auth-modal-email"
@@ -245,7 +248,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
                 />
               </div>
               <div className="auth-field">
-                <label htmlFor="auth-modal-password">{t("auth.password")}</label>
+                <label htmlFor="auth-modal-password">
+                  <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+                  {t("auth.password")}
+                </label>
                 <PasswordInput
                   id="auth-modal-password"
                   required
@@ -269,7 +275,10 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
           {showPassphrase && (
             <form className="auth-modal__form" onSubmit={handlePassphraseSubmit}>
               <div className="auth-field">
-                <label htmlFor="auth-modal-passphrase">{t("auth.passphrase")}</label>
+                <label htmlFor="auth-modal-passphrase">
+                  <Key size={13} className="auth-label-icon" aria-hidden="true" />
+                  {t("auth.passphrase")}
+                </label>
                 <PassphraseInput
                   ref={showCredentials ? undefined : inputRef}
                   id="auth-modal-passphrase"

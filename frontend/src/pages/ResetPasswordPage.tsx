@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
@@ -118,7 +119,10 @@ export default function ResetPasswordPage() {
               <p className="auth-step-intro">{t("auth.resetPasswordNote")}</p>
 
               <div className="auth-field">
-                <label htmlFor="new-password">{t("auth.newPassword")}</label>
+                <label htmlFor="new-password">
+                  <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+                  {t("auth.newPassword")}
+                </label>
                 <PasswordInput
                   id="new-password"
                   required
