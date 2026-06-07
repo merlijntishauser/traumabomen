@@ -158,7 +158,10 @@ function AccountStepForm({
         </div>
 
         <div className="auth-field">
-          <label htmlFor="confirmPassword">{t("auth.confirmPassword")}</label>
+          <label htmlFor="confirmPassword">
+            <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+            {t("auth.confirmPassword")}
+          </label>
           <PasswordInput
             id="confirmPassword"
             required
@@ -237,7 +240,10 @@ function EncryptionStepForm({
         </div>
 
         <div className="auth-field">
-          <label htmlFor="confirmPassphrase">{t("auth.confirmPassphrase")}</label>
+          <label htmlFor="confirmPassphrase">
+            <Key size={13} className="auth-label-icon" aria-hidden="true" />
+            {t("auth.confirmPassphrase")}
+          </label>
           <PassphraseInput
             id="confirmPassphrase"
             required

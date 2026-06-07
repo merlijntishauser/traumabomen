@@ -132,7 +132,10 @@ export default function ResetPasswordPage() {
               </div>
 
               <div className="auth-field">
-                <label htmlFor="confirm-password">{t("auth.confirmNewPassword")}</label>
+                <label htmlFor="confirm-password">
+                  <Lock size={13} className="auth-label-icon" aria-hidden="true" />
+                  {t("auth.confirmNewPassword")}
+                </label>
                 <PasswordInput
                   id="confirm-password"
                   required
