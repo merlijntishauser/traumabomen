@@ -5,7 +5,7 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.routers.admin_feedback import router as admin_feedback_router
 from app.routers.admin_stats import router as admin_stats_router
 from app.routers.auth import router as auth_router
@@ -57,15 +57,23 @@ def _strip_encrypted_data(event, hint):
 
 
 _settings = get_settings()
-if _settings.SENTRY_DSN:
+
+
+def _init_sentry(settings: Settings) -> None:
+    """Initialise Sentry when a DSN is configured (production only)."""
+    if not settings.SENTRY_DSN:
+        return
     sentry_sdk.init(
-        dsn=_settings.SENTRY_DSN,
-        environment=_settings.SENTRY_ENVIRONMENT,
-        release=_settings.SENTRY_RELEASE,
+        dsn=settings.SENTRY_DSN,
+        environment=settings.SENTRY_ENVIRONMENT,
+        release=settings.SENTRY_RELEASE,
         traces_sample_rate=0.1,
         send_default_pii=False,
         before_send=_strip_encrypted_data,
     )
+
+
+_init_sentry(_settings)
 
 
 class _HealthCheckLogFilter(logging.Filter):

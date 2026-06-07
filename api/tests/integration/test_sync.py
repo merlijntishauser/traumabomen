@@ -1,6 +1,7 @@
 """Tests for bulk sync endpoint."""
 
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -252,6 +253,25 @@ class TestSyncUpdateRelationships:
         resp = await client.post(
             f"/trees/{tree['id']}/sync",
             json={"events_update": [{"id": ev_id, "person_ids": []}]},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["events_updated"] == 1
+
+    @pytest.mark.asyncio
+    async def test_update_event_with_person_ids(self, client, headers, tree, person):
+        create = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"events_create": [{"person_ids": [], "encrypted_data": "ev"}]},
+            headers=headers,
+        )
+        ev_id = create.json()["events_created"][0]
+
+        # Updating with a non-empty person_ids validates the ids and rebuilds
+        # the junction rows.
+        resp = await client.post(
+            f"/trees/{tree['id']}/sync",
+            json={"events_update": [{"id": ev_id, "person_ids": [person["id"]]}]},
             headers=headers,
         )
         assert resp.status_code == 200
@@ -628,3 +648,21 @@ class TestSyncSiblingGroups:
         )
         assert resp.status_code == 200
         assert resp.json()["sibling_groups_deleted"] == 1
+
+
+class TestSyncUnexpectedError:
+    @pytest.mark.asyncio
+    async def test_unexpected_error_rolls_back_and_propagates(self, client, headers, tree):
+        # A non-HTTPException during a phase is logged, rolled back, and re-raised.
+        with (
+            patch(
+                "app.routers.sync._phase_creates",
+                new=AsyncMock(side_effect=RuntimeError("boom")),
+            ),
+            pytest.raises(RuntimeError),
+        ):
+            await client.post(
+                f"/trees/{tree['id']}/sync",
+                json={"persons_create": [{"encrypted_data": "p"}]},
+                headers=headers,
+            )
