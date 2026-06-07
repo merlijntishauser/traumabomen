@@ -1,4 +1,4 @@
-import { Lock, Mail } from "lucide-react";
+import { Lock, LogIn, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -42,7 +42,13 @@ export default function LoginPage() {
       <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
-          <h2>{t("auth.login")}</h2>
+          <div className="auth-card__header">
+            <div className="auth-card__icon">
+              <LogIn size={24} aria-hidden="true" />
+            </div>
+            <h2>{t("auth.login")}</h2>
+            <p className="auth-prompt">{t("auth.loginPrompt")}</p>
+          </div>
 
           <form onSubmit={handleSubmit}>
             <div className="auth-field">

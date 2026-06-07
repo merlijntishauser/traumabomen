@@ -52,6 +52,7 @@
   "auth.hintHelperText": "Write something that helps you remember your encryption key. Do not write the encryption key itself.",
   "auth.sessionExpired": "Your session has expired. Please log in again.",
   "auth.loginTitle": "Log in",
+  "auth.loginPrompt": "Log in to your account",
   "auth.stepProgress": "Registration progress",
   "auth.stepNext": "Continue",
   "auth.stepBack": "Back",

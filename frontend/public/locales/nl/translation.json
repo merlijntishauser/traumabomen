@@ -52,6 +52,7 @@
   "auth.hintHelperText": "Schrijf iets dat je helpt je encryptiesleutel te herinneren. Schrijf niet de encryptiesleutel zelf.",
   "auth.sessionExpired": "Je sessie is verlopen. Log opnieuw in.",
   "auth.loginTitle": "Inloggen",
+  "auth.loginPrompt": "Log in op je account",
   "auth.stepProgress": "Registratievoortgang",
   "auth.stepNext": "Doorgaan",
   "auth.stepBack": "Terug",

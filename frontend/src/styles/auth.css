@@ -403,6 +403,31 @@
   gap: var(--space-4);
 }
 
+/* Centered header (icon badge + title + prompt) matching the unlock modal. */
+.auth-card__header {
+  text-align: center;
+}
+
+.auth-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-4);
+  border-radius: 50%;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+}
+
+.auth-card__header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
 .auth-field-group {
   display: flex;
   flex-direction: column;
