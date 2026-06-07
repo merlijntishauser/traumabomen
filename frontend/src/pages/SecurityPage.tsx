@@ -43,7 +43,7 @@ export default function SecurityPage() {
       <div key={card.id} className="security-card">
         <span className="security-card__num">{index + 1}</span>
         <div className="security-card__icon">
-          <Icon size={34} aria-hidden="true" />
+          <Icon size={26} aria-hidden="true" />
         </div>
         <h3>{t(`security.${step}.${card.id}.title`)}</h3>
         <p>{t(`security.${step}.${card.id}.body`)}</p>
@@ -96,7 +96,7 @@ export default function SecurityPage() {
 
           <section className="security-answer">
             <div className="security-shield">
-              <ShieldCheck size={48} aria-hidden="true" />
+              <ShieldCheck size={56} aria-hidden="true" />
             </div>
             <div>
               <p className="security-answer__eyebrow">{t("security.answer.eyebrow")}</p>
