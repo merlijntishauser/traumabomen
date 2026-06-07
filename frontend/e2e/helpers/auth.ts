@@ -91,7 +91,7 @@ export async function unlock(page: Page): Promise<void> {
   // Wait for AuthModal dialog to appear (target specifically, not any dialog)
   const modal = page.locator(".auth-modal");
   await modal.waitFor({ state: "visible", timeout: 10_000 });
-  await modal.getByLabel(/encryption key/i).fill(TEST_PASSPHRASE);
+  await modal.getByLabel(/^encryption key$/i).fill(TEST_PASSPHRASE);
   await modal.getByRole("button", { name: /unlock/i }).click();
   // Wait for auth-modal to dismiss after successful unlock
   await modal.waitFor({ state: "hidden", timeout: 30_000 });

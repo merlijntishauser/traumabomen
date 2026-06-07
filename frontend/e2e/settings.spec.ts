@@ -86,7 +86,7 @@ test.describe("Settings", () => {
     // Should reach /trees with AuthModal in unlock mode
     const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await expect(modal.getByLabel(/encryption key/i)).toBeVisible();
+    await expect(modal.getByLabel(/^encryption key$/i)).toBeVisible();
   });
 
   test("change encryption key and unlock with new passphrase", async ({
@@ -122,7 +122,7 @@ test.describe("Settings", () => {
 
     const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await modal.getByLabel(/encryption key/i).fill(newPassphrase);
+    await modal.getByLabel(/^encryption key$/i).fill(newPassphrase);
     await modal.getByRole("button", { name: /unlock/i }).click();
     await modal.waitFor({ state: "hidden", timeout: 30_000 });
   });
