@@ -63,7 +63,7 @@ describe("LandingPage", () => {
       "href",
       "/register",
     );
-    expect(screen.getByText("landing.ctaSignIn").closest("a")).toHaveAttribute("href", "/login");
+    expect(screen.getByText("landing.ctaLogin").closest("a")).toHaveAttribute("href", "/login");
 
     // Key sections are present.
     expect(screen.getByText("landing.whatTitle")).toBeInTheDocument();

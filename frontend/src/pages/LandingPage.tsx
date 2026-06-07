@@ -103,7 +103,7 @@ export default function LandingPage() {
                 {t("landing.ctaCreate")}
               </Link>
               <Link to="/login" className="landing__cta landing__cta--ghost">
-                {t("landing.ctaSignIn")}
+                {t("landing.ctaLogin")}
               </Link>
             </div>
           </header>

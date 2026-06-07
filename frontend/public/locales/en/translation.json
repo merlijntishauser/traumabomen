@@ -594,7 +594,7 @@
   "landing.readPrivacyPolicy": "Read our full privacy policy",
   "landing.heroIntro": "Traumatrees helps you map the patterns of trauma that move through a family, one quiet step at a time.",
   "landing.ctaCreate": "Create your account",
-  "landing.ctaSignIn": "Sign in",
+  "landing.ctaLogin": "Log in",
   "landing.haveAccount": "Already have an account?",
   "landing.whatTitle": "What this is",
   "landing.whatBody": "A personal reflection tool, not therapy and not crisis support. You map your family across generations, mark the events and patterns you notice, and write at your own pace. Nothing here is urgent.",
@@ -644,7 +644,7 @@
 
   "privacy.cookies.heading": "Cookies and local storage",
   "privacy.cookies.body": "We do not use cookies. We store two JSON Web Tokens (authentication tokens) in your browser's local storage to keep you logged in. These tokens contain your user ID and expiration time; no personal content. We do not use any third-party scripts that set cookies or track your behaviour.",
-  "privacy.cookies.glance": "No cookies. We only store a login token in your browser to keep you signed in. No tracking of any kind.",
+  "privacy.cookies.glance": "No cookies. We only store a login token in your browser to keep you logged in. No tracking of any kind.",
 
   "privacy.retention.heading": "Data retention",
   "privacy.retention.body": "Your data is stored for as long as your account exists. If you delete your account, all associated data (encrypted blobs, login records, and account information) is permanently removed from our systems.",
