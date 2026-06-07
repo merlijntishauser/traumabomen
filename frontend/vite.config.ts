@@ -12,7 +12,7 @@ function gitInfo(): { tag: string; hash: string } {
     const tag = execSync("git describe --tags --abbrev=0 2>/dev/null || echo ''", {
       encoding: "utf-8",
     }).trim();
-    const hash = execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+    const hash = execSync("git rev-parse --short HEAD 2>/dev/null", { encoding: "utf-8" }).trim();
     return { tag, hash };
   } catch {
     return { tag: "", hash: "unknown" };
