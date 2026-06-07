@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 
 import sentry_sdk
@@ -65,6 +66,22 @@ if _settings.SENTRY_DSN:
         send_default_pii=False,
         before_send=_strip_encrypted_data,
     )
+
+
+class _HealthCheckLogFilter(logging.Filter):
+    """Drop uvicorn access-log records for the container healthcheck (/health).
+
+    The healthcheck polls /health every few seconds, which would otherwise flood
+    the access log. uvicorn.access records carry the request as
+    args = (client_addr, method, path, http_version, status_code).
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        return not (isinstance(args, tuple) and len(args) >= 3 and args[2] == "/health")
+
+
+logging.getLogger("uvicorn.access").addFilter(_HealthCheckLogFilter())
 
 app = FastAPI(title="Traumabomen API")
 
