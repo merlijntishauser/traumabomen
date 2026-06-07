@@ -186,7 +186,7 @@ jobs:
               APP_BASE_URL_NL=https://www.traumabomen.nl;\
               SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }};\
               ENABLE_WAITLIST=true;\
-              MAX_ACTIVE_USERS=20;\
+              MAX_ACTIVE_USERS=100;\
               FEEDBACK_EMAIL=feedback@traumatrees.org;\
               SENTRY_ENVIRONMENT=production-api;\
               SENTRY_RELEASE=${{ github.sha }}" \
