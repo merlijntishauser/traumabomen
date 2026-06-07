@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/privacy.css";
 
 const SECTIONS = [
@@ -116,6 +116,10 @@ export default function PrivacyPage() {
             <p className="privacy-tech-details__body">{t("privacy.diagram.technicalBody")}</p>
           )}
         </div>
+
+        <Link to="/security" className="privacy-explainer-link">
+          {t("security.link")}
+        </Link>
 
         <div className="privacy-tabs">
           <button

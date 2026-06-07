@@ -28,6 +28,7 @@ import LoginPage from "./pages/LoginPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import SecurityPage from "./pages/SecurityPage";
 import TreeListPage from "./pages/TreeListPage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
@@ -147,6 +148,7 @@ function AppContent() {
 
   const isPublicRoute =
     pathname === "/privacy" ||
+    pathname === "/security" ||
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/waitlist" ||
@@ -264,6 +266,7 @@ function AppContent() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/waitlist" element={<WaitlistPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/security" element={<SecurityPage />} />
               <Route path="/verify-pending" element={<VerificationPendingPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

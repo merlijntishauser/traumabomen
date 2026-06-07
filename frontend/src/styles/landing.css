@@ -313,6 +313,12 @@
   margin: 0;
 }
 
+.landing__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
 .landing__link {
   color: var(--color-action);
   font-weight: 500;

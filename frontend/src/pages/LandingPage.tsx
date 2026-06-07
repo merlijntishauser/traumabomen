@@ -140,9 +140,14 @@ export default function LandingPage() {
           <h2 className="landing__section-title">{t("landing.privacyHeading")}</h2>
           <p className="landing__glance">{t("landing.privacyGlance")}</p>
           <p className="landing__prose">{t("landing.privacy")}</p>
-          <Link to="/privacy" className="landing__link">
-            {t("landing.readPrivacyPolicy")}
-          </Link>
+          <div className="landing__links">
+            <Link to="/security" className="landing__link">
+              {t("security.link")}
+            </Link>
+            <Link to="/privacy" className="landing__link">
+              {t("landing.readPrivacyPolicy")}
+            </Link>
+          </div>
         </section>
 
         <section className="landing__section">
