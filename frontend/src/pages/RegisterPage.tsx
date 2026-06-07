@@ -1,4 +1,4 @@
-import { Check, Key, Lock, Mail } from "lucide-react";
+import { Check, Key, Lock, Mail, UserPlus } from "lucide-react";
 import type React from "react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
@@ -485,8 +485,15 @@ export default function RegisterPage() {
       <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
-          <h2>{t(`auth.stepTitle.${step}`)}</h2>
-          <p className="auth-step-intro">{t(`auth.stepSubtitle.${step}`)}</p>
+          <div className="auth-card__header">
+            <div className="auth-card__icon">
+              {step === "account" && <UserPlus size={24} aria-hidden="true" />}
+              {step === "encryption" && <Key size={24} aria-hidden="true" />}
+              {step === "confirm" && <Check size={24} aria-hidden="true" />}
+            </div>
+            <h2>{t(`auth.stepTitle.${step}`)}</h2>
+            <p className="auth-step-intro">{t(`auth.stepSubtitle.${step}`)}</p>
+          </div>
 
           {inviteToken && <div className="auth-success">{t("waitlist.approvalBanner")}</div>}
 

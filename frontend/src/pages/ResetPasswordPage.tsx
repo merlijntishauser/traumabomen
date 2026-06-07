@@ -83,7 +83,12 @@ export default function ResetPasswordPage() {
         <AuthHero />
         <div className="auth-content">
           <div className="auth-card">
-            <h2>{t("auth.resetPasswordTitle")}</h2>
+            <div className="auth-card__header">
+              <div className="auth-card__icon">
+                <Lock size={24} aria-hidden="true" />
+              </div>
+              <h2>{t("auth.resetPasswordTitle")}</h2>
+            </div>
             <p className="auth-error" role="alert">
               {t("auth.resetPasswordFailed")}
             </p>
@@ -101,7 +106,12 @@ export default function ResetPasswordPage() {
       <AuthHero />
       <div className="auth-content">
         <div className="auth-card">
-          <h2>{t("auth.resetPasswordTitle")}</h2>
+          <div className="auth-card__header">
+            <div className="auth-card__icon">
+              <Lock size={24} aria-hidden="true" />
+            </div>
+            <h2>{t("auth.resetPasswordTitle")}</h2>
+          </div>
 
           {state.success ? (
             <>

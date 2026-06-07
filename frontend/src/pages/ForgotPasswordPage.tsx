@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -32,7 +32,12 @@ export default function ForgotPasswordPage() {
       <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
-          <h2>{t("auth.forgotPasswordTitle")}</h2>
+          <div className="auth-card__header">
+            <div className="auth-card__icon">
+              <Lock size={24} aria-hidden="true" />
+            </div>
+            <h2>{t("auth.forgotPasswordTitle")}</h2>
+          </div>
 
           {sent ? (
             <>

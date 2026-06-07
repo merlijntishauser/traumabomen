@@ -406,6 +406,7 @@
 /* Centered header (icon badge + title + prompt) matching the unlock modal. */
 .auth-card__header {
   text-align: center;
+  margin-bottom: var(--space-5);
 }
 
 .auth-card__icon {
