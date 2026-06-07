@@ -6,6 +6,7 @@ import {
   Controls,
   MiniMap,
   type OnConnect,
+  type OnNodeDrag,
   type OnNodesChange,
   ReactFlow,
   ReactFlowProvider,
@@ -301,8 +302,8 @@ function useCanvasActions(opts: {
 
   const promoteMember = usePromoteMember(treeId);
 
-  const handleNodeDragStart = useCallback(
-    (_: React.MouseEvent, node: AnyNodeType) => {
+  const handleNodeDragStart = useCallback<OnNodeDrag<AnyNodeType>>(
+    (_, node) => {
       if (node.type === "siblingGroup") return;
       const person = persons.get(node.id);
       if (!person) return;
@@ -312,8 +313,8 @@ function useCanvasActions(opts: {
     [persons, pushPositionSnapshot],
   );
 
-  const handleNodeDragStop = useCallback(
-    (_: React.MouseEvent, node: AnyNodeType) => {
+  const handleNodeDragStop = useCallback<OnNodeDrag<AnyNodeType>>(
+    (_, node) => {
       const position = { x: node.position.x, y: node.position.y };
 
       if (node.type === "siblingGroup") {
@@ -568,8 +569,8 @@ function CanvasContent({
   edges: RelationshipEdgeType[];
   onNodesChange: OnNodesChange<AnyNodeType>;
   onNodeClick: (event: React.MouseEvent, node: AnyNodeType) => void;
-  onNodeDragStart: (event: React.MouseEvent, node: AnyNodeType) => void;
-  onNodeDragStop: (event: React.MouseEvent, node: AnyNodeType) => void;
+  onNodeDragStart: OnNodeDrag<AnyNodeType>;
+  onNodeDragStop: OnNodeDrag<AnyNodeType>;
   onPaneClick: () => void;
   onEdgeClick: (event: React.MouseEvent, edge: RelationshipEdgeType) => void;
   onConnect: OnConnect;
