@@ -5,7 +5,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppFooter } from "./components/AppFooter";
 import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";
-import { MentalHealthBanner } from "./components/MentalHealthBanner";
 import { MobileBanner } from "./components/MobileBanner";
 import { OnboardingGate } from "./components/OnboardingGate";
 import { EncryptionProvider } from "./contexts/EncryptionContext";
@@ -256,7 +255,6 @@ function AppContent() {
         />
       )}
       <div className="app-layout">
-        <MentalHealthBanner />
         <MobileBanner />
         <main className="app-main">
           <Suspense fallback={null}>
