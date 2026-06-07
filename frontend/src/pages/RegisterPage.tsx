@@ -467,7 +467,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page auth-page--centered">
-      <AuthHero />
+      <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
           <h2>{t(`auth.stepTitle.${step}`)}</h2>

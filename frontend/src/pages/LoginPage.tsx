@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page auth-page--centered">
-      <AuthHero />
+      <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
           <h2>{t("auth.login")}</h2>

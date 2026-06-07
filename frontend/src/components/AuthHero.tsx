@@ -1,7 +1,15 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Logomark } from "./Logomark";
 
-export function AuthHero({ variant = "default" }: { variant?: "default" | "unlock" }) {
+export function AuthHero({
+  variant = "default",
+  homeLink = false,
+}: {
+  variant?: "default" | "unlock";
+  /** Show the site name as a link back to the landing page instead of the logo mark. */
+  homeLink?: boolean;
+}) {
   const { t } = useTranslation();
   const suffix = variant === "unlock" ? "-unlock" : "";
   // Only the landing variant gets the brand-mark overlay. Unlock keeps the
@@ -32,7 +40,13 @@ export function AuthHero({ variant = "default" }: { variant?: "default" | "unloc
       </picture>
       {showOverlay && (
         <div className="auth-hero__overlay">
-          <Logomark size={32} className="auth-hero__logomark" />
+          {homeLink ? (
+            <Link to="/" className="auth-hero__brand">
+              {t("app.title")}
+            </Link>
+          ) : (
+            <Logomark size={32} className="auth-hero__logomark" />
+          )}
           <p className="auth-hero__tagline">{t("landing.heroTagline")}</p>
         </div>
       )}

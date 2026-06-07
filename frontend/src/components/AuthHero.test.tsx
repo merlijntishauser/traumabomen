@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { AuthHero } from "./AuthHero";
 
@@ -78,5 +79,18 @@ describe("AuthHero", () => {
     // Unlock is the "locked door" surface — the kit keeps it visually quiet.
     const { container } = render(<AuthHero variant="unlock" />);
     expect(container.querySelector(".auth-hero__overlay")).toBeNull();
+  });
+
+  it("shows the site name as a home link instead of the logo when homeLink is set", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <AuthHero homeLink />
+      </MemoryRouter>,
+    );
+    const overlay = container.querySelector(".auth-hero__overlay");
+    expect(overlay?.querySelector(".auth-hero__logomark")).toBeNull();
+    const brand = overlay?.querySelector(".auth-hero__brand");
+    expect(brand?.textContent).toBe("app.title");
+    expect(brand?.getAttribute("href")).toBe("/");
   });
 });

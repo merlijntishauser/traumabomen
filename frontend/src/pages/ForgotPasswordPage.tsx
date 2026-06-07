@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-page auth-page--centered">
-      <AuthHero />
+      <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
           <h2>{t("auth.forgotPasswordTitle")}</h2>

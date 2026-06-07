@@ -67,6 +67,27 @@
   filter: drop-shadow(0 2px 18px rgba(0, 0, 0, 0.55));
 }
 
+/* Site name shown as a home link in place of the logo mark (login/register). */
+.auth-hero__brand {
+  display: inline-block;
+  pointer-events: auto;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  /* Off-white that reads on every hero variant; matches the tagline. */
+  color: #f4efe6;
+  text-decoration: none;
+  text-shadow:
+    0 2px 18px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: var(--transition-colors);
+}
+
+.auth-hero__brand:hover {
+  color: #ffffff;
+}
+
 .auth-hero__tagline {
   margin-top: var(--space-4);
   font-family: var(--font-heading);
