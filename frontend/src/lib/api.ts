@@ -1,5 +1,7 @@
 import type {
   ActivityStats,
+  AdminFaqEntry,
+  AdminFaqListResponse,
   AdminFeatureFlag,
   AdminFeaturesResponse,
   ChangePasswordRequest,
@@ -10,6 +12,8 @@ import type {
   EventCreate,
   EventResponse,
   EventUpdate,
+  FaqEntryInput,
+  FaqListResponse,
   FeatureFlags,
   FeedbackCreate,
   FeedbackItem,
@@ -582,6 +586,28 @@ export function deleteWaitlistEntry(id: string): Promise<void> {
 
 export function getAdminWaitlistCapacity(): Promise<WaitlistCapacity> {
   return apiFetchWithRetry("/admin/waitlist/capacity");
+}
+
+// FAQ
+
+export function getFaq(): Promise<FaqListResponse> {
+  return apiFetch("/faq", { requiresAuth: false });
+}
+
+export function getAdminFaq(): Promise<AdminFaqListResponse> {
+  return apiFetchWithRetry("/admin/faq");
+}
+
+export function createFaqEntry(body: FaqEntryInput): Promise<AdminFaqEntry> {
+  return apiFetchWithRetry("/admin/faq", { method: "POST", body });
+}
+
+export function updateFaqEntry(id: string, body: FaqEntryInput): Promise<AdminFaqEntry> {
+  return apiFetchWithRetry(`/admin/faq/${id}`, { method: "PUT", body });
+}
+
+export function deleteFaqEntry(id: string): Promise<void> {
+  return apiFetchWithRetry(`/admin/faq/${id}`, { method: "DELETE" });
 }
 
 // Feature flags

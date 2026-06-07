@@ -2,6 +2,7 @@ import { House, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ActivitySection } from "../components/admin/ActivitySection";
+import { FaqSection } from "../components/admin/FaqSection";
 import { FeatureTogglesSection } from "../components/admin/FeatureTogglesSection";
 import { FeedbackSection } from "../components/admin/FeedbackSection";
 import { FunnelSection } from "../components/admin/FunnelSection";
@@ -84,6 +85,7 @@ export default function AdminPage() {
               updateFeatureMutation={data.updateFeatureMutation}
             />
           )}
+          <FaqSection />
         </div>
       )}
     </div>

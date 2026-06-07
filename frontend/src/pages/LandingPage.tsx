@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
-import { getAccessToken } from "../lib/api";
+import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
 
 const FAQ_KEYS = [1, 2, 3, 4] as const;
@@ -13,12 +14,30 @@ const HOW_STEPS = [
 ] as const;
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const authed = !!getAccessToken();
+  const lang = i18n.language?.startsWith("nl") ? "nl" : "en";
 
-  // Inject SoftwareApplication + FAQ structured data for search engines. The
-  // FAQ content here is the static i18n fallback; an admin-managed FAQ can
-  // replace it later (see docs/plans/2026-06-06-faq-admin-design.md).
+  // Live admin-managed FAQ, falling back to the static i18n copy when the
+  // endpoint is empty or unreachable (see docs/plans/2026-06-06-faq-admin-design.md).
+  const { data: faqData } = useQuery({ queryKey: ["faq"], queryFn: getFaq, enabled: !authed });
+  const faqItems = useMemo(() => {
+    const entries = faqData?.entries ?? [];
+    if (entries.length > 0) {
+      return entries.map((e) => ({
+        key: e.id,
+        question: lang === "nl" ? e.question_nl : e.question_en,
+        answer: lang === "nl" ? e.answer_nl : e.answer_en,
+      }));
+    }
+    return FAQ_KEYS.map((n) => ({
+      key: `static-${n}`,
+      question: t(`landing.faqQ${n}`),
+      answer: t(`landing.faqA${n}`),
+    }));
+  }, [faqData, lang, t]);
+
+  // Inject SoftwareApplication + FAQ structured data for search engines.
   useEffect(() => {
     if (authed) return;
     const jsonLd = {
@@ -33,10 +52,10 @@ export default function LandingPage() {
         },
         {
           "@type": "FAQPage",
-          mainEntity: FAQ_KEYS.map((n) => ({
+          mainEntity: faqItems.map((item) => ({
             "@type": "Question",
-            name: t(`landing.faqQ${n}`),
-            acceptedAnswer: { "@type": "Answer", text: t(`landing.faqA${n}`) },
+            name: item.question,
+            acceptedAnswer: { "@type": "Answer", text: item.answer },
           })),
         },
       ],
@@ -48,7 +67,7 @@ export default function LandingPage() {
     return () => {
       script.remove();
     };
-  }, [authed, t]);
+  }, [authed, t, faqItems]);
 
   // Logged-in visitors skip the marketing page.
   if (authed) {
@@ -134,10 +153,10 @@ export default function LandingPage() {
         <section className="landing__section">
           <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
           <dl className="landing__faq">
-            {FAQ_KEYS.map((n) => (
-              <div key={n} className="landing__faq-item">
-                <dt className="landing__faq-q">{t(`landing.faqQ${n}`)}</dt>
-                <dd className="landing__faq-a">{t(`landing.faqA${n}`)}</dd>
+            {faqItems.map((item) => (
+              <div key={item.key} className="landing__faq-item">
+                <dt className="landing__faq-q">{item.question}</dt>
+                <dd className="landing__faq-a">{item.answer}</dd>
               </div>
             ))}
           </dl>

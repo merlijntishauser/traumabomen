@@ -444,3 +444,35 @@ export interface UpdateFeatureFlagRequest {
   audience: "disabled" | "admins" | "selected" | "all";
   user_ids?: string[];
 }
+
+// FAQ
+
+export interface FaqEntry {
+  id: string;
+  question_en: string;
+  answer_en: string;
+  question_nl: string;
+  answer_nl: string;
+}
+
+export interface AdminFaqEntry extends FaqEntry {
+  sort_order: number;
+  published: boolean;
+}
+
+export interface FaqEntryInput {
+  question_en: string;
+  answer_en: string;
+  question_nl: string;
+  answer_nl: string;
+  sort_order: number;
+  published: boolean;
+}
+
+export interface FaqListResponse {
+  entries: FaqEntry[];
+}
+
+export interface AdminFaqListResponse {
+  entries: AdminFaqEntry[];
+}

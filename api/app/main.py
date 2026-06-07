@@ -10,6 +10,8 @@ from app.routers.admin_stats import router as admin_stats_router
 from app.routers.auth import router as auth_router
 from app.routers.classifications import router as classifications_router
 from app.routers.events import router as events_router
+from app.routers.faq import admin_router as admin_faq_router
+from app.routers.faq import router as faq_router
 from app.routers.features import admin_router as admin_features_router
 from app.routers.features import router as features_router
 from app.routers.feedback import router as feedback_router
@@ -83,6 +85,8 @@ app.include_router(trees_router)
 app.include_router(persons_router)
 app.include_router(relationships_router)
 app.include_router(events_router)
+app.include_router(faq_router)
+app.include_router(admin_faq_router)
 app.include_router(features_router)
 app.include_router(feedback_router)
 app.include_router(journal_router)
