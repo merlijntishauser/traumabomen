@@ -28,7 +28,6 @@ export function PasswordStrengthMeter({ password }: Props) {
           <Trans
             i18nKey="password.managerHint"
             components={[
-              // biome-ignore lint/correctness/useJsxKeyInIterable: Trans component array
               <a key="pw" href="https://1password.com" target="_blank" rel="noopener noreferrer">
                 placeholder
               </a>,

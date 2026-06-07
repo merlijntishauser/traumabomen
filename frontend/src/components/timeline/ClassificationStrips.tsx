@@ -48,7 +48,7 @@ function ClassificationStripsInner({ ctx, classifications }: ClassificationStrip
               const clsLabel = subLabel ?? catLabel;
 
               return (
-                <React.Fragment key={`${cls.id}-p${pi}`}>
+                <React.Fragment key={`${cls.id}-${period.start_year}-${period.end_year ?? "open"}`}>
                   <rect
                     x={rect.x}
                     y={rect.y}

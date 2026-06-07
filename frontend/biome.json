@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -48,7 +48,6 @@
     }
   },
   "files": {
-    "includes": ["src/**"],
-    "experimentalScannerIgnores": ["node_modules", "dist", "public/argon2-bundled.min.js"]
+    "includes": ["src/**", "!!**/node_modules", "!!**/dist", "!!**/public/argon2-bundled.min.js"]
   }
 }

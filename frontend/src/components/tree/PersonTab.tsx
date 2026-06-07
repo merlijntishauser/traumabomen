@@ -97,9 +97,9 @@ function DateFields({
           <span>{dayLabel}</span>
           <select value={day} onChange={(e) => onDayChange(e.target.value)}>
             <option value="">---</option>
-            {Array.from({ length: daysInMonth(parseInt(month, 10)) }, (_, i) => (
-              <option key={`day-${i + 1}`} value={String(i + 1)}>
-                {i + 1}
+            {Array.from({ length: daysInMonth(parseInt(month, 10)) }, (_, i) => i + 1).map((d) => (
+              <option key={d} value={String(d)}>
+                {d}
               </option>
             ))}
           </select>
