@@ -99,6 +99,21 @@
   flex-shrink: 0;
 }
 
+/* Light theme: a soft light pill with dark text reads better on the bright hero
+   photo than the dark pill, which looks harsh there. */
+[data-theme="light"] .auth-hero__brand {
+  background: rgba(255, 253, 250, 0.65);
+  border-color: rgba(44, 51, 64, 0.12);
+  color: var(--color-text-primary);
+  text-shadow: none;
+}
+
+[data-theme="light"] .auth-hero__brand:hover {
+  background: rgba(255, 253, 250, 0.85);
+  border-color: rgba(44, 51, 64, 0.22);
+  color: var(--color-text-primary);
+}
+
 .auth-hero__tagline {
   margin-top: var(--space-4);
   font-family: var(--font-heading);
