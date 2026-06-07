@@ -35,6 +35,12 @@ services:
       db:
         condition: service_healthy
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
 
   mailpit:
     image: axllent/mailpit:v1.29.2
@@ -52,6 +58,9 @@ services:
     ports:
       - "5173:5173"
     env_file: .env
+    depends_on:
+      api:
+        condition: service_healthy
     command: npx vite dev --host
 
   e2e:
