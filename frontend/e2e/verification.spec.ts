@@ -24,8 +24,8 @@ test.describe("Email verification @verification", () => {
     await page.getByRole("button", { name: /continue/i }).click();
 
     // Step 2: Encryption
-    await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
-    await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
+    await page.getByLabel(/^encryption key$/i).fill(TEST_PASSPHRASE);
+    await page.getByLabel(/confirm encryption key/i).fill(TEST_PASSPHRASE);
     await page.getByRole("button", { name: /continue/i }).click();
 
     // Step 3: Confirm

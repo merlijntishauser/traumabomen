@@ -86,10 +86,10 @@ test.describe("Settings", () => {
     // Should reach /trees with AuthModal in unlock mode
     const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await expect(modal.getByLabel(/encryption passphrase/i)).toBeVisible();
+    await expect(modal.getByLabel(/encryption key/i)).toBeVisible();
   });
 
-  test("change passphrase and unlock with new passphrase", async ({
+  test("change encryption key and unlock with new passphrase", async ({
     page,
   }) => {
     const email = uniqueEmail();
@@ -98,18 +98,18 @@ test.describe("Settings", () => {
     await openSecuritySettings(page);
 
     const newPassphrase = "my-new-secure-passphrase";
-    await page.getByPlaceholder("Current passphrase").fill(TEST_PASSPHRASE);
-    await page.getByPlaceholder("New passphrase", { exact: true }).fill(newPassphrase);
-    await page.getByPlaceholder("Confirm new passphrase").fill(newPassphrase);
+    await page.getByPlaceholder("Current encryption key").fill(TEST_PASSPHRASE);
+    await page.getByPlaceholder("New encryption key", { exact: true }).fill(newPassphrase);
+    await page.getByPlaceholder("Confirm new encryption key").fill(newPassphrase);
 
     // Click Save in the passphrase section
     const ppSection = page.locator(".settings-panel__section").filter({
-      has: page.getByRole("heading", { name: /change passphrase/i }),
+      has: page.getByRole("heading", { name: /change encryption key/i }),
     });
     await ppSection.getByRole("button", { name: /save/i }).click();
 
     // Wait for re-encryption to complete
-    await expect(page.getByText(/passphrase changed|re-encrypted/i)).toBeVisible({
+    await expect(page.getByText(/encryption key changed|re-encrypted/i)).toBeVisible({
       timeout: 30_000,
     });
 
@@ -122,7 +122,7 @@ test.describe("Settings", () => {
 
     const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await modal.getByLabel(/encryption passphrase/i).fill(newPassphrase);
+    await modal.getByLabel(/encryption key/i).fill(newPassphrase);
     await modal.getByRole("button", { name: /unlock/i }).click();
     await modal.waitFor({ state: "hidden", timeout: 30_000 });
   });

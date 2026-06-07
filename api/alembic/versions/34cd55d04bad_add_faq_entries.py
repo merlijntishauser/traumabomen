@@ -89,17 +89,17 @@ def upgrade() -> None:
             ),
         },
         {
-            "question_en": "What if I lose my passphrase?",
+            "question_en": "What if I lose my encryption key?",
             "answer_en": (
                 "Then your data is gone, and no one, including us, can recover it. That is the "
-                "cost of encryption only you can open. Keep your passphrase somewhere safe, and "
-                "consider setting a hint."
+                "cost of encryption only you can open. Keep your encryption key somewhere safe, "
+                "and consider setting a hint."
             ),
-            "question_nl": "Wat als ik mijn wachtwoord verlies?",
+            "question_nl": "Wat als ik mijn encryptiesleutel verlies?",
             "answer_nl": (
                 "Dan zijn je gegevens weg, en niemand, ook wij niet, kan ze herstellen. Dat is de "
-                "prijs van versleuteling die alleen jij kunt openen. Bewaar je wachtwoord op een "
-                "veilige plek, en overweeg een hint in te stellen."
+                "prijs van versleuteling die alleen jij kunt openen. Bewaar je encryptiesleutel op "
+                "een veilige plek, en overweeg een hint in te stellen."
             ),
         },
         {

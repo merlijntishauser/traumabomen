@@ -19,7 +19,7 @@ test.describe("AuthModal", () => {
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 10_000 });
     // Should show passphrase input (unlock mode, no credentials step)
-    await expect(modal.getByLabel(/encryption passphrase/i)).toBeVisible();
+    await expect(modal.getByLabel(/encryption key/i)).toBeVisible();
   });
 
   test("unlocks via AuthModal and dismisses overlay", async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe("AuthModal", () => {
 
     const modal = page.getByRole("dialog");
     await modal.waitFor({ state: "visible", timeout: 10_000 });
-    await modal.getByLabel(/encryption passphrase/i).fill("totally-wrong-passphrase");
+    await modal.getByLabel(/encryption key/i).fill("totally-wrong-passphrase");
     await modal.getByRole("button", { name: /unlock/i }).click();
 
     await expect(modal.locator(".auth-error")).toBeVisible({ timeout: 15_000 });

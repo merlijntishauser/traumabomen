@@ -34,8 +34,8 @@ export async function register(
   await page.getByRole("button", { name: /continue/i }).click();
 
   // Step 2: Encryption
-  await page.getByLabel(/^encryption passphrase$/i).fill(TEST_PASSPHRASE);
-  await page.getByLabel(/confirm passphrase/i).fill(TEST_PASSPHRASE);
+  await page.getByLabel(/^encryption key$/i).fill(TEST_PASSPHRASE);
+  await page.getByLabel(/confirm encryption key/i).fill(TEST_PASSPHRASE);
   if (options?.hint) {
     await page.getByLabel(/hint/i).fill(options.hint);
   }
@@ -91,7 +91,7 @@ export async function unlock(page: Page): Promise<void> {
   // Wait for AuthModal dialog to appear (target specifically, not any dialog)
   const modal = page.locator(".auth-modal");
   await modal.waitFor({ state: "visible", timeout: 10_000 });
-  await modal.getByLabel(/encryption passphrase/i).fill(TEST_PASSPHRASE);
+  await modal.getByLabel(/encryption key/i).fill(TEST_PASSPHRASE);
   await modal.getByRole("button", { name: /unlock/i }).click();
   // Wait for auth-modal to dismiss after successful unlock
   await modal.waitFor({ state: "hidden", timeout: 30_000 });
