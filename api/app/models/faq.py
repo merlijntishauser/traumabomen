@@ -12,8 +12,8 @@ from app.database import Base
 class FAQEntry(Base):
     """Admin-authored public FAQ entry (bilingual).
 
-    This is public marketing content, not user data, so it is stored in
-    plaintext and is NOT encrypted (unlike tree data).
+    This is public marketing content, not user data, so it is stored
+    unencrypted (unlike the encrypted tree data).
     """
 
     __tablename__ = "faq_entries"
