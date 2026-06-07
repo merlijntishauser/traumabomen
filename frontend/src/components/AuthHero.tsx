@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Logomark } from "./Logomark";
@@ -42,6 +43,7 @@ export function AuthHero({
         <div className="auth-hero__overlay">
           {homeLink ? (
             <Link to="/" className="auth-hero__brand">
+              <ArrowLeft size={16} className="auth-hero__brand-icon" aria-hidden="true" />
               {t("app.title")}
             </Link>
           ) : (

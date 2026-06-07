@@ -67,25 +67,36 @@
   filter: drop-shadow(0 2px 18px rgba(0, 0, 0, 0.55));
 }
 
-/* Site name shown as a home link in place of the logo mark (login/register). */
+/* Site name shown as a "back to home" control in place of the logo mark. The
+   arrow + pill make it read as a clickable return button over the photo. */
 .auth-hero__brand {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   pointer-events: auto;
+  padding: 6px 14px 6px 11px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   font-family: var(--font-heading);
   font-weight: 400;
-  font-size: 1.6rem;
-  line-height: 1.2;
+  font-size: 1.2rem;
+  line-height: 1;
   /* Off-white that reads on every hero variant; matches the tagline. */
   color: #f4efe6;
   text-decoration: none;
-  text-shadow:
-    0 2px 18px rgba(0, 0, 0, 0.55),
-    0 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   transition: var(--transition-colors);
 }
 
 .auth-hero__brand:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.55);
   color: #ffffff;
+}
+
+.auth-hero__brand-icon {
+  flex-shrink: 0;
 }
 
 .auth-hero__tagline {
