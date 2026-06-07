@@ -7,7 +7,6 @@ import {
   DoorOpen,
   FileLock2,
   KeyRound,
-  Lock,
   LogIn,
   type LucideIcon,
   ShieldCheck,
@@ -105,11 +104,6 @@ export default function SecurityPage() {
               <p>{t("security.answer.body")}</p>
             </div>
           </section>
-
-          <div className="security-server">
-            <Lock size={18} aria-hidden="true" />
-            {t("security.serverSees")}
-          </div>
 
           <div className="security-panels">
             <section className="security-panel">
