@@ -188,9 +188,10 @@
     radial-gradient(circle at 78% 52%, rgba(255, 255, 255, 0.16), transparent 30%),
     linear-gradient(
       90deg,
-      rgba(247, 245, 242, 0.34) 0%,
-      rgba(247, 245, 242, 0.18) 42%,
-      rgba(247, 245, 242, 0.02) 100%
+      rgba(247, 245, 242, 0.88) 0%,
+      rgba(247, 245, 242, 0.72) 34%,
+      rgba(247, 245, 242, 0.3) 62%,
+      rgba(247, 245, 242, 0.06) 100%
     ),
     linear-gradient(to top, var(--color-bg-primary) 0%, rgba(247, 245, 242, 0) 22%);
 }
