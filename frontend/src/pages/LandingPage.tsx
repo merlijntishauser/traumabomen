@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
+import { CanvasGlimpse, ShapesGlimpse, ShieldGlimpse } from "../components/LandingArt";
 import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
 
@@ -97,7 +98,9 @@ export default function LandingPage() {
         </picture>
         <div className="landing__hero-shell">
           <header className="landing__hero-content">
+            <h1 className="landing__hero-title">{t("app.title")}</h1>
             <p className="landing__hero-message">{t("landing.heroTagline")}</p>
+            <p className="landing__hero-lede">{t("landing.heroIntro")}</p>
             <div className="landing__cta-row">
               <Link to="/register" className="landing__cta landing__cta--primary">
                 {t("landing.ctaCreate")}
@@ -107,18 +110,21 @@ export default function LandingPage() {
               </Link>
             </div>
           </header>
+          <div className="landing__hero-art">
+            <CanvasGlimpse />
+          </div>
         </div>
       </section>
 
-      <header className="landing__intro">
-        <h1 className="landing__title">{t("app.title")}</h1>
-        <p className="landing__lede">{t("landing.heroIntro")}</p>
-      </header>
-
       <div className="landing__sections">
-        <section className="landing__section">
-          <h2 className="landing__section-title">{t("landing.whatTitle")}</h2>
-          <p className="landing__prose">{t("landing.whatBody")}</p>
+        <section className="landing__section landing__row">
+          <div>
+            <h2 className="landing__section-title">{t("landing.whatTitle")}</h2>
+            <p className="landing__prose">{t("landing.whatBody")}</p>
+          </div>
+          <div className="landing__art">
+            <ShapesGlimpse />
+          </div>
         </section>
 
         <section className="landing__section">
@@ -136,17 +142,22 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        <section className="landing__section landing__section--privacy">
-          <h2 className="landing__section-title">{t("landing.privacyHeading")}</h2>
-          <p className="landing__glance">{t("landing.privacyGlance")}</p>
-          <p className="landing__prose">{t("landing.privacy")}</p>
-          <div className="landing__links">
-            <Link to="/security" className="landing__link">
-              {t("security.link")}
-            </Link>
-            <Link to="/privacy" className="landing__link">
-              {t("landing.readPrivacyPolicy")}
-            </Link>
+        <section className="landing__section landing__row landing__row--flip">
+          <div>
+            <h2 className="landing__section-title">{t("landing.privacyHeading")}</h2>
+            <p className="landing__glance">{t("landing.privacyGlance")}</p>
+            <p className="landing__prose">{t("landing.privacy")}</p>
+            <div className="landing__links">
+              <Link to="/security" className="landing__link">
+                {t("security.link")}
+              </Link>
+              <Link to="/privacy" className="landing__link">
+                {t("landing.readPrivacyPolicy")}
+              </Link>
+            </div>
+          </div>
+          <div className="landing__art">
+            <ShieldGlimpse />
           </div>
         </section>
 

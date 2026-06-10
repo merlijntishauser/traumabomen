@@ -9,10 +9,10 @@
   overflow-x: hidden;
 }
 
-/* Hero: photo-led opening with immediate product context. */
+/* Hero: photo-led opening with brand, message, and a product glimpse. */
 .landing__hero {
   position: relative;
-  min-height: min(500px, 52svh);
+  min-height: min(640px, 74svh);
   overflow: hidden;
   isolation: isolate;
 }
@@ -63,8 +63,10 @@
   z-index: 1;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
   width: 100%;
-  max-width: 960px;
+  max-width: 1140px;
   min-height: inherit;
   margin: 0 auto;
   padding: var(--space-10) var(--space-6) var(--space-8);
@@ -75,34 +77,58 @@
   max-width: 520px;
 }
 
-.landing__hero-message {
-  margin: 0 0 var(--space-5);
-  max-width: 26ch;
+.landing__hero-title {
+  margin: 0 0 var(--space-2);
   font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: 2rem;
-  line-height: 1.35;
+  font-weight: 200;
+  font-size: 3.4rem;
+  line-height: 1.1;
   color: #f4efe6;
   text-shadow:
     0 2px 24px rgba(0, 0, 0, 0.6),
     0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-.landing__title {
-  font-family: var(--text-h1-family);
-  font-size: 4rem;
-  font-weight: var(--text-h1-weight);
-  line-height: var(--text-h1-leading);
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-3);
+.landing__hero-message {
+  margin: 0 0 var(--space-4);
+  max-width: 28ch;
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.5rem;
+  line-height: 1.4;
+  color: #f4efe6;
+  text-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-.landing__lede {
-  font-size: 1.1rem;
+.landing__hero-lede {
+  margin: 0 0 var(--space-6);
+  max-width: 46ch;
+  font-size: 1.05rem;
   line-height: 1.6;
-  color: var(--color-text-secondary);
-  margin: 0 auto;
-  max-width: 56ch;
+  color: rgba(244, 239, 230, 0.88);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* The product glimpse: a solid workspace-like card with a dot-grid canvas cue.
+   Solid on purpose; glass stays reserved for auth/lock cards. */
+.landing__hero-art {
+  flex-shrink: 0;
+  width: min(420px, 38vw);
+  padding: var(--space-5);
+  background: var(--color-bg-secondary);
+  background-image: radial-gradient(var(--color-border-secondary) 1px, transparent 1px);
+  background-size: 18px 18px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.landing__hero-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .landing__cta-row {
@@ -169,11 +195,17 @@
     linear-gradient(to top, var(--color-bg-primary) 0%, rgba(247, 245, 242, 0) 22%);
 }
 
+[data-theme="light"] .landing__hero-title,
 [data-theme="light"] .landing__hero-message {
   color: var(--color-text-primary);
   text-shadow:
     0 1px 14px rgba(255, 255, 255, 0.78),
     0 1px 3px rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="light"] .landing__hero-lede {
+  color: var(--color-text-secondary);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.7);
 }
 
 [data-theme="light"] .landing__cta--ghost {
@@ -187,24 +219,48 @@
   color: var(--color-text-primary);
 }
 
-/* Content sections */
-.landing__intro {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-3);
-  text-align: center;
-}
-
+/* Content sections: one 1100px column, zigzag text/art rows. */
 .landing__sections {
-  max-width: 760px;
+  max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-6) var(--space-10);
+  padding: var(--space-10) var(--space-6) var(--space-10);
   box-sizing: border-box;
 }
 
 .landing__section {
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-15);
+}
+
+.landing__row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: var(--space-10);
+  align-items: center;
+}
+
+.landing__art {
+  display: grid;
+  place-items: center;
+}
+
+.landing__art svg {
+  display: block;
+  width: min(300px, 100%);
+  height: auto;
+}
+
+/* Flipped row: art on the left, text on the right. */
+.landing__row--flip {
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.landing__row--flip > div:first-child {
+  order: 2;
+}
+
+.landing__row--flip > .landing__art {
+  order: 1;
 }
 
 .landing__section-title {
@@ -284,9 +340,12 @@
   margin: 0 0 var(--space-3);
 }
 
-/* FAQ */
+/* FAQ: two columns at desktop widths. */
 .landing__faq {
   margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--space-10);
 }
 
 .landing__faq-item {
@@ -296,6 +355,13 @@
 
 .landing__faq-item:last-child {
   border-bottom: none;
+}
+
+/* The second-to-last item also closes a column in the 2-col grid. */
+@media (min-width: 901px) {
+  .landing__faq-item:nth-last-child(2) {
+    border-bottom: none;
+  }
 }
 
 .landing__faq-q {
@@ -344,9 +410,39 @@
   margin: 0 auto var(--space-5);
 }
 
+/* Collapse the zigzag and hero split before they get cramped. */
+@media (max-width: 900px) {
+  .landing__hero-art {
+    display: none;
+  }
+
+  .landing__row,
+  .landing__row--flip {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  /* Text first, art after, in both row directions. */
+  .landing__row--flip > div:first-child {
+    order: 1;
+  }
+
+  .landing__row--flip > .landing__art {
+    order: 2;
+  }
+
+  .landing__faq {
+    grid-template-columns: 1fr;
+  }
+
+  .landing__section {
+    margin-bottom: var(--space-10);
+  }
+}
+
 @media (max-width: 640px) {
   .landing__hero {
-    min-height: 340px;
+    min-height: 420px;
   }
 
   .landing__hero::after {
@@ -380,17 +476,17 @@
     max-width: none;
   }
 
+  .landing__hero-title {
+    font-size: 2.6rem;
+  }
+
   .landing__hero-message {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
     max-width: 23ch;
-    font-size: 1.35rem;
+    font-size: 1.25rem;
   }
 
-  .landing__title {
-    font-size: 3.25rem;
-  }
-
-  .landing__lede {
+  .landing__hero-lede {
     font-size: 1rem;
   }
 
@@ -406,15 +502,11 @@
   .landing__steps {
     grid-template-columns: 1fr;
   }
-
-  .landing__intro {
-    padding: var(--space-6) var(--space-5) var(--space-3);
-  }
 }
 
 @media (max-width: 380px) {
-  .landing__title {
-    font-size: 2.9rem;
+  .landing__hero-title {
+    font-size: 2.2rem;
   }
 }
 
@@ -428,11 +520,11 @@
     max-width: 520px;
   }
 
-  .landing__hero-message {
-    font-size: 1.7rem;
+  .landing__hero-title {
+    font-size: 3rem;
   }
 
-  .landing__title {
-    font-size: 3.6rem;
+  .landing__hero-message {
+    font-size: 1.4rem;
   }
 }
