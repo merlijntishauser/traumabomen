@@ -1,0 +1,138 @@
+/* =============================================
+   Learn page (educational content on intergenerational trauma).
+   Centered reading column; all colour via theme tokens.
+   ============================================= */
+
+.learn-page {
+  width: 100%;
+  overflow-y: auto;
+  background: radial-gradient(
+    ellipse 90% 50% at 50% -10%,
+    var(--color-accent-subtle),
+    transparent 60%
+  );
+}
+
+.learn-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-15);
+}
+
+.learn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-8);
+  color: var(--color-action);
+  font-size: 14px;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.learn-back:hover {
+  color: var(--color-action-hover);
+}
+
+.learn-header h1 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-heading);
+  font-weight: 200;
+  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.learn-lede {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.learn-section {
+  margin-top: var(--space-10);
+}
+
+.learn-section h2 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+/* Glance line: the one-sentence version, in the handwriting face. */
+.learn-glance {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.15rem;
+  color: var(--color-text-secondary);
+}
+
+.learn-prose {
+  margin: 0 0 var(--space-4);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+.learn-references {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.learn-references a {
+  color: var(--color-action);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.learn-references a:hover {
+  color: var(--color-action-hover);
+  text-decoration: underline;
+}
+
+.learn-references .learn-prose {
+  margin: var(--space-1) 0 0;
+}
+
+.learn-closing {
+  margin-top: var(--space-10);
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.learn-closing .learn-prose {
+  margin-bottom: var(--space-4);
+}
+
+.learn-closing__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 var(--space-6);
+  background: var(--color-action);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.learn-closing__link:hover {
+  background: var(--color-action-hover);
+  color: var(--color-text-inverse);
+}

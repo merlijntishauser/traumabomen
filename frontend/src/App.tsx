@@ -24,6 +24,7 @@ import {
 import "./components/MobileBanner.css";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import LandingPage from "./pages/LandingPage";
+import LearnPage from "./pages/LearnPage";
 import LoginPage from "./pages/LoginPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -149,6 +150,7 @@ function AppContent() {
   const isPublicRoute =
     pathname === "/privacy" ||
     pathname === "/security" ||
+    pathname === "/learn" ||
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/waitlist" ||
@@ -267,6 +269,7 @@ function AppContent() {
               <Route path="/waitlist" element={<WaitlistPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/security" element={<SecurityPage />} />
+              <Route path="/learn" element={<LearnPage />} />
               <Route path="/verify-pending" element={<VerificationPendingPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

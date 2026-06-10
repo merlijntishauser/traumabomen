@@ -41,4 +41,20 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>__OG_ORIGIN__/security</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/security" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/security" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/security" />
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>__OG_ORIGIN__/learn</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/learn" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/learn" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/learn" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

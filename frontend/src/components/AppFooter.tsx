@@ -111,6 +111,8 @@ export function AppFooter({ onLock }: Props) {
           <span className="app-footer__colophon-sep" aria-hidden="true" />
           <Link to="/privacy">{t("nav.privacy")}</Link>
           <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to="/learn">{t("nav.learn")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
           <a
             href="https://github.com/merlijntishauser/traumabomen"
             target="_blank"

@@ -213,6 +213,14 @@ export default function LandingPage() {
         </section>
 
         <section className="landing__section">
+          <h2 className="landing__section-title">{t("landing.learnTitle")}</h2>
+          <p className="landing__prose">{t("landing.learnTeaser")}</p>
+          <Link to="/learn" className="landing__link">
+            {t("landing.learnMore")}
+          </Link>
+        </section>
+
+        <section className="landing__section">
           <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
           <dl className="landing__faq">
             {faqItems.map((item) => (
