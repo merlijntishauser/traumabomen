@@ -2,9 +2,37 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
-import { CanvasGlimpse, ShapesGlimpse, ShieldGlimpse } from "../components/LandingArt";
+import { ShieldGlimpse } from "../components/LandingArt";
 import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
+
+/** Theme-aware product screenshot (dark/light variants swap via CSS). */
+function Glimpse({ name, alt, eager }: { name: string; alt: string; eager?: boolean }) {
+  return (
+    <>
+      <picture>
+        <source srcSet={`/images/glimpse-${name}-dark.webp`} type="image/webp" />
+        <img
+          className="landing__shot landing__shot--dark"
+          src={`/images/glimpse-${name}-dark.jpg`}
+          alt={alt}
+          loading={eager ? undefined : "lazy"}
+          decoding="async"
+        />
+      </picture>
+      <picture>
+        <source srcSet={`/images/glimpse-${name}-light.webp`} type="image/webp" />
+        <img
+          className="landing__shot landing__shot--light"
+          src={`/images/glimpse-${name}-light.jpg`}
+          alt={alt}
+          loading={eager ? undefined : "lazy"}
+          decoding="async"
+        />
+      </picture>
+    </>
+  );
+}
 
 const FAQ_KEYS = [1, 2, 3, 4] as const;
 
@@ -111,7 +139,7 @@ export default function LandingPage() {
             </div>
           </header>
           <div className="landing__hero-art">
-            <CanvasGlimpse />
+            <Glimpse name="tree" alt={t("landing.shotTreeAlt")} eager />
           </div>
         </div>
       </section>
@@ -123,7 +151,7 @@ export default function LandingPage() {
             <p className="landing__prose">{t("landing.whatBody")}</p>
           </div>
           <div className="landing__art">
-            <ShapesGlimpse />
+            <Glimpse name="timeline" alt={t("landing.shotTimelineAlt")} />
           </div>
         </section>
 
