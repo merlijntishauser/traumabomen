@@ -457,13 +457,15 @@
       linear-gradient(to top, var(--color-bg-primary) 0%, transparent 34%);
   }
 
+  /* Mirror the dark variant's density: the text spans the full width here,
+     so the cream wash must carry readability across the whole photo. */
   [data-theme="light"] .landing__hero::after {
     display: block;
     background:
       linear-gradient(
         180deg,
-        rgba(247, 245, 242, 0.08) 0%,
-        rgba(247, 245, 242, 0.2) 58%,
+        rgba(247, 245, 242, 0.6) 0%,
+        rgba(247, 245, 242, 0.8) 58%,
         var(--color-bg-primary) 100%
       ),
       linear-gradient(to top, var(--color-bg-primary) 0%, rgba(247, 245, 242, 0) 28%);
