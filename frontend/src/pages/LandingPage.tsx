@@ -34,7 +34,7 @@ function Glimpse({ name, alt, eager }: { name: string; alt: string; eager?: bool
   );
 }
 
-const FAQ_KEYS = [1, 2, 3, 4] as const;
+const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 const HOW_STEPS = [
   { n: 1, title: "landing.step1Title", body: "landing.step1Body" },
@@ -69,9 +69,21 @@ export default function LandingPage() {
   // Inject SoftwareApplication + FAQ structured data for search engines.
   useEffect(() => {
     if (authed) return;
+    const origin = window.location.origin;
     const jsonLd = {
       "@context": "https://schema.org",
       "@graph": [
+        {
+          "@type": "Organization",
+          name: t("app.title"),
+          url: origin,
+          logo: `${origin}/favicon.svg`,
+        },
+        {
+          "@type": "WebSite",
+          name: t("app.title"),
+          url: origin,
+        },
         {
           "@type": "SoftwareApplication",
           name: t("app.title"),
@@ -136,6 +148,9 @@ export default function LandingPage() {
               <Link to="/login" className="landing__cta landing__cta--ghost">
                 {t("landing.ctaLogin")}
               </Link>
+              <a href="#how" className="landing__cta-quiet">
+                {t("landing.ctaHow")}
+              </a>
             </div>
           </header>
           <div className="landing__hero-art">
@@ -150,12 +165,15 @@ export default function LandingPage() {
             <h2 className="landing__section-title">{t("landing.whatTitle")}</h2>
             <p className="landing__prose">{t("landing.whatBody")}</p>
           </div>
-          <div className="landing__art">
+          <figure className="landing__art">
             <Glimpse name="timeline" alt={t("landing.shotTimelineAlt")} />
-          </div>
+            <figcaption className="landing__shot-caption">
+              {t("landing.shotTimelineCaption")}
+            </figcaption>
+          </figure>
         </section>
 
-        <section className="landing__section">
+        <section className="landing__section" id="how">
           <h2 className="landing__section-title">{t("landing.howTitle")}</h2>
           <ol className="landing__steps">
             {HOW_STEPS.map((step) => (

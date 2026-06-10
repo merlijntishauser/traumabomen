@@ -7,6 +7,13 @@
 .landing {
   width: 100%;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing {
+    scroll-behavior: auto;
+  }
 }
 
 /* Hero: photo-led opening with brand, message, and a product glimpse. */
@@ -191,6 +198,32 @@
   outline-offset: 2px;
 }
 
+/* Quiet tertiary action: a plain link beside the CTAs, no button chrome. */
+.landing__cta-quiet {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  color: rgba(244, 239, 230, 0.85);
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  transition: var(--transition-colors);
+}
+
+.landing__cta-quiet:hover {
+  color: #ffffff;
+}
+
+[data-theme="light"] .landing__cta-quiet {
+  color: var(--color-text-secondary);
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .landing__cta-quiet:hover {
+  color: var(--color-text-primary);
+}
+
 [data-theme="light"] .landing__hero::after {
   display: block;
   background:
@@ -262,6 +295,17 @@
 
 .landing__art picture {
   width: 100%;
+}
+
+figure.landing__art {
+  margin: 0;
+}
+
+.landing__shot-caption {
+  margin-top: var(--space-2);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 /* Flipped row: art on the left, text on the right. */
