@@ -28,12 +28,20 @@
   --color-text-muted: #7a9a84;
   --color-text-inverse: #0a1a0f;
 
-  /* Accent (forest green) */
+  /* Accent (forest green): the brand and the trees */
   --color-accent: #2d8a5e;
   --color-accent-hover: #24704c;
   --color-accent-subtle: rgba(45, 138, 94, 0.12);
   --color-accent-focus-ring: rgba(45, 138, 94, 0.35);
   --color-accent-border: rgba(45, 138, 94, 0.3);
+
+  /* Action: anything the user does (buttons, links, CTAs). Same green as the
+     accent in dark; the light theme overrides it to indigo. */
+  --color-action: #2d8a5e;
+  --color-action-hover: #24704c;
+  --color-action-subtle: rgba(45, 138, 94, 0.12);
+  --color-action-focus-ring: rgba(45, 138, 94, 0.35);
+  --color-action-border: rgba(45, 138, 94, 0.3);
 
   /* Status */
   --color-danger: #ef4444;
@@ -171,6 +179,15 @@
   --color-accent-subtle: rgba(52, 160, 102, 0.08);
   --color-accent-focus-ring: rgba(52, 160, 102, 0.25);
   --color-accent-border: rgba(52, 160, 102, 0.3);
+
+  /* Actions turn INDIGO in light: green-on-cream reads generic-wellness,
+     indigo-on-cream reads literary and considered. The forest stays the
+     forest (logo, leaf, tree edges keep --color-accent green). */
+  --color-action: #4f46e5;
+  --color-action-hover: #4338ca;
+  --color-action-subtle: rgba(79, 70, 229, 0.07);
+  --color-action-focus-ring: rgba(79, 70, 229, 0.3);
+  --color-action-border: rgba(79, 70, 229, 0.3);
 
   --color-danger: #dc2626;
   --color-danger-bg: rgba(220, 38, 38, 0.06);

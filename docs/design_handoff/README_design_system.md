@@ -102,7 +102,7 @@ A walk in a misty forest at dusk. Dark forest green by default; warm cream as th
 
 **Two themes ship today** — `dark` (default, `:root`) and `light` (`[data-theme="light"]`). The HTML preloads the saved theme before first paint to avoid flashing. A third `watercolor` theme is hinted at in the boot script and reserved for later.
 
-The dark palette is built around `#0a1a0f` (near-black forest floor) → `#0f261a` (canvas) → `#1f4d35` (border). The accent is a single forest green `#2d8a5e` used for CTAs, focus rings, links, and selection. The light palette swaps to `#f7f5f2` cream → `#34a066` accent, with text in slate `#2c3340`.
+The dark palette is built around `#0a1a0f` (near-black forest floor) → `#0f261a` (canvas) → `#1f4d35` (border). In dark, a single forest green `#2d8a5e` carries both the brand accent and the actions (CTAs, focus rings, links, selection). The light palette swaps to `#f7f5f2` cream with text in slate `#2c3340`, and splits the roles: the brand accent stays green (`#34a066`, logo, leaf, tree edges) while **actions turn indigo** (`#4f46e5`, buttons, links, CTAs). Green-on-cream reads generic-wellness; indigo-on-cream reads literary and considered. Use `--color-action` for anything the user does and `--color-accent` for anything that represents the brand or a tree.
 
 **Semantic color is broad.** Trauma categories, life-event categories, classification status, turning points, and pattern-overlay annotations each get their own hue. These colors are tools for the user to think with — they are not decorative. See `colors_and_type.css` for the full list. Pattern colors rotate through 8 hues so multiple user-created annotations stay distinguishable.
 
