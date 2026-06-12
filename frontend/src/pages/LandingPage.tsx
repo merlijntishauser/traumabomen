@@ -210,6 +210,14 @@ export default function LandingPage() {
           </dl>
         </section>
 
+        <section className="landing__section landing__founder">
+          <h2 className="landing__section-title">{t("landing.founderTitle")}</h2>
+          <p className="landing__prose">{t("landing.founderBody1")}</p>
+          <p className="landing__prose">{t("landing.founderBody2")}</p>
+          <p className="landing__prose">{t("landing.founderBody3")}</p>
+          <p className="landing__founder-signature">{t("landing.founderSignature")}</p>
+        </section>
+
         <section className="landing__section landing__final">
           <h2 className="landing__section-title">{t("landing.finalCtaTitle")}</h2>
           <p className="landing__prose">{t("landing.finalCtaBody")}</p>

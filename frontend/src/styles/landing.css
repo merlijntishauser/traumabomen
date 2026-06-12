@@ -437,6 +437,15 @@ figure.landing__art {
   text-decoration: underline;
 }
 
+/* Founder note: a personal sign-off in the handwriting face. */
+.landing__founder-signature {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+}
+
 /* Final CTA (solid card) */
 .landing__final {
   text-align: center;
