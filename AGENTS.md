@@ -490,10 +490,11 @@ The theme system uses `useSyncExternalStore` for cross-component state synchroni
 
 ### Typography
 
-- **Heading font:** `Playwrite NZ Basic` —a flowing handwriting-style script with variable weight (100-400). Evokes personal journals and handwritten family notes, fitting the reflective nature of the tool.
+- **Voice font:** `Playwrite NZ Basic` —a flowing handwriting-style script with variable weight (100-400). The personal voice: brand wordmark, taglines, glance lines, the founder signature, and in-app headings. Evokes personal journals and handwritten family notes.
+- **Display font (public pages):** `Fraunces` —a warm, literary variable serif (optical sizes 9-144, weights 300-600). Carries structure on the public pages: hero statements and section headings on the landing, learn, tour, security, and privacy pages. Used light (350-380), never bold.
 - **Body font:** `Lato` —a clean, humanist sans-serif with good legibility at all sizes. Weights 300/400/700/900 loaded. Warm and approachable without being decorative.
 - Fonts loaded via Google Fonts CDN with `preconnect`.
-- All font families defined as CSS variables (`--font-heading`, `--font-body`) in `theme.css`.
+- All font families defined as CSS variables (`--font-heading`, `--font-display`, `--font-body`) in `theme.css`. Rule of thumb: structure speaks in the serif, the voice signs in the handwriting.
 
 ### Color Palette
 
@@ -506,6 +507,7 @@ All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. 
 
 ### Atmospheric Details
 
+- **Ambient hero life:** `<AmbientBackground>` draws a slow drift of fireflies (dark) or warm light motes (light) on a 2D canvas over the hero photography (landing + auth heroes). ~30fps, pauses on hidden tabs, disabled entirely under `prefers-reduced-motion`. Hand-rolled canvas, deliberately not a 3D library, to protect the performance budget.
 - **Toolbar accent line:** 3px gradient (`--color-accent` to transparent) via `::after` pseudo-element on `.tree-toolbar`
 - **Background gradient:** Radial gradient with noise texture overlay (`feTurbulence` SVG filter at `opacity: 0.035`) to prevent banding
 - **BranchDecoration:** Procedurally generated SVG trees in bottom-left corner at `opacity: 0.12`, randomized on page load, drawn with Bezier curves in accent color

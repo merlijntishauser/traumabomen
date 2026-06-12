@@ -19,7 +19,7 @@ A personal reflection tool, **not therapy**, **not crisis support**. The user ma
 
 ## Non-negotiables
 
-- **Two faces only.** `--font-heading` (Playwrite NZ Basic) for headings/taglines/person names; `--font-body` (Lato) for everything else.
+- **Three faces, three roles.** `--font-heading` (Playwrite NZ Basic) is the voice: brand wordmark, taglines, glance lines, signatures, person names, in-app headings. `--font-display` (Fraunces, light 350-380, never bold) carries structure on the public pages: hero statements and section headings. `--font-body` (Lato) for everything else. Structure speaks in the serif; the voice signs in the handwriting.
 - **Headings are always LIGHT** (weight 200–400). Never bold the handwriting face.
 - **Body is 15px.**
 - **No emoji. Ever.** Subject matter is too sensitive.

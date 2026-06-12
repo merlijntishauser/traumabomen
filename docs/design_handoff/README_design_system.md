@@ -108,9 +108,10 @@ The dark palette is built around `#0a1a0f` (near-black forest floor) → `#0f261
 
 ### Typography
 
-**Two faces, intentional contrast:**
+**Three faces, three roles:**
 
-- **Playwrite NZ Basic** for headings — a handwriting face, weights 100–400. Always used at light weights (200–400). Loose, human, slightly fragile. It says: *"this is your story, in your handwriting."*
+- **Playwrite NZ Basic** is the voice — a handwriting face, weights 100–400, always light (200–400). Brand wordmark, taglines, glance lines, signatures, person names, and in-app headings. It says: *"this is your story, in your handwriting."*
+- **Fraunces** is the structure on the public pages — a warm, literary variable serif (optical sizes 9–144), used light (350–380), never bold. Hero statements and section headings on the landing, learn, tour, security, and privacy pages.
 - **Lato** for everything else — a humanist sans, weights 300/400/700/900 + italic 400. Body sits at **15px / line-height 1.5**.
 
 **Headings are LIGHT.** `h1` uses weight 200 at ~2rem; `h2` weight 300; `h3` weight 400. The handwriting face needs that air — never bold a heading.

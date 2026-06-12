@@ -1,0 +1,12 @@
+/* The living layer over hero photography: purely decorative, never blocks. */
+.ambient-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ambient-background canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -19,7 +19,8 @@
 }
 
 .privacy-title {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
+  font-weight: 350;
   font-size: 1.75rem;
   color: var(--color-text-primary);
   margin-bottom: var(--space-1);

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { AmbientBackground } from "./AmbientBackground";
 import { BackHome } from "./BackHome";
 import { Logomark } from "./Logomark";
 
@@ -38,6 +39,7 @@ export function AuthHero({
           decoding="async"
         />
       </picture>
+      <AmbientBackground />
       {showOverlay && (
         <div className="auth-hero__overlay">
           {homeLink ? <BackHome hero /> : <Logomark size={32} className="auth-hero__logomark" />}

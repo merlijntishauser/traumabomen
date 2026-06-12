@@ -133,8 +133,12 @@
   --color-band-even: rgba(255, 255, 255, 0.02);
   --color-band-odd: transparent;
 
-  /* Typography */
+  /* Typography. Three roles: the handwriting face is the personal voice
+     (brand name, taglines, glances, signatures), the display serif carries
+     structure on the public pages (statements, section headings), and the
+     sans does the reading work. */
   --font-heading: "Playwrite NZ Basic", "Georgia", cursive;
+  --font-display: "Fraunces", "Georgia", serif;
   --font-body: "Lato", "Helvetica Neue", sans-serif;
 
   /* Shadows (soft + green-tinted) */

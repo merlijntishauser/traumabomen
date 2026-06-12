@@ -52,6 +52,11 @@
   pointer-events: none;
 }
 
+/* Fireflies/light motes float above the vignette, below the overlay content. */
+.auth-hero .ambient-background {
+  z-index: 1;
+}
+
 /* Landing brand-mark overlay: Logomark + tagline, top-left of the hero. */
 .auth-hero__overlay {
   position: absolute;

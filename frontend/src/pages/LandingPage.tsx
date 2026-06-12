@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
+import { AmbientBackground } from "../components/AmbientBackground";
 import { Glimpse } from "../components/Glimpse";
 import { ShieldGlimpse } from "../components/LandingArt";
 import { getAccessToken, getFaq } from "../lib/api";
@@ -83,6 +84,31 @@ export default function LandingPage() {
     };
   }, [authed, t, faqItems]);
 
+  // Reveal sections as they scroll into view; one gentle, orchestrated system.
+  // Reduced-motion users see everything immediately (the CSS only animates
+  // under no-preference), as do environments without IntersectionObserver.
+  useEffect(() => {
+    if (authed) return;
+    const sections = document.querySelectorAll(".landing__sections .landing__section");
+    if (typeof IntersectionObserver === "undefined") {
+      for (const s of sections) s.classList.add("is-revealed");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    );
+    for (const s of sections) io.observe(s);
+    return () => io.disconnect();
+  }, [authed]);
+
   // Logged-in visitors skip the marketing page.
   if (authed) {
     return <Navigate to="/trees" replace />;
@@ -109,6 +135,7 @@ export default function LandingPage() {
             decoding="async"
           />
         </picture>
+        <AmbientBackground />
         <div className="landing__hero-shell">
           <header className="landing__hero-content">
             <h1 className="landing__hero-title">{t("app.title")}</h1>
@@ -130,6 +157,7 @@ export default function LandingPage() {
             <Glimpse name="tree" alt={t("landing.shotTreeAlt")} eager />
           </div>
         </div>
+        <div className="landing__scroll-cue" aria-hidden="true" />
       </section>
 
       <div className="landing__sections">

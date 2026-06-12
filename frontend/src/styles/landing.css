@@ -16,12 +16,17 @@
   }
 }
 
-/* Hero: photo-led opening with brand, message, and a product glimpse. */
+/* Hero: an immersive photo-led opening with brand, message, and a product
+   glimpse, under a slow drift of fireflies (dark) or light motes (light). */
 .landing__hero {
   position: relative;
-  min-height: min(640px, 74svh);
+  min-height: max(640px, 90svh);
   overflow: hidden;
   isolation: isolate;
+}
+
+.landing__hero .ambient-background {
+  z-index: 1;
 }
 
 .landing__hero-img {
@@ -67,7 +72,7 @@
 
 .landing__hero-shell {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -84,11 +89,13 @@
   max-width: 520px;
 }
 
+/* The brand stays a small handwritten wordmark; the statement carries the
+   hero in the display serif. Structure speaks, the voice signs. */
 .landing__hero-title {
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-5);
   font-family: var(--font-heading);
-  font-weight: 200;
-  font-size: 3.4rem;
+  font-weight: 300;
+  font-size: 1.6rem;
   line-height: 1.1;
   color: #f4efe6;
   text-shadow:
@@ -97,12 +104,13 @@
 }
 
 .landing__hero-message {
-  margin: 0 0 var(--space-4);
-  max-width: 28ch;
-  font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: 1.5rem;
-  line-height: 1.4;
+  margin: 0 0 var(--space-5);
+  max-width: 17ch;
+  font-family: var(--font-display);
+  font-weight: 350;
+  font-size: clamp(2.2rem, 4.8vw, 3.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   color: #f4efe6;
   text-shadow:
     0 2px 24px rgba(0, 0, 0, 0.6),
@@ -122,6 +130,43 @@
 .landing__hero-art {
   flex-shrink: 0;
   width: min(440px, 38vw);
+}
+
+/* A quiet scroll cue: a thin line that grows downward and fades, like a root. */
+.landing__scroll-cue {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  z-index: 2;
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, var(--color-accent), transparent);
+  transform-origin: top;
+  animation: landing-cue 3.2s ease-in-out infinite;
+}
+
+@keyframes landing-cue {
+  0% {
+    transform: scaleY(0.2);
+    opacity: 0;
+  }
+
+  45% {
+    transform: scaleY(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing__scroll-cue {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 /* Screenshot styling lives in components/Glimpse.css (shared with /tour). */
@@ -254,6 +299,23 @@
   margin-bottom: var(--space-15);
 }
 
+/* Sections reveal as they enter the viewport: one orchestrated, gentle rise
+   in the auth-reveal grammar. Reduced-motion users see everything at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .landing__sections .landing__section {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s ease-out;
+  }
+
+  .landing__sections .landing__section.is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .landing__row {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -301,10 +363,11 @@ figure.landing__art {
 }
 
 .landing__section-title {
-  font-family: var(--text-h2-family);
-  font-size: var(--text-h2-size);
-  font-weight: var(--text-h2-weight);
-  line-height: var(--text-h2-leading);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 380;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
   color: var(--color-text-primary);
   margin: 0 0 var(--space-4);
 }
@@ -529,13 +592,13 @@ figure.landing__art {
   }
 
   .landing__hero-title {
-    font-size: 2.6rem;
+    font-size: 1.35rem;
   }
 
   .landing__hero-message {
     margin-bottom: var(--space-3);
-    max-width: 23ch;
-    font-size: 1.25rem;
+    max-width: 16ch;
+    font-size: 1.9rem;
   }
 
   .landing__hero-lede {
@@ -557,8 +620,8 @@ figure.landing__art {
 }
 
 @media (max-width: 380px) {
-  .landing__hero-title {
-    font-size: 2.2rem;
+  .landing__hero-message {
+    font-size: 1.7rem;
   }
 }
 
@@ -573,10 +636,10 @@ figure.landing__art {
   }
 
   .landing__hero-title {
-    font-size: 3rem;
+    font-size: 1.5rem;
   }
 
   .landing__hero-message {
-    font-size: 1.4rem;
+    font-size: 2.4rem;
   }
 }
