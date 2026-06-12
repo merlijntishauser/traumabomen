@@ -24,13 +24,22 @@ function devHtmlPlaceholders(): Plugin {
   return {
     name: "dev-html-placeholders",
     apply: "serve",
-    transformIndexHtml(html) {
-      return html
-        .replace(/__OG_TITLE__/g, "Traumabomen (local dev)")
-        .replace(/__OG_DESC__/g, "Local development")
-        .replace(/__OG_ORIGIN__/g, "http://localhost:5173")
-        .replace(/__OG_LANG__/g, "en")
-        .replace(/__OG_LOCALE__/g, "en_US");
+    transformIndexHtml: {
+      // Run before Vite's own asset-URL rewriting, which would otherwise treat
+      // the bare placeholders as relative hrefs and prefix them with "/".
+      order: "pre",
+      handler(html, ctx) {
+        const path = (ctx.originalUrl ?? "/").split("?")[0];
+        return html
+          .replace(/__OG_TITLE__/g, "Traumabomen (local dev)")
+          .replace(/__OG_DESC__/g, "Local development")
+          .replace(/__OG_ORIGIN__/g, "http://localhost:5173")
+          .replace(/__OG_CANONICAL__/g, `http://localhost:5173${path}`)
+          .replace(/__OG_ALT_EN__/g, `http://localhost:5173${path}`)
+          .replace(/__OG_ALT_NL__/g, `http://localhost:5173${path}`)
+          .replace(/__OG_LANG__/g, "en")
+          .replace(/__OG_LOCALE__/g, "en_US");
+      },
     },
   };
 }

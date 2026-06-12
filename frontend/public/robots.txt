@@ -10,4 +10,4 @@ Disallow: /trees
 Disallow: /journal
 Disallow: /admin
 
-Sitemap: /sitemap.xml
+Sitemap: __OG_ORIGIN__/sitemap.xml
