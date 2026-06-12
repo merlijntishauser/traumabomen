@@ -20,23 +20,9 @@
   padding: var(--space-10) var(--space-5) var(--space-15);
 }
 
-.security-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  padding: 0;
+/* The back control is the shared components/BackHome.css. */
+.security-wrap > .back-home {
   margin-bottom: var(--space-8);
-  color: var(--color-action);
-  font: inherit;
-  font-size: 14px;
-  cursor: pointer;
-  transition: var(--transition-colors);
-}
-
-.security-back:hover {
-  color: var(--color-action-hover);
 }
 
 .security-poster {

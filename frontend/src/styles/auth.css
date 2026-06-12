@@ -67,52 +67,7 @@
   filter: drop-shadow(0 2px 18px rgba(0, 0, 0, 0.55));
 }
 
-/* Site name shown as a "back to home" control in place of the logo mark. The
-   arrow + pill make it read as a clickable return button over the photo. */
-.auth-hero__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  pointer-events: auto;
-  padding: 6px 14px 6px 11px;
-  border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: 1.2rem;
-  line-height: 1;
-  /* Off-white that reads on every hero variant; matches the tagline. */
-  color: #f4efe6;
-  text-decoration: none;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  transition: var(--transition-colors);
-}
-
-.auth-hero__brand:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #ffffff;
-}
-
-.auth-hero__brand-icon {
-  flex-shrink: 0;
-}
-
-/* Light theme: a soft light pill with dark text reads better on the bright hero
-   photo than the dark pill, which looks harsh there. */
-[data-theme="light"] .auth-hero__brand {
-  background: rgba(255, 253, 250, 0.65);
-  border-color: rgba(44, 51, 64, 0.12);
-  color: var(--color-text-primary);
-  text-shadow: none;
-}
-
-[data-theme="light"] .auth-hero__brand:hover {
-  background: rgba(255, 253, 250, 0.85);
-  border-color: rgba(44, 51, 64, 0.22);
-  color: var(--color-text-primary);
-}
+/* The back-to-home pill is the shared components/BackHome.css (hero variant). */
 
 .auth-hero__tagline {
   margin-top: var(--space-4);

@@ -40,7 +40,7 @@ export default function WaitlistPage() {
 
   return (
     <div className="auth-page">
-      <AuthHero />
+      <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
           <h1>{t("app.title")}</h1>

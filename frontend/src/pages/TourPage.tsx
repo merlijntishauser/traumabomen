@@ -1,7 +1,7 @@
-import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { BackHome } from "../components/BackHome";
 import { Glimpse } from "../components/Glimpse";
 import "../styles/tour.css";
 
@@ -33,10 +33,7 @@ export default function TourPage() {
   return (
     <div className="tour-page">
       <div className="tour-wrap">
-        <Link to="/" className="tour-back">
-          <ArrowLeft size={16} aria-hidden="true" />
-          {t("app.title")}
-        </Link>
+        <BackHome />
 
         <article>
           <header className="tour-header">

@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Ban,
   Check,
   Cpu,
@@ -13,7 +12,8 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { BackHome } from "../components/BackHome";
 import "../styles/security.css";
 
 type Card = { icon: LucideIcon; id: string; chips?: string[] };
@@ -35,7 +35,6 @@ const STEP2: Card[] = [
 
 export default function SecurityPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   function renderCard(step: "step1" | "step2", card: Card, index: number) {
     const Icon = card.icon;
@@ -63,10 +62,7 @@ export default function SecurityPage() {
   return (
     <div className="security-page">
       <div className="security-wrap">
-        <button type="button" className="security-back" onClick={() => navigate(-1)}>
-          <ArrowLeft size={16} aria-hidden="true" />
-          {t("auth.stepBack")}
-        </button>
+        <BackHome />
 
         <article className="security-poster">
           <header className="security-header">

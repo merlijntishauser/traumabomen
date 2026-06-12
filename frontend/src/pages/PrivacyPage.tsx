@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { BackHome } from "../components/BackHome";
 import "../styles/privacy.css";
 
 const SECTIONS = [
@@ -18,16 +19,13 @@ type Tab = "glance" | "detail";
 
 export default function PrivacyPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("glance");
   const [techOpen, setTechOpen] = useState(false);
 
   return (
     <div className="privacy-page">
       <div className="privacy-content">
-        <button type="button" className="privacy-back" onClick={() => navigate(-1)}>
-          &larr; {t("privacy.back")}
-        </button>
+        <BackHome />
 
         <h1 className="privacy-title">{t("privacy.title")}</h1>
         <p className="privacy-updated">{t("privacy.lastUpdated")}</p>

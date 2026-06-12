@@ -1,0 +1,56 @@
+/* The one back-to-home control on public pages: identical anatomy everywhere,
+   with a translucent variant for placement over hero photography. */
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 6px 11px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.back-home:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.back-home:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+/* Over hero photography: translucent surfaces instead of solid ones. */
+.back-home--hero {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.32);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #f4efe6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.back-home--hero:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+}
+
+[data-theme="light"] .back-home--hero {
+  background: rgba(255, 253, 250, 0.65);
+  border-color: rgba(44, 51, 64, 0.12);
+  color: var(--color-text-primary);
+  text-shadow: none;
+}
+
+[data-theme="light"] .back-home--hero:hover {
+  background: rgba(255, 253, 250, 0.85);
+  border-color: rgba(44, 51, 64, 0.22);
+  color: var(--color-text-primary);
+}

@@ -89,7 +89,7 @@ describe("AuthHero", () => {
     );
     const overlay = container.querySelector(".auth-hero__overlay");
     expect(overlay?.querySelector(".auth-hero__logomark")).toBeNull();
-    const brand = overlay?.querySelector(".auth-hero__brand");
+    const brand = overlay?.querySelector(".back-home");
     expect(brand?.textContent).toBe("app.title");
     expect(brand?.getAttribute("href")).toBe("/");
   });

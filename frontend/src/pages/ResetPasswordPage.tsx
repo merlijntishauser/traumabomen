@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
   if (!token) {
     return (
       <div className="auth-page auth-page--centered">
-        <AuthHero />
+        <AuthHero homeLink />
         <div className="auth-content">
           <div className="auth-card">
             <div className="auth-card__header">
@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="auth-page auth-page--centered">
-      <AuthHero />
+      <AuthHero homeLink />
       <div className="auth-content">
         <div className="auth-card">
           <div className="auth-card__header">

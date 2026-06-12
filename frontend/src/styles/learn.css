@@ -19,19 +19,9 @@
   padding: var(--space-8) var(--space-6) var(--space-15);
 }
 
-.learn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/* The back control is the shared components/BackHome.css. */
+.learn-wrap > .back-home {
   margin-bottom: var(--space-8);
-  color: var(--color-action);
-  font-size: 14px;
-  text-decoration: none;
-  transition: var(--transition-colors);
-}
-
-.learn-back:hover {
-  color: var(--color-action-hover);
 }
 
 .learn-header h1 {
