@@ -38,6 +38,15 @@
   transition: opacity 0.4s ease;
 }
 
+/* Parallax base: pre-scaled so the slower-scrolling photo never shows edges.
+   The JS only runs (and only transforms) under no-preference. */
+@media (prefers-reduced-motion: no-preference) {
+  .landing__hero-img {
+    transform: scale(1.1);
+    will-change: transform;
+  }
+}
+
 .landing__hero-img--dark {
   opacity: 1;
 }
@@ -286,8 +295,10 @@
   color: var(--color-text-primary);
 }
 
-/* Content sections: one 1100px column, zigzag text/art rows. */
+/* Content sections: one 1100px column, zigzag text/art rows. Position context
+   for the growing branch in the left gutter. */
 .landing__sections {
+  position: relative;
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;

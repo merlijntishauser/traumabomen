@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
 import { AmbientBackground } from "../components/AmbientBackground";
 import { Glimpse } from "../components/Glimpse";
+import { GrowingBranch } from "../components/GrowingBranch";
 import { ShieldGlimpse } from "../components/LandingArt";
 import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
@@ -109,6 +110,34 @@ export default function LandingPage() {
     return () => io.disconnect();
   }, [authed]);
 
+  // Gentle hero parallax: the photo recedes slower than the page scrolls.
+  // Transform-only (no layout shift), rAF-throttled, off under reduced motion.
+  useEffect(() => {
+    if (authed) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduced) return;
+    const scroller = document.querySelector(".landing");
+    const imgs = document.querySelectorAll<HTMLElement>(".landing__hero-img");
+    if (!scroller || imgs.length === 0) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const shift = Math.min(scroller.scrollTop * 0.25, 280);
+      for (const img of imgs) {
+        img.style.transform = `translate3d(0, ${shift}px, 0) scale(1.1)`;
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [authed]);
+
   // Logged-in visitors skip the marketing page.
   if (authed) {
     return <Navigate to="/trees" replace />;
@@ -161,6 +190,7 @@ export default function LandingPage() {
       </section>
 
       <div className="landing__sections">
+        <GrowingBranch />
         <section className="landing__section landing__row">
           <div>
             <h2 className="landing__section-title">{t("landing.whatTitle")}</h2>
