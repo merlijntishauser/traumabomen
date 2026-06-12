@@ -30,6 +30,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SecurityPage from "./pages/SecurityPage";
+import TourPage from "./pages/TourPage";
 import TreeListPage from "./pages/TreeListPage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
@@ -151,6 +152,7 @@ function AppContent() {
     pathname === "/privacy" ||
     pathname === "/security" ||
     pathname === "/learn" ||
+    pathname === "/tour" ||
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/waitlist" ||
@@ -270,6 +272,7 @@ function AppContent() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/learn" element={<LearnPage />} />
+              <Route path="/tour" element={<TourPage />} />
               <Route path="/verify-pending" element={<VerificationPendingPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

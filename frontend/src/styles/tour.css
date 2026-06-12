@@ -1,0 +1,134 @@
+/* =============================================
+   Tour page (a guided walk through the product, fictional demo data).
+   Centered reading column; all colour via theme tokens.
+   ============================================= */
+
+.tour-page {
+  width: 100%;
+  overflow-y: auto;
+  background: radial-gradient(
+    ellipse 90% 50% at 50% -10%,
+    var(--color-accent-subtle),
+    transparent 60%
+  );
+}
+
+.tour-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-15);
+}
+
+.tour-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-8);
+  color: var(--color-action);
+  font-size: 14px;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.tour-back:hover {
+  color: var(--color-action-hover);
+}
+
+.tour-header h1 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-heading);
+  font-weight: 200;
+  font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.tour-lede {
+  margin: 0 0 var(--space-3);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+/* The "everything here is fictional" note. */
+.tour-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.tour-stop {
+  position: relative;
+  margin-top: var(--space-10);
+  padding-top: var(--space-2);
+}
+
+.tour-stop__num {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: var(--font-heading);
+  font-weight: 200;
+  font-size: 4rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.tour-stop h2 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.tour-prose {
+  margin: 0 0 var(--space-5);
+  max-width: 65ch;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+.tour-stop__shot {
+  max-width: 760px;
+}
+
+.tour-closing {
+  margin-top: var(--space-10);
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.tour-closing .tour-prose {
+  max-width: none;
+  margin-bottom: var(--space-4);
+}
+
+.tour-closing__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 var(--space-6);
+  background: var(--color-action);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.tour-closing__link:hover {
+  background: var(--color-action-hover);
+  color: var(--color-text-inverse);
+}

@@ -124,28 +124,7 @@
   width: min(440px, 38vw);
 }
 
-/* Theme-aware screenshots: each theme shows its own capture. Aspect ratios
-   differ per capture, so swap with display rather than opacity. */
-.landing__shot {
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-
-.landing__shot--light {
-  display: none;
-}
-
-[data-theme="light"] .landing__shot--dark {
-  display: none;
-}
-
-[data-theme="light"] .landing__shot--light {
-  display: block;
-}
+/* Screenshot styling lives in components/Glimpse.css (shared with /tour). */
 
 .landing__cta-row {
   display: flex;
@@ -386,6 +365,10 @@ figure.landing__art {
   position: relative;
   z-index: 1;
   margin-bottom: 0;
+}
+
+.landing__after-steps {
+  margin: var(--space-5) 0 0;
 }
 
 /* Privacy reassurance line (handwriting face, light) */

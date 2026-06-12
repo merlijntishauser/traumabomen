@@ -2,37 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
+import { Glimpse } from "../components/Glimpse";
 import { ShieldGlimpse } from "../components/LandingArt";
 import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
-
-/** Theme-aware product screenshot (dark/light variants swap via CSS). */
-function Glimpse({ name, alt, eager }: { name: string; alt: string; eager?: boolean }) {
-  return (
-    <>
-      <picture>
-        <source srcSet={`/images/glimpse-${name}-dark.webp`} type="image/webp" />
-        <img
-          className="landing__shot landing__shot--dark"
-          src={`/images/glimpse-${name}-dark.jpg`}
-          alt={alt}
-          loading={eager ? undefined : "lazy"}
-          decoding="async"
-        />
-      </picture>
-      <picture>
-        <source srcSet={`/images/glimpse-${name}-light.webp`} type="image/webp" />
-        <img
-          className="landing__shot landing__shot--light"
-          src={`/images/glimpse-${name}-light.jpg`}
-          alt={alt}
-          loading={eager ? undefined : "lazy"}
-          decoding="async"
-        />
-      </picture>
-    </>
-  );
-}
 
 const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
@@ -186,6 +159,11 @@ export default function LandingPage() {
               </li>
             ))}
           </ol>
+          <p className="landing__after-steps">
+            <Link to="/tour" className="landing__link">
+              {t("landing.tourLink")}
+            </Link>
+          </p>
         </section>
 
         <section className="landing__section landing__row landing__row--flip">
