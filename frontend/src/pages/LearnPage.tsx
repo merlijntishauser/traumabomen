@@ -11,6 +11,11 @@ const REFERENCES = [
   { key: "ref4", url: "https://www.nctsn.org/what-is-child-trauma/trauma-types" },
 ] as const;
 
+// Reused across the document head (title, meta description, Article JSON-LD)
+// and the visible header, so they live as named keys.
+const TITLE_KEY = "learn.title";
+const LEDE_KEY = "learn.lede";
+
 export default function LearnPage() {
   const { t } = useTranslation();
 
@@ -21,16 +26,16 @@ export default function LearnPage() {
     const meta = document.querySelector('meta[name="description"]');
     const previousDescription = meta?.getAttribute("content") ?? null;
 
-    document.title = `${t("learn.title")} | ${t("app.title")}`;
-    meta?.setAttribute("content", t("learn.lede"));
+    document.title = `${t(TITLE_KEY)} | ${t("app.title")}`;
+    meta?.setAttribute("content", t(LEDE_KEY));
 
     const script = document.createElement("script");
     script.type = "application/ld+json";
     script.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Article",
-      headline: t("learn.title"),
-      description: t("learn.lede"),
+      headline: t(TITLE_KEY),
+      description: t(LEDE_KEY),
       author: { "@type": "Organization", name: t("app.title") },
     });
     document.head.appendChild(script);
@@ -51,8 +56,8 @@ export default function LearnPage() {
 
         <article>
           <header className="learn-header">
-            <h1>{t("learn.title")}</h1>
-            <p className="learn-lede">{t("learn.lede")}</p>
+            <h1>{t(TITLE_KEY)}</h1>
+            <p className="learn-lede">{t(LEDE_KEY)}</p>
           </header>
 
           <section className="learn-section">
