@@ -31,7 +31,6 @@ import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SecurityPage from "./pages/SecurityPage";
 import TourPage from "./pages/TourPage";
-import TreeListPage from "./pages/TreeListPage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
@@ -63,6 +62,9 @@ const InsightsPage = lazyWithReload(() => import("./pages/InsightsPage"));
 const JournalPage = lazyWithReload(() => import("./pages/JournalPage"));
 const PatternPage = lazyWithReload(() => import("./pages/PatternPage"));
 const TimelinePage = lazyWithReload(() => import("./pages/TimelinePage"));
+// Authenticated, behind AuthGuard. Lazy so a public visitor's first paint does
+// not carry the tree list (and its compactId and canvas-stylesheet deps).
+const TreeListPage = lazyWithReload(() => import("./pages/TreeListPage"));
 const TreeWorkspacePage = lazyWithReload(() => import("./pages/TreeWorkspacePage"));
 
 export function ErrorFallback() {
@@ -282,7 +284,9 @@ function AppContent() {
                 path="/trees"
                 element={
                   <AuthGuard>
-                    <TreeListPage />
+                    <LazyBoundary>
+                      <TreeListPage />
+                    </LazyBoundary>
                   </AuthGuard>
                 }
               />

@@ -67,6 +67,12 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
+          // React-family shim shared by react-i18next (eager) and zustand (only
+          // reachable via the lazy workspace's React Flow canvas). Pin it to the
+          // eager React chunk: otherwise rolldown parks it inside vendor-reactflow,
+          // and the eager i18n import drags the whole 205KB canvas graph (and its
+          // d3 deps) onto every public page. Must precede the @xyflow rule.
+          if (/[\\/]use-sync-external-store[\\/]/.test(id)) return "vendor-react";
           if (/[\\/]@xyflow[\\/]/.test(id) || /[\\/]dagre[\\/]/.test(id))
             return "vendor-reactflow";
           if (/[\\/]@tanstack[\\/]/.test(id)) return "vendor-query";
