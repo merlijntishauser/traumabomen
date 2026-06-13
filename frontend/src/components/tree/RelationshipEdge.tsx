@@ -13,6 +13,7 @@ import {
 import "./RelationshipEdge.css";
 
 function RelationshipEdgeComponent({
+  id,
   sourceX,
   sourceY,
   targetX,
@@ -21,7 +22,6 @@ function RelationshipEdgeComponent({
   targetPosition,
   selected,
   data,
-  ...rest
 }: EdgeProps & { data: RelationshipEdgeData }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
@@ -105,7 +105,7 @@ function RelationshipEdgeComponent({
         />
       ) : (
         <BaseEdge
-          {...rest}
+          id={id}
           path={edgePath}
           style={{ stroke, strokeWidth, strokeDasharray }}
           interactionWidth={20}
