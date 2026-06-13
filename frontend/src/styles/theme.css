@@ -615,8 +615,12 @@ button {
   transition: var(--transition-colors);
 }
 
+/* Re-assert the text colour on hover: when a button is an <a> the global
+   `a:hover` rule would otherwise tint it to the action colour, which on a
+   primary button matches the hover background and makes the label vanish. */
 .btn:hover {
   background: var(--color-bg-hover);
+  color: var(--color-text-primary);
 }
 
 .btn--primary {
@@ -627,6 +631,7 @@ button {
 
 .btn--primary:hover {
   background: var(--color-action-hover);
+  color: var(--color-text-inverse);
 }
 
 .btn--danger {
@@ -636,6 +641,7 @@ button {
 
 .btn--danger:hover {
   background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 /* Shared gradient background with dither to prevent banding */
