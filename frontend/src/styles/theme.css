@@ -38,11 +38,15 @@
      ring on a node. GREEN in dark, INDIGO in light — see [data-theme="light"]
      override below. Rule of thumb: anything the user *does* uses --color-action;
      anything that *represents the brand or a tree* uses --color-accent. */
-  --color-action: #2d8a5e;
-  --color-action-hover: #24704c;
-  --color-action-subtle: rgba(45, 138, 94, 0.12);
-  --color-action-focus-ring: rgba(45, 138, 94, 0.35);
-  --color-action-border: rgba(45, 138, 94, 0.3);
+  /* Lightened so it clears WCAG AA (4.5:1) in both roles: near-black inverse
+     text on a filled button, and as link text on the darker bg-secondary
+     surface. The old #2d8a5e measured 4.2:1 on buttons. Hover stays a touch
+     darker and still passes on buttons. */
+  --color-action: #339a66;
+  --color-action-hover: #2f9362;
+  --color-action-subtle: rgba(51, 154, 102, 0.12);
+  --color-action-focus-ring: rgba(51, 154, 102, 0.35);
+  --color-action-border: rgba(51, 154, 102, 0.3);
 
   /* Danger */
   --color-danger: #ef4444;

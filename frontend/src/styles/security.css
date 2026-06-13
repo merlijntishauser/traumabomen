@@ -296,8 +296,12 @@
   font-size: 14px;
 }
 
+/* Inline within the footer sentence, so it must be distinguishable by more
+   than colour: underline it (WCAG use-of-color). */
 .security-footer a {
   color: var(--color-action);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ---- One gentle staggered reveal on load (auth-reveal grammar) ---- */
