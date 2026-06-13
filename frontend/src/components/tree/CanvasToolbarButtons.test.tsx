@@ -16,8 +16,10 @@ describe("CanvasToolbarButtons", () => {
     hasLayout: true,
     onUndo: vi.fn(),
     canUndo: true,
-    patternPanelOpen: false,
-    onTogglePatterns: vi.fn(),
+    patterns: new Map(),
+    focusedPatternId: null,
+    onFocusPattern: vi.fn(),
+    onManagePatterns: vi.fn(),
     journalPanelOpen: false,
     onToggleJournal: vi.fn(),
   };
@@ -27,7 +29,7 @@ describe("CanvasToolbarButtons", () => {
     expect(screen.getByRole("button", { name: "tree.addPerson" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "tree.autoLayout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "tree.undo" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "pattern.editPatterns" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "pattern.focus.menu" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "journal.tab" })).toBeInTheDocument();
   });
 
@@ -46,9 +48,9 @@ describe("CanvasToolbarButtons", () => {
     expect(screen.getByRole("button", { name: "tree.undo" })).toBeDisabled();
   });
 
-  it("applies active class to patterns button when panel is open", () => {
-    render(<CanvasToolbarButtons {...defaultProps} patternPanelOpen={true} />);
-    const btn = screen.getByRole("button", { name: "pattern.editPatterns" });
+  it("applies active class to the pattern menu when a pattern is focused", () => {
+    render(<CanvasToolbarButtons {...defaultProps} focusedPatternId="p1" />);
+    const btn = screen.getByRole("button", { name: "pattern.focus.menu" });
     expect(btn.className).toContain("tree-toolbar__icon-btn--active");
   });
 

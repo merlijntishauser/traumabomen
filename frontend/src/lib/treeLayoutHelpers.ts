@@ -23,6 +23,10 @@ export interface PersonNodeData extends Record<string, unknown> {
   classifications: DecryptedClassification[];
   turningPoints: DecryptedTurningPoint[];
   isFriendOnly?: boolean;
+  /** When a pattern is focused and this person belongs to it: the pattern
+   *  colour, painted on the node's top border. Non-members are dimmed via a
+   *  wrapper class instead, so they need no data. */
+  focusColor?: string;
 }
 
 export type MarkerShape = "circle" | "square" | "diamond" | "triangle";

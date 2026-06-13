@@ -294,10 +294,6 @@ vi.mock("../components/tree/CanvasSettingsContent", () => ({
   CanvasSettingsContent: () => <div data-testid="canvas-settings" />,
 }));
 
-vi.mock("../components/tree/PatternConnectors", () => ({
-  PatternConnectors: () => <div data-testid="pattern-connectors" />,
-}));
-
 vi.mock("../components/tree/PersonNode", () => ({
   PersonNode: () => <div data-testid="person-node" />,
 }));
@@ -414,11 +410,6 @@ describe("TreeWorkspacePage", () => {
     render(<TreeWorkspacePage />);
     expect(screen.getByTestId("canvas-toolbar-buttons")).toBeInTheDocument();
     expect(screen.getByTestId("add-person-btn")).toBeInTheDocument();
-  });
-
-  it("renders pattern connectors overlay", () => {
-    render(<TreeWorkspacePage />);
-    expect(screen.getByTestId("pattern-connectors")).toBeInTheDocument();
   });
 
   it("renders workspace panel host", () => {

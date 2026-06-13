@@ -269,6 +269,25 @@
   background: var(--color-bg-secondary);
 }
 
+/* Pattern focus mode: spotlight one pattern. Non-member nodes get a dim class;
+   member nodes stay full opacity (their top border is recoloured inline). All
+   edges and edge markers fade via the focused wrapper. Opacity transitions both
+   ways for a gentle fade in and out. */
+.react-flow__node,
+.react-flow__edge,
+.edge-marker {
+  transition: opacity 0.2s ease;
+}
+
+.react-flow__node.rf-node-dimmed {
+  opacity: 0.16;
+}
+
+.tree-canvas--focused .react-flow__edge,
+.tree-canvas--focused .edge-marker {
+  opacity: 0.16;
+}
+
 /* Layout animation -- applied temporarily during auto-layout / undo */
 .layout-animating .react-flow__node {
   transition: transform 0.3s ease-out;

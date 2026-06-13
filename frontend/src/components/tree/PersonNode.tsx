@@ -25,6 +25,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
     classifications = [],
     turningPoints = [],
     isFriendOnly,
+    focusColor,
   } = data;
   const showTraumaInitials = events.length > 1;
   const showLifeInitials = lifeEvents.length > 1;
@@ -60,7 +61,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: PersonNodeD
     .join(" ");
 
   return (
-    <div className={classNames}>
+    <div className={classNames} style={focusColor ? { borderTopColor: focusColor } : undefined}>
       {/* Interactive handles */}
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Bottom} id="bottom" />

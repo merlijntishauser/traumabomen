@@ -1,5 +1,7 @@
-import { BookOpen, LayoutGrid, Undo2, UserPlus, Waypoints } from "lucide-react";
+import { BookOpen, LayoutGrid, Undo2, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { DecryptedPattern } from "../../hooks/useTreeData";
+import { PatternFocusMenu } from "./PatternFocusMenu";
 
 interface CanvasToolbarButtonsProps {
   onAddPerson: () => void;
@@ -8,8 +10,10 @@ interface CanvasToolbarButtonsProps {
   hasLayout: boolean;
   onUndo: () => void;
   canUndo: boolean;
-  patternPanelOpen: boolean;
-  onTogglePatterns: () => void;
+  patterns: Map<string, DecryptedPattern>;
+  focusedPatternId: string | null;
+  onFocusPattern: (id: string | null) => void;
+  onManagePatterns: () => void;
   journalPanelOpen: boolean;
   onToggleJournal: () => void;
 }
@@ -21,8 +25,10 @@ export function CanvasToolbarButtons({
   hasLayout,
   onUndo,
   canUndo,
-  patternPanelOpen,
-  onTogglePatterns,
+  patterns,
+  focusedPatternId,
+  onFocusPattern,
+  onManagePatterns,
   journalPanelOpen,
   onToggleJournal,
 }: CanvasToolbarButtonsProps) {
@@ -59,14 +65,12 @@ export function CanvasToolbarButtons({
           <Undo2 size={14} />
         </button>
       </div>
-      <button
-        type="button"
-        className={`tree-toolbar__icon-btn${patternPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}
-        onClick={onTogglePatterns}
-        aria-label={t("pattern.editPatterns")}
-      >
-        <Waypoints size={14} />
-      </button>
+      <PatternFocusMenu
+        patterns={patterns}
+        focusedPatternId={focusedPatternId}
+        onFocus={onFocusPattern}
+        onManage={onManagePatterns}
+      />
       <button
         type="button"
         className={`tree-toolbar__icon-btn${journalPanelOpen ? " tree-toolbar__icon-btn--active" : ""}`}

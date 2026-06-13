@@ -20,7 +20,7 @@ import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
-import { PatternConnectors } from "../components/tree/PatternConnectors";
+import { PatternFocusBanner } from "../components/tree/PatternFocusBanner";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
@@ -51,12 +51,14 @@ import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
 import { buildSiblingParentInheritance } from "../lib/parentInheritance";
+import { getPatternColor } from "../lib/patternColors";
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
 const edgeTypes = { relationship: RelationshipEdge };
+const EMPTY_PATTERN_IDS = new Set<string>();
 
 const NODE_W = 180;
 const NODE_H = 80;
@@ -554,9 +556,7 @@ function CanvasContent({
   onEdgeClick,
   onConnect,
   canvasSettings,
-  patterns,
-  effectiveVisiblePatternIds,
-  onPatternClick,
+  focused,
   showReflectionPrompts,
   journalPanelOpen,
   personsSize,
@@ -575,9 +575,7 @@ function CanvasContent({
   onEdgeClick: (event: React.MouseEvent, edge: RelationshipEdgeType) => void;
   onConnect: OnConnect;
   canvasSettings: ReturnType<typeof useCanvasSettings>["settings"];
-  patterns: ReturnType<typeof useTreeData>["patterns"];
-  effectiveVisiblePatternIds: Set<string>;
-  onPatternClick: () => void;
+  focused: boolean;
   showReflectionPrompts: boolean;
   journalPanelOpen: boolean;
   personsSize: number;
@@ -585,10 +583,14 @@ function CanvasContent({
   openJournal: (prompt: string) => void;
   isLoading: boolean;
 }) {
+  const flowClassName =
+    [animatingLayout && "layout-animating", focused && "tree-canvas--focused"]
+      .filter(Boolean)
+      .join(" ") || undefined;
   return (
     <>
       <ReactFlow
-        className={animatingLayout ? "layout-animating" : undefined}
+        className={flowClassName}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -611,11 +613,6 @@ function CanvasContent({
         {canvasSettings.showMinimap && <MiniMap />}
         <Controls showInteractive={false} />
       </ReactFlow>
-      <PatternConnectors
-        patterns={patterns}
-        visiblePatternIds={effectiveVisiblePatternIds}
-        onPatternClick={onPatternClick}
-      />
       {showReflectionPrompts && !journalPanelOpen && personsSize > 0 && (
         <ReflectionNudge onOpenJournal={(prompt) => openJournal(prompt)} />
       )}
@@ -844,6 +841,57 @@ function useCanvasEventHandlers(opts: {
   };
 }
 
+/* -- Pattern focus -------------------------------------------------------- */
+
+/**
+ * Pattern focus mode: spotlight one pattern. Members keep full clarity with
+ * their top border recoloured (focusColor); everyone else is dimmed via a
+ * wrapper class. The node tagging is a cheap post-map, so focus never re-runs
+ * the layout.
+ */
+function usePatternFocus(
+  patterns: ReturnType<typeof useTreeData>["patterns"],
+  nodes: AnyNodeType[],
+  initialFocusId: string | null,
+) {
+  const [focusedPatternId, setFocusedPatternId] = useState<string | null>(initialFocusId);
+  const focusedPattern = focusedPatternId ? (patterns.get(focusedPatternId) ?? null) : null;
+  const focusColor = focusedPattern ? getPatternColor(focusedPattern.color) : null;
+  const focusMemberIds = useMemo(
+    () => (focusedPattern ? new Set(focusedPattern.person_ids) : null),
+    [focusedPattern],
+  );
+  const displayNodes = useMemo(() => {
+    if (!focusMemberIds || !focusColor) return nodes;
+    return nodes.map((node) => {
+      const isMember = node.type === "person" && focusMemberIds.has(node.id);
+      const className = isMember
+        ? node.className
+        : [node.className, "rf-node-dimmed"].filter(Boolean).join(" ");
+      if (node.type === "person") {
+        return {
+          ...node,
+          className,
+          data: { ...node.data, focusColor: isMember ? focusColor : undefined },
+        };
+      }
+      return { ...node, className };
+    });
+  }, [nodes, focusMemberIds, focusColor]);
+  const visiblePatternIds = useMemo(
+    () => (focusedPatternId ? new Set([focusedPatternId]) : EMPTY_PATTERN_IDS),
+    [focusedPatternId],
+  );
+  return {
+    focusedPatternId,
+    setFocusedPatternId,
+    focusedPattern,
+    focusColor,
+    displayNodes,
+    visiblePatternIds,
+  };
+}
+
 /* -- Main inner component -------------------------------------------------- */
 
 function TreeWorkspaceInner() {
@@ -861,15 +909,6 @@ function TreeWorkspaceInner() {
     canvasInteractionReducer,
     canvasInteractionInitialState,
   );
-  const [visiblePatternIds, setVisiblePatternIds] = useState<Set<string>>(
-    openPatternId ? new Set([openPatternId]) : new Set(),
-  );
-
-  const effectiveVisiblePatternIds = useMemo(() => {
-    if (!panels.hoveredPatternId || visiblePatternIds.has(panels.hoveredPatternId))
-      return visiblePatternIds;
-    return new Set([...visiblePatternIds, panels.hoveredPatternId]);
-  }, [visiblePatternIds, panels.hoveredPatternId]);
 
   const treeData = useTreeData(treeId!);
   const {
@@ -948,6 +987,15 @@ function TreeWorkspaceInner() {
     fitView,
   );
 
+  const {
+    focusedPatternId,
+    setFocusedPatternId,
+    focusedPattern,
+    focusColor,
+    displayNodes,
+    visiblePatternIds,
+  } = usePatternFocus(patterns, nodes, openPatternId ?? null);
+
   const actions = useCanvasActions({
     treeId: treeId!,
     persons,
@@ -981,16 +1029,10 @@ function TreeWorkspaceInner() {
     onPersonSaved: () => setSelectedPersonId(null),
   });
 
+  // Single-select: toggling a pattern in the manage panel focuses it (or clears
+  // focus if it was already the focused one).
   function handleTogglePatternVisibility(patternId: string) {
-    setVisiblePatternIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(patternId)) {
-        next.delete(patternId);
-      } else {
-        next.add(patternId);
-      }
-      return next;
-    });
+    setFocusedPatternId((prev) => (prev === patternId ? null : patternId));
   }
 
   const selectedEntities = useSelectedPersonEntities(
@@ -1036,8 +1078,10 @@ function TreeWorkspaceInner() {
           hasLayout={actions.hasPinnedNodes}
           onUndo={actions.handleUndo}
           canUndo={canUndo}
-          patternPanelOpen={panels.patternPanelOpen}
-          onTogglePatterns={() => panels.setPatternPanelOpen((v) => !v)}
+          patterns={patterns}
+          focusedPatternId={focusedPatternId}
+          onFocusPattern={setFocusedPatternId}
+          onManagePatterns={() => panels.setPatternPanelOpen(true)}
           journalPanelOpen={panels.journalPanelOpen}
           onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
         />
@@ -1050,7 +1094,7 @@ function TreeWorkspaceInner() {
         ) : (
           <CanvasContent
             animatingLayout={canvasState.animatingLayout}
-            nodes={nodes}
+            nodes={displayNodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onNodeClick={canvasEvents.onNodeClick}
@@ -1060,15 +1104,22 @@ function TreeWorkspaceInner() {
             onEdgeClick={canvasEvents.onEdgeClick}
             onConnect={canvasEvents.onConnect}
             canvasSettings={canvasSettings}
-            patterns={patterns}
-            effectiveVisiblePatternIds={effectiveVisiblePatternIds}
-            onPatternClick={() => panels.setPatternPanelOpen(true)}
+            focused={!!focusedPattern}
             showReflectionPrompts={canvasSettings.showReflectionPrompts}
             journalPanelOpen={panels.journalPanelOpen}
             personsSize={persons.size}
             onAddPerson={actions.handleAddPerson}
             openJournal={(prompt) => panels.openJournal(prompt)}
             isLoading={isLoading}
+          />
+        )}
+
+        {focusedPattern && focusColor && (
+          <PatternFocusBanner
+            pattern={focusedPattern}
+            color={focusColor}
+            entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
+            onExit={() => setFocusedPatternId(null)}
           />
         )}
 
