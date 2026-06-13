@@ -26,9 +26,16 @@
   border-color: var(--color-node-friend);
 }
 
+/* A soft elevation on hover, through the existing colour/shadow transition: no
+   scale, no spring. A selected node keeps its focus ring instead. */
+.person-node:not(.person-node--selected):hover {
+  box-shadow: var(--shadow-md);
+}
+
 .person-node__name {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.2;
   letter-spacing: 0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -38,7 +45,8 @@
 .person-node__years {
   color: var(--color-text-secondary);
   font-size: 12px;
-  margin-top: var(--space-0\.5);
+  line-height: 1.25;
+  margin-top: var(--space-1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -54,7 +62,7 @@
   align-items: center;
   gap: 5px;
   margin-top: auto;
-  padding-top: var(--space-1\.5);
+  padding-top: var(--space-1);
   flex-shrink: 0;
 }
 
