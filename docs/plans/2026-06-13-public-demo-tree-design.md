@@ -60,12 +60,19 @@ fixture (lazy `import()`, same as `createDemoTree.loadFixture`) and memoizes
 
 ## Component reuse and the read-only renderer
 
+Verified (the load-bearing premise): `useTreeLayout`, `PersonNode`,
+`RelationshipEdge`, `SiblingGroupNode`, `PatternConnectors`, and `TimelineView`
+import only *types* from `useTreeData` (`import type { DecryptedX }`, erased at
+compile time). None reach into auth, encryption, query, or mutation runtime. So a
+fixture-fed, read-only render genuinely works with no master key.
+
 The hard parts of the workspace are data-source-agnostic and reusable directly:
 
 - `useTreeLayout(persons, relationships, events, selected, lifeEvents, settings, classifications, turningPoints, siblingGroups)` is a pure `useMemo` over the maps to React Flow nodes/edges.
 - The node/edge components (`PersonNode`, `SiblingGroupNode`, `RelationshipEdge`) render from layout output.
-- `TimelineView` renders from the same maps.
-- The detail panels can render read-only.
+- `PatternConnectors` overlays cross-generational pattern links from the same maps.
+- `filterByPerson` (exported from `useTreeData`) is a presentational helper for the read-only card.
+- `TimelineView` renders from the same maps (fast-follow, not v1).
 
 What is **not** reused: `useTreeData` (auth/decrypt gated), `useTreeMutations`
 (the entire write surface: create/update/delete/sync), `useWorkspacePanels`,
@@ -87,28 +94,36 @@ The demo canvas allows pan, zoom, fit-view, minimap, and node selection. It
 disables everything that writes or implies persistence:
 
 - No `onConnect`, no drag-to-create, no add-person, no context menus that mutate.
-- Node dragging: allowed for feel, never persisted (no mutation, no position history).
-- Clicking a node opens a **read-only** detail panel (person fields, their events,
-  life events, classifications), with all inputs replaced by static display and no
-  save/delete. Reuse `PersonDetailPanel` behind a `readOnly` prop, or a dedicated
-  `DemoDetailPanel` if retrofitting the panel proves invasive (decide during build).
+- **Node dragging is locked** (`nodesDraggable={false}`): one prop, and it reads as
+  read-only. (Simpler than "draggable but non-persisted", which needs handlers.)
+- Clicking a node opens a **lightweight read-only person card** (a new
+  `DemoPersonCard`), not the live editor. It shows the person's fields and, via the
+  exported `filterByPerson`, their trauma events, life events, and classifications,
+  as static display. We do **not** retrofit `PersonDetailPanel` (371 lines, ~17
+  input/mutation sites): too invasive, and it would put the live editor at risk for
+  a demo.
 - No settings panel, no export/import, no journal editing.
 - The page never mounts `useTreeMutations` and never calls the write API, so a
   mutation cannot fire even by mistake.
 
 ## Routing and guards
 
-- New public routes, lazy-loaded: `/demo` (canvas) and `/demo/timeline`. A demo
-  `ViewTabs` variant links between them and shows a persistent "create your own"
-  CTA.
-- Registered in `App.tsx` as public routes (no `AuthGuard`), and they must render
+- New public route, lazy-loaded: `/demo` (canvas) for v1. `/demo/timeline` arrives
+  with the timeline fast-follow; a demo `ViewTabs` variant (`DemoTabs`) is built
+  then. In v1 the demo chrome is a minimal header: tree name, a back-to-site
+  control, and the persistent "create your own" CTA.
+- Registered in `App.tsx` as a public route (no `AuthGuard`), and it must render
   with **no master key**: the demo path must not depend on `EncryptionProvider`
   state. `useDemoTreeData` supplies data directly, so the page works for a logged-
   out visitor.
-- **Lazy is mandatory.** The demo pulls `vendor-reactflow` and `vendor-d3`. It must
-  be a `lazyWithReload` route so it does not regress the public landing budget that
-  the recent perf work protected (those chunks stay out of the entry; they load
-  only when `/demo` is opened).
+- **`isPublicRoute` in `App.tsx` must include `/demo`** (and later `/demo/timeline`).
+  Otherwise `AppContent` treats it as an authenticated route and the unlock/reauth
+  `AuthModal` fires over the demo. This is the one concrete wiring the "no
+  EncryptionProvider dependency" goal hinges on.
+- **Lazy is mandatory.** The demo pulls `vendor-reactflow` (and the canvas pulls in
+  the layout/dagre code). It must be a `lazyWithReload` route so it does not regress
+  the public landing budget that the recent perf work protected (those chunks stay
+  out of the entry; they load only when `/demo` is opened).
 
 ## Entry points, CTAs, and `/tour`
 
@@ -129,9 +144,12 @@ apply: "you/your", no exclamation marks, no em-dashes.
 
 ## Scope
 
-- **First cut:** `/demo` canvas (pan/zoom/click) + read-only person detail panel +
-  `/demo/timeline`, CTAs, read-only banner, lazy route, EN/NL.
-- **Fast-follow:** read-only patterns and insights views.
+- **First cut (v1): canvas only.** `/demo` pannable/zoomable canvas with pattern
+  connectors, the read-only `DemoPersonCard` on node click, a read-only banner, the
+  "create your own" CTA, a lazy route, and EN/NL. This is the whole "pan and click"
+  conversion wow on its own.
+- **First fast-follow:** the read-only timeline (`/demo/timeline` + `DemoTabs`).
+- **Later:** read-only patterns and insights views.
 - **Out of scope:** any backend change; editing of any kind; a shared
   `<TreeCanvasView>` refactor of the real workspace.
 
@@ -147,30 +165,40 @@ apply: "you/your", no exclamation marks, no em-dashes.
 
 ## Files
 
-### New
+### New (v1)
 
 | File | Purpose |
 |------|---------|
 | `frontend/src/lib/buildDemoState.ts` | Fixture to in-memory decrypted maps (+ `.unit.test.ts`) |
 | `frontend/src/hooks/useDemoTreeData.ts` | Load language fixture, memoize `buildDemoState` |
-| `frontend/src/pages/DemoTreePage.tsx` | Read-only canvas page (lazy) |
-| `frontend/src/pages/DemoTimelinePage.tsx` | Read-only timeline page (lazy) |
-| `frontend/src/components/tree/DemoTabs.tsx` | Demo `ViewTabs` variant + create-your-own CTA |
+| `frontend/src/pages/DemoTreePage.tsx` | Read-only canvas page, lazy; minimal demo header + banner + CTA |
+| `frontend/src/components/tree/DemoPersonCard.tsx` | Lightweight read-only person card (uses `filterByPerson`) |
 
-### Modified
+### Modified (v1)
 
 | File | Changes |
 |------|---------|
-| `frontend/src/App.tsx` | Public lazy `/demo` and `/demo/timeline` routes |
-| `frontend/src/components/tree/PersonDetailPanel.tsx` | Optional `readOnly` prop (or a new `DemoDetailPanel`) |
-| `frontend/src/pages/LandingPage.tsx` | "Explore a live demo" CTA |
-| `frontend/public/locales/{en,nl}/translation.json` | Demo-shell strings |
+| `frontend/src/App.tsx` | Public lazy `/demo` route **and add `/demo` to `isPublicRoute`** |
+| `frontend/src/pages/LandingPage.tsx` | "Explore a live demo" CTA beside the `/tour` link |
+| `frontend/public/locales/{en,nl}/translation.json` | Demo-shell strings (banner, CTA, card labels) |
 | `frontend/public/sitemap.xml`, route meta | Add `/demo` |
 
-## Open questions
+### Fast-follow (timeline)
 
-1. Read-only panel: retrofit `PersonDetailPanel` with a `readOnly` prop, or a
-   dedicated `DemoDetailPanel`? Decide once we see how much of the panel is
-   input-bound.
-2. Does the live `/demo` replace the `/tour` link on the landing, or sit beside it?
-3. Should node dragging be enabled (nice feel) or locked (clearer "read-only")?
+| File | Purpose |
+|------|---------|
+| `frontend/src/pages/DemoTimelinePage.tsx` | Read-only timeline page (lazy) |
+| `frontend/src/components/tree/DemoTabs.tsx` | Demo `ViewTabs` variant linking `/demo` and `/demo/timeline` |
+
+## Resolved decisions
+
+- **Read-only surface:** a lightweight `DemoPersonCard`, not a `readOnly` retrofit of `PersonDetailPanel`.
+- **Node dragging:** locked (`nodesDraggable={false}`).
+- **Pattern connectors:** shown on the v1 canvas.
+- **v1 scope:** canvas only; timeline is the first fast-follow.
+- **`/tour`:** the live `/demo` link sits beside the `/tour` link for now.
+
+## Open question
+
+1. Once the live `/demo` proves itself, does it fold in / replace `/tour`, or do
+   both stay? Deferred until we can compare them.
