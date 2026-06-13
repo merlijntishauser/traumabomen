@@ -483,7 +483,7 @@ Backend tests are split into two directories under `api/tests/`:
 The app uses a nature-inspired aesthetic with strong thematic coherence. Three themes are available:
 
 - **Dark** (default): "Midnight forest" with near-black greens. Accent: forest green (`#2d8a5e`).
-- **Light**: "Morning light through birches" with warm linen-sage. Brand accent: forest green (`#34a066`); actions and CTAs: indigo (`#4f46e5`).
+- **Light**: "Morning light through birches" with warm linen-sage. The light theme reads indigo: both the brand accent and actions/CTAs use indigo (`#4f46e5`), since green-on-cream reads generic-wellness while indigo reads literary.
 - **Watercolor** (feature-flagged): Soft teal-blue on warm cream/parchment. Accent: teal-blue (`#4a9bb5`). Gated behind the `watercolor_theme` feature flag; only visible when an admin enables it.
 
 The theme system uses `useSyncExternalStore` for cross-component state synchronization, with `useAvailableThemes` deriving the theme list from feature flags. Settings show radio buttons; the toolbar ThemeToggle cycles through available themes.
@@ -501,7 +501,7 @@ The theme system uses `useSyncExternalStore` for cross-component state synchroni
 All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`, watercolor via `[data-theme="watercolor"]`.
 
 - **Surfaces:** 5-level depth scale from `--color-bg-primary` (deepest) to `--color-bg-hover` (interactive)
-- **Accent vs action:** `--color-accent` is the brand/nature green in every theme (`#2d8a5e` dark, `#34a066` light); `--color-action` is what the user *does* (buttons, links, CTAs) and is green in dark but indigo (`#4f46e5`) in light, where green-on-cream would read generic-wellness. Watercolor uses teal-blue (`#4a9bb5`). All with hover, subtle, and focus-ring variants
+- **Accent vs action:** `--color-accent` is the brand/nature colour: forest green in dark (`#2d8a5e`), teal-blue in watercolor (`#4a9bb5`), and **indigo (`#4f46e5`) in the light theme** (green-on-cream reads generic-wellness; indigo reads literary). `--color-action` is what the user *does* (buttons, links, CTAs): green in dark and the same indigo in light. So in the light theme accent and action share one indigo; they diverge only in dark. All with hover, subtle, and focus-ring variants
 - **Text:** 4-level hierarchy: primary, secondary, muted, inverse
 - **Semantic:** Danger (red), edge types (pink/purple/orange for partner/half-sibling/friend), trauma categories (7 colors), life event categories (6 colors), classification status (amber suspected, blue diagnosed)
 

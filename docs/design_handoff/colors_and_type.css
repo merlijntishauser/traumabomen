@@ -174,15 +174,15 @@
   --color-text-muted: #9aa5b2;
   --color-text-inverse: #ffffff;
 
-  --color-accent: #34a066;
-  --color-accent-hover: #2b8a56;
-  --color-accent-subtle: rgba(52, 160, 102, 0.08);
-  --color-accent-focus-ring: rgba(52, 160, 102, 0.25);
-  --color-accent-border: rgba(52, 160, 102, 0.3);
+  /* The light theme reads indigo: green on cream reads generic-wellness, indigo
+     on cream reads literary and considered. Both the brand accent and the
+     actions use the same indigo here; dark and watercolor keep green / teal. */
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-subtle: rgba(79, 70, 229, 0.08);
+  --color-accent-focus-ring: rgba(79, 70, 229, 0.25);
+  --color-accent-border: rgba(79, 70, 229, 0.3);
 
-  /* Actions turn INDIGO in light: green-on-cream reads generic-wellness,
-     indigo-on-cream reads literary and considered. The forest stays the
-     forest (logo, leaf, tree edges keep --color-accent green). */
   --color-action: #4f46e5;
   --color-action-hover: #4338ca;
   --color-action-subtle: rgba(79, 70, 229, 0.07);

@@ -102,7 +102,7 @@ A walk in a misty forest at dusk. Dark forest green by default; warm cream as th
 
 **Two themes ship today** — `dark` (default, `:root`) and `light` (`[data-theme="light"]`). The HTML preloads the saved theme before first paint to avoid flashing. A third `watercolor` theme is hinted at in the boot script and reserved for later.
 
-The dark palette is built around `#0a1a0f` (near-black forest floor) → `#0f261a` (canvas) → `#1f4d35` (border). In dark, a single forest green `#2d8a5e` carries both the brand accent and the actions (CTAs, focus rings, links, selection). The light palette swaps to `#f7f5f2` cream with text in slate `#2c3340`, and splits the roles: the brand accent stays green (`#34a066`, logo, leaf, tree edges) while **actions turn indigo** (`#4f46e5`, buttons, links, CTAs). Green-on-cream reads generic-wellness; indigo-on-cream reads literary and considered. Use `--color-action` for anything the user does and `--color-accent` for anything that represents the brand or a tree.
+The dark palette is built around `#0a1a0f` (near-black forest floor) → `#0f261a` (canvas) → `#1f4d35` (border). In dark, a single forest green `#2d8a5e` carries both the brand accent and the actions (CTAs, focus rings, links, selection). The light palette swaps to `#f7f5f2` cream with text in slate `#2c3340`, and **reads indigo**: both the brand accent and the actions use indigo (`#4f46e5`, logo, leaf, tree edges, buttons, links, CTAs). Green-on-cream reads generic-wellness; indigo-on-cream reads literary and considered. `--color-accent` and `--color-action` share the same indigo in the light theme; they diverge only in dark, where both are forest green.
 
 **Semantic color is broad.** Trauma categories, life-event categories, classification status, turning points, and pattern-overlay annotations each get their own hue. These colors are tools for the user to think with — they are not decorative. See `colors_and_type.css` for the full list. Pattern colors rotate through 8 hues so multiple user-created annotations stay distinguishable.
 
@@ -159,7 +159,7 @@ Theme switches transition with a 0.4s cross-fade on the hero images and a 0.4s b
 
 - **Buttons hover**: background shifts to a warmer tier (`--color-bg-hover`) or to the accent's hover variant (`--color-accent-hover`, ~10% darker). Border may shift up one tier.
 - **Links hover**: color from `--color-accent` to `--color-accent-hover`.
-- **Tree-list-item hover**: row tinted with `--color-bg-hover`, link text becomes accent green.
+- **Tree-list-item hover**: row tinted with `--color-bg-hover`, link text becomes the accent colour.
 - **No press shrink, no scale transform.** The interface is calm.
 - **Focus**: border becomes `--color-border-focus` and a 2px focus ring in `--color-accent-focus-ring` outside it.
 

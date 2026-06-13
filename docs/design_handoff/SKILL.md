@@ -25,7 +25,7 @@ A personal reflection tool, **not therapy**, **not crisis support**. The user ma
 - **No emoji. Ever.** Subject matter is too sensitive.
 - **Sentence case for every label**, including buttons. *"Add person"*, not *"Add Person"*.
 - **Lucide icons only** for stock UI (`Heart`, `Lock`, `Sun`, `Moon`, `Eye`, `EyeOff`, `MessageSquare`). For domain marks not in Lucide, draw a 24×24, 2px-stroke SVG matching Lucide's grammar.
-- **Brand accent: forest green** (`--color-accent`), in every theme. Interactive elements use `--color-action`: green in the dark theme, **indigo (`#4f46e5`) in the light theme** (green-on-cream reads generic-wellness; indigo reads literary). Domain colors (trauma categories, life events, turning points, pattern rotation) are tools for the user to think with, not decoration.
+- **Brand accent** (`--color-accent`): forest green in the dark theme, teal-blue in watercolor, and **indigo (`#4f46e5`) in the light theme** (green-on-cream reads generic-wellness; indigo reads literary). Interactive elements use `--color-action`, which is green in dark and the same indigo in light, so in the light theme the accent and actions share one indigo. Domain colors (trauma categories, life events, turning points, pattern rotation) are tools for the user to think with, not decoration.
 - **No press shrink, no scale transforms, no springs.** All transitions use `var(--transition-colors)` (0.15s ease).
 - **No glassmorphism on data-dense surfaces.** Glass only on auth/lock cards over hero photography.
 
