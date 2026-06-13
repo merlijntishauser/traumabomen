@@ -26,6 +26,19 @@
   color: var(--color-text-secondary);
 }
 
+.demo-page__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.demo-page__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .demo-page__cta {
   flex-shrink: 0;
 }

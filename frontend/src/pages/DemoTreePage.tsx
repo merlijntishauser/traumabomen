@@ -7,6 +7,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -29,7 +30,7 @@ const LAYOUT_SETTINGS = { edgeStyle: "curved", showMarkers: true } as const;
 
 type DemoNode = PersonNodeType | SiblingGroupNodeType;
 
-function DemoCanvas({ state }: { state: DemoTreeState }) {
+function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPatterns: boolean }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { fitView } = useReactFlow();
 
@@ -45,7 +46,10 @@ function DemoCanvas({ state }: { state: DemoTreeState }) {
     state.siblingGroups,
   );
 
-  const visiblePatternIds = useMemo(() => new Set(state.patterns.keys()), [state.patterns]);
+  const visiblePatternIds = useMemo(
+    () => (showPatterns ? new Set(state.patterns.keys()) : new Set<string>()),
+    [showPatterns, state.patterns],
+  );
 
   // Frame the whole family once the layout is ready.
   useEffect(() => {
@@ -95,6 +99,10 @@ function DemoCanvas({ state }: { state: DemoTreeState }) {
 export default function DemoTreePage() {
   const { t, i18n } = useTranslation();
   const state = useDemoTreeData(i18n.language);
+  // Pattern overlays are off by default: they are an annotation layer most
+  // visitors do not need first, and the visible-by-default overlay otherwise
+  // sits over the nodes. A toggle reveals them.
+  const [showPatterns, setShowPatterns] = useState(false);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -113,14 +121,27 @@ export default function DemoTreePage() {
       <header className="demo-page__bar">
         <BackHome />
         <p className="demo-page__note">{t("demo.live.banner")}</p>
-        <Link to="/register" className="btn btn--primary demo-page__cta">
-          {t("demo.live.cta")}
-        </Link>
+        <div className="demo-page__actions">
+          {state && state.patterns.size > 0 && (
+            <button
+              type="button"
+              className={`btn demo-page__toggle${showPatterns ? " btn--primary" : ""}`}
+              aria-pressed={showPatterns}
+              onClick={() => setShowPatterns((v) => !v)}
+            >
+              <Waypoints size={14} aria-hidden="true" />
+              {t("demo.live.patterns")}
+            </button>
+          )}
+          <Link to="/register" className="btn btn--primary demo-page__cta">
+            {t("demo.live.cta")}
+          </Link>
+        </div>
       </header>
       <div className="demo-page__canvas">
         {state ? (
           <ReactFlowProvider>
-            <DemoCanvas state={state} />
+            <DemoCanvas state={state} showPatterns={showPatterns} />
           </ReactFlowProvider>
         ) : (
           <div className="demo-page__loading">{t("common.loading")}</div>

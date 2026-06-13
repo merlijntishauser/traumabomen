@@ -473,7 +473,13 @@ export function PatternConnectors({
           return (
             <g
               key={area.patternId}
-              style={{ pointerEvents: "all", cursor: "pointer" }}
+              // Only trap pointer events when the blob is actionable. Without a
+              // click handler (the read-only demo) the overlay is purely visual
+              // and must not intercept clicks or hover meant for the nodes.
+              style={{
+                pointerEvents: onPatternClick ? "all" : "none",
+                cursor: onPatternClick ? "pointer" : "default",
+              }}
               onMouseEnter={() => handleMouseEnter(area.patternId)}
               onMouseLeave={handleMouseLeave}
               onClick={() => onPatternClick?.(area.patternId)}
