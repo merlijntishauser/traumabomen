@@ -13,8 +13,13 @@ from datetime import datetime
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import DateTime, event
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import DateTime, event, text
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql.expression import Extract
@@ -146,14 +151,39 @@ def _fix_refresh_token_tz(target, _context):
             object.__setattr__(target, attr, val.replace(tzinfo=UTC))
 
 
+_schema_ready = False
+
+
+async def _reset_data(conn: AsyncConnection) -> None:
+    """Empty every table between tests without recreating the schema."""
+    if _IS_SQLITE:
+        # No TRUNCATE in SQLite; delete children before parents.
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(table.delete())
+    else:
+        names = ", ".join(f'"{t.name}"' for t in Base.metadata.sorted_tables)
+        await conn.execute(text(f"TRUNCATE {names} RESTART IDENTITY CASCADE"))
+
+
 @pytest.fixture(autouse=True)
 async def setup_database():
-    """Create tables before each test, drop after."""
+    """Share the schema across the session; reset only the data between tests.
+
+    Creating and dropping every table per test is cheap on in-memory SQLite but
+    expensive on PostgreSQL, where it pushed the CI suite past the deploy gate's
+    wait. The first test drops any schema left by a previous run and recreates
+    it; every later test just truncates, so each test still starts from an empty
+    database.
+    """
+    global _schema_ready
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        if not _schema_ready:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            _schema_ready = True
+        else:
+            await _reset_data(conn)
     yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture

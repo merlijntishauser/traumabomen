@@ -26,7 +26,11 @@ jobs:
         run: |
           SHA="${{ github.sha }}"
           REQUIRED_CHECKS=("Quality gate (frontend)" "Quality gate (backend)")
-          MAX_WAIT=300  # 5 minutes
+          # The backend gate runs the integration suite against Postgres, which
+          # (plus uv sync and possible queue time) can exceed 5 minutes. The
+          # loop exits as soon as both checks complete, so a higher ceiling only
+          # adds headroom; it does not slow the common case down.
+          MAX_WAIT=900  # 15 minutes
           POLL_INTERVAL=15
           ELAPSED=0
 
