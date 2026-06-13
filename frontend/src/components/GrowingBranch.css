@@ -1,10 +1,11 @@
-/* The branch that grows down the landing margin with scroll. Decorative,
-   lives in the left gutter, so it only appears on wide viewports. */
+/* The branch that grows down the landing margin with scroll, filling the
+   whole left gutter out to the window edge. Decorative, wide viewports only.
+   Colour rides --color-action: forest green in dark, indigo in light. */
 .growing-branch {
   position: absolute;
   top: 0;
-  left: -64px;
-  width: 60px;
+  right: calc(100% + 4px);
+  width: calc((100vw - 1100px) / 2 - 12px);
   height: 100%;
   display: none;
   overflow: visible;
@@ -17,27 +18,58 @@
   }
 }
 
+/* Stroke widths are set inline: the trunk thickens as it descends. */
 .growing-branch__line {
   fill: none;
-  stroke: var(--color-accent);
-  stroke-width: 1.5;
+  stroke: var(--color-action);
   stroke-linecap: round;
   opacity: 0.55;
 }
 
-.growing-branch__twig {
-  fill: none;
-  stroke: var(--color-accent);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  opacity: 0.5;
+.growing-branch__line--sub {
+  opacity: 0.45;
 }
 
 .growing-branch__leaf {
-  fill: var(--color-accent);
+  fill: var(--color-action);
   opacity: 0.45;
 }
 
 .growing-branch__node {
   transition: opacity 0.6s ease;
+}
+
+/* Light theme gems: squares and diamonds in shades of indigo, shimmering. */
+.growing-branch__gem {
+  animation: gem-shimmer 3.4s ease-in-out infinite;
+}
+
+.growing-branch__gem--a {
+  fill: var(--color-action);
+}
+
+.growing-branch__gem--b {
+  fill: color-mix(in srgb, var(--color-action) 70%, white);
+}
+
+.growing-branch__gem--c {
+  fill: color-mix(in srgb, var(--color-action) 45%, white);
+}
+
+@keyframes gem-shimmer {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .growing-branch__gem {
+    animation: none;
+    opacity: 0.6;
+  }
 }
