@@ -66,6 +66,9 @@ const TimelinePage = lazyWithReload(() => import("./pages/TimelinePage"));
 // not carry the tree list (and its compactId and canvas-stylesheet deps).
 const TreeListPage = lazyWithReload(() => import("./pages/TreeListPage"));
 const TreeWorkspacePage = lazyWithReload(() => import("./pages/TreeWorkspacePage"));
+// Public read-only demo. Lazy so its React Flow canvas stays out of the landing
+// entry, exactly like the authenticated workspace.
+const DemoTreePage = lazyWithReload(() => import("./pages/DemoTreePage"));
 
 export function ErrorFallback() {
   const { t } = useTranslation();
@@ -155,6 +158,7 @@ function AppContent() {
     pathname === "/security" ||
     pathname === "/learn" ||
     pathname === "/tour" ||
+    pathname === "/demo" ||
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/waitlist" ||
@@ -275,6 +279,14 @@ function AppContent() {
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/tour" element={<TourPage />} />
+              <Route
+                path="/demo"
+                element={
+                  <LazyBoundary>
+                    <DemoTreePage />
+                  </LazyBoundary>
+                }
+              />
               <Route path="/verify-pending" element={<VerificationPendingPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

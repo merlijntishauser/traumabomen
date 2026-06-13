@@ -218,6 +218,9 @@ export default function LandingPage() {
             ))}
           </ol>
           <p className="landing__after-steps">
+            <Link to="/demo" className="landing__link">
+              {t("landing.liveDemo")}
+            </Link>
             <Link to="/tour" className="landing__link">
               {t("landing.tourLink")}
             </Link>

@@ -443,6 +443,9 @@ figure.landing__art {
 
 .landing__after-steps {
   margin: var(--space-5) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
 }
 
 /* Privacy reassurance line (handwriting face, light) */

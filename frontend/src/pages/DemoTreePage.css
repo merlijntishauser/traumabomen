@@ -1,0 +1,58 @@
+/* Public read-only demo tree. A slim top bar over a full-height canvas. */
+.demo-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.demo-page__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+/* The fictional-family / read-only reassurance, centred between the controls. */
+.demo-page__note {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.demo-page__cta {
+  flex-shrink: 0;
+}
+
+.demo-page__canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.demo-page__loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  /* On narrow screens the reassurance line wraps under the controls. */
+  .demo-page__bar {
+    flex-wrap: wrap;
+  }
+
+  .demo-page__note {
+    order: 3;
+    flex-basis: 100%;
+    text-align: left;
+  }
+}

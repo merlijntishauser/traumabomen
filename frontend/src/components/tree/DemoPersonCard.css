@@ -1,0 +1,137 @@
+/* Read-only person card for the public demo. Slides in from the right in the
+   same grammar as the workspace detail panels, but carries no inputs. */
+.demo-card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-width: 90vw;
+  height: 100%;
+  background: var(--color-bg-secondary);
+  border-left: 1px solid var(--color-border-primary);
+  box-shadow: var(--shadow-lg);
+  animation: slide-in-right 0.25s ease-out;
+}
+
+.demo-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.demo-card__heading {
+  min-width: 0;
+}
+
+.demo-card__name {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--color-accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-card__years {
+  margin-top: var(--space-1);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.demo-card__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.demo-card__close:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.demo-card__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.demo-card__notes {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.demo-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.demo-card__section-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.demo-card__item {
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  padding: var(--space-3);
+}
+
+.demo-card__item-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.demo-card__item-meta {
+  margin-top: var(--space-0\.5);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.demo-card__item-body {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.demo-card__cta {
+  border-top: 1px solid var(--color-border-primary);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.demo-card__cta-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
