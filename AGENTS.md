@@ -416,7 +416,7 @@ Backend tests are split into two directories under `api/tests/`:
 
 - **`tests/unit/`** -- Pure logic tests. No database, no HTTP client, no `db_session`/`client` fixtures. Tests use mocks and patches only. Use this for: email sending, rate limiter logic, database module setup, Sentry hooks, utility functions.
 
-- **`tests/integration/`** -- Tests that need the DB (SQLite in-memory) and/or ASGI HTTP client. Fixtures (`db_session`, `client`, `user`, `headers`, `tree`, `person`) are defined in `tests/integration/conftest.py`. Use this for: API endpoint tests, auth flows, CRUD operations, bulk sync, ownership isolation.
+- **`tests/integration/`** -- Tests that need the DB and/or ASGI HTTP client. Fixtures (`db_session`, `client`, `user`, `headers`, `tree`, `person`) are defined in `tests/integration/conftest.py`. Use this for: API endpoint tests, auth flows, CRUD operations, bulk sync, ownership isolation. The DB backend is selected by `TEST_DATABASE_URL`: unset defaults to fast in-memory SQLite (so a plain `pytest` needs no services); CI sets it to the Postgres service so the suite runs against the same engine and version as production. To reproduce CI locally, create a `traumabomen_test` database on the `db` service and run with `TEST_DATABASE_URL=postgresql+asyncpg://<user>:<pass>@db:5432/traumabomen_test`.
 
 **Rules (enforced in code review):**
 - If a test uses `db_session`, `client`, or any DB fixture, it MUST live in `tests/integration/`

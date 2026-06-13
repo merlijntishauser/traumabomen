@@ -93,6 +93,9 @@ jobs:
         working-directory: api
     env:
       DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/traumabomen_test
+      # Integration tests run against the Postgres service above (not SQLite),
+      # so the suite exercises the same engine and version as production.
+      TEST_DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/traumabomen_test
       JWT_SECRET_KEY: test-secret-key-for-ci
     steps:
       - uses: actions/checkout@v6

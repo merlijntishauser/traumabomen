@@ -1,10 +1,13 @@
 """Integration test fixtures.
 
-Uses an in-memory SQLite database so tests don't require PostgreSQL.
-The async engine is created once per session; each test gets its own
-transaction that is rolled back automatically.
+By default uses an in-memory SQLite database so a plain ``pytest`` needs no
+running services. Set ``TEST_DATABASE_URL`` to run against PostgreSQL instead:
+CI points it at the Postgres service so the suite exercises the same engine
+(and version) as production, and a developer can do the same locally against
+the docker-compose ``db``. The schema is created and dropped per test.
 """
 
+import os
 import uuid
 from datetime import datetime
 
@@ -13,6 +16,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import DateTime, event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.pool import NullPool
 from sqlalchemy.sql.expression import Extract
 from sqlalchemy.sql.functions import GenericFunction
 
@@ -67,15 +71,24 @@ def _sqlite_date_trunc(element, compiler, **kw):
 # Database
 # ---------------------------------------------------------------------------
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+_IS_SQLITE = TEST_DATABASE_URL.startswith("sqlite")
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+# In-memory SQLite must share its single connection, which SQLAlchemy arranges
+# with a StaticPool automatically. asyncpg connections are bound to the event
+# loop that opened them, and pytest-asyncio uses a fresh loop per test, so on
+# PostgreSQL use NullPool to open a new connection inside each test's loop
+# rather than handing back one created under a now-closed loop.
+if _IS_SQLITE:
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+else:
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
+
 TestSession = async_sessionmaker(engine, expire_on_commit=False)
 
 
-@event.listens_for(engine.sync_engine, "connect")
 def _register_sqlite_functions(dbapi_conn, _connection_record):
-    """Register PostgreSQL-compatible functions in SQLite."""
+    """Register PostgreSQL-compatible functions on the SQLite connection."""
 
     def _pg_isodow(value):
         if value is None:
@@ -84,6 +97,13 @@ def _register_sqlite_functions(dbapi_conn, _connection_record):
         return dt.isoweekday()  # 1=Monday .. 7=Sunday
 
     dbapi_conn.create_function("_pg_isodow", 1, _pg_isodow)
+
+
+# Only SQLite needs the helper function and the compile shims below; on
+# PostgreSQL extract()/date_trunc() are native, so this hook (which calls the
+# sqlite3-only create_function) must not be attached to an asyncpg connection.
+if _IS_SQLITE:
+    event.listen(engine.sync_engine, "connect", _register_sqlite_functions)
 
 
 # SQLite doesn't preserve timezone info on DateTime(timezone=True) columns.
