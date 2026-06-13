@@ -21,24 +21,26 @@ export function ShieldGlimpse() {
         <rect x="120" y="169" width="62" height="6" rx="3" />
         <rect x="60" y="201" width="80" height="6" rx="3" />
       </g>
-      <g fill="var(--color-accent)">
+      <g fill="var(--color-action)">
         <circle cx="42" cy="140" r="3.5" />
         <circle cx="42" cy="172" r="3.5" />
         <circle cx="42" cy="204" r="3.5" />
       </g>
-      {/* Shield with lock, in the Lucide grammar (2px stroke, round joins) */}
+      {/* Shield with lock, in the Lucide grammar (2px stroke, round joins).
+          Rides --color-action so the mark reads indigo in the light theme
+          (and green in dark), matching the page's interactive accent. */}
       <path
         d="M120 14 L172 36 v32 c0 34 -22 52 -52 64 -30 -12 -52 -30 -52 -64 V36 Z"
-        fill="var(--color-accent-subtle)"
-        stroke="var(--color-accent)"
+        fill="var(--color-action-subtle)"
+        stroke="var(--color-action)"
         strokeWidth="2"
         strokeLinejoin="round"
       />
-      <rect x="103" y="62" width="34" height="28" rx="5" fill="var(--color-accent)" />
+      <rect x="103" y="62" width="34" height="28" rx="5" fill="var(--color-action)" />
       <path
         d="M110 62 v-10 a10 10 0 0 1 20 0 v10"
         fill="none"
-        stroke="var(--color-accent)"
+        stroke="var(--color-action)"
         strokeWidth="2"
         strokeLinecap="round"
       />

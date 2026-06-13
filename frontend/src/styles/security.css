@@ -10,8 +10,8 @@
   overflow-y: auto;
   /* Soft accent wash for atmosphere, the only gradient the system allows. */
   background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, var(--color-accent-subtle), transparent 60%),
-    radial-gradient(circle at 92% 3%, var(--color-accent-subtle), transparent 30%);
+    radial-gradient(ellipse 90% 55% at 50% -8%, var(--color-action-subtle), transparent 60%),
+    radial-gradient(circle at 92% 3%, var(--color-action-subtle), transparent 30%);
 }
 
 .security-wrap {
@@ -126,7 +126,7 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  color: var(--color-accent);
+  color: var(--color-action);
   font-size: 1.25rem;
   font-weight: 700;
 }
@@ -154,8 +154,8 @@
   height: 56px;
   margin: 0 auto var(--space-4);
   border-radius: 50%;
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-action-subtle);
+  color: var(--color-action);
 }
 
 .security-card h3 {
@@ -203,7 +203,7 @@
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(ellipse 65% 130% at 14% 50%, var(--color-accent-subtle), transparent 70%),
+    radial-gradient(ellipse 65% 130% at 14% 50%, var(--color-action-subtle), transparent 70%),
     var(--color-bg-secondary);
   box-shadow: var(--shadow-lg);
 }
@@ -214,9 +214,9 @@
   width: 104px;
   height: 104px;
   border-radius: var(--radius-lg);
-  background: var(--color-accent-subtle);
+  background: var(--color-action-subtle);
   border: 1px solid var(--color-border-primary);
-  color: var(--color-accent);
+  color: var(--color-action);
 }
 
 .security-answer__eyebrow {
@@ -286,7 +286,7 @@
 .security-checklist svg {
   flex-shrink: 0;
   margin-top: 2px;
-  color: var(--color-accent);
+  color: var(--color-action);
 }
 
 .security-footer {
