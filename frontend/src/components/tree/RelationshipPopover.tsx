@@ -1,7 +1,8 @@
 import type { Connection } from "@xyflow/react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
+import type { DecryptedPerson, DecryptedSiblingGroup } from "../../hooks/useTreeData";
+import { siblingGroupIdFromNodeId } from "../../lib/siblingGroupConnect";
 import { RelationshipType } from "../../types/domain";
 
 export const T_COMMON_CANCEL = "common.cancel";
@@ -16,20 +17,30 @@ export const DIRECTIONAL_TYPES = new Set([
 export function RelationshipPopover({
   connection,
   persons,
+  siblingGroups,
   onSelect,
   onSwap,
   onClose,
 }: {
   connection: Connection;
   persons: Map<string, DecryptedPerson>;
+  siblingGroups: Map<string, DecryptedSiblingGroup>;
   onSelect: (type: RelationshipType) => void;
   onSwap: () => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const sourceName = persons.get(connection.source!)?.name ?? "?";
-  const targetName = persons.get(connection.target!)?.name ?? "?";
+  // A sibling-group pill endpoint stands in for the in-tree siblings it links.
+  const endpointName = (id: string | null | undefined): string => {
+    const groupId = siblingGroupIdFromNodeId(id);
+    if (groupId) {
+      return t("siblingGroup.label", { count: siblingGroups.get(groupId)?.person_ids.length ?? 0 });
+    }
+    return (id && persons.get(id)?.name) || "?";
+  };
+  const sourceName = endpointName(connection.source);
+  const targetName = endpointName(connection.target);
 
   useEffect(() => {
     const dialog = dialogRef.current;

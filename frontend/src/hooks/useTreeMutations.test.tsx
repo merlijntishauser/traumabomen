@@ -678,6 +678,39 @@ describe("relationship mutations", () => {
     });
   });
 
+  it("bulkCreateRelationships encrypts each entry and calls syncTree once", async () => {
+    mockedApi.syncTree.mockResolvedValue({
+      relationships_created: ["r-1", "r-2"],
+    } as never);
+
+    const { result } = renderHook(() => useTreeMutations(TREE_ID), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.bulkCreateRelationships.mutateAsync([
+        { sourcePersonId: "sophie", targetPersonId: "stepdad", data: relationshipData },
+        { sourcePersonId: "lucas", targetPersonId: "stepdad", data: relationshipData },
+      ]);
+    });
+
+    expect(mockEncrypt).toHaveBeenCalledTimes(2);
+    expect(mockedApi.syncTree).toHaveBeenCalledWith(TREE_ID, {
+      relationships_create: [
+        {
+          source_person_id: "sophie",
+          target_person_id: "stepdad",
+          encrypted_data: "encrypted-blob",
+        },
+        {
+          source_person_id: "lucas",
+          target_person_id: "stepdad",
+          encrypted_data: "encrypted-blob",
+        },
+      ],
+    });
+  });
+
   it("updateRelationship encrypts data then calls api.updateRelationship", async () => {
     mockedApi.updateRelationship.mockResolvedValue({
       id: "r-1",

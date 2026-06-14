@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { DecryptedPerson } from "../../hooks/useTreeData";
+import type { DecryptedPerson, DecryptedSiblingGroup } from "../../hooks/useTreeData";
 import { RelationshipType } from "../../types/domain";
 import { DIRECTIONAL_TYPES, RelationshipPopover } from "./RelationshipPopover";
 
@@ -34,9 +34,14 @@ describe("RelationshipPopover", () => {
     ["p2", makePerson({ id: "p2", name: "Bob" })],
   ]);
 
+  const siblingGroups = new Map<string, DecryptedSiblingGroup>([
+    ["sg1", { id: "sg1", person_ids: ["p1", "p2"], members: [] }],
+  ]);
+
   const defaultProps = {
     connection: { source: "p1", target: "p2", sourceHandle: null, targetHandle: null },
     persons,
+    siblingGroups,
     onSelect: vi.fn(),
     onSwap: vi.fn(),
     onClose: vi.fn(),
@@ -147,6 +152,23 @@ describe("RelationshipPopover", () => {
     );
     const direction = container.querySelector(".relationship-popover__direction span")!;
     expect(direction.textContent).toContain("?");
+    expect(direction.textContent).toContain("Bob");
+  });
+
+  it("labels a sibling-group pill endpoint with the group label, not a person name", () => {
+    const { container } = render(
+      <RelationshipPopover
+        {...defaultProps}
+        connection={{
+          source: "sibling-group-sg1",
+          target: "p2",
+          sourceHandle: null,
+          targetHandle: null,
+        }}
+      />,
+    );
+    const direction = container.querySelector(".relationship-popover__direction span")!;
+    expect(direction.textContent).toContain("siblingGroup.label");
     expect(direction.textContent).toContain("Bob");
   });
 

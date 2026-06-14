@@ -203,6 +203,24 @@ export function useTreeMutations(treeId: string) {
     },
   });
 
+  const bulkCreateRelationshipsMutation = useMutation({
+    mutationFn: async (
+      entries: { sourcePersonId: string; targetPersonId: string; data: RelationshipData }[],
+    ) => {
+      const relationships_create = await Promise.all(
+        entries.map(async ({ sourcePersonId, targetPersonId, data }) => ({
+          source_person_id: sourcePersonId,
+          target_person_id: targetPersonId,
+          encrypted_data: await encrypt(data, treeId),
+        })),
+      );
+      return syncTree(treeId, { relationships_create });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: treeQueryKeys.relationships(treeId) });
+    },
+  });
+
   const updateRelationshipMutation = useMutation({
     mutationFn: async ({
       relationshipId,
@@ -305,6 +323,7 @@ export function useTreeMutations(treeId: string) {
     batchUpdatePersons: batchUpdatePersonsMutation,
     deletePerson: deletePersonMutation,
     createRelationship: createRelationshipMutation,
+    bulkCreateRelationships: bulkCreateRelationshipsMutation,
     updateRelationship: updateRelationshipMutation,
     deleteRelationship: deleteRelationshipMutation,
     events,

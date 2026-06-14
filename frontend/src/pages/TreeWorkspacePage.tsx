@@ -52,6 +52,7 @@ import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutation
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
 import { buildSiblingParentInheritance } from "../lib/parentInheritance";
 import { getPatternColor } from "../lib/patternColors";
+import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/siblingGroupConnect";
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
@@ -713,6 +714,7 @@ function useCanvasEventHandlers(opts: {
   dispatchCanvas: React.Dispatch<CanvasInteractionAction>;
   canvasState: CanvasInteractionState;
   relationships: Map<string, { source_person_id: string; target_person_id: string }>;
+  siblingGroups: ReturnType<typeof useTreeData>["siblingGroups"];
   mutations: ReturnType<typeof useTreeMutations>;
 }) {
   const {
@@ -722,6 +724,7 @@ function useCanvasEventHandlers(opts: {
     dispatchCanvas,
     canvasState,
     relationships,
+    siblingGroups,
     mutations,
   } = opts;
 
@@ -803,6 +806,13 @@ function useCanvasEventHandlers(opts: {
   const onConnect: OnConnect = useCallback(
     (connection) => {
       if (connection.source === connection.target) return;
+      // A connection cannot run between two sibling-group pills.
+      if (
+        siblingGroupIdFromNodeId(connection.source) &&
+        siblingGroupIdFromNodeId(connection.target)
+      ) {
+        return;
+      }
       for (const rel of relationships.values()) {
         if (
           (rel.source_person_id === connection.source &&
@@ -819,19 +829,44 @@ function useCanvasEventHandlers(opts: {
 
   const handleCreateRelationship = useCallback(
     (type: RelationshipType) => {
-      if (!canvasState.pendingConnection) return;
+      const pending = canvasState.pendingConnection;
+      if (!pending?.source || !pending?.target) return;
+      const data: RelationshipData = { type, periods: [], active_period: null };
+      const close = () => dispatchCanvas({ type: "SET_PENDING_CONNECTION", connection: null });
+
+      // When one endpoint is a sibling-group pill, link every in-tree sibling to
+      // the other person in one atomic call.
+      const groupId =
+        siblingGroupIdFromNodeId(pending.source) ?? siblingGroupIdFromNodeId(pending.target);
+      if (groupId) {
+        const group = siblingGroups.get(groupId);
+        const pairs = group
+          ? expandSiblingGroupConnection(pending.source, pending.target, group, relationships)
+          : [];
+        if (pairs.length === 0) {
+          close();
+          return;
+        }
+        mutations.bulkCreateRelationships.mutate(
+          pairs.map((p) => ({ ...p, data })),
+          { onSuccess: close },
+        );
+        return;
+      }
+
       mutations.createRelationship.mutate(
-        {
-          sourcePersonId: canvasState.pendingConnection.source!,
-          targetPersonId: canvasState.pendingConnection.target!,
-          data: { type, periods: [], active_period: null },
-        },
-        {
-          onSuccess: () => dispatchCanvas({ type: "SET_PENDING_CONNECTION", connection: null }),
-        },
+        { sourcePersonId: pending.source, targetPersonId: pending.target, data },
+        { onSuccess: close },
       );
     },
-    [canvasState.pendingConnection, mutations.createRelationship, dispatchCanvas],
+    [
+      canvasState.pendingConnection,
+      siblingGroups,
+      relationships,
+      mutations.createRelationship,
+      mutations.bulkCreateRelationships,
+      dispatchCanvas,
+    ],
   );
 
   return {
@@ -1022,6 +1057,7 @@ function TreeWorkspaceInner() {
     dispatchCanvas,
     canvasState,
     relationships,
+    siblingGroups,
     mutations,
   });
 
@@ -1170,6 +1206,7 @@ function TreeWorkspaceInner() {
         <RelationshipPopover
           connection={canvasState.pendingConnection}
           persons={persons}
+          siblingGroups={siblingGroups}
           onSelect={canvasEvents.handleCreateRelationship}
           onSwap={() => dispatchCanvas({ type: "SWAP_PENDING_CONNECTION" })}
           onClose={() => dispatchCanvas({ type: "SET_PENDING_CONNECTION", connection: null })}
