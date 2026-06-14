@@ -11,7 +11,7 @@ import type {
 } from "../hooks/useTreeData";
 import { uuidToCompact } from "../lib/compactId";
 import { getPatternColor } from "../lib/patternColors";
-import { type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
+import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
 import { patternPromptText, pickPatternPromptIndex } from "../lib/reflectionPrompts";
 import type { JournalLinkedRef, LinkedEntity } from "../types/domain";
 import "./PatternView.css";
@@ -56,21 +56,6 @@ function getEntityDisplays(
       personName: resolved.personName,
     };
   });
-}
-
-function countGenerations(
-  pattern: DecryptedPattern,
-  persons: Map<string, DecryptedPerson>,
-): number {
-  const birthYears = new Set<number>();
-  for (const pid of pattern.person_ids) {
-    const p = persons.get(pid);
-    if (p?.birth_year) birthYears.add(p.birth_year);
-  }
-  if (birthYears.size <= 1) return 1;
-  const sorted = Array.from(birthYears).sort((a, b) => a - b);
-  const range = sorted[sorted.length - 1] - sorted[0];
-  return Math.max(1, Math.ceil(range / 25));
 }
 
 const MAX_CARD_ENTITIES = 4;
@@ -129,7 +114,7 @@ export function PatternView({
             persons,
           };
           const displays = getEntityDisplays(pattern, entityMaps, t);
-          const generations = countGenerations(pattern, persons);
+          const generations = countGenerations(pattern.person_ids, persons);
 
           return (
             <button

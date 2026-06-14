@@ -1,0 +1,114 @@
+/* In-scene detail card for the focused pattern, lower-left of the dimmed
+   canvas. A faint translucency lets the spotlit scene sit behind it so it reads
+   as part of the overlay rather than a popped-over modal; the pattern colour
+   carries on the top border, dot and name. */
+.pattern-focus-panel {
+  position: absolute;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 290px;
+  max-width: calc(100% - var(--space-8));
+  max-height: 60%;
+  overflow-y: auto;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-bg-secondary) 92%, transparent);
+  border: 1px solid var(--color-border-primary);
+  border-top: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.pattern-focus-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pattern-focus-panel__dot {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.pattern-focus-panel__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pattern-focus-panel__exit {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.pattern-focus-panel__exit:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.pattern-focus-panel__desc {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pattern-focus-panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.pattern-focus-panel__entities {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pattern-focus-panel__entity {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+  font-size: 13px;
+}
+
+.pattern-focus-panel__entity-label {
+  color: var(--color-text-primary);
+}
+
+.pattern-focus-panel__entity-person {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}

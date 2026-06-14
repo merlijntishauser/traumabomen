@@ -15,6 +15,25 @@ export interface EntityMaps {
   persons: Map<string, DecryptedPerson>;
 }
 
+/**
+ * Rough number of generations a set of people spans, from their birth-year
+ * range (one generation is about 25 years). Used by the pattern views.
+ */
+export function countGenerations(
+  personIds: string[],
+  persons: Map<string, DecryptedPerson>,
+): number {
+  const birthYears = new Set<number>();
+  for (const pid of personIds) {
+    const birthYear = persons.get(pid)?.birth_year;
+    if (birthYear) birthYears.add(birthYear);
+  }
+  if (birthYears.size <= 1) return 1;
+  const sorted = Array.from(birthYears).sort((a, b) => a - b);
+  const range = sorted[sorted.length - 1] - sorted[0];
+  return Math.max(1, Math.ceil(range / 25));
+}
+
 interface ResolvedEntity {
   label: string;
   personName: string;

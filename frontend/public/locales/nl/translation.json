@@ -747,7 +747,6 @@
   "pattern.focus.menu": "Patroon uitlichten",
   "pattern.focus.showAll": "Toon alles (geen focus)",
   "pattern.focus.manage": "Patronen beheren",
-  "pattern.focus.info": "Patroondetails",
   "pattern.focus.exit": "Patroonfocus sluiten",
   "pattern.focus.people_one": "{{count}} persoon in dit patroon",
   "pattern.focus.people_other": "{{count}} personen in dit patroon",

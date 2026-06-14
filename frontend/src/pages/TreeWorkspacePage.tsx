@@ -20,7 +20,7 @@ import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
-import { PatternFocusBanner } from "../components/tree/PatternFocusBanner";
+import { PatternFocusPanel } from "../components/tree/PatternFocusPanel";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { ReflectionNudge } from "../components/tree/ReflectionNudge";
@@ -1115,7 +1115,7 @@ function TreeWorkspaceInner() {
         )}
 
         {focusedPattern && focusColor && (
-          <PatternFocusBanner
+          <PatternFocusPanel
             pattern={focusedPattern}
             color={focusColor}
             entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
