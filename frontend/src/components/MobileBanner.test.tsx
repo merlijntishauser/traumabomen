@@ -1,6 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileBanner } from "./MobileBanner";
+
+// The banner only shows inside the authenticated app, so render it on an app
+// route by default.
+function renderAt(path = "/trees") {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <MobileBanner />
+    </MemoryRouter>,
+  );
+}
 
 // Provide a simple in-memory localStorage mock for the test environment
 const localStorageMock = (() => {
@@ -79,25 +90,25 @@ describe("MobileBanner", () => {
 
   it("renders on a mobile device", () => {
     setMobileEnvironment();
-    render(<MobileBanner />);
+    renderAt();
     expect(screen.getByText("common.mobileWarning")).toBeInTheDocument();
   });
 
   it("does not render on a desktop device", () => {
     setDesktopEnvironment();
-    render(<MobileBanner />);
+    renderAt();
     expect(screen.queryByText("common.mobileWarning")).not.toBeInTheDocument();
   });
 
   it("renders a close button on mobile", () => {
     setMobileEnvironment();
-    render(<MobileBanner />);
+    renderAt();
     expect(screen.getByLabelText("common.close")).toBeInTheDocument();
   });
 
   it("hides the banner when close button is clicked", () => {
     setMobileEnvironment();
-    render(<MobileBanner />);
+    renderAt();
 
     fireEvent.click(screen.getByLabelText("common.close"));
 
@@ -106,7 +117,7 @@ describe("MobileBanner", () => {
 
   it("persists dismissal to localStorage", () => {
     setMobileEnvironment();
-    render(<MobileBanner />);
+    renderAt();
 
     fireEvent.click(screen.getByLabelText("common.close"));
 
@@ -116,7 +127,7 @@ describe("MobileBanner", () => {
   it("does not render when previously dismissed", () => {
     setMobileEnvironment();
     localStorage.setItem(STORAGE_KEY, "1");
-    render(<MobileBanner />);
+    renderAt();
 
     expect(screen.queryByText("common.mobileWarning")).not.toBeInTheDocument();
   });
@@ -128,7 +139,22 @@ describe("MobileBanner", () => {
       writable: true,
       configurable: true,
     });
-    render(<MobileBanner />);
+    renderAt();
     expect(screen.getByText("common.mobileWarning")).toBeInTheDocument();
+  });
+
+  it("renders on the admin route", () => {
+    setMobileEnvironment();
+    renderAt("/admin");
+    expect(screen.getByText("common.mobileWarning")).toBeInTheDocument();
+  });
+
+  it("does not render on public routes even on mobile", () => {
+    setMobileEnvironment();
+    for (const path of ["/", "/login", "/register", "/learn", "/demo", "/privacy"]) {
+      const { unmount } = renderAt(path);
+      expect(screen.queryByText("common.mobileWarning")).not.toBeInTheDocument();
+      unmount();
+    }
   });
 });
