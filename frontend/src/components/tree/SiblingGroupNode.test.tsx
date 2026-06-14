@@ -44,8 +44,8 @@ function renderNode(data: SiblingGroupNodeData, selected = false) {
 describe("SiblingGroupNode", () => {
   it("shows count label when no named members", () => {
     renderNode({ group: makeGroup({ members: [{ name: "", birth_year: null }] }) });
-    // 1 unnamed member + 0 other person_ids (1 minus self) = 1
-    expect(screen.getByText("siblings (1)")).toBeInTheDocument();
+    // 1 person_id + 1 unnamed member = 2 (whole sibling set)
+    expect(screen.getByText("siblings (2)")).toBeInTheDocument();
   });
 
   it("shows name list when 4 or fewer named members", () => {

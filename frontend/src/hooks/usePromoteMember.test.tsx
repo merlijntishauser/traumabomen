@@ -2,8 +2,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RelationshipType } from "../types/domain";
 import { usePromoteMember } from "./usePromoteMember";
-import type { DecryptedSiblingGroup } from "./useTreeData";
+import type { DecryptedRelationship, DecryptedSiblingGroup } from "./useTreeData";
 
 const mockEncrypt = vi.fn().mockResolvedValue("encrypted-blob");
 
@@ -77,6 +78,21 @@ function makeGroup(overrides: Partial<DecryptedSiblingGroup> = {}): DecryptedSib
   };
 }
 
+function parentRel(id: string, parentId: string, childId: string): DecryptedRelationship {
+  return {
+    id,
+    type: RelationshipType.BiologicalParent,
+    source_person_id: parentId,
+    target_person_id: childId,
+    periods: [],
+    active_period: null,
+  } as DecryptedRelationship;
+}
+
+function relMap(...rels: DecryptedRelationship[]): Map<string, DecryptedRelationship> {
+  return new Map(rels.map((r) => [r.id, r]));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockEncrypt.mockResolvedValue("encrypted-blob");
@@ -103,7 +119,8 @@ describe("usePromoteMember", () => {
     expect(syncRequest.persons_create).toHaveLength(1);
     expect(syncRequest.persons_create![0].encrypted_data).toBe("encrypted-blob");
 
-    // Should create biological sibling relationships for each existing person_id
+    // With no relationships passed (no parents in the tree), promotion falls
+    // back to biological sibling edges for each existing person_id.
     expect(syncRequest.relationships_create).toHaveLength(2);
     for (const rel of syncRequest.relationships_create!) {
       expect(rel.encrypted_data).toBe("encrypted-blob");
@@ -226,6 +243,64 @@ describe("usePromoteMember", () => {
         await result.current.mutateAsync({ group, memberIndex: 99 });
       }),
     ).rejects.toThrow("Invalid member index");
+  });
+
+  it("inherits the parents shared by the existing siblings instead of sibling edges", async () => {
+    mockedApi.syncTree.mockResolvedValue(makeSyncResponse());
+
+    const wrapper = createWrapper();
+    const { result } = renderHook(() => usePromoteMember(TREE_ID), { wrapper });
+
+    // p1 and p2 both have biological parents mum and dad.
+    const relationships = relMap(
+      parentRel("r1", "mum", "p1"),
+      parentRel("r2", "dad", "p1"),
+      parentRel("r3", "mum", "p2"),
+      parentRel("r4", "dad", "p2"),
+    );
+
+    await act(async () => {
+      await result.current.mutateAsync({ group: makeGroup(), memberIndex: 0, relationships });
+    });
+
+    const syncRequest = mockedApi.syncTree.mock.calls[0][1];
+    // Two biological-parent edges (mum, dad) -> the promoted person, and no
+    // explicit sibling edges (the sibling links are inferred from shared parents).
+    expect(syncRequest.relationships_create).toHaveLength(2);
+    const sources = syncRequest
+      .relationships_create!.map((r: { source_person_id: string }) => r.source_person_id)
+      .sort();
+    expect(sources).toEqual(["dad", "mum"]);
+    expect(mockEncrypt).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "biological_parent" }),
+      TREE_ID,
+    );
+    expect(mockEncrypt).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "biological_sibling" }),
+      TREE_ID,
+    );
+  });
+
+  it("only inherits parents shared by every existing sibling", async () => {
+    mockedApi.syncTree.mockResolvedValue(makeSyncResponse());
+
+    const wrapper = createWrapper();
+    const { result } = renderHook(() => usePromoteMember(TREE_ID), { wrapper });
+
+    // p1 has mum and dad; p2 only has mum -> only mum is shared.
+    const relationships = relMap(
+      parentRel("r1", "mum", "p1"),
+      parentRel("r2", "dad", "p1"),
+      parentRel("r3", "mum", "p2"),
+    );
+
+    await act(async () => {
+      await result.current.mutateAsync({ group: makeGroup(), memberIndex: 0, relationships });
+    });
+
+    const syncRequest = mockedApi.syncTree.mock.calls[0][1];
+    expect(syncRequest.relationships_create).toHaveLength(1);
+    expect(syncRequest.relationships_create![0].source_person_id).toBe("mum");
   });
 
   it("handles group with no existing person_ids (no relationships created)", async () => {

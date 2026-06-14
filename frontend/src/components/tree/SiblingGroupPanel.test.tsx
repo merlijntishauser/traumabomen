@@ -72,11 +72,11 @@ describe("SiblingGroupPanel", () => {
     expect(screen.getByDisplayValue("1992")).toBeInTheDocument();
   });
 
-  it("shows sibling count excluding the person themselves", () => {
+  it("shows the total sibling count including in-tree persons", () => {
     render(<SiblingGroupPanel {...defaultProps()} />);
 
-    // 2 members + 0 other person_ids (1 person_id minus self) = 2
-    expect(screen.getByText("siblingGroup.totalCount:2")).toBeInTheDocument();
+    // 1 person_id (in tree) + 2 members = 3 (whole sibling set)
+    expect(screen.getByText("siblingGroup.totalCount:3")).toBeInTheDocument();
   });
 
   it("calls onSave with updated members when save is clicked", async () => {
@@ -114,8 +114,8 @@ describe("SiblingGroupPanel", () => {
     const nameInputs = screen.getAllByLabelText("person.name");
     expect(nameInputs).toHaveLength(3);
 
-    // Total count should update: 3 members + 0 other person_ids = 3
-    expect(screen.getByText("siblingGroup.totalCount:3")).toBeInTheDocument();
+    // Total count should update: 1 person_id + 3 members = 4
+    expect(screen.getByText("siblingGroup.totalCount:4")).toBeInTheDocument();
   });
 
   it("calls onPromote with correct group id and index", async () => {
@@ -143,8 +143,8 @@ describe("SiblingGroupPanel", () => {
     expect(screen.queryByDisplayValue("Alice")).not.toBeInTheDocument();
     expect(screen.getByDisplayValue("Bob")).toBeInTheDocument();
 
-    // Total count should update: 1 member + 0 other person_ids = 1
-    expect(screen.getByText("siblingGroup.totalCount:1")).toBeInTheDocument();
+    // Total count should update: 1 person_id + 1 member = 2
+    expect(screen.getByText("siblingGroup.totalCount:2")).toBeInTheDocument();
   });
 
   it("calls onDelete with group id when delete button is clicked", async () => {

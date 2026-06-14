@@ -29,9 +29,9 @@ export function SiblingGroupPanel({
     group.members.map((m) => ({ ...m, _key: crypto.randomUUID() })),
   );
 
-  // Exclude the person themselves (always in person_ids) from the sibling count
-  const otherPersonCount = Math.max(0, group.person_ids.length - 1);
-  const siblingCount = members.length + otherPersonCount;
+  // Total people in this sibling set: full-node siblings ("in tree") plus the
+  // lightweight members listed below. Matches the cards rendered in the panel.
+  const siblingCount = members.length + group.person_ids.length;
 
   function handleNameChange(key: string, name: string) {
     setMembers((prev) => prev.map((m) => (m._key === key ? { ...m, name } : m)));

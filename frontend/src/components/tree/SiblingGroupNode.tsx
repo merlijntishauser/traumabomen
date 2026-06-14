@@ -16,7 +16,8 @@ export default function SiblingGroupNode({
 }: NodeProps & { data: SiblingGroupNodeData }) {
   const { t } = useTranslation();
   const { group } = data;
-  const siblingCount = Math.max(0, group.person_ids.length - 1) + group.members.length;
+  // The whole sibling set: full-node siblings plus lightweight members.
+  const siblingCount = group.person_ids.length + group.members.length;
   const namedMembers = group.members.filter((m) => m.name.trim() !== "");
 
   return (

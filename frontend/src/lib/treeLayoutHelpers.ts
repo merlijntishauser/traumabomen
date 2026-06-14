@@ -274,7 +274,14 @@ function buildChildToParents(
   for (const rel of relationships.values()) {
     if (PARENT_TYPES.has(rel.type)) {
       const parents = childToParents.get(rel.target_person_id) ?? [];
-      parents.push(rel.source_person_id);
+      // Keep biological parents first so a sibling group anchors under a real
+      // parent rather than a step- or adoptive-parent that merely happens to be
+      // recorded first.
+      if (rel.type === RelationshipType.BiologicalParent) {
+        parents.unshift(rel.source_person_id);
+      } else {
+        parents.push(rel.source_person_id);
+      }
       childToParents.set(rel.target_person_id, parents);
     }
   }
@@ -297,6 +304,16 @@ function findSiblingGroupParent(
   return null;
 }
 
+/**
+ * A sibling group only appears on the canvas while it still has lightweight
+ * members to represent. Once every member has been promoted to a full node
+ * (members empty), the pill is redundant, those siblings are drawn and linked
+ * directly, so the group is hidden. It needs an anchor person too.
+ */
+export function isSiblingGroupVisible(group: DecryptedSiblingGroup): boolean {
+  return group.person_ids.length > 0 && group.members.length > 0;
+}
+
 /** Add sibling group nodes to the dagre graph before layout. */
 function addSiblingGroupNodes(
   g: dagre.graphlib.Graph,
@@ -304,7 +321,7 @@ function addSiblingGroupNodes(
   childToParents: Map<string, string[]>,
 ): void {
   for (const group of siblingGroups.values()) {
-    if (group.person_ids.length === 0) continue;
+    if (!isSiblingGroupVisible(group)) continue;
     const nodeId = `sibling-group-${group.id}`;
     g.setNode(nodeId, {
       width: SIBLING_GROUP_NODE_WIDTH,
@@ -860,7 +877,7 @@ export function buildSiblingGroupNodes(
 ): SiblingGroupNodeType[] {
   const nodes: SiblingGroupNodeType[] = [];
   for (const group of siblingGroups.values()) {
-    if (group.person_ids.length === 0) continue;
+    if (!isSiblingGroupVisible(group)) continue;
     const nodeId = `sibling-group-${group.id}`;
 
     // Use saved position if available, otherwise fall back to Dagre layout
@@ -899,7 +916,7 @@ export function buildSiblingGroupEdges(
   const childToParents = buildChildToParents(relationships);
 
   for (const group of siblingGroups.values()) {
-    if (group.person_ids.length === 0) continue;
+    if (!isSiblingGroupVisible(group)) continue;
     const nodeId = `sibling-group-${group.id}`;
     if (!graph.node(nodeId)) continue;
 

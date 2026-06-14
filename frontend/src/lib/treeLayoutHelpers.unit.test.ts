@@ -31,6 +31,7 @@ import {
   findMaxFamilyX,
   groupEdgesBySide,
   handleSide,
+  isSiblingGroupVisible,
   layoutDagreGraph,
   MARKER_SHAPES,
   NODE_HEIGHT,
@@ -1373,6 +1374,45 @@ describe("buildSiblingGroupNodes", () => {
     const nodes = buildSiblingGroupNodes(groups, g);
     expect(nodes).toHaveLength(0);
   });
+
+  it("skips groups whose members are all promoted (empty members)", () => {
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", { id: "sg1", person_ids: ["p1", "p2"], members: [] });
+
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({});
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setNode("sibling-group-sg1", { x: 500, y: 600, width: 140, height: 50 });
+
+    const nodes = buildSiblingGroupNodes(groups, g);
+    expect(nodes).toHaveLength(0);
+  });
+});
+
+describe("isSiblingGroupVisible", () => {
+  it("is visible with an anchor person and at least one member", () => {
+    expect(
+      isSiblingGroupVisible({
+        id: "g",
+        person_ids: ["p1"],
+        members: [{ name: "Sib", birth_year: null }],
+      }),
+    ).toBe(true);
+  });
+
+  it("is hidden once all members are promoted (empty members)", () => {
+    expect(isSiblingGroupVisible({ id: "g", person_ids: ["p1", "p2"], members: [] })).toBe(false);
+  });
+
+  it("is hidden without any anchor person", () => {
+    expect(
+      isSiblingGroupVisible({
+        id: "g",
+        person_ids: [],
+        members: [{ name: "Sib", birth_year: null }],
+      }),
+    ).toBe(false);
+  });
 });
 
 // ---- buildSiblingGroupEdges ----
@@ -1423,6 +1463,21 @@ describe("buildSiblingGroupEdges", () => {
     expect(edges[0].style?.strokeDasharray).toBe("6 3");
   });
 
+  it("anchors under a biological parent rather than a step-parent recorded first", () => {
+    const g = graphWithNodes(["step", "mum", "child", "sibling-group-sg1"]);
+    const rels = new Map<string, DecryptedRelationship>();
+    // The step-parent edge is recorded before the biological one; the group
+    // should still anchor under the biological parent.
+    rels.set("r1", makeRel("r1", RelationshipType.StepParent, "step", "child"));
+    rels.set("r2", makeRel("r2", RelationshipType.BiologicalParent, "mum", "child"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", makeSiblingGroup("sg1", ["child"]));
+
+    const edges = buildSiblingGroupEdges(groups, rels, g);
+    expect(edges).toHaveLength(1);
+    expect(edges[0].source).toBe("mum");
+  });
+
   it("falls back to the first person in the group when no parent is in-graph", () => {
     // Group member has a parent, but that parent is missing from the graph, so
     // the fallback source is the first person in the group.
@@ -1445,6 +1500,15 @@ describe("buildSiblingGroupEdges", () => {
     const edges = buildSiblingGroupEdges(groups, new Map(), g);
     expect(edges).toHaveLength(1);
     expect(edges[0].source).toBe("solo");
+  });
+
+  it("emits no edge when the group has no members left (all promoted)", () => {
+    const g = graphWithNodes(["parent", "child", "sibling-group-sg1"]);
+    const rels = new Map<string, DecryptedRelationship>();
+    rels.set("r1", makeRel("r1", RelationshipType.BiologicalParent, "parent", "child"));
+    const groups = new Map<string, DecryptedSiblingGroup>();
+    groups.set("sg1", { id: "sg1", person_ids: ["child"], members: [] });
+    expect(buildSiblingGroupEdges(groups, rels, g)).toEqual([]);
   });
 
   it("emits one edge per group across a mixed batch", () => {

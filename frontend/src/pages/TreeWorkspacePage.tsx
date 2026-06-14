@@ -265,6 +265,7 @@ function useCanvasNodes(
 function useCanvasActions(opts: {
   treeId: string;
   persons: Map<string, DecryptedPerson>;
+  relationships: ReturnType<typeof useTreeData>["relationships"];
   siblingGroups: ReturnType<typeof useTreeData>["siblingGroups"];
   mutations: ReturnType<typeof useTreeMutations>;
   nodes: AnyNodeType[];
@@ -282,6 +283,7 @@ function useCanvasActions(opts: {
   const {
     treeId,
     persons,
+    relationships,
     siblingGroups,
     mutations,
     nodes,
@@ -509,7 +511,7 @@ function useCanvasActions(opts: {
     const group = siblingGroups.get(groupId);
     if (!group) return;
     promoteMember.mutate(
-      { group, memberIndex },
+      { group, memberIndex, relationships },
       {
         onSuccess: () => dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null }),
       },
@@ -999,6 +1001,7 @@ function TreeWorkspaceInner() {
   const actions = useCanvasActions({
     treeId: treeId!,
     persons,
+    relationships,
     siblingGroups,
     mutations,
     nodes,
