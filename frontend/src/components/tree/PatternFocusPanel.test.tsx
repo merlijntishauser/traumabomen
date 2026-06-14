@@ -32,6 +32,7 @@ describe("PatternFocusPanel", () => {
         pattern={pattern}
         color="#4f46e5"
         entityMaps={entityMaps}
+        onEdit={vi.fn()}
         onExit={vi.fn()}
       />,
     );
@@ -43,6 +44,21 @@ describe("PatternFocusPanel", () => {
     expect(screen.getByText("Dorothy")).toBeInTheDocument();
   });
 
+  it("opens the edit panel via the edit control", () => {
+    const onEdit = vi.fn();
+    render(
+      <PatternFocusPanel
+        pattern={pattern}
+        color="#4f46e5"
+        entityMaps={entityMaps}
+        onEdit={onEdit}
+        onExit={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "pattern.focus.edit" }));
+    expect(onEdit).toHaveBeenCalledTimes(1);
+  });
+
   it("exits via the close control", () => {
     const onExit = vi.fn();
     render(
@@ -50,6 +66,7 @@ describe("PatternFocusPanel", () => {
         pattern={pattern}
         color="#4f46e5"
         entityMaps={entityMaps}
+        onEdit={vi.fn()}
         onExit={onExit}
       />,
     );

@@ -1119,6 +1119,7 @@ function TreeWorkspaceInner() {
             pattern={focusedPattern}
             color={focusColor}
             entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
+            onEdit={() => panels.setPatternPanelOpen(true)}
             onExit={() => setFocusedPatternId(null)}
           />
         )}
@@ -1140,7 +1141,7 @@ function TreeWorkspaceInner() {
           treeData={treeData}
           visiblePatternIds={visiblePatternIds}
           onTogglePatternVisibility={handleTogglePatternVisibility}
-          initialExpandedPatternId={openPatternId}
+          initialExpandedPatternId={focusedPatternId ?? openPatternId}
           initialEntityId={canvasState.initialEntityId ?? undefined}
           showReflectionPrompts={canvasSettings.showReflectionPrompts}
           siblingGroup={selectedPersonSibGroup}

@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
 import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../../lib/patternEntities";
@@ -8,6 +8,7 @@ interface PatternFocusPanelProps {
   pattern: DecryptedPattern;
   color: string;
   entityMaps: EntityMaps;
+  onEdit: () => void;
   onExit: () => void;
 }
 
@@ -17,7 +18,13 @@ interface PatternFocusPanelProps {
  * spotlit: its name in the pattern colour, the description, how many people and
  * generations it spans, and the linked entities with the person each touches.
  */
-export function PatternFocusPanel({ pattern, color, entityMaps, onExit }: PatternFocusPanelProps) {
+export function PatternFocusPanel({
+  pattern,
+  color,
+  entityMaps,
+  onEdit,
+  onExit,
+}: PatternFocusPanelProps) {
   const { t } = useTranslation();
   const entities = pattern.linked_entities.map((le) => ({
     key: `${le.entity_type}:${le.entity_id}`,
@@ -34,7 +41,15 @@ export function PatternFocusPanel({ pattern, color, entityMaps, onExit }: Patter
         </h2>
         <button
           type="button"
-          className="pattern-focus-panel__exit"
+          className="pattern-focus-panel__btn"
+          onClick={onEdit}
+          aria-label={t("pattern.focus.edit")}
+        >
+          <Pencil size={14} />
+        </button>
+        <button
+          type="button"
+          className="pattern-focus-panel__btn"
           onClick={onExit}
           aria-label={t("pattern.focus.exit")}
         >

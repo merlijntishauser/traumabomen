@@ -747,6 +747,7 @@
   "pattern.focus.menu": "Focus a pattern",
   "pattern.focus.showAll": "Show all (no focus)",
   "pattern.focus.manage": "Manage patterns",
+  "pattern.focus.edit": "Edit this pattern",
   "pattern.focus.exit": "Exit pattern focus",
   "pattern.focus.people_one": "{{count}} person in this pattern",
   "pattern.focus.people_other": "{{count}} people in this pattern",
