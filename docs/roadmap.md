@@ -1,341 +1,261 @@
 # Roadmap
 
-## Assessment (March 2026)
-
-The core product is solid: tree canvas, timeline, DSM classifications, pattern editor, life events, trauma events, turning points (resilience), reflection journal with guided prompts, zero-knowledge encryption, safety envelope. Quality infrastructure is excellent (97% frontend / 98% backend coverage with ratcheting, CodeQL, Nuclei, ZAP, privacy scanner, Lighthouse). CI/CD is mature with automated testing, multi-stage Docker builds, and post-deploy verification.
-
-The two strategic gaps identified in February are now largely resolved:
-
-**Reflection gap: closed.** Resilience layer, reflection journal, guided prompts, and personal insights summary are all shipped. The reflection story is complete.
-
-**Scaling gap: closed.** Rate limiting, error tracking, user data export, async email, and all security hardening items from the February audit are done. The remaining scaling work is operational (Cloud Run configuration, connection pools) and can be adjusted as needed when growing beyond 20 users.
-
-Priority: ship high-impact UX features that make the tree more useful for everyday work.
-
-## Planned: UX improvements (high priority)
-
-Findings from the March 2026 UX review, prioritised by user impact.
-
-### Critical
-
-#### ~~UX-1. Login form invisible on mobile~~ (done)
-
-On mobile the login card now renders above the welcome text via CSS `order: -1`, ensuring the form is immediately visible in the first viewport. Desktop side-by-side layout unchanged.
-
-#### ~~UX-2. No password reset flow~~ (done)
-
-Password reset via email link: `POST /auth/forgot-password` (anti-enumeration, rate-limited), `POST /auth/reset-password` (token validation, password strength check, single-use). "Forgot your password?" link on login page, ForgotPasswordPage, ResetPasswordPage. EN + NL translations.
-
-### High
-
-#### ~~UX-3. No password / passphrase visibility toggle~~ (done)
-
-Reusable `PasswordInput` and `PassphraseInput` components with eye/eye-off visibility toggles. Applied to all 15 password and passphrase inputs across login, register, unlock, reset password, auth modal, lock screen, and settings (change password/passphrase). `PassphraseInput` wraps `PasswordInput` with `data-1p-ignore` and passphrase-specific aria labels. EN + NL translations.
-
-#### ~~UX-4. Registration step indicator lacks labels~~ (done)
-
-Replaced plain dots with a labeled step indicator showing numbered circles ("Account", "Encryption", "Confirm") connected by lines. Active step is accent-colored with bold label, done steps show a checkmark, future steps are muted. Accessible `nav` element with aria-label. EN + NL translations.
-
-#### ~~UX-5. Disabled buttons without explaining why~~ (done)
-
-Registration step 1 now shows "Choose a stronger password to continue." hint when the password is non-empty and weak, making the cause-effect relationship with the disabled button explicit. EN + NL translations.
-
-#### ~~UX-6. Toolbar icon-only buttons lack discoverability~~ (done)
-
-Icon-only action buttons keep their compact 32x32 form with CSS tooltips on hover and focus-visible (keyboard accessible). Primary navigation (ViewTabs) and view-specific tabs (timeline modes) already had visible labels. Responsive: tab labels collapse to icon-only below 960px, title truncates with ellipsis.
-
-#### ~~UX-7. Person node shows "? -" for missing birth year~~ (done)
-
-When both years are missing, the years row is hidden entirely. When only death year is known, shows "- 1995" without the question mark.
-
-### Medium
-
-#### ~~UX-8. Welcome banner competes with create form~~ (done)
-
-Welcome banner now hides when the create form is open, eliminating the competing prompts.
-
-#### ~~UX-9. Delete and Save buttons adjacent~~ (done)
-
-Delete button moved to a separate danger zone below Save, separated by a divider line.
-
-#### UX-10. No unsaved changes warning (backlog)
-
-Editing person fields and clicking Close or selecting another node silently discards changes. For sensitive data entry this is a meaningful data-loss risk. Requires dirty state tracking in PersonDetailPanel and a confirmation dialog.
-
-#### ~~UX-11. Gender defaults to "Other"~~ (done)
-
-New persons now have an empty gender with a disabled "Select" placeholder option. Users must explicitly choose male, female, or other.
-
-#### ~~UX-12. Footer is overloaded~~ (done)
-
-Reduced footer actions from 6 buttons to 2 (lock, feedback). Removed language and theme toggles (already in Settings panel). Moved privacy and GitHub links to the colophon row alongside copyright and license.
-
-#### ~~UX-13. Auth modal blocks public routes~~ (done)
-
-AuthModal is suppressed on public routes (/privacy, /login, /register, /waitlist, /verify*).
-
-### Low
-
-#### ~~UX-14. No keyboard shortcuts for canvas actions~~ (done)
-
-Added `N` for add person (was already Ctrl+Z for undo). Both skip when focus is in an input/textarea/select.
-
-#### ~~UX-15. Demo tree button placement~~ (done)
-
-Added "Create demo tree" button to the welcome card alongside "Create tree" and "Send message".
-
-#### ~~UX-16. Theme toggle is cycle-only~~ (done)
-
-Resolved by UX-12: theme toggle removed from footer. The Settings panel radio buttons are the primary control for theme selection.
-
-## Planned: UI polish (medium priority)
-
-Findings from the March 2026 UI review, covering both dark and light themes.
-
-### Dark theme
-
-#### ~~UI-D1. Text contrast on glass panels (login/register)~~ (done)
-
-Increased glass panel background opacity from 0.68 to 0.80 with backdrop-filter for better text contrast on variable hero images.
-
-#### ~~UI-D2. Muted text is too muted~~ (done)
-
-Lightened `--color-text-muted` from `#5a7a64` to `#7a9a84`, reaching WCAG AA 4.5:1 contrast ratio.
-
-#### ~~UI-D3. Canvas background lacks intended depth~~ (done)
-
-Increased noise texture opacity from 3.5% to 6% for more visible atmospheric depth.
-
-#### ~~UI-D4. Person node looks bare~~ (done)
-
-Added accent top border, bolder name (700 weight), and a separator line above badges for visual structure.
-
-#### ~~UI-D5. Toolbar groups blur together~~ (done)
-
-Increased separator width from 1px to 2px for clearer visual grouping.
-
-### Light theme
-
-#### ~~UI-L1. Accent color diverges between themes~~ (done)
-
-Unified light theme accent from teal-blue (`#4a9bb5`) to forest green (`#34a066`), matching the dark theme hue. Updated all derived values (subtle, focus-ring, border, lifebar, node-selected, shadows).
-
-#### ~~UI-L2. Canvas decoration lines barely visible~~ (done)
-
-Increased BranchDecoration opacity from 9% to 16%.
-
-#### ~~UI-L3. Mental health banner blends in~~ (done)
-
-Added accent left border and subtle accent background to the banner in light theme.
-
-#### ~~UI-L4. Footer border too subtle~~ (done)
-
-Darkened `--color-border-secondary` from `#e4dfd9` to `#d4cfc9`.
-
-#### ~~UI-L5. Shadow system too weak~~ (done)
-
-Increased light theme shadow opacities (sm: 0.06 to 0.12, md: 0.08 to 0.16, lg: 0.10 to 0.18).
-
-### Cross-theme
-
-#### ~~UI-C1. Heading font weight lacks variation~~ (done)
-
-Set h1 to font-weight 200 (large display), h2 to 300 (default), h3/h4 to 400 (compact headers).
-
-#### ~~UI-C2. No smooth theme transition~~ (done)
-
-Added `transition: background 0.4s ease` to `.bg-gradient` and `transition: opacity 0.4s ease` to `.branch-decoration`. Auth hero images already had 0.4s opacity transitions.
-
-#### ~~UI-C3. Colophon double-dimmed~~ (done)
-
-Removed `opacity: 0.75` from `.app-footer__colophon`. Text already uses `--color-text-muted`.
-
-#### ~~UI-C4. Feedback button pink is jarring in footer~~ (done)
-
-Changed feedback button from pink (`--color-edge-partner`) to muted default style with accent hover, matching other footer buttons.
-
-#### ~~UI-C5. Active nav tab is visually heavy~~ (done)
-
-Replaced solid accent fill with subtle accent background tint and bottom-border indicator.
-
-#### ~~UI-C6. Registration form input grouping~~ (done)
-
-Merged email field into the same `auth-field-group` as password and confirm password fields.
-
-#### ~~UI-C7. Empty workspace has no visual anchor~~ (done)
-
-Added a subtle dot grid (24px spacing) to the empty canvas background using a radial gradient pattern.
-
-## ~~Planned: Reflection~~ (done)
-
-### ~~1. Resilience and strengths layer~~ (done)
-
-### ~~2. Reflection journal~~ (done)
-
-### ~~3. Guided reflection prompts~~ (done)
-
-### ~~4. Personal insights summary~~ (done)
-
-## ~~Planned: Scaling hardening~~ (done)
-
-### ~~5. API rate limiting~~ (done)
-
-### ~~6. Production error tracking~~ (done)
-
-### ~~7. User data export~~ (done)
-
-### ~~8. Async email sending~~ (done)
-
-## Planned: Features (medium priority)
-
-### 9. Canvas annotations
-
-Free-positioned sticky notes on the canvas for spatial observations. Six muted colors for visual grouping. Double-click canvas or toolbar button to create, inline editing with color picker. Encrypted text, plaintext position. New Annotation entity with CRUD endpoints and bulk sync support.
-
+## Current state (June 2026)
+
+The core product is complete and polished: encrypted tree canvas, timeline,
+DSM-5 classifications, pattern editor with a single-pattern canvas spotlight,
+life and trauma events, turning points (resilience), reflection journal with
+guided prompts, personal insights, and sibling groups. The safety envelope
+(onboarding gate, footer, lock screen) and zero-knowledge encryption are solid.
+
+Since March the work has been polish and reach rather than new core features:
+the pattern spotlight replaced the metaball blobs, sibling groups gained
+parent-inheriting promotion and bulk-linking, and a public marketing surface
+shipped (landing with real screenshots, `/learn`, `/tour`, `/security`, a
+read-only `/demo` tree, indigo light theme). Quality and security
+infrastructure remain strong (97% / 98% coverage with ratcheting, CodeQL,
+Nuclei, ZAP, privacy scanner, Lighthouse, react-doctor 100). Backend
+integration tests now run against PostgreSQL in CI.
+
+The product is feature-rich but still gated to a small private beta
+(`MAX_ACTIVE_USERS = 20`, waitlist). **The defining question for the next phase
+is no longer "what feature is missing from the canvas" but "what is required to
+let real people in and keep their data safe."** That reframes the priorities
+below.
+
+## Priorities
+
+A tiered view of everything that remains, including gaps not previously on the
+roadmap (see [Gaps and risks](#gaps-and-risks)). Reasoning, not just ordering.
+
+### Now: readiness to widen the beta (cheap, high-leverage)
+
+1. **Cloud Run scaling configuration (#16)** and **post-deploy e2e smoketest
+   (#19).** Both are small and operational, and both are prerequisites for
+   admitting more users with confidence. Do these before raising the user cap.
+2. **Mobile experience (gap).** Today a banner tells phone users to switch to
+   desktop. For a private, reflective tool people reach for in quiet moments,
+   "desktop only" is the single largest adoption barrier. A usable read/pan/
+   inspect experience (own tree + the public demo) is worth more than any new
+   canvas feature.
+3. **Passphrase-loss mitigation (gap).** "Lose your passphrase, lose everything"
+   is honest and by design, but with no safety net it is also the scariest part
+   of onboarding and a silent churn driver. A downloadable recovery code that
+   wraps the key ring a second way keeps zero-knowledge intact while removing
+   the cliff. Design carefully; high value.
+4. **Unsaved-changes warning (UX-10).** Closing a panel silently discards edits
+   to sensitive data. Contained fix, real data-loss prevention.
+
+### Next: depth that matches the product's purpose
+
+5. **Read-only tree sharing (#11).** The highest-value remaining *feature*.
+   Intergenerational work is inherently shared; letting a user show a view to a
+   sibling, parent, or therapist is core to what the product is for. Complex
+   (per-recipient key exchange) but the design and the export prerequisite are
+   done.
+6. **In-app onboarding (gap).** New users currently land on a blank canvas after
+   the safety modal. A short guided first-run (or a "start from the demo" path)
+   converts curiosity into a real tree.
+7. **Care providers (#12)** and **canvas annotations (#9).** Self-contained
+   depth features with design docs. Annotations are cheap; care providers lean
+   into the therapy-adjacent angle.
+
+### Later: when scale or evidence demands it
+
+8. **elkjs + collapsible sub-trees (#18)** and **client-side virtualization
+   (#17).** Both only matter once trees are large (500+ persons). Beta trees are
+   small; defer until real large trees exist, then do #18 first.
+9. **Passkey authentication (#15).** Phishing-resistant login is a nice upgrade,
+   but email + password is sufficient for beta.
+10. **Wellbeing check-in (#13).** On-brand and small, but the least urgent.
+
+## Remaining work
+
+### Features
+
+#### 9. Canvas annotations
+
+Free-positioned sticky notes on the canvas for spatial observations. Six muted
+colors for visual grouping. Double-click canvas or toolbar button to create,
+inline editing with color picker. Encrypted text, plaintext position. New
+Annotation entity with CRUD endpoints and bulk sync support.
 See [design doc](plans/2026-03-02-canvas-annotations-design.md).
 
-### ~~10. Sibling groups~~ (done)
+*Assessment:* low risk, self-contained, modest value. Good "filler" work
+between larger efforts.
 
-### 11. Read-only tree sharing
+#### 11. Read-only tree sharing
 
-Share a tree with another user for viewing. Builds on the per-tree key architecture from the export milestone.
+Share a tree with another user for viewing. Builds on the per-tree key
+architecture from the export milestone.
 
-- RSA-OAEP 4096-bit key pair generated per user on first unlock, private key encrypted with master key
-- Sharer encrypts tree key with recipient's public key; stored in `TreeShare` model
-- Pending shares for non-registered recipients: invite email sent, auto-completed when recipient creates account
-- Recipient decrypts shared tree keys on unlock; shared trees appear in separate "Shared with me" section
-- Server-side read-only enforcement (viewer can GET but not POST/PUT/DELETE); journal entries excluded
+- RSA-OAEP 4096-bit key pair generated per user on first unlock, private key
+  encrypted with master key
+- Sharer encrypts tree key with recipient's public key; stored in `TreeShare`
+  model
+- Pending shares for non-registered recipients: invite email sent,
+  auto-completed when recipient creates account
+- Recipient decrypts shared tree keys on unlock; shared trees appear in a
+  separate "Shared with me" section
+- Server-side read-only enforcement (viewer can GET but not POST/PUT/DELETE);
+  journal entries excluded
 - Display name field for user identity in shares
 - Revoke access by deleting the share grant
 
-See [design doc](plans/2026-03-01-read-only-tree-sharing-design.md). Prerequisite: user data export (#7).
+See [design doc](plans/2026-03-01-read-only-tree-sharing-design.md).
+Prerequisite: user data export (done).
 
-### 12. Care providers
+*Assessment:* highest-value feature, highest feature complexity. The
+cryptographic key exchange must be reviewed carefully. Pairs naturally with
+PDF/print export for offline sharing.
 
-Track mental health professionals and institutes as their own nodes on the canvas, connected to persons via dedicated care edges. Opt-in per tree via "Enable care providers functionality" setting.
+#### 12. Care providers
 
-- **CareProvider nodes**: name, kind (professional/institute), role, optional modality, notes
-- **CareRelationship edges**: link one provider to multiple persons with per-person care periods
-- **CareProviderDetailPanel**: edit provider details and manage linked persons with periods
+Track mental health professionals and institutes as their own nodes on the
+canvas, connected to persons via dedicated care edges. Opt-in per tree via an
+"Enable care providers functionality" setting.
+
+- **CareProvider nodes**: name, kind (professional/institute), role, optional
+  modality, notes
+- **CareRelationship edges**: link one provider to multiple persons with
+  per-person care periods
+- **CareProviderDetailPanel**: edit provider details and manage linked persons
+  with periods
 - **Timeline**: care periods render as strips below person life bars
 - Visually distinct from family nodes (pill shape, teal/green, dotted edges)
 
 See [design doc](plans/2026-02-15-care-providers-design.md).
 
-### 13. Wellbeing check-in
+*Assessment:* medium value, medium effort; reinforces the therapy-adjacent
+positioning. Opt-in keeps it out of the way for users who do not want it.
 
-Small optional prompt when opening the app: "How are you feeling right now?" Stored privately, shown over time as a personal trend. Reinforces the app as a self-care tool. Also a gentle session timer nudge: "You've been working for 45 minutes. Would you like to take a break?"
+#### 13. Wellbeing check-in
 
-## Planned: Infrastructure (lower priority)
+Small optional prompt when opening the app: "How are you feeling right now?"
+Stored privately, shown over time as a personal trend. Reinforces the app as a
+self-care tool. Also a gentle session-timer nudge: "You've been working for 45
+minutes. Would you like to take a break?"
 
-### ~~14. Passphrase hints and auth modals~~ (done)
+*Assessment:* small and on-brand; low urgency. The break nudge is worth
+shipping even before the mood trend.
 
-### 15. Passkey authentication
+### Platform and infrastructure
 
-Passkeys (WebAuthn/FIDO2) as an alternative login method alongside email+password. Phishing-resistant authentication using biometrics, device PIN, or security keys. Encryption passphrase remains separate.
+#### 15. Passkey authentication
+
+Passkeys (WebAuthn/FIDO2) as an alternative login method alongside
+email + password. Phishing-resistant authentication using biometrics, device
+PIN, or security keys. The encryption passphrase remains separate.
 
 - **Login**: "Sign in with passkey" button using discoverable credentials
-- **Multi-domain**: separate credentials per domain (traumatrees.org / traumabomen.nl)
+- **Multi-domain**: separate credentials per domain (traumatrees.org /
+  traumabomen.nl)
 - **Management**: add/remove passkeys in settings, multiple per account
 - **Prompt**: one-time post-login banner encouraging passkey setup
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
-### 16. Cloud Run scaling configuration
+#### 16. Cloud Run scaling configuration
 
 Current settings are conservative for beta. Adjust before wider rollout.
 
 - Increase `MAX_ACTIVE_USERS` from 20 to 200+
 - Increase Cloud Run max-instances from 4 to 8-16
-- ~~Set min-instances to 1 (eliminates 5-10s cold start latency)~~
 - Increase DB connection pool: `pool_size=10, max_overflow=20`
 
-### 17. Client-side virtualization
+#### 17. Client-side virtualization
 
-Large trees (500+ persons, 2000+ events) will cause rendering lag in timeline and event lists.
+Large trees (500+ persons, 2000+ events) will cause rendering lag in the
+timeline and event lists.
 
-- Windowing library (react-window or similar) for timeline and long lists
-- Viewport-aware rendering for React Flow canvas (already partially handled by @xyflow/react)
+- Windowing library (react-window or similar) for the timeline and long lists
+- Viewport-aware rendering for the React Flow canvas (already partially handled
+  by @xyflow/react)
 - Consider lazy-loading event details in PersonDetailPanel
 
-### 18. Replace Dagre with elkjs and collapsible sub-trees
+#### 18. Replace Dagre with elkjs and collapsible sub-trees
 
-Replace Dagre layout engine with elkjs (the open-source engine behind React Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with compact summary nodes. Drop the React Flow Pro watermark suppression. See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
+Replace the Dagre layout engine with elkjs (the open-source engine behind React
+Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with
+compact summary nodes. Drop the React Flow Pro watermark suppression.
+See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
 
-### 19. Post-deploy e2e smoketest
+#### 19. Post-deploy e2e smoketest
 
-Run a Playwright smoketest subset against the live production URL after each deploy. Reuses the `@smoketest`-tagged e2e tests (auth flow, tree workflow with encryption round-trip) via `E2E_SMOKETEST=true` and `E2E_BASE_URL` pointing to the production domain. Replaces the current curl-based health check in the deploy workflow. Requires wiring production test credentials into the deploy workflow secrets.
+Run a Playwright smoketest subset against the live production URL after each
+deploy. Reuses the `@smoketest`-tagged e2e tests (auth flow, tree workflow with
+encryption round-trip) via `E2E_SMOKETEST=true` and `E2E_BASE_URL`. Replaces the
+current curl-based health check. Requires wiring production test credentials
+into the deploy workflow secrets.
 
-## Done
+### UX
 
-### Security hardening
+#### UX-10. Unsaved changes warning
 
-Findings from the February 2026 security audit, all resolved.
+Editing person fields and clicking Close or selecting another node silently
+discards changes. For sensitive data entry this is a meaningful data-loss risk.
+Requires dirty-state tracking in PersonDetailPanel and a confirmation dialog.
 
-**Frontend stability:** React error boundaries on lazy-loaded route pages, resilient decrypt() calls in useTreeData (Promise.allSettled), allowedElements for react-markdown in journal preview, interval cleanup on unmount in VerificationPendingPage.
+## Gaps and risks
 
-**Authentication:** Client-side and server-side password strength validation, refresh token rotation (single-use tokens), constant-time passphrase hash comparison.
+Items not previously on the roadmap, surfaced by reviewing the current state.
+Several outrank the formally-planned features above.
 
-**Backend hardening:** DB connection SSL enforcement in production, production email TLS verification, rate limiting on auth and public endpoints.
+### Mobile and responsive (high)
 
-### Beta waitlist and user cap
+The app shows a "use a desktop" banner on small screens. For a personal,
+private tool, that excludes the context in which many people would actually use
+it. Scope at minimum: read, pan, and inspect on mobile for one's own tree and
+the public demo; full editing can stay desktop-first.
 
-Configurable user cap with email-only waitlist. Admin approves from dashboard, triggering invitation emails. Controlled by `ENABLE_WAITLIST` and `MAX_ACTIVE_USERS` environment variables. [Design doc](plans/2026-02-17-beta-waitlist-design.md).
+### Passphrase recovery (high)
 
-### Timeline view refinement
+There is no recovery path if the passphrase is lost, by design, but also no
+mitigation. A user-initiated, downloadable recovery code (a second wrapping of
+the key ring) would preserve zero-knowledge while removing the single scariest
+failure mode. Treat as a security-design task, not a quick fix.
 
-Full timeline redesign: dual-axis modes (years and age), three interaction layers (explore, edit, annotate), comprehensive filtering with smart person groups, pattern visualization (lane tints, marker rings, inline labels), partner relationship lines, zoom/pan, marker labels, gridlines, and timeline-specific settings panel. [Design docs](plans/2026-02-18-timeline-redesign-design.md), [pattern redesign](plans/2026-02-20-timeline-pattern-redesign.md), [settings](plans/2026-02-19-timeline-settings-design.md).
+### In-app onboarding (medium)
 
-### In-app feedback form
+Beyond the safety acknowledgement modal there is no first-run guidance. New
+users face an empty canvas. A short guided tour, sample-data nudge, or "explore
+the demo first" path would lift activation.
 
-Structured feedback (bug, feature, general) via modal in the footer. Stored in database, shown in admin dashboard with category badges, email notification to configurable address. Anonymous submission option. [Design doc](plans/2026-02-17-feedback-form-design.md).
+### Tree history, soft-delete, and backup (medium)
 
-### Pattern editor
+Undo is session-only. There is no protection against accidental tree or person
+deletion and no server-side version history. For irreplaceable personal data,
+soft-delete (recoverable for N days) and/or periodic encrypted snapshots are
+worth considering. Manual export helps but is not a safety net.
 
-Annotation layer linking trauma events, life events, and classifications across generations to mark recurring themes. Metaball contour visualization on the canvas, theme-aware colors, hover preview from panel, dedicated pattern view with edit-on-canvas navigation. [Design doc](plans/2026-02-16-pattern-editor-design.md).
+### In-tree search (medium)
 
-### Resilience and strengths layer
+No way to find a person quickly in a larger tree. A simple name search /
+jump-to-node would scale with tree size and pairs well with #17/#18.
 
-New "Turning Point" event type for mapping resilience: cycle-breaking, protective relationships, recovery, achievement, positive change. Star-shaped badges on canvas, star markers on timeline, full CRUD in detail panel (grouped under Events tab with trauma and life events), pattern linking, demo tree entries, bulk sync support. [Design doc](plans/2026-02-21-resilience-layer-design.md).
+### PDF / print export (medium)
 
-### Async email sending
+Listed in the backlog, but its value is higher than "someday": therapists and
+family members often want an offline artifact, and it pairs directly with
+read-only sharing (#11). Needs person/event filtering to avoid oversharing.
 
-Centralized `send_email_background` helper wraps all email-sending functions in daemon threads with one retry after 5 seconds. Registration and resend-verification no longer block on SMTP; waitlist approval and feedback gained retry logic. Graceful degradation: endpoints return success immediately, user has "resend" button as fallback. [Design doc](plans/2026-02-23-async-email-design.md).
+### Canvas accessibility (low-medium)
 
-### Production error tracking
+react-doctor scores 100, but a React Flow canvas is inherently hard for screen
+readers. A list or timeline alternative view for assistive technology would
+close the gap. Audit before any public, non-beta launch.
 
-Sentry integration for both FastAPI backend (`sentry-sdk[fastapi]`) and React frontend (`@sentry/react`). Custom crypto error hierarchy (`CryptoError` base with `DecryptError`, `KeyDerivationError`, `PassphraseError`) for encryption failure tracking. Privacy safeguards: no PII, encrypted data stripped from request context, hashed user IDs. Source maps uploaded via `@sentry/vite-plugin` during production build. Error boundary with user-friendly fallback. [Design doc](plans/2026-02-23-error-tracking-design.md).
+### Process: usability and security cadence (ongoing)
 
-### User data export
-
-Per-tree encryption keys with master-key-encrypted key ring, transparent client-side migration on first unlock, simplified passphrase change (re-encrypt key ring only). Encrypted JSON backup (download + re-import), plaintext JSON export with confirmation dialog. Life events and journal entries added to bulk sync endpoint. [Design doc](plans/2026-02-24-user-data-export-design.md).
-
-### API rate limiting
-
-Two-layer rate limiting: nginx (strict 5/min on login/register, general 20/min on auth, global 120/min) and application-layer progressive backoff on failed logins (tarpitting at 4+ attempts, lockout at 10, 30-min auto-expiry). In-memory tracking by IP and email with log injection protection. [Design doc](plans/2026-02-22-api-rate-limiting-design.md), [implementation plan](plans/2026-02-23-api-rate-limiting-plan.md).
-
-### Personal insights summary
-
-Read-only overview page at `/trees/:id/insights` surfacing basic observations from entered data. Four insight categories: generational patterns (recurring trauma/classifications across generations), temporal clustering (age-at-event patterns, dense year windows), category summaries (most common trauma type, total counts, shared classifications), resilience indicators (turning points following trauma, cycle-breaking). All computation client-side, card grid layout, no AI. [Design doc](plans/2026-03-01-personal-insights-design.md).
-
-### Sibling groups
-
-Compact representation of siblings without creating full Person nodes. SiblingGroup entity with lightweight member records (name, optional birth year) alongside full Person references. Pill-shaped nodes on the canvas connected to shared parents. Members promotable to full persons with sibling relationships in a single bulk sync call. One group per person constraint (server-side 409). Detail panel for editing members, section in RelationshipsTab. [Design doc](plans/2026-03-02-sibling-groups-design.md).
-
-### Passphrase hints and auth modals
-
-User-written passphrase recovery hints, auth modal overlay, and auto-lock on inactivity. Optional hint (max 255 chars) stored server-side, shown on unlock page and auth modal. Auth modal is a full-viewport overlay with hero background in two modes (unlock for expired encryption key, re-auth for expired JWT). Auto-lock with configurable inactivity timer (5/15/30/60 min or disabled) clears encryption key. Hint manageable in account settings. [Design doc](plans/2026-02-15-passphrase-hints-auth-modals-design.md).
-
-### Safety envelope
-
-Three-layer protection system: onboarding gate, safety footer, lock + blur screen. [Design doc](plans/2026-02-16-safety-envelope-design.md).
+No evidence yet of testing with real users outside the team, and the February
+security audit is now four months old. Schedule a small usability round before
+widening the beta and a periodic security re-review.
 
 ## Backlog
 
 ### Features
 - OAuth/social login
 - GEDCOM import/export
-- PDF/image export (with filtering: choose which persons/events to include)
 - Custom category management
 - Edit permissions for shared trees (extends read-only sharing, #11)
 - Share links for non-registered users (extends read-only sharing, #11)
@@ -355,24 +275,6 @@ Three-layer protection system: onboarding gate, safety footer, lock + blur scree
 - Relationship prompt after person creation ([design doc](plans/2026-02-18-relationship-prompt-design.md), partially implemented)
 - Full birth/death dates ([design doc](plans/2026-02-17-full-birth-death-dates-design.md), partially implemented)
 
-### ~~React Doctor findings~~ (done)
-
-All issues resolved. react-doctor score: 100/100.
-
-#### ~~20. Fix derived state in useEffect (AuthModal)~~ (done)
-
-#### ~~21. Lazy useState initialization~~ (done)
-
-#### ~~22. Accessibility: keyboard handlers and roles~~ (done)
-
-#### ~~23. Replace array index keys with stable identifiers~~ (done)
-
-#### ~~24. Parallel async operations (ChangePassphraseSection)~~ (done)
-
-#### ~~25. Break up large components~~ (done)
-
-#### ~~26. Clean up dead code~~ (done)
-
 ### To think about
 - More themes
 - Optional pet support
@@ -383,4 +285,4 @@ All issues resolved. react-doctor score: 100/100.
 - Cloud Monitoring dashboards (API latency, error rates, DB connections)
 - Read replicas for analytics queries (admin dashboard)
 - CDN for frontend assets if serving globally
-- Global events... not tied to a person, but visible in the timeline view and personal timeline. Think of COVID-19, WW-2, etc.
+- Global events not tied to a person but visible in the timeline (COVID-19, WWII, etc.)
