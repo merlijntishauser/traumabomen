@@ -643,6 +643,19 @@ button {
   color: var(--color-danger);
 }
 
+/* Primary action and close control in a panel header share one explicit height
+   so they read as a matched pair (design rule: never let padding alone set a
+   button's height). Placed after the base button rules so specificity ascends. */
+.panel-header .btn,
+.panel-header .panel-close {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Shared gradient background with dither to prevent banding */
 .bg-gradient {
   position: relative;
