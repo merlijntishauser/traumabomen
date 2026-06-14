@@ -8,7 +8,8 @@ interface PatternFocusPanelProps {
   pattern: DecryptedPattern;
   color: string;
   entityMaps: EntityMaps;
-  onEdit: () => void;
+  // Omitted on read-only surfaces (the public demo) where patterns cannot be edited.
+  onEdit?: () => void;
   onExit: () => void;
 }
 
@@ -39,14 +40,16 @@ export function PatternFocusPanel({
         <h2 className="pattern-focus-panel__name" style={{ color }}>
           {pattern.name}
         </h2>
-        <button
-          type="button"
-          className="pattern-focus-panel__btn"
-          onClick={onEdit}
-          aria-label={t("pattern.focus.edit")}
-        >
-          <Pencil size={14} />
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            className="pattern-focus-panel__btn"
+            onClick={onEdit}
+            aria-label={t("pattern.focus.edit")}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
         <button
           type="button"
           className="pattern-focus-panel__btn"

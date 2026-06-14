@@ -35,6 +35,7 @@ import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useExportTree } from "../hooks/useExportTree";
 import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
+import { usePatternFocus } from "../hooks/usePatternFocus";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
 import { usePromoteMember } from "../hooks/usePromoteMember";
@@ -51,7 +52,6 @@ import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
 import { buildSiblingParentInheritance } from "../lib/parentInheritance";
-import { getPatternColor } from "../lib/patternColors";
 import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/siblingGroupConnect";
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
@@ -59,7 +59,6 @@ import "../components/tree/TreeCanvas.css";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
 const edgeTypes = { relationship: RelationshipEdge };
-const EMPTY_PATTERN_IDS = new Set<string>();
 
 const NODE_W = 180;
 const NODE_H = 80;
@@ -879,55 +878,6 @@ function useCanvasEventHandlers(opts: {
 }
 
 /* -- Pattern focus -------------------------------------------------------- */
-
-/**
- * Pattern focus mode: spotlight one pattern. Members keep full clarity with
- * their top border recoloured (focusColor); everyone else is dimmed via a
- * wrapper class. The node tagging is a cheap post-map, so focus never re-runs
- * the layout.
- */
-function usePatternFocus(
-  patterns: ReturnType<typeof useTreeData>["patterns"],
-  nodes: AnyNodeType[],
-  initialFocusId: string | null,
-) {
-  const [focusedPatternId, setFocusedPatternId] = useState<string | null>(initialFocusId);
-  const focusedPattern = focusedPatternId ? (patterns.get(focusedPatternId) ?? null) : null;
-  const focusColor = focusedPattern ? getPatternColor(focusedPattern.color) : null;
-  const focusMemberIds = useMemo(
-    () => (focusedPattern ? new Set(focusedPattern.person_ids) : null),
-    [focusedPattern],
-  );
-  const displayNodes = useMemo(() => {
-    if (!focusMemberIds || !focusColor) return nodes;
-    return nodes.map((node) => {
-      const isMember = node.type === "person" && focusMemberIds.has(node.id);
-      const className = isMember
-        ? node.className
-        : [node.className, "rf-node-dimmed"].filter(Boolean).join(" ");
-      if (node.type === "person") {
-        return {
-          ...node,
-          className,
-          data: { ...node.data, focusColor: isMember ? focusColor : undefined },
-        };
-      }
-      return { ...node, className };
-    });
-  }, [nodes, focusMemberIds, focusColor]);
-  const visiblePatternIds = useMemo(
-    () => (focusedPatternId ? new Set([focusedPatternId]) : EMPTY_PATTERN_IDS),
-    [focusedPatternId],
-  );
-  return {
-    focusedPatternId,
-    setFocusedPatternId,
-    focusedPattern,
-    focusColor,
-    displayNodes,
-    visiblePatternIds,
-  };
-}
 
 /* -- Main inner component -------------------------------------------------- */
 

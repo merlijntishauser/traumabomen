@@ -80,6 +80,13 @@ describe("PatternFocusMenu", () => {
     expect(onManage).toHaveBeenCalled();
   });
 
+  it("hides the manage entry when onManage is omitted (read-only)", () => {
+    render(<PatternFocusMenu patterns={patterns} focusedPatternId={null} onFocus={vi.fn()} />);
+    openMenu();
+    expect(screen.getByText("pattern.focus.showAll")).toBeInTheDocument();
+    expect(screen.queryByText("pattern.focus.manage")).not.toBeInTheDocument();
+  });
+
   it("shows the empty state when there are no patterns", () => {
     render(
       <PatternFocusMenu

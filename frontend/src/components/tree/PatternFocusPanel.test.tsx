@@ -59,6 +59,19 @@ describe("PatternFocusPanel", () => {
     expect(onEdit).toHaveBeenCalledTimes(1);
   });
 
+  it("hides the edit control when onEdit is omitted (read-only)", () => {
+    render(
+      <PatternFocusPanel
+        pattern={pattern}
+        color="#4f46e5"
+        entityMaps={entityMaps}
+        onExit={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "pattern.focus.edit" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "pattern.focus.exit" })).toBeInTheDocument();
+  });
+
   it("exits via the close control", () => {
     const onExit = vi.fn();
     render(

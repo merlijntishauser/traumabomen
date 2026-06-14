@@ -7,20 +7,22 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { BackHome } from "../components/BackHome";
 import { DemoPersonCard } from "../components/tree/DemoPersonCard";
-import { PatternConnectors } from "../components/tree/PatternConnectors";
+import { PatternFocusMenu } from "../components/tree/PatternFocusMenu";
+import { PatternFocusPanel } from "../components/tree/PatternFocusPanel";
 import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import SiblingGroupNode from "../components/tree/SiblingGroupNode";
 import { useDemoTreeData } from "../hooks/useDemoTreeData";
+import { usePatternFocus } from "../hooks/usePatternFocus";
 import type { PersonNodeType, SiblingGroupNodeType } from "../hooks/useTreeLayout";
 import { useTreeLayout } from "../hooks/useTreeLayout";
 import type { DemoTreeState } from "../lib/buildDemoState";
+import type { EntityMaps } from "../lib/patternEntities";
 import "../components/tree/TreeCanvas.css";
 import "./DemoTreePage.css";
 
@@ -30,7 +32,7 @@ const LAYOUT_SETTINGS = { edgeStyle: "curved", showMarkers: true } as const;
 
 type DemoNode = PersonNodeType | SiblingGroupNodeType;
 
-function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPatterns: boolean }) {
+function DemoCanvas({ state }: { state: DemoTreeState }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { fitView } = useReactFlow();
 
@@ -46,9 +48,20 @@ function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPattern
     state.siblingGroups,
   );
 
-  const visiblePatternIds = useMemo(
-    () => (showPatterns ? new Set(state.patterns.keys()) : new Set<string>()),
-    [showPatterns, state.patterns],
+  // Same single-pattern spotlight the workspace uses: dim everyone, light up one
+  // pattern's members in its colour. Read-only here (no manage / edit).
+  const { focusedPatternId, setFocusedPatternId, focusedPattern, focusColor, displayNodes } =
+    usePatternFocus(state.patterns, nodes, null);
+
+  const entityMaps: EntityMaps = useMemo(
+    () => ({
+      events: state.events,
+      lifeEvents: state.lifeEvents,
+      turningPoints: state.turningPoints,
+      classifications: state.classifications,
+      persons: state.persons,
+    }),
+    [state.events, state.lifeEvents, state.turningPoints, state.classifications, state.persons],
   );
 
   // Frame the whole family once the layout is ready.
@@ -66,7 +79,8 @@ function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPattern
   return (
     <>
       <ReactFlow
-        nodes={nodes}
+        className={focusedPattern ? "tree-canvas--focused" : undefined}
+        nodes={displayNodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -83,7 +97,23 @@ function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPattern
         <Background gap={20} />
         <Controls showInteractive={false} />
       </ReactFlow>
-      <PatternConnectors patterns={state.patterns} visiblePatternIds={visiblePatternIds} />
+      {state.patterns.size > 0 && (
+        <div className="demo-canvas__tools">
+          <PatternFocusMenu
+            patterns={state.patterns}
+            focusedPatternId={focusedPatternId}
+            onFocus={setFocusedPatternId}
+          />
+        </div>
+      )}
+      {focusedPattern && focusColor && (
+        <PatternFocusPanel
+          pattern={focusedPattern}
+          color={focusColor}
+          entityMaps={entityMaps}
+          onExit={() => setFocusedPatternId(null)}
+        />
+      )}
       {selectedPerson && (
         <DemoPersonCard person={selectedPerson} state={state} onClose={() => setSelectedId(null)} />
       )}
@@ -99,10 +129,6 @@ function DemoCanvas({ state, showPatterns }: { state: DemoTreeState; showPattern
 export default function DemoTreePage() {
   const { t, i18n } = useTranslation();
   const state = useDemoTreeData(i18n.language);
-  // Pattern overlays are off by default: they are an annotation layer most
-  // visitors do not need first, and the visible-by-default overlay otherwise
-  // sits over the nodes. A toggle reveals them.
-  const [showPatterns, setShowPatterns] = useState(false);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -122,17 +148,6 @@ export default function DemoTreePage() {
         <BackHome />
         <p className="demo-page__note">{t("demo.live.banner")}</p>
         <div className="demo-page__actions">
-          {state && state.patterns.size > 0 && (
-            <button
-              type="button"
-              className={`btn demo-page__toggle${showPatterns ? " btn--primary" : ""}`}
-              aria-pressed={showPatterns}
-              onClick={() => setShowPatterns((v) => !v)}
-            >
-              <Waypoints size={14} aria-hidden="true" />
-              {t("demo.live.patterns")}
-            </button>
-          )}
           <Link to="/register" className="btn btn--primary demo-page__cta">
             {t("demo.live.cta")}
           </Link>
@@ -141,7 +156,7 @@ export default function DemoTreePage() {
       <div className="demo-page__canvas">
         {state ? (
           <ReactFlowProvider>
-            <DemoCanvas state={state} showPatterns={showPatterns} />
+            <DemoCanvas state={state} />
           </ReactFlowProvider>
         ) : (
           <div className="demo-page__loading">{t("common.loading")}</div>

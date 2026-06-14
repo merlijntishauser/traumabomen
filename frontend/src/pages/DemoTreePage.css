@@ -33,12 +33,6 @@
   flex-shrink: 0;
 }
 
-.demo-page__toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 .demo-page__cta {
   flex-shrink: 0;
 }
@@ -47,6 +41,14 @@
   position: relative;
   flex: 1;
   min-height: 0;
+}
+
+/* Floating pattern-spotlight control, top-left of the canvas. */
+.demo-canvas__tools {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 5;
 }
 
 .demo-page__loading {

@@ -9,7 +9,8 @@ interface PatternFocusMenuProps {
   patterns: Map<string, DecryptedPattern>;
   focusedPatternId: string | null;
   onFocus: (id: string | null) => void;
-  onManage: () => void;
+  // Omitted on read-only surfaces (the public demo) where patterns cannot be managed.
+  onManage?: () => void;
 }
 
 /**
@@ -103,17 +104,19 @@ export function PatternFocusMenu({
               })}
             </>
           )}
-          <button
-            type="button"
-            className="pattern-focus-menu__manage"
-            onClick={() => {
-              onManage();
-              setOpen(false);
-            }}
-          >
-            <Settings2 size={13} />
-            {t("pattern.focus.manage")}
-          </button>
+          {onManage && (
+            <button
+              type="button"
+              className="pattern-focus-menu__manage"
+              onClick={() => {
+                onManage();
+                setOpen(false);
+              }}
+            >
+              <Settings2 size={13} />
+              {t("pattern.focus.manage")}
+            </button>
+          )}
         </div>
       )}
     </div>
