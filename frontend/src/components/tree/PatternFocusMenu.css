@@ -3,6 +3,14 @@
   display: inline-flex;
 }
 
+/* Labeled trigger (public demo): an indigo button reading "Patterns" with a
+   chevron so it is obviously a dropdown, sitting beside the demo CTA. */
+.pattern-focus-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .pattern-focus-menu__dropdown {
   position: absolute;
   top: calc(100% + 6px);

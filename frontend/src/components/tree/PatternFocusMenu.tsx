@@ -1,4 +1,4 @@
-import { Check, Settings2, Waypoints } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Settings2, Waypoints } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
@@ -11,6 +11,9 @@ interface PatternFocusMenuProps {
   onFocus: (id: string | null) => void;
   // Omitted on read-only surfaces (the public demo) where patterns cannot be managed.
   onManage?: () => void;
+  // When set, the trigger is a labeled indigo dropdown button instead of a bare
+  // toolbar icon (used in the public demo header, beside the CTA).
+  label?: string;
 }
 
 /**
@@ -22,6 +25,7 @@ export function PatternFocusMenu({
   focusedPatternId,
   onFocus,
   onManage,
+  label,
 }: PatternFocusMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -47,16 +51,31 @@ export function PatternFocusMenu({
 
   return (
     <div className="pattern-focus-menu" ref={ref}>
-      <button
-        type="button"
-        className={`tree-toolbar__icon-btn${active ? " tree-toolbar__icon-btn--active" : ""}`}
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={t("pattern.focus.menu")}
-      >
-        <Waypoints size={14} />
-      </button>
+      {label ? (
+        <button
+          type="button"
+          className="btn btn--primary pattern-focus-menu__trigger"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={t("pattern.focus.menu")}
+        >
+          <Waypoints size={14} />
+          <span>{label}</span>
+          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={`tree-toolbar__icon-btn${active ? " tree-toolbar__icon-btn--active" : ""}`}
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={t("pattern.focus.menu")}
+        >
+          <Waypoints size={14} />
+        </button>
+      )}
 
       {open && (
         <div className="pattern-focus-menu__dropdown" role="menu">

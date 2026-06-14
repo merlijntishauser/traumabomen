@@ -18,10 +18,11 @@ import { PersonNode } from "../components/tree/PersonNode";
 import { RelationshipEdge } from "../components/tree/RelationshipEdge";
 import SiblingGroupNode from "../components/tree/SiblingGroupNode";
 import { useDemoTreeData } from "../hooks/useDemoTreeData";
-import { usePatternFocus } from "../hooks/usePatternFocus";
+import { applyPatternFocusToNodes } from "../hooks/usePatternFocus";
 import type { PersonNodeType, SiblingGroupNodeType } from "../hooks/useTreeLayout";
 import { useTreeLayout } from "../hooks/useTreeLayout";
 import type { DemoTreeState } from "../lib/buildDemoState";
+import { getPatternColor } from "../lib/patternColors";
 import type { EntityMaps } from "../lib/patternEntities";
 import "../components/tree/TreeCanvas.css";
 import "./DemoTreePage.css";
@@ -32,7 +33,15 @@ const LAYOUT_SETTINGS = { edgeStyle: "curved", showMarkers: true } as const;
 
 type DemoNode = PersonNodeType | SiblingGroupNodeType;
 
-function DemoCanvas({ state }: { state: DemoTreeState }) {
+function DemoCanvas({
+  state,
+  focusedPatternId,
+  onClearFocus,
+}: {
+  state: DemoTreeState;
+  focusedPatternId: string | null;
+  onClearFocus: () => void;
+}) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { fitView } = useReactFlow();
 
@@ -49,9 +58,17 @@ function DemoCanvas({ state }: { state: DemoTreeState }) {
   );
 
   // Same single-pattern spotlight the workspace uses: dim everyone, light up one
-  // pattern's members in its colour. Read-only here (no manage / edit).
-  const { focusedPatternId, setFocusedPatternId, focusedPattern, focusColor, displayNodes } =
-    usePatternFocus(state.patterns, nodes, null);
+  // pattern's members in its colour. The focus selection lives in the header.
+  const focusedPattern = focusedPatternId ? (state.patterns.get(focusedPatternId) ?? null) : null;
+  const focusColor = focusedPattern ? getPatternColor(focusedPattern.color) : null;
+  const focusMemberIds = useMemo(
+    () => (focusedPattern ? new Set(focusedPattern.person_ids) : null),
+    [focusedPattern],
+  );
+  const displayNodes = useMemo(
+    () => applyPatternFocusToNodes(nodes, focusMemberIds, focusColor),
+    [nodes, focusMemberIds, focusColor],
+  );
 
   const entityMaps: EntityMaps = useMemo(
     () => ({
@@ -97,21 +114,12 @@ function DemoCanvas({ state }: { state: DemoTreeState }) {
         <Background gap={20} />
         <Controls showInteractive={false} />
       </ReactFlow>
-      {state.patterns.size > 0 && (
-        <div className="demo-canvas__tools">
-          <PatternFocusMenu
-            patterns={state.patterns}
-            focusedPatternId={focusedPatternId}
-            onFocus={setFocusedPatternId}
-          />
-        </div>
-      )}
       {focusedPattern && focusColor && (
         <PatternFocusPanel
           pattern={focusedPattern}
           color={focusColor}
           entityMaps={entityMaps}
-          onExit={() => setFocusedPatternId(null)}
+          onExit={onClearFocus}
         />
       )}
       {selectedPerson && (
@@ -129,6 +137,7 @@ function DemoCanvas({ state }: { state: DemoTreeState }) {
 export default function DemoTreePage() {
   const { t, i18n } = useTranslation();
   const state = useDemoTreeData(i18n.language);
+  const [focusedPatternId, setFocusedPatternId] = useState<string | null>(null);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -148,6 +157,14 @@ export default function DemoTreePage() {
         <BackHome />
         <p className="demo-page__note">{t("demo.live.banner")}</p>
         <div className="demo-page__actions">
+          {state && state.patterns.size > 0 && (
+            <PatternFocusMenu
+              patterns={state.patterns}
+              focusedPatternId={focusedPatternId}
+              onFocus={setFocusedPatternId}
+              label={t("demo.live.patterns")}
+            />
+          )}
           <Link to="/register" className="btn btn--primary demo-page__cta">
             {t("demo.live.cta")}
           </Link>
@@ -156,7 +173,11 @@ export default function DemoTreePage() {
       <div className="demo-page__canvas">
         {state ? (
           <ReactFlowProvider>
-            <DemoCanvas state={state} />
+            <DemoCanvas
+              state={state}
+              focusedPatternId={focusedPatternId}
+              onClearFocus={() => setFocusedPatternId(null)}
+            />
           </ReactFlowProvider>
         ) : (
           <div className="demo-page__loading">{t("common.loading")}</div>

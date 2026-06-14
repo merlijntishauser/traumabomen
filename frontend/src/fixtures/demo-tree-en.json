@@ -374,7 +374,7 @@
       "name": "Cross-generational coping through substance use",
       "description": "Harold's alcohol dependency and the family's pattern of avoidance may reflect unprocessed war trauma passed through emotional unavailability.",
       "color": "#e06c75",
-      "person_ids": ["demo-p2", "demo-p3"],
+      "person_ids": ["demo-p1", "demo-p2", "demo-p3"],
       "linked_entities": [
         { "entity_type": "trauma_event", "entity_id": "demo-e1" },
         { "entity_type": "trauma_event", "entity_id": "demo-e2" },

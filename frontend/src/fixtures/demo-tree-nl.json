@@ -374,7 +374,7 @@
       "name": "Generatie-overstijgend coping door middelengebruik",
       "description": "Hendriks alcoholafhankelijkheid en het patroon van vermijding in de familie weerspiegelen mogelijk onverwerkt oorlogstrauma, doorgegeven via emotionele onbeschikbaarheid.",
       "color": "#e06c75",
-      "person_ids": ["demo-p2", "demo-p3"],
+      "person_ids": ["demo-p1", "demo-p2", "demo-p3"],
       "linked_entities": [
         { "entity_type": "trauma_event", "entity_id": "demo-e1" },
         { "entity_type": "trauma_event", "entity_id": "demo-e2" },

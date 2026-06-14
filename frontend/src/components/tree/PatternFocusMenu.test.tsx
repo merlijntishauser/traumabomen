@@ -80,6 +80,20 @@ describe("PatternFocusMenu", () => {
     expect(onManage).toHaveBeenCalled();
   });
 
+  it("renders a labeled indigo dropdown trigger when a label is given", () => {
+    render(
+      <PatternFocusMenu
+        patterns={patterns}
+        focusedPatternId={null}
+        onFocus={vi.fn()}
+        label="Patterns"
+      />,
+    );
+    const trigger = screen.getByRole("button", { name: "pattern.focus.menu" });
+    expect(trigger).toHaveTextContent("Patterns");
+    expect(trigger.className).toContain("btn--primary");
+  });
+
   it("hides the manage entry when onManage is omitted (read-only)", () => {
     render(<PatternFocusMenu patterns={patterns} focusedPatternId={null} onFocus={vi.fn()} />);
     openMenu();

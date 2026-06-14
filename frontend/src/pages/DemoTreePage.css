@@ -43,14 +43,6 @@
   min-height: 0;
 }
 
-/* Floating pattern-spotlight control, top-left of the canvas. */
-.demo-canvas__tools {
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
-  z-index: 5;
-}
-
 .demo-page__loading {
   display: grid;
   place-items: center;
