@@ -149,6 +149,23 @@
   .app-footer__support {
     font-size: 10px;
   }
+
+  /* The colophon links (privacy, learn, GitHub, license, version) are tiny
+     text on desktop; on touch give each a comfortable hit area and let the
+     row wrap rather than cramming them on one 24px line. */
+  .app-footer__colophon {
+    height: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  .app-footer__colophon a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--space-2);
+  }
 }
 
 @media (max-width: 420px) {

@@ -262,6 +262,15 @@
   overflow-y: auto;
 }
 
+/* On a phone the centered card fills the screen and the top-left tagline only
+   crowds it (the two touch). Drop the tagline here and let the card breathe
+   over the photo; the brand mark and back-to-home control stay. */
+@media (max-width: 640px) {
+  .auth-page--centered .auth-hero__tagline {
+    display: none;
+  }
+}
+
 @media (max-width: 520px) {
   .auth-page--centered .auth-content {
     width: auto;
