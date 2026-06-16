@@ -209,14 +209,15 @@
     border-color: var(--color-border-primary);
   }
 
-  /* The desktop copies (in the row, and the footer-level colophon) are hidden;
-     their twins inside the popover are what show on mobile. */
+  /* The desktop toggles and colophon are hidden on mobile; the menu below
+     is the mobile equivalent. */
   .app-footer__row > .app-footer__actions,
   .app-footer > .app-footer__colophon {
     display: none;
   }
 
-  /* The floating contextual menu, anchored above the bar near the toggle. */
+  /* Floating contextual menu: a vertical list of options anchored above the
+     bar near the toggle. */
   .app-footer__menu {
     position: absolute;
     right: var(--space-3);
@@ -224,39 +225,46 @@
     z-index: 60;
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
     min-width: 220px;
     max-width: calc(100vw - var(--space-6));
-    padding: var(--space-3);
+    padding: var(--space-1);
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
   }
 
-  .app-footer__menu .app-footer__actions {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-2);
-  }
-
-  .app-footer__menu .app-footer__colophon {
-    height: auto;
-    flex-wrap: wrap;
-    justify-content: center;
-    font-size: 11px;
-    padding: var(--space-2) 0 0;
-    border-top: 1px solid var(--color-border-secondary);
-  }
-
-  .app-footer__menu .app-footer__btn,
-  .app-footer__menu .app-footer__colophon a {
-    min-height: 36px;
-  }
-
-  .app-footer__menu .app-footer__colophon a {
-    display: inline-flex;
+  .app-footer__menu-item {
+    display: flex;
     align-items: center;
-    padding: 0 var(--space-2);
+    width: 100%;
+    min-height: 40px;
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-colors);
+  }
+
+  .app-footer__menu-item:hover {
+    background: var(--color-bg-hover);
+  }
+
+  .app-footer__menu-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--color-border-secondary);
+    color: var(--color-text-muted);
+    font-size: 11px;
   }
 }
