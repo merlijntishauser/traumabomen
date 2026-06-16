@@ -142,9 +142,14 @@
   flex-shrink: 0;
 }
 
-/* Mobile: a slim bar keeps the safety line; a hamburger reveals the toggles
-   and colophon links so the footer no longer eats scarce vertical space. */
+/* Mobile: a slim bar keeps the safety line on two roomy lines; a hamburger
+   opens the toggles and links as a floating menu above the bar, so the footer
+   no longer eats scarce vertical space. */
 @media (max-width: 640px) {
+  .app-footer {
+    position: relative;
+  }
+
   .app-footer__disclaimer-full {
     display: none;
   }
@@ -153,71 +158,103 @@
     display: inline;
   }
 
-  /* The bar: disclaimer + crisis support stay; the toggle sits at the right. */
+  /* Bar: disclaimer over the crisis-support line on the left, toggle at right.
+     The grid gives the wrapped Dutch support line breathing room. */
   .app-footer__row {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1\.5);
     height: auto;
-    row-gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .app-footer__disclaimer {
+    grid-column: 1;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .app-footer__support {
-    font-size: 10px;
+    grid-column: 1;
+    text-align: left;
     white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 11px;
+    line-height: 1.45;
   }
 
   .app-footer__menu-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin-left: auto;
-    flex-shrink: 0;
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    width: 40px;
+    height: 40px;
     border: 1px solid var(--color-border-secondary);
     border-radius: var(--radius-sm);
     background: transparent;
-    color: var(--color-text-muted);
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: var(--transition-colors);
   }
 
   .app-footer__menu-toggle:hover {
-    color: var(--color-text-secondary);
+    color: var(--color-text-primary);
     border-color: var(--color-border-primary);
   }
 
-  /* Collapsed: toggles and colophon are tucked away. */
-  .app-footer__actions,
-  .app-footer__colophon {
+  /* The desktop copies (in the row, and the footer-level colophon) are hidden;
+     their twins inside the popover are what show on mobile. */
+  .app-footer__row > .app-footer__actions,
+  .app-footer > .app-footer__colophon {
     display: none;
   }
 
-  /* Expanded: reveal them stacked below the bar, centred and touch-sized. */
-  .app-footer--menu-open .app-footer__actions {
+  /* The floating contextual menu, anchored above the bar near the toggle. */
+  .app-footer__menu {
+    position: absolute;
+    right: var(--space-3);
+    bottom: calc(100% + var(--space-2));
+    z-index: 60;
     display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 220px;
+    max-width: calc(100vw - var(--space-6));
+    padding: var(--space-3);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .app-footer__menu .app-footer__actions {
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--space-2);
-    width: 100%;
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--color-border-secondary);
   }
 
-  .app-footer--menu-open .app-footer__colophon {
-    display: flex;
+  .app-footer__menu .app-footer__colophon {
     height: auto;
     flex-wrap: wrap;
     justify-content: center;
     font-size: 11px;
-    border-top: none;
+    padding: var(--space-2) 0 0;
+    border-top: 1px solid var(--color-border-secondary);
   }
 
-  .app-footer__actions .app-footer__btn,
-  .app-footer__colophon a {
+  .app-footer__menu .app-footer__btn,
+  .app-footer__menu .app-footer__colophon a {
     min-height: 36px;
   }
 
-  .app-footer__colophon a {
+  .app-footer__menu .app-footer__colophon a {
     display: inline-flex;
     align-items: center;
     padding: 0 var(--space-2);

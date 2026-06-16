@@ -136,19 +136,30 @@ describe("AppFooter", () => {
     expect(screen.getByLabelText("safety.footer.menu")).toBeInTheDocument();
   });
 
-  it("toggles the footer menu open state on click", () => {
+  it("opens and closes the footer menu popover on toggle", () => {
     const { container } = render(<AppFooter />);
     const toggle = screen.getByLabelText("safety.footer.menu");
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(container.querySelector(".app-footer--menu-open")).toBeNull();
+    expect(container.querySelector(".app-footer__menu")).toBeNull();
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(container.querySelector(".app-footer--menu-open")).toBeTruthy();
+    expect(container.querySelector(".app-footer__menu")).toBeTruthy();
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(container.querySelector(".app-footer--menu-open")).toBeNull();
+    expect(container.querySelector(".app-footer__menu")).toBeNull();
+  });
+
+  it("closes the menu when a menu link is followed", () => {
+    const { container } = render(<AppFooter />);
+    fireEvent.click(screen.getByLabelText("safety.footer.menu"));
+    const menu = container.querySelector(".app-footer__menu")!;
+    expect(menu).toBeTruthy();
+    // Follow a colophon link inside the popover.
+    const privacy = menu.querySelector('a[href="/privacy"]') as HTMLElement;
+    fireEvent.click(privacy);
+    expect(container.querySelector(".app-footer__menu")).toBeNull();
   });
 
   it("renders a language toggle button", () => {
