@@ -1,4 +1,4 @@
-import { Heart, Lock, MessageSquare } from "lucide-react";
+import { Heart, Lock, Menu, MessageSquare, X } from "lucide-react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -21,6 +21,9 @@ interface Props {
 export function AppFooter({ onLock }: Props) {
   const { t, i18n } = useTranslation();
   const [showFeedback, setShowFeedback] = useState(false);
+  // On phones the toggles and colophon links collapse behind this; the safety
+  // line stays visible. The toggle is hidden on desktop, where everything shows.
+  const [menuOpen, setMenuOpen] = useState(false);
   const isAuthenticated = !!getAccessToken();
   const resource = resources[i18n.language] ?? resources.en;
 
@@ -28,7 +31,7 @@ export function AppFooter({ onLock }: Props) {
 
   return (
     <>
-      <footer className="app-footer">
+      <footer className={`app-footer${menuOpen ? " app-footer--menu-open" : ""}`}>
         <div className="app-footer__row">
           <span className="app-footer__disclaimer">
             <Heart
@@ -62,6 +65,16 @@ export function AppFooter({ onLock }: Props) {
               values={{ resource: resource.name }}
             />
           </span>
+
+          <button
+            type="button"
+            className="app-footer__menu-toggle"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-label={t("safety.footer.menu")}
+          >
+            {menuOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
+          </button>
 
           <div className="app-footer__actions">
             {onLock && (

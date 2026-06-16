@@ -131,6 +131,26 @@ describe("AppFooter", () => {
     expect(screen.getByLabelText("feedback.button")).toBeInTheDocument();
   });
 
+  it("renders the footer menu toggle", () => {
+    render(<AppFooter />);
+    expect(screen.getByLabelText("safety.footer.menu")).toBeInTheDocument();
+  });
+
+  it("toggles the footer menu open state on click", () => {
+    const { container } = render(<AppFooter />);
+    const toggle = screen.getByLabelText("safety.footer.menu");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".app-footer--menu-open")).toBeNull();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(container.querySelector(".app-footer--menu-open")).toBeTruthy();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".app-footer--menu-open")).toBeNull();
+  });
+
   it("renders a language toggle button", () => {
     render(<AppFooter />);
     expect(screen.getByText("NL")).toBeInTheDocument();

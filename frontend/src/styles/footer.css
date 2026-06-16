@@ -103,6 +103,12 @@
   border-color: var(--color-action);
 }
 
+/* Hamburger that reveals the footer menu on mobile; hidden on desktop, where
+   the toggles and colophon are always shown. */
+.app-footer__menu-toggle {
+  display: none;
+}
+
 /* Colophon: copyright & license */
 .app-footer__colophon {
   display: flex;
@@ -136,7 +142,8 @@
   flex-shrink: 0;
 }
 
-/* Mobile: compact layout */
+/* Mobile: a slim bar keeps the safety line; a hamburger reveals the toggles
+   and colophon links so the footer no longer eats scarce vertical space. */
 @media (max-width: 640px) {
   .app-footer__disclaimer-full {
     display: none;
@@ -146,60 +153,73 @@
     display: inline;
   }
 
-  .app-footer__support {
-    font-size: 10px;
+  /* The bar: disclaimer + crisis support stay; the toggle sits at the right. */
+  .app-footer__row {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: var(--space-1);
   }
 
-  /* The colophon links (privacy, learn, GitHub, license, version) are tiny
-     text on desktop; on touch give each a comfortable hit area and let the
-     row wrap rather than cramming them on one 24px line. */
+  .app-footer__support {
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  .app-footer__menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: auto;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: var(--transition-colors);
+  }
+
+  .app-footer__menu-toggle:hover {
+    color: var(--color-text-secondary);
+    border-color: var(--color-border-primary);
+  }
+
+  /* Collapsed: toggles and colophon are tucked away. */
+  .app-footer__actions,
   .app-footer__colophon {
+    display: none;
+  }
+
+  /* Expanded: reveal them stacked below the bar, centred and touch-sized. */
+  .app-footer--menu-open .app-footer__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border-secondary);
+  }
+
+  .app-footer--menu-open .app-footer__colophon {
+    display: flex;
     height: auto;
     flex-wrap: wrap;
     justify-content: center;
     font-size: 11px;
+    border-top: none;
+  }
+
+  .app-footer__actions .app-footer__btn,
+  .app-footer__colophon a {
+    min-height: 36px;
   }
 
   .app-footer__colophon a {
     display: inline-flex;
     align-items: center;
-    min-height: 36px;
     padding: 0 var(--space-2);
-  }
-}
-
-@media (max-width: 420px) {
-  .app-footer {
-    padding: var(--space-2) var(--space-2\.5);
-    gap: var(--space-1\.5);
-  }
-
-  .app-footer__row {
-    flex-direction: column;
-    height: auto;
-    gap: var(--space-1\.5);
-    padding: 0;
-  }
-
-  .app-footer__disclaimer {
-    order: 1;
-  }
-
-  .app-footer__support {
-    order: 2;
-    font-size: 10px;
-    white-space: normal;
-    text-align: center;
-  }
-
-  .app-footer__actions {
-    order: 3;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .app-footer__colophon {
-    border-top: none;
-    padding-top: var(--space-0\.5);
   }
 }

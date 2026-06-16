@@ -271,6 +271,21 @@
   }
 }
 
+/* When vertical space is tight (landscape, short windows) a centered card taller
+   than the viewport rises over the top-left back button. Flow it from the top
+   (flex centering re-centers an over-tall item) with the back-button zone
+   reserved, and let it scroll, so the control stays clear. */
+@media (max-height: 720px) {
+  .auth-page--centered .auth-content {
+    display: block;
+    padding-top: 72px;
+  }
+
+  .auth-page--centered .auth-card {
+    margin-inline: auto;
+  }
+}
+
 @media (max-width: 520px) {
   .auth-page--centered .auth-content {
     width: auto;
