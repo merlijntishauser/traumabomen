@@ -24,7 +24,7 @@ interface Props {
 export function AppFooter({ onLock }: Props) {
   const { t, i18n } = useTranslation();
   const [showFeedback, setShowFeedback] = useState(false);
-  // On phones the toggles and links collapse into a contextual menu that floats
+  // On phones the toggles and links collapse into a vertical menu that opens
   // above the bar; the safety line stays visible. Hidden on desktop.
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -53,83 +53,16 @@ export function AppFooter({ onLock }: Props) {
     };
   }, [menuOpen]);
 
+  const closeMenu = () => setMenuOpen(false);
   const toggleLanguage = () => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl");
 
-  // The action buttons (lock, feedback, language, theme). Shared by the desktop
-  // row and the mobile menu; `onSelect` lets the menu close after a choice.
-  const actions = (onSelect?: () => void) => (
-    <div className="app-footer__actions">
-      {onLock && (
-        <button
-          type="button"
-          className="app-footer__btn"
-          onClick={() => {
-            onLock();
-            onSelect?.();
-          }}
-          aria-label={t("safety.footer.lock")}
-          title={t("safety.footer.lock")}
-        >
-          <Lock size={14} aria-hidden="true" />
-        </button>
-      )}
-      {isAuthenticated && (
-        <button
-          type="button"
-          className="app-footer__btn app-footer__btn--feedback"
-          onClick={() => {
-            setShowFeedback(true);
-            onSelect?.();
-          }}
-          aria-label={t(T_FEEDBACK)}
-          title={t(T_FEEDBACK)}
-        >
-          <MessageSquare size={14} aria-hidden="true" />
-          <span>{t(T_FEEDBACK)}</span>
-        </button>
-      )}
-      <button type="button" className="app-footer__btn" onClick={toggleLanguage}>
-        {i18n.language === "nl" ? "EN" : "NL"}
-      </button>
-      <ThemeToggle className="app-footer__btn" />
-    </div>
+  const version = (__APP_VERSION__ || __APP_COMMIT__) && (
+    <span className="app-footer__version">
+      {__APP_VERSION__ && <span>{__APP_VERSION__}</span>}
+      {__APP_VERSION__ && __APP_COMMIT__ && " "}
+      {__APP_COMMIT__ && <span>({__APP_COMMIT__})</span>}
+    </span>
   );
-
-  // The colophon links and copyright. `onNavigate` closes the mobile menu when a
-  // link is followed so it does not linger over the next page.
-  const colophon = (onNavigate?: () => void) => (
-    <div className="app-footer__colophon">
-      <span>&copy; {year} Merlijn Tishauser</span>
-      <span className="app-footer__colophon-sep" aria-hidden="true" />
-      <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
-        AGPL-3.0
-      </a>
-      <span className="app-footer__colophon-sep" aria-hidden="true" />
-      <Link to="/privacy" onClick={onNavigate}>
-        {t("nav.privacy")}
-      </Link>
-      <span className="app-footer__colophon-sep" aria-hidden="true" />
-      <Link to="/learn" onClick={onNavigate}>
-        {t("nav.learn")}
-      </Link>
-      <span className="app-footer__colophon-sep" aria-hidden="true" />
-      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
-        GitHub
-      </a>
-      {(__APP_VERSION__ || __APP_COMMIT__) && (
-        <>
-          <span className="app-footer__colophon-sep" aria-hidden="true" />
-          <span className="app-footer__version">
-            {__APP_VERSION__ && <span>{__APP_VERSION__}</span>}
-            {__APP_VERSION__ && __APP_COMMIT__ && " "}
-            {__APP_COMMIT__ && <span>({__APP_COMMIT__})</span>}
-          </span>
-        </>
-      )}
-    </div>
-  );
-
-  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -174,21 +107,131 @@ export function AppFooter({ onLock }: Props) {
             className="app-footer__menu-toggle"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
-            aria-haspopup="menu"
+            aria-haspopup="true"
+            aria-controls="app-footer-menu"
             aria-label={t("safety.footer.menu")}
           >
             {menuOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
           </button>
 
-          {actions()}
+          <div className="app-footer__actions">
+            {onLock && (
+              <button
+                type="button"
+                className="app-footer__btn"
+                onClick={onLock}
+                aria-label={t("safety.footer.lock")}
+                title={t("safety.footer.lock")}
+              >
+                <Lock size={14} aria-hidden="true" />
+              </button>
+            )}
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="app-footer__btn app-footer__btn--feedback"
+                onClick={() => setShowFeedback(true)}
+                aria-label={t(T_FEEDBACK)}
+                title={t(T_FEEDBACK)}
+              >
+                <MessageSquare size={14} aria-hidden="true" />
+                <span>{t(T_FEEDBACK)}</span>
+              </button>
+            )}
+            <button type="button" className="app-footer__btn" onClick={toggleLanguage}>
+              {i18n.language === "nl" ? "EN" : "NL"}
+            </button>
+            <ThemeToggle className="app-footer__btn" />
+          </div>
         </div>
 
-        {colophon()}
+        <div className="app-footer__colophon">
+          <span>&copy; {year} Merlijn Tishauser</span>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">
+            AGPL-3.0
+          </a>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to="/privacy">{t("nav.privacy")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to="/learn">{t("nav.learn")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          {version && <span className="app-footer__colophon-sep" aria-hidden="true" />}
+          {version}
+        </div>
 
         {menuOpen && (
-          <div className="app-footer__menu" role="menu" ref={menuRef}>
-            {actions(closeMenu)}
-            {colophon(closeMenu)}
+          <div className="app-footer__menu" id="app-footer-menu" ref={menuRef}>
+            <button
+              type="button"
+              className="app-footer__menu-item"
+              onClick={() => {
+                toggleLanguage();
+                closeMenu();
+              }}
+            >
+              {i18n.language === "nl" ? "English" : "Nederlands"}
+            </button>
+            <ThemeToggle
+              className="app-footer__menu-item"
+              label={t("theme.toggle")}
+              onToggle={closeMenu}
+            />
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="app-footer__menu-item"
+                onClick={() => {
+                  setShowFeedback(true);
+                  closeMenu();
+                }}
+              >
+                {t(T_FEEDBACK)}
+              </button>
+            )}
+            {onLock && (
+              <button
+                type="button"
+                className="app-footer__menu-item"
+                onClick={() => {
+                  onLock();
+                  closeMenu();
+                }}
+              >
+                {t("safety.footer.lock")}
+              </button>
+            )}
+            <Link className="app-footer__menu-item" to="/privacy" onClick={closeMenu}>
+              {t("nav.privacy")}
+            </Link>
+            <Link className="app-footer__menu-item" to="/learn" onClick={closeMenu}>
+              {t("nav.learn")}
+            </Link>
+            <a
+              className="app-footer__menu-item"
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMenu}
+            >
+              GitHub
+            </a>
+            <a
+              className="app-footer__menu-item"
+              href={LICENSE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMenu}
+            >
+              AGPL-3.0
+            </a>
+            <div className="app-footer__menu-meta">
+              <span>&copy; {year} Merlijn Tishauser</span>
+              {version}
+            </div>
           </div>
         )}
       </footer>

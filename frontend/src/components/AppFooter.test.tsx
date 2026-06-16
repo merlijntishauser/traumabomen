@@ -151,6 +151,19 @@ describe("AppFooter", () => {
     expect(container.querySelector(".app-footer__menu")).toBeNull();
   });
 
+  it("lists the options as menu items when open", () => {
+    const { container } = render(<AppFooter onLock={vi.fn()} />);
+    fireEvent.click(screen.getByLabelText("safety.footer.menu"));
+    const menu = container.querySelector(".app-footer__menu")!;
+    const items = menu.querySelectorAll(".app-footer__menu-item");
+    // language, theme, feedback, lock, privacy, learn, github, license
+    expect(items.length).toBeGreaterThanOrEqual(7);
+    expect(menu.querySelector('a[href="/privacy"]')).toBeTruthy();
+    expect(menu.querySelector('a[href="/learn"]')).toBeTruthy();
+    expect(menu.textContent).toContain("safety.footer.lock");
+    expect(menu.textContent).toContain("feedback.button");
+  });
+
   it("closes the menu when a menu link is followed", () => {
     const { container } = render(<AppFooter />);
     fireEvent.click(screen.getByLabelText("safety.footer.menu"));
