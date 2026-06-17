@@ -226,7 +226,9 @@
   inset: 0;
   height: 100%;
   min-height: 0;
-  z-index: 0;
+  /* No z-index: keeping the hero out of its own stacking context lets the
+     brand overlay's back button (z-index 2) paint above the card (z-index 1).
+     DOM order still keeps the photo itself behind the card. */
 }
 
 .auth-page--centered .auth-hero::after {
@@ -250,16 +252,32 @@
   z-index: 1;
   width: 480px;
   margin: 0 var(--space-5);
-  padding: var(--space-8) 0;
+  /* Reserve the top-left back-button zone so the card never rises over it,
+     whatever the viewport height (Safari toolbars and the keyboard shrink the
+     real 100dvh below what a height media query would report). */
+  padding: 64px 0 var(--space-8);
   background: none;
   border: none;
   border-radius: 0;
   box-shadow: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   max-height: 100%;
   overflow-y: auto;
+  /* The container is a transparent full-height column, so let clicks in its
+     empty area fall through to the back button behind it; only the card itself
+     is interactive. */
+  pointer-events: none;
+}
+
+/* Auto margins centre the card when there is room but collapse when it is taller
+   than the space, so it pins below the reserved zone and scrolls (rather than
+   being centred and clipped behind the back button, as justify/align centring
+   would do). */
+.auth-page--centered .auth-card {
+  margin: auto;
+  pointer-events: auto;
 }
 
 /* On a phone the centered card fills the screen and the top-left tagline only
@@ -268,21 +286,6 @@
 @media (max-width: 640px) {
   .auth-page--centered .auth-hero__tagline {
     display: none;
-  }
-}
-
-/* When vertical space is tight (landscape, short windows) a centered card taller
-   than the viewport rises over the top-left back button. Flow it from the top
-   (flex centering re-centers an over-tall item) with the back-button zone
-   reserved, and let it scroll, so the control stays clear. */
-@media (max-height: 720px) {
-  .auth-page--centered .auth-content {
-    display: block;
-    padding-top: 72px;
-  }
-
-  .auth-page--centered .auth-card {
-    margin-inline: auto;
   }
 }
 
