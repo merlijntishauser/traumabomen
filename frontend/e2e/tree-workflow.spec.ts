@@ -7,7 +7,7 @@ import {
   uniqueEmail,
 } from "./helpers/auth";
 
-test.describe("Tree workflow @smoketest", () => {
+test.describe("Tree workflow", () => {
   test("create tree, add persons, create relationship, verify persistence", async ({
     page,
   }) => {

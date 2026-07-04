@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Post-deploy production smoketest.** After each deploy, a Playwright test
+  logs in with the smoketest account, unlocks, creates an encrypted tree, and
+  verifies a full logout-login-decrypt round-trip before cleaning up. Replaces
+  the curl-based login check.
+
 ### Changed
 
 - Dependency updates (frontend and API).

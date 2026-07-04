@@ -17,11 +17,13 @@ infrastructure remain strong (97% / 98% coverage with ratcheting, CodeQL,
 Nuclei, ZAP, privacy scanner, Lighthouse, react-doctor 100). Backend
 integration tests now run against PostgreSQL in CI.
 
-The product is feature-rich but still gated to a small private beta
-(`MAX_ACTIVE_USERS = 20`, waitlist). **The defining question for the next phase
-is no longer "what feature is missing from the canvas" but "what is required to
-let real people in and keep their data safe."** That reframes the priorities
-below.
+The product is feature-rich but still gated to a private beta
+(`MAX_ACTIVE_USERS = 100`, waitlist). The operational readiness work is done:
+scaling was raised and every deploy now runs a Playwright smoketest against
+production (login, unlock, encrypted tree round-trip, cleanup). **The defining
+question for the next phase is no longer "what feature is missing from the
+canvas" but "what is required to let real people in and keep their data
+safe."** That reframes the priorities below.
 
 ## Priorities
 
@@ -30,44 +32,41 @@ roadmap (see [Gaps and risks](#gaps-and-risks)). Reasoning, not just ordering.
 
 ### Now: readiness to widen the beta (cheap, high-leverage)
 
-1. **Cloud Run scaling configuration (#16)** and **post-deploy e2e smoketest
-   (#19).** Both are small and operational, and both are prerequisites for
-   admitting more users with confidence. Do these before raising the user cap.
-2. **Mobile experience (gap).** The public pages and demo now work on phones;
+1. **Mobile experience (gap).** The public pages and demo now work on phones;
    inside the app a banner still tells phone users to switch to desktop. For a
    private, reflective tool people reach for in quiet moments, "desktop only"
    is the single largest adoption barrier. A usable read/pan/inspect experience
    for one's own tree is worth more than any new canvas feature.
-3. **Passphrase-loss mitigation (gap).** "Lose your passphrase, lose everything"
+2. **Passphrase-loss mitigation (gap).** "Lose your passphrase, lose everything"
    is honest and by design, but with no safety net it is also the scariest part
    of onboarding and a silent churn driver. A downloadable recovery code that
    wraps the key ring a second way keeps zero-knowledge intact while removing
    the cliff. Design carefully; high value.
-4. **Unsaved-changes warning (UX-10).** Closing a panel silently discards edits
+3. **Unsaved-changes warning (UX-10).** Closing a panel silently discards edits
    to sensitive data. Contained fix, real data-loss prevention.
 
 ### Next: depth that matches the product's purpose
 
-5. **Read-only tree sharing (#11).** The highest-value remaining *feature*.
+4. **Read-only tree sharing (#11).** The highest-value remaining *feature*.
    Intergenerational work is inherently shared; letting a user show a view to a
    sibling, parent, or therapist is core to what the product is for. Complex
    (per-recipient key exchange) but the design and the export prerequisite are
    done.
-6. **In-app onboarding (gap).** New users currently land on a blank canvas after
+5. **In-app onboarding (gap).** New users currently land on a blank canvas after
    the safety modal. A short guided first-run (or a "start from the demo" path)
    converts curiosity into a real tree.
-7. **Care providers (#12)** and **canvas annotations (#9).** Self-contained
+6. **Care providers (#12)** and **canvas annotations (#9).** Self-contained
    depth features with design docs. Annotations are cheap; care providers lean
    into the therapy-adjacent angle.
 
 ### Later: when scale or evidence demands it
 
-8. **elkjs + collapsible sub-trees (#18)** and **client-side virtualization
+7. **elkjs + collapsible sub-trees (#18)** and **client-side virtualization
    (#17).** Both only matter once trees are large (500+ persons). Beta trees are
    small; defer until real large trees exist, then do #18 first.
-9. **Passkey authentication (#15).** Phishing-resistant login is a nice upgrade,
+8. **Passkey authentication (#15).** Phishing-resistant login is a nice upgrade,
    but email + password is sufficient for beta.
-10. **Wellbeing check-in (#13).** On-brand and small, but the least urgent.
+9. **Wellbeing check-in (#13).** On-brand and small, but the least urgent.
 
 ## Remaining work
 
@@ -155,14 +154,6 @@ PIN, or security keys. The encryption passphrase remains separate.
 
 See [design doc](plans/2026-02-15-passkey-auth-design.md).
 
-#### 16. Cloud Run scaling configuration
-
-Current settings are conservative for beta. Adjust before wider rollout.
-
-- Increase `MAX_ACTIVE_USERS` from 20 to 200+
-- Increase Cloud Run max-instances from 4 to 8-16
-- Increase DB connection pool: `pool_size=10, max_overflow=20`
-
 #### 17. Client-side virtualization
 
 Large trees (500+ persons, 2000+ events) will cause rendering lag in the
@@ -179,14 +170,6 @@ Replace the Dagre layout engine with elkjs (the open-source engine behind React
 Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with
 compact summary nodes. Drop the React Flow Pro watermark suppression.
 See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
-
-#### 19. Post-deploy e2e smoketest
-
-Run a Playwright smoketest subset against the live production URL after each
-deploy. Reuses the `@smoketest`-tagged e2e tests (auth flow, tree workflow with
-encryption round-trip) via `E2E_SMOKETEST=true` and `E2E_BASE_URL`. Replaces the
-current curl-based health check. Requires wiring production test credentials
-into the deploy workflow secrets.
 
 ### UX
 

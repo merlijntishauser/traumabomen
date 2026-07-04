@@ -8,7 +8,7 @@ import {
   TEST_PASSWORD,
 } from "./helpers/auth";
 
-test.describe("Authentication @smoketest", () => {
+test.describe("Authentication", () => {
   test("register and land on trees page", async ({ page }) => {
     const email = uniqueEmail();
     await register(page, email);

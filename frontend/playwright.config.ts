@@ -8,9 +8,12 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
-  workers: 3,
-  retries: 1,
-  globalSetup: "./e2e/global-setup.ts",
+  workers: IS_SMOKETEST ? 1 : 3,
+  retries: IS_SMOKETEST ? 2 : 1,
+  // The smoketest runs against a live deployment: there is no test database
+  // to reset, and only the production-safe smoke spec may run (the regular
+  // suite registers throwaway users, which production must never allow).
+  globalSetup: IS_SMOKETEST ? undefined : "./e2e/global-setup.ts",
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
@@ -20,7 +23,8 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      grep: IS_SMOKETEST ? /@smoketest/ : undefined,
+      testMatch: IS_SMOKETEST ? /smoke-production\.spec\.ts/ : undefined,
+      testIgnore: IS_SMOKETEST ? undefined : /smoke-production\.spec\.ts/,
     },
   ],
 });

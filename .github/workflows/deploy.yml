@@ -225,22 +225,18 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
-      - name: Production smoketest
-        env:
-          SMOKETEST_EMAIL: ${{ secrets.SMOKETEST_EMAIL }}
-          SMOKETEST_PASSWORD: ${{ secrets.SMOKETEST_PASSWORD }}
+      - uses: actions/checkout@v7
+
+      # Warm-up doubles as a readiness gate: the browser test below only runs
+      # against one domain, so the second frontend is checked here.
+      - name: Wait for services
         run: |
           retry() {
-            local name="$1" url="$2" method="${3:-GET}" body="$4" expect="$5"
+            local name="$1" url="$2" expect="$3"
             for i in 1 2 3 4 5; do
               echo "[$name] attempt $i..."
-              if [ "$method" = "POST" ]; then
-                resp=$(curl -sf -X POST -H "Content-Type: application/json" -d "$body" "$url" 2>&1) && \
-                echo "$resp" | grep -q "$expect" && echo "[$name] OK" && return 0
-              else
-                resp=$(curl -sf "$url" 2>&1) && \
-                echo "$resp" | grep -q "$expect" && echo "[$name] OK" && return 0
-              fi
+              resp=$(curl -sf "$url" 2>&1) && \
+              echo "$resp" | grep -q "$expect" && echo "[$name] OK" && return 0
               echo "[$name] not ready, waiting 10s..."
               sleep 10
             done
@@ -250,18 +246,44 @@ jobs:
           }
 
           retry "Frontend (traumatrees.org)" \
-            "https://www.traumatrees.org/" GET "" "<html"
+            "https://www.traumatrees.org/" "<html"
 
           retry "Frontend (traumabomen.nl)" \
-            "https://www.traumabomen.nl/" GET "" "<html"
+            "https://www.traumabomen.nl/" "<html"
 
           retry "API health" \
-            "https://www.traumatrees.org/api/health" GET "" '"ok"'
+            "https://www.traumatrees.org/api/health" '"ok"'
 
-          retry "Auth login" \
-            "https://www.traumatrees.org/api/auth/login" POST \
-            "{\"email\":\"${SMOKETEST_EMAIL}\",\"password\":\"${SMOKETEST_PASSWORD}\"}" \
-            "access_token"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Production smoketest (Playwright)
+        working-directory: frontend
+        env:
+          E2E_SMOKETEST: "true"
+          E2E_BASE_URL: https://www.traumatrees.org
+          SMOKETEST_EMAIL: ${{ secrets.SMOKETEST_EMAIL }}
+          SMOKETEST_PASSWORD: ${{ secrets.SMOKETEST_PASSWORD }}
+          SMOKETEST_PASSPHRASE: ${{ secrets.SMOKETEST_PASSPHRASE }}
+        run: npx playwright test
+
+      - name: Upload smoketest artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoketest-report
+          path: frontend/test-results/
+          retention-days: 7
 
   performance-check:
     needs: [smoketest]

@@ -13,7 +13,7 @@ export function uniqueEmail(): string {
 }
 
 /** Dismiss the onboarding safety gate if it appears. */
-async function dismissOnboarding(page: Page): Promise<void> {
+export async function dismissOnboarding(page: Page): Promise<void> {
   const continueButton = page.locator(".onboarding-gate__continue");
   if (await continueButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
     await continueButton.click();
@@ -78,20 +78,27 @@ export async function register(
   await dismissOnboarding(page);
 }
 
-export async function login(page: Page, email: string): Promise<void> {
+export async function login(
+  page: Page,
+  email: string,
+  password: string = TEST_PASSWORD,
+): Promise<void> {
   await page.goto("/login");
   await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/^password$/i).fill(TEST_PASSWORD);
+  await page.getByLabel(/^password$/i).fill(password);
   await page.getByRole("button", { name: /log in/i }).click();
   // Login now redirects to /trees with AuthModal overlay
   await page.waitForURL("**/trees", { timeout: 10_000 });
 }
 
-export async function unlock(page: Page): Promise<void> {
+export async function unlock(
+  page: Page,
+  passphrase: string = TEST_PASSPHRASE,
+): Promise<void> {
   // Wait for AuthModal dialog to appear (target specifically, not any dialog)
   const modal = page.locator(".auth-modal");
   await modal.waitFor({ state: "visible", timeout: 10_000 });
-  await modal.getByLabel(/^encryption key$/i).fill(TEST_PASSPHRASE);
+  await modal.getByLabel(/^encryption key$/i).fill(passphrase);
   await modal.getByRole("button", { name: /unlock/i }).click();
   // Wait for auth-modal to dismiss after successful unlock
   await modal.waitFor({ state: "hidden", timeout: 30_000 });
@@ -100,9 +107,10 @@ export async function unlock(page: Page): Promise<void> {
 export async function loginAndUnlock(
   page: Page,
   email: string,
+  credentials?: { password?: string; passphrase?: string },
 ): Promise<void> {
-  await login(page, email);
-  await unlock(page);
+  await login(page, email, credentials?.password);
+  await unlock(page, credentials?.passphrase);
 }
 
 /** Click "Create tree", fill name, submit, wait for workspace URL. */
