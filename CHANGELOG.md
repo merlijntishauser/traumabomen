@@ -15,8 +15,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated frontend dependencies (i18next, react-i18next, lucide-react,
-  `@sentry/vite-plugin`, typescript-eslint).
+- Dependency updates (frontend and API).
+
+## [0.1.161 – 0.1.167] - 2026-06
+
+### Added
+
+- **Public pages work on phones.** The landing, learn, tour, security, privacy,
+  demo, and auth pages now lay out properly on iPhone-class screens; the
+  desktop-only banner is scoped to the app itself. (v0.1.161)
+- **Mobile footer menu.** On small screens the footer collapses to a slim bar
+  keeping the safety line visible; a hamburger opens the language, theme,
+  feedback, lock, and link options as a vertical menu. (v0.1.162 – v0.1.166)
+
+### Fixed
+
+- The back-to-home button on the login page is clickable again over the centred
+  card, at every viewport height. (v0.1.167)
 
 ## [0.1.148 – 0.1.160] - 2026-06
 

@@ -33,11 +33,11 @@ roadmap (see [Gaps and risks](#gaps-and-risks)). Reasoning, not just ordering.
 1. **Cloud Run scaling configuration (#16)** and **post-deploy e2e smoketest
    (#19).** Both are small and operational, and both are prerequisites for
    admitting more users with confidence. Do these before raising the user cap.
-2. **Mobile experience (gap).** Today a banner tells phone users to switch to
-   desktop. For a private, reflective tool people reach for in quiet moments,
-   "desktop only" is the single largest adoption barrier. A usable read/pan/
-   inspect experience (own tree + the public demo) is worth more than any new
-   canvas feature.
+2. **Mobile experience (gap).** The public pages and demo now work on phones;
+   inside the app a banner still tells phone users to switch to desktop. For a
+   private, reflective tool people reach for in quiet moments, "desktop only"
+   is the single largest adoption barrier. A usable read/pan/inspect experience
+   for one's own tree is worth more than any new canvas feature.
 3. **Passphrase-loss mitigation (gap).** "Lose your passphrase, lose everything"
    is honest and by design, but with no safety net it is also the scariest part
    of onboarding and a silent churn driver. A downloadable recovery code that
@@ -203,10 +203,11 @@ Several outrank the formally-planned features above.
 
 ### Mobile and responsive (high)
 
-The app shows a "use a desktop" banner on small screens. For a personal,
-private tool, that excludes the context in which many people would actually use
-it. Scope at minimum: read, pan, and inspect on mobile for one's own tree and
-the public demo; full editing can stay desktop-first.
+The public pages (landing, learn, tour, security, demo, auth) work on phones
+as of v0.1.161 – v0.1.167. The app itself still shows a "use a desktop" banner
+on small screens. For a personal, private tool, that excludes the context in
+which many people would actually use it. Remaining scope: read, pan, and
+inspect on mobile for one's own tree; full editing can stay desktop-first.
 
 ### Passphrase recovery (high)
 
