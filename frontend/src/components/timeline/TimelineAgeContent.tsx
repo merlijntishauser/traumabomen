@@ -163,6 +163,9 @@ function AgeBackground({
             height={height}
             fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
           />
+          {band.gen > 0 && (
+            <rect x={band.x} y={0} width={1} height={height} fill="url(#tl-gen-fade-age)" />
+          )}
           <text x={band.x + band.width / 2} y={16} className="tl-col-header">
             {t("timeline.generation", { number: band.gen + 1 })}
           </text>
@@ -231,14 +234,13 @@ function AgeBackground({
 
       {showGridlines &&
         ageTicks.map((tick) => (
-          <line
+          <rect
             key={`grid-${tick.value}`}
-            x1={AGE_LABEL_WIDTH}
-            x2={totalWidth}
-            y1={tick.y}
-            y2={tick.y}
-            stroke={cssVar("--color-text-muted")}
-            strokeOpacity={0.25}
+            x={AGE_LABEL_WIDTH}
+            width={Math.max(0, totalWidth - AGE_LABEL_WIDTH)}
+            y={tick.y - 0.5}
+            height={1}
+            fill="url(#tl-grid-fade-age)"
           />
         ))}
     </g>
@@ -408,6 +410,19 @@ export function TimelineAgeContent({
               height={Math.max(0, height - COL_HEADER_HEIGHT)}
             />
           </clipPath>
+          {/* Age gridlines fade out toward both ends */}
+          <linearGradient id="tl-grid-fade-age" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
+            <stop offset="0.12" stopColor={cssVar("--color-text-muted")} stopOpacity="0.28" />
+            <stop offset="0.75" stopColor={cssVar("--color-text-muted")} stopOpacity="0.14" />
+            <stop offset="1" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
+          </linearGradient>
+          {/* Generation column boundaries carry the accent, fading down */}
+          <linearGradient id="tl-gen-fade-age" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={cssVar("--color-accent")} stopOpacity="0.45" />
+            <stop offset="0.55" stopColor={cssVar("--color-accent")} stopOpacity="0.12" />
+            <stop offset="1" stopColor={cssVar("--color-accent")} stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         <AgeBackground

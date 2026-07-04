@@ -79,7 +79,7 @@ export function PatternView({
 
   if (patternList.length === 0) {
     return (
-      <div className="pattern-view">
+      <div className="pattern-view bg-gradient">
         <div className="pattern-view__empty">
           <p>{t("pattern.empty")}</p>
           <Link to={`/trees/${compactId}`}>{t("pattern.createFirst")}</Link>
@@ -91,7 +91,7 @@ export function PatternView({
   const expandedPattern = expandedId ? patterns.get(expandedId) : null;
 
   return (
-    <div className="pattern-view">
+    <div className="pattern-view bg-gradient">
       <div className="pattern-view__grid">
         {expandedPattern && (
           <PatternDetail

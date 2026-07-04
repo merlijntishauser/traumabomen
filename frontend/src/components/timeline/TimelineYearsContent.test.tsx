@@ -452,11 +452,8 @@ describe("TimelineYearsContent", () => {
         },
       };
       const { container } = render(<TimelineYearsContent {...props} />);
-      // Gridlines start at y1=0 and extend to totalHeight
-      const allLines = container.querySelectorAll("line");
-      const gridlines = Array.from(allLines).filter(
-        (line) => line.getAttribute("y1") === "0" && Number(line.getAttribute("y2")) > 0,
-      );
+      // Gridlines are 1px rects filled with the fading gradient
+      const gridlines = container.querySelectorAll('rect[fill="url(#tl-grid-fade)"]');
       expect(gridlines.length).toBeGreaterThanOrEqual(1);
     });
   });

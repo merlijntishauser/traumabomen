@@ -151,6 +151,9 @@ function YearsBackground({
             height={band.height}
             fill={cssVar(band.isEven ? "--color-band-even" : "--color-band-odd")}
           />
+          {band.gen > 0 && (
+            <rect x={0} y={band.y} width={width} height={1} fill="url(#tl-gen-fade)" />
+          )}
           <text x={20} y={band.y + GEN_HEADER_HEIGHT - 5} className="tl-gen-label">
             {t("timeline.generation", { number: band.gen + 1 })}
           </text>
@@ -369,6 +372,19 @@ export function TimelineYearsContent({
           <clipPath id="timeline-clip">
             <rect x={LABEL_WIDTH} y={0} width={width - LABEL_WIDTH} height={totalHeight} />
           </clipPath>
+          {/* Year gridlines fade out toward both ends, like light between trees */}
+          <linearGradient id="tl-grid-fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
+            <stop offset="0.12" stopColor={cssVar("--color-text-muted")} stopOpacity="0.28" />
+            <stop offset="0.75" stopColor={cssVar("--color-text-muted")} stopOpacity="0.14" />
+            <stop offset="1" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
+          </linearGradient>
+          {/* Generation boundaries carry the accent signature, fading right */}
+          <linearGradient id="tl-gen-fade" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor={cssVar("--color-accent")} stopOpacity="0.45" />
+            <stop offset="0.55" stopColor={cssVar("--color-accent")} stopOpacity="0.12" />
+            <stop offset="1" stopColor={cssVar("--color-accent")} stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         <YearsBackground
@@ -399,17 +415,16 @@ export function TimelineYearsContent({
           ))}
         </g>
 
-        {/* Vertical gridlines at year ticks */}
+        {/* Vertical gridlines at year ticks, fading toward both ends */}
         {showGridlines &&
           axisTicks.map((tick) => (
-            <line
+            <rect
               key={`grid-${tick.value}`}
-              x1={tick.x}
-              x2={tick.x}
-              y1={0}
-              y2={totalHeight}
-              stroke={cssVar("--color-text-muted")}
-              strokeOpacity={0.25}
+              x={tick.x - 0.5}
+              width={1}
+              y={0}
+              height={totalHeight}
+              fill="url(#tl-grid-fade)"
             />
           ))}
 

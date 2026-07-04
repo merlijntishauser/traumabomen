@@ -259,7 +259,7 @@ describe("TimelineAgeContent", () => {
       />,
     );
     const bgGroup = container.querySelector(".tl-bg");
-    const gridLines = bgGroup?.querySelectorAll("line");
+    const gridLines = bgGroup?.querySelectorAll('rect[fill="url(#tl-grid-fade-age)"]');
     expect(gridLines!.length).toBeGreaterThanOrEqual(1);
   });
 });

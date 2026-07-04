@@ -89,43 +89,45 @@ export default function InsightsPage() {
       {isLoading ? (
         <div style={{ padding: 20 }}>{t("common.loading")}</div>
       ) : (
-        <div className="insights-page">
-          <div className="insights-page__header">
-            <h1 className="insights-page__title">{t("insights.title")}</h1>
-            <p className="insights-page__subtitle">{t("insights.subtitle")}</p>
-          </div>
-
-          {!hasInsights && (
-            <div className="insights-page__empty" data-testid="insights-empty">
-              {t("insights.empty")}
+        <div className="insights-scroll bg-gradient">
+          <div className="insights-page">
+            <div className="insights-page__header">
+              <h1 className="insights-page__title">{t("insights.title")}</h1>
+              <p className="insights-page__subtitle">{t("insights.subtitle")}</p>
             </div>
-          )}
 
-          {SECTION_ORDER.map((category) => {
-            const sectionInsights = groupedInsights.get(category);
-            if (!sectionInsights || sectionInsights.length === 0) return null;
-            return (
-              <section
-                key={category}
-                className="insights-page__section"
-                data-testid={`insights-section-${category}`}
-              >
-                <h2 className="insights-page__section-title">{t(SECTION_KEYS[category])}</h2>
-                <div className="insights-page__grid">
-                  {sectionInsights.map((insight) => {
-                    const idx = cardIndex++;
-                    return (
-                      <InsightCard
-                        key={`${insight.titleKey}-${JSON.stringify(insight.titleValues)}`}
-                        insight={insight}
-                        index={idx}
-                      />
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
+            {!hasInsights && (
+              <div className="insights-page__empty" data-testid="insights-empty">
+                {t("insights.empty")}
+              </div>
+            )}
+
+            {SECTION_ORDER.map((category) => {
+              const sectionInsights = groupedInsights.get(category);
+              if (!sectionInsights || sectionInsights.length === 0) return null;
+              return (
+                <section
+                  key={category}
+                  className="insights-page__section"
+                  data-testid={`insights-section-${category}`}
+                >
+                  <h2 className="insights-page__section-title">{t(SECTION_KEYS[category])}</h2>
+                  <div className="insights-page__grid">
+                    {sectionInsights.map((insight) => {
+                      const idx = cardIndex++;
+                      return (
+                        <InsightCard
+                          key={`${insight.titleKey}-${JSON.stringify(insight.titleValues)}`}
+                          insight={insight}
+                          index={idx}
+                        />
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -501,7 +501,7 @@ describe("TimelineView", () => {
       );
       const ageLabels = container.querySelectorAll(".tl-age-axis-text");
       // There should be at least one gridline (one per tick)
-      const lines = container.querySelectorAll("line");
+      const lines = container.querySelectorAll('rect[fill="url(#tl-grid-fade-age)"]');
       expect(lines.length).toBeGreaterThanOrEqual(ageLabels.length);
     });
 

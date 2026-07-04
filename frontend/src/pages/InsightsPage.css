@@ -1,6 +1,10 @@
-.insights-page {
+.insights-scroll {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
+}
+
+.insights-page {
   padding: var(--space-8) var(--space-10);
   max-width: 900px;
   margin: 0 auto;

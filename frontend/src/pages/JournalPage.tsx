@@ -82,7 +82,7 @@ export default function JournalPage() {
       {isLoading ? (
         <div style={{ padding: 20 }}>{t("common.loading")}</div>
       ) : (
-        <div className="journal-page">
+        <div className="journal-page bg-gradient">
           <JournalDecoration />
           <div className="journal-page__content">
             <div className="journal-page__inner">

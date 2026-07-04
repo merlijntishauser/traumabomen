@@ -134,7 +134,7 @@
   --color-lifebar-stroke: #2d8a5e;
 
   /* Generation band alternation */
-  --color-band-even: rgba(255, 255, 255, 0.02);
+  --color-band-even: color-mix(in srgb, var(--color-accent) 5%, transparent);
   --color-band-odd: transparent;
 
   /* Typography. Three roles: the handwriting face is the personal voice
@@ -330,7 +330,7 @@
   --color-lifebar-fill: rgba(52, 160, 102, 0.12);
   --color-lifebar-stroke: #34a066;
 
-  --color-band-even: rgba(0, 0, 0, 0.02);
+  --color-band-even: color-mix(in srgb, var(--color-accent) 4%, transparent);
   --color-band-odd: transparent;
 
   --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.12), 0 1px 2px rgba(52, 160, 102, 0.04);
@@ -656,11 +656,19 @@ button {
   padding-bottom: 0;
 }
 
-/* Shared gradient background with dither to prevent banding */
+/* Shared gradient background with dither to prevent banding: a soft
+   canopy wash from above and the grounding accent wash from below, so the
+   surface carries depth everywhere instead of one corner. */
 .bg-gradient {
   position: relative;
   transition: background 0.4s ease;
   background:
+    radial-gradient(
+      ellipse 130% 90% at 80% -25%,
+      color-mix(in srgb, var(--color-accent-subtle) 55%, transparent) 0%,
+      color-mix(in srgb, var(--color-accent-subtle) 25%, transparent) 35%,
+      transparent 60%
+    ),
     radial-gradient(
       ellipse at 0% 100%,
       var(--color-accent-subtle) 0%,
