@@ -35,15 +35,15 @@ async function setupTreeWithPerson(
     await expect(birthYearInput).toHaveValue("1980");
   }).toPass({ timeout: 30_000 });
 
-  // Guard against a refetch clearing the inputs between the last check and the
-  // click: confirm the values immediately before saving.
+  // Guard against a refetch clearing the inputs between the last check and
+  // the commit: confirm the values immediately before blurring.
   await expect(nameInput).toHaveValue(name);
-  await panel.getByRole("button", { name: /save/i }).first().click();
-
-  // Wait for save to complete (panel closes on success), then reopen
-  await expect(panel).not.toBeVisible({ timeout: 10_000 });
-  await page.locator(".react-flow__node").filter({ hasText: name }).click();
-  await expect(panel).toBeVisible();
+  // Autosave commits on blur; the panel stays open. The node label confirms
+  // the save round trip landed.
+  await birthYearInput.blur();
+  await expect(page.locator(".react-flow__node").filter({ hasText: name })).toBeAttached({
+    timeout: 10_000,
+  });
 
   return panel;
 }
@@ -61,10 +61,10 @@ test.describe("Data entry", () => {
     await panel.getByRole("button", { name: /new|add/i }).click();
 
     // Fill event form
-    const form = panel.locator(".detail-panel__event-form");
+    const form = panel.locator(".detail-panel__sub-body");
     await form.locator("input[type='text']").first().fill("Childhood trauma");
     await form.locator("select").first().selectOption({ index: 1 });
-    await form.getByRole("button", { name: /save/i }).click();
+    await form.getByRole("button", { name: "Add", exact: true }).click();
 
     // Verify event card appears
     await expect(panel.getByText("Childhood trauma")).toBeVisible();
@@ -81,10 +81,10 @@ test.describe("Data entry", () => {
     // Add new life event
     await panel.getByRole("button", { name: /new|add/i }).click();
 
-    const form = panel.locator(".detail-panel__event-form");
+    const form = panel.locator(".detail-panel__sub-body");
     await form.locator("input[type='text']").first().fill("Started university");
     await form.locator("select").first().selectOption({ index: 1 });
-    await form.getByRole("button", { name: /save/i }).click();
+    await form.getByRole("button", { name: "Add", exact: true }).click();
 
     await expect(panel.getByText("Started university")).toBeVisible();
   });
@@ -100,10 +100,10 @@ test.describe("Data entry", () => {
     // Add new turning point
     await panel.getByRole("button", { name: /new|add/i }).click();
 
-    const form = panel.locator(".detail-panel__event-form");
+    const form = panel.locator(".detail-panel__sub-body");
     await form.locator("input[type='text']").first().fill("Left toxic environment");
     await form.locator("select").first().selectOption({ index: 1 });
-    await form.getByRole("button", { name: /save/i }).click();
+    await form.getByRole("button", { name: "Add", exact: true }).click();
 
     await expect(panel.getByText("Left toxic environment")).toBeVisible();
   });
@@ -117,10 +117,10 @@ test.describe("Data entry", () => {
     // Add new classification
     await panel.getByRole("button", { name: /new|add/i }).click();
 
-    const form = panel.locator(".detail-panel__event-form");
+    const form = panel.locator(".detail-panel__sub-body");
     // Select a DSM category from the dropdown
     await form.locator("select").first().selectOption({ index: 1 });
-    await form.getByRole("button", { name: /save/i }).click();
+    await form.getByRole("button", { name: "Add", exact: true }).click();
 
     // Verify classification card appears
     await expect(panel.locator(".detail-panel__event-card")).toBeVisible();

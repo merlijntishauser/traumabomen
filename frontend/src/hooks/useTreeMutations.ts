@@ -340,17 +340,19 @@ export function useTreeMutations(treeId: string) {
 
 /** Build save/delete handlers for a linked entity (events, lifeEvents, etc.) */
 export function linkedEntityHandlers<T>(group: {
-  create: { mutate: (args: { personIds: string[]; data: T }) => void };
-  update: { mutate: (args: { entityId: string; personIds: string[]; data: T }) => void };
+  create: { mutateAsync: (args: { personIds: string[]; data: T }) => Promise<unknown> };
+  update: {
+    mutateAsync: (args: { entityId: string; personIds: string[]; data: T }) => Promise<unknown>;
+  };
   delete: { mutate: (id: string) => void };
 }) {
   return {
-    save: (id: string | null, data: T, personIds: string[]) => {
+    // Returns the promise so autosaving inspectors can report the outcome.
+    save: (id: string | null, data: T, personIds: string[]): Promise<unknown> => {
       if (id) {
-        group.update.mutate({ entityId: id, personIds, data });
-      } else {
-        group.create.mutate({ personIds, data });
+        return group.update.mutateAsync({ entityId: id, personIds, data });
       }
+      return group.create.mutateAsync({ personIds, data });
     },
     remove: (id: string) => group.delete.mutate(id),
   };

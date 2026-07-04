@@ -1,8 +1,11 @@
 import { ArrowUpRight, Plus, Trash2, User, X } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAutosaveForm } from "../../hooks/useAutosaveForm";
 import type { DecryptedPerson, DecryptedSiblingGroup } from "../../hooks/useTreeData";
 import type { SiblingGroupMember } from "../../types/domain";
+import { blurOnEnter, sanitizeYearInput } from "../inspector/fieldHelpers";
+import { InspectorField } from "../inspector/InspectorField";
+import { InspectorSaveWhisper, useInspectorStatus } from "../inspector/InspectorStatus";
 import "./SiblingGroupPanel.css";
 
 type KeyedSiblingGroupMember = SiblingGroupMember & { _key: string };
@@ -10,10 +13,18 @@ type KeyedSiblingGroupMember = SiblingGroupMember & { _key: string };
 interface SiblingGroupPanelProps {
   group: DecryptedSiblingGroup;
   allPersons: Map<string, DecryptedPerson>;
-  onSave: (groupId: string, members: SiblingGroupMember[], personIds: string[]) => void;
+  onSave: (
+    groupId: string,
+    members: SiblingGroupMember[],
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDelete: (groupId: string) => void;
   onPromote: (groupId: string, memberIndex: number) => void;
   onClose: () => void;
+}
+
+interface SiblingGroupDraft {
+  members: KeyedSiblingGroupMember[];
 }
 
 export function SiblingGroupPanel({
@@ -25,50 +36,48 @@ export function SiblingGroupPanel({
   onClose,
 }: SiblingGroupPanelProps) {
   const { t } = useTranslation();
-  const [members, setMembers] = useState<KeyedSiblingGroupMember[]>(() =>
-    group.members.map((m) => ({ ...m, _key: crypto.randomUUID() })),
-  );
+  const { status, report } = useInspectorStatus();
+
+  const { draft, update, updateAndCommit, commit } = useAutosaveForm({
+    source: group,
+    toDraft: (g): SiblingGroupDraft => ({
+      members: g.members.map((m) => ({ ...m, _key: crypto.randomUUID() })),
+    }),
+    toData: (d) => ({
+      members: d.members.map(({ _key, ...rest }) => rest),
+    }),
+    onSave: (data) => onSave(group.id, data.members, group.person_ids),
+    report,
+  });
+
+  const members = draft.members;
 
   // Total people in this sibling set: full-node siblings ("in tree") plus the
   // lightweight members listed below. Matches the cards rendered in the panel.
   const siblingCount = members.length + group.person_ids.length;
 
-  function handleNameChange(key: string, name: string) {
-    setMembers((prev) => prev.map((m) => (m._key === key ? { ...m, name } : m)));
+  function addMember() {
+    updateAndCommit((d) => ({
+      members: [...d.members, { name: "", birth_year: null, _key: crypto.randomUUID() }],
+    }));
   }
 
-  function handleFieldChange(key: string, field: string, value: string) {
-    setMembers((prev) =>
-      prev.map((m) => {
-        if (m._key !== key) return m;
-        if (field === "birth_year" || field === "death_year") {
-          return { ...m, [field]: value ? parseInt(value, 10) : null };
-        }
-        return { ...m, [field]: value };
-      }),
-    );
-  }
-
-  function handleAddMember() {
-    setMembers((prev) => [...prev, { name: "", birth_year: null, _key: crypto.randomUUID() }]);
-  }
-
-  function handleRemoveMember(key: string) {
-    setMembers((prev) => prev.filter((m) => m._key !== key));
-  }
-
-  function handleSave() {
-    const cleanedMembers = members.map(({ _key, ...rest }) => rest);
-    onSave(group.id, cleanedMembers, group.person_ids);
+  function patchMember(key: string, patch: Partial<SiblingGroupMember>) {
+    update((d) => ({
+      members: d.members.map((m) => (m._key === key ? { ...m, ...patch } : m)),
+    }));
   }
 
   return (
     <div className="panel-overlay sibling-group-panel">
       <div className="panel-header sibling-group-panel__header">
         <h3>{t("siblingGroup.title")}</h3>
-        <button type="button" className="panel-close" onClick={onClose}>
-          {t("common.close")}
-        </button>
+        <div className="sibling-group-panel__header-actions">
+          <InspectorSaveWhisper status={status} />
+          <button type="button" className="panel-close" onClick={onClose}>
+            {t("common.close")}
+          </button>
+        </div>
       </div>
 
       <div className="sibling-group-panel__count">
@@ -102,46 +111,67 @@ export function SiblingGroupPanel({
           >
             <div className="sibling-group-panel__card-main">
               <div className="sibling-group-panel__card-row">
-                <label className="detail-panel__field" style={{ flex: 1 }}>
-                  <span>{t("person.name")}</span>
+                <InspectorField label={t("person.name")} className="sibling-group-panel__grow">
                   <input
                     type="text"
+                    aria-label={t("person.name")}
                     value={member.name}
-                    onChange={(e) => handleNameChange(member._key, e.target.value)}
+                    onChange={(e) => patchMember(member._key, { name: e.target.value })}
+                    onBlur={commit}
+                    onKeyDown={blurOnEnter}
                   />
-                </label>
-                <label className="detail-panel__field">
-                  <span>{t("person.gender")}</span>
+                </InspectorField>
+                <InspectorField label={t("person.gender")}>
                   <select
                     value={member.gender ?? ""}
-                    onChange={(e) => handleFieldChange(member._key, "gender", e.target.value)}
+                    onChange={(e) =>
+                      updateAndCommit((d) => ({
+                        members: d.members.map((m) =>
+                          m._key === member._key ? { ...m, gender: e.target.value } : m,
+                        ),
+                      }))
+                    }
                   >
-                    <option value="">---</option>
+                    <option value="">{t("person.datePartEmpty")}</option>
                     <option value="male">{t("person.male")}</option>
                     <option value="female">{t("person.female")}</option>
                     <option value="other">{t("person.other")}</option>
                   </select>
-                </label>
+                </InspectorField>
               </div>
               <div className="sibling-group-panel__card-row">
-                <label className="detail-panel__field">
-                  <span>{t("person.birthYear")}</span>
+                <InspectorField label={t("person.birthYear")} className="inspector-field--year">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={t("person.birthYear")}
                     value={member.birth_year ?? ""}
-                    onChange={(e) => handleFieldChange(member._key, "birth_year", e.target.value)}
-                    placeholder="---"
+                    onChange={(e) => {
+                      const value = sanitizeYearInput(e.target.value);
+                      patchMember(member._key, {
+                        birth_year: value ? parseInt(value, 10) : null,
+                      });
+                    }}
+                    onBlur={commit}
+                    onKeyDown={blurOnEnter}
                   />
-                </label>
-                <label className="detail-panel__field">
-                  <span>{t("person.deathYear")}</span>
+                </InspectorField>
+                <InspectorField label={t("person.deathYear")} className="inspector-field--year">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={t("person.deathYear")}
                     value={member.death_year ?? ""}
-                    onChange={(e) => handleFieldChange(member._key, "death_year", e.target.value)}
-                    placeholder="---"
+                    onChange={(e) => {
+                      const value = sanitizeYearInput(e.target.value);
+                      patchMember(member._key, {
+                        death_year: value ? parseInt(value, 10) : null,
+                      });
+                    }}
+                    onBlur={commit}
+                    onKeyDown={blurOnEnter}
                   />
-                </label>
+                </InspectorField>
               </div>
             </div>
             <div className="sibling-group-panel__card-actions">
@@ -162,7 +192,11 @@ export function SiblingGroupPanel({
                 type="button"
                 className="sibling-group-panel__icon-btn sibling-group-panel__icon-btn--danger"
                 title={t("common.remove")}
-                onClick={() => handleRemoveMember(member._key)}
+                onClick={() =>
+                  updateAndCommit((d) => ({
+                    members: d.members.filter((m) => m._key !== member._key),
+                  }))
+                }
               >
                 <X size={14} />
               </button>
@@ -170,16 +204,13 @@ export function SiblingGroupPanel({
           </div>
         ))}
 
-        <button type="button" className="sibling-group-panel__add-card" onClick={handleAddMember}>
+        <button type="button" className="sibling-group-panel__add-card" onClick={addMember}>
           <Plus size={14} />
           <span>{t("siblingGroup.addMember")}</span>
         </button>
       </div>
 
       <div className="sibling-group-panel__footer">
-        <button type="button" className="btn btn--primary" onClick={handleSave}>
-          {t("common.save")}
-        </button>
         <button
           type="button"
           className="sibling-group-panel__delete-btn"

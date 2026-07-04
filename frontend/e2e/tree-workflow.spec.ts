@@ -23,47 +23,40 @@ test.describe("Tree workflow", () => {
     await expect(panel).toBeVisible();
 
     await panel.locator("input[type='text']").first().fill("Alice");
-    await panel.locator("input[type='number']").first().fill("1960");
-    await panel.getByRole("button", { name: /save/i }).first().click();
+    const aliceYear = panel.locator("input[inputmode='numeric']").first();
+    await aliceYear.fill("1960");
+    // Autosave commits on blur; wait for the node label round trip.
+    await aliceYear.blur();
+    await expect(
+      page.locator(".react-flow__node").filter({ hasText: "Alice" }),
+    ).toBeAttached({ timeout: 10_000 });
     await page.keyboard.press("Escape");
     await expect(panel).not.toBeVisible();
 
-    // Add person Bob (second person, relationship prompt appears after save)
+    // Add person Bob (second person). The panel opens for the new person;
+    // the relationship prompt waits until the panel closes, since it only
+    // shows when nothing is selected.
     await page.getByLabel("Add person").click();
+    await expect(panel).toBeVisible();
 
-    // Either the panel or relationship prompt may appear first depending on timing
+    await panel.locator("input[type='text']").first().fill("Bob");
+    const bobYear = panel.locator("input[inputmode='numeric']").first();
+    await bobYear.fill("1958");
+    await bobYear.blur();
+    await expect(page.locator(".react-flow__node").filter({ hasText: "Bob" })).toBeAttached({
+      timeout: 10_000,
+    });
+
+    // Closing the panel (Close button, not Escape: Escape dismisses the
+    // prompt too) reveals the relationship prompt.
+    await panel.getByRole("button", { name: /close/i }).first().click();
     const prompt = page.locator(".relationship-prompt");
-    const panelVisible = panel.waitFor({ state: "visible", timeout: 10_000 });
-    const promptVisible = prompt.waitFor({ state: "visible", timeout: 10_000 });
-    const first = await Promise.race([
-      panelVisible.then(() => "panel" as const),
-      promptVisible.then(() => "prompt" as const),
-    ]);
-
-    if (first === "panel") {
-      // Panel opened: fill in details, save, then handle relationship prompt
-      await panel.locator("input[type='text']").first().fill("Bob");
-      await panel.locator("input[type='number']").first().fill("1958");
-      await panel.getByRole("button", { name: /save/i }).first().click();
-      await expect(prompt).toBeVisible({ timeout: 5_000 });
-    }
+    await expect(prompt).toBeVisible({ timeout: 5_000 });
 
     // Handle relationship prompt: connect Bob to Alice as Partner
     await prompt.getByRole("button", { name: /yes/i }).click();
     await prompt.locator(".relationship-prompt__item").filter({ hasText: "Alice" }).click();
     await prompt.locator(".relationship-prompt__item").filter({ hasText: /partner/i }).click();
-
-    if (first === "prompt") {
-      // Prompt appeared first: now click the node to edit details
-      const newPersonNode = page.locator(".react-flow__node").filter({ hasText: "New person" });
-      await newPersonNode.click();
-      await expect(panel).toBeVisible();
-      await panel.locator("input[type='text']").first().fill("Bob");
-      await panel.locator("input[type='number']").first().fill("1958");
-      await panel.getByRole("button", { name: /save/i }).first().click();
-    }
-
-    await page.keyboard.press("Escape");
 
     // Verify both nodes exist on the canvas
     const aliceNode = page.locator(".react-flow__node").filter({ hasText: "Alice" });

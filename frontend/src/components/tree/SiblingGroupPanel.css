@@ -107,7 +107,7 @@
   min-width: 0;
 }
 
-.sibling-group-panel__card-main .detail-panel__field {
+.sibling-group-panel__card-main .inspector-field {
   margin-bottom: var(--space-1);
 }
 
@@ -116,9 +116,19 @@
   gap: var(--space-2);
 }
 
-.sibling-group-panel__card-row .detail-panel__field {
+.sibling-group-panel__card-row .inspector-field {
   flex: 1;
   min-width: 0;
+}
+
+.sibling-group-panel__grow {
+  flex: 1;
+}
+
+.sibling-group-panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* Icon buttons */

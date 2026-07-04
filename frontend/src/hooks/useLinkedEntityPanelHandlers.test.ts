@@ -4,7 +4,10 @@ import { useLinkedEntityPanelHandlers } from "./useLinkedEntityPanelHandlers";
 import type { useTreeMutations } from "./useTreeMutations";
 
 function createMockMutations(): ReturnType<typeof useTreeMutations> {
-  const makeMutation = () => ({ mutate: vi.fn() });
+  const makeMutation = () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+  });
   const makeGroup = () => ({
     create: makeMutation(),
     update: makeMutation(),
@@ -30,7 +33,7 @@ function createMockMutations(): ReturnType<typeof useTreeMutations> {
 }
 
 describe("useLinkedEntityPanelHandlers", () => {
-  it("handleSavePerson calls updatePerson.mutate with selected person id", () => {
+  it("handleSavePerson calls updatePerson.mutateAsync with selected person id", async () => {
     const mutations = createMockMutations();
     const { result } = renderHook(() =>
       useLinkedEntityPanelHandlers({
@@ -39,11 +42,11 @@ describe("useLinkedEntityPanelHandlers", () => {
       }),
     );
     const personData = { name: "Alice" } as Parameters<typeof result.current.handleSavePerson>[0];
-    result.current.handleSavePerson(personData);
-    expect(mutations.updatePerson.mutate).toHaveBeenCalledWith(
-      { personId: "p1", data: personData },
-      undefined,
-    );
+    await result.current.handleSavePerson(personData);
+    expect(mutations.updatePerson.mutateAsync).toHaveBeenCalledWith({
+      personId: "p1",
+      data: personData,
+    });
   });
 
   it("handleSavePerson does nothing when selectedPersonId is null", () => {
@@ -57,25 +60,22 @@ describe("useLinkedEntityPanelHandlers", () => {
     result.current.handleSavePerson({ name: "Alice" } as Parameters<
       typeof result.current.handleSavePerson
     >[0]);
-    expect(mutations.updatePerson.mutate).not.toHaveBeenCalled();
+    expect(mutations.updatePerson.mutateAsync).not.toHaveBeenCalled();
   });
 
-  it("handleSavePerson passes onSuccess when onPersonSaved is provided", () => {
+  it("handleSavePerson returns the mutation promise for outcome reporting", async () => {
     const mutations = createMockMutations();
-    const onPersonSaved = vi.fn();
     const { result } = renderHook(() =>
       useLinkedEntityPanelHandlers({
         mutations,
         selectedPersonId: "p1",
-        onPersonSaved,
       }),
     );
-    result.current.handleSavePerson({ name: "Alice" } as Parameters<
+    const promise = result.current.handleSavePerson({ name: "Alice" } as Parameters<
       typeof result.current.handleSavePerson
     >[0]);
-    expect(mutations.updatePerson.mutate).toHaveBeenCalledWith(expect.any(Object), {
-      onSuccess: onPersonSaved,
-    });
+    expect(promise).toBeInstanceOf(Promise);
+    await promise;
   });
 
   it("handleDeletePerson calls deletePerson.mutate and triggers callback", () => {
@@ -98,7 +98,7 @@ describe("useLinkedEntityPanelHandlers", () => {
     expect(onPersonDeleted).toHaveBeenCalled();
   });
 
-  it("handleSaveRelationship calls updateRelationship.mutate", () => {
+  it("handleSaveRelationship calls updateRelationship.mutateAsync", async () => {
     const mutations = createMockMutations();
     const { result } = renderHook(() =>
       useLinkedEntityPanelHandlers({
@@ -109,14 +109,14 @@ describe("useLinkedEntityPanelHandlers", () => {
     const relData = { type: "partner" } as Parameters<
       typeof result.current.handleSaveRelationship
     >[1];
-    result.current.handleSaveRelationship("r1", relData);
-    expect(mutations.updateRelationship.mutate).toHaveBeenCalledWith({
+    await result.current.handleSaveRelationship("r1", relData);
+    expect(mutations.updateRelationship.mutateAsync).toHaveBeenCalledWith({
       relationshipId: "r1",
       data: relData,
     });
   });
 
-  it("eventHandlers.save creates new event when id is null", () => {
+  it("eventHandlers.save creates new event when id is null", async () => {
     const mutations = createMockMutations();
     const { result } = renderHook(() =>
       useLinkedEntityPanelHandlers({
@@ -125,14 +125,14 @@ describe("useLinkedEntityPanelHandlers", () => {
       }),
     );
     const data = { title: "test" };
-    result.current.eventHandlers.save(null, data, ["p1"]);
-    expect(mutations.events.create.mutate).toHaveBeenCalledWith({
+    await result.current.eventHandlers.save(null, data, ["p1"]);
+    expect(mutations.events.create.mutateAsync).toHaveBeenCalledWith({
       personIds: ["p1"],
       data,
     });
   });
 
-  it("eventHandlers.save updates existing event when id is provided", () => {
+  it("eventHandlers.save updates existing event when id is provided", async () => {
     const mutations = createMockMutations();
     const { result } = renderHook(() =>
       useLinkedEntityPanelHandlers({
@@ -141,8 +141,8 @@ describe("useLinkedEntityPanelHandlers", () => {
       }),
     );
     const data = { title: "test" };
-    result.current.eventHandlers.save("e1", data, ["p1"]);
-    expect(mutations.events.update.mutate).toHaveBeenCalledWith({
+    await result.current.eventHandlers.save("e1", data, ["p1"]);
+    expect(mutations.events.update.mutateAsync).toHaveBeenCalledWith({
       entityId: "e1",
       personIds: ["p1"],
       data,

@@ -6,17 +6,14 @@ export function useLinkedEntityPanelHandlers(options: {
   mutations: ReturnType<typeof useTreeMutations>;
   selectedPersonId: string | null;
   onPersonDeleted?: () => void;
-  onPersonSaved?: () => void;
 }) {
-  const { mutations, selectedPersonId, onPersonDeleted, onPersonSaved } = options;
+  const { mutations, selectedPersonId, onPersonDeleted } = options;
 
   return useMemo(() => {
-    function handleSavePerson(data: Person) {
+    function handleSavePerson(data: Person): Promise<unknown> | undefined {
       if (!selectedPersonId) return;
-      mutations.updatePerson.mutate(
-        { personId: selectedPersonId, data },
-        onPersonSaved ? { onSuccess: onPersonSaved } : undefined,
-      );
+      // Returns the promise so autosaving inspectors can report the outcome.
+      return mutations.updatePerson.mutateAsync({ personId: selectedPersonId, data });
     }
 
     function handleDeletePerson(personId: string) {
@@ -25,8 +22,12 @@ export function useLinkedEntityPanelHandlers(options: {
       });
     }
 
-    function handleSaveRelationship(relationshipId: string, data: RelationshipData) {
-      mutations.updateRelationship.mutate({ relationshipId, data });
+    function handleSaveRelationship(
+      relationshipId: string,
+      data: RelationshipData,
+    ): Promise<unknown> {
+      // Returns the promise so autosaving inspectors can report the outcome.
+      return mutations.updateRelationship.mutateAsync({ relationshipId, data });
     }
 
     function handleSaveJournalEntry(entryId: string | null, data: JournalEntry) {
@@ -53,5 +54,5 @@ export function useLinkedEntityPanelHandlers(options: {
       handleSaveJournalEntry,
       handleDeleteJournalEntry,
     };
-  }, [mutations, selectedPersonId, onPersonDeleted, onPersonSaved]);
+  }, [mutations, selectedPersonId, onPersonDeleted]);
 }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
@@ -53,10 +53,26 @@ function defaultProps() {
   return {
     relationship: makeRelationship(),
     allPersons: makePersonsMap(alice, bob),
-    onSaveRelationship: vi.fn(),
+    onSaveRelationship: vi.fn().mockResolvedValue(undefined),
     onDeleteRelationship: vi.fn(),
     onClose: vi.fn(),
   };
+}
+
+function getTypeSelect() {
+  return screen.getByRole("combobox", { name: "relationship.type" });
+}
+
+function getStatusSelect() {
+  return screen.getByRole("combobox", { name: "relationship.status" });
+}
+
+function getStartYearInput() {
+  return screen.getByRole("textbox", { name: "common.startYear" });
+}
+
+function getEndYearInput() {
+  return screen.getByRole("textbox", { name: "common.endYear" });
 }
 
 describe("RelationshipDetailPanel", () => {
@@ -93,13 +109,12 @@ describe("RelationshipDetailPanel", () => {
     expect(questionMarks).toHaveLength(2);
   });
 
-  it("changing relationship type calls onSaveRelationship", async () => {
+  it("changing relationship type calls onSaveRelationship immediately", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
     render(<RelationshipDetailPanel {...props} />);
 
-    const select = screen.getByRole("combobox");
-    await user.selectOptions(select, RelationshipType.Friend);
+    await user.selectOptions(getTypeSelect(), RelationshipType.Friend);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Friend,
@@ -116,8 +131,7 @@ describe("RelationshipDetailPanel", () => {
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    const select = screen.getByRole("combobox");
-    await user.selectOptions(select, RelationshipType.Friend);
+    await user.selectOptions(getTypeSelect(), RelationshipType.Friend);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Friend,
@@ -137,8 +151,7 @@ describe("RelationshipDetailPanel", () => {
     render(<RelationshipDetailPanel {...props} />);
 
     // Change to partner again (no-op in terms of type, but tests the code path)
-    const select = screen.getByRole("combobox");
-    await user.selectOptions(select, RelationshipType.Partner);
+    await user.selectOptions(getTypeSelect(), RelationshipType.Partner);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -161,46 +174,38 @@ describe("RelationshipDetailPanel", () => {
     expect(screen.queryByText(/relationship.periods/)).not.toBeInTheDocument();
   });
 
-  it("toggles period editor when clicking the section toggle", async () => {
-    const user = userEvent.setup();
+  it("always shows the period editor for partner relationships", () => {
     render(<RelationshipDetailPanel {...defaultProps()} />);
-
-    // Initially the period editor is closed (no add button visible)
-    expect(screen.queryByText("relationship.addPeriod")).not.toBeInTheDocument();
-
-    // Click the toggle to open
-    await user.click(screen.getByText(/relationship.periods/));
+    // No accordion toggle: the add-period button is visible right away
     expect(screen.getByText("relationship.addPeriod")).toBeInTheDocument();
-
-    // Click again to close
-    await user.click(screen.getByText(/relationship.periods/));
-    expect(screen.queryByText("relationship.addPeriod")).not.toBeInTheDocument();
   });
 
-  it("shows empty placeholder when no periods exist", async () => {
-    const user = userEvent.setup();
+  it("starts with no period rows when the relationship has none", () => {
     render(<RelationshipDetailPanel {...defaultProps()} />);
-
-    await user.click(screen.getByText(/relationship.periods/));
-    expect(screen.getByText("---")).toBeInTheDocument();
-  });
-
-  it("add period button adds a new period row", async () => {
-    const user = userEvent.setup();
-    render(<RelationshipDetailPanel {...defaultProps()} />);
-
-    // Open the period editor
-    await user.click(screen.getByText(/relationship.periods/));
-    // No period status selects yet
     expect(screen.queryByText("relationship.status")).not.toBeInTheDocument();
+    expect(screen.getByText(/relationship.periods/)).toHaveTextContent("(0)");
+  });
 
-    // Add a period
+  it("add period button adds a row and commits the new period", async () => {
+    const user = userEvent.setup();
+    const props = defaultProps();
+    render(<RelationshipDetailPanel {...props} />);
+
     await user.click(screen.getByText("relationship.addPeriod"));
-    // Now a period row should appear with a status select
+
+    // A period row appears with a status select
     expect(screen.getByText("relationship.status")).toBeInTheDocument();
+    // The add committed immediately
+    expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
+      type: RelationshipType.Partner,
+      periods: [
+        { start_year: new Date().getFullYear(), end_year: null, status: PartnerStatus.Together },
+      ],
+      active_period: null,
+    });
   });
 
-  it("remove period button removes the period", async () => {
+  it("remove period button removes the period and commits", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
     props.relationship = makeRelationship({
@@ -208,17 +213,17 @@ describe("RelationshipDetailPanel", () => {
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    // Open the period editor
-    await user.click(screen.getByText(/relationship.periods/));
-    expect(screen.getByText("relationship.removePeriod")).toBeInTheDocument();
-
-    // Remove the period
     await user.click(screen.getByText("relationship.removePeriod"));
-    // Should show the empty placeholder
-    expect(screen.getByText("---")).toBeInTheDocument();
+
+    expect(screen.queryByText("relationship.status")).not.toBeInTheDocument();
+    expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
+      type: RelationshipType.Partner,
+      periods: [],
+      active_period: null,
+    });
   });
 
-  it("editing period status field updates the period", async () => {
+  it("changing period status commits immediately", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
     props.relationship = makeRelationship({
@@ -226,19 +231,7 @@ describe("RelationshipDetailPanel", () => {
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    // Open the period editor
-    await user.click(screen.getByText(/relationship.periods/));
-
-    // Find the status select within the period editor
-    const periodEditor = screen
-      .getByText("relationship.status")
-      .closest(".detail-panel__period-row");
-    expect(periodEditor).not.toBeNull();
-    const statusSelect = within(periodEditor!).getByRole("combobox");
-    await user.selectOptions(statusSelect, PartnerStatus.Married);
-
-    // Save periods
-    await user.click(screen.getByText("common.save"));
+    await user.selectOptions(getStatusSelect(), PartnerStatus.Married);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -247,20 +240,17 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("editing period start_year field updates the period", async () => {
-    const user = userEvent.setup();
+  it("editing period start_year commits on blur", () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/relationship.periods/));
-
-    const startYearInput = screen.getByDisplayValue("2000");
+    const startYearInput = getStartYearInput();
     fireEvent.change(startYearInput, { target: { value: "1995" } });
-
-    await user.click(screen.getByText("common.save"));
+    expect(props.onSaveRelationship).not.toHaveBeenCalled();
+    fireEvent.blur(startYearInput);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -269,20 +259,16 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("editing period end_year field updates the period", async () => {
-    const user = userEvent.setup();
+  it("editing period end_year commits on blur", () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    await user.click(screen.getByText(/relationship.periods/));
-
-    const endYearInput = screen.getByPlaceholderText("---");
+    const endYearInput = getEndYearInput();
     fireEvent.change(endYearInput, { target: { value: "2010" } });
-
-    await user.click(screen.getByText("common.save"));
+    fireEvent.blur(endYearInput);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -291,20 +277,16 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("clearing end_year sets it to null", async () => {
-    const user = userEvent.setup();
+  it("clearing end_year sets it to null", () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Together }],
     });
     render(<RelationshipDetailPanel {...props} />);
-
-    await user.click(screen.getByText(/relationship.periods/));
 
     const endYearInput = screen.getByDisplayValue("2010");
     fireEvent.change(endYearInput, { target: { value: "" } });
-
-    await user.click(screen.getByText("common.save"));
+    fireEvent.blur(endYearInput);
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -313,29 +295,18 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("save periods calls onSaveRelationship and closes editor", async () => {
-    const user = userEvent.setup();
+  it("blur without a change saves nothing", () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    // Open the period editor
-    await user.click(screen.getByText(/relationship.periods/));
-    expect(screen.getByText("common.save")).toBeInTheDocument();
+    const startYearInput = getStartYearInput();
+    fireEvent.focus(startYearInput);
+    fireEvent.blur(startYearInput);
 
-    // Click save
-    await user.click(screen.getByText("common.save"));
-
-    expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
-      type: RelationshipType.Partner,
-      periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
-      active_period: null,
-    });
-
-    // Editor should be closed after save (add period button gone)
-    expect(screen.queryByText("relationship.addPeriod")).not.toBeInTheDocument();
+    expect(props.onSaveRelationship).not.toHaveBeenCalled();
   });
 
   it("delete button shows confirmation, second click calls onDeleteRelationship", async () => {
@@ -442,12 +413,14 @@ describe("RelationshipDetailPanel", () => {
     rerender(<RelationshipDetailPanel {...props} relationship={newRel} />);
 
     // The type select should reflect the new relationship type
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    const select = getTypeSelect() as HTMLSelectElement;
     expect(select.value).toBe(RelationshipType.Friend);
   });
 
   it("renders all relationship type options in the select", () => {
-    render(<RelationshipDetailPanel {...defaultProps()} />);
+    const props = defaultProps();
+    props.relationship = makeRelationship({ type: RelationshipType.Friend });
+    render(<RelationshipDetailPanel {...props} />);
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(Object.values(RelationshipType).length);
   });
@@ -463,22 +436,14 @@ describe("RelationshipDetailPanel", () => {
     });
     render(<RelationshipDetailPanel {...props} />);
 
-    // Open the period editor
-    await user.click(screen.getByText(/relationship.periods/));
-
-    // Should show 2 remove buttons
+    // Every period row has a remove button
     const removeButtons = screen.getAllByText("relationship.removePeriod");
     expect(removeButtons).toHaveLength(2);
 
-    // Remove the first period
+    // Remove the first period; the removal commits immediately
     await user.click(removeButtons[0]);
 
-    // Should have 1 remove button left
     expect(screen.getAllByText("relationship.removePeriod")).toHaveLength(1);
-
-    // Save
-    await user.click(screen.getByText("common.save"));
-
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
       periods: [{ start_year: 2008, end_year: null, status: PartnerStatus.Together }],
@@ -488,12 +453,11 @@ describe("RelationshipDetailPanel", () => {
 
   it("calls onSaveRelationship when relationship type is changed", async () => {
     const user = userEvent.setup();
-    const onSave = vi.fn();
+    const onSave = vi.fn().mockResolvedValue(undefined);
     const props = { ...defaultProps(), onSaveRelationship: onSave };
     render(<RelationshipDetailPanel {...props} />);
 
-    const select = screen.getByRole("combobox", { name: "relationship.type" });
-    await user.selectOptions(select, RelationshipType.StepParent);
+    await user.selectOptions(getTypeSelect(), RelationshipType.StepParent);
 
     expect(onSave).toHaveBeenCalledWith(
       "r1",
@@ -501,9 +465,9 @@ describe("RelationshipDetailPanel", () => {
     );
   });
 
-  it("clears periods when changing from partner to non-partner type", async () => {
+  it("clears periods when changing from partner to a parent type", async () => {
     const user = userEvent.setup();
-    const onSave = vi.fn();
+    const onSave = vi.fn().mockResolvedValue(undefined);
     const props = {
       ...defaultProps(),
       relationship: makeRelationship({
@@ -514,8 +478,7 @@ describe("RelationshipDetailPanel", () => {
     };
     render(<RelationshipDetailPanel {...props} />);
 
-    const select = screen.getByRole("combobox", { name: "relationship.type" });
-    await user.selectOptions(select, RelationshipType.BiologicalParent);
+    await user.selectOptions(getTypeSelect(), RelationshipType.BiologicalParent);
 
     expect(onSave).toHaveBeenCalledWith(
       "r1",

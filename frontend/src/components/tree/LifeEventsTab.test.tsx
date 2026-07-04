@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -116,7 +116,8 @@ describe("LifeEventsTab", () => {
 
       await user.click(screen.getByText("Graduation"));
 
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      // Autosave model: no save button, only delete
+      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
       expect(screen.getByText("common.delete")).toBeInTheDocument();
       // Form should be pre-populated with event title
       expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
@@ -128,7 +129,7 @@ describe("LifeEventsTab", () => {
       render(<LifeEventsTab {...props} initialEditId="le1" />);
 
       expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      expect(screen.getByText("common.delete")).toBeInTheDocument();
     });
 
     it("shows event title in sub-panel header when editing existing", async () => {
@@ -159,7 +160,7 @@ describe("LifeEventsTab", () => {
       expect(screen.getByText("lifeEvent.tags")).toBeInTheDocument();
     });
 
-    it("calls onSaveLifeEvent with form data when save is clicked", async () => {
+    it("calls onSaveLifeEvent with null id when add is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<LifeEventsTab {...props} />);
@@ -178,7 +179,7 @@ describe("LifeEventsTab", () => {
       const dateInput = screen.getByPlaceholderText("lifeEvent.datePlaceholder");
       await user.type(dateInput, "2022");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       expect(props.onSaveLifeEvent).toHaveBeenCalledOnce();
       const [eventId, data, personIds] = props.onSaveLifeEvent.mock.calls[0];
@@ -197,10 +198,13 @@ describe("LifeEventsTab", () => {
 
       await user.click(screen.getByText("lifeEvent.newEvent"));
 
+      const titleInput = screen.getByRole("textbox", { name: "lifeEvent.title" });
+      await user.type(titleInput, "New Job");
+
       const tagsInput = screen.getByPlaceholderText("lifeEvent.tagsPlaceholder");
       await user.type(tagsInput, "work, career, growth");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveLifeEvent.mock.calls[0][1];
       expect(savedData.tags).toEqual(["work", "career", "growth"]);
@@ -212,7 +216,8 @@ describe("LifeEventsTab", () => {
       render(<LifeEventsTab {...props} />);
 
       await user.click(screen.getByText("lifeEvent.newEvent"));
-      await user.click(screen.getByText("common.save"));
+      await user.type(screen.getByRole("textbox", { name: "lifeEvent.title" }), "Untagged");
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveLifeEvent.mock.calls[0][1];
       expect(savedData.tags).toEqual([]);
@@ -224,7 +229,8 @@ describe("LifeEventsTab", () => {
       render(<LifeEventsTab {...props} />);
 
       await user.click(screen.getByText("lifeEvent.newEvent"));
-      await user.click(screen.getByText("common.save"));
+      await user.type(screen.getByRole("textbox", { name: "lifeEvent.title" }), "New Job");
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveLifeEvent.mock.calls[0][1];
       expect(savedData.impact).toBeNull();
@@ -275,30 +281,102 @@ describe("LifeEventsTab", () => {
       expect(screen.queryByText("common.delete")).not.toBeInTheDocument();
     });
 
-    it("returns to list view after saving", async () => {
+    it("returns to list view after adding a new event", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<LifeEventsTab {...props} />);
 
       await user.click(screen.getByText("lifeEvent.newEvent"));
-      await user.click(screen.getByText("common.save"));
+      await user.type(screen.getByRole("textbox", { name: "lifeEvent.title" }), "New Job");
+      await user.click(screen.getByText("common.add"));
 
       // Should be back in list view
+      expect(props.onSaveLifeEvent).toHaveBeenCalledOnce();
       expect(screen.getByText("lifeEvent.newEvent")).toBeInTheDocument();
       expect(screen.queryByText("lifeEvent.title")).not.toBeInTheDocument();
     });
 
-    it("returns to list view when cancel is clicked", async () => {
+    it("saves nothing when backing out of a creation without adding", async () => {
       const user = userEvent.setup();
-      render(<LifeEventsTab {...defaultProps()} />);
+      const props = defaultProps();
+      render(<LifeEventsTab {...props} />);
 
       await user.click(screen.getByText("lifeEvent.newEvent"));
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      expect(screen.getByText("common.add")).toBeInTheDocument();
 
+      await user.type(screen.getByRole("textbox", { name: "lifeEvent.title" }), "Half-typed");
       await user.click(screen.getByLabelText("common.close"));
 
+      expect(props.onSaveLifeEvent).not.toHaveBeenCalled();
       expect(screen.getByText("lifeEvent.newEvent")).toBeInTheDocument();
-      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+      expect(screen.queryByText("common.add")).not.toBeInTheDocument();
+    });
+
+    it("commits a title change on blur when editing", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ id: "le1", title: "Graduation" })];
+      render(<LifeEventsTab {...props} />);
+
+      await user.click(screen.getByText("Graduation"));
+
+      const titleInput = screen.getByRole("textbox", { name: "lifeEvent.title" });
+      fireEvent.change(titleInput, { target: { value: "PhD" } });
+      fireEvent.blur(titleInput);
+
+      expect(props.onSaveLifeEvent).toHaveBeenCalledOnce();
+      const [eventId, data, personIds] = props.onSaveLifeEvent.mock.calls[0];
+      expect(eventId).toBe("le1");
+      expect(data.title).toBe("PhD");
+      expect(personIds).toEqual(["p1"]);
+    });
+
+    it("does not save on blur without a change", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ id: "le1", title: "Graduation" })];
+      render(<LifeEventsTab {...props} />);
+
+      await user.click(screen.getByText("Graduation"));
+
+      const titleInput = screen.getByRole("textbox", { name: "lifeEvent.title" });
+      fireEvent.blur(titleInput);
+
+      expect(props.onSaveLifeEvent).not.toHaveBeenCalled();
+    });
+
+    it("keeps the editor open after an autosave commit", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ id: "le1", title: "Graduation" })];
+      render(<LifeEventsTab {...props} />);
+
+      await user.click(screen.getByText("Graduation"));
+
+      const titleInput = screen.getByRole("textbox", { name: "lifeEvent.title" });
+      fireEvent.change(titleInput, { target: { value: "PhD" } });
+      fireEvent.blur(titleInput);
+
+      expect(props.onSaveLifeEvent).toHaveBeenCalledOnce();
+      // Editor stays open after a commit
+      expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
+      expect(screen.queryByText("lifeEvent.newEvent")).not.toBeInTheDocument();
+    });
+
+    it("commits a category change immediately when editing", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.lifeEvents = [makeLifeEvent({ id: "le1", category: LifeEventCategory.Education })];
+      render(<LifeEventsTab {...props} />);
+
+      await user.click(screen.getByText("Graduation"));
+
+      const categorySelect = screen.getByRole("combobox");
+      await user.selectOptions(categorySelect, LifeEventCategory.Career);
+
+      expect(props.onSaveLifeEvent).toHaveBeenCalledOnce();
+      expect(props.onSaveLifeEvent.mock.calls[0][0]).toBe("le1");
+      expect(props.onSaveLifeEvent.mock.calls[0][1].category).toBe(LifeEventCategory.Career);
     });
   });
 });

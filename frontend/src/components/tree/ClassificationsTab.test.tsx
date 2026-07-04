@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
@@ -190,8 +190,8 @@ describe("ClassificationsTab", () => {
 
       await user.click(screen.getByText("dsm.anxiety"));
 
-      // Should show the form with save button
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      // Autosave model: no save button, only delete
+      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
       expect(screen.getByText("common.delete")).toBeInTheDocument();
     });
 
@@ -200,7 +200,7 @@ describe("ClassificationsTab", () => {
       props.classifications = [makeClassification({ id: "cls1", dsm_category: "anxiety" })];
       render(<ClassificationsTab {...props} initialEditId="cls1" />);
 
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      expect(screen.getByText("common.delete")).toBeInTheDocument();
     });
   });
 
@@ -268,7 +268,7 @@ describe("ClassificationsTab", () => {
       expect(screen.queryByText("common.startYear")).not.toBeInTheDocument();
     });
 
-    it("calls onSaveClassification with form data when save is clicked", async () => {
+    it("calls onSaveClassification with null id when add is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<ClassificationsTab {...props} />);
@@ -280,7 +280,7 @@ describe("ClassificationsTab", () => {
       const notesTextarea = textboxes.find((el) => el.tagName === "TEXTAREA")!;
       await user.type(notesTextarea, "Test notes");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       expect(props.onSaveClassification).toHaveBeenCalledOnce();
       const [classificationId, data, personIds] = props.onSaveClassification.mock.calls[0];
@@ -318,31 +318,140 @@ describe("ClassificationsTab", () => {
       const diagnosedRadio = screen.getAllByRole("radio")[1];
       await user.click(diagnosedRadio);
 
-      // Set diagnosis year
-      const yearInput = screen.getByPlaceholderText("---");
+      // Set diagnosis year (year inputs are text inputs located via their label)
+      const yearInput = screen
+        .getByText("classification.diagnosisYear")
+        .closest("label")!
+        .querySelector("input")!;
       await user.type(yearInput, "2020");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveClassification.mock.calls[0][1];
       expect(savedData.diagnosis_year).toBe(2020);
       expect(savedData.periods).toEqual([{ start_year: 2020, end_year: null }]);
     });
 
-    it("returns to list view when back/cancel button is clicked", async () => {
+    it("returns to list view when back/cancel button is clicked without saving", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<ClassificationsTab {...props} />);
 
       await user.click(screen.getByText("classification.newClassification"));
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      expect(screen.getByText("common.add")).toBeInTheDocument();
 
-      // Click the back/cancel button
+      // Click the back/cancel button; backing out of a creation saves nothing
       await user.click(screen.getByLabelText("common.close"));
 
       // Should be back to the list view
+      expect(props.onSaveClassification).not.toHaveBeenCalled();
       expect(screen.getByText("classification.newClassification")).toBeInTheDocument();
-      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+      expect(screen.queryByText("common.add")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("editing with autosave", () => {
+    it("commits a status change immediately", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [makeClassification({ id: "cls1", status: "suspected" })];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+      const diagnosedRadio = screen.getAllByRole("radio")[1];
+      await user.click(diagnosedRadio);
+
+      expect(props.onSaveClassification).toHaveBeenCalledOnce();
+      const [classificationId, data, personIds] = props.onSaveClassification.mock.calls[0];
+      expect(classificationId).toBe("cls1");
+      expect(data.status).toBe("diagnosed");
+      expect(personIds).toEqual(["p1"]);
+    });
+
+    it("commits the diagnosis year on blur", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({ id: "cls1", status: "diagnosed", diagnosis_year: 2015 }),
+      ];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+
+      const yearInput = screen
+        .getByText("classification.diagnosisYear")
+        .closest("label")!
+        .querySelector("input")!;
+      expect(yearInput).toHaveValue("2015");
+      fireEvent.change(yearInput, { target: { value: "2018" } });
+      fireEvent.blur(yearInput);
+
+      expect(props.onSaveClassification).toHaveBeenCalledOnce();
+      expect(props.onSaveClassification.mock.calls[0][1].diagnosis_year).toBe(2018);
+    });
+
+    it("commits adding a period immediately", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [makeClassification({ id: "cls1" })];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+      await user.click(screen.getByText("classification.addPeriod"));
+
+      expect(props.onSaveClassification).toHaveBeenCalledOnce();
+      const savedData = props.onSaveClassification.mock.calls[0][1];
+      expect(savedData.periods).toEqual([{ start_year: new Date().getFullYear(), end_year: null }]);
+    });
+
+    it("commits removing a period immediately", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({ id: "cls1", periods: [{ start_year: 2010, end_year: 2015 }] }),
+      ];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+      await user.click(screen.getByText("classification.removePeriod"));
+
+      expect(props.onSaveClassification).toHaveBeenCalledOnce();
+      expect(props.onSaveClassification.mock.calls[0][1].periods).toEqual([]);
+    });
+
+    it("commits a period year change on blur", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({ id: "cls1", periods: [{ start_year: 2010, end_year: 2015 }] }),
+      ];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+
+      const startYearInput = screen.getByDisplayValue("2010");
+      fireEvent.change(startYearInput, { target: { value: "2008" } });
+      fireEvent.blur(startYearInput);
+
+      expect(props.onSaveClassification).toHaveBeenCalledOnce();
+      expect(props.onSaveClassification.mock.calls[0][1].periods).toEqual([
+        { start_year: 2008, end_year: 2015 },
+      ]);
+    });
+
+    it("does not save on blur without a change", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.classifications = [
+        makeClassification({ id: "cls1", periods: [{ start_year: 2010, end_year: 2015 }] }),
+      ];
+      render(<ClassificationsTab {...props} />);
+
+      await user.click(screen.getByText("dsm.anxiety"));
+
+      fireEvent.blur(screen.getByDisplayValue("2010"));
+
+      expect(props.onSaveClassification).not.toHaveBeenCalled();
     });
   });
 });

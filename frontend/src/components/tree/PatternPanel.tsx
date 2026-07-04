@@ -1,5 +1,5 @@
 import { ChevronRight, Eye, EyeOff } from "lucide-react";
-import { useCallback, useMemo, useReducer, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   DecryptedClassification,
@@ -18,6 +18,15 @@ import {
 } from "../../lib/patternEntities";
 import type { LinkedEntity, Pattern } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { blurOnEnter } from "../inspector/fieldHelpers";
+import { InspectorField } from "../inspector/InspectorField";
+import {
+  InspectorSaveWhisper,
+  InspectorStatusProvider,
+  useInspectorStatus,
+  useSaveReporter,
+} from "../inspector/InspectorStatus";
+import { useEntityAutosave } from "../inspector/useEntityAutosave";
 import "./PatternPanel.css";
 
 interface PatternPanelProps {
@@ -29,7 +38,11 @@ interface PatternPanelProps {
   persons: Map<string, DecryptedPerson>;
   visiblePatternIds: Set<string>;
   onToggleVisibility: (patternId: string) => void;
-  onSave: (patternId: string | null, data: Pattern, personIds: string[]) => void;
+  onSave: (
+    patternId: string | null,
+    data: Pattern,
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDelete: (patternId: string) => void;
   onClose: () => void;
   onHoverPattern?: (patternId: string | null) => void;
@@ -61,6 +74,7 @@ export function PatternPanel({
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId ?? null);
   const [editingNew, setEditingNew] = useState(false);
+  const { status, report } = useInspectorStatus();
 
   const handleToggleExpand = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -77,12 +91,21 @@ export function PatternPanel({
     [events, lifeEvents, turningPoints, classifications, persons],
   );
 
-  const handleSave = useCallback(
-    (patternId: string | null, data: Pattern) => {
+  // Creation collapses the form after Add; edit-mode autosaves keep it open.
+  const handleCreate = useCallback(
+    (data: Pattern) => {
       const personIds = derivePersonIds(data.linked_entities, entityMaps);
-      onSave(patternId, data, personIds);
+      const result = onSave(null, data, personIds);
       setEditingNew(false);
-      setExpandedId(null);
+      return result;
+    },
+    [entityMaps, onSave],
+  );
+
+  const handleAutoSave = useCallback(
+    (patternId: string, data: Pattern) => {
+      const personIds = derivePersonIds(data.linked_entities, entityMaps);
+      return onSave(patternId, data, personIds);
     },
     [entityMaps, onSave],
   );
@@ -98,153 +121,133 @@ export function PatternPanel({
   const patternList = useMemo(() => Array.from(patterns.values()), [patterns]);
 
   return (
-    <div className="panel-overlay pattern-panel" data-testid="pattern-panel">
-      <div className="panel-header">
-        <h2>{t("pattern.patterns")}</h2>
-        <div className="pattern-panel__header-actions">
-          <button type="button" className="btn btn--primary" onClick={handleStartNew}>
-            {t("pattern.newPattern")}
-          </button>
-          <button type="button" className="panel-close" onClick={onClose}>
-            {t("common.close")}
-          </button>
-        </div>
-      </div>
-
-      <div className="pattern-panel__content">
-        {editingNew && (
-          <div className="pattern-panel__item">
-            <PatternEditForm
-              pattern={null}
-              entityMaps={entityMaps}
-              onSave={(data) => handleSave(null, data)}
-              onCancel={() => setEditingNew(false)}
-              onDelete={undefined}
-            />
+    <InspectorStatusProvider value={report}>
+      <div className="panel-overlay pattern-panel" data-testid="pattern-panel">
+        <div className="panel-header">
+          <h2>{t("pattern.patterns")}</h2>
+          <div className="pattern-panel__header-actions">
+            <InspectorSaveWhisper status={status} />
+            <button type="button" className="btn btn--primary" onClick={handleStartNew}>
+              {t("pattern.newPattern")}
+            </button>
+            <button type="button" className="panel-close" onClick={onClose}>
+              {t("common.close")}
+            </button>
           </div>
-        )}
+        </div>
 
-        {patternList.length === 0 && !editingNew && (
-          <div className="pattern-panel__empty">{t("pattern.empty")}</div>
-        )}
-
-        {patternList.map((pattern) => (
-          <div
-            key={pattern.id}
-            className="pattern-panel__item"
-            onMouseEnter={() => onHoverPattern?.(pattern.id)}
-            onMouseLeave={() => onHoverPattern?.(null)}
-          >
-            <button
-              type="button"
-              className="pattern-panel__item-header"
-              onClick={() => handleToggleExpand(pattern.id)}
-            >
-              <div
-                className="pattern-panel__color-dot"
-                style={{ backgroundColor: getPatternColor(pattern.color) }}
+        <div className="pattern-panel__content">
+          {editingNew && (
+            <div className="pattern-panel__item">
+              <PatternEditForm
+                pattern={null}
+                entityMaps={entityMaps}
+                onSave={(_, data) => handleCreate(data)}
+                onCancel={() => setEditingNew(false)}
+                onDelete={undefined}
               />
-              <span className="pattern-panel__item-name">{pattern.name}</span>
-              <span className="pattern-panel__item-count">{pattern.linked_entities.length}</span>
-              <span
-                role="switch"
-                tabIndex={0}
-                aria-checked={visiblePatternIds.has(pattern.id)}
-                className={`pattern-panel__visibility-btn ${
-                  !visiblePatternIds.has(pattern.id) ? "pattern-panel__visibility-btn--hidden" : ""
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleVisibility(pattern.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
+            </div>
+          )}
+
+          {patternList.length === 0 && !editingNew && (
+            <div className="pattern-panel__empty">{t("pattern.empty")}</div>
+          )}
+
+          {patternList.map((pattern) => (
+            <div
+              key={pattern.id}
+              className="pattern-panel__item"
+              onMouseEnter={() => onHoverPattern?.(pattern.id)}
+              onMouseLeave={() => onHoverPattern?.(null)}
+            >
+              <button
+                type="button"
+                className="pattern-panel__item-header"
+                onClick={() => handleToggleExpand(pattern.id)}
+              >
+                <div
+                  className="pattern-panel__color-dot"
+                  style={{ backgroundColor: getPatternColor(pattern.color) }}
+                />
+                <span className="pattern-panel__item-name">{pattern.name}</span>
+                <span className="pattern-panel__item-count">{pattern.linked_entities.length}</span>
+                <span
+                  role="switch"
+                  tabIndex={0}
+                  aria-checked={visiblePatternIds.has(pattern.id)}
+                  className={`pattern-panel__visibility-btn ${
+                    !visiblePatternIds.has(pattern.id)
+                      ? "pattern-panel__visibility-btn--hidden"
+                      : ""
+                  }`}
+                  onClick={(e) => {
                     e.stopPropagation();
                     onToggleVisibility(pattern.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onToggleVisibility(pattern.id);
+                    }
+                  }}
+                  aria-label={
+                    visiblePatternIds.has(pattern.id) ? t("pattern.visible") : t("pattern.hidden")
                   }
-                }}
-                aria-label={
-                  visiblePatternIds.has(pattern.id) ? t("pattern.visible") : t("pattern.hidden")
-                }
-              >
-                {visiblePatternIds.has(pattern.id) ? <Eye size={14} /> : <EyeOff size={14} />}
-              </span>
-              <ChevronRight
-                size={14}
-                className={`pattern-panel__chevron ${
-                  expandedId === pattern.id ? "pattern-panel__chevron--open" : ""
-                }`}
-              />
-            </button>
+                >
+                  {visiblePatternIds.has(pattern.id) ? <Eye size={14} /> : <EyeOff size={14} />}
+                </span>
+                <ChevronRight
+                  size={14}
+                  className={`pattern-panel__chevron ${
+                    expandedId === pattern.id ? "pattern-panel__chevron--open" : ""
+                  }`}
+                />
+              </button>
 
-            {expandedId === pattern.id && (
-              <PatternEditForm
-                pattern={pattern}
-                entityMaps={entityMaps}
-                onSave={(data) => handleSave(pattern.id, data)}
-                onCancel={() => setExpandedId(null)}
-                onDelete={() => handleDelete(pattern.id)}
-              />
-            )}
-          </div>
-        ))}
+              {expandedId === pattern.id && (
+                <PatternEditForm
+                  key={pattern.id}
+                  pattern={pattern}
+                  entityMaps={entityMaps}
+                  onSave={(patternId, data) =>
+                    patternId ? handleAutoSave(patternId, data) : undefined
+                  }
+                  onCancel={() => setExpandedId(null)}
+                  onDelete={() => handleDelete(pattern.id)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </InspectorStatusProvider>
   );
 }
 
 interface PatternEditFormProps {
   pattern: DecryptedPattern | null;
   entityMaps: EntityMaps;
-  onSave: (data: Pattern) => void;
+  onSave: (patternId: string | null, data: Pattern) => Promise<unknown> | undefined;
   onCancel: () => void;
   onDelete: (() => void) | undefined;
 }
 
-interface PatternEditFormState {
+interface PatternDraft {
   name: string;
   description: string;
   color: string;
   linkedEntities: LinkedEntity[];
-  showLinkPicker: boolean;
 }
 
-type PatternEditFormAction =
-  | { type: "SET_FIELD"; field: "name" | "description" | "color"; value: string }
-  | { type: "TOGGLE_LINK_PICKER" }
-  | { type: "ADD_ENTITY"; entityType: LinkedEntity["entity_type"]; entityId: string }
-  | { type: "REMOVE_ENTITY"; index: number };
-
-function patternEditFormReducer(
-  state: PatternEditFormState,
-  action: PatternEditFormAction,
-): PatternEditFormState {
-  switch (action.type) {
-    case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
-    case "TOGGLE_LINK_PICKER":
-      return { ...state, showLinkPicker: !state.showLinkPicker };
-    case "ADD_ENTITY": {
-      const key = `${action.entityType}:${action.entityId}`;
-      const alreadyLinked = state.linkedEntities.some(
-        (e) => `${e.entity_type}:${e.entity_id}` === key,
-      );
-      if (alreadyLinked) return state;
-      return {
-        ...state,
-        linkedEntities: [
-          ...state.linkedEntities,
-          { entity_type: action.entityType, entity_id: action.entityId },
-        ],
-      };
-    }
-    case "REMOVE_ENTITY":
-      return {
-        ...state,
-        linkedEntities: state.linkedEntities.filter((_, i) => i !== action.index),
-      };
-  }
+function buildPatternData(draft: PatternDraft): Pattern | null {
+  if (!draft.name.trim()) return null;
+  return {
+    name: draft.name.trim(),
+    description: draft.description.trim(),
+    color: draft.color,
+    linked_entities: draft.linkedEntities,
+  };
 }
 
 function PatternEditForm({
@@ -255,62 +258,82 @@ function PatternEditForm({
   onDelete,
 }: PatternEditFormProps) {
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(patternEditFormReducer, {
-    name: pattern?.name ?? "",
-    description: pattern?.description ?? "",
-    color: pattern?.color ?? PATTERN_COLORS[0],
-    linkedEntities: pattern?.linked_entities ?? [],
-    showLinkPicker: false,
-  });
+  const report = useSaveReporter();
+  // The link picker is pure UI state, never persisted.
+  const [showLinkPicker, setShowLinkPicker] = useState(false);
+
+  const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
+    useEntityAutosave({
+      entity: pattern,
+      toDraft: (p) => ({
+        name: p?.name ?? "",
+        description: p?.description ?? "",
+        color: p?.color ?? PATTERN_COLORS[0],
+        linkedEntities: p?.linked_entities ?? [],
+      }),
+      toData: buildPatternData,
+      onAutoSave: (data) => onSave(pattern?.id ?? null, data),
+    });
 
   const linkedEntitySet = useMemo(
-    () => new Set(state.linkedEntities.map((e) => `${e.entity_type}:${e.entity_id}`)),
-    [state.linkedEntities],
+    () => new Set(draft.linkedEntities.map((e) => `${e.entity_type}:${e.entity_id}`)),
+    [draft.linkedEntities],
   );
 
   const entityInfos: EntityInfo[] = useMemo(() => {
-    return state.linkedEntities.map((le) => {
+    return draft.linkedEntities.map((le) => {
       const resolved = resolveLinkedEntity(le, entityMaps, t);
       return { entity: le, ...resolved };
     });
-  }, [state.linkedEntities, entityMaps, t]);
+  }, [draft.linkedEntities, entityMaps, t]);
 
   const personEntityGroups = useMemo(() => buildPersonEntityGroups(entityMaps, t), [entityMaps, t]);
 
-  function handleSave() {
-    if (!state.name.trim()) return;
-    onSave({
-      name: state.name.trim(),
-      description: state.description.trim(),
-      color: state.color,
-      linked_entities: state.linkedEntities,
-    });
+  function handleAdd() {
+    const data = buildData();
+    if (!data) return;
+    const result = onSave(null, data);
+    Promise.resolve(result).then(
+      () => report?.("saved"),
+      () => report?.("error"),
+    );
+  }
+
+  function addEntity(entityType: LinkedEntity["entity_type"], entityId: string) {
+    const key = `${entityType}:${entityId}`;
+    if (linkedEntitySet.has(key)) return;
+    changeAndCommit((d) => ({
+      ...d,
+      linkedEntities: [...d.linkedEntities, { entity_type: entityType, entity_id: entityId }],
+    }));
   }
 
   return (
     <div className="pattern-panel__edit">
-      <div className="pattern-panel__field">
-        <span>{t("pattern.name")}</span>
+      <InspectorField label={t("pattern.name")}>
         <input
           type="text"
-          value={state.name}
           aria-label={t("pattern.name")}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "name", value: e.target.value })}
+          value={draft.name}
+          onChange={(e) => update((d) => ({ ...d, name: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
           data-testid="pattern-name-input"
         />
-      </div>
+      </InspectorField>
 
-      <div className="pattern-panel__field">
-        <span>{t("pattern.description")}</span>
+      <InspectorField label={t("pattern.description")}>
         <textarea
-          value={state.description}
           aria-label={t("pattern.description")}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
-          }
+          value={draft.description}
+          onChange={(e) => {
+            update((d) => ({ ...d, description: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
           rows={3}
         />
-      </div>
+      </InspectorField>
 
       <div className="pattern-panel__field">
         <span>{t("pattern.color")}</span>
@@ -320,10 +343,10 @@ function PatternEditForm({
               key={c}
               type="button"
               className={`pattern-panel__color-swatch ${
-                state.color === c ? "pattern-panel__color-swatch--selected" : ""
+                draft.color === c ? "pattern-panel__color-swatch--selected" : ""
               }`}
               style={{ backgroundColor: getPatternColor(c) }}
-              onClick={() => dispatch({ type: "SET_FIELD", field: "color", value: c })}
+              onClick={() => changeAndCommit((d) => ({ ...d, color: c }))}
               aria-label={c}
             />
           ))}
@@ -356,7 +379,12 @@ function PatternEditForm({
               <button
                 type="button"
                 className="pattern-panel__entity-remove"
-                onClick={() => dispatch({ type: "REMOVE_ENTITY", index: i })}
+                onClick={() =>
+                  changeAndCommit((d) => ({
+                    ...d,
+                    linkedEntities: d.linkedEntities.filter((_, idx) => idx !== i),
+                  }))
+                }
                 aria-label={t("pattern.unlinkEntity")}
               >
                 x
@@ -368,12 +396,12 @@ function PatternEditForm({
         <button
           type="button"
           className="btn pattern-panel__btn--add"
-          onClick={() => dispatch({ type: "TOGGLE_LINK_PICKER" })}
+          onClick={() => setShowLinkPicker((v) => !v)}
         >
-          {state.showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
+          {showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
         </button>
 
-        {state.showLinkPicker && (
+        {showLinkPicker && (
           <div className="pattern-panel__link-section">
             {personEntityGroups.map((group) => (
               <div key={group.personId} className="pattern-panel__link-person">
@@ -387,14 +415,7 @@ function PatternEditForm({
                       className={`pattern-panel__link-entity ${
                         isLinked ? "pattern-panel__link-entity--linked" : ""
                       }`}
-                      onClick={() =>
-                        !isLinked &&
-                        dispatch({
-                          type: "ADD_ENTITY",
-                          entityType: entity.type,
-                          entityId: entity.id,
-                        })
-                      }
+                      onClick={() => !isLinked && addEntity(entity.type, entity.id)}
                       disabled={isLinked}
                     >
                       <div
@@ -423,27 +444,32 @@ function PatternEditForm({
         )}
       </div>
 
-      <div className="pattern-panel__form-actions">
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={handleSave}
-          disabled={!state.name.trim()}
-        >
-          {t("common.save")}
-        </button>
-        <button type="button" className="btn" onClick={onCancel}>
-          {t("common.cancel")}
-        </button>
-        {onDelete && (
-          <ConfirmDeleteButton
-            onConfirm={onDelete}
-            label={t("common.delete")}
-            confirmLabel={t("pattern.confirmDelete")}
-            className="btn btn--danger"
-          />
-        )}
-      </div>
+      {isNew ? (
+        <div className="pattern-panel__form-actions">
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={handleAdd}
+            disabled={!draft.name.trim()}
+          >
+            {t("common.add")}
+          </button>
+          <button type="button" className="btn" onClick={onCancel}>
+            {t("common.cancel")}
+          </button>
+        </div>
+      ) : (
+        onDelete && (
+          <div className="inspector-danger">
+            <ConfirmDeleteButton
+              onConfirm={onDelete}
+              label={t("common.delete")}
+              confirmLabel={t("pattern.confirmDelete")}
+              className="btn btn--danger"
+            />
+          </div>
+        )
+      )}
     </div>
   );
 }

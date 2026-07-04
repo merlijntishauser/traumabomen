@@ -66,16 +66,19 @@ test.describe("Production smoke", () => {
     const treeName = `${TREE_PREFIX} ${Date.now()}`;
     await createTree(page, treeName);
 
-    // Add one person; the fields are encrypted client-side before saving.
+    // Add one person; fields encrypt client-side and autosave on blur.
     await page.getByLabel("Add person").click();
     const panel = page.locator(".detail-panel");
     await expect(panel).toBeVisible();
     await panel.locator("input[type='text']").first().fill("Alice");
-    await panel.locator("input[type='number']").first().fill("1960");
-    await panel.getByRole("button", { name: /save/i }).first().click();
+    const yearInput = panel.locator("input[inputmode='numeric']").first();
+    await yearInput.fill("1960");
+    await yearInput.blur();
+    await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
+      timeout: 15_000,
+    });
     await page.keyboard.press("Escape");
     await expect(panel).not.toBeVisible();
-    await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached();
 
     // Full crypto round-trip: a fresh session must decrypt the stored data.
     await logout(page);

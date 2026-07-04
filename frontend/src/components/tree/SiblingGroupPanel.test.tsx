@@ -79,18 +79,16 @@ describe("SiblingGroupPanel", () => {
     expect(screen.getByText("siblingGroup.totalCount:3")).toBeInTheDocument();
   });
 
-  it("calls onSave with updated members when save is clicked", async () => {
+  it("calls onSave with updated members when a name edit blurs", async () => {
     const user = userEvent.setup();
     const props = defaultProps();
     render(<SiblingGroupPanel {...props} />);
 
-    // Edit Alice's name
+    // Edit Alice's name; the field commits on blur
     const aliceInput = screen.getByDisplayValue("Alice");
     await user.clear(aliceInput);
     await user.type(aliceInput, "Alicia");
-
-    // Click save
-    await user.click(screen.getByText("common.save"));
+    fireEvent.blur(aliceInput);
 
     expect(props.onSave).toHaveBeenCalledWith(
       "sg1",
@@ -174,8 +172,8 @@ describe("SiblingGroupPanel", () => {
     const yearInput = screen.getByDisplayValue("1990");
     fireEvent.change(yearInput, { target: { value: "" } });
 
-    // After clearing, save should send null birth_year
-    fireEvent.click(screen.getByText("common.save"));
+    // After clearing, the blur commit should send null birth_year
+    fireEvent.blur(yearInput);
 
     expect(props.onSave).toHaveBeenCalledWith(
       "sg1",
@@ -192,17 +190,16 @@ describe("SiblingGroupPanel", () => {
     const props = defaultProps();
     render(<SiblingGroupPanel {...props} />);
 
-    // Set gender on first member (Alice)
+    // Set gender on first member (Alice); selects commit immediately
     const genderSelects = screen.getAllByLabelText("person.gender");
     await user.selectOptions(genderSelects[0], "female");
 
-    // Set death year on first member
+    // Set death year on first member; year inputs commit on blur
     const deathYearInputs = screen.getAllByLabelText("person.deathYear");
     await user.type(deathYearInputs[0], "2020");
+    fireEvent.blur(deathYearInputs[0]);
 
-    await user.click(screen.getByText("common.save"));
-
-    expect(props.onSave).toHaveBeenCalledWith(
+    expect(props.onSave).toHaveBeenLastCalledWith(
       "sg1",
       [
         { name: "Alice", birth_year: 1990, gender: "female", death_year: 2020 },

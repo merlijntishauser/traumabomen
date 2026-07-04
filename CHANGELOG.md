@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Quiet inspector panels with autosave.** Every detail panel (person,
+  events, classifications, relationships, patterns, sibling groups) now saves
+  automatically: fields commit when you leave them, selects and toggles
+  commit immediately, and a quiet "Saved" confirmation appears in the panel
+  header. The Save buttons are gone; creating something new still uses an
+  explicit Add. Fields render calmly on the panel surface (no gray boxes),
+  year fields lose their number spinners, death dates hide behind an
+  "Add date of death" row, and delete becomes a quiet text action. Closing a
+  panel or switching persons can no longer discard edits, and panel saves no
+  longer reset a manually placed node to auto-layout.
 - Dependency updates (frontend and API).
 
 ## [0.1.161 – 0.1.167] - 2026-06

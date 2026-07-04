@@ -1,6 +1,5 @@
 {
   "app.title": "Traumabomen",
-
   "nav.trees": "Mijn bomen",
   "nav.logout": "Uitloggen",
   "nav.privacy": "Privacy",
@@ -39,7 +38,6 @@
   "tour.shotPatternsAlt": "Twee patroonkaarten die verwante gebeurtenissen over mensen en generaties heen verbinden",
   "tour.closing": "Wanneer je er klaar voor bent, kun je je eigen familie in kaart brengen. Er is geen haast.",
   "nav.language": "Taal",
-
   "auth.login": "Inloggen",
   "auth.register": "Account aanmaken",
   "auth.email": "E-mailadres",
@@ -99,7 +97,6 @@
   "auth.stepSubtitle.account": "Je e-mailadres en wachtwoord gebruik je om in te loggen.",
   "auth.stepSubtitle.encryption": "Je encryptiesleutel versleutelt je gegevens zodat zelfs wij ze niet kunnen lezen. Kies iets anders dan je wachtwoord.",
   "auth.stepSubtitle.confirm": "Omdat je gegevens versleuteld zijn met je encryptiesleutel, kunnen wij ze niet herstellen als je deze vergeet. Lees dit zorgvuldig.",
-
   "auth.forgotPassword": "Wachtwoord vergeten?",
   "auth.forgotPasswordTitle": "Wachtwoord resetten",
   "auth.forgotPasswordPrompt": "Voer je e-mailadres in en we sturen je een link om je wachtwoord te resetten.",
@@ -114,13 +111,11 @@
   "auth.newPassword": "Nieuw wachtwoord",
   "auth.confirmNewPassword": "Bevestig nieuw wachtwoord",
   "auth.newPasswordMismatch": "Wachtwoorden komen niet overeen",
-
   "password.weak": "Zwak",
   "password.fair": "Redelijk",
   "password.strong": "Sterk",
   "password.hint": "Gebruik minimaal 12 tekens met hoofd- en kleine letters en een cijfer of symbool.",
   "password.managerHint": "We raden aan om een wachtwoordmanager zoals <0>1Password</0> te gebruiken.",
-
   "tree.myTrees": "Mijn bomen",
   "tree.create": "Boom aanmaken",
   "tree.name": "Boomnaam",
@@ -138,7 +133,6 @@
   "tree.import": "Back-up importeren",
   "tree.importing": "Importeren...",
   "tree.importError": "Importeren van back-up mislukt",
-
   "person.name": "Naam",
   "person.birthYear": "Geboortejaar",
   "person.age": "Leeftijd: {{age}}",
@@ -149,6 +143,8 @@
   "person.deathMonth": "Maand",
   "person.deathDay": "Dag",
   "person.causeOfDeath": "Doodsoorzaak",
+  "person.addDeathDate": "Datum van overlijden toevoegen",
+  "person.datePartEmpty": "Onbekend",
   "person.gender": "Geslacht",
   "person.isAdopted": "Geadopteerd",
   "person.notes": "Notities",
@@ -158,8 +154,8 @@
   "person.female": "Vrouw",
   "person.selectGender": "Selecteer",
   "person.other": "Anders",
-
   "relationship.type": "Type",
+  "relationship.none": "Nog geen relaties.",
   "relationship.type.biological_parent": "Biologische ouder",
   "relationship.type.co_parent": "Meemoeder/vader",
   "relationship.type.step_parent": "Stief-ouder",
@@ -179,12 +175,10 @@
   "relationship.periods": "Relatieperiodes",
   "relationship.addPeriod": "Periode toevoegen",
   "relationship.removePeriod": "Verwijderen",
-
   "relationship.status.together": "Samen",
   "relationship.status.married": "Getrouwd",
   "relationship.status.separated": "Uit elkaar, apart wonend",
   "relationship.status.divorced": "Gescheiden",
-
   "trauma.title": "Titel",
   "trauma.description": "Beschrijving",
   "trauma.category": "Categorie",
@@ -200,9 +194,9 @@
   "trauma.category.displacement": "Ontheemding",
   "trauma.category.illness": "Ziekte",
   "trauma.category.poverty": "Armoede",
-
   "common.close": "Sluiten",
   "common.save": "Opslaan",
+  "common.add": "Toevoegen",
   "common.cancel": "Annuleren",
   "common.delete": "Verwijderen",
   "common.edit": "Bewerken",
@@ -219,16 +213,13 @@
   "common.hidePassword": "Wachtwoord verbergen",
   "common.showPassphrase": "Encryptiesleutel tonen",
   "common.hidePassphrase": "Encryptiesleutel verbergen",
-
   "tree.untitled": "Naamloze boom",
   "tree.namePlaceholder": "Naam van de boom",
   "tree.decryptionError": "Kon boomgegevens niet ontsleutelen. Log opnieuw in.",
-
   "person.details": "Persoonsgegevens",
   "person.tab": "Persoon",
   "person.newPerson": "Nieuwe persoon",
   "person.confirmDelete": "Weet je zeker dat je deze persoon wilt verwijderen? Dit verwijdert ook hun relaties.",
-
   "relationship.relationships": "Relaties",
   "relationship.tab": "Relaties",
   "relationship.type.full_sibling": "Volle broer/zus",
@@ -242,7 +233,6 @@
   "relationship.editRelationship": "Relatie bewerken",
   "relationship.confirmDelete": "Weet je zeker dat je deze relatie wilt verwijderen?",
   "relationship.between": "Tussen",
-
   "events.tab": "Gebeurtenissen",
   "trauma.events": "Trauma's",
   "trauma.tab": "Trauma",
@@ -250,7 +240,6 @@
   "trauma.editEvent": "Trauma bewerken",
   "trauma.confirmDelete": "Weet je zeker dat je dit trauma wilt verwijderen?",
   "trauma.linkedPersons": "Gekoppelde personen",
-
   "lifeEvent.events": "Mijlpalen",
   "lifeEvent.tab": "Mijlpalen",
   "lifeEvent.newEvent": "Nieuwe mijlpaal",
@@ -272,7 +261,6 @@
   "lifeEvent.category.health": "Gezondheid",
   "lifeEvent.category.medication": "Medicatie",
   "lifeEvent.category.other": "Overig",
-
   "turningPoint.title": "Keerpunten",
   "turningPoint.add": "Keerpunt toevoegen",
   "turningPoint.edit": "Keerpunt bewerken",
@@ -294,7 +282,6 @@
   "turningPoint.datePlaceholder": "bijv. 1985",
   "turningPoint.tagsPlaceholder": "label1, label2",
   "turningPoint.confirmDelete": "Klik nogmaals om te bevestigen",
-
   "journal.title": "Dagboek",
   "journal.tab": "Dagboek",
   "journal.newEntry": "Nieuw item",
@@ -323,7 +310,6 @@
   "journal.justNow": "Zojuist",
   "journal.hoursAgo_one": "{{count}} uur geleden",
   "journal.hoursAgo_other": "{{count}} uur geleden",
-
   "prompt.journal.1": "Met wie in je stamboom identificeer je je het meest, en waarom?",
   "prompt.journal.2": "Welke gebeurtenis had de meeste impact over generaties heen?",
   "prompt.journal.3": "Zijn er veerkracht of sterke patronen, niet alleen trauma?",
@@ -334,7 +320,6 @@
   "prompt.journal.8": "Als je een voorouder een vraag kon stellen, wie en wat zou dat zijn?",
   "prompt.journal.9": "Wat leerde je familie je over het omgaan met moeilijke emoties?",
   "prompt.journal.10": "Waar zie je jezelf in deze stamboom?",
-
   "prompt.person.1": "Welke krachten droeg {{name}} ondanks deze ervaringen?",
   "prompt.person.2": "Hoe heeft het keerpunt van {{name}} de volgende generatie beinvloed?",
   "prompt.person.3": "Hoe heeft de diagnose van {{name}} het begrip binnen de familie gevormd?",
@@ -343,18 +328,15 @@
   "prompt.person.6": "Wat heeft {{name}} doorgegeven waar je dankbaar voor bent?",
   "prompt.person.7": "Hoe zou het verhaal van {{name}} anders zijn geweest met meer steun?",
   "prompt.person.8": "Wat zou je tegen {{name}} zeggen als je kon?",
-
   "prompt.pattern.1": "Wat betekent dit patroon voor jou?",
   "prompt.pattern.2": "Waar begon dit patroon, en wie doorbrak het als eerste?",
   "prompt.pattern.3": "Hoe verandert het herkennen van dit patroon je kijk op je familie?",
   "prompt.pattern.4": "Is dit patroon nog actief in jouw generatie?",
   "prompt.pattern.5": "Wat zou er nodig zijn om dit patroon te veranderen?",
   "prompt.pattern.6": "Wie in de familie werd het meest geraakt door dit patroon?",
-
   "prompt.nudge.writeAbout": "Schrijf hierover",
   "prompt.nudge.dismiss": "Sluiten",
   "canvas.showReflectionPrompts": "Reflectieprompts tonen",
-
   "classification.classifications": "Classificaties",
   "classification.tab": "DSM-5",
   "classification.newClassification": "Nieuwe classificatie",
@@ -372,7 +354,6 @@
   "classification.confirmDelete": "Weet je zeker dat je deze classificatie wilt verwijderen?",
   "classification.searchPlaceholder": "Zoek categorieen, aandoeningen of codes...",
   "classification.linkedPersons": "Gekoppelde personen",
-
   "dsm.neurodevelopmental": "Neurobiologische ontwikkelingsstoornissen",
   "dsm.schizophrenia": "Schizofreniespectrum- en andere psychotische stoornissen",
   "dsm.bipolar": "Bipolaire-stemmingsstoornissen",
@@ -395,83 +376,68 @@
   "dsm.other_mental": "Overige psychische stoornissen",
   "dsm.medication_induced": "Bewegingsstoornissen en andere bijwerkingen van medicatie",
   "dsm.other_conditions": "Andere problemen die een reden voor zorg kunnen zijn",
-
   "dsm.sub.adhd": "ADHD",
   "dsm.sub.autism": "Autismespectrumstoornis (ASS)",
   "dsm.sub.intellectual_disability": "Verstandelijke beperking",
   "dsm.sub.learning": "Specifieke leerstoornis",
   "dsm.sub.communication": "Communicatiestoornissen",
   "dsm.sub.motor": "Motorische stoornissen",
-
   "dsm.sub.schizophrenia_disorder": "Schizofrenie",
   "dsm.sub.schizoaffective": "Schizoaffectieve stoornis",
   "dsm.sub.brief_psychotic": "Kortdurende psychotische stoornis",
   "dsm.sub.delusional": "Waanstoornis",
-
   "dsm.sub.bipolar_i": "Bipolaire I stoornis",
   "dsm.sub.bipolar_ii": "Bipolaire II stoornis",
   "dsm.sub.cyclothymia": "Cyclothyme stoornis",
-
   "dsm.sub.major_depression": "Depressieve stoornis",
   "dsm.sub.persistent_depressive": "Persisterende depressieve stoornis (dysthymie)",
   "dsm.sub.premenstrual_dysphoric": "Premenstruele stemmingsstoornis (PMDD)",
   "dsm.sub.seasonal_depression": "Seizoensgebonden depressie (SAD)",
-
   "dsm.sub.generalized_anxiety": "Gegeneraliseerde angststoornis (GAS)",
   "dsm.sub.panic_disorder": "Paniekstoornis",
   "dsm.sub.social_anxiety": "Sociale-angststoornis",
   "dsm.sub.specific_phobia": "Specifieke fobie",
   "dsm.sub.agoraphobia": "Agorafobie",
   "dsm.sub.separation_anxiety": "Separatieangststoornis",
-
   "dsm.sub.ocd_disorder": "Obsessieve-compulsieve stoornis (OCS)",
   "dsm.sub.hoarding": "Verzamelstoornis",
   "dsm.sub.body_dysmorphic": "Morfodysfore stoornis",
   "dsm.sub.hair_pulling": "Trichotillomanie (haartrekstoornis)",
   "dsm.sub.skin_picking": "Excoriatiestoornis (huidpulkstoornis)",
-
   "dsm.sub.ptsd": "PTSS",
   "dsm.sub.acute_stress": "Acute stressstoornis",
   "dsm.sub.adjustment_disorder": "Aanpassingsstoornis",
   "dsm.sub.reactive_attachment": "Reactieve hechtingsstoornis",
-
   "dsm.sub.dissociative_identity": "Dissociatieve identiteitsstoornis (DIS)",
   "dsm.sub.dissociative_amnesia": "Dissociatieve amnesie",
   "dsm.sub.depersonalization": "Depersonalisatie-/derealisatiestoornis",
-
   "dsm.sub.somatic_symptom": "Somatische-symptoomstoornis",
   "dsm.sub.illness_anxiety": "Ziektevreesstoornis",
   "dsm.sub.conversion": "Conversiestoornis",
   "dsm.sub.factitious": "Nagebootste stoornis",
-
   "dsm.sub.anorexia": "Anorexia nervosa",
   "dsm.sub.bulimia": "Boulimia nervosa",
   "dsm.sub.binge_eating": "Eetbuistoornis",
   "dsm.sub.avoidant_restrictive": "Vermijdende/restrictieve voedselinnamestoornis (ARFID)",
-
   "dsm.sub.insomnia": "Insomniestoornis",
   "dsm.sub.hypersomnia": "Hypersomniestoornis",
   "dsm.sub.nightmare_disorder": "Nachtmerriestoornis",
   "dsm.sub.sleepwalking": "Slaapwandelstoornis",
-
   "dsm.sub.oppositional_defiant": "Oppositioneel-opstandige stoornis (ODD)",
   "dsm.sub.conduct_disorder": "Normoverschrijdend-gedragsstoornis",
   "dsm.sub.intermittent_explosive": "Periodieke explosieve stoornis",
   "dsm.sub.pyromania": "Pyromanie",
   "dsm.sub.kleptomania": "Kleptomanie",
-
   "dsm.sub.alcohol_use": "Stoornis in alcoholgebruik",
   "dsm.sub.cannabis_use": "Stoornis in cannabisgebruik",
   "dsm.sub.stimulant_use": "Stoornis in stimulantiagebruik",
   "dsm.sub.opioid_use": "Stoornis in opioïdengebruik",
   "dsm.sub.tobacco_use": "Stoornis in tabaksgebruik",
   "dsm.sub.gambling": "Gokstoornis",
-
   "dsm.sub.alzheimers": "Ziekte van Alzheimer",
   "dsm.sub.vascular_dementia": "Vasculaire dementie",
   "dsm.sub.mild_cognitive": "Lichte cognitieve stoornis",
   "dsm.sub.delirium": "Delirium",
-
   "dsm.sub.borderline_pd": "Borderline-persoonlijkheidsstoornis (BPS)",
   "dsm.sub.narcissistic_pd": "Narcistische persoonlijkheidsstoornis",
   "dsm.sub.antisocial_pd": "Antisociale persoonlijkheidsstoornis (ASPS)",
@@ -480,7 +446,6 @@
   "dsm.sub.obsessive_compulsive_pd": "Dwangmatige persoonlijkheidsstoornis (OCPS)",
   "dsm.sub.paranoid_pd": "Paranoïde persoonlijkheidsstoornis",
   "dsm.sub.schizotypal_pd": "Schizotypische persoonlijkheidsstoornis",
-
   "timeline.generation": "Generatie {{number}}",
   "timeline.severity": "Ernst: {{value}}",
   "timeline.significance": "Betekenis: {{value}}",
@@ -547,7 +512,6 @@
   "timeline.zoomMode": "Zoommodus",
   "timeline.timeRangeHint": "Filtert gebeurtenismarkeringen op datum. Levensbalken en classificatiestroken worden niet beinvloed.",
   "timeline.annotateHint": "Klik op markeringen (cirkels, ruiten) om ze te selecteren en een patroon te maken",
-
   "settings.title": "Instellingen",
   "settings.canvas": "Canvas",
   "settings.timeline": "Tijdlijn",
@@ -559,7 +523,6 @@
   "settings.theme.dark": "Donker",
   "settings.theme.light": "Licht",
   "settings.language": "Taal",
-
   "account.changePassword": "Wachtwoord wijzigen",
   "account.currentPassword": "Huidig wachtwoord",
   "account.newPassword": "Nieuw wachtwoord",
@@ -567,7 +530,6 @@
   "account.passwordChanged": "Wachtwoord succesvol gewijzigd",
   "account.passwordError": "Huidig wachtwoord is onjuist",
   "account.passwordMismatch": "Nieuwe wachtwoorden komen niet overeen",
-
   "account.changePassphrase": "Encryptiesleutel wijzigen",
   "account.currentPassphrase": "Huidig encryptiesleutel",
   "account.newPassphrase": "Nieuw encryptiesleutel",
@@ -577,14 +539,12 @@
   "account.passphraseError": "Huidig encryptiesleutel is onjuist",
   "account.passphraseMismatch": "Nieuwe encryptiesleutels komen niet overeen",
   "account.reencrypting": "Gegevens opnieuw versleutelen...",
-
   "account.deleteAccount": "Account verwijderen",
   "account.deleteWarning": "Deze actie is permanent. Je account en al je gegevens worden permanent verwijderd en kunnen niet worden hersteld.",
   "account.deleteConfirmLabel": "Typ DELETE ter bevestiging",
   "account.deletePassword": "Voer je wachtwoord in",
   "account.deleteButton": "Mijn account permanent verwijderen",
   "account.deleteError": "Wachtwoord is onjuist",
-
   "canvas.settings": "Canvas-instellingen",
   "canvas.gridSettings": "Rasterinstellingen",
   "canvas.other": "Overig",
@@ -602,7 +562,6 @@
   "canvas.showMarkers": "Markeerders tonen",
   "canvas.showMinimap": "Minimap tonen",
   "canvas.promptRelationship": "Vraag om relatie toe te voegen",
-
   "settings.autoLockTimeout": "Automatisch vergrendelen na",
   "settings.autoLock5min": "5 minuten",
   "settings.autoLock15min": "15 minuten",
@@ -613,11 +572,8 @@
   "settings.hintDescription": "Een herinnering die wordt getoond bij het ontgrendelen. Schrijf niet je encryptiesleutel zelf.",
   "settings.hintSaved": "Geheugensteun opgeslagen",
   "settings.hintError": "Kon geheugensteun niet opslaan",
-
   "theme.toggle": "Wissel thema",
-
   "mentalHealth.footer": "Neem mentale gezondheid serieus. Hulp nodig? Neem bijv. contact op met <a>{{resource}}</a>",
-
   "landing.heroTagline": "Een rustige plek om de patronen die je draagt in kaart te brengen.",
   "landing.tagline": "Breng intergenerationeel trauma in kaart op visuele stambomen.",
   "landing.about": "Traumabomen is een persoonlijk reflectie-instrument om patronen van trauma door generaties heen te verkennen. Bouw je stamboom, leg gebeurtenissen vast en visualiseer hoe ervaringen door de tijd heen doorwerken.",
@@ -674,44 +630,34 @@
   "landing.faqA7": "Ja. Je kunt losse notities, hele bomen of je volledige account verwijderen in de instellingen. Als je je account verwijdert, worden alle bijbehorende gegevens permanent uit onze systemen verwijderd.",
   "landing.finalCtaTitle": "Begin wanneer je er klaar voor bent",
   "landing.finalCtaBody": "Er is geen haast. Wanneer je wilt beginnen, maak je in een minuut een account aan.",
-
   "privacy.title": "Privacybeleid",
   "privacy.lastUpdated": "Laatst bijgewerkt: februari 2026",
   "privacy.tab.glance": "In het kort",
   "privacy.tab.detail": "Uitgebreid",
-
   "privacy.collect.heading": "Wat we verzamelen",
   "privacy.collect.body": "Wanneer je een account aanmaakt, slaan we je e-mailadres en een gehashte versie van je wachtwoord op voor authenticatie. We slaan ook een versleutelingssalt op die wordt gebruikt om je persoonlijke versleutelingssleutel af te leiden. Wanneer je de app gebruikt, slaan we je boomgegevens (personen, relaties, gebeurtenissen) op als versleutelde blobs die we niet kunnen lezen. We registreren inlogtijdstippen om de dienst te monitoren en misbruik te detecteren.",
   "privacy.collect.glance": "We bewaren je e-mailadres, een versleutelde versie van je wachtwoord, en je boomgegevens in versleutelde vorm die wij niet kunnen lezen.",
-
   "privacy.cannotAccess.heading": "Wat we niet kunnen inzien",
   "privacy.cannotAccess.body": "Alle boominhoud (namen, geboortejaren, relatiedetails, beschrijvingen van traumagebeurtenissen en alle andere informatie die je invoert) wordt op je apparaat versleuteld voordat het onze server bereikt. We slaan deze gegevens op als ondoorzichtige cijfertekst. We hebben geen manier om je inhoud te ontsleutelen, te lezen of te analyseren. Zelfs bij een gerechtelijk bevel zouden we je onversleutelde gegevens niet kunnen overhandigen, omdat we je versleutelingssleutel niet hebben.",
   "privacy.cannotAccess.glance": "We kunnen nooit je namen, data, relaties of gebeurtenissen lezen. Alles wordt versleuteld voordat het je apparaat verlaat. Zelfs bij een gerechtelijk bevel kunnen we je gegevens niet overhandigen.",
-
   "privacy.encryption.heading": "Hoe versleuteling werkt",
   "privacy.encryption.body": "Bij registratie kies je een encryptiesleutel, los van je inlogwachtwoord. Je encryptiesleutel wordt samen met een willekeurige salt gebruikt om een 256-bits AES-GCM-sleutel af te leiden via Argon2id (een geheugenintensieve sleutelafleidingsfunctie). Die afgeleide sleutel bestaat alleen in het geheugen van je browser terwijl je bent ingelogd. Elk stuk data wordt versleuteld met een verse willekeurige initialisatievector voordat het naar de server wordt gestuurd. Wanneer je het tabblad sluit of uitlogt, wordt de sleutel verwijderd. We slaan je encryptiesleutel of de daarvan afgeleide sleutel nooit op, verzenden deze nooit en loggen deze nooit.",
   "privacy.encryption.glance": "Je encryptiesleutel leidt een werksleutel af die alleen in je browser bestaat terwijl je ingelogd bent. Sluit je het tabblad, dan is de sleutel weg. Wij zien deze nooit.",
-
   "privacy.hosting.heading": "Hosting en infrastructuur",
   "privacy.hosting.body": "De applicatie draait op Google Cloud Platform (Cloud Run en Cloud SQL) in de EU. Verificatie-e-mails worden verzonden via SMTP. We gebruiken geen externe analyse-, tracking- of advertentiescripts, en geen contentdeliverynetwerken die je gegevens verwerken.",
   "privacy.hosting.glance": "Onze servers draaien in de EU op Google Cloud. We gebruiken geen analytics, geen trackers en geen advertentienetwerken.",
-
   "privacy.cookies.heading": "Cookies en lokale opslag",
   "privacy.cookies.body": "We gebruiken geen cookies. We slaan twee JSON Web Tokens (authenticatietokens) op in de lokale opslag van je browser om je ingelogd te houden. Deze tokens bevatten je gebruikers-ID en vervaltijd; geen persoonlijke inhoud. We gebruiken geen scripts van derden die cookies plaatsen of je gedrag volgen.",
   "privacy.cookies.glance": "Geen cookies. We slaan alleen een inlogtoken op in je browser om je aangemeld te houden. Geen tracking van welke aard dan ook.",
-
   "privacy.retention.heading": "Gegevensbewaartermijn",
   "privacy.retention.body": "Je gegevens worden bewaard zolang je account bestaat. Als je je account verwijdert, worden alle bijbehorende gegevens (versleutelde blobs, inlogregistraties en accountinformatie) permanent van onze systemen verwijderd.",
   "privacy.retention.glance": "Je gegevens bestaan zolang je account bestaat. Verwijder je je account, dan wordt alles permanent gewist.",
-
   "privacy.rights.heading": "Jouw rechten",
   "privacy.rights.body": "Op grond van de Algemene Verordening Gegevensbescherming (AVG) heb je het recht om je persoonsgegevens in te zien, onjuiste gegevens te corrigeren, verwijdering van je gegevens te verzoeken, verwerking te beperken of er bezwaar tegen te maken, en je gegevens in een overdraagbaar formaat te ontvangen. Je hebt ook het recht om een klacht in te dienen bij je lokale gegevensbeschermingsautoriteit. Voor versleutelde inhoud geldt dat je al volledige toegang hebt via de app; wij kunnen geen onversleutelde kopie leveren omdat we die niet hebben.",
   "privacy.rights.glance": "Onder de AVG kun je je gegevens op elk moment inzien, corrigeren of verwijderen. Omdat alles versleuteld is, heb je via de app al volledige toegang.",
-
   "privacy.contact.heading": "Contact",
   "privacy.contact.body": "Voor privacygerelateerde vragen of om je rechten uit te oefenen, neem contact met ons op via:",
   "privacy.contact.glance": "Vragen over privacy? Neem contact met ons op via:",
-
   "safety.onboarding.whatThisIs": "Wat dit is",
   "safety.onboarding.whatThisIsBody": "Traumabomen is een persoonlijk reflectie-instrument. Het is geen therapie en geen crisishulp.",
   "safety.onboarding.whatThisMayBringUp": "Wat dit kan oproepen",
@@ -721,20 +667,17 @@
   "safety.onboarding.whatWeCannotSee": "Wat wij niet kunnen zien",
   "safety.onboarding.whatWeCannotSeeBody": "Je gegevens worden versleuteld voordat ze je apparaat verlaten. De server ziet geen inhoud.",
   "safety.onboarding.continue": "Ik begrijp het, ga verder",
-
   "safety.footer.disclaimer": "Persoonlijk reflectie-instrument, geen therapie",
   "safety.footer.disclaimerShort": "Reflectie-instrument",
   "safety.footer.support": "Hulp nodig?",
   "safety.footer.lock": "Scherm vergrendelen",
   "safety.footer.menu": "Meer",
   "safety.footer.privacy": "Hoe privacy werkt",
-
   "safety.lock.title": "Scherm vergrendeld",
   "safety.lock.passphrase": "Voer je encryptiesleutel in om te ontgrendelen",
   "safety.lock.wrongPassphrase": "Verkeerd encryptiesleutel",
   "safety.lock.tooManyAttempts": "Te veel pogingen. Volledige herauthenticatie vereist.",
   "safety.lock.unlock": "Ontgrendelen",
-
   "pattern.patterns": "Patronen",
   "pattern.newPattern": "Nieuw patroon",
   "pattern.name": "Naam",
@@ -765,7 +708,6 @@
   "pattern.traumaEvent": "Traumagebeurtenis",
   "pattern.lifeEvent": "Levensgebeurtenis",
   "pattern.classification": "Classificatie",
-
   "admin.title": "Beheer",
   "admin.loadError": "Statistieken konden niet worden geladen",
   "admin.overview": "Overzicht",
@@ -820,7 +762,6 @@
   "admin.feedbackAnonymous": "Anoniem",
   "admin.feedbackMarkRead": "Gelezen",
   "admin.feedbackDelete": "Verwijderen",
-
   "admin.featureToggles": "Functie-instellingen",
   "admin.faq.title": "FAQ",
   "admin.faq.add": "Vraag toevoegen",
@@ -842,7 +783,6 @@
   "admin.features.audience.selected": "Specifieke gebruikers",
   "admin.features.noUsersSelected": "Geen gebruikers geselecteerd",
   "admin.features.usersSelected": "{{count}} gebruiker(s) geselecteerd",
-
   "admin.waitlist.title": "Wachtlijst",
   "admin.waitlist.capacity": "{{current}} / {{max}} gebruikers",
   "admin.waitlist.disabled": "uitgeschakeld",
@@ -856,7 +796,6 @@
   "admin.waitlist.approve": "Goedkeuren",
   "admin.waitlist.delete": "Verwijderen",
   "admin.waitlist.empty": "Geen wachtlijst-inschrijvingen",
-
   "waitlist.title": "Aanmelden voor de wachtlijst",
   "waitlist.subtitle": "We zitten momenteel vol. Laat je e-mailadres achter en we laten het je weten zodra er een plek vrijkomt.",
   "waitlist.emailPlaceholder": "jouw@email.nl",
@@ -868,7 +807,6 @@
   "waitlist.approvalBanner": "Je bent goedgekeurd! Voltooi je registratie hieronder.",
   "waitlist.invalidInvite": "Deze uitnodigingslink is ongeldig of verlopen.",
   "waitlist.emailMismatch": "Deze uitnodiging is naar een ander e-mailadres gestuurd.",
-
   "feedback.title": "Feedback versturen",
   "feedback.category": "Categorie",
   "feedback.categoryBug": "Bugmelding",
@@ -883,7 +821,6 @@
   "feedback.success": "Bedankt voor je feedback",
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
-
   "demo.createButton": "Demoboom aanmaken",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximaal 3 demobomen",
@@ -895,28 +832,23 @@
   "demo.live.cta": "Maak je eigen boom",
   "demo.live.cardCta": "Deze familie is fictief. Maak je eigen privéboom om die van jou in kaart te brengen.",
   "demo.live.patterns": "Patronen",
-
   "welcome.title": "Welkom bij Traumabomen",
   "welcome.body": "Dit is een vroege versie van de app. Begin met het aanmaken van je eerste boom, en als iets niet lekker werkt of je hebt ideeen, horen we heel graag van je.",
   "welcome.sendMessage": "Stuur ons een bericht",
   "welcome.createTree": "Maak je eerste boom",
-
   "privacy.diagram.youType": "Jij typt",
   "privacy.diagram.encrypted": "Versleuteld in je browser",
   "privacy.diagram.serverStores": "Server bewaart ???-blobs",
   "privacy.diagram.technicalDetails": "Technische details",
   "privacy.diagram.technicalBody": "Sleutelafleiding: Argon2id (geheugenintensief, 64 MB, 3 iteraties). Versleuteling: AES-256-GCM met verse willekeurige IV per bewerking. Implementatie: Web Crypto API (browser-native, geen externe bibliotheken).",
-
   "export.title": "Exporteren",
   "export.downloadBackup": "Versleutelde back-up downloaden",
   "export.downloadPlaintext": "Downloaden als platte JSON",
   "export.plaintextWarning": "Dit exporteert je gegevens zonder versleuteling. Iedereen met het bestand kan het lezen.",
   "export.confirmDownload": "Onversleuteld downloaden",
-
   "error.title": "Er ging iets mis",
   "error.description": "Er is een onverwachte fout opgetreden. Herlaad de pagina.",
   "error.reload": "Pagina herladen",
-
   "insights.tab": "Inzichten",
   "insights.title": "Inzichten",
   "insights.subtitle": "Observaties op basis van wat je hebt ingevoerd. Een beginpunt voor reflectie, geen conclusies.",
@@ -941,7 +873,6 @@
   "insights.turningPointsFollowTraumaDetail": "Wijst op herstel of groei na tegenslag",
   "insights.cycleBreakingGenerations": "Patronen doorbroken in {{count}} generaties",
   "insights.mostCommonTurningPoint": "Meest voorkomend keerpunt: {{category}} ({{count}} gebeurtenissen)",
-
   "siblingGroup.label": "broers/zussen ({{count}})",
   "siblingGroup.title": "Broers en zussen",
   "siblingGroup.section": "Broers en zussen",
@@ -997,5 +928,7 @@
   "security.why.item3": "Zero-knowledge-architectuur",
   "security.why.item4": "Wij kunnen je gegevens niet lezen. Alleen jij kunt dat.",
   "security.readPrivacy": "Lees het volledige privacybeleid",
-  "security.link": "Bekijk hoe je gegevens worden beschermd"
+  "security.link": "Bekijk hoe je gegevens worden beschermd",
+  "inspector.saved": "Opgeslagen",
+  "inspector.saveFailed": "Opslaan mislukt"
 }

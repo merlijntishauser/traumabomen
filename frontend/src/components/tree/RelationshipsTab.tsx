@@ -6,29 +6,16 @@ import type {
   DecryptedSiblingGroup,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
-import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
-import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
-
-type KeyedPeriod = RelationshipPeriod & { _key: string };
-
-function toKeyed(period: RelationshipPeriod): KeyedPeriod {
-  return { ...period, _key: crypto.randomUUID() };
-}
-
-function stripKeys(periods: KeyedPeriod[]): RelationshipPeriod[] {
-  return periods.map(({ _key: _, ...rest }) => rest);
-}
-
-const T_EDIT = "common.edit";
-const T_SAVE = "common.save";
-const T_CANCEL = "common.cancel";
+import type { RelationshipData } from "../../types/domain";
+import { RelationshipType } from "../../types/domain";
+import { PartnerPeriodsEditor } from "./PartnerPeriodsEditor";
 
 interface RelationshipsTabProps {
   person: DecryptedPerson;
   relationships: DecryptedRelationship[];
   inferredSiblings: InferredSibling[];
   allPersons: Map<string, DecryptedPerson>;
-  onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
+  onSaveRelationship: (relationshipId: string, data: RelationshipData) => Promise<unknown>;
   siblingGroup?: DecryptedSiblingGroup | null;
   onCreateSiblingGroup?: () => void;
   onOpenSiblingGroup?: (groupId: string) => void;
@@ -52,7 +39,7 @@ export function RelationshipsTab({
     relationships.length > 0 || inferredSiblings.length > 0 || hasSiblingGroupSection;
 
   if (!hasContent) {
-    return <p className="detail-panel__empty">---</p>;
+    return <p className="detail-panel__empty">{t("relationship.none")}</p>;
   }
 
   return (
@@ -81,16 +68,23 @@ export function RelationshipsTab({
               <span className="detail-panel__rel-name">{otherPerson?.name ?? "?"}</span>
               {rel.type === RelationshipType.Partner &&
                 (editingRelId === rel.id ? (
-                  <PartnerPeriodEditor
-                    relationship={rel}
-                    sourceDeathYear={person.death_year}
-                    targetDeathYear={otherPerson?.death_year ?? null}
-                    onSave={(data) => {
-                      onSaveRelationship(rel.id, data);
-                      setEditingRelId(null);
-                    }}
-                    onCancel={() => setEditingRelId(null)}
-                  />
+                  <>
+                    <PartnerPeriodsEditor
+                      key={rel.id}
+                      relationship={rel}
+                      sourceDeathYear={person.death_year}
+                      targetDeathYear={otherPerson?.death_year ?? null}
+                      onSave={(data) => onSaveRelationship(rel.id, data)}
+                    />
+                    <button
+                      type="button"
+                      className="detail-panel__btn--small"
+                      style={{ marginTop: 4 }}
+                      onClick={() => setEditingRelId(null)}
+                    >
+                      {t("common.close")}
+                    </button>
+                  </>
                 ) : (
                   <>
                     {rel.periods.length > 0 && (
@@ -112,7 +106,7 @@ export function RelationshipsTab({
                       style={{ marginTop: 4 }}
                       onClick={() => setEditingRelId(rel.id)}
                     >
-                      {t(T_EDIT)}
+                      {t("common.edit")}
                     </button>
                   </>
                 ))}
@@ -163,137 +157,5 @@ export function RelationshipsTab({
         </div>
       )}
     </>
-  );
-}
-
-interface PartnerPeriodEditorProps {
-  relationship: DecryptedRelationship;
-  sourceDeathYear: number | null;
-  targetDeathYear: number | null;
-  onSave: (data: RelationshipData) => void;
-  onCancel: () => void;
-}
-
-function PartnerPeriodEditor({
-  relationship,
-  sourceDeathYear,
-  targetDeathYear,
-  onSave,
-  onCancel,
-}: PartnerPeriodEditorProps) {
-  const { t } = useTranslation();
-  const [periods, setPeriods] = useState<KeyedPeriod[]>(() =>
-    relationship.periods.length > 0
-      ? relationship.periods.map(toKeyed)
-      : [
-          toKeyed({
-            start_year: new Date().getFullYear(),
-            end_year: null,
-            status: PartnerStatus.Together,
-          }),
-        ],
-  );
-
-  function addPeriod() {
-    setPeriods((prev) => [
-      ...prev,
-      toKeyed({
-        start_year: new Date().getFullYear(),
-        end_year: null,
-        status: PartnerStatus.Together,
-      }),
-    ]);
-  }
-
-  function removePeriod(key: string) {
-    setPeriods((prev) => prev.filter((p) => p._key !== key));
-  }
-
-  function updatePeriod(key: string, field: keyof RelationshipPeriod, value: string) {
-    setPeriods((prev) =>
-      prev.map((p) => {
-        if (p._key !== key) return p;
-        if (field === "status") return { ...p, status: value as PartnerStatus };
-        if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
-        return { ...p, [field]: parseInt(value, 10) || 0 };
-      }),
-    );
-  }
-
-  function handleSave() {
-    onSave({
-      type: relationship.type,
-      periods: withAutoDissolvedPeriods(stripKeys(periods), {
-        source: sourceDeathYear,
-        target: targetDeathYear,
-      }),
-      active_period: relationship.active_period,
-    });
-  }
-
-  return (
-    <div className="detail-panel__period-editor">
-      {periods.map((period) => (
-        <div key={period._key} className="detail-panel__period-row">
-          <label className="detail-panel__field">
-            <span>{t("relationship.status")}</span>
-            <select
-              value={period.status}
-              onChange={(e) => updatePeriod(period._key, "status", e.target.value)}
-            >
-              {Object.values(PartnerStatus).map((s) => (
-                <option key={s} value={s}>
-                  {t(`relationship.status.${s}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="detail-panel__period-years">
-            <label className="detail-panel__field">
-              <span>{t("common.startYear")}</span>
-              <input
-                type="number"
-                value={period.start_year}
-                onChange={(e) => updatePeriod(period._key, "start_year", e.target.value)}
-              />
-            </label>
-            <label className="detail-panel__field">
-              <span>{t("common.endYear")}</span>
-              <input
-                type="number"
-                value={period.end_year ?? ""}
-                onChange={(e) => updatePeriod(period._key, "end_year", e.target.value)}
-                placeholder="---"
-              />
-            </label>
-          </div>
-          {periods.length > 1 && (
-            <button
-              type="button"
-              className="detail-panel__btn--small detail-panel__btn--danger"
-              onClick={() => removePeriod(period._key)}
-            >
-              {t("relationship.removePeriod")}
-            </button>
-          )}
-        </div>
-      ))}
-      <button
-        type="button"
-        className="detail-panel__btn--small"
-        style={{ marginTop: 4 }}
-        onClick={addPeriod}
-      >
-        {t("relationship.addPeriod")}
-      </button>
-      <div className="detail-panel__actions">
-        <button type="button" className="btn btn--primary" onClick={handleSave}>
-          {t(T_SAVE)}
-        </button>
-        <button type="button" className="btn" onClick={onCancel}>
-          {t(T_CANCEL)}
-        </button>
-      </div>
-    </div>
   );
 }

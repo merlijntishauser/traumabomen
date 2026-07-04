@@ -136,10 +136,10 @@ describe("PatternPanel", () => {
     // Empty state should disappear, edit form should appear
     expect(screen.queryByText("pattern.empty")).not.toBeInTheDocument();
     expect(screen.getByTestId("pattern-name-input")).toBeInTheDocument();
-    expect(screen.getByText("common.save")).toBeInTheDocument();
+    expect(screen.getByText("common.add")).toBeInTheDocument();
   });
 
-  it("edit form: typing name and saving calls onSave with correct data for a new pattern", () => {
+  it("edit form: typing name and adding calls onSave with correct data for a new pattern", () => {
     const props = renderPanel();
 
     fireEvent.click(screen.getByText("pattern.newPattern"));
@@ -147,7 +147,7 @@ describe("PatternPanel", () => {
     const nameInput = screen.getByTestId("pattern-name-input");
     fireEvent.change(nameInput, { target: { value: "New Pattern Name" } });
 
-    fireEvent.click(screen.getByText("common.save"));
+    fireEvent.click(screen.getByText("common.add"));
 
     expect(props.onSave).toHaveBeenCalledTimes(1);
     expect(props.onSave).toHaveBeenCalledWith(
@@ -172,13 +172,26 @@ describe("PatternPanel", () => {
     const nameInput = screen.getByTestId("pattern-name-input");
     expect(nameInput).toHaveValue("Test Pattern");
 
-    // Save should call onSave with the existing pattern id
-    fireEvent.click(screen.getByText("common.save"));
+    // An edit commits on blur with the existing pattern id (autosave)
+    fireEvent.change(nameInput, { target: { value: "Renamed Pattern" } });
+    fireEvent.blur(nameInput);
     expect(props.onSave).toHaveBeenCalledWith(
       "pat1",
-      expect.objectContaining({ name: "Test Pattern" }),
+      expect.objectContaining({ name: "Renamed Pattern" }),
       expect.any(Array),
     );
+  });
+
+  it("blurring an unchanged field does not save", () => {
+    const patterns = new Map<string, DecryptedPattern>([["pat1", mockPattern]]);
+    const props = renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]) });
+
+    fireEvent.click(screen.getByText("Test Pattern"));
+    const nameInput = screen.getByTestId("pattern-name-input");
+    fireEvent.focus(nameInput);
+    fireEvent.blur(nameInput);
+
+    expect(props.onSave).not.toHaveBeenCalled();
   });
 
   it("delete flow: click delete shows confirm, then confirm calls onDelete", () => {
@@ -219,15 +232,13 @@ describe("PatternPanel", () => {
     // The linked entity chip should show the event title "Loss"
     expect(screen.getByText("Loss")).toBeInTheDocument();
 
-    // Click the remove button on the chip
+    // Click the remove button on the chip; unlinking commits immediately
     const removeBtn = screen.getByLabelText("pattern.unlinkEntity");
     fireEvent.click(removeBtn);
 
     // The chip should be removed
     expect(screen.queryByText("Loss")).not.toBeInTheDocument();
 
-    // Save and verify the entity was unlinked
-    fireEvent.click(screen.getByText("common.save"));
     expect(props.onSave).toHaveBeenCalledWith(
       "pat1",
       expect.objectContaining({ linked_entities: [] }),
@@ -254,11 +265,9 @@ describe("PatternPanel", () => {
     const linkSection = document.querySelector(".pattern-panel__link-section")!;
     expect(within(linkSection as HTMLElement).getByText("Loss")).toBeInTheDocument();
 
-    // Click the entity to link it
+    // Click the entity to link it; linking commits immediately
     fireEvent.click(within(linkSection as HTMLElement).getByText("Loss"));
 
-    // Now save and verify the entity was linked
-    fireEvent.click(screen.getByText("common.save"));
     expect(screen.queryByTestId("pattern-panel")).toBeInTheDocument();
   });
 
@@ -381,11 +390,8 @@ describe("PatternPanel", () => {
     const linkSection = document.querySelector(".pattern-panel__link-section")!;
     expect(within(linkSection as HTMLElement).getByText("Broke the cycle")).toBeInTheDocument();
 
-    // Link the turning point
+    // Link the turning point; linking commits immediately
     fireEvent.click(within(linkSection as HTMLElement).getByText("Broke the cycle"));
-
-    // Save the pattern
-    fireEvent.click(screen.getByText("common.save"));
 
     expect(onSave).toHaveBeenCalledWith(
       "pat1",
@@ -472,21 +478,23 @@ describe("PatternPanel", () => {
     // Expand the pattern
     fireEvent.click(screen.getByText("Classification Only Pattern"));
 
-    // Click save to trigger derivePersonIds with the classification entity
-    fireEvent.click(screen.getByText("common.save"));
+    // Commit an edit to trigger derivePersonIds with the classification entity
+    const nameInput = screen.getByTestId("pattern-name-input");
+    fireEvent.change(nameInput, { target: { value: "Classification Only Pattern 2" } });
+    fireEvent.blur(nameInput);
 
     // onSave should be called with person_ids derived from the classification
     expect(props.onSave).toHaveBeenCalledWith(
       "pat-cls",
       expect.objectContaining({
-        name: "Classification Only Pattern",
+        name: "Classification Only Pattern 2",
         linked_entities: [{ entity_type: "classification", entity_id: "cls1" }],
       }),
       ["p1"],
     );
   });
 
-  it("cancel button on existing pattern edit form collapses the form", () => {
+  it("clicking the row header again collapses the edit form", () => {
     const patterns = new Map<string, DecryptedPattern>([["pat1", mockPattern]]);
     renderPanel({ patterns, visiblePatternIds: new Set(["pat1"]) });
 
@@ -494,10 +502,8 @@ describe("PatternPanel", () => {
     fireEvent.click(screen.getByText("Test Pattern"));
     expect(screen.getByTestId("pattern-name-input")).toBeInTheDocument();
 
-    // Click cancel
-    fireEvent.click(screen.getByText("common.cancel"));
-
-    // Edit form should be collapsed
+    // Click the header again to collapse; autosave means nothing is lost
+    fireEvent.click(screen.getByText("Test Pattern"));
     expect(screen.queryByTestId("pattern-name-input")).not.toBeInTheDocument();
   });
 
@@ -513,8 +519,8 @@ describe("PatternPanel", () => {
     fireEvent.change(textarea, { target: { value: "Updated description" } });
     expect(textarea).toHaveValue("Updated description");
 
-    // Save and verify the description is included
-    fireEvent.click(screen.getByText("common.save"));
+    // Textareas commit on blur
+    fireEvent.blur(textarea);
     expect(props.onSave).toHaveBeenCalledWith(
       "pat1",
       expect.objectContaining({ description: "Updated description" }),
@@ -534,10 +540,9 @@ describe("PatternPanel", () => {
     // Click a swatch that is NOT the current color (#818cf8)
     const differentSwatch = swatches.find((s) => s.getAttribute("aria-label") !== "#818cf8");
     expect(differentSwatch).toBeTruthy();
+    // Swatch clicks commit immediately
     fireEvent.click(differentSwatch!);
 
-    // Save and verify the color changed
-    fireEvent.click(screen.getByText("common.save"));
     expect(props.onSave).toHaveBeenCalledWith(
       "pat1",
       expect.objectContaining({

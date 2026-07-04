@@ -1,4 +1,3 @@
-import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -6,19 +5,23 @@ import { getTraumaColor } from "../../lib/traumaColors";
 import type { TraumaEvent } from "../../types/domain";
 import { TraumaCategory } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { blurOnEnter } from "../inspector/fieldHelpers";
+import { InspectorField } from "../inspector/InspectorField";
+import { useSaveReporter } from "../inspector/InspectorStatus";
+import { useEntityAutosave } from "../inspector/useEntityAutosave";
 import { EditSubPanel } from "./EditSubPanel";
 import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
-
-// Shared i18n keys
-const T_SAVE = "common.save";
-const T_DELETE = "common.delete";
 
 interface TraumaEventsTabProps {
   person: DecryptedPerson;
   events: DecryptedEvent[];
   allPersons: Map<string, DecryptedPerson>;
-  onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
+  onSaveEvent: (
+    eventId: string | null,
+    data: TraumaEvent,
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDeleteEvent: (eventId: string) => void;
   initialEditId?: string;
 }
@@ -36,26 +39,22 @@ export function TraumaEventsTab({
     useEditingState(initialEditId);
 
   if (isEditing) {
+    const event = editingId ? (events.find((e) => e.id === editingId) ?? null) : null;
     return (
       <EditSubPanel
-        title={
-          editingId
-            ? (events.find((e) => e.id === editingId)?.title ?? t("trauma.editEvent"))
-            : t("trauma.newEvent")
-        }
+        title={editingId ? (event?.title ?? t("trauma.editEvent")) : t("trauma.newEvent")}
         onBack={clearEditing}
+        closeLabel={editingId ? t("common.close") : undefined}
       >
         <EventForm
-          event={editingId ? (events.find((e) => e.id === editingId) ?? null) : null}
+          key={editingId ?? "new"}
+          event={event}
           allPersons={allPersons}
-          initialPersonIds={
-            editingId
-              ? (events.find((e) => e.id === editingId)?.person_ids ?? [person.id])
-              : [person.id]
-          }
+          initialPersonIds={event?.person_ids ?? [person.id]}
           onSave={(data, personIds) => {
-            onSaveEvent(editingId, data, personIds);
-            clearEditing();
+            const result = onSaveEvent(editingId, data, personIds);
+            if (!editingId) clearEditing();
+            return result;
           }}
           onDelete={
             editingId
@@ -98,85 +97,97 @@ interface EventFormProps {
   event: DecryptedEvent | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
-  onSave: (data: TraumaEvent, personIds: string[]) => void;
+  onSave: (data: TraumaEvent, personIds: string[]) => Promise<unknown> | undefined;
   onDelete?: () => void;
 }
 
-interface EventFormState {
+interface EventDraft {
   title: string;
   description: string;
   category: TraumaCategory;
   approximateDate: string;
   severity: string;
   tags: string;
+  personIds: string[];
 }
 
-type EventFormAction = { type: "SET_FIELD"; field: keyof EventFormState; value: string };
-
-function eventFormReducer(state: EventFormState, action: EventFormAction): EventFormState {
-  if (action.type === "SET_FIELD") {
-    return { ...state, [action.field]: action.value };
-  }
-  return state;
+function buildEventData(draft: EventDraft): { data: TraumaEvent; personIds: string[] } | null {
+  if (!draft.title.trim() || draft.personIds.length === 0) return null;
+  return {
+    data: {
+      title: draft.title,
+      description: draft.description,
+      category: draft.category,
+      approximate_date: draft.approximateDate,
+      severity: parseInt(draft.severity, 10) || 1,
+      tags: draft.tags.split(",").flatMap((s) => {
+        const trimmed = s.trim();
+        return trimmed ? [trimmed] : [];
+      }),
+    },
+    personIds: draft.personIds,
+  };
 }
 
 function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: EventFormProps) {
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(eventFormReducer, {
-    title: event?.title ?? "",
-    description: event?.description ?? "",
-    category: event?.category ?? TraumaCategory.Loss,
-    approximateDate: event?.approximate_date ?? "",
-    severity: String(event?.severity ?? 5),
-    tags: event?.tags?.join(", ") ?? "",
-  });
-  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
-    () => new Set(initialPersonIds),
-  );
+  const report = useSaveReporter();
 
-  function handleSave() {
-    onSave(
-      {
-        title: state.title,
-        description: state.description,
-        category: state.category,
-        approximate_date: state.approximateDate,
-        severity: parseInt(state.severity, 10) || 1,
-        tags: state.tags.split(",").flatMap((s) => {
-          const trimmed = s.trim();
-          return trimmed ? [trimmed] : [];
-        }),
-      },
-      Array.from(selectedPersonIds),
+  const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
+    useEntityAutosave({
+      entity: event,
+      toDraft: (e) => ({
+        title: e?.title ?? "",
+        description: e?.description ?? "",
+        category: e?.category ?? TraumaCategory.Loss,
+        approximateDate: e?.approximate_date ?? "",
+        severity: String(e?.severity ?? 5),
+        tags: e?.tags?.join(", ") ?? "",
+        personIds: e?.person_ids ?? initialPersonIds,
+      }),
+      toData: buildEventData,
+      onAutoSave: (payload) => onSave(payload.data, payload.personIds),
+    });
+
+  function handleAdd() {
+    const payload = buildData();
+    if (!payload) return;
+    const result = onSave(payload.data, payload.personIds);
+    Promise.resolve(result).then(
+      () => report?.("saved"),
+      () => report?.("error"),
     );
   }
 
   return (
-    <div className="detail-panel__event-form">
-      <label className="detail-panel__field">
-        <span>{t("trauma.title")}</span>
+    <>
+      <InspectorField label={t("trauma.title")}>
         <input
           type="text"
-          value={state.title}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
+          aria-label={t("trauma.title")}
+          value={draft.title}
+          onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("trauma.description")}</span>
+      </InspectorField>
+      <InspectorField label={t("trauma.description")}>
         <textarea
-          value={state.description}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
-          }
+          aria-label={t("trauma.description")}
+          value={draft.description}
+          onChange={(e) => {
+            update((d) => ({ ...d, description: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
           rows={2}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("trauma.category")}</span>
+      </InspectorField>
+      <InspectorField label={t("trauma.category")}>
         <select
-          value={state.category}
+          value={draft.category}
           onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })
+            changeAndCommit((d) => ({ ...d, category: e.target.value as TraumaCategory }))
           }
         >
           {Object.values(TraumaCategory).map((cat) => (
@@ -185,58 +196,65 @@ function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: Ev
             </option>
           ))}
         </select>
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("trauma.approximateDate")}</span>
+      </InspectorField>
+      <InspectorField label={t("trauma.approximateDate")}>
         <input
           type="text"
-          value={state.approximateDate}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "approximateDate", value: e.target.value })
-          }
+          aria-label={t("trauma.approximateDate")}
+          value={draft.approximateDate}
+          onChange={(e) => update((d) => ({ ...d, approximateDate: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
           placeholder={t("trauma.datePlaceholder")}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>
-          {t("trauma.severity")} ({state.severity})
-        </span>
+      </InspectorField>
+      <InspectorField label={`${t("trauma.severity")} (${draft.severity})`}>
         <input
           type="range"
+          aria-label={t("trauma.severity")}
           min="1"
           max="10"
-          value={state.severity}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "severity", value: e.target.value })
-          }
+          value={draft.severity}
+          onChange={(e) => {
+            update((d) => ({ ...d, severity: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("trauma.tags")}</span>
+      </InspectorField>
+      <InspectorField label={t("trauma.tags")}>
         <input
           type="text"
-          value={state.tags}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "tags", value: e.target.value })}
+          aria-label={t("trauma.tags")}
+          value={draft.tags}
+          onChange={(e) => update((d) => ({ ...d, tags: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
           placeholder={t("trauma.tagsPlaceholder")}
         />
-      </label>
+      </InspectorField>
       <PersonLinkField
         allPersons={allPersons}
-        selectedIds={selectedPersonIds}
-        onChange={setSelectedPersonIds}
+        selectedIds={new Set(draft.personIds)}
+        onChange={(ids) => changeAndCommit((d) => ({ ...d, personIds: Array.from(ids) }))}
       />
-      <div className="detail-panel__actions">
-        <button type="button" className="btn btn--primary" onClick={handleSave}>
-          {t(T_SAVE)}
-        </button>
-        {onDelete && (
-          <ConfirmDeleteButton
-            onConfirm={onDelete}
-            label={t(T_DELETE)}
-            confirmLabel={t("trauma.confirmDelete")}
-          />
-        )}
-      </div>
-    </div>
+      {isNew ? (
+        <div className="detail-panel__actions">
+          <button type="button" className="btn btn--primary" onClick={handleAdd}>
+            {t("common.add")}
+          </button>
+        </div>
+      ) : (
+        onDelete && (
+          <div className="inspector-danger">
+            <ConfirmDeleteButton
+              onConfirm={onDelete}
+              label={t("common.delete")}
+              confirmLabel={t("trauma.confirmDelete")}
+            />
+          </div>
+        )
+      )}
+    </>
   );
 }

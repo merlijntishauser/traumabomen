@@ -337,7 +337,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<OnboardingGuard>` —Shows safety acknowledgment modal on first login. Syncs with server-side flag via `PUT /auth/onboarding`.
 - `<TreeWorkspacePage>` —React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
 - `<PersonNode>` —Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
-- `<PersonDetailPanel>` —Slide-out panel. Edit person fields, relationships, trauma events, life events, classifications. Encrypt-then-save.
+- `<PersonDetailPanel>` —Slide-out quiet inspector. Edit person fields, relationships, trauma events, life events, classifications. Fields autosave on blur/change (encrypt-then-save per commit); a saved whisper in the header confirms; creating sub-entities uses an explicit Add.
 - `<RelationshipDetailPanel>` —Panel for editing relationship details and periods.
 - `<PatternPanel>` —Inline panel in tree workspace for pattern CRUD: create/edit/delete patterns, link entities (trauma events, life events, classifications), color picker, visibility toggle.
 - `<PatternView>` —Dedicated page showing pattern cards with linked entities, generation span, and detail expansion.

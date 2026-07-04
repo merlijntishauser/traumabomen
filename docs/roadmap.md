@@ -42,8 +42,6 @@ roadmap (see [Gaps and risks](#gaps-and-risks)). Reasoning, not just ordering.
    of onboarding and a silent churn driver. A downloadable recovery code that
    wraps the key ring a second way keeps zero-knowledge intact while removing
    the cliff. Design carefully; high value.
-3. **Unsaved-changes warning (UX-10).** Closing a panel silently discards edits
-   to sensitive data. Contained fix, real data-loss prevention.
 
 ### Next: depth that matches the product's purpose
 
@@ -170,14 +168,6 @@ Replace the Dagre layout engine with elkjs (the open-source engine behind React
 Flow Pro's auto-layout) and add collapsible ancestor/descendant sub-trees with
 compact summary nodes. Drop the React Flow Pro watermark suppression.
 See [design doc](plans/2026-02-26-elkjs-collapse-design.md).
-
-### UX
-
-#### UX-10. Unsaved changes warning
-
-Editing person fields and clicking Close or selecting another node silently
-discards changes. For sensitive data entry this is a meaningful data-loss risk.
-Requires dirty-state tracking in PersonDetailPanel and a confirmation dialog.
 
 ## Gaps and risks
 

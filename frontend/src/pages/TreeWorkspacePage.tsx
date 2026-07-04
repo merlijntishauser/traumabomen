@@ -496,10 +496,10 @@ function useCanvasActions(opts: {
     groupId: string,
     members: SiblingGroupMember[],
     personIds: string[],
-  ) {
+  ): Promise<unknown> {
     const group = siblingGroups.get(groupId);
-    siblingGroupHandlers.save(groupId, { members, position: group?.position }, personIds);
-    dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null });
+    // Autosave keeps the panel open; the whisper reports the outcome.
+    return siblingGroupHandlers.save(groupId, { members, position: group?.position }, personIds);
   }
 
   function handleDeleteSiblingGroup(groupId: string) {
@@ -519,7 +519,8 @@ function useCanvasActions(opts: {
   }
 
   function handleSaveRelationship(relationshipId: string, data: RelationshipData) {
-    mutations.updateRelationship.mutate({ relationshipId, data });
+    // Returns the promise so autosaving inspectors can report the outcome.
+    return mutations.updateRelationship.mutateAsync({ relationshipId, data });
   }
 
   function handleDeleteRelationship(relationshipId: string) {
@@ -1011,11 +1012,11 @@ function TreeWorkspaceInner() {
     mutations,
   });
 
+  // With autosave the panel stays open across saves; only deletion closes it.
   const handlers = useLinkedEntityPanelHandlers({
     mutations,
     selectedPersonId,
     onPersonDeleted: () => setSelectedPersonId(null),
-    onPersonSaved: () => setSelectedPersonId(null),
   });
 
   // Single-select: toggling a pattern in the manage panel focuses it (or clears
@@ -1142,6 +1143,7 @@ function TreeWorkspaceInner() {
 
         {openSiblingGroup && (
           <SiblingGroupPanel
+            key={openSiblingGroup.id}
             group={openSiblingGroup}
             allPersons={persons}
             onSave={actions.handleSaveSiblingGroup}

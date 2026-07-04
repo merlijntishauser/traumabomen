@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
@@ -10,12 +10,20 @@ import type {
   ClassificationStatus,
 } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { blurOnEnter, sanitizeYearInput } from "../inspector/fieldHelpers";
+import { InspectorField } from "../inspector/InspectorField";
+import { useSaveReporter } from "../inspector/InspectorStatus";
+import { useEntityAutosave } from "../inspector/useEntityAutosave";
 import { EditSubPanel } from "./EditSubPanel";
 import { PersonLinkField } from "./PersonLinkField";
 
-// Shared i18n keys used across sub-forms
-const T_SAVE = "common.save";
-const T_DELETE = "common.delete";
+/** Subcategory label when present, otherwise the category label. */
+function classificationLabel(
+  cls: { dsm_category: string; dsm_subcategory: string | null },
+  t: (key: string) => string,
+): string {
+  return cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : t(`dsm.${cls.dsm_category}`);
+}
 
 /** Format classification periods as a compact summary string. */
 function formatClassificationPeriods(
@@ -49,7 +57,7 @@ interface ClassificationsTabProps {
     classificationId: string | null,
     data: Classification,
     personIds: string[],
-  ) => void;
+  ) => Promise<unknown> | undefined;
   onDeleteClassification: (classificationId: string) => void;
   initialEditId?: string;
 }
@@ -67,34 +75,28 @@ export function ClassificationsTab({
     useEditingState(initialEditId);
 
   if (isEditing) {
+    const cls = editingId ? (classifications.find((c) => c.id === editingId) ?? null) : null;
     return (
       <EditSubPanel
         title={
           editingId
-            ? (() => {
-                const cls = classifications.find((c) => c.id === editingId);
-                if (!cls) return t("classification.editClassification");
-                return cls.dsm_subcategory
-                  ? t(`dsm.sub.${cls.dsm_subcategory}`)
-                  : t(`dsm.${cls.dsm_category}`);
-              })()
+            ? cls
+              ? classificationLabel(cls, t)
+              : t("classification.editClassification")
             : t("classification.newClassification")
         }
         onBack={clearEditing}
+        closeLabel={editingId ? t("common.close") : undefined}
       >
         <ClassificationForm
-          classification={
-            editingId ? (classifications.find((c) => c.id === editingId) ?? null) : null
-          }
+          key={editingId ?? "new"}
+          classification={cls}
           allPersons={allPersons}
-          initialPersonIds={
-            editingId
-              ? (classifications.find((c) => c.id === editingId)?.person_ids ?? [person.id])
-              : [person.id]
-          }
+          initialPersonIds={cls?.person_ids ?? [person.id]}
           onSave={(data, personIds) => {
-            onSaveClassification(editingId, data, personIds);
-            clearEditing();
+            const result = onSaveClassification(editingId, data, personIds);
+            if (!editingId) clearEditing();
+            return result;
           }}
           onDelete={
             editingId
@@ -127,11 +129,7 @@ export function ClassificationsTab({
                 clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
               }}
             />
-            <span className="detail-panel__event-card-title">
-              {cls.dsm_subcategory
-                ? t(`dsm.sub.${cls.dsm_subcategory}`)
-                : t(`dsm.${cls.dsm_category}`)}
-            </span>
+            <span className="detail-panel__event-card-title">{classificationLabel(cls, t)}</span>
           </div>
           <div className="detail-panel__event-card-meta">
             <span className={`detail-panel__status-pill detail-panel__status-pill--${cls.status}`}>
@@ -161,47 +159,49 @@ interface ClassificationFormProps {
   classification: DecryptedClassification | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
-  onSave: (data: Classification, personIds: string[]) => void;
+  onSave: (data: Classification, personIds: string[]) => Promise<unknown> | undefined;
   onDelete?: () => void;
 }
 
 type KeyedClassificationPeriod = ClassificationPeriod & { _key: string };
 
-interface ClassificationFormState {
+interface ClassificationDraft {
   dsmCategory: string;
   dsmSubcategory: string | null;
   status: ClassificationStatus;
   diagnosisYear: string;
   periods: KeyedClassificationPeriod[];
   notes: string;
-  categorySearch: string;
+  personIds: string[];
 }
 
-type ClassificationFormAction =
-  | { type: "SET_FIELD"; field: keyof ClassificationFormState; value: string | null }
-  | { type: "SET_STATUS"; status: ClassificationStatus }
-  | { type: "SET_PERIODS"; periods: KeyedClassificationPeriod[] }
-  | { type: "SET_CATEGORY"; dsmCategory: string; dsmSubcategory: string | null };
+function buildClassificationData(
+  draft: ClassificationDraft,
+): { data: Classification; personIds: string[] } | null {
+  if (draft.personIds.length === 0) return null;
+  const parsedDiagnosisYear =
+    draft.status === "diagnosed" && draft.diagnosisYear ? parseInt(draft.diagnosisYear, 10) : null;
 
-function classificationFormReducer(
-  state: ClassificationFormState,
-  action: ClassificationFormAction,
-): ClassificationFormState {
-  switch (action.type) {
-    case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
-    case "SET_STATUS":
-      return { ...state, status: action.status };
-    case "SET_PERIODS":
-      return { ...state, periods: action.periods };
-    case "SET_CATEGORY":
-      return {
-        ...state,
-        dsmCategory: action.dsmCategory,
-        dsmSubcategory: action.dsmSubcategory,
-        categorySearch: "",
-      };
-  }
+  // Strip internal _key before saving
+  const cleanedPeriods = draft.periods.map(({ _key, ...rest }) => rest);
+
+  // Auto-create a period from diagnosis year when no periods are set
+  const effectivePeriods =
+    cleanedPeriods.length === 0 && parsedDiagnosisYear != null
+      ? [{ start_year: parsedDiagnosisYear, end_year: null }]
+      : cleanedPeriods;
+
+  return {
+    data: {
+      dsm_category: draft.dsmCategory,
+      dsm_subcategory: draft.dsmSubcategory,
+      status: draft.status,
+      diagnosis_year: parsedDiagnosisYear,
+      periods: effectivePeriods,
+      notes: draft.notes || null,
+    },
+    personIds: draft.personIds,
+  };
 }
 
 function ClassificationForm({
@@ -212,29 +212,35 @@ function ClassificationForm({
   onDelete,
 }: ClassificationFormProps) {
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(classificationFormReducer, {
-    dsmCategory: classification?.dsm_category ?? "anxiety",
-    dsmSubcategory: classification?.dsm_subcategory ?? null,
-    status: classification?.status ?? "suspected",
-    diagnosisYear:
-      classification?.diagnosis_year != null ? String(classification.diagnosis_year) : "",
-    periods: (classification?.periods ?? []).map((p) => ({ ...p, _key: crypto.randomUUID() })),
-    notes: classification?.notes ?? "",
-    categorySearch: "",
-  });
-  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
-    () => new Set(initialPersonIds),
-  );
+  const report = useSaveReporter();
+  // Search narrows the category select; purely local, never persisted.
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
+    useEntityAutosave({
+      entity: classification,
+      toDraft: (c) => ({
+        dsmCategory: c?.dsm_category ?? "anxiety",
+        dsmSubcategory: c?.dsm_subcategory ?? null,
+        status: c?.status ?? ("suspected" as ClassificationStatus),
+        diagnosisYear: c?.diagnosis_year != null ? String(c.diagnosis_year) : "",
+        periods: (c?.periods ?? []).map((p) => ({ ...p, _key: crypto.randomUUID() })),
+        notes: c?.notes ?? "",
+        personIds: c?.person_ids ?? initialPersonIds,
+      }),
+      toData: buildClassificationData,
+      onAutoSave: (payload) => onSave(payload.data, payload.personIds),
+    });
 
   // Build compound select value from category + subcategory
-  const selectValue = state.dsmSubcategory
-    ? `${state.dsmCategory}::${state.dsmSubcategory}`
-    : state.dsmCategory;
+  const selectValue = draft.dsmSubcategory
+    ? `${draft.dsmCategory}::${draft.dsmSubcategory}`
+    : draft.dsmCategory;
 
   // Filter categories and subcategories based on search
   const filteredCategories = useMemo(() => {
-    if (!state.categorySearch) return DSM_CATEGORIES;
-    const q = state.categorySearch.toLowerCase();
+    if (!categorySearch) return DSM_CATEGORIES;
+    const q = categorySearch.toLowerCase();
     return DSM_CATEGORIES.flatMap((cat) => {
       const categoryLabel = t(`dsm.${cat.key}`).toLowerCase();
       const categoryCodeMatch = cat.code.toLowerCase().includes(q);
@@ -252,86 +258,59 @@ function ClassificationForm({
 
       return [];
     });
-  }, [state.categorySearch, t]);
-
-  function addPeriod() {
-    dispatch({
-      type: "SET_PERIODS",
-      periods: [
-        ...state.periods,
-        { start_year: new Date().getFullYear(), end_year: null, _key: crypto.randomUUID() },
-      ],
-    });
-  }
-
-  function removePeriod(index: number) {
-    dispatch({
-      type: "SET_PERIODS",
-      periods: state.periods.filter((_, i) => i !== index),
-    });
-  }
-
-  function updatePeriod(index: number, field: keyof ClassificationPeriod, value: string) {
-    dispatch({
-      type: "SET_PERIODS",
-      periods: state.periods.map((p, i) => {
-        if (i !== index) return p;
-        if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
-        return { ...p, [field]: parseInt(value, 10) || 0 };
-      }),
-    });
-  }
+  }, [categorySearch, t]);
 
   function handleSelectChange(compoundValue: string) {
     const parts = compoundValue.split("::");
-    dispatch({
-      type: "SET_CATEGORY",
+    changeAndCommit((d) => ({
+      ...d,
       dsmCategory: parts[0],
       dsmSubcategory: parts.length > 1 ? parts[1] : null,
-    });
+    }));
+    setCategorySearch("");
   }
 
-  function handleSave() {
-    const parsedDiagnosisYear =
-      state.status === "diagnosed" && state.diagnosisYear
-        ? parseInt(state.diagnosisYear, 10)
-        : null;
+  function addPeriod() {
+    changeAndCommit((d) => ({
+      ...d,
+      periods: [
+        ...d.periods,
+        {
+          start_year: new Date().getFullYear(),
+          end_year: null,
+          _key: crypto.randomUUID(),
+        },
+      ],
+    }));
+  }
 
-    // Strip internal _key before saving
-    const cleanedPeriods = state.periods.map(({ _key, ...rest }) => rest);
-
-    // Auto-create a period from diagnosis year when no periods are set
-    const effectivePeriods =
-      cleanedPeriods.length === 0 && parsedDiagnosisYear != null
-        ? [{ start_year: parsedDiagnosisYear, end_year: null }]
-        : cleanedPeriods;
-
-    onSave(
-      {
-        dsm_category: state.dsmCategory,
-        dsm_subcategory: state.dsmSubcategory,
-        status: state.status,
-        diagnosis_year: parsedDiagnosisYear,
-        periods: effectivePeriods,
-        notes: state.notes || null,
-      },
-      Array.from(selectedPersonIds),
+  function handleAdd() {
+    const payload = buildData();
+    if (!payload) return;
+    const result = onSave(payload.data, payload.personIds);
+    Promise.resolve(result).then(
+      () => report?.("saved"),
+      () => report?.("error"),
     );
   }
 
   return (
-    <div className="detail-panel__event-form">
-      <label className="detail-panel__field">
-        <span>{t("classification.category")}</span>
+    <>
+      <InspectorField label={t("classification.category")}>
         <input
           type="text"
-          value={state.categorySearch}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "categorySearch", value: e.target.value })
-          }
+          aria-label={t("classification.searchPlaceholder")}
+          value={categorySearch}
+          onChange={(e) => setCategorySearch(e.target.value)}
           placeholder={t("classification.searchPlaceholder")}
         />
-        <select value={selectValue} onChange={(e) => handleSelectChange(e.target.value)}>
+      </InspectorField>
+      <InspectorField label="" className="inspector-field--select-only">
+        <select
+          aria-label={t("classification.category")}
+          value={selectValue}
+          onChange={(e) => handleSelectChange(e.target.value)}
+        >
           {filteredCategories.map((cat) => (
             <optgroup key={cat.key} label={`${cat.code} - ${t(`dsm.${cat.key}`)}`}>
               <option value={cat.key}>{t(`dsm.${cat.key}`)}</option>
@@ -343,16 +322,16 @@ function ClassificationForm({
             </optgroup>
           ))}
         </select>
-      </label>
-      <fieldset className="detail-panel__field">
-        <span>{t("classification.status")}</span>
+      </InspectorField>
+      <fieldset className="inspector-field">
+        <span className="inspector-field__label">{t("classification.status")}</span>
         <div className="detail-panel__radios">
           <label className="detail-panel__field--checkbox">
             <input
               type="radio"
               name="cls-status"
-              checked={state.status === "suspected"}
-              onChange={() => dispatch({ type: "SET_STATUS", status: "suspected" })}
+              checked={draft.status === "suspected"}
+              onChange={() => changeAndCommit((d) => ({ ...d, status: "suspected" }))}
             />
             <span>{t("classification.status.suspected")}</span>
           </label>
@@ -360,53 +339,81 @@ function ClassificationForm({
             <input
               type="radio"
               name="cls-status"
-              checked={state.status === "diagnosed"}
-              onChange={() => dispatch({ type: "SET_STATUS", status: "diagnosed" })}
+              checked={draft.status === "diagnosed"}
+              onChange={() => changeAndCommit((d) => ({ ...d, status: "diagnosed" }))}
             />
             <span>{t("classification.status.diagnosed")}</span>
           </label>
         </div>
       </fieldset>
-      {state.status === "diagnosed" && (
-        <label className="detail-panel__field">
-          <span>{t("classification.diagnosisYear")}</span>
+      {draft.status === "diagnosed" && (
+        <InspectorField label={t("classification.diagnosisYear")} className="inspector-field--year">
           <input
-            type="number"
-            value={state.diagnosisYear}
+            type="text"
+            inputMode="numeric"
+            aria-label={t("classification.diagnosisYear")}
+            value={draft.diagnosisYear}
             onChange={(e) =>
-              dispatch({ type: "SET_FIELD", field: "diagnosisYear", value: e.target.value })
+              update((d) => ({ ...d, diagnosisYear: sanitizeYearInput(e.target.value) }))
             }
-            placeholder="---"
+            onBlur={commit}
+            onKeyDown={blurOnEnter}
           />
-        </label>
+        </InspectorField>
       )}
-      <fieldset className="detail-panel__field">
-        <span>{t("classification.periods")}</span>
-        {state.periods.map((period, i) => (
+      <fieldset className="inspector-field">
+        <span className="inspector-field__label">{t("classification.periods")}</span>
+        {draft.periods.map((period, i) => (
           <div key={period._key} className="detail-panel__period-row">
             <div className="detail-panel__period-years">
-              <label className="detail-panel__field">
-                <span>{t("common.startYear")}</span>
+              <InspectorField label={t("common.startYear")} className="inspector-field--year">
                 <input
-                  type="number"
-                  value={period.start_year}
-                  onChange={(e) => updatePeriod(i, "start_year", e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  aria-label={t("common.startYear")}
+                  value={period.start_year || ""}
+                  onChange={(e) => {
+                    const value = sanitizeYearInput(e.target.value);
+                    update((d) => ({
+                      ...d,
+                      periods: d.periods.map((p, idx) =>
+                        idx === i ? { ...p, start_year: parseInt(value, 10) || 0 } : p,
+                      ),
+                    }));
+                  }}
+                  onBlur={commit}
+                  onKeyDown={blurOnEnter}
                 />
-              </label>
-              <label className="detail-panel__field">
-                <span>{t("common.endYear")}</span>
+              </InspectorField>
+              <InspectorField label={t("common.endYear")} className="inspector-field--year">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  aria-label={t("common.endYear")}
                   value={period.end_year ?? ""}
-                  onChange={(e) => updatePeriod(i, "end_year", e.target.value)}
-                  placeholder="---"
+                  onChange={(e) => {
+                    const value = sanitizeYearInput(e.target.value);
+                    update((d) => ({
+                      ...d,
+                      periods: d.periods.map((p, idx) =>
+                        idx === i ? { ...p, end_year: value ? parseInt(value, 10) : null } : p,
+                      ),
+                    }));
+                  }}
+                  onBlur={commit}
+                  onKeyDown={blurOnEnter}
                 />
-              </label>
+              </InspectorField>
             </div>
             <button
               type="button"
               className="detail-panel__btn--small detail-panel__btn--danger"
-              onClick={() => removePeriod(i)}
+              onClick={() =>
+                changeAndCommit((d) => ({
+                  ...d,
+                  periods: d.periods.filter((_, idx) => idx !== i),
+                }))
+              }
             >
               {t("classification.removePeriod")}
             </button>
@@ -420,31 +427,40 @@ function ClassificationForm({
           {t("classification.addPeriod")}
         </button>
       </fieldset>
-      <label className="detail-panel__field">
-        <span>{t("classification.notes")}</span>
+      <InspectorField label={t("classification.notes")}>
         <textarea
-          value={state.notes}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "notes", value: e.target.value })}
+          aria-label={t("classification.notes")}
+          value={draft.notes}
+          onChange={(e) => {
+            update((d) => ({ ...d, notes: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
           rows={2}
         />
-      </label>
+      </InspectorField>
       <PersonLinkField
         allPersons={allPersons}
-        selectedIds={selectedPersonIds}
-        onChange={setSelectedPersonIds}
+        selectedIds={new Set(draft.personIds)}
+        onChange={(ids) => changeAndCommit((d) => ({ ...d, personIds: Array.from(ids) }))}
       />
-      <div className="detail-panel__actions">
-        <button type="button" className="btn btn--primary" onClick={handleSave}>
-          {t(T_SAVE)}
-        </button>
-        {onDelete && (
-          <ConfirmDeleteButton
-            onConfirm={onDelete}
-            label={t(T_DELETE)}
-            confirmLabel={t("classification.confirmDelete")}
-          />
-        )}
-      </div>
-    </div>
+      {isNew ? (
+        <div className="detail-panel__actions">
+          <button type="button" className="btn btn--primary" onClick={handleAdd}>
+            {t("common.add")}
+          </button>
+        </div>
+      ) : (
+        onDelete && (
+          <div className="inspector-danger">
+            <ConfirmDeleteButton
+              onConfirm={onDelete}
+              label={t("common.delete")}
+              confirmLabel={t("classification.confirmDelete")}
+            />
+          </div>
+        )
+      )}
+    </>
   );
 }

@@ -21,6 +21,11 @@ import type {
   TraumaEvent,
   TurningPoint,
 } from "../../types/domain";
+import {
+  InspectorSaveWhisper,
+  InspectorStatusProvider,
+  useInspectorStatus,
+} from "../inspector/InspectorStatus";
 import { ClassificationsTab } from "./ClassificationsTab";
 import { LifeEventsTab } from "./LifeEventsTab";
 import { PersonTab } from "./PersonTab";
@@ -86,28 +91,36 @@ function sectionToEventSubTab(section: PersonDetailSection): EventSubTab | null 
 }
 
 interface PersonDetailHandlers {
-  onSavePerson: (data: Person) => void;
+  onSavePerson: (data: Person) => Promise<unknown> | undefined;
   onDeletePerson: (personId: string) => void;
-  onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
+  onSaveRelationship: (relationshipId: string, data: RelationshipData) => Promise<unknown>;
   onClose: () => void;
 }
 
 interface EntityHandlers {
-  onSaveEvent: (eventId: string | null, data: TraumaEvent, personIds: string[]) => void;
+  onSaveEvent: (
+    eventId: string | null,
+    data: TraumaEvent,
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDeleteEvent: (eventId: string) => void;
-  onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
+  onSaveLifeEvent: (
+    lifeEventId: string | null,
+    data: LifeEvent,
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDeleteLifeEvent: (lifeEventId: string) => void;
   onSaveTurningPoint: (
     turningPointId: string | null,
     data: TurningPoint,
     personIds: string[],
-  ) => void;
+  ) => Promise<unknown> | undefined;
   onDeleteTurningPoint: (turningPointId: string) => void;
   onSaveClassification: (
     classificationId: string | null,
     data: Classification,
     personIds: string[],
-  ) => void;
+  ) => Promise<unknown> | undefined;
   onDeleteClassification: (classificationId: string) => void;
 }
 
@@ -186,6 +199,8 @@ export function PersonDetailPanel({
   }
   const personPrompt = personPromptText(t, promptPick.index, person.name);
 
+  const { status, report } = useInspectorStatus();
+
   const relsCount = relationships.length + inferredSiblings.length;
   const eventsCount = events.length + lifeEvents.length + turningPoints.length;
 
@@ -197,175 +212,185 @@ export function PersonDetailPanel({
   }
 
   return (
-    <div className="panel-overlay detail-panel">
-      <div className="detail-panel__person-header">
-        <div className="detail-panel__person-info">
-          <h2 className="detail-panel__person-name">{person.name}</h2>
-          {person.birth_year != null && (
-            <span className="detail-panel__person-years">{formatYears()}</span>
+    <InspectorStatusProvider value={report}>
+      <div className="panel-overlay detail-panel">
+        <div className="detail-panel__person-header">
+          <div className="detail-panel__person-info">
+            <h2 className="detail-panel__person-name">{person.name}</h2>
+            <span className="detail-panel__person-subrow">
+              <span className="detail-panel__person-years">
+                {person.birth_year != null ? formatYears() : ""}
+              </span>
+              <InspectorSaveWhisper status={status} />
+            </span>
+          </div>
+          <button type="button" className="panel-close" onClick={onClose}>
+            {t("common.close")}
+          </button>
+        </div>
+
+        {showReflectionPrompts && onOpenJournal && (
+          <button
+            type="button"
+            className="detail-panel__prompt"
+            onClick={() =>
+              onOpenJournal(personPrompt, { entity_type: "person", entity_id: person.id })
+            }
+          >
+            {personPrompt}
+          </button>
+        )}
+
+        <div className="detail-panel__tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "person"}
+            className={tabClassName(activeTab === "person")}
+            onClick={() => setActiveTab("person")}
+          >
+            <User size={14} />
+            {t("person.tab")}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "relationships"}
+            className={tabClassName(activeTab === "relationships")}
+            onClick={() => setActiveTab("relationships")}
+          >
+            <GitFork size={14} />
+            {t("relationship.tab")}
+            {relsCount > 0 && <span className="detail-panel__tab-badge">{relsCount}</span>}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "events"}
+            className={tabClassName(activeTab === "events")}
+            onClick={() => setActiveTab("events")}
+          >
+            <CalendarDays size={14} />
+            {t("events.tab")}
+            {eventsCount > 0 && <span className="detail-panel__tab-badge">{eventsCount}</span>}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "classifications"}
+            className={tabClassName(activeTab === "classifications")}
+            onClick={() => setActiveTab("classifications")}
+          >
+            <Triangle size={14} />
+            {t("classification.tab")}
+            {classifications.length > 0 && (
+              <span className="detail-panel__tab-badge">{classifications.length}</span>
+            )}
+          </button>
+        </div>
+
+        <div className="detail-panel__content">
+          {activeTab === "person" && (
+            <PersonTab
+              key={person.id}
+              person={person}
+              onSavePerson={onSavePerson}
+              onDeletePerson={onDeletePerson}
+            />
+          )}
+          {activeTab === "relationships" && (
+            <RelationshipsTab
+              person={person}
+              relationships={relationships}
+              inferredSiblings={inferredSiblings}
+              allPersons={allPersons}
+              onSaveRelationship={onSaveRelationship}
+              siblingGroup={siblingGroup}
+              onCreateSiblingGroup={onCreateSiblingGroup}
+              onOpenSiblingGroup={onOpenSiblingGroup}
+            />
+          )}
+          {activeTab === "events" && (
+            <>
+              <div className="detail-panel__segment-control">
+                <button
+                  type="button"
+                  className={segClassName(eventSubTab === "trauma")}
+                  onClick={() => setEventSubTab("trauma")}
+                >
+                  <Circle size={10} />
+                  {t("trauma.tab")}
+                  {events.length > 0 && (
+                    <span className="detail-panel__segment-badge">{events.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={segClassName(eventSubTab === "life")}
+                  onClick={() => setEventSubTab("life")}
+                >
+                  <Square size={10} />
+                  {t("lifeEvent.tab")}
+                  {lifeEvents.length > 0 && (
+                    <span className="detail-panel__segment-badge">{lifeEvents.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={segClassName(eventSubTab === "turning")}
+                  onClick={() => setEventSubTab("turning")}
+                >
+                  <Star size={10} />
+                  {t("turningPoint.tab")}
+                  {turningPoints.length > 0 && (
+                    <span className="detail-panel__segment-badge">{turningPoints.length}</span>
+                  )}
+                </button>
+              </div>
+              {eventSubTab === "trauma" && (
+                <TraumaEventsTab
+                  person={person}
+                  events={events}
+                  allPersons={allPersons}
+                  onSaveEvent={onSaveEvent}
+                  onDeleteEvent={onDeleteEvent}
+                  initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
+                />
+              )}
+              {eventSubTab === "life" && (
+                <LifeEventsTab
+                  person={person}
+                  lifeEvents={lifeEvents}
+                  allPersons={allPersons}
+                  onSaveLifeEvent={onSaveLifeEvent}
+                  onDeleteLifeEvent={onDeleteLifeEvent}
+                  initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
+                />
+              )}
+              {eventSubTab === "turning" && (
+                <TurningPointsTab
+                  person={person}
+                  turningPoints={turningPoints}
+                  allPersons={allPersons}
+                  onSaveTurningPoint={onSaveTurningPoint}
+                  onDeleteTurningPoint={onDeleteTurningPoint}
+                  initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
+                />
+              )}
+            </>
+          )}
+          {activeTab === "classifications" && (
+            <ClassificationsTab
+              person={person}
+              classifications={classifications}
+              allPersons={allPersons}
+              onSaveClassification={onSaveClassification}
+              onDeleteClassification={onDeleteClassification}
+              initialEditId={initialSection === "classification" ? initialEntityId : undefined}
+            />
           )}
         </div>
-        <button type="button" className="panel-close" onClick={onClose}>
-          {t("common.close")}
-        </button>
       </div>
-
-      {showReflectionPrompts && onOpenJournal && (
-        <button
-          type="button"
-          className="detail-panel__prompt"
-          onClick={() =>
-            onOpenJournal(personPrompt, { entity_type: "person", entity_id: person.id })
-          }
-        >
-          {personPrompt}
-        </button>
-      )}
-
-      <div className="detail-panel__tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "person"}
-          className={tabClassName(activeTab === "person")}
-          onClick={() => setActiveTab("person")}
-        >
-          <User size={14} />
-          {t("person.tab")}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "relationships"}
-          className={tabClassName(activeTab === "relationships")}
-          onClick={() => setActiveTab("relationships")}
-        >
-          <GitFork size={14} />
-          {t("relationship.tab")}
-          {relsCount > 0 && <span className="detail-panel__tab-badge">{relsCount}</span>}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "events"}
-          className={tabClassName(activeTab === "events")}
-          onClick={() => setActiveTab("events")}
-        >
-          <CalendarDays size={14} />
-          {t("events.tab")}
-          {eventsCount > 0 && <span className="detail-panel__tab-badge">{eventsCount}</span>}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "classifications"}
-          className={tabClassName(activeTab === "classifications")}
-          onClick={() => setActiveTab("classifications")}
-        >
-          <Triangle size={14} />
-          {t("classification.tab")}
-          {classifications.length > 0 && (
-            <span className="detail-panel__tab-badge">{classifications.length}</span>
-          )}
-        </button>
-      </div>
-
-      <div className="detail-panel__content">
-        {activeTab === "person" && (
-          <PersonTab person={person} onSavePerson={onSavePerson} onDeletePerson={onDeletePerson} />
-        )}
-        {activeTab === "relationships" && (
-          <RelationshipsTab
-            person={person}
-            relationships={relationships}
-            inferredSiblings={inferredSiblings}
-            allPersons={allPersons}
-            onSaveRelationship={onSaveRelationship}
-            siblingGroup={siblingGroup}
-            onCreateSiblingGroup={onCreateSiblingGroup}
-            onOpenSiblingGroup={onOpenSiblingGroup}
-          />
-        )}
-        {activeTab === "events" && (
-          <>
-            <div className="detail-panel__segment-control">
-              <button
-                type="button"
-                className={segClassName(eventSubTab === "trauma")}
-                onClick={() => setEventSubTab("trauma")}
-              >
-                <Circle size={10} />
-                {t("trauma.tab")}
-                {events.length > 0 && (
-                  <span className="detail-panel__segment-badge">{events.length}</span>
-                )}
-              </button>
-              <button
-                type="button"
-                className={segClassName(eventSubTab === "life")}
-                onClick={() => setEventSubTab("life")}
-              >
-                <Square size={10} />
-                {t("lifeEvent.tab")}
-                {lifeEvents.length > 0 && (
-                  <span className="detail-panel__segment-badge">{lifeEvents.length}</span>
-                )}
-              </button>
-              <button
-                type="button"
-                className={segClassName(eventSubTab === "turning")}
-                onClick={() => setEventSubTab("turning")}
-              >
-                <Star size={10} />
-                {t("turningPoint.tab")}
-                {turningPoints.length > 0 && (
-                  <span className="detail-panel__segment-badge">{turningPoints.length}</span>
-                )}
-              </button>
-            </div>
-            {eventSubTab === "trauma" && (
-              <TraumaEventsTab
-                person={person}
-                events={events}
-                allPersons={allPersons}
-                onSaveEvent={onSaveEvent}
-                onDeleteEvent={onDeleteEvent}
-                initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
-              />
-            )}
-            {eventSubTab === "life" && (
-              <LifeEventsTab
-                person={person}
-                lifeEvents={lifeEvents}
-                allPersons={allPersons}
-                onSaveLifeEvent={onSaveLifeEvent}
-                onDeleteLifeEvent={onDeleteLifeEvent}
-                initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
-              />
-            )}
-            {eventSubTab === "turning" && (
-              <TurningPointsTab
-                person={person}
-                turningPoints={turningPoints}
-                allPersons={allPersons}
-                onSaveTurningPoint={onSaveTurningPoint}
-                onDeleteTurningPoint={onDeleteTurningPoint}
-                initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
-              />
-            )}
-          </>
-        )}
-        {activeTab === "classifications" && (
-          <ClassificationsTab
-            person={person}
-            classifications={classifications}
-            allPersons={allPersons}
-            onSaveClassification={onSaveClassification}
-            onDeleteClassification={onDeleteClassification}
-            initialEditId={initialSection === "classification" ? initialEntityId : undefined}
-          />
-        )}
-      </div>
-    </div>
+    </InspectorStatusProvider>
   );
 }

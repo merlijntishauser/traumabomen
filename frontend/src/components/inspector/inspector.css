@@ -1,0 +1,271 @@
+/* Quiet inspector primitives: fields read as calm text on the panel surface;
+   hover reveals a subtle field background, focus restores the full input
+   look. All colors come from theme tokens, so dark, light, and watercolor
+   are covered by construction. */
+
+.inspector-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+
+.inspector-field__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.inspector-field input[type="text"],
+.inspector-field select,
+.inspector-field textarea {
+  padding: var(--space-1\.5) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  background: transparent;
+  color: var(--color-text-primary);
+  transition: var(--transition-colors);
+}
+
+.inspector-field input[type="text"],
+.inspector-field select {
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.inspector-field input:hover,
+.inspector-field select:hover,
+.inspector-field textarea:hover {
+  background: var(--color-bg-hover);
+}
+
+.inspector-field input:focus,
+.inspector-field select:focus,
+.inspector-field textarea:focus {
+  outline: none;
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
+}
+
+.inspector-field input::placeholder,
+.inspector-field textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.inspector-field--year {
+  max-width: 96px;
+}
+
+/* A select continuing the field above it (e.g. DSM search + picker). */
+.inspector-field--select-only {
+  margin-top: calc(-1 * var(--space-2));
+}
+
+.inspector-field--select-only .inspector-field__label {
+  display: none;
+}
+
+.inspector-field input[type="range"] {
+  height: auto;
+  border: none;
+  padding: var(--space-1) 0;
+  background: transparent;
+  accent-color: var(--color-action);
+}
+
+.inspector-field input[type="range"]:hover {
+  background: transparent;
+}
+
+.inspector-field input[type="range"]:focus {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+fieldset.inspector-field {
+  border: none;
+  padding: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Inline field rows (e.g. name + gender, year + month + day). */
+.inspector-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.inspector-row > .inspector-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.inspector-row + .inspector-row,
+.inspector-row + .inspector-field,
+.inspector-field + .inspector-row {
+  margin-top: var(--space-3);
+}
+
+/* Whitespace does the grouping: no hairlines between field groups. */
+.inspector-group {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.inspector-field--gender {
+  max-width: 130px;
+  flex: 0 0 auto;
+}
+
+.inspector-field--notes textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+/* Muted informational line under a field group (e.g. computed age). */
+.inspector-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Toggle row: label left, switch right, comfortable hit target. */
+.inspector-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-1) var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-colors);
+  box-sizing: content-box;
+}
+
+.inspector-toggle:hover {
+  background: var(--color-bg-hover);
+}
+
+.inspector-toggle__label {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.inspector-toggle__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.inspector-toggle__track {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  flex-shrink: 0;
+  transition: var(--transition-colors);
+}
+
+.inspector-toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.inspector-toggle__input:checked ~ .inspector-toggle__track {
+  background: var(--color-action-subtle);
+  border-color: var(--color-action);
+}
+
+.inspector-toggle__input:checked ~ .inspector-toggle__track .inspector-toggle__knob {
+  background: var(--color-action);
+  transform: translateX(12px);
+}
+
+.inspector-toggle__input:focus-visible ~ .inspector-toggle__track {
+  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
+}
+
+/* Ghost affordance for an absent optional group. */
+.inspector-ghost {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-1\.5) var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  box-sizing: content-box;
+}
+
+.inspector-ghost:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+/* Saved whisper: opacity-only fade, per the motion grammar. */
+.inspector-whisper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.inspector-whisper--visible {
+  opacity: 1;
+}
+
+.inspector-whisper--error {
+  color: var(--color-danger);
+}
+
+/* Quiet danger zone: a text-level destructive action behind generous space
+   and a hairline, not a bordered button competing with content. */
+.inspector-danger {
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.inspector-danger .btn--danger,
+.inspector-danger > button:first-child {
+  border: none;
+  background: transparent;
+  padding-left: 0;
+}

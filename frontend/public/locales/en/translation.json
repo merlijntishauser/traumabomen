@@ -1,6 +1,5 @@
 {
   "app.title": "Traumatrees",
-
   "nav.trees": "My Trees",
   "nav.logout": "Log out",
   "nav.privacy": "Privacy",
@@ -39,7 +38,6 @@
   "tour.shotPatternsAlt": "Two pattern cards linking related events across people and generations",
   "tour.closing": "When you are ready, you can map your own family. There is no rush.",
   "nav.language": "Language",
-
   "auth.login": "Log in",
   "auth.register": "Create account",
   "auth.email": "Email",
@@ -99,7 +97,6 @@
   "auth.stepSubtitle.account": "Your email and password are used to log in.",
   "auth.stepSubtitle.encryption": "Your encryption key encrypts your data so that not even we can read it. Choose something different from your password.",
   "auth.stepSubtitle.confirm": "Because your data is encrypted with your encryption key, we cannot recover it if you forget. Please read this carefully.",
-
   "auth.forgotPassword": "Forgot your password?",
   "auth.forgotPasswordTitle": "Reset password",
   "auth.forgotPasswordPrompt": "Enter your email address and we will send you a link to reset your password.",
@@ -114,13 +111,11 @@
   "auth.newPassword": "New password",
   "auth.confirmNewPassword": "Confirm new password",
   "auth.newPasswordMismatch": "Passwords do not match",
-
   "password.weak": "Weak",
   "password.fair": "Fair",
   "password.strong": "Strong",
   "password.hint": "Use at least 12 characters with mixed case and a number or symbol.",
   "password.managerHint": "We recommend using a password manager like <0>1Password</0>.",
-
   "tree.myTrees": "My Trees",
   "tree.create": "Create tree",
   "tree.name": "Tree name",
@@ -138,7 +133,6 @@
   "tree.import": "Import backup",
   "tree.importing": "Importing...",
   "tree.importError": "Failed to import backup",
-
   "person.name": "Name",
   "person.birthYear": "Birth year",
   "person.age": "Age: {{age}}",
@@ -149,6 +143,8 @@
   "person.deathMonth": "Month",
   "person.deathDay": "Day",
   "person.causeOfDeath": "Cause of death",
+  "person.addDeathDate": "Add date of death",
+  "person.datePartEmpty": "Unknown",
   "person.gender": "Gender",
   "person.isAdopted": "Adopted",
   "person.notes": "Notes",
@@ -158,8 +154,8 @@
   "person.female": "Female",
   "person.selectGender": "Select",
   "person.other": "Other",
-
   "relationship.type": "Type",
+  "relationship.none": "No relationships yet.",
   "relationship.type.biological_parent": "Biological parent",
   "relationship.type.co_parent": "Co-parent",
   "relationship.type.step_parent": "Step-parent",
@@ -179,12 +175,10 @@
   "relationship.periods": "Relationship periods",
   "relationship.addPeriod": "Add period",
   "relationship.removePeriod": "Remove",
-
   "relationship.status.together": "Together",
   "relationship.status.married": "Married",
   "relationship.status.separated": "Separated",
   "relationship.status.divorced": "Divorced",
-
   "trauma.title": "Title",
   "trauma.description": "Description",
   "trauma.category": "Category",
@@ -200,9 +194,9 @@
   "trauma.category.displacement": "Displacement",
   "trauma.category.illness": "Illness",
   "trauma.category.poverty": "Poverty",
-
   "common.close": "Close",
   "common.save": "Save",
+  "common.add": "Add",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
   "common.edit": "Edit",
@@ -219,16 +213,13 @@
   "common.hidePassword": "Hide password",
   "common.showPassphrase": "Show encryption key",
   "common.hidePassphrase": "Hide encryption key",
-
   "tree.untitled": "Untitled tree",
   "tree.namePlaceholder": "Tree name",
   "tree.decryptionError": "Could not decrypt tree data. Please log in again.",
-
   "person.details": "Person details",
   "person.tab": "Person",
   "person.newPerson": "New person",
   "person.confirmDelete": "Are you sure you want to delete this person? This will also remove their relationships.",
-
   "relationship.relationships": "Relationships",
   "relationship.tab": "Relations",
   "relationship.type.full_sibling": "Full sibling",
@@ -242,7 +233,6 @@
   "relationship.editRelationship": "Edit relationship",
   "relationship.confirmDelete": "Are you sure you want to delete this relationship?",
   "relationship.between": "Between",
-
   "events.tab": "Events",
   "trauma.events": "Trauma events",
   "trauma.tab": "Trauma events",
@@ -250,7 +240,6 @@
   "trauma.editEvent": "Edit event",
   "trauma.confirmDelete": "Are you sure you want to delete this event?",
   "trauma.linkedPersons": "Linked persons",
-
   "lifeEvent.events": "Life events",
   "lifeEvent.tab": "Life events",
   "lifeEvent.newEvent": "New life event",
@@ -272,7 +261,6 @@
   "lifeEvent.category.health": "Health",
   "lifeEvent.category.medication": "Medication",
   "lifeEvent.category.other": "Other",
-
   "turningPoint.title": "Turning Points",
   "turningPoint.add": "Add turning point",
   "turningPoint.edit": "Edit turning point",
@@ -294,7 +282,6 @@
   "turningPoint.datePlaceholder": "e.g. 1985",
   "turningPoint.tagsPlaceholder": "tag1, tag2",
   "turningPoint.confirmDelete": "Click again to confirm",
-
   "journal.title": "Journal",
   "journal.tab": "Journal",
   "journal.newEntry": "New entry",
@@ -323,7 +310,6 @@
   "journal.justNow": "Just now",
   "journal.hoursAgo_one": "{{count}} hour ago",
   "journal.hoursAgo_other": "{{count}} hours ago",
-
   "prompt.journal.1": "Who in your family tree do you most identify with, and why?",
   "prompt.journal.2": "What event had the most ripple effects across generations?",
   "prompt.journal.3": "Are there strengths or resilience patterns, not just trauma?",
@@ -334,7 +320,6 @@
   "prompt.journal.8": "If you could ask one ancestor a question, who and what would it be?",
   "prompt.journal.9": "What did your family teach you about handling difficult emotions?",
   "prompt.journal.10": "Where do you see yourself in this tree?",
-
   "prompt.person.1": "What strengths did {{name}} carry despite these experiences?",
   "prompt.person.2": "How did {{name}}'s turning point affect the next generation?",
   "prompt.person.3": "How has {{name}}'s diagnosis shaped the family's understanding?",
@@ -343,18 +328,15 @@
   "prompt.person.6": "What did {{name}} pass on that you're grateful for?",
   "prompt.person.7": "How might {{name}}'s story have been different with more support?",
   "prompt.person.8": "What would you say to {{name}} if you could?",
-
   "prompt.pattern.1": "What does this pattern mean to you?",
   "prompt.pattern.2": "Where did this pattern begin, and who first broke it?",
   "prompt.pattern.3": "How does recognizing this pattern change how you see your family?",
   "prompt.pattern.4": "Is this pattern still active in your generation?",
   "prompt.pattern.5": "What would it take to transform this pattern?",
   "prompt.pattern.6": "Who in the family was most affected by this pattern?",
-
   "prompt.nudge.writeAbout": "Write about this",
   "prompt.nudge.dismiss": "Dismiss",
   "canvas.showReflectionPrompts": "Show reflection prompts",
-
   "classification.classifications": "Classifications",
   "classification.tab": "DSM-5",
   "classification.newClassification": "New classification",
@@ -372,7 +354,6 @@
   "classification.confirmDelete": "Are you sure you want to delete this classification?",
   "classification.searchPlaceholder": "Search categories, conditions, or codes...",
   "classification.linkedPersons": "Linked persons",
-
   "dsm.neurodevelopmental": "Neurodevelopmental Disorders",
   "dsm.schizophrenia": "Schizophrenia Spectrum & Psychotic Disorders",
   "dsm.bipolar": "Bipolar and Related Disorders",
@@ -395,83 +376,68 @@
   "dsm.other_mental": "Other Mental Disorders",
   "dsm.medication_induced": "Medication-Induced Movement Disorders",
   "dsm.other_conditions": "Other Conditions",
-
   "dsm.sub.adhd": "ADHD",
   "dsm.sub.autism": "Autism Spectrum Disorder",
   "dsm.sub.intellectual_disability": "Intellectual Disability",
   "dsm.sub.learning": "Specific Learning Disorder",
   "dsm.sub.communication": "Communication Disorders",
   "dsm.sub.motor": "Motor Disorders",
-
   "dsm.sub.schizophrenia_disorder": "Schizophrenia",
   "dsm.sub.schizoaffective": "Schizoaffective Disorder",
   "dsm.sub.brief_psychotic": "Brief Psychotic Disorder",
   "dsm.sub.delusional": "Delusional Disorder",
-
   "dsm.sub.bipolar_i": "Bipolar I Disorder",
   "dsm.sub.bipolar_ii": "Bipolar II Disorder",
   "dsm.sub.cyclothymia": "Cyclothymic Disorder",
-
   "dsm.sub.major_depression": "Major Depressive Disorder",
   "dsm.sub.persistent_depressive": "Persistent Depressive Disorder (Dysthymia)",
   "dsm.sub.premenstrual_dysphoric": "Premenstrual Dysphoric Disorder (PMDD)",
   "dsm.sub.seasonal_depression": "Seasonal Affective Disorder (SAD)",
-
   "dsm.sub.generalized_anxiety": "Generalized Anxiety Disorder (GAD)",
   "dsm.sub.panic_disorder": "Panic Disorder",
   "dsm.sub.social_anxiety": "Social Anxiety Disorder",
   "dsm.sub.specific_phobia": "Specific Phobia",
   "dsm.sub.agoraphobia": "Agoraphobia",
   "dsm.sub.separation_anxiety": "Separation Anxiety Disorder",
-
   "dsm.sub.ocd_disorder": "Obsessive-Compulsive Disorder (OCD)",
   "dsm.sub.hoarding": "Hoarding Disorder",
   "dsm.sub.body_dysmorphic": "Body Dysmorphic Disorder (BDD)",
   "dsm.sub.hair_pulling": "Trichotillomania (Hair-Pulling Disorder)",
   "dsm.sub.skin_picking": "Excoriation (Skin-Picking Disorder)",
-
   "dsm.sub.ptsd": "PTSD",
   "dsm.sub.acute_stress": "Acute Stress Disorder",
   "dsm.sub.adjustment_disorder": "Adjustment Disorder",
   "dsm.sub.reactive_attachment": "Reactive Attachment Disorder",
-
   "dsm.sub.dissociative_identity": "Dissociative Identity Disorder (DID)",
   "dsm.sub.dissociative_amnesia": "Dissociative Amnesia",
   "dsm.sub.depersonalization": "Depersonalization/Derealization Disorder",
-
   "dsm.sub.somatic_symptom": "Somatic Symptom Disorder",
   "dsm.sub.illness_anxiety": "Illness Anxiety Disorder",
   "dsm.sub.conversion": "Conversion Disorder",
   "dsm.sub.factitious": "Factitious Disorder",
-
   "dsm.sub.anorexia": "Anorexia Nervosa",
   "dsm.sub.bulimia": "Bulimia Nervosa",
   "dsm.sub.binge_eating": "Binge-Eating Disorder",
   "dsm.sub.avoidant_restrictive": "Avoidant/Restrictive Food Intake Disorder (ARFID)",
-
   "dsm.sub.insomnia": "Insomnia Disorder",
   "dsm.sub.hypersomnia": "Hypersomnolence Disorder",
   "dsm.sub.nightmare_disorder": "Nightmare Disorder",
   "dsm.sub.sleepwalking": "Sleepwalking Disorder",
-
   "dsm.sub.oppositional_defiant": "Oppositional Defiant Disorder (ODD)",
   "dsm.sub.conduct_disorder": "Conduct Disorder",
   "dsm.sub.intermittent_explosive": "Intermittent Explosive Disorder",
   "dsm.sub.pyromania": "Pyromania",
   "dsm.sub.kleptomania": "Kleptomania",
-
   "dsm.sub.alcohol_use": "Alcohol Use Disorder",
   "dsm.sub.cannabis_use": "Cannabis Use Disorder",
   "dsm.sub.stimulant_use": "Stimulant Use Disorder",
   "dsm.sub.opioid_use": "Opioid Use Disorder",
   "dsm.sub.tobacco_use": "Tobacco Use Disorder",
   "dsm.sub.gambling": "Gambling Disorder",
-
   "dsm.sub.alzheimers": "Alzheimer's Disease",
   "dsm.sub.vascular_dementia": "Vascular Dementia",
   "dsm.sub.mild_cognitive": "Mild Cognitive Impairment",
   "dsm.sub.delirium": "Delirium",
-
   "dsm.sub.borderline_pd": "Borderline Personality Disorder (BPD)",
   "dsm.sub.narcissistic_pd": "Narcissistic Personality Disorder",
   "dsm.sub.antisocial_pd": "Antisocial Personality Disorder (ASPD)",
@@ -480,7 +446,6 @@
   "dsm.sub.obsessive_compulsive_pd": "Obsessive-Compulsive Personality Disorder (OCPD)",
   "dsm.sub.paranoid_pd": "Paranoid Personality Disorder",
   "dsm.sub.schizotypal_pd": "Schizotypal Personality Disorder",
-
   "timeline.generation": "Generation {{number}}",
   "timeline.severity": "Severity: {{value}}",
   "timeline.significance": "Significance: {{value}}",
@@ -547,7 +512,6 @@
   "timeline.zoomMode": "Zoom mode",
   "timeline.timeRangeHint": "Filters event markers by date. Lifebars and classification strips are not affected.",
   "timeline.annotateHint": "Click on event markers (circles, diamonds) to select them, then create a pattern",
-
   "settings.title": "Settings",
   "settings.canvas": "Canvas",
   "settings.timeline": "Timeline",
@@ -559,7 +523,6 @@
   "settings.theme.dark": "Dark",
   "settings.theme.light": "Light",
   "settings.language": "Language",
-
   "account.changePassword": "Change password",
   "account.currentPassword": "Current password",
   "account.newPassword": "New password",
@@ -567,7 +530,6 @@
   "account.passwordChanged": "Password changed successfully",
   "account.passwordError": "Current password is incorrect",
   "account.passwordMismatch": "New passwords do not match",
-
   "account.changePassphrase": "Change encryption key",
   "account.currentPassphrase": "Current encryption key",
   "account.newPassphrase": "New encryption key",
@@ -577,14 +539,12 @@
   "account.passphraseError": "Current encryption key is incorrect",
   "account.passphraseMismatch": "New encryption keys do not match",
   "account.reencrypting": "Re-encrypting data...",
-
   "account.deleteAccount": "Delete account",
   "account.deleteWarning": "This action is permanent. Your account and all your data will be permanently deleted and cannot be restored.",
   "account.deleteConfirmLabel": "Type DELETE to confirm",
   "account.deletePassword": "Enter your password",
   "account.deleteButton": "Permanently delete my account",
   "account.deleteError": "Password is incorrect",
-
   "canvas.settings": "Canvas settings",
   "canvas.gridSettings": "Grid settings",
   "canvas.other": "Other",
@@ -602,7 +562,6 @@
   "canvas.showMarkers": "Show markers",
   "canvas.showMinimap": "Show minimap",
   "canvas.promptRelationship": "Prompt to add relationship",
-
   "settings.autoLockTimeout": "Auto-lock timeout",
   "settings.autoLock5min": "5 minutes",
   "settings.autoLock15min": "15 minutes",
@@ -613,11 +572,8 @@
   "settings.hintDescription": "A reminder shown when you unlock. Do not write your encryption key itself.",
   "settings.hintSaved": "Hint saved",
   "settings.hintError": "Could not save hint",
-
   "theme.toggle": "Cycle theme",
-
   "mentalHealth.footer": "Need support? For example <a>{{resource}}</a>",
-
   "landing.heroTagline": "A quiet place to map the patterns you carry.",
   "landing.tagline": "Map intergenerational trauma onto visual family trees.",
   "landing.about": "Traumatrees is a personal reflection tool for exploring patterns of trauma across generations. Build your family tree, record events, and visualize how experiences ripple through time.",
@@ -674,44 +630,34 @@
   "landing.faqA7": "Yes. You can delete individual entries, whole trees, or your entire account in settings. Deleting your account permanently removes all associated data from our systems.",
   "landing.finalCtaTitle": "Start when you are ready",
   "landing.finalCtaBody": "There is no rush. When you want to begin, your account takes a minute to create.",
-
   "privacy.title": "Privacy Policy",
   "privacy.lastUpdated": "Last updated: February 2026",
   "privacy.tab.glance": "At a glance",
   "privacy.tab.detail": "In depth",
-
   "privacy.collect.heading": "What we collect",
   "privacy.collect.body": "When you create an account, we store your email address and a hashed version of your password for authentication purposes. We also store an encryption salt used to derive your personal encryption key. When you use the app, we store your tree data (persons, relationships, events) as encrypted blobs that we cannot read. We record login timestamps to monitor service health and detect abuse.",
   "privacy.collect.glance": "We store your email, a scrambled version of your password, and your tree data in encrypted form that we cannot read.",
-
   "privacy.cannotAccess.heading": "What we cannot access",
   "privacy.cannotAccess.body": "All tree content (names, birth years, relationship details, trauma event descriptions, and any other information you enter) is encrypted on your device before it reaches our server. We store this data as opaque ciphertext. We have no way to decrypt, read, or analyse your content. Even under a legal order, we could not produce your plaintext data because we do not have your encryption key.",
   "privacy.cannotAccess.glance": "We can never read your names, dates, relationships, or events. Everything is encrypted before it leaves your device. Even if ordered by a court, we could not hand over your data.",
-
   "privacy.encryption.heading": "How encryption works",
   "privacy.encryption.body": "When you register, you choose an encryption key separate from your login password. Your encryption key, combined with a random salt, derives a 256-bit AES-GCM key using Argon2id (a memory-hard key derivation function). That derived key exists only in your browser's memory while you are logged in. Every piece of data is encrypted with a fresh random initialisation vector before being sent to the server. When you close the tab or log out, the key is discarded. We never store, transmit, or log your encryption key or the key it derives.",
   "privacy.encryption.glance": "Your encryption key derives a working key that lives only in your browser while you are logged in. When you close the tab, the key is gone. We never see it.",
-
   "privacy.hosting.heading": "Hosting and infrastructure",
   "privacy.hosting.body": "The application runs on Google Cloud Platform (Cloud Run and Cloud SQL) in the EU. Email verification messages are sent via SMTP. We do not use any third-party analytics, tracking scripts, advertising networks, or content delivery networks that process your data.",
   "privacy.hosting.glance": "Our servers run in the EU on Google Cloud. We use no analytics, no trackers, and no advertising networks.",
-
   "privacy.cookies.heading": "Cookies and local storage",
   "privacy.cookies.body": "We do not use cookies. We store two JSON Web Tokens (authentication tokens) in your browser's local storage to keep you logged in. These tokens contain your user ID and expiration time; no personal content. We do not use any third-party scripts that set cookies or track your behaviour.",
   "privacy.cookies.glance": "No cookies. We only store a login token in your browser to keep you logged in. No tracking of any kind.",
-
   "privacy.retention.heading": "Data retention",
   "privacy.retention.body": "Your data is stored for as long as your account exists. If you delete your account, all associated data (encrypted blobs, login records, and account information) is permanently removed from our systems.",
   "privacy.retention.glance": "Your data exists as long as your account does. Delete your account and everything is permanently removed.",
-
   "privacy.rights.heading": "Your rights",
   "privacy.rights.body": "Under the General Data Protection Regulation (GDPR), you have the right to access your personal data, rectify inaccurate data, request erasure of your data, restrict or object to processing, and receive your data in a portable format. You also have the right to lodge a complaint with your local data protection authority. Note that for encrypted content, you already have full access through the app; we cannot provide a plaintext copy because we do not have one.",
   "privacy.rights.glance": "Under GDPR, you can access, correct, or delete your data at any time. Since everything is encrypted, you already have full access through the app.",
-
   "privacy.contact.heading": "Contact",
   "privacy.contact.body": "For privacy-related questions or to exercise your rights, contact us at:",
   "privacy.contact.glance": "Questions about privacy? Reach out to us at:",
-
   "safety.onboarding.whatThisIs": "What this is",
   "safety.onboarding.whatThisIsBody": "Traumatrees is a personal reflection tool. It is not therapy and not crisis support.",
   "safety.onboarding.whatThisMayBringUp": "What this may bring up",
@@ -721,20 +667,17 @@
   "safety.onboarding.whatWeCannotSee": "What we cannot see",
   "safety.onboarding.whatWeCannotSeeBody": "Your data is encrypted before it leaves your device. The server sees no content.",
   "safety.onboarding.continue": "I understand, continue",
-
   "safety.footer.disclaimer": "Personal reflection tool, not therapy",
   "safety.footer.disclaimerShort": "Reflection tool",
   "safety.footer.support": "Need support?",
   "safety.footer.lock": "Lock screen",
   "safety.footer.menu": "More",
   "safety.footer.privacy": "How privacy works",
-
   "safety.lock.title": "Screen locked",
   "safety.lock.passphrase": "Enter your encryption key to unlock",
   "safety.lock.wrongPassphrase": "Wrong encryption key",
   "safety.lock.tooManyAttempts": "Too many attempts. Full re-authentication required.",
   "safety.lock.unlock": "Unlock",
-
   "pattern.patterns": "Patterns",
   "pattern.newPattern": "New pattern",
   "pattern.name": "Name",
@@ -765,7 +708,6 @@
   "pattern.traumaEvent": "Trauma event",
   "pattern.lifeEvent": "Life event",
   "pattern.classification": "Classification",
-
   "admin.title": "Admin",
   "admin.loadError": "Failed to load stats",
   "admin.overview": "Overview",
@@ -820,7 +762,6 @@
   "admin.feedbackAnonymous": "Anonymous",
   "admin.feedbackMarkRead": "Mark read",
   "admin.feedbackDelete": "Delete",
-
   "admin.featureToggles": "Feature toggles",
   "admin.faq.title": "FAQ",
   "admin.faq.add": "Add question",
@@ -842,7 +783,6 @@
   "admin.features.audience.selected": "Specific users",
   "admin.features.noUsersSelected": "No users selected",
   "admin.features.usersSelected": "{{count}} user(s) selected",
-
   "admin.waitlist.title": "Waitlist",
   "admin.waitlist.capacity": "{{current}} / {{max}} users",
   "admin.waitlist.disabled": "disabled",
@@ -856,7 +796,6 @@
   "admin.waitlist.approve": "Approve",
   "admin.waitlist.delete": "Delete",
   "admin.waitlist.empty": "No waitlist entries",
-
   "waitlist.title": "Join the waitlist",
   "waitlist.subtitle": "We're currently at capacity. Leave your email and we'll notify you when a spot opens up.",
   "waitlist.emailPlaceholder": "your@email.com",
@@ -868,7 +807,6 @@
   "waitlist.approvalBanner": "You've been approved! Complete your registration below.",
   "waitlist.invalidInvite": "This invitation link is invalid or has expired.",
   "waitlist.emailMismatch": "This invitation was sent to a different email address.",
-
   "feedback.title": "Send feedback",
   "feedback.category": "Category",
   "feedback.categoryBug": "Bug report",
@@ -883,7 +821,6 @@
   "feedback.success": "Thank you for your feedback",
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
-
   "demo.createButton": "Create demo tree",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximum 3 demo trees",
@@ -895,28 +832,23 @@
   "demo.live.cta": "Create your own",
   "demo.live.cardCta": "This family is fictional. Create your own private tree to map yours.",
   "demo.live.patterns": "Patterns",
-
   "welcome.title": "Welcome to Traumatrees",
   "welcome.body": "This is an early version of the app. Start by creating your first tree, and if anything feels off or you have ideas, we'd genuinely love to hear from you.",
   "welcome.sendMessage": "Send us a message",
   "welcome.createTree": "Create your first tree",
-
   "privacy.diagram.youType": "You type",
   "privacy.diagram.encrypted": "Encrypted in your browser",
   "privacy.diagram.serverStores": "Server stores ???-blobs",
   "privacy.diagram.technicalDetails": "Technical details",
   "privacy.diagram.technicalBody": "Key derivation: Argon2id (memory-hard, 64 MB, 3 iterations). Encryption: AES-256-GCM with fresh random IV per operation. Implementation: Web Crypto API (browser-native, no external libraries).",
-
   "export.title": "Export",
   "export.downloadBackup": "Download encrypted backup",
   "export.downloadPlaintext": "Download as plain JSON",
   "export.plaintextWarning": "This will export your data without encryption. Anyone with the file can read it.",
   "export.confirmDownload": "Download unencrypted",
-
   "error.title": "Something went wrong",
   "error.description": "An unexpected error occurred. Please reload the page.",
   "error.reload": "Reload page",
-
   "insights.tab": "Insights",
   "insights.title": "Insights",
   "insights.subtitle": "Observations from what you have entered. A starting point for reflection, not conclusions.",
@@ -941,7 +873,6 @@
   "insights.turningPointsFollowTraumaDetail": "Suggesting recovery or growth after adversity",
   "insights.cycleBreakingGenerations": "Cycle-breaking events in {{count}} generations",
   "insights.mostCommonTurningPoint": "Most common turning point: {{category}} ({{count}} events)",
-
   "siblingGroup.label": "siblings ({{count}})",
   "siblingGroup.title": "Sibling Group",
   "siblingGroup.section": "Sibling Group",
@@ -997,5 +928,7 @@
   "security.why.item3": "Zero-knowledge architecture",
   "security.why.item4": "We cannot read your data. Only you can.",
   "security.readPrivacy": "Read the full privacy policy",
-  "security.link": "See how your data is protected"
+  "security.link": "See how your data is protected",
+  "inspector.saved": "Saved",
+  "inspector.saveFailed": "Couldn't save"
 }

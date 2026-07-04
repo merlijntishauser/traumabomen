@@ -1,4 +1,3 @@
-import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -6,18 +5,23 @@ import { getLifeEventColor } from "../../lib/lifeEventColors";
 import type { LifeEvent } from "../../types/domain";
 import { LifeEventCategory } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { blurOnEnter } from "../inspector/fieldHelpers";
+import { InspectorField } from "../inspector/InspectorField";
+import { useSaveReporter } from "../inspector/InspectorStatus";
+import { useEntityAutosave } from "../inspector/useEntityAutosave";
 import { EditSubPanel } from "./EditSubPanel";
 import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
-
-const T_SAVE = "common.save";
-const T_DELETE = "common.delete";
 
 interface LifeEventsTabProps {
   person: DecryptedPerson;
   lifeEvents: DecryptedLifeEvent[];
   allPersons: Map<string, DecryptedPerson>;
-  onSaveLifeEvent: (lifeEventId: string | null, data: LifeEvent, personIds: string[]) => void;
+  onSaveLifeEvent: (
+    lifeEventId: string | null,
+    data: LifeEvent,
+    personIds: string[],
+  ) => Promise<unknown> | undefined;
   onDeleteLifeEvent: (lifeEventId: string) => void;
   initialEditId?: string;
 }
@@ -26,29 +30,38 @@ interface LifeEventFormProps {
   event: DecryptedLifeEvent | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
-  onSave: (data: LifeEvent, personIds: string[]) => void;
+  onSave: (data: LifeEvent, personIds: string[]) => Promise<unknown> | undefined;
   onDelete?: () => void;
 }
 
-interface LifeEventFormState {
+interface LifeEventDraft {
   title: string;
   description: string;
   category: LifeEventCategory;
   approximateDate: string;
   impact: string;
   tags: string;
+  personIds: string[];
 }
 
-type LifeEventFormAction = { type: "SET_FIELD"; field: keyof LifeEventFormState; value: string };
-
-function lifeEventFormReducer(
-  state: LifeEventFormState,
-  action: LifeEventFormAction,
-): LifeEventFormState {
-  if (action.type === "SET_FIELD") {
-    return { ...state, [action.field]: action.value };
-  }
-  return state;
+function buildLifeEventData(
+  draft: LifeEventDraft,
+): { data: LifeEvent; personIds: string[] } | null {
+  if (!draft.title.trim() || draft.personIds.length === 0) return null;
+  return {
+    data: {
+      title: draft.title,
+      description: draft.description,
+      category: draft.category,
+      approximate_date: draft.approximateDate,
+      impact: draft.impact ? parseInt(draft.impact, 10) || null : null,
+      tags: draft.tags.split(",").flatMap((s) => {
+        const trimmed = s.trim();
+        return trimmed ? [trimmed] : [];
+      }),
+    },
+    personIds: draft.personIds,
+  };
 }
 
 function LifeEventForm({
@@ -59,61 +72,63 @@ function LifeEventForm({
   onDelete,
 }: LifeEventFormProps) {
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(lifeEventFormReducer, {
-    title: event?.title ?? "",
-    description: event?.description ?? "",
-    category: event?.category ?? LifeEventCategory.Family,
-    approximateDate: event?.approximate_date ?? "",
-    impact: event?.impact != null ? String(event.impact) : "",
-    tags: event?.tags?.join(", ") ?? "",
-  });
-  const [selectedPersonIds, setSelectedPersonIds] = useState<Set<string>>(
-    () => new Set(initialPersonIds),
-  );
+  const report = useSaveReporter();
 
-  function handleSave() {
-    onSave(
-      {
-        title: state.title,
-        description: state.description,
-        category: state.category,
-        approximate_date: state.approximateDate,
-        impact: state.impact ? parseInt(state.impact, 10) || null : null,
-        tags: state.tags.split(",").flatMap((s) => {
-          const trimmed = s.trim();
-          return trimmed ? [trimmed] : [];
-        }),
-      },
-      Array.from(selectedPersonIds),
+  const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
+    useEntityAutosave({
+      entity: event,
+      toDraft: (e) => ({
+        title: e?.title ?? "",
+        description: e?.description ?? "",
+        category: e?.category ?? LifeEventCategory.Family,
+        approximateDate: e?.approximate_date ?? "",
+        impact: e?.impact != null ? String(e.impact) : "",
+        tags: e?.tags?.join(", ") ?? "",
+        personIds: e?.person_ids ?? initialPersonIds,
+      }),
+      toData: buildLifeEventData,
+      onAutoSave: (payload) => onSave(payload.data, payload.personIds),
+    });
+
+  function handleAdd() {
+    const payload = buildData();
+    if (!payload) return;
+    const result = onSave(payload.data, payload.personIds);
+    Promise.resolve(result).then(
+      () => report?.("saved"),
+      () => report?.("error"),
     );
   }
 
   return (
-    <div className="detail-panel__event-form">
-      <label className="detail-panel__field">
-        <span>{t("lifeEvent.title")}</span>
+    <>
+      <InspectorField label={t("lifeEvent.title")}>
         <input
           type="text"
-          value={state.title}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
+          aria-label={t("lifeEvent.title")}
+          value={draft.title}
+          onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("lifeEvent.description")}</span>
+      </InspectorField>
+      <InspectorField label={t("lifeEvent.description")}>
         <textarea
-          value={state.description}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
-          }
+          aria-label={t("lifeEvent.description")}
+          value={draft.description}
+          onChange={(e) => {
+            update((d) => ({ ...d, description: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
           rows={2}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("lifeEvent.category")}</span>
+      </InspectorField>
+      <InspectorField label={t("lifeEvent.category")}>
         <select
-          value={state.category}
+          value={draft.category}
           onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })
+            changeAndCommit((d) => ({ ...d, category: e.target.value as LifeEventCategory }))
           }
         >
           {Object.values(LifeEventCategory).map((cat) => (
@@ -122,57 +137,66 @@ function LifeEventForm({
             </option>
           ))}
         </select>
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("lifeEvent.approximateDate")}</span>
+      </InspectorField>
+      <InspectorField label={t("lifeEvent.approximateDate")}>
         <input
           type="text"
-          value={state.approximateDate}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIELD", field: "approximateDate", value: e.target.value })
-          }
+          aria-label={t("lifeEvent.approximateDate")}
+          value={draft.approximateDate}
+          onChange={(e) => update((d) => ({ ...d, approximateDate: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
           placeholder={t("lifeEvent.datePlaceholder")}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>
-          {t("lifeEvent.impact")} ({state.impact})
-        </span>
+      </InspectorField>
+      <InspectorField label={`${t("lifeEvent.impact")} (${draft.impact || "-"})`}>
         <input
           type="range"
+          aria-label={t("lifeEvent.impact")}
           min="1"
           max="10"
-          value={state.impact}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "impact", value: e.target.value })}
+          value={draft.impact || "5"}
+          onChange={(e) => {
+            update((d) => ({ ...d, impact: e.target.value }));
+            scheduleCommit();
+          }}
+          onBlur={commit}
         />
-      </label>
-      <label className="detail-panel__field">
-        <span>{t("lifeEvent.tags")}</span>
+      </InspectorField>
+      <InspectorField label={t("lifeEvent.tags")}>
         <input
           type="text"
-          value={state.tags}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "tags", value: e.target.value })}
+          aria-label={t("lifeEvent.tags")}
+          value={draft.tags}
+          onChange={(e) => update((d) => ({ ...d, tags: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
           placeholder={t("lifeEvent.tagsPlaceholder")}
         />
-      </label>
+      </InspectorField>
       <PersonLinkField
         allPersons={allPersons}
-        selectedIds={selectedPersonIds}
-        onChange={setSelectedPersonIds}
+        selectedIds={new Set(draft.personIds)}
+        onChange={(ids) => changeAndCommit((d) => ({ ...d, personIds: Array.from(ids) }))}
       />
-      <div className="detail-panel__actions">
-        <button type="button" className="btn btn--primary" onClick={handleSave}>
-          {t(T_SAVE)}
-        </button>
-        {onDelete && (
-          <ConfirmDeleteButton
-            onConfirm={onDelete}
-            label={t(T_DELETE)}
-            confirmLabel={t("lifeEvent.confirmDelete")}
-          />
-        )}
-      </div>
-    </div>
+      {isNew ? (
+        <div className="detail-panel__actions">
+          <button type="button" className="btn btn--primary" onClick={handleAdd}>
+            {t("common.add")}
+          </button>
+        </div>
+      ) : (
+        onDelete && (
+          <div className="inspector-danger">
+            <ConfirmDeleteButton
+              onConfirm={onDelete}
+              label={t("common.delete")}
+              confirmLabel={t("lifeEvent.confirmDelete")}
+            />
+          </div>
+        )
+      )}
+    </>
   );
 }
 
@@ -189,26 +213,22 @@ export function LifeEventsTab({
     useEditingState(initialEditId);
 
   if (isEditing) {
+    const event = editingId ? (lifeEvents.find((e) => e.id === editingId) ?? null) : null;
     return (
       <EditSubPanel
-        title={
-          editingId
-            ? (lifeEvents.find((e) => e.id === editingId)?.title ?? t("lifeEvent.editEvent"))
-            : t("lifeEvent.newEvent")
-        }
+        title={editingId ? (event?.title ?? t("lifeEvent.editEvent")) : t("lifeEvent.newEvent")}
         onBack={clearEditing}
+        closeLabel={editingId ? t("common.close") : undefined}
       >
         <LifeEventForm
-          event={editingId ? (lifeEvents.find((e) => e.id === editingId) ?? null) : null}
+          key={editingId ?? "new"}
+          event={event}
           allPersons={allPersons}
-          initialPersonIds={
-            editingId
-              ? (lifeEvents.find((e) => e.id === editingId)?.person_ids ?? [person.id])
-              : [person.id]
-          }
+          initialPersonIds={event?.person_ids ?? [person.id]}
           onSave={(data, personIds) => {
-            onSaveLifeEvent(editingId, data, personIds);
-            clearEditing();
+            const result = onSaveLifeEvent(editingId, data, personIds);
+            if (!editingId) clearEditing();
+            return result;
           }}
           onDelete={
             editingId

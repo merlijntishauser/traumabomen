@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
@@ -123,7 +123,8 @@ describe("TraumaEventsTab", () => {
 
       await user.click(screen.getByText("Loss of parent"));
 
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      // Autosave model: no save button, only delete
+      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
       expect(screen.getByText("common.delete")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Loss of parent")).toBeInTheDocument();
     });
@@ -134,7 +135,7 @@ describe("TraumaEventsTab", () => {
       render(<TraumaEventsTab {...props} initialEditId="e1" />);
 
       expect(screen.getByDisplayValue("Loss of parent")).toBeInTheDocument();
-      expect(screen.getByText("common.save")).toBeInTheDocument();
+      expect(screen.getByText("common.delete")).toBeInTheDocument();
     });
   });
 
@@ -162,7 +163,7 @@ describe("TraumaEventsTab", () => {
       expect(slider).toHaveValue("5");
     });
 
-    it("calls onSaveEvent with form data when save is clicked", async () => {
+    it("calls onSaveEvent with null id when add is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<TraumaEventsTab {...props} />);
@@ -175,7 +176,7 @@ describe("TraumaEventsTab", () => {
       const descTextarea = screen.getByRole("textbox", { name: "trauma.description" });
       await user.type(descTextarea, "Witnessed conflict");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       expect(props.onSaveEvent).toHaveBeenCalledOnce();
       const [eventId, data, personIds] = props.onSaveEvent.mock.calls[0];
@@ -194,10 +195,13 @@ describe("TraumaEventsTab", () => {
 
       await user.click(screen.getByText("trauma.newEvent"));
 
+      const titleInput = screen.getByRole("textbox", { name: "trauma.title" });
+      await user.type(titleInput, "War experience");
+
       const tagsInput = screen.getByPlaceholderText("trauma.tagsPlaceholder");
       await user.type(tagsInput, "war, conflict, ptsd");
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveEvent.mock.calls[0][1];
       expect(savedData.tags).toEqual(["war", "conflict", "ptsd"]);
@@ -209,10 +213,24 @@ describe("TraumaEventsTab", () => {
       render(<TraumaEventsTab {...props} />);
 
       await user.click(screen.getByText("trauma.newEvent"));
-      await user.click(screen.getByText("common.save"));
+      await user.type(screen.getByRole("textbox", { name: "trauma.title" }), "Untagged");
+      await user.click(screen.getByText("common.add"));
 
       const savedData = props.onSaveEvent.mock.calls[0][1];
       expect(savedData.tags).toEqual([]);
+    });
+
+    it("does nothing when add is clicked with an empty title", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      render(<TraumaEventsTab {...props} />);
+
+      await user.click(screen.getByText("trauma.newEvent"));
+      await user.click(screen.getByText("common.add"));
+
+      expect(props.onSaveEvent).not.toHaveBeenCalled();
+      // Still in the creation form
+      expect(screen.getByText("trauma.title")).toBeInTheDocument();
     });
 
     it("pre-fills form with existing event data when editing", async () => {
@@ -246,10 +264,12 @@ describe("TraumaEventsTab", () => {
 
       await user.click(screen.getByText("trauma.newEvent"));
 
+      await user.type(screen.getByRole("textbox", { name: "trauma.title" }), "War experience");
+
       const categorySelect = screen.getByRole("combobox");
       await user.selectOptions(categorySelect, TraumaCategory.War);
 
-      await user.click(screen.getByText("common.save"));
+      await user.click(screen.getByText("common.add"));
 
       expect(props.onSaveEvent.mock.calls[0][1].category).toBe(TraumaCategory.War);
     });
@@ -276,27 +296,99 @@ describe("TraumaEventsTab", () => {
       expect(screen.queryByText("common.delete")).not.toBeInTheDocument();
     });
 
-    it("returns to list view after saving", async () => {
+    it("returns to list view after adding a new event", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<TraumaEventsTab {...props} />);
 
       await user.click(screen.getByText("trauma.newEvent"));
-      await user.click(screen.getByText("common.save"));
+      await user.type(screen.getByRole("textbox", { name: "trauma.title" }), "War experience");
+      await user.click(screen.getByText("common.add"));
 
+      expect(props.onSaveEvent).toHaveBeenCalledOnce();
       expect(screen.getByText("trauma.newEvent")).toBeInTheDocument();
       expect(screen.queryByText("trauma.title")).not.toBeInTheDocument();
     });
 
-    it("returns to list view when cancel is clicked", async () => {
+    it("saves nothing when backing out of a creation without adding", async () => {
       const user = userEvent.setup();
-      render(<TraumaEventsTab {...defaultProps()} />);
+      const props = defaultProps();
+      render(<TraumaEventsTab {...props} />);
 
       await user.click(screen.getByText("trauma.newEvent"));
+      await user.type(screen.getByRole("textbox", { name: "trauma.title" }), "Half-typed");
       await user.click(screen.getByLabelText("common.close"));
 
+      expect(props.onSaveEvent).not.toHaveBeenCalled();
       expect(screen.getByText("trauma.newEvent")).toBeInTheDocument();
-      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+      expect(screen.queryByText("common.add")).not.toBeInTheDocument();
+    });
+
+    it("commits a title change on blur when editing", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ id: "e1", title: "Loss of parent" })];
+      render(<TraumaEventsTab {...props} />);
+
+      await user.click(screen.getByText("Loss of parent"));
+
+      const titleInput = screen.getByRole("textbox", { name: "trauma.title" });
+      fireEvent.change(titleInput, { target: { value: "Loss of both parents" } });
+      fireEvent.blur(titleInput);
+
+      expect(props.onSaveEvent).toHaveBeenCalledOnce();
+      const [eventId, data, personIds] = props.onSaveEvent.mock.calls[0];
+      expect(eventId).toBe("e1");
+      expect(data.title).toBe("Loss of both parents");
+      expect(personIds).toEqual(["p1"]);
+    });
+
+    it("does not save on blur without a change", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ id: "e1", title: "Loss of parent" })];
+      render(<TraumaEventsTab {...props} />);
+
+      await user.click(screen.getByText("Loss of parent"));
+
+      const titleInput = screen.getByRole("textbox", { name: "trauma.title" });
+      fireEvent.blur(titleInput);
+
+      expect(props.onSaveEvent).not.toHaveBeenCalled();
+    });
+
+    it("keeps the editor open after an autosave commit", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ id: "e1", title: "Loss of parent" })];
+      render(<TraumaEventsTab {...props} />);
+
+      await user.click(screen.getByText("Loss of parent"));
+
+      const dateInput = screen.getByRole("textbox", { name: "trauma.approximateDate" });
+      fireEvent.change(dateInput, { target: { value: "1986" } });
+      fireEvent.blur(dateInput);
+
+      expect(props.onSaveEvent).toHaveBeenCalledOnce();
+      // Editor stays open after a commit
+      expect(screen.getByText("trauma.title")).toBeInTheDocument();
+      expect(screen.queryByText("trauma.newEvent")).not.toBeInTheDocument();
+    });
+
+    it("commits a category change immediately when editing", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.events = [makeEvent({ id: "e1", category: TraumaCategory.Loss })];
+      render(<TraumaEventsTab {...props} />);
+
+      await user.click(screen.getByText("Loss of parent"));
+
+      const categorySelect = screen.getByRole("combobox");
+      await user.selectOptions(categorySelect, TraumaCategory.War);
+
+      expect(props.onSaveEvent).toHaveBeenCalledOnce();
+      expect(props.onSaveEvent.mock.calls[0][0]).toBe("e1");
+      expect(props.onSaveEvent.mock.calls[0][1].category).toBe(TraumaCategory.War);
     });
 
     it("defaults severity to 1 when severity input is invalid", async () => {

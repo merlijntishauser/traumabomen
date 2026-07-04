@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson, DecryptedTurningPoint } from "../../hooks/useTreeData";
@@ -102,7 +102,7 @@ describe("TurningPointsTab", () => {
     const tagsInput = screen.getByPlaceholderText("turningPoint.tagsPlaceholder");
     await user.type(tagsInput, "therapy, healing");
 
-    await user.click(screen.getByText("common.save"));
+    await user.click(screen.getByText("common.add"));
 
     expect(onSave).toHaveBeenCalledWith(
       null,
@@ -149,7 +149,7 @@ describe("TurningPointsTab", () => {
     expect(titleInput).toHaveValue("Broke the cycle");
   });
 
-  it("calls onSave with updated data when editing", async () => {
+  it("calls onSave with updated data on blur when editing", async () => {
     const user = userEvent.setup();
     const tp = makeTurningPoint();
     const { onSave } = renderTab({ turningPoints: [tp] });
@@ -159,14 +159,59 @@ describe("TurningPointsTab", () => {
     const titleInput = screen.getByRole("textbox", { name: "turningPoint.titleField" });
     await user.clear(titleInput);
     await user.type(titleInput, "New title");
-
-    await user.click(screen.getByText("common.save"));
+    fireEvent.blur(titleInput);
 
     expect(onSave).toHaveBeenCalledWith(
       "tp1",
       expect.objectContaining({ title: "New title" }),
       expect.any(Array),
     );
+  });
+
+  it("does not save on blur without a change when editing", async () => {
+    const user = userEvent.setup();
+    const tp = makeTurningPoint();
+    const { onSave } = renderTab({ turningPoints: [tp] });
+
+    await user.click(screen.getByText("Broke the cycle"));
+
+    const titleInput = screen.getByRole("textbox", { name: "turningPoint.titleField" });
+    fireEvent.blur(titleInput);
+
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("keeps the editor open after an autosave commit", async () => {
+    const user = userEvent.setup();
+    const tp = makeTurningPoint();
+    const { onSave } = renderTab({ turningPoints: [tp] });
+
+    await user.click(screen.getByText("Broke the cycle"));
+
+    const dateInput = screen.getByPlaceholderText("turningPoint.datePlaceholder");
+    fireEvent.change(dateInput, { target: { value: "1999" } });
+    fireEvent.blur(dateInput);
+
+    expect(onSave).toHaveBeenCalledOnce();
+    // Editor stays open after a commit
+    expect(screen.getByText("turningPoint.titleField")).toBeInTheDocument();
+    expect(screen.queryByText("turningPoint.newEvent")).not.toBeInTheDocument();
+  });
+
+  it("shows no save button in edit mode and an add button in create mode", async () => {
+    const user = userEvent.setup();
+    const tp = makeTurningPoint();
+    renderTab({ turningPoints: [tp] });
+
+    await user.click(screen.getByText("Broke the cycle"));
+    expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+    expect(screen.queryByText("common.add")).not.toBeInTheDocument();
+    expect(screen.getByText("common.delete")).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("common.close"));
+    await user.click(screen.getByText("turningPoint.newEvent"));
+    expect(screen.getByText("common.add")).toBeInTheDocument();
+    expect(screen.queryByText("common.delete")).not.toBeInTheDocument();
   });
 
   it("requires two clicks to delete", async () => {
@@ -206,7 +251,7 @@ describe("TurningPointsTab", () => {
     // Fire change event directly since userEvent doesn't handle range well
     slider.focus();
 
-    await user.click(screen.getByText("common.save"));
+    await user.click(screen.getByText("common.add"));
 
     expect(onSave).toHaveBeenCalledWith(
       null,

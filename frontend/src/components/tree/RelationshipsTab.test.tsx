@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -62,7 +62,7 @@ const defaultProps = () => {
     relationships: [] as DecryptedRelationship[],
     inferredSiblings: [] as InferredSibling[],
     allPersons,
-    onSaveRelationship: vi.fn(),
+    onSaveRelationship: vi.fn().mockResolvedValue(undefined),
   };
 };
 
@@ -70,7 +70,7 @@ describe("RelationshipsTab", () => {
   describe("empty state", () => {
     it("shows empty message when no relationships or inferred siblings", () => {
       render(<RelationshipsTab {...defaultProps()} />);
-      expect(screen.getByText("---")).toBeInTheDocument();
+      expect(screen.getByText("relationship.none")).toBeInTheDocument();
     });
   });
 
@@ -254,9 +254,11 @@ describe("RelationshipsTab", () => {
 
       await user.click(screen.getByText("common.edit"));
 
-      // Should show period editor with save and cancel buttons
-      expect(screen.getByText("common.save")).toBeInTheDocument();
-      expect(screen.getByText("common.cancel")).toBeInTheDocument();
+      // Autosaving editor: no save or cancel, only a close button
+      expect(screen.getByText("relationship.addPeriod")).toBeInTheDocument();
+      expect(screen.getByText("common.close")).toBeInTheDocument();
+      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+      expect(screen.queryByText("common.cancel")).not.toBeInTheDocument();
     });
 
     it("shows status select in period editor", async () => {
@@ -277,7 +279,7 @@ describe("RelationshipsTab", () => {
       expect(screen.getByText("common.endYear")).toBeInTheDocument();
     });
 
-    it("initializes with a default period when no periods exist", async () => {
+    it("starts empty when no periods exist", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.relationships = [
@@ -290,8 +292,9 @@ describe("RelationshipsTab", () => {
 
       await user.click(screen.getByText("common.edit"));
 
-      // Should have a period with current year as start
-      expect(screen.getByText("common.startYear")).toBeInTheDocument();
+      // No seeded default period: adding one is the explicit act that creates it
+      expect(screen.queryByText("common.startYear")).not.toBeInTheDocument();
+      expect(screen.getByText("relationship.addPeriod")).toBeInTheDocument();
     });
 
     it("adds a new period when add period button is clicked", async () => {
@@ -308,12 +311,13 @@ describe("RelationshipsTab", () => {
       await user.click(screen.getByText("common.edit"));
       await user.click(screen.getByText("relationship.addPeriod"));
 
-      // Should now have two start year labels
+      // Should now have two start year labels, and the add committed immediately
       const startYearLabels = screen.getAllByText("common.startYear");
       expect(startYearLabels).toHaveLength(2);
+      expect(props.onSaveRelationship).toHaveBeenCalledOnce();
     });
 
-    it("removes a period when remove button is clicked (multiple periods)", async () => {
+    it("removes a period and commits when remove button is clicked", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.relationships = [
@@ -335,11 +339,18 @@ describe("RelationshipsTab", () => {
 
       await user.click(removeButtons[0]);
 
-      // Should now have 1 period and no remove buttons (single period)
+      // One period row left; the removal committed immediately
       expect(screen.getAllByText("common.startYear")).toHaveLength(1);
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          type: RelationshipType.Partner,
+          periods: [{ start_year: 2008, end_year: null, status: PartnerStatus.Together }],
+        }),
+      );
     });
 
-    it("does not show remove button when only one period exists", async () => {
+    it("shows a remove button even when only one period exists", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.relationships = [
@@ -352,10 +363,10 @@ describe("RelationshipsTab", () => {
 
       await user.click(screen.getByText("common.edit"));
 
-      expect(screen.queryByText("relationship.removePeriod")).not.toBeInTheDocument();
+      expect(screen.getByText("relationship.removePeriod")).toBeInTheDocument();
     });
 
-    it("calls onSaveRelationship with updated data when save is clicked", async () => {
+    it("commits a status change immediately", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.relationships = [
@@ -369,16 +380,21 @@ describe("RelationshipsTab", () => {
       render(<RelationshipsTab {...props} />);
 
       await user.click(screen.getByText("common.edit"));
-      await user.click(screen.getByText("common.save"));
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "relationship.status" }),
+        PartnerStatus.Married,
+      );
 
       expect(props.onSaveRelationship).toHaveBeenCalledOnce();
       const [relId, data] = props.onSaveRelationship.mock.calls[0];
       expect(relId).toBe("r1");
       expect(data.type).toBe(RelationshipType.Partner);
-      expect(data.periods.length).toBeGreaterThanOrEqual(1);
+      expect(data.periods).toEqual([
+        { start_year: 2000, end_year: null, status: PartnerStatus.Married },
+      ]);
     });
 
-    it("closes period editor when cancel is clicked", async () => {
+    it("commits a year change on blur", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       props.relationships = [
@@ -390,13 +406,67 @@ describe("RelationshipsTab", () => {
       render(<RelationshipsTab {...props} />);
 
       await user.click(screen.getByText("common.edit"));
-      expect(screen.getByText("common.save")).toBeInTheDocument();
 
-      await user.click(screen.getByText("common.cancel"));
+      const startYearInput = screen.getByRole("textbox", { name: "common.startYear" });
+      fireEvent.change(startYearInput, { target: { value: "1995" } });
+      expect(props.onSaveRelationship).not.toHaveBeenCalled();
+      fireEvent.blur(startYearInput);
 
-      // Should be back to showing the edit button
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          periods: [{ start_year: 1995, end_year: null, status: PartnerStatus.Together }],
+        }),
+      );
+    });
+
+    it("closes period editor without saving when nothing changed", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.relationships = [
+        makeRelationship({
+          type: RelationshipType.Partner,
+          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
+        }),
+      ];
+      render(<RelationshipsTab {...props} />);
+
+      await user.click(screen.getByText("common.edit"));
+      expect(screen.getByText("relationship.addPeriod")).toBeInTheDocument();
+
+      await user.click(screen.getByText("common.close"));
+
+      // Should be back to showing the edit button; a clean close saves nothing
       expect(screen.getByText("common.edit")).toBeInTheDocument();
-      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
+      expect(screen.queryByText("relationship.addPeriod")).not.toBeInTheDocument();
+      expect(props.onSaveRelationship).not.toHaveBeenCalled();
+    });
+
+    it("flushes a pending year edit when the editor is closed", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.relationships = [
+        makeRelationship({
+          type: RelationshipType.Partner,
+          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
+        }),
+      ];
+      render(<RelationshipsTab {...props} />);
+
+      await user.click(screen.getByText("common.edit"));
+
+      const startYearInput = screen.getByRole("textbox", { name: "common.startYear" });
+      fireEvent.change(startYearInput, { target: { value: "1998" } });
+
+      await user.click(screen.getByText("common.close"));
+
+      // Closing loses nothing: the pending edit committed on unmount
+      expect(props.onSaveRelationship).toHaveBeenCalledWith(
+        "r1",
+        expect.objectContaining({
+          periods: [{ start_year: 1998, end_year: null, status: PartnerStatus.Together }],
+        }),
+      );
     });
   });
 

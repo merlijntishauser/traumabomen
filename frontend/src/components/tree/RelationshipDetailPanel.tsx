@@ -1,18 +1,21 @@
-import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
-import type { RelationshipData, RelationshipPeriod } from "../../types/domain";
-import { PartnerStatus, RelationshipType, withAutoDissolvedPeriods } from "../../types/domain";
-
-type KeyedRelationshipPeriod = RelationshipPeriod & { _key: string };
-
+import type { RelationshipData } from "../../types/domain";
+import { RelationshipType } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { InspectorField } from "../inspector/InspectorField";
+import {
+  InspectorSaveWhisper,
+  InspectorStatusProvider,
+  useInspectorStatus,
+} from "../inspector/InspectorStatus";
+import { PartnerPeriodsEditor } from "./PartnerPeriodsEditor";
 import "./PersonDetailPanel.css";
 
 interface RelationshipDetailPanelProps {
   relationship: DecryptedRelationship;
   allPersons: Map<string, DecryptedPerson>;
-  onSaveRelationship: (relationshipId: string, data: RelationshipData) => void;
+  onSaveRelationship: (relationshipId: string, data: RelationshipData) => Promise<unknown>;
   onDeleteRelationship: (relationshipId: string) => void;
   onClose: () => void;
 }
@@ -32,24 +35,7 @@ export function RelationshipDetailPanel({
   onClose,
 }: RelationshipDetailPanelProps) {
   const { t } = useTranslation();
-
-  const [type, setType] = useState(relationship.type);
-  const [periods, setPeriods] = useState<KeyedRelationshipPeriod[]>(() =>
-    relationship.periods.map((p) => ({ ...p, _key: crypto.randomUUID() })),
-  );
-  const [editingPeriods, setEditingPeriods] = useState(false);
-
-  // Reset form when relationship prop changes (previous prop pattern)
-  const prevRelRef = useRef({ type: relationship.type, periods: relationship.periods });
-  if (
-    prevRelRef.current.type !== relationship.type ||
-    prevRelRef.current.periods !== relationship.periods
-  ) {
-    prevRelRef.current = { type: relationship.type, periods: relationship.periods };
-    setType(relationship.type);
-    setPeriods(relationship.periods.map((p) => ({ ...p, _key: crypto.randomUUID() })));
-    setEditingPeriods(false);
-  }
+  const { status, report } = useInspectorStatus();
 
   const sourcePerson = allPersons.get(relationship.source_person_id);
   const targetPerson = allPersons.get(relationship.target_person_id);
@@ -65,89 +51,48 @@ export function RelationshipDetailPanel({
   const sourceLabel = isParentType ? t(`relationship.type.${relationship.type}`) : null;
   const targetLabel = isParentType ? t(`relationship.childOf.${relationship.type}`) : null;
 
+  // Type changes commit immediately, like every inspector select.
   function handleSaveType(newType: RelationshipType) {
-    setType(newType);
     onSaveRelationship(relationship.id, {
       type: newType,
       periods: newType === RelationshipType.Partner ? relationship.periods : [],
       active_period: relationship.active_period,
-    });
-  }
-
-  function handleSavePeriods() {
-    const cleanedPeriods = periods.map(({ _key, ...rest }) => rest);
-    onSaveRelationship(relationship.id, {
-      type: relationship.type,
-      periods: withAutoDissolvedPeriods(cleanedPeriods, {
-        source: sourcePerson?.death_year,
-        target: targetPerson?.death_year,
-      }),
-      active_period: relationship.active_period,
-    });
-    setEditingPeriods(false);
-  }
-
-  function addPeriod() {
-    setPeriods((prev) => [
-      ...prev,
-      {
-        start_year: new Date().getFullYear(),
-        end_year: null,
-        status: PartnerStatus.Together,
-        _key: crypto.randomUUID(),
-      },
-    ]);
-  }
-
-  function removePeriod(key: string) {
-    setPeriods((prev) => prev.filter((p) => p._key !== key));
-  }
-
-  function updatePeriod(key: string, field: keyof RelationshipPeriod, value: string) {
-    setPeriods((prev) =>
-      prev.map((p) => {
-        if (p._key !== key) return p;
-        if (field === "status") return { ...p, status: value as PartnerStatus };
-        if (field === "end_year") return { ...p, end_year: value ? parseInt(value, 10) : null };
-        return { ...p, [field]: parseInt(value, 10) || 0 };
-      }),
+    }).then(
+      () => report("saved"),
+      () => report("error"),
     );
   }
 
   return (
-    <div className="panel-overlay detail-panel">
-      <div className="panel-header">
-        <h2>{headerLabel}</h2>
-        <button type="button" className="panel-close" onClick={onClose}>
-          {t("common.close")}
-        </button>
-      </div>
-
-      <div className="detail-panel__content">
-        {/* Persons involved */}
-        <section className="detail-panel__section">
-          <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
-            <div className="detail-panel__rel-item">
-              {sourceLabel && <span className="detail-panel__rel-type">{sourceLabel}</span>}
-              <span className="detail-panel__rel-name">{sourcePerson?.name ?? "?"}</span>
-            </div>
-            <div style={{ fontSize: 12, color: "var(--color-text-muted)", padding: "4px 0" }}>
-              {t("relationship.between")}
-            </div>
-            <div className="detail-panel__rel-item">
-              {targetLabel && <span className="detail-panel__rel-type">{targetLabel}</span>}
-              <span className="detail-panel__rel-name">{targetPerson?.name ?? "?"}</span>
-            </div>
+    <InspectorStatusProvider value={report}>
+      <div className="panel-overlay detail-panel">
+        <div className="panel-header">
+          <h2>{headerLabel}</h2>
+          <div className="detail-panel__header-actions">
+            <InspectorSaveWhisper status={status} />
+            <button type="button" className="panel-close" onClick={onClose}>
+              {t("common.close")}
+            </button>
           </div>
-        </section>
+        </div>
 
-        {/* Type selector */}
-        <section className="detail-panel__section">
-          <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
-            <label className="detail-panel__field">
-              <span>{t("relationship.type")}</span>
+        <div className="detail-panel__content">
+          {/* Persons involved */}
+          <div className="detail-panel__rel-item">
+            {sourceLabel && <span className="detail-panel__rel-type">{sourceLabel}</span>}
+            <span className="detail-panel__rel-name">{sourcePerson?.name ?? "?"}</span>
+          </div>
+          <div className="detail-panel__rel-between">{t("relationship.between")}</div>
+          <div className="detail-panel__rel-item">
+            {targetLabel && <span className="detail-panel__rel-type">{targetLabel}</span>}
+            <span className="detail-panel__rel-name">{targetPerson?.name ?? "?"}</span>
+          </div>
+
+          {/* Type selector */}
+          <div className="inspector-group">
+            <InspectorField label={t("relationship.type")}>
               <select
-                value={type}
+                value={relationship.type}
                 onChange={(e) => handleSaveType(e.target.value as RelationshipType)}
               >
                 {Object.values(RelationshipType).map((rt) => (
@@ -156,120 +101,50 @@ export function RelationshipDetailPanel({
                   </option>
                 ))}
               </select>
-            </label>
+            </InspectorField>
           </div>
-        </section>
 
-        {/* Partner period editor */}
-        {relationship.type === RelationshipType.Partner && (
-          <section className="detail-panel__section">
-            <button
-              type="button"
-              className="detail-panel__section-toggle"
-              onClick={() => setEditingPeriods(!editingPeriods)}
-            >
-              {editingPeriods ? "\u25BC" : "\u25B6"} {t("relationship.periods")} ({periods.length})
-            </button>
-            {editingPeriods && (
-              <div className="detail-panel__section-body">
-                <div className="detail-panel__period-editor">
-                  {periods.length === 0 && <p className="detail-panel__empty">---</p>}
-                  {periods.map((period) => (
-                    <div key={period._key} className="detail-panel__period-row">
-                      <label className="detail-panel__field">
-                        <span>{t("relationship.status")}</span>
-                        <select
-                          value={period.status}
-                          onChange={(e) => updatePeriod(period._key, "status", e.target.value)}
-                        >
-                          {Object.values(PartnerStatus).map((s) => (
-                            <option key={s} value={s}>
-                              {t(`relationship.status.${s}`)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <div className="detail-panel__period-years">
-                        <label className="detail-panel__field">
-                          <span>{t("common.startYear")}</span>
-                          <input
-                            type="number"
-                            value={period.start_year}
-                            onChange={(e) =>
-                              updatePeriod(period._key, "start_year", e.target.value)
-                            }
-                          />
-                        </label>
-                        <label className="detail-panel__field">
-                          <span>{t("common.endYear")}</span>
-                          <input
-                            type="number"
-                            value={period.end_year ?? ""}
-                            onChange={(e) => updatePeriod(period._key, "end_year", e.target.value)}
-                            placeholder="---"
-                          />
-                        </label>
-                      </div>
-                      <button
-                        type="button"
-                        className="detail-panel__btn--small detail-panel__btn--danger"
-                        onClick={() => removePeriod(period._key)}
-                      >
-                        {t("relationship.removePeriod")}
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="detail-panel__btn--small"
-                    style={{ marginTop: 4 }}
-                    onClick={addPeriod}
-                  >
-                    {t("relationship.addPeriod")}
-                  </button>
-                  <div className="detail-panel__actions">
-                    <button type="button" className="btn btn--primary" onClick={handleSavePeriods}>
-                      {t("common.save")}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Non-partner: show existing periods read-only (if any) */}
-        {relationship.type !== RelationshipType.Partner && relationship.periods.length > 0 && (
-          <section className="detail-panel__section">
-            <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
-              <div className="detail-panel__rel-periods">
-                {relationship.periods.map((p) => (
-                  <span
-                    key={`${p.status}-${p.start_year}-${p.end_year}`}
-                    className="detail-panel__period"
-                  >
-                    {t(`relationship.status.${p.status}`)}: {p.start_year}
-                    {p.end_year ? ` - ${p.end_year}` : " -"}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Delete */}
-        <section className="detail-panel__section">
-          <div className="detail-panel__section-body" style={{ paddingTop: 12 }}>
-            <div className="detail-panel__actions">
-              <ConfirmDeleteButton
-                onConfirm={() => onDeleteRelationship(relationship.id)}
-                label={t("common.delete")}
-                confirmLabel={t("relationship.confirmDelete")}
+          {/* Partner period editor */}
+          {relationship.type === RelationshipType.Partner && (
+            <div className="inspector-group">
+              <span className="inspector-field__label">
+                {t("relationship.periods")} ({relationship.periods.length})
+              </span>
+              <PartnerPeriodsEditor
+                key={relationship.id}
+                relationship={relationship}
+                sourceDeathYear={sourcePerson?.death_year}
+                targetDeathYear={targetPerson?.death_year}
+                onSave={(data) => onSaveRelationship(relationship.id, data)}
               />
             </div>
+          )}
+
+          {/* Non-partner: show existing periods read-only (if any) */}
+          {relationship.type !== RelationshipType.Partner && relationship.periods.length > 0 && (
+            <div className="detail-panel__rel-periods">
+              {relationship.periods.map((p) => (
+                <span
+                  key={`${p.status}-${p.start_year}-${p.end_year}`}
+                  className="detail-panel__period"
+                >
+                  {t(`relationship.status.${p.status}`)}: {p.start_year}
+                  {p.end_year ? ` - ${p.end_year}` : " -"}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Delete */}
+          <div className="inspector-danger">
+            <ConfirmDeleteButton
+              onConfirm={() => onDeleteRelationship(relationship.id)}
+              label={t("common.delete")}
+              confirmLabel={t("relationship.confirmDelete")}
+            />
           </div>
-        </section>
+        </div>
       </div>
-    </div>
+    </InspectorStatusProvider>
   );
 }

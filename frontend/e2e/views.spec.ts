@@ -13,8 +13,13 @@ test.describe("Views", () => {
     const panel = page.locator(".detail-panel");
     await expect(panel).toBeVisible();
     await panel.locator("input[type='text']").first().fill("Alice");
-    await panel.locator("input[type='number']").first().fill("1980");
-    await panel.getByRole("button", { name: /save/i }).first().click();
+    const yearInput = panel.locator("input[inputmode='numeric']").first();
+    await yearInput.fill("1980");
+    // Autosave commits on blur; the node label confirms the round trip.
+    await yearInput.blur();
+    await expect(
+      page.locator(".react-flow__node").filter({ hasText: "Alice" }),
+    ).toBeAttached({ timeout: 10_000 });
     await page.keyboard.press("Escape");
   }
 
