@@ -22,7 +22,7 @@ import {
 } from "./personForm";
 
 function DateFields({
-  yearLabel,
+  label,
   monthLabel,
   dayLabel,
   year,
@@ -36,7 +36,7 @@ function DateFields({
   onDayChange,
   yearInputRef,
 }: {
-  yearLabel: string;
+  label: string;
   monthLabel: string;
   dayLabel: string;
   year: string;
@@ -51,22 +51,24 @@ function DateFields({
   yearInputRef?: React.Ref<HTMLInputElement>;
 }) {
   return (
-    <div className="inspector-row">
-      <InspectorField label={yearLabel} className="inspector-field--year">
+    <InspectorField label={label}>
+      <div className="inspector-cluster">
         <input
           type="text"
           inputMode="numeric"
-          aria-label={yearLabel}
+          aria-label={label}
           value={year}
           ref={yearInputRef}
           onChange={(e) => onYearChange(sanitizeYearInput(e.target.value))}
           onBlur={onYearCommit}
           onKeyDown={blurOnEnter}
         />
-      </InspectorField>
-      {year && (
-        <InspectorField label={monthLabel}>
-          <select value={month} onChange={(e) => onMonthChange(e.target.value)}>
+        {year && (
+          <select
+            aria-label={monthLabel}
+            value={month}
+            onChange={(e) => onMonthChange(e.target.value)}
+          >
             <option value="">{monthPlaceholder}</option>
             {monthNames.map((name, i) => (
               <option key={name} value={String(i + 1)}>
@@ -74,11 +76,9 @@ function DateFields({
               </option>
             ))}
           </select>
-        </InspectorField>
-      )}
-      {year && month && (
-        <InspectorField label={dayLabel}>
-          <select value={day} onChange={(e) => onDayChange(e.target.value)}>
+        )}
+        {year && month && (
+          <select aria-label={dayLabel} value={day} onChange={(e) => onDayChange(e.target.value)}>
             <option value="">{monthPlaceholder}</option>
             {Array.from({ length: daysInMonth(parseInt(month, 10)) }, (_, i) => i + 1).map((d) => (
               <option key={d} value={String(d)}>
@@ -86,9 +86,9 @@ function DateFields({
               </option>
             ))}
           </select>
-        </InspectorField>
-      )}
-    </div>
+        )}
+      </div>
+    </InspectorField>
   );
 }
 
@@ -144,39 +144,37 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
 
   return (
     <>
-      <div className="inspector-row">
-        <InspectorField label={t("person.name")}>
-          <input
-            type="text"
-            aria-label={t("person.name")}
-            value={draft.name}
-            onChange={(e) => update((d) => ({ ...d, name: e.target.value }))}
-            onBlur={commit}
-            onKeyDown={blurOnEnter}
-            onFocus={(e) => {
-              const target = e.target;
-              requestAnimationFrame(() => target.select());
-            }}
-          />
-        </InspectorField>
-        <InspectorField label={t("person.gender")} className="inspector-field--gender">
-          <select
-            value={draft.gender}
-            onChange={(e) => updateAndCommit((d) => ({ ...d, gender: e.target.value }))}
-          >
-            <option value="" disabled>
-              {t("person.selectGender")}
-            </option>
-            <option value="male">{t("person.male")}</option>
-            <option value="female">{t("person.female")}</option>
-            <option value="other">{t("person.other")}</option>
-          </select>
-        </InspectorField>
-      </div>
+      <InspectorField label={t("person.name")}>
+        <input
+          type="text"
+          aria-label={t("person.name")}
+          value={draft.name}
+          onChange={(e) => update((d) => ({ ...d, name: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={blurOnEnter}
+          onFocus={(e) => {
+            const target = e.target;
+            requestAnimationFrame(() => target.select());
+          }}
+        />
+      </InspectorField>
+      <InspectorField label={t("person.gender")}>
+        <select
+          value={draft.gender}
+          onChange={(e) => updateAndCommit((d) => ({ ...d, gender: e.target.value }))}
+        >
+          <option value="" disabled>
+            {t("person.selectGender")}
+          </option>
+          <option value="male">{t("person.male")}</option>
+          <option value="female">{t("person.female")}</option>
+          <option value="other">{t("person.other")}</option>
+        </select>
+      </InspectorField>
 
       <div className="inspector-group">
         <DateFields
-          yearLabel={t("person.birthYear")}
+          label={t("person.birthYear")}
           monthLabel={t("person.birthMonth")}
           dayLabel={t("person.birthDay")}
           year={draft.birthYear}
@@ -196,7 +194,7 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         {deathOpen ? (
           <>
             <DateFields
-              yearLabel={t("person.deathYear")}
+              label={t("person.deathYear")}
               monthLabel={t("person.deathMonth")}
               dayLabel={t("person.deathDay")}
               year={draft.deathYear}

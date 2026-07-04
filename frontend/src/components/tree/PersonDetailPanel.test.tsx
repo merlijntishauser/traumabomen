@@ -530,18 +530,15 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       // Verify death day is visible
-      expect(screen.getByText("person.deathDay")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.deathDay")).toBeInTheDocument();
 
       // Clear death month
-      const deathMonthSelect = screen
-        .getByText("person.deathMonth")
-        .closest("label")!
-        .querySelector("select")!;
+      const deathMonthSelect = screen.getByLabelText("person.deathMonth");
       // Month selects commit immediately on change.
       fireEvent.change(deathMonthSelect, { target: { value: "" } });
 
       // Death day dropdown should disappear
-      expect(screen.queryByText("person.deathDay")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.deathDay")).not.toBeInTheDocument();
 
       expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -558,14 +555,14 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       // Verify death month is visible
-      expect(screen.getByText("person.deathMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.deathMonth")).toBeInTheDocument();
 
       // Clear death year
       const deathYearInput = screen.getByDisplayValue("2020");
       fireEvent.change(deathYearInput, { target: { value: "" } });
 
       // Death month dropdown should disappear
-      expect(screen.queryByText("person.deathMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.deathMonth")).not.toBeInTheDocument();
 
       // Year inputs commit on blur
       fireEvent.blur(deathYearInput);
@@ -584,7 +581,7 @@ describe("PersonDetailPanel", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
     });
 
     it("does not show birth month dropdown when birth year is empty", () => {
@@ -592,7 +589,7 @@ describe("PersonDetailPanel", () => {
       props.person = makePerson({ birth_year: null });
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
     });
 
     it("shows birth day dropdown when birth month is set", () => {
@@ -600,14 +597,14 @@ describe("PersonDetailPanel", () => {
       props.person = makePerson({ birth_month: 3 });
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.getByText("person.birthDay")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthDay")).toBeInTheDocument();
     });
 
     it("does not show birth day dropdown when birth month is empty", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.queryByText("person.birthDay")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthDay")).not.toBeInTheDocument();
     });
 
     it("shows death month dropdown when death year is set", () => {
@@ -615,14 +612,14 @@ describe("PersonDetailPanel", () => {
       props.person = makePerson({ death_year: 2020 });
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.getByText("person.deathMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.deathMonth")).toBeInTheDocument();
     });
 
     it("does not show death month dropdown when death year is empty", () => {
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
 
-      expect(screen.queryByText("person.deathMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.deathMonth")).not.toBeInTheDocument();
     });
 
     it("day dropdown has 28 options for February", () => {
@@ -630,10 +627,7 @@ describe("PersonDetailPanel", () => {
       props.person = makePerson({ birth_month: 2 });
       render(<PersonDetailPanel {...props} />);
 
-      const daySelect = screen
-        .getByText("person.birthDay")
-        .closest("label")!
-        .querySelector("select")!;
+      const daySelect = screen.getByLabelText("person.birthDay");
       // 28 day options + 1 empty "---" option = 29
       const options = daySelect.querySelectorAll("option");
       expect(options).toHaveLength(29);
@@ -644,10 +638,7 @@ describe("PersonDetailPanel", () => {
       props.person = makePerson({ birth_month: 1 });
       render(<PersonDetailPanel {...props} />);
 
-      const daySelect = screen
-        .getByText("person.birthDay")
-        .closest("label")!
-        .querySelector("select")!;
+      const daySelect = screen.getByLabelText("person.birthDay");
       // 31 day options + 1 empty "---" option = 32
       const options = daySelect.querySelectorAll("option");
       expect(options).toHaveLength(32);
@@ -679,14 +670,14 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       // Verify month is visible
-      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
 
       // Clear birth year
       const birthYearInput = screen.getByDisplayValue("1960");
       fireEvent.change(birthYearInput, { target: { value: "" } });
 
       // Month dropdown should disappear
-      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
 
       // Year inputs commit on blur
       fireEvent.blur(birthYearInput);
@@ -705,17 +696,14 @@ describe("PersonDetailPanel", () => {
       render(<PersonDetailPanel {...props} />);
 
       // Verify day is visible
-      expect(screen.getByText("person.birthDay")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthDay")).toBeInTheDocument();
 
       // Clear birth month; selects commit immediately.
-      const monthSelect = screen
-        .getByText("person.birthMonth")
-        .closest("label")!
-        .querySelector("select")!;
+      const monthSelect = screen.getByLabelText("person.birthMonth");
       fireEvent.change(monthSelect, { target: { value: "" } });
 
       // Day dropdown should disappear
-      expect(screen.queryByText("person.birthDay")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthDay")).not.toBeInTheDocument();
 
       expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
         expect.objectContaining({

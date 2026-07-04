@@ -4,10 +4,12 @@
    are covered by construction. */
 
 .inspector-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-3);
+  min-height: 34px;
+  margin-bottom: var(--space-1\.5);
   min-width: 0;
 }
 
@@ -15,6 +17,19 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-secondary);
+}
+
+/* Compact contexts (period rows, member cards) stack the label above. */
+.inspector-field--stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  min-height: 0;
+}
+
+.inspector-field--stacked > .inspector-field__label {
+  padding-top: 0;
 }
 
 .inspector-field input[type="text"],
@@ -25,9 +40,22 @@
   border-radius: var(--radius-sm);
   font-size: 15px;
   font-family: inherit;
-  background: transparent;
+  background: color-mix(in srgb, var(--color-bg-tertiary) 55%, transparent);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
+}
+
+.inspector-field input[type="text"],
+.inspector-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Selects size to their value, so the chevron stays next to the text. */
+.inspector-field select {
+  width: auto;
+  max-width: 100%;
+  justify-self: start;
 }
 
 .inspector-field input[type="text"],
@@ -56,8 +84,21 @@
   color: var(--color-text-muted);
 }
 
-.inspector-field--year {
-  max-width: 96px;
+.inspector-field--year input {
+  width: 88px;
+}
+
+/* Inline cluster of small controls sharing one row label (dates). */
+.inspector-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  min-width: 0;
+}
+
+.inspector-cluster input[type="text"] {
+  width: 72px;
+  flex: 0 0 auto;
 }
 
 /* A select continuing the field above it (e.g. DSM search + picker). */
@@ -67,6 +108,15 @@
 
 .inspector-field--select-only .inspector-field__label {
   display: none;
+}
+
+/* Multiline rows align the label to the first line. */
+.inspector-field:has(textarea) {
+  align-items: start;
+}
+
+.inspector-field:has(textarea) > .inspector-field__label {
+  padding-top: var(--space-2);
 }
 
 .inspector-field input[type="range"] {
@@ -94,33 +144,10 @@ fieldset.inspector-field {
   margin-right: 0;
 }
 
-/* Inline field rows (e.g. name + gender, year + month + day). */
-.inspector-row {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-end;
-}
-
-.inspector-row > .inspector-field {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-.inspector-row + .inspector-row,
-.inspector-row + .inspector-field,
-.inspector-field + .inspector-row {
-  margin-top: var(--space-3);
-}
-
 /* Whitespace does the grouping: no hairlines between field groups. */
 .inspector-group {
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-
-.inspector-field--gender {
-  max-width: 130px;
-  flex: 0 0 auto;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .inspector-field--notes textarea {
@@ -132,23 +159,26 @@ fieldset.inspector-field {
 .inspector-hint {
   font-size: 12px;
   color: var(--color-text-muted);
-  margin-top: var(--space-1);
+  margin-left: calc(116px + var(--space-3));
+  padding-left: var(--space-2);
 }
 
 /* Toggle row: label left, switch right, comfortable hit target. */
 .inspector-toggle {
-  display: flex;
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  column-gap: var(--space-3);
   width: 100%;
-  min-height: 40px;
-  padding: var(--space-1) var(--space-2);
-  margin: 0 calc(-1 * var(--space-2));
+  min-height: 34px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: var(--transition-colors);
-  box-sizing: content-box;
+}
+
+.inspector-toggle__track {
+  justify-self: start;
+  margin-left: var(--space-2);
 }
 
 .inspector-toggle:hover {
@@ -156,8 +186,9 @@ fieldset.inspector-field {
 }
 
 .inspector-toggle__label {
-  font-size: 13px;
-  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .inspector-toggle__input {
@@ -216,9 +247,8 @@ fieldset.inspector-field {
   align-items: center;
   gap: var(--space-1\.5);
   width: 100%;
-  min-height: 36px;
+  min-height: 34px;
   padding: var(--space-1\.5) var(--space-2);
-  margin: 0 calc(-1 * var(--space-2));
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -228,7 +258,6 @@ fieldset.inspector-field {
   text-align: left;
   cursor: pointer;
   transition: var(--transition-colors);
-  box-sizing: content-box;
 }
 
 .inspector-ghost:hover {

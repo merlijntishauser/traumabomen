@@ -3,11 +3,24 @@
 }
 
 .detail-panel__person-header {
+  position: relative;
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-primary);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+/* The toolbar's accent line, one size down: a quiet signature under the
+   handwritten name. */
+.detail-panel__person-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  width: 140px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
 }
 
 .detail-panel__person-info {

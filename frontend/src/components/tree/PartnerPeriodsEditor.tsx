@@ -74,7 +74,7 @@ export function PartnerPeriodsEditor({
     <div className="detail-panel__period-editor">
       {draft.periods.map((period) => (
         <div key={period._key} className="detail-panel__period-row">
-          <InspectorField label={t("relationship.status")}>
+          <InspectorField label={t("relationship.status")} className="inspector-field--stacked">
             <select
               value={period.status}
               onChange={(e) =>
@@ -93,7 +93,10 @@ export function PartnerPeriodsEditor({
             </select>
           </InspectorField>
           <div className="detail-panel__period-years">
-            <InspectorField label={t("common.startYear")} className="inspector-field--year">
+            <InspectorField
+              label={t("common.startYear")}
+              className="inspector-field--stacked inspector-field--year"
+            >
               <input
                 type="text"
                 inputMode="numeric"
@@ -107,7 +110,10 @@ export function PartnerPeriodsEditor({
                 onKeyDown={blurOnEnter}
               />
             </InspectorField>
-            <InspectorField label={t("common.endYear")} className="inspector-field--year">
+            <InspectorField
+              label={t("common.endYear")}
+              className="inspector-field--stacked inspector-field--year"
+            >
               <input
                 type="text"
                 inputMode="numeric"

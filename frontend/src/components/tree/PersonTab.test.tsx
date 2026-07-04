@@ -126,17 +126,17 @@ describe("PersonTab", () => {
   describe("month and day fields visibility", () => {
     it("shows month select when birth year is set", () => {
       renderTab({ birth_year: 1990 });
-      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
     });
 
     it("shows day select when both birth year and birth month are set", () => {
       renderTab({ birth_year: 1990, birth_month: 6 });
-      expect(screen.getByText("person.birthDay")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthDay")).toBeInTheDocument();
     });
 
     it("does not show month field when birth year is not set", () => {
       renderTab({ birth_year: null });
-      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
     });
   });
 
@@ -315,11 +315,11 @@ describe("PersonTab", () => {
     it("clears birth month and day when birth year is removed", () => {
       renderTab({ birth_year: 1990, birth_month: 6, birth_day: 15 });
 
-      expect(screen.getByText("person.birthMonth")).toBeInTheDocument();
+      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
 
       fireEvent.change(screen.getByDisplayValue("1990"), { target: { value: "" } });
 
-      expect(screen.queryByText("person.birthMonth")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
     });
   });
 

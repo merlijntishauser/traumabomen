@@ -111,7 +111,10 @@ export function SiblingGroupPanel({
           >
             <div className="sibling-group-panel__card-main">
               <div className="sibling-group-panel__card-row">
-                <InspectorField label={t("person.name")} className="sibling-group-panel__grow">
+                <InspectorField
+                  label={t("person.name")}
+                  className="inspector-field--stacked sibling-group-panel__grow"
+                >
                   <input
                     type="text"
                     aria-label={t("person.name")}
@@ -121,7 +124,7 @@ export function SiblingGroupPanel({
                     onKeyDown={blurOnEnter}
                   />
                 </InspectorField>
-                <InspectorField label={t("person.gender")}>
+                <InspectorField label={t("person.gender")} className="inspector-field--stacked">
                   <select
                     value={member.gender ?? ""}
                     onChange={(e) =>
@@ -140,7 +143,10 @@ export function SiblingGroupPanel({
                 </InspectorField>
               </div>
               <div className="sibling-group-panel__card-row">
-                <InspectorField label={t("person.birthYear")} className="inspector-field--year">
+                <InspectorField
+                  label={t("person.birthYear")}
+                  className="inspector-field--stacked inspector-field--year"
+                >
                   <input
                     type="text"
                     inputMode="numeric"
@@ -156,7 +162,10 @@ export function SiblingGroupPanel({
                     onKeyDown={blurOnEnter}
                   />
                 </InspectorField>
-                <InspectorField label={t("person.deathYear")} className="inspector-field--year">
+                <InspectorField
+                  label={t("person.deathYear")}
+                  className="inspector-field--stacked inspector-field--year"
+                >
                   <input
                     type="text"
                     inputMode="numeric"

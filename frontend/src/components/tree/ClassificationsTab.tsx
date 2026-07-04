@@ -366,7 +366,10 @@ function ClassificationForm({
         {draft.periods.map((period, i) => (
           <div key={period._key} className="detail-panel__period-row">
             <div className="detail-panel__period-years">
-              <InspectorField label={t("common.startYear")} className="inspector-field--year">
+              <InspectorField
+                label={t("common.startYear")}
+                className="inspector-field--stacked inspector-field--year"
+              >
                 <input
                   type="text"
                   inputMode="numeric"
@@ -385,7 +388,10 @@ function ClassificationForm({
                   onKeyDown={blurOnEnter}
                 />
               </InspectorField>
-              <InspectorField label={t("common.endYear")} className="inspector-field--year">
+              <InspectorField
+                label={t("common.endYear")}
+                className="inspector-field--stacked inspector-field--year"
+              >
                 <input
                   type="text"
                   inputMode="numeric"
