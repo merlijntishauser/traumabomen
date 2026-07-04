@@ -110,6 +110,24 @@
   display: none;
 }
 
+/* With the label hidden, keep the control in the value column. */
+.inspector-field--select-only > select,
+.inspector-field--select-only > input,
+.inspector-field--select-only > textarea {
+  grid-column: 2;
+}
+
+/* Grouped content (period lists and their add button) lives in one value
+   cell so the grid stays two columns wide. */
+.inspector-field__value {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.inspector-field__value > button {
+  width: auto;
+}
+
 /* Multiline rows align the label to the first line. */
 .inspector-field:has(textarea) {
   align-items: start;

@@ -363,75 +363,77 @@ function ClassificationForm({
       )}
       <fieldset className="inspector-field">
         <span className="inspector-field__label">{t("classification.periods")}</span>
-        {draft.periods.map((period, i) => (
-          <div key={period._key} className="detail-panel__period-row">
-            <div className="detail-panel__period-years">
-              <InspectorField
-                label={t("common.startYear")}
-                className="inspector-field--stacked inspector-field--year"
+        <div className="inspector-field__value">
+          {draft.periods.map((period, i) => (
+            <div key={period._key} className="detail-panel__period-row">
+              <div className="detail-panel__period-years">
+                <InspectorField
+                  label={t("common.startYear")}
+                  className="inspector-field--stacked inspector-field--year"
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={t("common.startYear")}
+                    value={period.start_year || ""}
+                    onChange={(e) => {
+                      const value = sanitizeYearInput(e.target.value);
+                      update((d) => ({
+                        ...d,
+                        periods: d.periods.map((p, idx) =>
+                          idx === i ? { ...p, start_year: parseInt(value, 10) || 0 } : p,
+                        ),
+                      }));
+                    }}
+                    onBlur={commit}
+                    onKeyDown={blurOnEnter}
+                  />
+                </InspectorField>
+                <InspectorField
+                  label={t("common.endYear")}
+                  className="inspector-field--stacked inspector-field--year"
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={t("common.endYear")}
+                    value={period.end_year ?? ""}
+                    onChange={(e) => {
+                      const value = sanitizeYearInput(e.target.value);
+                      update((d) => ({
+                        ...d,
+                        periods: d.periods.map((p, idx) =>
+                          idx === i ? { ...p, end_year: value ? parseInt(value, 10) : null } : p,
+                        ),
+                      }));
+                    }}
+                    onBlur={commit}
+                    onKeyDown={blurOnEnter}
+                  />
+                </InspectorField>
+              </div>
+              <button
+                type="button"
+                className="detail-panel__btn--small detail-panel__btn--danger"
+                onClick={() =>
+                  changeAndCommit((d) => ({
+                    ...d,
+                    periods: d.periods.filter((_, idx) => idx !== i),
+                  }))
+                }
               >
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  aria-label={t("common.startYear")}
-                  value={period.start_year || ""}
-                  onChange={(e) => {
-                    const value = sanitizeYearInput(e.target.value);
-                    update((d) => ({
-                      ...d,
-                      periods: d.periods.map((p, idx) =>
-                        idx === i ? { ...p, start_year: parseInt(value, 10) || 0 } : p,
-                      ),
-                    }));
-                  }}
-                  onBlur={commit}
-                  onKeyDown={blurOnEnter}
-                />
-              </InspectorField>
-              <InspectorField
-                label={t("common.endYear")}
-                className="inspector-field--stacked inspector-field--year"
-              >
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  aria-label={t("common.endYear")}
-                  value={period.end_year ?? ""}
-                  onChange={(e) => {
-                    const value = sanitizeYearInput(e.target.value);
-                    update((d) => ({
-                      ...d,
-                      periods: d.periods.map((p, idx) =>
-                        idx === i ? { ...p, end_year: value ? parseInt(value, 10) : null } : p,
-                      ),
-                    }));
-                  }}
-                  onBlur={commit}
-                  onKeyDown={blurOnEnter}
-                />
-              </InspectorField>
+                {t("classification.removePeriod")}
+              </button>
             </div>
-            <button
-              type="button"
-              className="detail-panel__btn--small detail-panel__btn--danger"
-              onClick={() =>
-                changeAndCommit((d) => ({
-                  ...d,
-                  periods: d.periods.filter((_, idx) => idx !== i),
-                }))
-              }
-            >
-              {t("classification.removePeriod")}
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="detail-panel__btn--small detail-panel__btn--add-period"
-          onClick={addPeriod}
-        >
-          {t("classification.addPeriod")}
-        </button>
+          ))}
+          <button
+            type="button"
+            className="detail-panel__btn--small detail-panel__btn--add-period"
+            onClick={addPeriod}
+          >
+            {t("classification.addPeriod")}
+          </button>
+        </div>
       </fieldset>
       <InspectorField label={t("classification.notes")}>
         <textarea
