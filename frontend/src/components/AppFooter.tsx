@@ -55,6 +55,8 @@ export function AppFooter({ onLock }: Props) {
 
   const closeMenu = () => setMenuOpen(false);
   const toggleLanguage = () => i18n.changeLanguage(i18n.language === "nl" ? "en" : "nl");
+  // The genogram landing page is language-fixed with a path per language.
+  const genogramPath = i18n.language === "nl" ? "/genogram-maken" : "/genogram";
 
   const version = (__APP_VERSION__ || __APP_COMMIT__) && (
     <span className="app-footer__version">
@@ -156,6 +158,8 @@ export function AppFooter({ onLock }: Props) {
           <span className="app-footer__colophon-sep" aria-hidden="true" />
           <Link to="/learn">{t("nav.learn")}</Link>
           <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to={genogramPath}>{t("nav.genogram")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
@@ -209,6 +213,9 @@ export function AppFooter({ onLock }: Props) {
             </Link>
             <Link className="app-footer__menu-item" to="/learn" onClick={closeMenu}>
               {t("nav.learn")}
+            </Link>
+            <Link className="app-footer__menu-item" to={genogramPath} onClick={closeMenu}>
+              {t("nav.genogram")}
             </Link>
             <a
               className="app-footer__menu-item"
