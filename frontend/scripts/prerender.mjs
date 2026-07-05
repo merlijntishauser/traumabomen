@@ -17,8 +17,15 @@ const frontendRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(frontendRoot, "dist");
 const distSsr = join(frontendRoot, "dist-ssr");
 
-const { renderGenogramPage, fillPlaceholders, genogramPageMeta, injectRoot, GENOGRAM_PATHS } =
-  await import(pathToFileURL(join(distSsr, "entry.js")).href);
+const {
+  renderGenogramPage,
+  fillPlaceholders,
+  genogramJsonLd,
+  genogramPageMeta,
+  injectJsonLd,
+  injectRoot,
+  GENOGRAM_PATHS,
+} = await import(pathToFileURL(join(distSsr, "entry.js")).href);
 
 const template = readFileSync(join(dist, "index.html"), "utf8");
 const resources = {
@@ -30,8 +37,9 @@ const OUTPUT_FILES = { en: "genogram.html", nl: "genogram-maken.html" };
 
 for (const lang of ["en", "nl"]) {
   const meta = genogramPageMeta(lang, resources[lang]);
+  const jsonLd = genogramJsonLd(lang, (key) => resources[lang][key]);
   const body = renderGenogramPage(lang, resources);
-  const page = injectRoot(fillPlaceholders(template, meta), body);
+  const page = injectRoot(injectJsonLd(fillPlaceholders(template, meta), jsonLd), body);
   writeFileSync(join(dist, OUTPUT_FILES[lang]), page);
   console.log(`prerendered ${GENOGRAM_PATHS[lang]} -> dist/${OUTPUT_FILES[lang]}`);
 }

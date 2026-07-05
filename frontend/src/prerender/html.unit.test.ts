@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { escapeHtml, fillPlaceholders, genogramPageMeta, injectRoot, type PageMeta } from "./html";
+import {
+  escapeHtml,
+  fillPlaceholders,
+  genogramJsonLd,
+  genogramPageMeta,
+  injectJsonLd,
+  injectRoot,
+  type PageMeta,
+} from "./html";
 
 const TRANSLATIONS = {
   "app.title": "Traumatrees",
@@ -77,6 +85,46 @@ describe("fillPlaceholders", () => {
     expect(filled).toContain(
       '<meta property="og:image" content="https://www.traumatrees.org/images/og-card.jpg" />',
     );
+  });
+});
+
+describe("genogramJsonLd", () => {
+  const t = (key: string) => TRANSLATIONS[key as keyof typeof TRANSLATIONS] ?? key;
+
+  it("builds SoftwareApplication data with the language canonical", () => {
+    const data = JSON.parse(genogramJsonLd("en", t));
+    expect(data["@type"]).toBe("SoftwareApplication");
+    expect(data.url).toBe("https://www.traumatrees.org/genogram");
+    expect(data.offers.price).toBe("0");
+    expect(data.inLanguage).toBe("en");
+    expect(data.name).toBe("Traumatrees");
+  });
+
+  it("uses the Dutch canonical for the Dutch page", () => {
+    const data = JSON.parse(genogramJsonLd("nl", t));
+    expect(data.url).toBe("https://www.traumabomen.nl/genogram-maken");
+    expect(data.inLanguage).toBe("nl");
+  });
+
+  it("escapes angle brackets so the script element cannot be closed early", () => {
+    const raw = genogramJsonLd("en", (key) =>
+      key === "genogram.metaDescription" ? "</script><b>x</b>" : "y",
+    );
+    expect(raw).not.toContain("</script>");
+    expect(JSON.parse(raw).description).toBe("</script><b>x</b>");
+  });
+});
+
+describe("injectJsonLd", () => {
+  it("injects a data block before the closing head tag", () => {
+    const out = injectJsonLd("<head><title>t</title></head><body></body>", '{"a":1}');
+    expect(out).toBe(
+      '<head><title>t</title><script type="application/ld+json">{"a":1}</script></head><body></body>',
+    );
+  });
+
+  it("throws when the head close tag is missing", () => {
+    expect(() => injectJsonLd("<body></body>", "{}")).toThrow(/could not find/);
   });
 });
 

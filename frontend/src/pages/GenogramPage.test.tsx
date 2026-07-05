@@ -1,18 +1,12 @@
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import GenogramPage from "./GenogramPage";
 
-const loadLanguages = vi.fn(() => Promise.resolve());
-let hasBundle = true;
-
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: {
-      getFixedT: (lng: string) => (key: string) => `${lng}:${key}`,
-      hasResourceBundle: () => hasBundle,
-      loadLanguages,
-    },
+  // The page requests a fixed language via the lng option; surface it in the
+  // returned keys so tests can assert the right language was used.
+  useTranslation: (_ns?: string, options?: { lng?: string }) => ({
+    t: (key: string) => `${options?.lng}:${key}`,
   }),
 }));
 
@@ -70,22 +64,25 @@ describe("GenogramPage", () => {
     );
   });
 
-  it("embeds SoftwareApplication structured data with the language canonical", () => {
-    const { container } = render(<GenogramPage lang="en" />);
+  it("adds SoftwareApplication structured data to the head, removed on unmount", () => {
+    const { unmount } = render(<GenogramPage lang="en" />);
 
-    const script = container.querySelector('script[type="application/ld+json"]');
+    const script = document.head.querySelector('script[type="application/ld+json"]');
     expect(script).not.toBeNull();
     const data = JSON.parse(script?.textContent ?? "{}");
     expect(data["@type"]).toBe("SoftwareApplication");
     expect(data.url).toBe("https://www.traumatrees.org/genogram");
     expect(data.offers.price).toBe("0");
     expect(data.inLanguage).toBe("en");
+
+    unmount();
+    expect(document.head.querySelector('script[type="application/ld+json"]')).toBeNull();
   });
 
-  it("uses the Dutch canonical for the Dutch page", () => {
-    const { container } = render(<GenogramPage lang="nl" />);
+  it("uses the Dutch canonical in the Dutch page's structured data", () => {
+    render(<GenogramPage lang="nl" />);
 
-    const script = container.querySelector('script[type="application/ld+json"]');
+    const script = document.head.querySelector('script[type="application/ld+json"]');
     const data = JSON.parse(script?.textContent ?? "{}");
     expect(data.url).toBe("https://www.traumabomen.nl/genogram-maken");
     expect(data.inLanguage).toBe("nl");
@@ -115,15 +112,5 @@ describe("GenogramPage", () => {
       expect(img).toHaveAttribute("alt");
       expect(img.getAttribute("alt")).not.toBe("");
     }
-  });
-
-  it("loads the fixed language bundle when it is missing", async () => {
-    hasBundle = false;
-    loadLanguages.mockClear();
-    render(<GenogramPage lang="nl" />);
-    expect(loadLanguages).toHaveBeenCalledWith("nl");
-    // Let the load promise resolve inside act so the re-render is covered.
-    await act(async () => {});
-    hasBundle = true;
   });
 });

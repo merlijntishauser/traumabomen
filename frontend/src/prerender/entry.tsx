@@ -5,7 +5,14 @@ import { MemoryRouter } from "react-router-dom";
 import GenogramPage, { type GenogramLang } from "../pages/GenogramPage";
 import { GENOGRAM_PATHS } from "./html";
 
-export { fillPlaceholders, GENOGRAM_PATHS, genogramPageMeta, injectRoot } from "./html";
+export {
+  fillPlaceholders,
+  GENOGRAM_PATHS,
+  genogramJsonLd,
+  genogramPageMeta,
+  injectJsonLd,
+  injectRoot,
+} from "./html";
 
 export interface TranslationResources {
   en: Record<string, string>;

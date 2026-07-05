@@ -8,7 +8,7 @@ import type { GenogramLang } from "../pages/GenogramPage";
  * with two different paths, which the per-host nginx maps cannot express.
  */
 
-export const GENOGRAM_ORIGINS: Record<GenogramLang, string> = {
+const GENOGRAM_ORIGINS: Record<GenogramLang, string> = {
   en: "https://www.traumatrees.org",
   nl: "https://www.traumabomen.nl",
 };
@@ -54,6 +54,39 @@ export function genogramPageMeta(
     title: `${translations["genogram.title"]} | ${translations["app.title"]}`,
     description: translations["genogram.metaDescription"],
   };
+}
+
+/**
+ * SoftwareApplication structured data for one genogram page. Shared between
+ * the runtime head effect (client-side navigation) and the build-time
+ * prerender, which bakes it into the static head. "<" is escaped so no
+ * translation string could ever close the surrounding script element early.
+ */
+export function genogramJsonLd(lang: GenogramLang, t: (key: string) => string): string {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: t("app.title"),
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "Web browser",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    description: t("genogram.metaDescription"),
+    url: `${GENOGRAM_ORIGINS[lang]}${GENOGRAM_PATHS[lang]}`,
+    inLanguage: lang,
+  }).replace(/</g, "\\u003c");
+}
+
+/**
+ * Inject a JSON-LD data block just before the closing head tag. JSON-LD is
+ * inert (browsers never execute data blocks, so CSP script-src does not
+ * apply); crawlers read it from the raw HTML.
+ */
+export function injectJsonLd(template: string, jsonLd: string): string {
+  const marker = "</head>";
+  if (!template.includes(marker)) {
+    throw new Error("prerender: could not find </head> in index.html");
+  }
+  return template.replace(marker, `<script type="application/ld+json">${jsonLd}</script></head>`);
 }
 
 /**

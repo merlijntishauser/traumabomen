@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { fillPlaceholders, genogramPageMeta, injectRoot, renderGenogramPage } from "./entry";
+import {
+  fillPlaceholders,
+  genogramJsonLd,
+  genogramPageMeta,
+  injectJsonLd,
+  injectRoot,
+  renderGenogramPage,
+} from "./entry";
 
 // The real translation files: this test doubles as a guard that the keys the
 // prerender depends on actually exist in both languages. Vitest runs from the
@@ -21,14 +28,12 @@ function esc(value: string): string {
 }
 
 describe("renderGenogramPage", () => {
-  it("renders the English page with full content and structured data", () => {
+  it("renders the English page with full content", () => {
     const html = renderGenogramPage("en", resources);
 
     expect(html).toContain(esc(resources.en["genogram.title"]));
     expect(html).toContain("What is a genogram?");
     expect(html).toContain(resources.en["genogram.howPrivacyTitle"]);
-    expect(html).toContain('"@type":"SoftwareApplication"');
-    expect(html).toContain("https://www.traumatrees.org/genogram");
     expect(html).toContain('href="/genogram-maken"');
     expect(html).toContain('href="/register"');
   });
@@ -38,7 +43,6 @@ describe("renderGenogramPage", () => {
 
     expect(html).toContain("Wat is een genogram?");
     expect(html).toContain(resources.nl["genogram.lede"]);
-    expect(html).toContain("https://www.traumabomen.nl/genogram-maken");
     expect(html).toContain('href="/genogram"');
   });
 
@@ -58,12 +62,14 @@ describe("full prerender pipeline", () => {
     ].join("");
 
     const meta = genogramPageMeta("en", resources.en);
+    const jsonLd = genogramJsonLd("en", (key) => resources.en[key]);
     const html = renderGenogramPage("en", resources);
-    const out = injectRoot(fillPlaceholders(template, meta), html);
+    const out = injectRoot(injectJsonLd(fillPlaceholders(template, meta), jsonLd), html);
 
     expect(out).toContain(`<title>${resources.en["genogram.title"]} | Traumatrees</title>`);
     expect(out).toContain('href="https://www.traumatrees.org/genogram"');
     expect(out).toContain("What is a genogram?");
+    expect(out).toContain('"@type":"SoftwareApplication"');
     expect(out).not.toContain("__OG_");
     expect(out).not.toContain('<div id="root"></div>');
   });
