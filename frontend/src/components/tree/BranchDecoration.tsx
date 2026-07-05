@@ -2,24 +2,26 @@ import { useMemo } from "react";
 
 const VIEWBOX_W = 1200;
 const VIEWBOX_H = 800;
+const TWO_PI = Math.PI * 2;
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
 /**
- * Smooth Catmull-Rom spline through points, converted to cubic Bezier.
+ * Smooth closed Catmull-Rom loop through points, converted to cubic Bezier.
  */
-function catmullRomPath(points: { x: number; y: number }[]): string {
-  if (points.length < 2) return "";
+function catmullRomLoop(points: { x: number; y: number }[]): string {
+  const n = points.length;
+  if (n < 3) return "";
 
   let d = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
 
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(0, i - 1)];
+  for (let i = 0; i < n; i++) {
+    const p0 = points[(i - 1 + n) % n];
     const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[Math.min(points.length - 1, i + 2)];
+    const p2 = points[(i + 1) % n];
+    const p3 = points[(i + 2) % n];
 
     const tension = 6;
     const cp1x = p1.x + (p2.x - p0.x) / tension;
@@ -30,7 +32,7 @@ function catmullRomPath(points: { x: number; y: number }[]): string {
     d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
   }
 
-  return d;
+  return `${d}Z`;
 }
 
 interface ContourLine {
@@ -41,64 +43,66 @@ interface ContourLine {
 }
 
 /**
- * Generate topographic-style contour lines flowing from one corner.
- * Dense, evenly-spaced lines like a real elevation map, with every
- * 5th line bolder (index contour convention).
+ * Generate true topographic contours: nested rings around a peak sitting
+ * just outside a random corner, so calm elevation arcs sweep across it.
+ * Every ring shares one low-frequency noise field, so neighbours stay
+ * parallel and never cross; every 5th ring is an index contour (bolder),
+ * and lines fade with distance from the peak.
  */
 function generateContours(): ContourLine[] {
   const lines: ContourLine[] = [];
 
-  // Pick one corner as the origin
+  // Peak sits off-canvas beyond one corner
   const corner = Math.floor(rand(0, 4));
-  const origins: Record<number, { x: number; y: number; angle: number }> = {
-    0: { x: -150, y: VIEWBOX_H + 150, angle: -0.45 },
-    1: { x: VIEWBOX_W + 150, y: VIEWBOX_H + 150, angle: Math.PI + 0.45 },
-    2: { x: -150, y: -150, angle: 0.45 },
-    3: { x: VIEWBOX_W + 150, y: -150, angle: Math.PI - 0.45 },
+  const inset = rand(80, 160);
+  const centers: Record<number, { x: number; y: number }> = {
+    0: { x: -inset, y: VIEWBOX_H + inset },
+    1: { x: VIEWBOX_W + inset, y: VIEWBOX_H + inset },
+    2: { x: -inset, y: -inset },
+    3: { x: VIEWBOX_W + inset, y: -inset },
   };
+  const center = centers[corner];
 
-  const origin = origins[corner];
-  const lineCount = Math.floor(rand(16, 24));
+  // A shared angular noise field: a few low-frequency harmonics with fixed
+  // random phases. Identical across rings, so contours nest like terrain.
+  const harmonics = Array.from({ length: 3 }, (_, k) => ({
+    freq: k + 2 + Math.floor(rand(0, 2)),
+    phase: rand(0, TWO_PI),
+    amp: rand(12, 26) / (k + 1),
+  }));
+  const wobble = (angle: number) =>
+    harmonics.reduce((sum, h) => sum + h.amp * Math.sin(h.freq * angle + h.phase), 0);
 
-  for (let i = 0; i < lineCount; i++) {
-    const t = i / (lineCount - 1);
+  const ringCount = Math.floor(rand(14, 19));
+  const spacing = rand(38, 48);
+  const startRadius = rand(70, 130);
+  const steps = 64;
 
-    // Tight, even angular spread
-    const angleOffset = (t - 0.5) * rand(0.7, 1.0);
-    const lineAngle = origin.angle + angleOffset;
-
-    const totalLength = rand(700, 1200);
-    const pointCount = Math.floor(rand(7, 10));
-    // Gentle shared drift so neighbouring lines stay coherent
-    const drift = rand(-25, 25);
+  for (let i = 0; i < ringCount; i++) {
+    const baseRadius = startRadius + i * spacing;
+    // Terrain relaxes as it descends: outer rings wander slightly more
+    const relax = 1 + i * 0.04;
     const points: { x: number; y: number }[] = [];
 
-    for (let p = 0; p <= pointCount; p++) {
-      const pt = p / pointCount;
-      const dist = pt * totalLength;
-
-      let x = origin.x + Math.cos(lineAngle) * dist;
-      let y = origin.y + Math.sin(lineAngle) * dist;
-
-      const perpAngle = lineAngle + Math.PI / 2;
-      const arcOffset = Math.sin(pt * Math.PI) * drift;
-      x += Math.cos(perpAngle) * arcOffset;
-      y += Math.sin(perpAngle) * arcOffset;
-
-      x += rand(-2, 2);
-      y += rand(-2, 2);
-
-      points.push({ x, y });
+    for (let s = 0; s < steps; s++) {
+      const angle = (s / steps) * TWO_PI;
+      const r = baseRadius + wobble(angle) * relax;
+      points.push({
+        x: center.x + Math.cos(angle) * r,
+        y: center.y + Math.sin(angle) * r,
+      });
     }
 
-    // Index contour every 5th line (bolder), rest are fine
+    // Index contour convention: every 5th line is bolder
     const isIndex = i % 5 === 0;
+    // Elevation fades as it flows away from the peak
+    const falloff = 1 - (i / ringCount) * 0.55;
 
     lines.push({
       id: `contour-${i}`,
-      d: catmullRomPath(points),
-      strokeWidth: isIndex ? rand(1.2, 1.8) : rand(0.4, 0.8),
-      opacity: isIndex ? rand(0.55, 0.75) : rand(0.2, 0.4),
+      d: catmullRomLoop(points),
+      strokeWidth: isIndex ? rand(1.2, 1.6) : rand(0.5, 0.8),
+      opacity: (isIndex ? rand(0.5, 0.65) : rand(0.2, 0.32)) * falloff,
     });
   }
 
