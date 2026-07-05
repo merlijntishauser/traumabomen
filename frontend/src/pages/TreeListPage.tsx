@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useReducer, useRef } from "react";
+import { type FormEvent, useCallback, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { FeedbackModal } from "../components/FeedbackModal";
@@ -22,6 +22,7 @@ import { uuidToCompact } from "../lib/compactId";
 import { createDemoTree } from "../lib/createDemoTree";
 import { encryptForApi, generateTreeKey } from "../lib/crypto";
 import "../components/tree/TreeCanvas.css";
+import { journalPromptText, pickJournalPromptIndex } from "../lib/reflectionPrompts";
 import { buildTreeMetaLine } from "./treeListMeta";
 import "../styles/tree-list.css";
 
@@ -40,6 +41,31 @@ interface DecryptedTree {
   moment_count: number;
   pattern_count: number;
   updated_at: string;
+}
+
+/** Front-porch hero: the most recently tended tree plus one open question. */
+function ContinueCard({
+  tree,
+  metaLine,
+  prompt,
+}: {
+  tree: { id: string; name: string };
+  metaLine: string;
+  prompt: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="tree-continue">
+      <span className="tree-continue__label">{t("tree.continue")}</span>
+      <Link className="tree-continue__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+        <span className="tree-continue__name">{tree.name}</span>
+        <span className="tree-continue__meta">{metaLine}</span>
+      </Link>
+      <Link className="tree-continue__prompt" to={`/trees/${uuidToCompact(tree.id)}/journal`}>
+        {prompt}
+      </Link>
+    </div>
+  );
 }
 
 /* -- Local state ----------------------------------------------------------- */
@@ -434,6 +460,13 @@ export default function TreeListPage() {
 
   const demoTreeCount = (treesQuery.data ?? []).filter((t) => t.is_demo).length;
 
+  // Front porch: the most recently tended tree, and one open question per visit
+  const mostRecent = (treesQuery.data ?? []).reduce<DecryptedTree | null>(
+    (best, tree) => (!best || tree.updated_at > best.updated_at ? tree : best),
+    null,
+  );
+  const [promptIndex] = useState(pickJournalPromptIndex);
+
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
       const { key: treeKey, base64: treeKeyBase64 } = await generateTreeKey();
@@ -620,6 +653,14 @@ export default function TreeListPage() {
 
           {treesQuery.data && treesQuery.data.length === 0 && (
             <p className="tree-list-empty">{t("tree.empty")}</p>
+          )}
+
+          {mostRecent && (
+            <ContinueCard
+              tree={mostRecent}
+              metaLine={buildTreeMetaLine(mostRecent, t, i18n.language)}
+              prompt={journalPromptText(t, promptIndex)}
+            />
           )}
 
           {treesQuery.data && treesQuery.data.length > 0 && (

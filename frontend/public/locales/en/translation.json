@@ -215,6 +215,7 @@
   "common.hidePassphrase": "Hide encryption key",
   "tree.untitled": "Untitled tree",
   "tree.namePlaceholder": "Tree name",
+  "tree.continue": "Continue where you left off",
   "tree.meta.people_one": "{{count}} person",
   "tree.meta.people_other": "{{count}} people",
   "tree.meta.moments_one": "{{count}} moment",

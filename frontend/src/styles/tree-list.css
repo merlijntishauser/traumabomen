@@ -353,3 +353,59 @@
   border-radius: var(--radius-sm);
   vertical-align: middle;
 }
+
+/* Front-porch hero: continue where you left off, plus one open question */
+.tree-continue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+}
+
+.tree-continue__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tree-continue__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0\.5);
+  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.tree-continue__link:hover {
+  border-color: var(--color-action);
+}
+
+.tree-continue__name {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 20px;
+  color: var(--color-accent);
+}
+
+.tree-continue__meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tree-continue__prompt {
+  padding: var(--space-2) var(--space-1);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.tree-continue__prompt:hover {
+  color: var(--color-text-secondary);
+}

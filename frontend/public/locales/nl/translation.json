@@ -215,6 +215,7 @@
   "common.hidePassphrase": "Encryptiesleutel verbergen",
   "tree.untitled": "Naamloze boom",
   "tree.namePlaceholder": "Naam van de boom",
+  "tree.continue": "Ga verder waar je gebleven was",
   "tree.meta.people_one": "{{count}} persoon",
   "tree.meta.people_other": "{{count}} personen",
   "tree.meta.moments_one": "{{count}} moment",
