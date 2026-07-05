@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { chaikin, type FieldSpec, makeGrid, marchingSquares, toPath } from "./contourField";
 
 const VIEWBOX_W = 1200;
 const VIEWBOX_H = 800;
@@ -6,33 +7,6 @@ const TWO_PI = Math.PI * 2;
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
-}
-
-/**
- * Smooth closed Catmull-Rom loop through points, converted to cubic Bezier.
- */
-function catmullRomLoop(points: { x: number; y: number }[]): string {
-  const n = points.length;
-  if (n < 3) return "";
-
-  let d = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
-
-  for (let i = 0; i < n; i++) {
-    const p0 = points[(i - 1 + n) % n];
-    const p1 = points[i];
-    const p2 = points[(i + 1) % n];
-    const p3 = points[(i + 2) % n];
-
-    const tension = 6;
-    const cp1x = p1.x + (p2.x - p0.x) / tension;
-    const cp1y = p1.y + (p2.y - p0.y) / tension;
-    const cp2x = p2.x - (p3.x - p1.x) / tension;
-    const cp2y = p2.y - (p3.y - p1.y) / tension;
-
-    d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-  }
-
-  return `${d}Z`;
 }
 
 interface ContourLine {
@@ -43,69 +17,94 @@ interface ContourLine {
 }
 
 /**
- * Generate true topographic contours: nested rings around a peak sitting
- * just outside a random corner, so calm elevation arcs sweep across it.
- * Every ring shares one low-frequency noise field, so neighbours stay
- * parallel and never cross; every 5th ring is an index contour (bolder),
- * and lines fade with distance from the peak.
+ * Generate a quiet elevation map: a main peak beyond a random corner, a
+ * lower knoll further into the canvas, and gentle ripples, contoured as
+ * level sets with marching squares. Level sets of one smooth field never
+ * cross and merge organically around the saddle between the two hills.
  */
-function generateContours(): ContourLine[] {
-  const lines: ContourLine[] = [];
-
-  // Peak sits off-canvas beyond one corner
+function buildFieldSpec(): FieldSpec {
   const corner = Math.floor(rand(0, 4));
-  const inset = rand(80, 160);
-  const centers: Record<number, { x: number; y: number }> = {
+  const inset = rand(60, 140);
+  const corners: Record<number, { x: number; y: number }> = {
     0: { x: -inset, y: VIEWBOX_H + inset },
     1: { x: VIEWBOX_W + inset, y: VIEWBOX_H + inset },
     2: { x: -inset, y: -inset },
     3: { x: VIEWBOX_W + inset, y: -inset },
   };
-  const center = centers[corner];
+  const main = corners[corner];
 
-  // A shared angular noise field: a few low-frequency harmonics with fixed
-  // random phases. Identical across rings, so contours nest like terrain.
-  const harmonics = Array.from({ length: 3 }, (_, k) => ({
-    freq: k + 2 + Math.floor(rand(0, 2)),
-    phase: rand(0, TWO_PI),
-    amp: rand(12, 26) / (k + 1),
-  }));
-  const wobble = (angle: number) =>
-    harmonics.reduce((sum, h) => sum + h.amp * Math.sin(h.freq * angle + h.phase), 0);
+  // The knoll sits diagonally inward from the main peak
+  const inwardX = main.x < 0 ? 1 : -1;
+  const inwardY = main.y < 0 ? 1 : -1;
+  const knollDist = rand(420, 620);
+  const knollSkew = rand(-0.5, 0.5);
 
-  const ringCount = Math.floor(rand(14, 19));
-  const spacing = rand(38, 48);
-  const startRadius = rand(70, 130);
-  const steps = 64;
+  return {
+    peaks: [
+      { x: main.x, y: main.y, amp: 1, sigma: rand(240, 320) },
+      {
+        x: main.x + inwardX * knollDist * (1 + knollSkew),
+        y: main.y + inwardY * knollDist * (1 - knollSkew),
+        amp: rand(0.32, 0.48),
+        sigma: rand(130, 190),
+      },
+    ],
+    ripples: Array.from({ length: 2 }, () => ({
+      fx: rand(0.004, 0.008),
+      fy: rand(0.004, 0.008),
+      px: rand(0, TWO_PI),
+      py: rand(0, TWO_PI),
+      amp: rand(0.015, 0.03),
+    })),
+  };
+}
 
-  for (let i = 0; i < ringCount; i++) {
-    const baseRadius = startRadius + i * spacing;
-    // Terrain relaxes as it descends: outer rings wander slightly more
-    const relax = 1 + i * 0.04;
-    const points: { x: number; y: number }[] = [];
-
-    for (let s = 0; s < steps; s++) {
-      const angle = (s / steps) * TWO_PI;
-      const r = baseRadius + wobble(angle) * relax;
-      points.push({
-        x: center.x + Math.cos(angle) * r,
-        y: center.y + Math.sin(angle) * r,
-      });
-    }
-
-    // Index contour convention: every 5th line is bolder
-    const isIndex = i % 5 === 0;
-    // Elevation fades as it flows away from the peak
-    const falloff = 1 - (i / ringCount) * 0.55;
-
+/** Extract one elevation level as styled contour lines. */
+function linesAtLevel(
+  grid: ReturnType<typeof makeGrid>,
+  threshold: number,
+  level: number,
+  falloff: number,
+): ContourLine[] {
+  const isIndex = level % 5 === 0;
+  const lines: ContourLine[] = [];
+  for (const [li, polyline] of marchingSquares(grid, threshold).entries()) {
+    if (polyline.length < 6) continue;
     lines.push({
-      id: `contour-${i}`,
-      d: catmullRomLoop(points),
+      id: `contour-${level}-${li}`,
+      d: toPath(chaikin(polyline, 2)),
       strokeWidth: isIndex ? rand(1.2, 1.6) : rand(0.5, 0.8),
-      opacity: (isIndex ? rand(0.5, 0.65) : rand(0.2, 0.32)) * falloff,
+      opacity: (isIndex ? rand(0.5, 0.65) : rand(0.22, 0.34)) * falloff,
     });
   }
+  return lines;
+}
 
+/**
+ * Generate a quiet elevation map: a main peak beyond a random corner, a
+ * lower knoll further into the canvas, and gentle ripples, contoured as
+ * level sets with marching squares. Level sets of one smooth field never
+ * cross and merge organically around the saddle between the two hills.
+ */
+function generateContours(): ContourLine[] {
+  const spec = buildFieldSpec();
+  const margin = 320;
+  const grid = makeGrid(
+    spec,
+    { x0: -margin, y0: -margin, x1: VIEWBOX_W + margin, y1: VIEWBOX_H + margin },
+    18,
+  );
+
+  let maxV = 0;
+  for (const v of grid.values) if (v > maxV) maxV = v;
+
+  const levelCount = Math.floor(rand(13, 17));
+  const lines: ContourLine[] = [];
+  for (let level = 0; level < levelCount; level++) {
+    const t = (level + 1) / (levelCount + 1);
+    // Contours fade as the terrain descends from the peak
+    lines.push(...linesAtLevel(grid, maxV * (0.06 + t * 0.88), level, 0.45 + t * 0.55));
+  }
   return lines;
 }
 
@@ -127,6 +126,7 @@ export function BranchDecoration() {
           stroke="var(--color-accent)"
           strokeWidth={line.strokeWidth}
           strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
           opacity={line.opacity}
         />
