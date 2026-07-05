@@ -34,19 +34,29 @@ async function gotoTreeList(page: Page): Promise<void> {
   await page.waitForURL("**/trees");
 }
 
+// Assertions against freshly-deployed production tolerate cold-start latency:
+// the tree-list refetch after a delete (which also computes structural counts)
+// can take several seconds on a cold Cloud Run instance.
+const COLD = 30_000;
+
 /** Delete every tree whose name contains `text`, via the tree list UI. */
 async function deleteTreesNamed(page: Page, text: string): Promise<void> {
   await gotoTreeList(page);
   // Wait for either the populated list or the empty state before counting.
   await expect(page.locator(".tree-list, .tree-list-empty").first()).toBeVisible();
   const items = page.locator(".tree-list li").filter({ hasText: text });
-  while ((await items.count()) > 0) {
+  // Guard-bounded loop so a stuck delete fails fast instead of hanging.
+  for (let guard = 0; guard < 60; guard++) {
+    const before = await items.count();
+    if (before === 0) break;
     await items.first().getByRole("button", { name: /delete/i }).click();
     // The row swaps to an inline confirmation that replaces the tree name, so
     // it no longer matches the name filter; only one confirm is open at a time.
     const confirm = page.locator(".tree-list-item__confirm");
     await confirm.getByRole("button", { name: /delete/i }).click();
-    await expect(confirm).toHaveCount(0);
+    // Wait for the true signal (the matching item is gone), not just the
+    // confirm dismissing, and allow for a slow post-delete refetch.
+    await expect(items).toHaveCount(before - 1, { timeout: COLD });
   }
 }
 
@@ -75,7 +85,7 @@ test.describe("Production smoke", () => {
     await yearInput.fill("1960");
     await yearInput.blur();
     await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
-      timeout: 15_000,
+      timeout: COLD,
     });
     await page.keyboard.press("Escape");
     await expect(panel).not.toBeVisible();
@@ -85,7 +95,9 @@ test.describe("Production smoke", () => {
     await loginAndUnlock(page, EMAIL, CREDENTIALS);
     await page.locator(".tree-list-item__link").filter({ hasText: treeName }).click();
     await page.waitForURL("**/trees/*");
-    await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached();
+    await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
+      timeout: COLD,
+    });
 
     await deleteTreesNamed(page, TREE_PREFIX);
   });
