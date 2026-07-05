@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
+# The API is not a crawl surface, except the public FAQ content that the
+# landing page fetches while rendering (blocking it would strip the FAQ
+# from the homepage snapshot Google indexes).
+Allow: /api/faq
+Disallow: /api/
 # Auth and transactional pages are user-specific and should not be indexed.
 Disallow: /verify
 Disallow: /verify-pending
