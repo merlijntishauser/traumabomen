@@ -24,6 +24,10 @@ class TreeResponse(BaseModel):
     is_demo: bool
     created_at: datetime
     updated_at: datetime
+    # Structural row counts (list endpoint only); content stays opaque.
+    person_count: int = 0
+    moment_count: int = 0
+    pattern_count: int = 0
 
 
 # --- Person ---

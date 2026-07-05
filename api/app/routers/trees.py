@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.database import get_db
 from app.dependencies import get_owned_tree
+from app.models.event import TraumaEvent
+from app.models.life_event import LifeEvent
+from app.models.pattern import Pattern
+from app.models.person import Person
 from app.models.tree import Tree
+from app.models.turning_point import TurningPoint
 from app.models.user import User
 from app.routers.crud_helpers import build_tree_response
 from app.schemas.tree import TreeCreate, TreeResponse, TreeUpdate
@@ -27,6 +32,21 @@ async def create_tree(
     return build_tree_response(tree)
 
 
+async def _counts_by_tree(
+    db: AsyncSession,
+    user_id: object,
+    model: type[Person] | type[TraumaEvent] | type[LifeEvent] | type[TurningPoint] | type[Pattern],
+) -> dict[object, int]:
+    """Row counts per tree for one entity type: structure, never content."""
+    result = await db.execute(
+        select(model.tree_id, func.count())
+        .join(Tree, Tree.id == model.tree_id)
+        .where(Tree.user_id == user_id)
+        .group_by(model.tree_id)
+    )
+    return {tree_id: count for tree_id, count in result.all()}
+
+
 @router.get("", response_model=list[TreeResponse])
 async def list_trees(
     user: User = Depends(get_current_user),
@@ -34,7 +54,22 @@ async def list_trees(
 ) -> list[TreeResponse]:
     result = await db.execute(select(Tree).where(Tree.user_id == user.id))
     trees = result.scalars().all()
-    return [build_tree_response(t) for t in trees]
+
+    persons = await _counts_by_tree(db, user.id, Person)
+    patterns = await _counts_by_tree(db, user.id, Pattern)
+    moments: dict[object, int] = {}
+    for model in (TraumaEvent, LifeEvent, TurningPoint):
+        for tree_id, count in (await _counts_by_tree(db, user.id, model)).items():
+            moments[tree_id] = moments.get(tree_id, 0) + count
+
+    responses = []
+    for t in trees:
+        response = build_tree_response(t)
+        response.person_count = persons.get(t.id, 0)
+        response.moment_count = moments.get(t.id, 0)
+        response.pattern_count = patterns.get(t.id, 0)
+        responses.append(response)
+    return responses
 
 
 @router.get("/{tree_id}", response_model=TreeResponse)

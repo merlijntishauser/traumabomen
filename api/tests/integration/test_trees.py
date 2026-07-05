@@ -45,6 +45,44 @@ class TestListTrees:
         assert data[0]["id"] == tree["id"]
 
     @pytest.mark.asyncio
+    async def test_list_includes_structural_counts(self, client, headers, tree):
+        # Empty tree: all counts zero
+        resp = await client.get("/trees", headers=headers)
+        entry = resp.json()[0]
+        assert entry["person_count"] == 0
+        assert entry["moment_count"] == 0
+        assert entry["pattern_count"] == 0
+
+        # One person, one trauma event, one life event, one pattern
+        person = await client.post(
+            f"/trees/{tree['id']}/persons",
+            headers=headers,
+            json={"encrypted_data": "encrypted-person"},
+        )
+        person_id = person.json()["id"]
+        await client.post(
+            f"/trees/{tree['id']}/events",
+            headers=headers,
+            json={"encrypted_data": "encrypted-event", "person_ids": [person_id]},
+        )
+        await client.post(
+            f"/trees/{tree['id']}/life-events",
+            headers=headers,
+            json={"encrypted_data": "encrypted-life-event", "person_ids": [person_id]},
+        )
+        await client.post(
+            f"/trees/{tree['id']}/patterns",
+            headers=headers,
+            json={"encrypted_data": "encrypted-pattern", "person_ids": [person_id]},
+        )
+
+        resp = await client.get("/trees", headers=headers)
+        entry = resp.json()[0]
+        assert entry["person_count"] == 1
+        assert entry["moment_count"] == 2
+        assert entry["pattern_count"] == 1
+
+    @pytest.mark.asyncio
     async def test_list_isolation(self, client, headers, tree, db_session):
         """Other user's trees should not be visible."""
         other = await create_user(db_session, email="other@example.com")

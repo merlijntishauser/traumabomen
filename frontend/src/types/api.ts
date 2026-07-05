@@ -111,6 +111,9 @@ export interface TreeResponse {
   is_demo: boolean;
   created_at: string;
   updated_at: string;
+  person_count: number;
+  moment_count: number;
+  pattern_count: number;
 }
 
 // Persons

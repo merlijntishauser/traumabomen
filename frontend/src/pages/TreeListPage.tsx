@@ -22,6 +22,7 @@ import { uuidToCompact } from "../lib/compactId";
 import { createDemoTree } from "../lib/createDemoTree";
 import { encryptForApi, generateTreeKey } from "../lib/crypto";
 import "../components/tree/TreeCanvas.css";
+import { buildTreeMetaLine } from "./treeListMeta";
 import "../styles/tree-list.css";
 
 const WELCOME_DISMISSED_KEY = "traumabomen_welcome_dismissed";
@@ -35,6 +36,10 @@ interface DecryptedTree {
   id: string;
   name: string;
   is_demo: boolean;
+  person_count: number;
+  moment_count: number;
+  pattern_count: number;
+  updated_at: string;
 }
 
 /* -- Local state ----------------------------------------------------------- */
@@ -212,7 +217,7 @@ function TreeListItemRow({
   onCancelDelete,
   onDelete,
 }: TreeListItemProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (editingId === tree.id) {
     return (
@@ -256,8 +261,11 @@ function TreeListItemRow({
     <div className="tree-list-item">
       <Logomark size={24} className="tree-list-item__mark" />
       <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
-        {tree.name}
-        {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
+        <span className="tree-list-item__name">
+          {tree.name}
+          {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
+        </span>
+        <span className="tree-list-item__meta">{buildTreeMetaLine(tree, t, i18n.language)}</span>
       </Link>
       <div className="tree-list-item__actions">
         <button
@@ -405,11 +413,18 @@ export default function TreeListPage() {
       const responses = await getTrees();
       const trees: DecryptedTree[] = await Promise.all(
         responses.map(async (r) => {
+          const meta = {
+            is_demo: r.is_demo,
+            person_count: r.person_count,
+            moment_count: r.moment_count,
+            pattern_count: r.pattern_count,
+            updated_at: r.updated_at,
+          };
           try {
             const data = await decrypt<{ name: string }>(r.encrypted_data, r.id);
-            return { id: r.id, name: data.name, is_demo: r.is_demo };
+            return { id: r.id, name: data.name, ...meta };
           } catch {
-            return { id: r.id, name: t("tree.decryptionError"), is_demo: r.is_demo };
+            return { id: r.id, name: t("tree.decryptionError"), ...meta };
           }
         }),
       );
