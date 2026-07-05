@@ -23,6 +23,7 @@ import {
 } from "./lib/api";
 import "./components/MobileBanner.css";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import GenogramPage from "./pages/GenogramPage";
 import LandingPage from "./pages/LandingPage";
 import LearnPage from "./pages/LearnPage";
 import LoginPage from "./pages/LoginPage";
@@ -157,6 +158,8 @@ function AppContent() {
     pathname === "/privacy" ||
     pathname === "/security" ||
     pathname === "/learn" ||
+    pathname === "/genogram" ||
+    pathname === "/genogram-maken" ||
     pathname === "/tour" ||
     pathname === "/demo" ||
     pathname === "/login" ||
@@ -278,6 +281,8 @@ function AppContent() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/learn" element={<LearnPage />} />
+              <Route path="/genogram" element={<GenogramPage lang="en" />} />
+              <Route path="/genogram-maken" element={<GenogramPage lang="nl" />} />
               <Route path="/tour" element={<TourPage />} />
               <Route
                 path="/demo"

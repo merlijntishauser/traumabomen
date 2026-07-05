@@ -1,0 +1,85 @@
+/* =============================================
+   Genogram landing pages (/genogram, /genogram-maken).
+   Extends the shared long-form article styles in learn.css
+   with subsection headings, a numbered steps list, framed
+   screenshots, and the closing CTA pair.
+   ============================================= */
+
+.genogram-sub {
+  margin: var(--space-6) 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+.genogram-steps {
+  margin: 0;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.genogram-steps li::marker {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.genogram-steps .learn-prose {
+  margin: 0;
+}
+
+.genogram-figure {
+  margin: var(--space-8) 0 0;
+}
+
+.genogram-figure figcaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.genogram-ctas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.genogram-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  color: var(--color-action);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.genogram-cta-secondary:hover {
+  color: var(--color-action-hover);
+  text-decoration: underline;
+}
+
+.genogram-other-language {
+  margin: var(--space-5) 0 0;
+  font-size: 13px;
+}
+
+.genogram-other-language a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.genogram-other-language a:hover {
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+}
