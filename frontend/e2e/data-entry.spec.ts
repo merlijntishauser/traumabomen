@@ -125,4 +125,33 @@ test.describe("Data entry", () => {
     // Verify classification card appears
     await expect(panel.locator(".detail-panel__event-card")).toBeVisible();
   });
+
+  test("right-click node menu: add trauma jumps to the form", async ({ page }) => {
+    await setupTreeWithPerson(page, "Alice");
+    await page.keyboard.press("Escape");
+
+    const node = page.locator(".react-flow__node").filter({ hasText: "Alice" });
+    await node.click({ button: "right" });
+    await page.getByRole("menu").getByText(/add trauma/i).click();
+
+    // Lands straight on the new-event form (Add button + a title field), not
+    // the events list.
+    const sub = page.locator(".detail-panel__sub-body");
+    await expect(sub).toBeVisible();
+    await expect(sub.getByRole("button", { name: "Add", exact: true })).toBeVisible();
+  });
+
+  test("right-click node menu: add sibling pre-links a new person", async ({ page }) => {
+    await setupTreeWithPerson(page, "Alice");
+    await page.keyboard.press("Escape");
+
+    const node = page.locator(".react-flow__node").filter({ hasText: "Alice" });
+    await node.click({ button: "right" });
+    await page.getByRole("menu").getByText(/add sibling/i).click();
+
+    // A second, pre-linked node appears with an edge, and the panel opens on
+    // the new person for naming.
+    await expect(page.locator(".react-flow__node")).toHaveCount(2);
+    await expect(page.locator(".react-flow__edge")).toBeAttached();
+  });
 });

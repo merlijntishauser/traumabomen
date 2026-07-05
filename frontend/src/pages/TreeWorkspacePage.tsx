@@ -20,6 +20,7 @@ import { useLocation } from "react-router-dom";
 import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
+import { NodeContextMenuHost } from "../components/tree/NodeContextMenu";
 import { PatternFocusPanel } from "../components/tree/PatternFocusPanel";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
 import { PersonNode } from "../components/tree/PersonNode";
@@ -33,6 +34,7 @@ import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
+import { CREATE_NEW } from "../hooks/useEditingState";
 import { useExportTree } from "../hooks/useExportTree";
 import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import { usePatternFocus } from "../hooks/usePatternFocus";
@@ -51,7 +53,11 @@ import type {
 import { filterEdgesByVisibility, useTreeLayout } from "../hooks/useTreeLayout";
 import { linkedEntityHandlers, useTreeMutations } from "../hooks/useTreeMutations";
 import { useWorkspacePanels } from "../hooks/useWorkspacePanels";
-import { buildSiblingParentInheritance } from "../lib/parentInheritance";
+import {
+  buildSiblingParentInheritance,
+  collectBiologicalParentIds,
+} from "../lib/parentInheritance";
+import { buildRelatedPersonPlan, type RelatedPersonKind } from "../lib/relatedPersonPlan";
 import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/siblingGroupConnect";
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
@@ -108,12 +114,19 @@ function findFreePosition(
 
 /* -- Canvas interaction state ---------------------------------------------- */
 
+interface NodeMenuState {
+  nodeId: string;
+  x: number;
+  y: number;
+}
+
 interface CanvasInteractionState {
   selectedEdgeId: string | null;
   pendingConnection: Connection | null;
   relationshipPromptPersonId: string | null;
   initialEntityId: string | null;
   openSiblingGroupId: string | null;
+  nodeMenu: NodeMenuState | null;
   animatingLayout: boolean;
 }
 
@@ -124,6 +137,8 @@ type CanvasInteractionAction =
   | { type: "SET_RELATIONSHIP_PROMPT"; personId: string | null }
   | { type: "SET_INITIAL_ENTITY"; id: string | null }
   | { type: "SET_OPEN_SIBLING_GROUP"; id: string | null }
+  | { type: "OPEN_NODE_MENU"; menu: NodeMenuState }
+  | { type: "CLOSE_NODE_MENU" }
   | { type: "SET_ANIMATING_LAYOUT"; value: boolean }
   | { type: "DISMISS_ALL" }
   | { type: "NODE_CLICKED"; entityId: string | null };
@@ -134,6 +149,7 @@ const canvasInteractionInitialState: CanvasInteractionState = {
   relationshipPromptPersonId: null,
   initialEntityId: null,
   openSiblingGroupId: null,
+  nodeMenu: null,
   animatingLayout: false,
 };
 
@@ -162,6 +178,10 @@ function canvasInteractionReducer(
       return { ...state, initialEntityId: action.id };
     case "SET_OPEN_SIBLING_GROUP":
       return { ...state, openSiblingGroupId: action.id };
+    case "OPEN_NODE_MENU":
+      return { ...state, nodeMenu: action.menu };
+    case "CLOSE_NODE_MENU":
+      return { ...state, nodeMenu: null };
     case "SET_ANIMATING_LAYOUT":
       return { ...state, animatingLayout: action.value };
     case "DISMISS_ALL":
@@ -171,6 +191,7 @@ function canvasInteractionReducer(
         pendingConnection: null,
         relationshipPromptPersonId: null,
         openSiblingGroupId: null,
+        nodeMenu: null,
       };
     case "NODE_CLICKED":
       return {
@@ -380,6 +401,61 @@ function useCanvasActions(opts: {
     });
   }
 
+  // Right-click "add related person": create a pre-linked New person next to
+  // the source, then open it so the name field is ready. Sibling inherits the
+  // source's biological parents (matching the add-sibling flow).
+  async function handleAddRelatedPerson(sourceId: string, kind: RelatedPersonKind) {
+    const source = persons.get(sourceId);
+    if (!source) return;
+
+    const sharedParentIds =
+      kind === "sibling" ? collectBiologicalParentIds(relationships, sourceId) : [];
+    const base = source.position ?? screenToFlowPosition({ x: window.innerWidth / 2, y: 240 });
+
+    const newPerson: Person = {
+      name: t("person.newPerson"),
+      birth_year: null,
+      birth_month: null,
+      birth_day: null,
+      death_year: null,
+      death_month: null,
+      death_day: null,
+      cause_of_death: null,
+      gender: "",
+      is_adopted: false,
+      notes: null,
+      position: base,
+    };
+
+    try {
+      const created = await mutations.createPerson.mutateAsync(newPerson);
+      const plan = buildRelatedPersonPlan(
+        kind,
+        sourceId,
+        created.id,
+        sharedParentIds,
+        new Date().getFullYear(),
+      );
+      const position = findFreePosition(
+        { x: base.x + plan.offset.dx, y: base.y + plan.offset.dy },
+        nodes,
+      );
+      // Persist the offset placement (create used the source position as a seed).
+      mutations.updatePerson.mutate({
+        personId: created.id,
+        data: { ...newPerson, position },
+      });
+      if (plan.relationships.length > 0) {
+        await mutations.bulkCreateRelationships.mutateAsync(plan.relationships);
+      }
+      setSelectedPersonId(created.id);
+      panels.setPatternPanelOpen(false);
+    } catch {
+      // Mutation errors surface through the mutation's own error handling; the
+      // partially-created person (if any) can be finished from its panel.
+    }
+  }
+
   const applyPositions = useCallback(
     (positionMap: PositionSnapshot) => {
       layoutRevisionRef.current += 1;
@@ -533,6 +609,7 @@ function useCanvasActions(opts: {
     handleNodeDragStart,
     handleNodeDragStop,
     handleAddPerson,
+    handleAddRelatedPerson,
     handleAutoLayout,
     handleUndo,
     applyPositions,
@@ -553,6 +630,7 @@ function CanvasContent({
   edges,
   onNodesChange,
   onNodeClick,
+  onNodeContextMenu,
   onNodeDragStart,
   onNodeDragStop,
   onPaneClick,
@@ -572,6 +650,7 @@ function CanvasContent({
   edges: RelationshipEdgeType[];
   onNodesChange: OnNodesChange<AnyNodeType>;
   onNodeClick: (event: React.MouseEvent, node: AnyNodeType) => void;
+  onNodeContextMenu: (event: React.MouseEvent, node: AnyNodeType) => void;
   onNodeDragStart: OnNodeDrag<AnyNodeType>;
   onNodeDragStop: OnNodeDrag<AnyNodeType>;
   onPaneClick: () => void;
@@ -600,6 +679,7 @@ function CanvasContent({
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
+        onNodeContextMenu={onNodeContextMenu}
         onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
@@ -790,9 +870,23 @@ function useCanvasEventHandlers(opts: {
     [setSelectedPersonId, panels, dispatchCanvas],
   );
 
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: AnyNodeType) => {
+      // Person nodes only; the sibling-group pill falls through to default.
+      if (node.type === "siblingGroup") return;
+      event.preventDefault();
+      dispatchCanvas({
+        type: "OPEN_NODE_MENU",
+        menu: { nodeId: node.id, x: event.clientX, y: event.clientY },
+      });
+    },
+    [dispatchCanvas],
+  );
+
   const onPaneClick = useCallback(() => {
     setSelectedPersonId(null);
     dispatchCanvas({ type: "SELECT_EDGE", id: null });
+    dispatchCanvas({ type: "CLOSE_NODE_MENU" });
   }, [setSelectedPersonId, dispatchCanvas]);
 
   const onEdgeClick = useCallback(
@@ -871,6 +965,7 @@ function useCanvasEventHandlers(opts: {
 
   return {
     onNodeClick,
+    onNodeContextMenu,
     onPaneClick,
     onEdgeClick,
     onConnect,
@@ -1088,6 +1183,7 @@ function TreeWorkspaceInner() {
             edges={edges}
             onNodesChange={onNodesChange}
             onNodeClick={canvasEvents.onNodeClick}
+            onNodeContextMenu={canvasEvents.onNodeContextMenu}
             onNodeDragStart={actions.handleNodeDragStart}
             onNodeDragStop={actions.handleNodeDragStop}
             onPaneClick={canvasEvents.onPaneClick}
@@ -1154,16 +1250,77 @@ function TreeWorkspaceInner() {
         )}
       </div>
 
+      <CanvasOverlays
+        canvasState={canvasState}
+        persons={persons}
+        siblingGroups={siblingGroups}
+        relationships={relationships}
+        mutations={mutations}
+        selectedPersonId={selectedPersonId}
+        setSelectedPersonId={setSelectedPersonId}
+        dispatchCanvas={dispatchCanvas}
+        panels={panels}
+        onCreateRelationship={canvasEvents.handleCreateRelationship}
+        onAddRelated={actions.handleAddRelatedPerson}
+        onDeletePerson={handlers.handleDeletePerson}
+      />
+    </div>
+  );
+}
+
+/** The cursor/canvas-anchored overlays: relationship popover, node context
+ * menu, and the after-add relationship prompt. */
+function CanvasOverlays({
+  canvasState,
+  persons,
+  siblingGroups,
+  relationships,
+  mutations,
+  selectedPersonId,
+  setSelectedPersonId,
+  dispatchCanvas,
+  panels,
+  onCreateRelationship,
+  onAddRelated,
+  onDeletePerson,
+}: {
+  canvasState: CanvasInteractionState;
+  persons: Map<string, DecryptedPerson>;
+  siblingGroups: ReturnType<typeof useTreeData>["siblingGroups"];
+  relationships: ReturnType<typeof useTreeData>["relationships"];
+  mutations: ReturnType<typeof useTreeMutations>;
+  selectedPersonId: string | null;
+  setSelectedPersonId: (id: string | null) => void;
+  dispatchCanvas: React.Dispatch<CanvasInteractionAction>;
+  panels: ReturnType<typeof useWorkspacePanels>;
+  onCreateRelationship: (type: RelationshipType) => void;
+  onAddRelated: (personId: string, kind: RelatedPersonKind) => void;
+  onDeletePerson: (personId: string) => void;
+}) {
+  return (
+    <>
       {canvasState.pendingConnection && (
         <RelationshipPopover
           connection={canvasState.pendingConnection}
           persons={persons}
           siblingGroups={siblingGroups}
-          onSelect={canvasEvents.handleCreateRelationship}
+          onSelect={onCreateRelationship}
           onSwap={() => dispatchCanvas({ type: "SWAP_PENDING_CONNECTION" })}
           onClose={() => dispatchCanvas({ type: "SET_PENDING_CONNECTION", connection: null })}
         />
       )}
+
+      <NodeContextMenuHost
+        menu={canvasState.nodeMenu}
+        hasPerson={(id) => persons.has(id)}
+        selectPerson={setSelectedPersonId}
+        openSection={panels.setInitialSection}
+        markCreateNew={() => dispatchCanvas({ type: "SET_INITIAL_ENTITY", id: CREATE_NEW })}
+        clearPatternPanel={() => panels.setPatternPanelOpen(false)}
+        onAddRelated={onAddRelated}
+        onDelete={onDeletePerson}
+        onClose={() => dispatchCanvas({ type: "CLOSE_NODE_MENU" })}
+      />
 
       {canvasState.relationshipPromptPersonId && (
         <RelationshipPromptOverlay
@@ -1176,7 +1333,7 @@ function TreeWorkspaceInner() {
           dispatchCanvas={dispatchCanvas}
         />
       )}
-    </div>
+    </>
   );
 }
 

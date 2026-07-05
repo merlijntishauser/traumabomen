@@ -939,5 +939,16 @@
   "security.readPrivacy": "Read the full privacy policy",
   "security.link": "See how your data is protected",
   "inspector.saved": "Saved",
-  "inspector.saveFailed": "Couldn't save"
+  "inspector.saveFailed": "Couldn't save",
+  "nodeMenu.addTrauma": "Add trauma event",
+  "nodeMenu.addLifeEvent": "Add life event",
+  "nodeMenu.addTurningPoint": "Add turning point",
+  "nodeMenu.addClassification": "Add classification",
+  "nodeMenu.addSibling": "Add sibling",
+  "nodeMenu.addPartner": "Add partner",
+  "nodeMenu.addParent": "Add parent",
+  "nodeMenu.addChild": "Add child",
+  "nodeMenu.openDetails": "Open details",
+  "nodeMenu.deletePerson": "Delete person",
+  "nodeMenu.confirmDelete": "Delete?"
 }

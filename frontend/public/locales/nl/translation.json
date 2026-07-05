@@ -939,5 +939,16 @@
   "security.readPrivacy": "Lees het volledige privacybeleid",
   "security.link": "Bekijk hoe je gegevens worden beschermd",
   "inspector.saved": "Opgeslagen",
-  "inspector.saveFailed": "Opslaan mislukt"
+  "inspector.saveFailed": "Opslaan mislukt",
+  "nodeMenu.addTrauma": "Trauma toevoegen",
+  "nodeMenu.addLifeEvent": "Levensgebeurtenis toevoegen",
+  "nodeMenu.addTurningPoint": "Keerpunt toevoegen",
+  "nodeMenu.addClassification": "Classificatie toevoegen",
+  "nodeMenu.addSibling": "Broer of zus toevoegen",
+  "nodeMenu.addPartner": "Partner toevoegen",
+  "nodeMenu.addParent": "Ouder toevoegen",
+  "nodeMenu.addChild": "Kind toevoegen",
+  "nodeMenu.openDetails": "Details openen",
+  "nodeMenu.deletePerson": "Persoon verwijderen",
+  "nodeMenu.confirmDelete": "Verwijderen?"
 }
