@@ -1,7 +1,7 @@
 import uuid
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 AudienceType = Literal["disabled", "admins", "selected", "all"]
 
@@ -18,4 +18,4 @@ class AdminFeaturesResponse(BaseModel):
 
 class UpdateFeatureFlagRequest(BaseModel):
     audience: AudienceType
-    user_ids: list[uuid.UUID] = []
+    user_ids: list[uuid.UUID] = Field(default=[], max_length=10000)

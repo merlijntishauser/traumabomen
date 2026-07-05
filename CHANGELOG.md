@@ -20,6 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   verifies a full logout-login-decrypt round-trip before cleaning up. Replaces
   the curl-based login check.
 
+### Security
+
+- Hardening pass from a full security audit. Patched PyJWT to clear known
+  advisories. Added a Content-Security-Policy (verified end-to-end against the
+  argon2 WASM key derivation), disabled the nginx version banner, and disabled
+  interactive API docs in production. Made rate limiting proxy-aware so it keys
+  on the real client IP behind nginx / Cloud Run. Capped previously unbounded
+  request lists to remove denial-of-service amplification. Removed account
+  enumeration on the waitlist and registration responses. Scoped CORS to the
+  methods and headers actually used.
+
 ### Changed
 
 - **Quiet inspector panels with autosave.** Every detail panel (person,

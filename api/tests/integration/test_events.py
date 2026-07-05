@@ -29,6 +29,17 @@ class TestCreateEvent:
         assert resp.json()["person_ids"] == []
 
     @pytest.mark.asyncio
+    async def test_create_event_rejects_oversized_person_ids(self, client, headers, tree):
+        # DoS guard: person_ids is capped, so a caller cannot amplify junction
+        # inserts with an unbounded (or duplicate-padded) list.
+        resp = await client.post(
+            f"/trees/{tree['id']}/events",
+            json={"person_ids": [str(uuid.uuid4()) for _ in range(501)], "encrypted_data": "blob"},
+            headers=headers,
+        )
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
     async def test_create_event_invalid_person(self, client, headers, tree):
         resp = await client.post(
             f"/trees/{tree['id']}/events",

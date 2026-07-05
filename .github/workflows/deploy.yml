@@ -188,6 +188,8 @@ jobs:
               SMTP_FROM=merlijn@traumatrees.org;\
               APP_BASE_URL=https://www.traumatrees.org;\
               APP_BASE_URL_NL=https://www.traumabomen.nl;\
+              TRUST_PROXY_HEADERS=true;\
+              ENABLE_DOCS=false;\
               SMOKETEST_EMAIL=${{ secrets.SMOKETEST_EMAIL }};\
               ENABLE_WAITLIST=true;\
               MAX_ACTIVE_USERS=100;\

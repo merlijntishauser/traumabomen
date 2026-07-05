@@ -42,18 +42,13 @@
       as="style"
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
     />
+    <!-- Plain stylesheet link (no inline onload handler, which the CSP blocks).
+         The preconnect + preload above prime the fetch and display=swap avoids
+         invisible text, so the render-blocking cost is one cache-warm request. -->
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
       rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
     />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Playwrite+NZ+Basic:wght@100..400&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
   </head>
   <body data-1p-ignore>
     <div id="root"></div>

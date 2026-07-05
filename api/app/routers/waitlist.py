@@ -44,32 +44,24 @@ async def join_waitlist(
 ) -> dict[str, str]:
     email = body.email.strip().lower()
 
-    # Check if already on waitlist
-    result = await db.execute(select(WaitlistEntry).where(WaitlistEntry.email == email))
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="already_on_waitlist",
-        )
+    # Non-enumerating: always answer "joined_waitlist". If the email is already
+    # on the waitlist or already a registered user, quietly no-op rather than
+    # revealing that state to an attacker probing addresses.
+    on_waitlist = await db.execute(select(WaitlistEntry).where(WaitlistEntry.email == email))
+    if on_waitlist.scalar_one_or_none() is not None:
+        return {"message": "joined_waitlist"}
 
-    # Check if already registered as a user
-    result = await db.execute(select(User).where(User.email == email))
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="already_registered",
-        )
+    registered = await db.execute(select(User).where(User.email == email))
+    if registered.scalar_one_or_none() is not None:
+        return {"message": "joined_waitlist"}
 
     entry = WaitlistEntry(email=email)
     db.add(entry)
     try:
         await db.commit()
     except IntegrityError:
+        # Concurrent insert of the same email: treat as success.
         await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="already_on_waitlist",
-        ) from None
 
     return {"message": "joined_waitlist"}
 

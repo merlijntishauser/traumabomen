@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 # Maximum size for encrypted_data fields (1 MB).
 _MAX_ENCRYPTED_DATA = 1_048_576
+_MAX_PERSON_IDS = 500
 
 # --- Tree ---
 
@@ -76,12 +77,12 @@ class RelationshipResponse(BaseModel):
 
 
 class _LinkedEntityCreate(BaseModel):
-    person_ids: list[uuid.UUID]
+    person_ids: list[uuid.UUID] = Field(max_length=_MAX_PERSON_IDS)
     encrypted_data: str = Field(max_length=_MAX_ENCRYPTED_DATA)
 
 
 class _LinkedEntityUpdate(BaseModel):
-    person_ids: list[uuid.UUID] | None = None
+    person_ids: list[uuid.UUID] | None = Field(default=None, max_length=_MAX_PERSON_IDS)
     encrypted_data: str | None = Field(default=None, max_length=_MAX_ENCRYPTED_DATA)
 
 

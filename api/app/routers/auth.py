@@ -22,7 +22,13 @@ from app.email import send_email_background, send_password_reset_email, send_ver
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
-from app.rate_limiter import check_and_tarpit, check_endpoint_rate_limit, clear, record_failure
+from app.rate_limiter import (
+    check_and_tarpit,
+    check_endpoint_rate_limit,
+    clear,
+    get_client_ip,
+    record_failure,
+)
 from app.schemas.auth import (
     ChangePasswordRequest,
     DeleteAccountRequest,
@@ -134,10 +140,10 @@ async def register(
     _validate_password(body.password)
 
     email = body.email.strip().lower()
-    result = await db.execute(select(User).where(User.email == email))
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
+    # Gate first, so an un-invited prober gets "registration_closed" whether or
+    # not the email exists: the email-existence 409 below cannot be used to
+    # enumerate accounts without a valid (email-bound) invite.
     waitlist_entry: WaitlistEntry | None = None
     if body.invite_token:
         waitlist_entry = await _validate_invite_token(body.invite_token, email, db)
@@ -146,6 +152,10 @@ async def register(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="registration_closed",
         )
+
+    result = await db.execute(select(User).where(User.email == email))
+    if result.scalar_one_or_none() is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     user = User(
         email=email,
@@ -177,7 +187,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     email = body.email.strip().lower()
 
     await check_and_tarpit(ip, email)
@@ -203,9 +213,13 @@ async def login(
 
 @router.get("/verify", response_model=VerifyResponse)
 async def verify_email(
+    request: Request,
     token: str,
     db: AsyncSession = Depends(get_db),
 ) -> VerifyResponse:
+    # Tokens are 256-bit random (unguessable); this limit only caps the
+    # query-amplification cost of hammering the endpoint.
+    check_endpoint_rate_limit(get_client_ip(request), "verify-email")
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     result = await db.execute(
         select(User).where(
@@ -294,7 +308,7 @@ async def forgot_password(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> VerifyResponse:
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     check_endpoint_rate_limit(ip, "forgot-password")
 
     email = body.email.strip().lower()
@@ -322,7 +336,7 @@ async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),
 ) -> VerifyResponse:
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     check_endpoint_rate_limit(ip, "reset-password")
 
     _validate_password(body.new_password)
@@ -381,7 +395,7 @@ async def logout(
 ) -> dict[str, str]:
     from app.auth import revoke_refresh_token
 
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     check_endpoint_rate_limit(ip, "logout")
     await revoke_refresh_token(body.refresh_token, user.id, db)
     await db.commit()

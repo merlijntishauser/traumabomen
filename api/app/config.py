@@ -30,6 +30,12 @@ class Settings(BaseSettings):
 
     ENABLE_TEST_RESET: bool = False
 
+    # When true, derive the client IP from X-Forwarded-For (set behind a
+    # trusted proxy such as nginx / Cloud Run). Off in local dev.
+    TRUST_PROXY_HEADERS: bool = False
+    # Disable interactive API docs (/docs, /redoc, /openapi.json) in production.
+    ENABLE_DOCS: bool = True
+
     SENTRY_DSN: str = ""
     SENTRY_ENVIRONMENT: str = "development"
     SENTRY_RELEASE: str = ""

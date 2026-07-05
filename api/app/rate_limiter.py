@@ -19,9 +19,31 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
+
+from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def get_client_ip(request: Request) -> str:
+    """Best-effort client IP for rate limiting.
+
+    Behind a trusted proxy (TRUST_PROXY_HEADERS), the direct TCP peer is the
+    proxy / Cloud Run front-end, so read the left-most X-Forwarded-For entry
+    (the original client) instead. This restores correct per-IP granularity
+    for legitimate traffic. Note: a caller able to reach the origin directly
+    can still spoof X-Forwarded-For, so IP limiting stays defense-in-depth --
+    the per-email tarpit and high-entropy tokens are the primary controls.
+    """
+    if get_settings().TRUST_PROXY_HEADERS:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            first = forwarded.split(",", 1)[0].strip()
+            if first:
+                return first
+    return request.client.host if request.client else "unknown"
+
 
 EXPIRY_MINUTES = 30
 LOCKOUT_RETRY_AFTER = 900  # 15 minutes in seconds

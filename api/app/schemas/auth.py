@@ -1,15 +1,18 @@
 import uuid
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+
+_MAX_MIGRATE_ENTITIES = 5000
+_MAX_MIGRATE_TREES = 100
 
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    encryption_salt: str
-    invite_token: str | None = None
-    language: str = "en"
-    passphrase_hint: str | None = None
+    encryption_salt: str = Field(max_length=1024)
+    invite_token: str | None = Field(default=None, max_length=256)
+    language: str = Field(default="en", max_length=8)
+    passphrase_hint: str | None = Field(default=None, max_length=255)
 
 
 class LoginRequest(BaseModel):
@@ -63,11 +66,11 @@ class ChangePasswordRequest(BaseModel):
 
 
 class UpdateSaltRequest(BaseModel):
-    encryption_salt: str
+    encryption_salt: str = Field(max_length=1024)
 
 
 class UpdateHintRequest(BaseModel):
-    passphrase_hint: str | None = None
+    passphrase_hint: str | None = Field(default=None, max_length=255)
 
 
 class DeleteAccountRequest(BaseModel):
@@ -90,14 +93,14 @@ class MigrateKeysEntity(BaseModel):
 class MigrateKeysTree(BaseModel):
     tree_id: uuid.UUID
     encrypted_data: str
-    persons: list[MigrateKeysEntity]
-    relationships: list[MigrateKeysEntity]
-    events: list[MigrateKeysEntity]
-    life_events: list[MigrateKeysEntity]
-    turning_points: list[MigrateKeysEntity]
-    classifications: list[MigrateKeysEntity]
-    patterns: list[MigrateKeysEntity]
-    journal_entries: list[MigrateKeysEntity]
+    persons: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    relationships: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    events: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    life_events: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    turning_points: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    classifications: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    patterns: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
+    journal_entries: list[MigrateKeysEntity] = Field(max_length=_MAX_MIGRATE_ENTITIES)
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -112,4 +115,4 @@ class ResetPasswordRequest(BaseModel):
 
 class MigrateKeysRequest(BaseModel):
     encrypted_key_ring: str
-    trees: list[MigrateKeysTree]
+    trees: list[MigrateKeysTree] = Field(max_length=_MAX_MIGRATE_TREES)

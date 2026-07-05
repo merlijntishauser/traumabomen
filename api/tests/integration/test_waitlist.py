@@ -12,16 +12,31 @@ class TestJoinWaitlist:
         assert resp.status_code == 201
         assert resp.json()["message"] == "joined_waitlist"
 
-    async def test_join_waitlist_duplicate(self, client):
+    async def test_join_waitlist_duplicate_is_non_enumerating(self, client, db_session):
+        # A second join for the same email answers success (not 409) and does
+        # not create a duplicate row, so the response can't reveal prior state.
         await client.post("/waitlist", json={"email": "new@example.com"})
         resp = await client.post("/waitlist", json={"email": "new@example.com"})
-        assert resp.status_code == 409
-        assert resp.json()["detail"] == "already_on_waitlist"
+        assert resp.status_code == 201
+        assert resp.json()["message"] == "joined_waitlist"
 
-    async def test_join_waitlist_already_registered_user(self, client, user):
+        from sqlalchemy import func, select
+
+        from app.models.waitlist import WaitlistEntry
+
+        count = await db_session.execute(
+            select(func.count())
+            .select_from(WaitlistEntry)
+            .where(WaitlistEntry.email == "new@example.com")
+        )
+        assert count.scalar_one() == 1
+
+    async def test_join_waitlist_already_registered_is_non_enumerating(self, client, user):
+        # An address that already belongs to a registered user gets the same
+        # generic success, leaking nothing about account existence.
         resp = await client.post("/waitlist", json={"email": "test@example.com"})
-        assert resp.status_code == 409
-        assert resp.json()["detail"] == "already_registered"
+        assert resp.status_code == 201
+        assert resp.json()["message"] == "joined_waitlist"
 
     async def test_join_waitlist_invalid_email(self, client):
         resp = await client.post("/waitlist", json={"email": "not-an-email"})
