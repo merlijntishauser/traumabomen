@@ -73,4 +73,15 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- The genogram landing page is language-fixed with different paths per
+       language, so the loc uses the host-dependent path placeholder while
+       the hreflang alternates name both editions explicitly. -->
+  <url>
+    <loc>__OG_ORIGIN____GENOGRAM_PATH__</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="__BASE_EN__/genogram" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__BASE_NL__/genogram-maken" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__BASE_EN__/genogram" />
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
 </urlset>
