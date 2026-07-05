@@ -79,14 +79,19 @@ export function genogramJsonLd(lang: GenogramLang, t: (key: string) => string): 
 /**
  * Inject a JSON-LD data block just before the closing head tag. JSON-LD is
  * inert (browsers never execute data blocks, so CSP script-src does not
- * apply); crawlers read it from the raw HTML.
+ * apply); crawlers read it from the raw HTML. The data-prerender attribute
+ * lets the page's runtime head effect replace this block instead of adding
+ * a duplicate after hydration.
  */
 export function injectJsonLd(template: string, jsonLd: string): string {
   const marker = "</head>";
   if (!template.includes(marker)) {
     throw new Error("prerender: could not find </head> in index.html");
   }
-  return template.replace(marker, `<script type="application/ld+json">${jsonLd}</script></head>`);
+  return template.replace(
+    marker,
+    `<script type="application/ld+json" data-prerender="true">${jsonLd}</script></head>`,
+  );
 }
 
 /**

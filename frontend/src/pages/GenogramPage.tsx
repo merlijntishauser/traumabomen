@@ -38,6 +38,9 @@ export default function GenogramPage({ lang }: { lang: GenogramLang }) {
     document.title = `${t("genogram.title")} | ${t("app.title")}`;
     meta?.setAttribute("content", t("genogram.metaDescription"));
 
+    // On a direct load the prerendered head already carries this block;
+    // replace it rather than duplicating the structured data.
+    document.head.querySelector('script[type="application/ld+json"][data-prerender]')?.remove();
     const script = document.createElement("script");
     script.type = "application/ld+json";
     script.textContent = genogramJsonLd(lang, t);

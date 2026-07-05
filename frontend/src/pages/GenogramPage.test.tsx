@@ -79,6 +79,20 @@ describe("GenogramPage", () => {
     expect(document.head.querySelector('script[type="application/ld+json"]')).toBeNull();
   });
 
+  it("replaces the prerendered structured data block instead of duplicating it", () => {
+    const baked = document.createElement("script");
+    baked.type = "application/ld+json";
+    baked.setAttribute("data-prerender", "true");
+    baked.textContent = "{}";
+    document.head.appendChild(baked);
+
+    render(<GenogramPage lang="en" />);
+
+    const scripts = document.head.querySelectorAll('script[type="application/ld+json"]');
+    expect(scripts).toHaveLength(1);
+    expect(scripts[0].hasAttribute("data-prerender")).toBe(false);
+  });
+
   it("uses the Dutch canonical in the Dutch page's structured data", () => {
     render(<GenogramPage lang="nl" />);
 

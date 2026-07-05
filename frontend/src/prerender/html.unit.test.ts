@@ -116,10 +116,10 @@ describe("genogramJsonLd", () => {
 });
 
 describe("injectJsonLd", () => {
-  it("injects a data block before the closing head tag", () => {
+  it("injects a tagged data block before the closing head tag", () => {
     const out = injectJsonLd("<head><title>t</title></head><body></body>", '{"a":1}');
     expect(out).toBe(
-      '<head><title>t</title><script type="application/ld+json">{"a":1}</script></head><body></body>',
+      '<head><title>t</title><script type="application/ld+json" data-prerender="true">{"a":1}</script></head><body></body>',
     );
   });
 
