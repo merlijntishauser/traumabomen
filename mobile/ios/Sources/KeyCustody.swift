@@ -89,11 +89,7 @@ enum KeyCustody {
         guard
             let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &keyError),
             let publicKey = SecKeyCopyPublicKey(privateKey)
-        else {
-            NSLog("custody: SecKeyCreateRandomKey error: %@",
-                  keyError?.takeRetainedValue().localizedDescription ?? "nil")
-            throw CustodyError.keyCreation
-        }
+        else { throw CustodyError.keyCreation }
 
         var encryptError: Unmanaged<CFError>?
         guard let wrapped = SecKeyCreateEncryptedData(

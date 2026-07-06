@@ -49,10 +49,7 @@ final class AppModel: ObservableObject {
         cache = SessionCache(db: db)
         // A stored session plus a fresh Enclave wrap means Face ID can open
         // the app without a passphrase; otherwise start at login.
-        let hasToken = tokens.refreshToken != nil
-        let hasWrap = KeyCustody.hasFreshKey()
-        NSLog("custody: init token=\(hasToken) wrap=\(hasWrap)")
-        phase = (hasToken && hasWrap) ? .biometric : .login
+        phase = (tokens.refreshToken != nil && KeyCustody.hasFreshKey()) ? .biometric : .login
     }
 
     func login(email: String, password: String) async {
@@ -82,14 +79,7 @@ final class AppModel: ObservableObject {
             let entries = try await openJournal(with: master)
             // Only a verified key (the ring decrypted) enters custody.
             if KeyCustody.isAvailable {
-                do {
-                    try KeyCustody.store(masterKey: rawKey.toData())
-                    NSLog("custody: stored")
-                } catch {
-                    NSLog("custody: store failed: \(error)")
-                }
-            } else {
-                NSLog("custody: biometrics unavailable")
+                try? KeyCustody.store(masterKey: rawKey.toData())
             }
             masterKey = master
             phase = .journal(entries: entries)
