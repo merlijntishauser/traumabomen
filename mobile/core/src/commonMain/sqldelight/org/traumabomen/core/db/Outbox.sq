@@ -1,0 +1,34 @@
+-- The offline write queue. seq preserves insertion order across restarts;
+-- replaceByOpId keeps the original seq so reconciliation never reorders ops.
+
+CREATE TABLE outboxOp (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT,
+  opId TEXT NOT NULL UNIQUE,
+  treeId TEXT NOT NULL,
+  entityType TEXT NOT NULL,
+  entityId TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  encryptedData TEXT,
+  personIds TEXT NOT NULL,
+  baseEncryptedData TEXT
+);
+
+CREATE INDEX outboxOp_tree ON outboxOp(treeId);
+
+allByTree:
+SELECT * FROM outboxOp WHERE treeId = ? ORDER BY seq;
+
+append:
+INSERT INTO outboxOp(opId, treeId, entityType, entityId, kind, encryptedData, personIds, baseEncryptedData)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+replaceByOpId:
+UPDATE outboxOp
+SET entityType = ?, entityId = ?, kind = ?, encryptedData = ?, personIds = ?, baseEncryptedData = ?
+WHERE opId = ?;
+
+countByOpId:
+SELECT COUNT(*) FROM outboxOp WHERE opId = ?;
+
+removeByOpIds:
+DELETE FROM outboxOp WHERE opId IN ?;

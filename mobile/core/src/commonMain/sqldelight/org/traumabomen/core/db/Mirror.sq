@@ -1,0 +1,31 @@
+-- The ciphertext mirror: exactly what the server holds per entity, nothing
+-- plaintext. personIds is a JSON array of UUID strings (structural metadata
+-- the server stores next to the blob).
+
+CREATE TABLE mirrorRow (
+  entityType TEXT NOT NULL,
+  id TEXT NOT NULL,
+  treeId TEXT NOT NULL,
+  encryptedData TEXT NOT NULL,
+  personIds TEXT NOT NULL,
+  pendingSync INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (entityType, id)
+);
+
+CREATE INDEX mirrorRow_tree_type ON mirrorRow(treeId, entityType);
+
+get:
+SELECT * FROM mirrorRow WHERE entityType = ? AND id = ?;
+
+listByTreeAndType:
+SELECT * FROM mirrorRow WHERE treeId = ? AND entityType = ?;
+
+upsert:
+INSERT OR REPLACE INTO mirrorRow(entityType, id, treeId, encryptedData, personIds, pendingSync)
+VALUES (?, ?, ?, ?, ?, ?);
+
+delete:
+DELETE FROM mirrorRow WHERE entityType = ? AND id = ?;
+
+deleteByTreeAndType:
+DELETE FROM mirrorRow WHERE treeId = ? AND entityType = ?;
