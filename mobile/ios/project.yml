@@ -1,0 +1,27 @@
+# xcodegen project definition (xcodegen generate -> Traumatrees.xcodeproj).
+# The Xcode project file is generated, never edited by hand.
+name: Traumatrees
+options:
+  bundleIdPrefix: org.traumabomen
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "26.0"
+
+targets:
+  Traumatrees:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    dependencies:
+      # Build with: cd ../core && gradle assembleTraumabomenCoreDebugXCFramework
+      - framework: ../core/build/XCFrameworks/debug/TraumabomenCore.xcframework
+        embed: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.traumabomen.companion
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Traumatrees
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGNING_ALLOWED: NO

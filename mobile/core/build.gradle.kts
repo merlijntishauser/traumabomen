@@ -57,8 +57,22 @@ kotlin {
         "iosArm64" to "ios-arm64",
         "iosSimulatorArm64" to "ios-simulator-arm64",
     )
-    iosArm64()
+    // The app consumes the core as an XCFramework
+    // (gradle assembleTraumabomenCoreXCFramework -> build/XCFrameworks).
+    val xcf = org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig(project, "TraumabomenCore")
+    iosArm64 {
+        binaries.framework {
+            baseName = "TraumabomenCore"
+            isStatic = true
+            xcf.add(this)
+        }
+    }
     iosSimulatorArm64 {
+        binaries.framework {
+            baseName = "TraumabomenCore"
+            isStatic = true
+            xcf.add(this)
+        }
         // Run tests on a simulator device that exists in this Xcode.
         testRuns.configureEach { deviceId = "iPhone 17 Pro" }
     }

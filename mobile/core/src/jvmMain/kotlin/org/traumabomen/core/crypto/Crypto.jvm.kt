@@ -44,6 +44,7 @@ actual class AesGcmKey actual constructor(private val rawKey: ByteArray) {
         return EncryptedBlob(Base64.encode(iv), Base64.encode(ciphertextWithTag))
     }
 
+    @Throws(DecryptException::class)
     actual fun decrypt(blob: EncryptedBlob): String {
         val iv = Base64.decode(blob.iv)
         if (iv.size != IV_LENGTH) {

@@ -31,7 +31,12 @@ expect fun argon2idDeriveKey(passphrase: String, salt: ByteArray): ByteArray
 expect class AesGcmKey(rawKey: ByteArray) {
     fun encrypt(plaintext: String): EncryptedBlob
 
-    /** @throws DecryptException when authentication fails (wrong key or corrupt data). */
+    /**
+     * @throws DecryptException when authentication fails (wrong key or
+     * corrupt data). Declared with @Throws so Swift callers across the
+     * framework boundary receive a catchable error instead of a crash.
+     */
+    @Throws(DecryptException::class)
     fun decrypt(blob: EncryptedBlob): String
 }
 

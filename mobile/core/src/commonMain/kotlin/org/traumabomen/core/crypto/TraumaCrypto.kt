@@ -22,6 +22,8 @@ object TraumaCrypto {
 
     fun importTreeKey(base64Key: String): AesGcmKey = AesGcmKey(Base64.decode(base64Key))
 
+    /** @throws DecryptException on a wrong passphrase (Swift-catchable). */
+    @Throws(DecryptException::class)
     fun decryptKeyRing(encryptedKeyRing: String, masterKey: AesGcmKey): Map<String, String> =
         decryptFromApi(encryptedKeyRing, masterKey)
 

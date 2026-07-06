@@ -62,3 +62,5 @@ docker-compose.override.yml
 scripts/output/
 scripts/perf_accounts.json
 loadtests/__pycache__/
+mobile/ios/build/
+mobile/ios/Traumatrees.xcodeproj/
