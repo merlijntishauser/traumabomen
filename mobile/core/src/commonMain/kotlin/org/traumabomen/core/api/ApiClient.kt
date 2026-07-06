@@ -9,7 +9,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
+import io.ktor.http.content.TextContent
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -55,6 +55,16 @@ class ApiClient(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** Register a new account; the client generates and owns the salt. */
+    suspend fun register(email: String, password: String, encryptionSalt: String) {
+        val body = buildJsonObject {
+            put("email", email)
+            put("password", password)
+            put("encryption_salt", encryptionSalt)
+        }
+        raw(HttpMethod.Post, "/auth/register", body)
+    }
+
     /** Log in; the server returns both tokens plus the encryption salt. */
     suspend fun login(email: String, password: String): SaltInfo {
         val body = buildJsonObject {
@@ -76,6 +86,20 @@ class ApiClient(
     /** The encrypted key ring blob; decrypted client-side with the master key. */
     suspend fun fetchKeyRing(): String =
         parse(authed(HttpMethod.Get, "/auth/key-ring")).str("encrypted_key_ring")
+
+    suspend fun putKeyRing(encryptedKeyRing: String) {
+        authed(
+            HttpMethod.Put,
+            "/auth/key-ring",
+            buildJsonObject { put("encrypted_key_ring", encryptedKeyRing) },
+        )
+    }
+
+    /** Create a tree (integration tests and future onboarding; the companion UI itself never creates trees). */
+    suspend fun createTree(encryptedData: String): String =
+        parse(
+            authed(HttpMethod.Post, "/trees", buildJsonObject { put("encrypted_data", encryptedData) }),
+        ).str("id")
 
     suspend fun listTrees(): List<TreeSummary> {
         val response = authed(HttpMethod.Get, "/trees")
@@ -144,10 +168,9 @@ class ApiClient(
         val response = http.request("$baseUrl$path") {
             this.method = method
             bearer?.let { header("Authorization", "Bearer $it") }
-            body?.let {
-                contentType(ContentType.Application.Json)
-                setBody(it.toString())
-            }
+            // Explicit TextContent: without the ContentNegotiation plugin a
+            // plain String body ships as text/plain, which FastAPI ignores.
+            body?.let { setBody(TextContent(it.toString(), ContentType.Application.Json)) }
         }
         return if (throwOnError) checked(response) else response
     }

@@ -60,6 +60,8 @@ class ApiClientTest {
 
         val req = recorded.requests.single()
         assertEquals("https://api.test/auth/login", req.url.toString())
+        // FastAPI only parses JSON-typed bodies; text/plain 422s server-side.
+        assertEquals("application/json", req.body.contentType?.toString())
         val body = Json.parseToJsonElement(req.bodyText()).jsonObject
         assertEquals("a@b.nl", body["email"]!!.jsonPrimitive.content)
         assertEquals("pw", body["password"]!!.jsonPrimitive.content)

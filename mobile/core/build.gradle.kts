@@ -40,6 +40,8 @@ kotlin {
         jvmTest.dependencies {
             implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
             implementation("io.ktor:ktor-client-mock:3.5.1")
+            // Real engine for the opt-in live integration test.
+            implementation("io.ktor:ktor-client-cio:3.5.1")
         }
         jvmMain.dependencies {
             // Argon2id for the JVM actual. The web derivation equivalence of
