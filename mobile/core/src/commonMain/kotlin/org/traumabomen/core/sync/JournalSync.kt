@@ -21,6 +21,7 @@ class JournalSync(db: org.traumabomen.core.db.CoreDatabase, private val api: Api
         engine.localCreate(treeId, EntityType.JOURNAL_ENTRIES, encryptedData)
 
     /** Push queued ops; returns true when the queue drained. */
+    @Throws(Exception::class)
     suspend fun push(treeId: String): Boolean {
         val push = engine.buildPush(treeId)
         if (push.opIds.isEmpty()) return true
@@ -37,6 +38,7 @@ class JournalSync(db: org.traumabomen.core.db.CoreDatabase, private val api: Api
      * Pull the server's journal, reconcile pending ops, and return the
      * local view. When offline, the mirror serves what it has.
      */
+    @Throws(Exception::class)
     suspend fun pullJournal(treeId: String): List<MirrorEntry> {
         try {
             val server = api.pullEntities(treeId, EntityType.JOURNAL_ENTRIES)

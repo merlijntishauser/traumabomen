@@ -1,0 +1,19 @@
+-- Small key-value cache for offline unlock: the salt (public, stored
+-- server-side unencrypted anyway), the passphrase hint (user-chosen,
+-- deliberately plaintext), and the encrypted key ring (ciphertext). Nothing
+-- here weakens zero-knowledge; it mirrors what the server already serves
+-- before authentication of the passphrase.
+
+CREATE TABLE kv (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+get:
+SELECT value FROM kv WHERE key = ?;
+
+put:
+INSERT OR REPLACE INTO kv(key, value) VALUES (?, ?);
+
+remove:
+DELETE FROM kv WHERE key = ?;

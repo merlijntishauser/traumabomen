@@ -29,6 +29,7 @@ final class AppModel: ObservableObject {
 
     private let api: ApiClient
     private let sync: JournalSync
+    private let cache: SessionCache
     private var saltBase64: String?
     private var masterKey: AesGcmKey?
     private var treeId: String?
@@ -43,7 +44,9 @@ final class AppModel: ObservableObject {
         let base = Self.launchArgument("-apiBase") ?? "http://localhost:8000"
         let tokens = KeychainTokenStore()
         api = PlatformHttpKt.createApiClient(baseUrl: base, tokens: tokens)
-        sync = JournalSync(db: CoreDb_iosKt.openCoreDatabase(name: "traumabomen-core.db"), api: api)
+        let db = CoreDb_iosKt.openCoreDatabase(name: "traumabomen-core.db")
+        sync = JournalSync(db: db, api: api)
+        cache = SessionCache(db: db)
         // A stored session plus a fresh Enclave wrap means Face ID can open
         // the app without a passphrase; otherwise start at login.
         let hasToken = tokens.refreshToken != nil
@@ -58,6 +61,8 @@ final class AppModel: ObservableObject {
         do {
             let salt = try await api.login(email: email, password: password)
             saltBase64 = salt.encryptionSalt
+            cache.saltBase64 = salt.encryptionSalt
+            cache.passphraseHint = salt.passphraseHint
             phase = .unlock(hint: salt.passphraseHint)
         } catch {
             errorMessage = "Login failed. Check your email and password."
@@ -115,14 +120,22 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// While a session exists, the salt is fetchable and the passphrase
-    /// path works without re-entering credentials.
+    enum UnlockError: Error {
+        case noKeyRing
+    }
+
+    /// While a session exists, the salt is fetchable (or served from the
+    /// offline cache) and the passphrase path works without credentials.
     func usePassphraseInstead() async {
-        do {
-            let salt = try await api.fetchSalt()
+        if let salt = try? await api.fetchSalt() {
             saltBase64 = salt.encryptionSalt
+            cache.saltBase64 = salt.encryptionSalt
+            cache.passphraseHint = salt.passphraseHint
             phase = .unlock(hint: salt.passphraseHint)
-        } catch {
+        } else if let cached = cache.saltBase64 {
+            saltBase64 = cached
+            phase = .unlock(hint: cache.passphraseHint)
+        } else {
             KeychainTokenStore.clear()
             phase = .login
         }
@@ -135,7 +148,17 @@ final class AppModel: ObservableObject {
     }
 
     private func openJournal(with master: AesGcmKey) async throws -> [Entry] {
-        let ringBlob = try await api.fetchKeyRing()
+        // Fresh ring when the network allows; the cached copy opens the app
+        // offline. Both are ciphertext only the right key can use.
+        let ringBlob: String
+        if let fetched = try? await api.fetchKeyRing() {
+            cache.encryptedKeyRing = fetched
+            ringBlob = fetched
+        } else if let cached = cache.encryptedKeyRing {
+            ringBlob = cached
+        } else {
+            throw UnlockError.noKeyRing
+        }
         // A wrong key fails right here, on authenticated decryption.
         let ring = try TraumaCrypto.shared.decryptKeyRing(
             encryptedKeyRing: ringBlob, masterKey: master
@@ -215,6 +238,7 @@ final class AppModel: ObservableObject {
         if case .biometric = phase,
            ProcessInfo.processInfo.arguments.contains("-autoBiometric") {
             await biometricUnlock()
+            await debugComposeIfAsked()
             return
         }
         guard
@@ -225,6 +249,10 @@ final class AppModel: ObservableObject {
         if case .unlock = phase, let passphrase = Self.launchArgument("-unlockPassphrase") {
             await unlock(passphrase: passphrase)
         }
+        await debugComposeIfAsked()
+    }
+
+    private func debugComposeIfAsked() async {
         if case .journal = phase, let compose = Self.launchArgument("-composeEntry") {
             let parts = compose.split(separator: "|", maxSplits: 1).map(String.init)
             await createEntry(title: parts.first ?? "", content: parts.count > 1 ? parts[1] : "")

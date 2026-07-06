@@ -1,0 +1,5 @@
+-- v1 -> v2: the kv cache table for offline unlock.
+CREATE TABLE kv (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);

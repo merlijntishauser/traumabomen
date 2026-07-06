@@ -56,6 +56,7 @@ class ApiClient(
     private val json = Json { ignoreUnknownKeys = true }
 
     /** Register a new account; the client generates and owns the salt. */
+    @Throws(Exception::class)
     suspend fun register(email: String, password: String, encryptionSalt: String) {
         val body = buildJsonObject {
             put("email", email)
@@ -66,6 +67,7 @@ class ApiClient(
     }
 
     /** Log in; the server returns both tokens plus the encryption salt. */
+    @Throws(Exception::class)
     suspend fun login(email: String, password: String): SaltInfo {
         val body = buildJsonObject {
             put("email", email)
@@ -78,15 +80,18 @@ class ApiClient(
         return SaltInfo(payload.str("encryption_salt"), payload.strOrNull("passphrase_hint"))
     }
 
+    @Throws(Exception::class)
     suspend fun fetchSalt(): SaltInfo {
         val payload = parse(authed(HttpMethod.Get, "/auth/salt"))
         return SaltInfo(payload.str("encryption_salt"), payload.strOrNull("passphrase_hint"))
     }
 
     /** The encrypted key ring blob; decrypted client-side with the master key. */
+    @Throws(Exception::class)
     suspend fun fetchKeyRing(): String =
         parse(authed(HttpMethod.Get, "/auth/key-ring")).str("encrypted_key_ring")
 
+    @Throws(Exception::class)
     suspend fun putKeyRing(encryptedKeyRing: String) {
         authed(
             HttpMethod.Put,
@@ -96,11 +101,13 @@ class ApiClient(
     }
 
     /** Create a tree (integration tests and future onboarding; the companion UI itself never creates trees). */
+    @Throws(Exception::class)
     suspend fun createTree(encryptedData: String): String =
         parse(
             authed(HttpMethod.Post, "/trees", buildJsonObject { put("encrypted_data", encryptedData) }),
         ).str("id")
 
+    @Throws(Exception::class)
     suspend fun listTrees(): List<TreeSummary> {
         val response = authed(HttpMethod.Get, "/trees")
         return json.parseToJsonElement(response.bodyAsText()).jsonArray.map {
@@ -118,6 +125,7 @@ class ApiClient(
      * [ServerEntity]. Person links land in personIds; for relationships the
      * convention is personIds = [source_person_id, target_person_id].
      */
+    @Throws(Exception::class)
     suspend fun pullEntities(treeId: String, type: EntityType): List<ServerEntity> {
         val response = authed(HttpMethod.Get, "/trees/$treeId/${type.apiPath}")
         return json.parseToJsonElement(response.bodyAsText()).jsonArray.map {
@@ -137,6 +145,7 @@ class ApiClient(
     }
 
     /** Push one bulk sync request (built by SyncEngine.buildPush). */
+    @Throws(Exception::class)
     suspend fun pushSync(treeId: String, request: JsonObject) {
         authed(HttpMethod.Post, "/trees/$treeId/sync", request)
     }
