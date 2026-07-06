@@ -1,0 +1,28 @@
+{
+  "source": "extracted from the live /demo React Flow canvas (dev server, dark theme), 2026-07-06",
+  "nodes": [
+    {"id": "demo-p1", "x": 330, "y": 0, "w": 180, "h": 80, "pill": false, "name": "Margaret van Dijk", "years": "1935 - 2012 († 77)", "badges": [{"kind": "circle", "color": "rgb(120, 113, 108)", "initial": "O"}, {"kind": "circle", "color": "rgb(99, 102, 241)", "initial": "V"}, {"kind": "square", "color": "rgb(59, 130, 246)", "initial": null}, {"kind": "triangle", "color": "rgb(217, 119, 6)", "initial": null}]},
+    {"id": "demo-p2", "x": 35, "y": 0, "w": 180, "h": 80, "pill": false, "name": "Hendrik van Dijk", "years": "1932 - 2005 († 73)", "badges": [{"kind": "circle", "color": "rgb(120, 113, 108)", "initial": "O"}, {"kind": "circle", "color": "rgb(217, 119, 6)", "initial": "V"}, {"kind": "square", "color": "rgb(59, 130, 246)", "initial": null}, {"kind": "triangle", "color": "rgb(2, 132, 199)", "initial": null}]},
+    {"id": "demo-p3", "x": 425, "y": 230, "w": 180, "h": 80, "pill": false, "name": "Anna van Dijk", "years": "1958 - (68)", "badges": [{"kind": "circle", "color": "rgb(239, 68, 68)", "initial": null}, {"kind": "square", "color": "rgb(124, 58, 237)", "initial": "O"}, {"kind": "square", "color": "rgb(59, 130, 246)", "initial": "F"}, {"kind": "triangle", "color": "rgb(2, 132, 199)", "initial": null}, {"kind": "star", "color": "rgb(5, 150, 105)", "initial": null}]},
+    {"id": "demo-p4", "x": 905, "y": 230, "w": 180, "h": 80, "pill": false, "name": "Willem Bakker", "years": "1955 - (71)", "badges": [{"kind": "square", "color": "rgb(59, 130, 246)", "initial": null}]},
+    {"id": "demo-p5", "x": 665, "y": 230, "w": 180, "h": 80, "pill": false, "name": "Pieter de Vries", "years": "1960 - (66)", "badges": []},
+    {"id": "demo-p6", "x": 100, "y": 360, "w": 180, "h": 80, "pill": false, "name": "Thomas van Dijk", "years": "1962 - (64)", "badges": [{"kind": "circle", "color": "rgb(192, 38, 211)", "initial": null}, {"kind": "square", "color": "rgb(217, 119, 6)", "initial": null}]},
+    {"id": "demo-p7", "x": 490, "y": 490, "w": 180, "h": 80, "pill": false, "name": "Sophie Bakker", "years": "1985 - (41)", "badges": [{"kind": "circle", "color": "rgb(124, 58, 237)", "initial": null}, {"kind": "square", "color": "rgb(13, 148, 136)", "initial": null}, {"kind": "triangle", "color": "rgb(2, 132, 199)", "initial": null}, {"kind": "star", "color": "rgb(217, 119, 6)", "initial": null}]},
+    {"id": "demo-p8", "x": 720, "y": 620, "w": 180, "h": 80, "pill": false, "name": "Lucas Bakker", "years": "1988 - (38)", "badges": [{"kind": "circle", "color": "rgb(8, 145, 178)", "initial": null}, {"kind": "square", "color": "rgb(8, 145, 178)", "initial": null}]},
+    {"id": "sibling-group-demo-sg1", "x": 730, "y": 505, "w": 101, "h": 28, "pill": true, "name": "Emma de Vries", "years": "", "badges": []},
+    {"id": "sibling-group-demo-sg2", "x": 0, "y": 130, "w": 128, "h": 32, "pill": true, "name": "broers/zussen (11)", "years": "", "badges": []}
+  ],
+  "edges": [
+    {"id": "demo-r1", "path": "M 125,80 L 125,114 Q 125,130 141,130 L 404,130 Q 420,130 420,114 L 420,80 M 420,130 L 499,130 M 499,130 Q 515,130 515,146 L 515,230 M 206,130 Q 190,130 190,146 L 190,360 ", "stroke": "hsl(210, 60%, 55%)", "dash": null, "width": 1.5},
+    {"id": "demo-r5", "path": "M327,40.5 C272.5,40.5 272.5,40.5 218,40.5", "stroke": "rgb(219, 39, 119)", "dash": null, "width": 2.5},
+    {"id": "demo-r6", "path": "M608,263.5 C755,263.5 755,270.5 902,270.5", "stroke": "rgb(219, 39, 119)", "dash": "6px, 3px", "width": 1.5},
+    {"id": "demo-r7", "path": "M608,277.5 C635,277.5 635,270.5 662,270.5", "stroke": "rgb(219, 39, 119)", "dash": null, "width": 2.5},
+    {"id": "demo-r8", "path": "M748,313 C748,400.5 580,400.5 580,488", "stroke": "rgb(138, 154, 142)", "dash": "6px, 3px", "width": 1.5},
+    {"id": "demo-r9", "path": "M762,313 C762,465.5 810,465.5 810,618", "stroke": "rgb(138, 154, 142)", "dash": "6px, 3px", "width": 1.5},
+    {"id": "demo-r10", "path": "M 515,310 L 515,344 Q 515,360 531,360 L 979,360 Q 995,360 995,344 L 995,310 M 596,360 Q 580,360 580,376 L 580,490 M 794,360 Q 810,360 810,376 L 810,620 ", "stroke": "hsl(28, 70%, 52%)", "dash": null, "width": 1.5},
+    {"id": "inferred-demo-p3-demo-p6", "path": "M422,270.5 C352.5,270.5 352.5,400.5 283,400.5", "stroke": "rgb(90, 110, 95)", "dash": "4px, 4px", "width": 1.5},
+    {"id": "inferred-demo-p7-demo-p8", "path": "M673,530.5 C695,530.5 695,660.5 717,660.5", "stroke": "rgb(90, 110, 95)", "dash": "4px, 4px", "width": 1.5},
+    {"id": "edge-sg-demo-sg1", "path": "M995,313 C995,407 780.484375,407 780.484375,501", "stroke": "rgb(90, 110, 95)", "dash": "6px, 3px", "width": 1},
+    {"id": "edge-sg-demo-sg2", "path": "M125,83 C125,104.5 63.78125,104.5 63.78125,126", "stroke": "rgb(90, 110, 95)", "dash": "6px, 3px", "width": 1}
+  ]
+}
