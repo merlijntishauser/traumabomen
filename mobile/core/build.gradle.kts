@@ -30,12 +30,16 @@ kotlin {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("app.cash.sqldelight:runtime:2.3.2")
+            // HTTP only; JSON stays explicit kotlinx-serialization so every
+            // payload byte is visible in this codebase.
+            implementation("io.ktor:ktor-client-core:3.5.1")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
         jvmTest.dependencies {
             implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
+            implementation("io.ktor:ktor-client-mock:3.5.1")
         }
         jvmMain.dependencies {
             // Argon2id for the JVM actual. The web derivation equivalence of
