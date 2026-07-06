@@ -1,0 +1,33 @@
+{
+  "generator": "argon2-bundled.min.js (argon2-browser 1.18.0) + WebCrypto, Chromium via dev server, 2026-07-05",
+  "passphrase": "stille-økse-forêt-1938-Träne",
+  "salt": "oxmdMfGjoehnIE174Ow5Fg==",
+  "argon2": {
+    "time": 3,
+    "memKiB": 65536,
+    "hashLen": 32,
+    "parallelism": 1,
+    "type": "argon2id"
+  },
+  "masterKeyHex": "5cc21e4722a945094d2467e73c756451eec2e578a7a9994be8535327fd723445",
+  "passphraseHashB64": "d9NpwqIHNhxVmOaQepKcGSeVqqfPi2BVIa7uKlgke8g=",
+  "treeId": "6b1f7c2e-9a44-4d0b-8b3a-2f5e8d1c0a97",
+  "treeKeyB64": "135W12hIkXDTeVkdQNdnzmIFpd/BoNTKWFw0NgfJcBs=",
+  "keyRingPlaintext": {
+    "6b1f7c2e-9a44-4d0b-8b3a-2f5e8d1c0a97": "135W12hIkXDTeVkdQNdnzmIFpd/BoNTKWFw0NgfJcBs="
+  },
+  "encryptedKeyRing": "{\"iv\":\"8E5gNypyQ9X9bTYB\",\"ciphertext\":\"GQc96Ad/ZZuKOz46ye3xQO/srvFxjNYU6EMx8jaGtv9tx7QXXDofT71QXd0LbBpdgg0S8XvclQJiWA5zP4XHux9RfcNubT6yrXa/YUi7IF1HWpoZokrzVKe00XOcTXAekR3Z9iTmyQ==\"}",
+  "personPlaintext": {
+    "name": "Anna de Vries",
+    "birth_year": 1932,
+    "gender": "female",
+    "is_adopted": false,
+    "notes": "Sprak nooit over de oorlog; naaide 's nachts."
+  },
+  "encryptedPerson": "{\"iv\":\"iv6yqVwXrnQYvCLP\",\"ciphertext\":\"V+5YF1DGbhNvs/PiyaN1O3aolOLiSSxr0o4FEKCMst8sI/fLQr7oGQFDnqfm8aeNLJwizheqhAZPMWAR0toPs259ySxN0ToWXi01QQs6uiB0iWwTMM3xScMX40MqS+3RFA7uVGGbNe/bzaiNHxQ0VpUmaepeW4Tz0ypmUYsJlYPip4Hfs3r6DW5wSHLCpkbKpLbtzWovqA==\"}",
+  "journalPlaintext": {
+    "title": "Zondagochtend",
+    "content": "Wat nooit werd gezegd, wist iedereen."
+  },
+  "encryptedJournal": "{\"iv\":\"s6Bl4z8x8sjqBuEo\",\"ciphertext\":\"VHhb4yBBKEDlTzS/Jpvj53QlWZztmtEJTFKb//HqHcFsAHMG+CJXEzeJw+o+BBZqMPt/MOubcrbv6AuXX93vVL8ewaWGJaOOmnX8r/wLlBRW/CDLY5xqpY5Nlg==\"}"
+}
