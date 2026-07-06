@@ -20,13 +20,13 @@ private fun encodeIds(ids: List<String>): String = json.encodeToString(ids)
 private fun decodeIds(s: String): List<String> = json.decodeFromString(s)
 
 class SqlDelightMirrorStore(private val db: CoreDatabase) : MirrorStore {
-    override fun get(type: EntityType, id: String): MirrorRow? =
+    override fun get(type: EntityType, id: String): MirrorEntry? =
         db.mirrorQueries.get(type.name, id).executeAsOneOrNull()?.toModel()
 
-    override fun list(treeId: String, type: EntityType): List<MirrorRow> =
+    override fun list(treeId: String, type: EntityType): List<MirrorEntry> =
         db.mirrorQueries.listByTreeAndType(treeId, type.name).executeAsList().map { it.toModel() }
 
-    override fun upsert(row: MirrorRow) {
+    override fun upsert(row: MirrorEntry) {
         db.mirrorQueries.upsert(
             entityType = row.entityType.name,
             id = row.id,
@@ -41,15 +41,15 @@ class SqlDelightMirrorStore(private val db: CoreDatabase) : MirrorStore {
         db.mirrorQueries.delete(type.name, id)
     }
 
-    override fun replaceAll(treeId: String, type: EntityType, rows: List<MirrorRow>) {
+    override fun replaceAll(treeId: String, type: EntityType, rows: List<MirrorEntry>) {
         db.mirrorQueries.transaction {
             db.mirrorQueries.deleteByTreeAndType(treeId, type.name)
             rows.forEach { upsert(it) }
         }
     }
 
-    private fun DbMirrorRow.toModel(): MirrorRow =
-        MirrorRow(
+    private fun DbMirrorRow.toModel(): MirrorEntry =
+        MirrorEntry(
             entityType = EntityType.valueOf(entityType),
             id = id,
             treeId = treeId,

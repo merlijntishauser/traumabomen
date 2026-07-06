@@ -23,7 +23,7 @@ class SyncEngineTest {
         id: String = "server-1",
         data: String = "blob-v1",
     ) {
-        mirror.upsert(MirrorRow(type, id, TREE, data))
+        mirror.upsert(MirrorEntry(type, id, TREE, data))
     }
 
     @Test

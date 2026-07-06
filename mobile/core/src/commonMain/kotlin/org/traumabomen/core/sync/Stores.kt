@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  * stores alongside the blob.
  */
 @Serializable
-data class MirrorRow(
+data class MirrorEntry(
     val entityType: EntityType,
     val id: String,
     val treeId: String,
@@ -41,16 +41,16 @@ data class OutboxOp(
 
 /** Storage seam; SQLDelight implements both on device, in-memory in tests. */
 interface MirrorStore {
-    fun get(type: EntityType, id: String): MirrorRow?
+    fun get(type: EntityType, id: String): MirrorEntry?
 
-    fun list(treeId: String, type: EntityType): List<MirrorRow>
+    fun list(treeId: String, type: EntityType): List<MirrorEntry>
 
-    fun upsert(row: MirrorRow)
+    fun upsert(row: MirrorEntry)
 
     fun delete(type: EntityType, id: String)
 
     /** Replace all rows of one type for a tree (the pull refresh). */
-    fun replaceAll(treeId: String, type: EntityType, rows: List<MirrorRow>)
+    fun replaceAll(treeId: String, type: EntityType, rows: List<MirrorEntry>)
 }
 
 interface OutboxStore {
@@ -65,14 +65,14 @@ interface OutboxStore {
 }
 
 class InMemoryMirrorStore : MirrorStore {
-    private val rows = LinkedHashMap<Pair<EntityType, String>, MirrorRow>()
+    private val rows = LinkedHashMap<Pair<EntityType, String>, MirrorEntry>()
 
-    override fun get(type: EntityType, id: String): MirrorRow? = rows[type to id]
+    override fun get(type: EntityType, id: String): MirrorEntry? = rows[type to id]
 
-    override fun list(treeId: String, type: EntityType): List<MirrorRow> =
+    override fun list(treeId: String, type: EntityType): List<MirrorEntry> =
         rows.values.filter { it.treeId == treeId && it.entityType == type }
 
-    override fun upsert(row: MirrorRow) {
+    override fun upsert(row: MirrorEntry) {
         rows[row.entityType to row.id] = row
     }
 
@@ -80,7 +80,7 @@ class InMemoryMirrorStore : MirrorStore {
         rows.remove(type to id)
     }
 
-    override fun replaceAll(treeId: String, type: EntityType, newRows: List<MirrorRow>) {
+    override fun replaceAll(treeId: String, type: EntityType, newRows: List<MirrorEntry>) {
         rows.keys.removeAll { (t, id) -> t == type && rows[t to id]?.treeId == treeId }
         newRows.forEach { upsert(it) }
     }

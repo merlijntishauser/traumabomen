@@ -45,7 +45,7 @@ class SyncEngine(
     ): String {
         requireWritable(type)
         val id = newId()
-        mirror.upsert(MirrorRow(type, id, treeId, encryptedData, personIds, pendingSync = true))
+        mirror.upsert(MirrorEntry(type, id, treeId, encryptedData, personIds, pendingSync = true))
         outbox.append(
             OutboxOp(newId(), treeId, type, id, OpKind.CREATE, encryptedData, personIds),
         )
@@ -124,14 +124,14 @@ class SyncEngine(
         mirror.replaceAll(
             treeId,
             type,
-            serverRows.map { MirrorRow(type, it.id, treeId, it.encryptedData, it.personIds) },
+            serverRows.map { MirrorEntry(type, it.id, treeId, it.encryptedData, it.personIds) },
         )
         // Re-overlay whatever is still queued so the local view shows it.
         for (op in outbox.all(treeId).filter { it.entityType == type }) {
             when (op.kind) {
                 OpKind.DELETE -> mirror.delete(type, op.entityId)
                 else -> mirror.upsert(
-                    MirrorRow(
+                    MirrorEntry(
                         type, op.entityId, treeId,
                         requireNotNull(op.encryptedData), op.personIds, pendingSync = true,
                     ),

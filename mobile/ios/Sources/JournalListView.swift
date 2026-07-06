@@ -1,19 +1,24 @@
 import SwiftUI
 
 /// The reflective heart of the companion: journal entries, decrypted in
-/// memory, presented quietly. Composing and turning-point links follow in
-/// later slices.
+/// memory, presented quietly. The sync state is one muted line, never a
+/// spinner takeover.
 struct JournalListView: View {
     @EnvironmentObject private var model: AppModel
     let entries: [AppModel.Entry]
 
+    @State private var composing = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: 16) {
                 Text("Journal")
                     .font(.system(size: 28, weight: .light))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
+                Button("New entry") { composing = true }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.accent)
                 Button("Lock") { model.lock() }
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textMuted)
@@ -21,7 +26,7 @@ struct JournalListView: View {
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
-            Text(entries.count == 1 ? "1 entry" : "\(entries.count) entries")
+            Text(statusLine)
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.textMuted)
                 .padding(.horizontal, 24)
@@ -41,9 +46,16 @@ struct JournalListView: View {
                     LazyVStack(spacing: 12) {
                         ForEach(entries) { entry in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(entry.title)
-                                    .font(.system(size: 17, weight: .light))
-                                    .foregroundStyle(Theme.textPrimary)
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(entry.title)
+                                        .font(.system(size: 17, weight: .light))
+                                        .foregroundStyle(Theme.textPrimary)
+                                    if entry.pending {
+                                        Text("waiting to sync")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(Theme.textMuted)
+                                    }
+                                }
                                 Text(entry.content)
                                     .font(.system(size: Theme.bodySize))
                                     .foregroundStyle(Theme.textMuted)
@@ -63,5 +75,14 @@ struct JournalListView: View {
                 }
             }
         }
+        .sheet(isPresented: $composing) {
+            ComposerView().environmentObject(model)
+        }
+    }
+
+    private var statusLine: String {
+        let count = entries.count == 1 ? "1 entry" : "\(entries.count) entries"
+        let pending = model.pendingSyncCount
+        return pending > 0 ? "\(count); \(pending) waiting to sync" : count
     }
 }

@@ -106,9 +106,11 @@ kotlin {
         }
         iosMain.dependencies {
             implementation("io.ktor:ktor-client-darwin:3.5.1")
+            implementation("app.cash.sqldelight:native-driver:2.3.2")
         }
         jvmMain.dependencies {
             implementation("io.ktor:ktor-client-cio:3.5.1")
+            implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

@@ -35,7 +35,7 @@ class SqlDelightStoresTest {
         assertEquals(1, engine.pendingCount(TREE))
 
         // Keep-both conflict path, exercised through SQL-backed stores.
-        mirror.upsert(MirrorRow(EntityType.JOURNAL_ENTRIES, "srv-1", TREE, "v1"))
+        mirror.upsert(MirrorEntry(EntityType.JOURNAL_ENTRIES, "srv-1", TREE, "v1"))
         engine.localUpdate(EntityType.JOURNAL_ENTRIES, "srv-1", "mine")
         engine.applyPull(TREE, EntityType.JOURNAL_ENTRIES, listOf(ServerEntity("srv-1", "theirs")))
 
@@ -102,11 +102,11 @@ class SqlDelightStoresTest {
     fun replaceAllIsScopedToTreeAndType() {
         val db = openDb()
         val mirror = SqlDelightMirrorStore(db)
-        mirror.upsert(MirrorRow(EntityType.PERSONS, "p1", TREE, "person-blob"))
-        mirror.upsert(MirrorRow(EntityType.PERSONS, "p-other", "tree-2", "other-tree-blob"))
-        mirror.upsert(MirrorRow(EntityType.JOURNAL_ENTRIES, "j1", TREE, "journal-blob"))
+        mirror.upsert(MirrorEntry(EntityType.PERSONS, "p1", TREE, "person-blob"))
+        mirror.upsert(MirrorEntry(EntityType.PERSONS, "p-other", "tree-2", "other-tree-blob"))
+        mirror.upsert(MirrorEntry(EntityType.JOURNAL_ENTRIES, "j1", TREE, "journal-blob"))
 
-        mirror.replaceAll(TREE, EntityType.PERSONS, listOf(MirrorRow(EntityType.PERSONS, "p2", TREE, "fresh")))
+        mirror.replaceAll(TREE, EntityType.PERSONS, listOf(MirrorEntry(EntityType.PERSONS, "p2", TREE, "fresh")))
 
         assertNull(mirror.get(EntityType.PERSONS, "p1"))
         assertEquals("fresh", mirror.get(EntityType.PERSONS, "p2")!!.encryptedData)

@@ -21,14 +21,18 @@ final class AppModel: ObservableObject {
         let id: String
         let title: String
         let content: String
+        var pending: Bool = false
     }
 
     @Published var phase: Phase
     @Published var errorMessage: String?
 
     private let api: ApiClient
+    private let sync: JournalSync
     private var saltBase64: String?
     private var masterKey: AesGcmKey?
+    private var treeId: String?
+    private var treeKey: AesGcmKey?
 
     init() {
         #if DEBUG
@@ -39,6 +43,7 @@ final class AppModel: ObservableObject {
         let base = Self.launchArgument("-apiBase") ?? "http://localhost:8000"
         let tokens = KeychainTokenStore()
         api = PlatformHttpKt.createApiClient(baseUrl: base, tokens: tokens)
+        sync = JournalSync(db: CoreDb_iosKt.openCoreDatabase(name: "traumabomen-core.db"), api: api)
         // A stored session plus a fresh Enclave wrap means Face ID can open
         // the app without a passphrase; otherwise start at login.
         let hasToken = tokens.refreshToken != nil
@@ -135,10 +140,39 @@ final class AppModel: ObservableObject {
         let ring = try TraumaCrypto.shared.decryptKeyRing(
             encryptedKeyRing: ringBlob, masterKey: master
         )
-        guard let (treeId, treeKeyB64) = ring.first else { return [] }
-        let treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
-        let pulled = try await api.pullEntities(treeId: treeId, type: .journalEntries)
-        return pulled.compactMap { Self.decryptEntry($0, key: treeKey) }
+        guard let (tree, treeKeyB64) = ring.first else { return [] }
+        treeId = tree
+        treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
+        // Queued offline writes from earlier sessions push before the pull.
+        _ = try? await sync.push(treeId: tree)
+        return await refreshEntries()
+    }
+
+    /// Pull, reconcile, and decrypt the local journal view from the mirror.
+    private func refreshEntries() async -> [Entry] {
+        guard let tree = treeId, let key = treeKey else { return [] }
+        let rows = (try? await sync.pullJournal(treeId: tree)) ?? []
+        return rows.reversed().compactMap { Self.decryptRow($0, key: key) }
+    }
+
+    var pendingSyncCount: Int {
+        guard let tree = treeId else { return 0 }
+        return Int(sync.pendingCount(treeId: tree))
+    }
+
+    /// Encrypt and queue a new entry, then try to push; the entry is
+    /// visible immediately either way, and the queue survives restarts.
+    func createEntry(title: String, content: String) async {
+        guard let tree = treeId, let key = treeKey else { return }
+        let payload = ["title": title, "content": content]
+        guard
+            let data = try? JSONEncoder().encode(payload),
+            let json = String(data: data, encoding: .utf8)
+        else { return }
+        let encrypted = TraumaCrypto.shared.encryptJsonForApi(plaintextJson: json, key: key)
+        _ = sync.createLocal(treeId: tree, encryptedData: encrypted)
+        _ = try? await sync.push(treeId: tree)
+        phase = .journal(entries: await refreshEntries())
     }
 
     private var currentHint: String? {
@@ -153,23 +187,19 @@ final class AppModel: ObservableObject {
         }.value
     }
 
-    private struct BlobJson: Decodable {
-        let iv: String
-        let ciphertext: String
-    }
-
     private struct EntryJson: Decodable {
         let title: String
         let content: String
     }
 
-    private nonisolated static func decryptEntry(_ entity: ServerEntity, key: AesGcmKey) -> Entry? {
+    private nonisolated static func decryptRow(_ row: MirrorEntry, key: AesGcmKey) -> Entry? {
         guard
-            let blob = try? JSONDecoder().decode(BlobJson.self, from: Data(entity.encryptedData.utf8)),
-            let plaintext = try? key.decrypt(blob: EncryptedBlob(iv: blob.iv, ciphertext: blob.ciphertext)),
+            let plaintext = try? TraumaCrypto.shared.decryptJsonFromApi(
+                encryptedData: row.encryptedData, key: key
+            ),
             let entry = try? JSONDecoder().decode(EntryJson.self, from: Data(plaintext.utf8))
         else { return nil }
-        return Entry(id: entity.id, title: entry.title, content: entry.content)
+        return Entry(id: row.id, title: entry.title, content: entry.content, pending: row.pendingSync)
     }
 
     static func launchArgument(_ name: String) -> String? {
@@ -194,6 +224,10 @@ final class AppModel: ObservableObject {
         await login(email: email, password: password)
         if case .unlock = phase, let passphrase = Self.launchArgument("-unlockPassphrase") {
             await unlock(passphrase: passphrase)
+        }
+        if case .journal = phase, let compose = Self.launchArgument("-composeEntry") {
+            let parts = compose.split(separator: "|", maxSplits: 1).map(String.init)
+            await createEntry(title: parts.first ?? "", content: parts.count > 1 ? parts[1] : "")
         }
     }
     #endif

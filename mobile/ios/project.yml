@@ -16,6 +16,8 @@ targets:
       # Build with: cd ../core && gradle assembleTraumabomenCoreDebugXCFramework
       - framework: ../core/build/XCFrameworks/debug/TraumabomenCore.xcframework
         embed: false
+      # The core's SQLDelight native driver (SQLiter) links the system sqlite3.
+      - sdk: libsqlite3.tbd
     info:
       path: Info.plist
       properties:

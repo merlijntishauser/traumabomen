@@ -40,6 +40,19 @@ object TraumaCrypto {
     fun encryptKeyRing(keyRing: Map<String, String>, masterKey: AesGcmKey): String =
         encryptForApi(keyRing, masterKey)
 
+    /**
+     * Non-generic encryptForApi for Swift callers (the reified overloads do
+     * not cross the framework boundary): the plaintext is already-serialized
+     * JSON; the result is the encrypted_data string the API stores.
+     */
+    fun encryptJsonForApi(plaintextJson: String, key: AesGcmKey): String =
+        json.encodeToString(key.encrypt(plaintextJson))
+
+    /** Non-generic decryptFromApi for Swift callers. */
+    @Throws(DecryptException::class)
+    fun decryptJsonFromApi(encryptedData: String, key: AesGcmKey): String =
+        key.decrypt(json.decodeFromString<EncryptedBlob>(encryptedData))
+
     inline fun <reified T> decryptFromApi(encryptedData: String, key: AesGcmKey): T {
         val blob = json.decodeFromString<EncryptedBlob>(encryptedData)
         return json.decodeFromString(key.decrypt(blob))
