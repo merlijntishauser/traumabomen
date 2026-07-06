@@ -34,7 +34,7 @@ struct RootView: View {
                         .foregroundStyle(Theme.textMuted)
                 }
             case .journal(let entries):
-                JournalListView(entries: entries)
+                HomeView(entries: entries)
             }
         }
         #if DEBUG

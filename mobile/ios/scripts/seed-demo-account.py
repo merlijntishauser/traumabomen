@@ -75,9 +75,48 @@ def main():
     for entry in ENTRIES:
         call("POST", f"/trees/{tree_id}/journal", {"encrypted_data": encrypt_for_api(entry, tree_key)}, access)
 
+    # A small three-generation family with canvas positions, so the app's
+    # tree view has something true to render.
+    persons = {
+        "oma": {"name": "Margaret van Dijk", "birth_year": 1935, "death_year": 2012,
+                "gender": "female", "is_adopted": False, "notes": "Sprak nooit over de oorlog.",
+                "position": {"x": 300, "y": 0}},
+        "opa": {"name": "Hendrik van Dijk", "birth_year": 1932, "death_year": 2005,
+                "gender": "male", "is_adopted": False, "notes": None,
+                "position": {"x": 40, "y": 0}},
+        "anna": {"name": "Anna van Dijk", "birth_year": 1958, "death_year": None,
+                 "gender": "female", "is_adopted": False, "notes": "Moeder.",
+                 "position": {"x": 170, "y": 200}},
+        "willem": {"name": "Willem Bakker", "birth_year": 1955, "death_year": None,
+                   "gender": "male", "is_adopted": False, "notes": None,
+                   "position": {"x": 430, "y": 200}},
+        "sophie": {"name": "Sophie Bakker", "birth_year": 1985, "death_year": None,
+                   "gender": "female", "is_adopted": False, "notes": "Ik.",
+                   "position": {"x": 300, "y": 400}},
+    }
+    ids = {}
+    for key, data in persons.items():
+        created = call("POST", f"/trees/{tree_id}/persons",
+                       {"encrypted_data": encrypt_for_api(data, tree_key)}, access)
+        ids[key] = created["id"]
+
+    relationships = [
+        ("opa", "oma", {"type": "partner", "periods": [{"start_year": 1956, "end_year": 2005, "status": "married"}], "active_period": None}),
+        ("opa", "anna", {"type": "biological_parent", "periods": [], "active_period": None}),
+        ("oma", "anna", {"type": "biological_parent", "periods": [], "active_period": None}),
+        ("anna", "willem", {"type": "partner", "periods": [{"start_year": 1982, "end_year": None, "status": "married"}], "active_period": None}),
+        ("anna", "sophie", {"type": "biological_parent", "periods": [], "active_period": None}),
+        ("willem", "sophie", {"type": "biological_parent", "periods": [], "active_period": None}),
+    ]
+    for src, dst, data in relationships:
+        call("POST", f"/trees/{tree_id}/relationships", {
+            "source_person_id": ids[src], "target_person_id": ids[dst],
+            "encrypted_data": encrypt_for_api(data, tree_key),
+        }, access)
+
     print(f"seeded {EMAIL} / {PASSWORD}")
     print(f"passphrase: {PASSPHRASE} (hint: boomsoort en jaartal)")
-    print(f"tree {tree_id} with {len(ENTRIES)} journal entries")
+    print(f"tree {tree_id}: {len(ENTRIES)} journal entries, {len(persons)} persons, {len(relationships)} relationships")
 
 
 if __name__ == "__main__":

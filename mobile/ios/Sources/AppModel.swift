@@ -24,11 +24,15 @@ final class AppModel: ObservableObject {
         var pending: Bool = false
     }
 
+    enum Tab { case journal, tree }
+
     @Published var phase: Phase
     @Published var errorMessage: String?
+    @Published var activeTab: Tab = .journal
+    @Published var treeData: TreeData?
 
     private let api: ApiClient
-    private let sync: JournalSync
+    private let sync: TreeSync
     private let cache: SessionCache
     private var saltBase64: String?
     private var masterKey: AesGcmKey?
@@ -45,7 +49,7 @@ final class AppModel: ObservableObject {
         let tokens = KeychainTokenStore()
         api = PlatformHttpKt.createApiClient(baseUrl: base, tokens: tokens)
         let db = CoreDb_iosKt.openCoreDatabase(name: "traumabomen-core.db")
-        sync = JournalSync(db: db, api: api)
+        sync = TreeSync(db: db, api: api)
         cache = SessionCache(db: db)
         // A stored session plus a fresh Enclave wrap means Face ID can open
         // the app without a passphrase; otherwise start at login.
@@ -158,7 +162,21 @@ final class AppModel: ObservableObject {
         treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
         // Queued offline writes from earlier sessions push before the pull.
         _ = try? await sync.push(treeId: tree)
+        await refreshTree()
         return await refreshEntries()
+    }
+
+    /// Pull and decrypt the read-only tree (persons and relationships);
+    /// offline, the mirror serves the last known tree.
+    private func refreshTree() async {
+        guard let tree = treeId, let key = treeKey else { return }
+        let personRows = (try? await sync.pull(treeId: tree, type: .persons)) ?? []
+        let edgeRows = (try? await sync.pull(treeId: tree, type: .relationships)) ?? []
+        let persons = personRows.enumerated().compactMap { index, row in
+            TreeDecoding.person(row, key: key, fallbackIndex: index)
+        }
+        let edges = edgeRows.compactMap { TreeDecoding.edge($0, key: key) }
+        treeData = TreeData(persons: persons, edges: edges)
     }
 
     /// Pull, reconcile, and decrypt the local journal view from the mirror.
@@ -225,6 +243,9 @@ final class AppModel: ObservableObject {
     /// Test affordance: -email/-password/-unlockPassphrase launch arguments
     /// drive the whole flow without a keyboard (dev accounts only).
     func debugAutoFlow() async {
+        if ProcessInfo.processInfo.arguments.contains("-showTree") {
+            activeTab = .tree
+        }
         if case .biometric = phase,
            ProcessInfo.processInfo.arguments.contains("-autoBiometric") {
             await biometricUnlock()

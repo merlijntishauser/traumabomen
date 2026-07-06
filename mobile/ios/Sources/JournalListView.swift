@@ -19,9 +19,6 @@ struct JournalListView: View {
                 Button("New entry") { composing = true }
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.accent)
-                Button("Lock") { model.lock() }
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.textMuted)
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
