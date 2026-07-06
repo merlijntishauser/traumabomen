@@ -24,6 +24,9 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from nacl import bindings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Canonical fixture location (shared with the frontend Vitest guard and the
+# future KMP compatibility suite).
+FIXTURE = os.path.join(HERE, "../../../frontend/src/fixtures/crypto-compat.fixture.json")
 
 
 def decrypt_blob(encrypted: str, key: bytes) -> str:
@@ -49,7 +52,7 @@ def encrypt_blob(plaintext: str, key: bytes) -> str:
 
 
 def main() -> int:
-    with open(os.path.join(HERE, "fixture.json"), "rb") as f:
+    with open(FIXTURE, "rb") as f:
         fx = json.load(f)
 
     failures = []

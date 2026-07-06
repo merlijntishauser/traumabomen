@@ -56,7 +56,11 @@ func hexToData(_ hex: String) -> Data {
 }
 
 let dir = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
-let fixtureData = try Data(contentsOf: dir.appendingPathComponent("fixture.json"))
+// Canonical fixture location (shared with the frontend Vitest guard and the
+// future KMP compatibility suite).
+let fixtureData = try Data(
+    contentsOf: dir.appendingPathComponent("../../../frontend/src/fixtures/crypto-compat.fixture.json")
+)
 let fx = try JSONSerialization.jsonObject(with: fixtureData) as! [String: Any]
 
 print("1. Key ring decryption (CryptoKit AES-256-GCM, master key from fixture)")
