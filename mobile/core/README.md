@@ -19,6 +19,9 @@ and the API client.
 - `commonMain/api` — the typed client over the existing backend (Ktor
   core, explicit kotlinx JSON): JWT auth with refresh rotation, salt and
   key-ring endpoints, per-type entity pulls, bulk sync push.
+- `iosMain` — iOS actuals: libsodium Argon2id and hardware-backed
+  AES-256-GCM, bound via cinterop against static libraries built from the
+  pinned official source tarball (`scripts/build-libsodium.sh`).
 - `jvmMain` — JVM actuals: BouncyCastle Argon2id, `javax.crypto` AES-GCM.
   Runs the compatibility suite in CI and later feeds the Android app.
 - `jvmTest` — the shared crypto compatibility suite against the golden
@@ -40,10 +43,19 @@ gradle jvmTest
 
 Needs a JDK (toolchain 17, auto-provisioned via foojay) and Gradle 9+.
 
+## Running on iOS
+
+```
+cd mobile/core
+gradle iosSimulatorArm64Test
+```
+
+Needs Xcode with an iOS simulator runtime; the first run downloads the
+Kotlin/Native toolchain and builds libsodium from source (cached after).
+The crypto compatibility suite is common, so the same 8 tests that pin
+BouncyCastle on the JVM pin libsodium on the simulator.
+
 ## Next
 
-- iOS targets (`iosArm64`, `iosSimulatorArm64`) with libsodium cinterop and
-  CryptoKit-backed actuals; equivalence already proven by
-  `mobile/spikes/crypto-compat`. Needs Xcode and the Kotlin/Native
-  toolchain download, so best done interactively. This closes M2; the
-  SwiftUI app (M3) starts after.
+M2 is complete. M3 per the design: the SwiftUI app, starting with unlock
+(Secure Enclave key custody) and the journal.
