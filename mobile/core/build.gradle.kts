@@ -1,0 +1,54 @@
+plugins {
+    kotlin("multiplatform") version "2.3.21"
+    kotlin("plugin.serialization") version "2.3.21"
+}
+
+group = "org.traumabomen"
+version = "0.1.0"
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvmToolchain(17)
+
+    compilerOptions {
+        // expect/actual classes are the designed seam between commonMain and
+        // the platform crypto bindings; accept the Beta status deliberately.
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    // The JVM target runs the shared compatibility suite in CI and feeds the
+    // future Android app. The iOS targets (iosArm64, iosSimulatorArm64) land
+    // together with the libsodium cinterop actuals; the expect declarations
+    // in commonMain already define the seam they must fill.
+    jvm()
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+        jvmMain.dependencies {
+            // Argon2id for the JVM actual. The web derivation equivalence of
+            // the libsodium implementation (the iOS actual) is proven in
+            // mobile/spikes/crypto-compat; this suite proves BC against the
+            // same fixture, so all three implementations are pinned to one
+            // golden derivation.
+            implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+        }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    // Canonical cross-platform fixture, shared with the frontend Vitest
+    // guard (frontend/src/lib/cryptoCompat.unit.test.ts).
+    systemProperty(
+        "cryptoFixture",
+        rootDir.resolve("../../frontend/src/fixtures/crypto-compat.fixture.json").absolutePath,
+    )
+}

@@ -33,6 +33,9 @@ htmlcov/
 # Build artifacts
 frontend/dist/
 frontend/dist-ssr/
+mobile/core/build/
+mobile/core/.gradle/
+mobile/core/.kotlin/
 frontend/test-results/
 frontend/playwright-report/
 demo/test-results/
