@@ -7,3 +7,7 @@ expect fun platformHttpClient(): HttpClient
 
 /** Convenience factory for app code: platform engine, in-memory tokens. */
 fun createApiClient(baseUrl: String): ApiClient = ApiClient(baseUrl, platformHttpClient())
+
+/** Same, with a platform token store (Keychain on iOS). */
+fun createApiClient(baseUrl: String, tokens: TokenStore): ApiClient =
+    ApiClient(baseUrl, platformHttpClient(), tokens)

@@ -30,4 +30,4 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.traumabomen.companion
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_IDENTITY: "-"

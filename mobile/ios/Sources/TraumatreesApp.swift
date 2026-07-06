@@ -22,6 +22,8 @@ struct RootView: View {
             switch model.phase {
             case .login:
                 LoginView()
+            case .biometric:
+                BiometricUnlockView()
             case .unlock(let hint):
                 UnlockView(hint: hint)
             case .working(let message):

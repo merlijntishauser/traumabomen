@@ -1,14 +1,17 @@
 import Foundation
 import TraumabomenCore
 
-/// The app's state machine: login -> unlock -> journal. Owns the API client
-/// and, after unlock, the in-memory master key. Locking drops the key; no
-/// key material is persisted anywhere yet (Secure Enclave custody is the
-/// next slice, as its own deliberate step).
+/// The app's state machine: login -> unlock (passphrase or Face ID) ->
+/// journal. Owns the API client and, after unlock, the in-memory master
+/// key. Locking drops the key. Key custody follows the design: after a
+/// passphrase unlock the key is wrapped by the Secure Enclave; Face ID
+/// carries daily use; the passphrase returns after 7 days or whenever the
+/// wrap is invalidated.
 @MainActor
 final class AppModel: ObservableObject {
     enum Phase {
         case login
+        case biometric
         case unlock(hint: String?)
         case working(String)
         case journal(entries: [Entry])
@@ -20,7 +23,7 @@ final class AppModel: ObservableObject {
         let content: String
     }
 
-    @Published var phase: Phase = .login
+    @Published var phase: Phase
     @Published var errorMessage: String?
 
     private let api: ApiClient
@@ -28,8 +31,20 @@ final class AppModel: ObservableObject {
     private var masterKey: AesGcmKey?
 
     init() {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-custodyRelaxed") {
+            KeyCustody.relaxedForSimulatorTesting = true
+        }
+        #endif
         let base = Self.launchArgument("-apiBase") ?? "http://localhost:8000"
-        api = PlatformHttpKt.createApiClient(baseUrl: base)
+        let tokens = KeychainTokenStore()
+        api = PlatformHttpKt.createApiClient(baseUrl: base, tokens: tokens)
+        // A stored session plus a fresh Enclave wrap means Face ID can open
+        // the app without a passphrase; otherwise start at login.
+        let hasToken = tokens.refreshToken != nil
+        let hasWrap = KeyCustody.hasFreshKey()
+        NSLog("custody: init token=\(hasToken) wrap=\(hasWrap)")
+        phase = (hasToken && hasWrap) ? .biometric : .login
     }
 
     func login(email: String, password: String) async {
@@ -50,21 +65,22 @@ final class AppModel: ObservableObject {
         let hint = currentHint
         errorMessage = nil
         phase = .working("Unlocking")
+
+        let rawKey = await Self.deriveKeyBytes(passphrase: passphrase, salt: salt)
+        let master = TraumaCrypto.shared.keyFromBytes(rawKey: rawKey)
         do {
-            let master = await Self.deriveKey(passphrase: passphrase, salt: salt)
-            let ringBlob = try await api.fetchKeyRing()
-            // A wrong passphrase fails right here, on authenticated decryption.
-            let ring = try TraumaCrypto.shared.decryptKeyRing(
-                encryptedKeyRing: ringBlob, masterKey: master
-            )
-            guard let (treeId, treeKeyB64) = ring.first else {
-                masterKey = master
-                phase = .journal(entries: [])
-                return
+            let entries = try await openJournal(with: master)
+            // Only a verified key (the ring decrypted) enters custody.
+            if KeyCustody.isAvailable {
+                do {
+                    try KeyCustody.store(masterKey: rawKey.toData())
+                    NSLog("custody: stored")
+                } catch {
+                    NSLog("custody: store failed: \(error)")
+                }
+            } else {
+                NSLog("custody: biometrics unavailable")
             }
-            let treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
-            let pulled = try await api.pullEntities(treeId: treeId, type: .journalEntries)
-            let entries = pulled.compactMap { Self.decryptEntry($0, key: treeKey) }
             masterKey = master
             phase = .journal(entries: entries)
         } catch {
@@ -73,10 +89,56 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Drop the key; the journal is gone from memory until the next unlock.
+    /// Face ID path: the Enclave releases the wrapped key, no derivation.
+    func biometricUnlock() async {
+        errorMessage = nil
+        guard let rawKey = KeyCustody.retrieve(reason: "Unlock your Traumatrees data") else {
+            // Cancelled, stale, or invalidated: fall back to the passphrase.
+            await usePassphraseInstead()
+            return
+        }
+        phase = .working("Unlocking")
+        let master = TraumaCrypto.shared.keyFromBytes(rawKey: KotlinByteArray.from(rawKey))
+        do {
+            let entries = try await openJournal(with: master)
+            masterKey = master
+            phase = .journal(entries: entries)
+        } catch {
+            // Session expired beyond refresh; a fresh login re-establishes it.
+            KeychainTokenStore.clear()
+            phase = .login
+        }
+    }
+
+    /// While a session exists, the salt is fetchable and the passphrase
+    /// path works without re-entering credentials.
+    func usePassphraseInstead() async {
+        do {
+            let salt = try await api.fetchSalt()
+            saltBase64 = salt.encryptionSalt
+            phase = .unlock(hint: salt.passphraseHint)
+        } catch {
+            KeychainTokenStore.clear()
+            phase = .login
+        }
+    }
+
+    /// Drop the key; Face ID (if custody is fresh) or passphrase reopens.
     func lock() {
         masterKey = nil
-        phase = .unlock(hint: currentHint)
+        phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
+    }
+
+    private func openJournal(with master: AesGcmKey) async throws -> [Entry] {
+        let ringBlob = try await api.fetchKeyRing()
+        // A wrong key fails right here, on authenticated decryption.
+        let ring = try TraumaCrypto.shared.decryptKeyRing(
+            encryptedKeyRing: ringBlob, masterKey: master
+        )
+        guard let (treeId, treeKeyB64) = ring.first else { return [] }
+        let treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
+        let pulled = try await api.pullEntities(treeId: treeId, type: .journalEntries)
+        return pulled.compactMap { Self.decryptEntry($0, key: treeKey) }
     }
 
     private var currentHint: String? {
@@ -85,9 +147,9 @@ final class AppModel: ObservableObject {
     }
 
     /// Argon2id costs about a second by design; never run it on the main actor.
-    private nonisolated static func deriveKey(passphrase: String, salt: String) async -> AesGcmKey {
+    private nonisolated static func deriveKeyBytes(passphrase: String, salt: String) async -> KotlinByteArray {
         await Task.detached(priority: .userInitiated) {
-            TraumaCrypto.shared.deriveMasterKey(passphrase: passphrase, saltBase64: salt)
+            TraumaCrypto.shared.deriveMasterKeyBytes(passphrase: passphrase, saltBase64: salt)
         }.value
     }
 
@@ -120,6 +182,11 @@ final class AppModel: ObservableObject {
     /// Test affordance: -email/-password/-unlockPassphrase launch arguments
     /// drive the whole flow without a keyboard (dev accounts only).
     func debugAutoFlow() async {
+        if case .biometric = phase,
+           ProcessInfo.processInfo.arguments.contains("-autoBiometric") {
+            await biometricUnlock()
+            return
+        }
         guard
             let email = Self.launchArgument("-email"),
             let password = Self.launchArgument("-password")

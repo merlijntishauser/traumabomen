@@ -20,6 +20,16 @@ object TraumaCrypto {
     fun deriveMasterKey(passphrase: String, saltBase64: String): AesGcmKey =
         AesGcmKey(argon2idDeriveKey(passphrase, Base64.decode(saltBase64)))
 
+    /**
+     * Raw master key bytes, for platform key custody (Secure Enclave
+     * wrapping on iOS). Callers own zeroing their copies.
+     */
+    fun deriveMasterKeyBytes(passphrase: String, saltBase64: String): ByteArray =
+        argon2idDeriveKey(passphrase, Base64.decode(saltBase64))
+
+    /** Rebuild a key from custody-released raw bytes. */
+    fun keyFromBytes(rawKey: ByteArray): AesGcmKey = AesGcmKey(rawKey)
+
     fun importTreeKey(base64Key: String): AesGcmKey = AesGcmKey(Base64.decode(base64Key))
 
     /** @throws DecryptException on a wrong passphrase (Swift-catchable). */
