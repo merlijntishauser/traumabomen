@@ -1,0 +1,6 @@
+headers = sodium.h
+package = libsodium
+
+# Include dirs and the static library path are per-target and passed from
+# Gradle (includeDirs + extraOpts -staticLibrary/-libraryPath), pointing at
+# the from-source build produced by scripts/build-libsodium.sh.

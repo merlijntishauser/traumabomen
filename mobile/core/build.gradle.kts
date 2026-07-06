@@ -11,6 +11,34 @@ repositories {
     mavenCentral()
 }
 
+// libsodium is built from the official source tarball (pinned SHA-256) for
+// each iOS target; the cinterop below binds the resulting static libraries.
+val libsodiumDir = layout.buildDirectory.dir("libsodium")
+
+val buildLibsodium = tasks.register<Exec>("buildLibsodium") {
+    commandLine("scripts/build-libsodium.sh", libsodiumDir.get().asFile.absolutePath)
+    outputs.dir(libsodiumDir)
+}
+
+// The crypto compatibility fixture is shared with the frontend; generating
+// it into common test sources lets the same tests run on the JVM and on the
+// iOS simulator, where reading repo files at runtime is not an option.
+val generateCryptoFixture = tasks.register("generateCryptoFixture") {
+    val fixture = rootDir.resolve("../../frontend/src/fixtures/crypto-compat.fixture.json")
+    val outDir = layout.buildDirectory.dir("generated/cryptoFixture")
+    inputs.file(fixture)
+    outputs.dir(outDir)
+    doLast {
+        val target = outDir.get().asFile.resolve("org/traumabomen/core/crypto/CryptoFixtureJson.kt")
+        target.parentFile.mkdirs()
+        target.writeText(
+            "package org.traumabomen.core.crypto\n\n" +
+                "// Generated from frontend/src/fixtures/crypto-compat.fixture.json; do not edit.\n" +
+                "internal const val CRYPTO_FIXTURE_JSON: String = \"\"\"${fixture.readText()}\"\"\"\n",
+        )
+    }
+}
+
 kotlin {
     jvmToolchain(17)
 
@@ -21,10 +49,38 @@ kotlin {
     }
 
     // The JVM target runs the shared compatibility suite in CI and feeds the
-    // future Android app. The iOS targets (iosArm64, iosSimulatorArm64) land
-    // together with the libsodium cinterop actuals; the expect declarations
-    // in commonMain already define the seam they must fill.
+    // future Android app.
     jvm()
+
+    // iOS targets bind libsodium (Argon2id + AES-256-GCM) via cinterop.
+    val libsodiumTargetDirs = mapOf(
+        "iosArm64" to "ios-arm64",
+        "iosSimulatorArm64" to "ios-simulator-arm64",
+    )
+    iosArm64()
+    iosSimulatorArm64 {
+        // Run tests on a simulator device that exists in this Xcode.
+        testRuns.configureEach { deviceId = "iPhone 17 Pro" }
+    }
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+        val dir = libsodiumTargetDirs.getValue(name)
+        compilations.getByName("main").cinterops.create("libsodium") {
+            definitionFile.set(file("src/nativeInterop/cinterop/libsodium.def"))
+            includeDirs(libsodiumDir.map { it.dir("$dir/include") })
+            extraOpts(
+                "-libraryPath", libsodiumDir.get().asFile.resolve("$dir/lib").absolutePath,
+                "-staticLibrary", "libsodium.a",
+            )
+        }
+        compilations.configureEach {
+            compileTaskProvider.configure { dependsOn(buildLibsodium) }
+        }
+    }
+
+    // The cinterop tasks read the libsodium headers and static libraries.
+    tasks.matching { it.name.startsWith("cinteropLibsodium") }.configureEach {
+        dependsOn(buildLibsodium)
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -36,6 +92,9 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+        }
+        commonTest {
+            kotlin.srcDir(generateCryptoFixture)
         }
         jvmTest.dependencies {
             implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
@@ -64,10 +123,4 @@ sqldelight {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    // Canonical cross-platform fixture, shared with the frontend Vitest
-    // guard (frontend/src/lib/cryptoCompat.unit.test.ts).
-    systemProperty(
-        "cryptoFixture",
-        rootDir.resolve("../../frontend/src/fixtures/crypto-compat.fixture.json").absolutePath,
-    )
 }
