@@ -1,7 +1,7 @@
 package org.traumabomen.core.api
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+
+
 import java.security.SecureRandom
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
@@ -36,7 +36,7 @@ class LiveApiIntegrationTest {
         }
 
         runBlocking {
-            val api = ApiClient(base, HttpClient(CIO))
+            val api = createApiClient(base)
             val random = SecureRandom()
 
             // Register and log in, exactly as a fresh device would.

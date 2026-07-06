@@ -104,6 +104,12 @@ kotlin {
             // payload byte is visible in this codebase.
             implementation("io.ktor:ktor-client-core:3.5.1")
         }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.5.1")
+        }
+        jvmMain.dependencies {
+            implementation("io.ktor:ktor-client-cio:3.5.1")
+        }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
@@ -113,8 +119,6 @@ kotlin {
         jvmTest.dependencies {
             implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
             implementation("io.ktor:ktor-client-mock:3.5.1")
-            // Real engine for the opt-in live integration test.
-            implementation("io.ktor:ktor-client-cio:3.5.1")
         }
         jvmMain.dependencies {
             // Argon2id for the JVM actual. The web derivation equivalence of
