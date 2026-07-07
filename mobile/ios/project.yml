@@ -15,6 +15,7 @@ targets:
       - Sources
       - path: Resources/Fonts
         buildPhase: resources
+      - Resources/Assets.xcassets
     dependencies:
       # Build with: cd ../core && gradle assembleTraumabomenCoreDebugXCFramework
       - framework: ../core/build/XCFrameworks/debug/TraumabomenCore.xcframework
@@ -31,7 +32,9 @@ targets:
           - Lato-Regular.ttf
           - Lato-Bold.ttf
           - Fraunces.ttf
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIUserInterfaceStyle: Automatic
         # The dev backend is plain HTTP on the Mac's loopback; production
         # talks HTTPS only, which ATS allows by default.
         NSAppTransportSecurity:
