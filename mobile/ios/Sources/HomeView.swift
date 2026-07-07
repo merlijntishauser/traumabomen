@@ -62,12 +62,6 @@ struct HomeView: View {
                     .foregroundStyle(Theme.textPrimary)
             }
             Spacer()
-            Button("Settings") { showSettings = true }
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.textMuted)
-            Button("Lock") { model.lock() }
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.textMuted)
         }
         .padding(.horizontal, 24)
         .padding(.top, 12)
@@ -99,6 +93,8 @@ struct HomeView: View {
             NavItem(icon: .network, label: "Tree", selected: model.activeTab == .tree) {
                 model.activeTab = .tree
             }
+            NavItem(icon: .settings, label: "Settings") { showSettings = true }
+            NavItem(icon: .lock, label: "Lock") { model.lock() }
         }
         .padding(.top, 10)
         .padding(.bottom, 4)

@@ -8,15 +8,17 @@ enum LucideIcon: String {
     case network
     case penLine = "pen-line"
     case lock
+    case settings
 
     var image: Image { Image(rawValue).renderingMode(.template) }
 }
 
-/// A tappable nav item: the Lucide mark above its label, tinted by selection.
+/// A bottom-bar item: the Lucide mark above its label. A tab item highlights
+/// when it is the active view; an action item (settings, lock) stays muted.
 struct NavItem: View {
     let icon: LucideIcon
     let label: String
-    let selected: Bool
+    var selected: Bool = false
     let action: () -> Void
 
     var body: some View {
