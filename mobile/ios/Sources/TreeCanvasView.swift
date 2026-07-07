@@ -83,55 +83,106 @@ struct TreeCanvasView: View {
         return (scale, offset)
     }
 
+    private static let parentColor = Color(red: 0x8f / 255, green: 0xaa / 255, blue: 0x97 / 255)
+    private static let stepColor = Color(red: 0x5a / 255, green: 0x7a / 255, blue: 0x64 / 255)
+
     private func drawEdges(in ctx: inout GraphicsContext) {
         let byId = Dictionary(uniqueKeysWithValues: data.persons.map { ($0.id, $0) })
+
+        // Side relationships (partner, friend, sibling) stay as facing-edge
+        // curves; parent edges route through shared family-connector buses.
         for edge in data.edges {
-            guard let source = byId[edge.sourceId], let target = byId[edge.targetId] else { continue }
+            guard edge.kind == .partner || edge.kind == .friend || edge.kind == .sibling,
+                  let source = byId[edge.sourceId], let target = byId[edge.targetId] else { continue }
 
+            let (left, right) = source.x <= target.x ? (source, target) : (target, source)
+            let from = CGPoint(x: left.x + Self.nodeSize.width, y: left.y + Self.nodeSize.height / 2)
+            let to = CGPoint(x: right.x, y: right.y + Self.nodeSize.height / 2)
             var path = Path()
-            let color: Color
-            var width: CGFloat = 1.5
-
-            switch edge.kind {
-            case .partner, .friend, .sibling:
-                // Side to side between the facing edges of the two nodes.
-                let (left, right) = source.x <= target.x ? (source, target) : (target, source)
-                let from = CGPoint(x: left.x + Self.nodeSize.width, y: left.y + Self.nodeSize.height / 2)
-                let to = CGPoint(x: right.x, y: right.y + Self.nodeSize.height / 2)
-                path.move(to: from)
-                path.addCurve(
-                    to: to,
-                    control1: CGPoint(x: (from.x + to.x) / 2, y: from.y),
-                    control2: CGPoint(x: (from.x + to.x) / 2, y: to.y)
-                )
-                color = edge.kind == .partner
-                    ? Color(red: 0xec / 255, green: 0x48 / 255, blue: 0x99 / 255)
-                    : edge.kind == .friend
-                        ? Color(red: 0xe8 / 255, green: 0x86 / 255, blue: 0x3a / 255)
-                        : Color(red: 0xa8 / 255, green: 0x55 / 255, blue: 0xf7 / 255)
-                if edge.kind == .partner, !edge.dashed { width = 2.5 }
-            case .parent, .step:
-                // Parent bottom to child top; a simple vertical bezier. The
-                // web's shared family-connector buses are a later refinement.
-                let from = CGPoint(x: source.x + Self.nodeSize.width / 2, y: source.y + Self.nodeSize.height)
-                let to = CGPoint(x: target.x + Self.nodeSize.width / 2, y: target.y)
-                path.move(to: from)
-                path.addCurve(
-                    to: to,
-                    control1: CGPoint(x: from.x, y: (from.y + to.y) / 2),
-                    control2: CGPoint(x: to.x, y: (from.y + to.y) / 2)
-                )
-                color = edge.kind == .parent
-                    ? Color(red: 0x8f / 255, green: 0xaa / 255, blue: 0x97 / 255)
-                    : Color(red: 0x5a / 255, green: 0x7a / 255, blue: 0x64 / 255)
-            }
-
-            let style = StrokeStyle(
-                lineWidth: width,
-                lineCap: .round,
-                dash: edge.dashed ? [6, 4] : []
+            path.move(to: from)
+            path.addCurve(
+                to: to,
+                control1: CGPoint(x: (from.x + to.x) / 2, y: from.y),
+                control2: CGPoint(x: (from.x + to.x) / 2, y: to.y)
             )
-            ctx.stroke(path, with: .color(color), style: style)
+            let color = edge.kind == .partner
+                ? Color(red: 0xec / 255, green: 0x48 / 255, blue: 0x99 / 255)
+                : edge.kind == .friend
+                    ? Color(red: 0xe8 / 255, green: 0x86 / 255, blue: 0x3a / 255)
+                    : Color(red: 0xa8 / 255, green: 0x55 / 255, blue: 0xf7 / 255)
+            let width: CGFloat = (edge.kind == .partner && !edge.dashed) ? 2.5 : 1.5
+            ctx.stroke(path, with: .color(color),
+                       style: StrokeStyle(lineWidth: width, lineCap: .round, dash: edge.dashed ? [6, 4] : []))
+        }
+
+        drawFamilyConnectors(byId: byId, in: &ctx)
+    }
+
+    /// Route parent edges as the web does: co-parents of the same children
+    /// share one horizontal bus. Each parent drops to the bus (rounded
+    /// corner), the bus spans them, and each child drops from the bus to its
+    /// top. Grouped by the exact set of parents so half-siblings split off.
+    private func drawFamilyConnectors(byId: [String: TreePerson], in ctx: inout GraphicsContext) {
+        // child -> its parent ids, and whether any of those edges is step.
+        var parentsOf: [String: (parents: [String], stepped: Bool)] = [:]
+        for edge in data.edges where edge.kind == .parent || edge.kind == .step {
+            var entry = parentsOf[edge.targetId] ?? ([], false)
+            entry.parents.append(edge.sourceId)
+            if edge.kind == .step { entry.stepped = true }
+            parentsOf[edge.targetId] = entry
+        }
+
+        // Group children by their sorted parent-set (the family unit).
+        struct Unit { var children: [String]; var stepped: Bool }
+        var units: [String: Unit] = [:]
+        for (child, info) in parentsOf {
+            let key = info.parents.sorted().joined(separator: "|")
+            var u = units[key] ?? Unit(children: [], stepped: false)
+            u.children.append(child)
+            if info.stepped { u.stepped = true }
+            units[key] = u
+        }
+
+        for (key, unit) in units {
+            let parents = key.split(separator: "|").compactMap { byId[String($0)] }
+            let children = unit.children.compactMap { byId[$0] }
+            guard !parents.isEmpty, !children.isEmpty else { continue }
+
+            let parentBottom = parents.map { $0.y + Self.nodeSize.height }.max()!
+            let childTop = children.map(\.y).min()!
+            let busY = (parentBottom + childTop) / 2
+
+            let parentXs = parents.map { $0.x + Self.nodeSize.width / 2 }
+            let childXs = children.map { $0.x + Self.nodeSize.width / 2 }
+            let color = unit.stepped ? Self.stepColor : Self.parentColor
+            let style = StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round,
+                                    dash: unit.stepped ? [6, 4] : [])
+
+            // The horizontal bus spans every drop point.
+            var bus = Path()
+            let minX = (parentXs + childXs).min()!
+            let maxX = (parentXs + childXs).max()!
+            bus.move(to: CGPoint(x: minX, y: busY))
+            bus.addLine(to: CGPoint(x: maxX, y: busY))
+            ctx.stroke(bus, with: .color(color), style: style)
+
+            // Each parent drops from its bottom to the bus, rounding the turn.
+            for px in parentXs {
+                var drop = Path()
+                drop.move(to: CGPoint(x: px, y: parentBottom))
+                drop.addLine(to: CGPoint(x: px, y: busY))
+                ctx.stroke(drop, with: .color(color), style: style)
+            }
+            // Each child drops from the bus to its top.
+            for cx in childXs {
+                var drop = Path()
+                drop.move(to: CGPoint(x: cx, y: busY))
+                drop.addLine(to: CGPoint(x: cx, y: childTop))
+                if let child = children.first(where: { $0.x + Self.nodeSize.width / 2 == cx }) {
+                    drop.addLine(to: CGPoint(x: cx, y: child.y))
+                }
+                ctx.stroke(drop, with: .color(color), style: style)
+            }
         }
     }
 

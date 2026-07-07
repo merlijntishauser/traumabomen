@@ -216,6 +216,13 @@ final class AppModel: ObservableObject {
         }
         trees = choices.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
 
+        #if DEBUG
+        if let want = Self.launchArgument("-selectTree"),
+           let match = trees.first(where: { $0.name.localizedCaseInsensitiveContains(want) }) {
+            selectedTreeId = match.id
+            return
+        }
+        #endif
         let persisted = cache.selectedTreeId
         selectedTreeId = (persisted.flatMap { id in trees.first { $0.id == id }?.id })
             ?? trees.first?.id
