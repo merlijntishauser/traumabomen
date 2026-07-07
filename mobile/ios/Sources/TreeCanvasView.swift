@@ -144,14 +144,14 @@ struct TreeCanvasView: View {
 
             ctx.draw(
                 Text(person.name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary),
                 at: CGPoint(x: rect.minX + 12, y: rect.minY + 16),
                 anchor: .leading
             )
             ctx.draw(
                 Text(person.yearsLabel)
-                    .font(.system(size: 11))
+                    .font(Theme.body(11))
                     .foregroundStyle(Theme.textMuted),
                 at: CGPoint(x: rect.minX + 12, y: rect.minY + 34),
                 anchor: .leading
@@ -206,23 +206,23 @@ struct PersonSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(person.name)
-                        .font(.system(size: 26, weight: .light))
+                        .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                         .padding(.top, 28)
 
                     Text(person.yearsLabel)
-                        .font(.system(size: Theme.bodySize))
+                        .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.textMuted)
 
                     if person.isAdopted {
                         Text("Adopted")
-                            .font(.system(size: 13))
+                            .font(Theme.body(13))
                             .foregroundStyle(Theme.textMuted)
                     }
 
                     if let notes = person.notes, !notes.isEmpty {
                         Text(notes)
-                            .font(.system(size: Theme.bodySize))
+                            .font(Theme.body(Theme.bodySize))
                             .foregroundStyle(Theme.textPrimary)
                             .padding(.top, 4)
                     }
@@ -238,7 +238,7 @@ struct PersonSheet: View {
                     }
 
                     Text("Editing happens at the desk; the phone is for looking and writing.")
-                        .font(.system(size: 12))
+                        .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                         .padding(.top, 20)
                         .padding(.bottom, 16)
@@ -259,7 +259,7 @@ struct PersonSheet: View {
     ) -> some View {
         if !items.isEmpty {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
+                .font(Theme.body(13, weight: .semibold))
                 .foregroundStyle(Theme.textMuted)
                 .padding(.top, 14)
             ForEach(items) { item in
@@ -269,17 +269,17 @@ struct PersonSheet: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 8) {
                             Text(item.title)
-                                .font(.system(size: Theme.bodySize))
+                                .font(Theme.body(Theme.bodySize))
                                 .foregroundStyle(Theme.textPrimary)
                             if let date = item.date {
                                 Text(date)
-                                    .font(.system(size: 12))
+                                    .font(Theme.body(12))
                                     .foregroundStyle(Theme.textMuted)
                             }
                         }
                         if let description = item.description, !description.isEmpty {
                             Text(description)
-                                .font(.system(size: 13))
+                                .font(Theme.body(13))
                                 .foregroundStyle(Theme.textMuted)
                         }
                     }

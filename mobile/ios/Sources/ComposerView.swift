@@ -16,12 +16,12 @@ struct ComposerView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     Button("Cancel") { dismiss() }
-                        .font(.system(size: 13))
+                        .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
                     Spacer()
                     Button(action: save) {
                         Text(saving ? "Saving" : "Save")
-                            .font(.system(size: Theme.bodySize, weight: .semibold))
+                            .font(Theme.body(Theme.bodySize, weight: .semibold))
                             .foregroundStyle(canSave ? Theme.accent : Theme.textMuted)
                     }
                     .disabled(!canSave || saving)
@@ -30,19 +30,19 @@ struct ComposerView: View {
                 .padding(.top, 16)
 
                 TextField("Title", text: $title)
-                    .font(.system(size: 22, weight: .light))
+                    .font(Theme.body(22, weight: .light))
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.horizontal, 24)
 
                 TextEditor(text: $content)
                     .scrollContentBackground(.hidden)
-                    .font(.system(size: Theme.bodySize))
+                    .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.horizontal, 19)
                     .overlay(alignment: .topLeading) {
                         if content.isEmpty {
                             Text("What was never spoken about, but everyone knew?")
-                                .font(.system(size: Theme.bodySize))
+                                .font(Theme.body(Theme.bodySize))
                                 .foregroundStyle(Theme.textMuted.opacity(0.6))
                                 .padding(.horizontal, 24)
                                 .padding(.top, 8)
@@ -53,7 +53,7 @@ struct ComposerView: View {
                 Spacer()
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(model.themeMode.colorScheme)
     }
 
     private var canSave: Bool {

@@ -11,28 +11,28 @@ struct BiometricUnlockView: View {
             Spacer()
 
             Text("Traumatrees")
-                .font(.system(size: 34, weight: .light))
+                .font(Theme.heading(26))
                 .foregroundStyle(Theme.textPrimary)
 
             Text("Welcome back.")
-                .font(.system(size: Theme.bodySize))
+                .font(Theme.body(Theme.bodySize))
                 .foregroundStyle(Theme.textMuted)
 
             Button {
                 Task { await model.biometricUnlock() }
             } label: {
                 Text("Unlock with Face ID")
-                    .font(.system(size: Theme.bodySize, weight: .semibold))
+                    .font(Theme.body(Theme.bodySize, weight: .semibold))
             }
             .frame(width: 220, height: 44)
-            .background(Theme.accent, in: RoundedRectangle(cornerRadius: 10))
+            .background(Theme.action, in: RoundedRectangle(cornerRadius: 10))
             .foregroundStyle(.white)
 
             Button {
                 Task { await model.usePassphraseInstead() }
             } label: {
                 Text("Use passphrase instead")
-                    .font(.system(size: 13))
+                    .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
             }
 

@@ -9,7 +9,7 @@ struct TraumatreesApp: App {
             RootView()
                 .modifier(PrivacyShieldModifier())
                 .environmentObject(model)
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(model.themeMode.colorScheme)
         }
     }
 }
@@ -31,7 +31,7 @@ struct RootView: View {
                 VStack(spacing: 16) {
                     ProgressView().tint(Theme.textMuted)
                     Text(message)
-                        .font(.system(size: Theme.bodySize))
+                        .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.textMuted)
                 }
             case .journal(let entries):

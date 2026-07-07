@@ -13,18 +13,18 @@ struct JournalListView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline, spacing: 16) {
                 Text("Journal")
-                    .font(.system(size: 28, weight: .light))
+                    .font(Theme.heading(20))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
                 Button("New entry") { composing = true }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.accent)
+                    .font(Theme.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.action)
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
             Text(statusLine)
-                .font(.system(size: 13))
+                .font(Theme.body(13))
                 .foregroundStyle(Theme.textMuted)
                 .padding(.horizontal, 24)
                 .padding(.top, 2)
@@ -32,7 +32,7 @@ struct JournalListView: View {
             if entries.isEmpty {
                 Spacer()
                 Text("Nothing here yet. Your first entry can be a single sentence.")
-                    .font(.system(size: Theme.bodySize))
+                    .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
@@ -45,16 +45,16 @@ struct JournalListView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(alignment: .firstTextBaseline) {
                                     Text(entry.title)
-                                        .font(.system(size: 17, weight: .light))
+                                        .font(Theme.body(17, weight: .light))
                                         .foregroundStyle(Theme.textPrimary)
                                     if entry.pending {
                                         Text("waiting to sync")
-                                            .font(.system(size: 11))
+                                            .font(Theme.body(11))
                                             .foregroundStyle(Theme.textMuted)
                                     }
                                 }
                                 Text(entry.content)
-                                    .font(.system(size: Theme.bodySize))
+                                    .font(Theme.body(Theme.bodySize))
                                     .foregroundStyle(Theme.textMuted)
                                     .lineLimit(3)
                             }

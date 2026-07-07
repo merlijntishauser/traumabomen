@@ -14,11 +14,11 @@ struct UnlockView: View {
             Spacer()
 
             Text("Traumatrees")
-                .font(.system(size: 34, weight: .light))
+                .font(Theme.heading(26))
                 .foregroundStyle(Theme.textPrimary)
 
             Text("Your encryption passphrase unlocks your data on this device. We can never read it.")
-                .font(.system(size: Theme.bodySize))
+                .font(Theme.body(Theme.bodySize))
                 .foregroundStyle(Theme.textMuted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -26,7 +26,7 @@ struct UnlockView: View {
             VStack(spacing: 12) {
                 SecureField("Encryption passphrase", text: $passphrase)
                     .textFieldStyle(.plain)
-                    .font(.system(size: Theme.bodySize))
+                    .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textPrimary)
                     .padding(12)
                     .background(Theme.bgSecondary, in: RoundedRectangle(cornerRadius: 10))
@@ -39,22 +39,22 @@ struct UnlockView: View {
 
                 if let hint, !hint.isEmpty {
                     Text("Hint: \(hint)")
-                        .font(.system(size: 13))
+                        .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
                 }
 
                 if let error = model.errorMessage {
                     Text(error)
-                        .font(.system(size: 13))
+                        .font(Theme.body(13))
                         .foregroundStyle(Theme.danger)
                 }
 
                 Button(action: submit) {
                     Text("Unlock")
-                        .font(.system(size: Theme.bodySize, weight: .semibold))
+                        .font(Theme.body(Theme.bodySize, weight: .semibold))
                 }
                 .frame(width: 200, height: 44)
-                .background(Theme.accent, in: RoundedRectangle(cornerRadius: 10))
+                .background(Theme.action, in: RoundedRectangle(cornerRadius: 10))
                 .foregroundStyle(.white)
                 .disabled(passphrase.isEmpty)
             }

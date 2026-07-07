@@ -29,6 +29,9 @@ final class AppModel: ObservableObject {
     @Published var phase: Phase
     @Published var errorMessage: String?
     @Published var activeTab: Tab = .journal
+    @Published var themeMode: ThemeMode = ThemeMode.current {
+        didSet { ThemeMode.current = themeMode }
+    }
     @Published var treeData: TreeData?
 
     private let api: ApiClient

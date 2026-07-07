@@ -15,10 +15,10 @@ struct HomeView: View {
                 tabButton("Tree", tab: .tree)
                 Spacer()
                 Button("Settings") { showSettings = true }
-                    .font(.system(size: 13))
+                    .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
                 Button("Lock") { model.lock() }
-                    .font(.system(size: 13))
+                    .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
             }
             .padding(.horizontal, 24)
@@ -34,7 +34,7 @@ struct HomeView: View {
                 } else {
                     Spacer()
                     Text("No tree yet. Trees grow at the desk; this canvas shows yours read-only.")
-                        .font(.system(size: Theme.bodySize))
+                        .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.textMuted)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)

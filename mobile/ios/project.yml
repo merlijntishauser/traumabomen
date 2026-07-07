@@ -11,7 +11,10 @@ targets:
   Traumatrees:
     type: application
     platform: iOS
-    sources: [Sources]
+    sources:
+      - Sources
+      - path: Resources/Fonts
+        buildPhase: resources
     dependencies:
       # Build with: cd ../core && gradle assembleTraumabomenCoreDebugXCFramework
       - framework: ../core/build/XCFrameworks/debug/TraumabomenCore.xcframework
@@ -22,6 +25,12 @@ targets:
       path: Info.plist
       properties:
         CFBundleDisplayName: Traumatrees
+        UIAppFonts:
+          - PlaywriteNZBasic.ttf
+          - Lato-Light.ttf
+          - Lato-Regular.ttf
+          - Lato-Bold.ttf
+          - Fraunces.ttf
         UILaunchScreen: {}
         # The dev backend is plain HTTP on the Mac's loopback; production
         # talks HTTPS only, which ATS allows by default.

@@ -4,6 +4,7 @@ import SwiftUI
 /// timing, theme, and account management follow the web's settings panel in
 /// later slices.
 struct SettingsView: View {
+    @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
 
     @State private var enabled = false
@@ -16,29 +17,30 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             Theme.bgPrimary.ignoresSafeArea()
+            ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
                     Text("Settings")
-                        .font(.system(size: 26, weight: .light))
+                        .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
                     Button("Done") { save() }
-                        .font(.system(size: Theme.bodySize, weight: .semibold))
-                        .foregroundStyle(Theme.accent)
+                        .font(Theme.body(Theme.bodySize, weight: .semibold))
+                        .foregroundStyle(Theme.action)
                         .disabled(saving)
                 }
                 .padding(.top, 24)
 
                 Text("Reminders")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
 
                 Toggle(isOn: $enabled) {
                     Text("A weekly reminder")
-                        .font(.system(size: Theme.bodySize))
+                        .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.textPrimary)
                 }
-                .tint(Theme.accent)
+                .tint(Theme.action)
 
                 if enabled {
                     HStack {
@@ -58,14 +60,48 @@ struct SettingsView: View {
                 }
 
                 Text("A gentle nudge, delivered on your device. The reminder never names what this app is for.")
-                    .font(.system(size: 13))
+                    .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
 
-                Spacer()
+                Text("Appearance")
+                    .font(Theme.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.textMuted)
+                    .padding(.top, 8)
+
+                Picker("Theme", selection: $model.themeMode) {
+                    ForEach(ThemeMode.allCases, id: \.self) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Text("About")
+                    .font(Theme.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.textMuted)
+                    .padding(.top, 8)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Traumatrees is a personal reflection tool, not therapy and not crisis support.")
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text("Everything you write is encrypted on this device; the server only ever stores ciphertext. If you lose your passphrase, your data is unrecoverable. This is by design.")
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.textMuted)
+                    Text("Open source under AGPL-3.0. Bundled fonts (Playwrite NZ Basic, Lato, Fraunces) are licensed under the SIL Open Font License.")
+                        .font(Theme.body(12))
+                        .foregroundStyle(Theme.textMuted)
+                        .padding(.top, 4)
+                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev")")
+                        .font(Theme.body(12))
+                        .foregroundStyle(Theme.textMuted)
+                }
+
+                Spacer(minLength: 24)
             }
             .padding(.horizontal, 24)
+            }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(model.themeMode.colorScheme)
         .onAppear {
             let s = Reminders.current
             enabled = s.enabled
