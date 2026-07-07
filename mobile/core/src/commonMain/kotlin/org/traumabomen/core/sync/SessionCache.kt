@@ -22,8 +22,17 @@ class SessionCache(private val db: CoreDatabase) {
         get() = get("encrypted_key_ring")
         set(value) = put("encrypted_key_ring", value)
 
+    /** Cached tree list (ciphertext blobs) and the last selected tree id. */
+    var treeList: String?
+        get() = get("tree_list")
+        set(value) = put("tree_list", value)
+
+    var selectedTreeId: String?
+        get() = get("selected_tree_id")
+        set(value) = put("selected_tree_id", value)
+
     fun clear() {
-        listOf("salt", "passphrase_hint", "encrypted_key_ring").forEach {
+        listOf("salt", "passphrase_hint", "encrypted_key_ring", "tree_list", "selected_tree_id").forEach {
             db.kvQueries.remove(it)
         }
     }

@@ -32,6 +32,15 @@ final class AppModel: ObservableObject {
     @Published var themeMode: ThemeMode = ThemeMode.current {
         didSet { ThemeMode.current = themeMode }
     }
+    @Published var trees: [TreeChoice] = []
+    @Published var selectedTreeId: String?
+
+    struct TreeChoice: Identifiable, Equatable {
+        let id: String
+        let name: String
+    }
+
+    private var treeKeys: [String: AesGcmKey] = [:]
     @Published var treeData: TreeData?
 
     private let api: ApiClient
@@ -147,7 +156,9 @@ final class AppModel: ObservableObject {
     func lock() {
         masterKey = nil
         treeKey = nil
+        treeKeys = [:]
         treeData = nil
+        trees = []
         phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
     }
 
@@ -167,11 +178,65 @@ final class AppModel: ObservableObject {
         let ring = try TraumaCrypto.shared.decryptKeyRing(
             encryptedKeyRing: ringBlob, masterKey: master
         )
-        guard let (tree, treeKeyB64) = ring.first else { return [] }
-        treeId = tree
-        treeKey = TraumaCrypto.shared.importTreeKey(base64Key: treeKeyB64)
-        // Queued offline writes from earlier sessions push before the pull.
-        _ = try? await sync.push(treeId: tree)
+        treeKeys = ring.reduce(into: [:]) { dict, pair in
+            dict[pair.key] = TraumaCrypto.shared.importTreeKey(base64Key: pair.value)
+        }
+        await buildTreeList(ring: ring)
+        guard let chosen = selectedTreeId, treeKeys[chosen] != nil else { return [] }
+        return await loadTree(chosen)
+    }
+
+    /// Decrypt each tree's name (from the server list, cached for offline)
+    /// and pick the selected tree: the persisted choice if still present,
+    /// else the first.
+    private func buildTreeList(ring: [String: String]) async {
+        var summaries: [(id: String, blob: String)] = []
+        if let fetched = try? await api.listTrees() {
+            summaries = fetched.map { ($0.id, $0.encryptedData) }
+            cache.treeList = try? JSONEncoder().encode(
+                summaries.map { ["id": $0.id, "blob": $0.blob] }
+            ).base64EncodedString()
+        } else if let cached = cache.treeList,
+                  let data = Data(base64Encoded: cached),
+                  let rows = try? JSONDecoder().decode([[String: String]].self, from: data) {
+            summaries = rows.compactMap { row in
+                guard let id = row["id"], let blob = row["blob"] else { return nil }
+                return (id, blob)
+            }
+        }
+
+        var choices: [TreeChoice] = []
+        for summary in summaries {
+            guard let key = treeKeys[summary.id] else { continue }
+            let name = Self.decryptTreeName(summary.blob, key: key) ?? "Untitled tree"
+            choices.append(TreeChoice(id: summary.id, name: name))
+        }
+        for id in treeKeys.keys where !choices.contains(where: { $0.id == id }) {
+            choices.append(TreeChoice(id: id, name: "Untitled tree"))
+        }
+        trees = choices.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+
+        let persisted = cache.selectedTreeId
+        selectedTreeId = (persisted.flatMap { id in trees.first { $0.id == id }?.id })
+            ?? trees.first?.id
+    }
+
+    /// Switch to a tree: persist the choice and reload its content.
+    func selectTree(_ id: String) async {
+        guard id != selectedTreeId, treeKeys[id] != nil else { return }
+        selectedTreeId = id
+        cache.selectedTreeId = id
+        phase = .working("Opening")
+        let entries = await loadTree(id)
+        phase = .journal(entries: entries)
+    }
+
+    /// Load one tree's journal, canvas, and stories into memory.
+    private func loadTree(_ id: String) async -> [Entry] {
+        cache.selectedTreeId = id
+        treeId = id
+        treeKey = treeKeys[id]
+        _ = try? await sync.push(treeId: id)
         await refreshTree()
         return await refreshEntries()
     }
@@ -247,6 +312,15 @@ final class AppModel: ObservableObject {
     private struct EntryJson: Decodable {
         let title: String
         let content: String
+    }
+
+    private nonisolated static func decryptTreeName(_ blob: String, key: AesGcmKey) -> String? {
+        struct NameJson: Decodable { let name: String }
+        guard
+            let plaintext = try? TraumaCrypto.shared.decryptJsonFromApi(encryptedData: blob, key: key),
+            let json = try? JSONDecoder().decode(NameJson.self, from: Data(plaintext.utf8))
+        else { return nil }
+        return json.name
     }
 
     private nonisolated static func decryptRow(_ row: MirrorEntry, key: AesGcmKey) -> Entry? {
