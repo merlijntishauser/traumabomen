@@ -21,6 +21,9 @@ struct RootView: View {
         ZStack {
             Theme.bgPrimary.ignoresSafeArea()
             switch model.phase {
+            case .welcome:
+                WelcomeView { }
+                    .environmentObject(model)
             case .login:
                 LoginView()
             case .biometric:

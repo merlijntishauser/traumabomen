@@ -10,6 +10,7 @@ import TraumabomenCore
 @MainActor
 final class AppModel: ObservableObject {
     enum Phase {
+        case welcome
         case login
         case biometric
         case unlock(hint: String?)
@@ -65,7 +66,15 @@ final class AppModel: ObservableObject {
         cache = SessionCache(db: db)
         // A stored session plus a fresh Enclave wrap means Face ID can open
         // the app without a passphrase; otherwise start at login.
-        phase = (tokens.refreshToken != nil && KeyCustody.hasFreshKey()) ? .biometric : .login
+        if !WelcomeView.hasBeenSeen {
+            phase = .welcome
+        } else {
+            phase = (tokens.refreshToken != nil && KeyCustody.hasFreshKey()) ? .biometric : .login
+        }
+    }
+
+    func dismissWelcome() {
+        phase = (KeychainTokenStore().refreshToken != nil && KeyCustody.hasFreshKey()) ? .biometric : .login
     }
 
     func login(email: String, password: String) async {

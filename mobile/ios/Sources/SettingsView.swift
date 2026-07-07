@@ -87,7 +87,7 @@ struct SettingsView: View {
                     Text("Everything you write is encrypted on this device; the server only ever stores ciphertext. If you lose your passphrase, your data is unrecoverable. This is by design.")
                         .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
-                    Text("Open source under AGPL-3.0. Bundled fonts (Playwrite NZ Basic, Lato, Fraunces) are licensed under the SIL Open Font License.")
+                    Text("Open source under AGPL-3.0. Bundled fonts (Playwrite NZ Basic, Lato, Fraunces) use the SIL Open Font License; icons are from Lucide (ISC License).")
                         .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                         .padding(.top, 4)

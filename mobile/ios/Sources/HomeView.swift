@@ -93,10 +93,10 @@ struct HomeView: View {
 
     private var navBar: some View {
         HStack(spacing: 0) {
-            NavItem(icon: .journal, label: "Journal", selected: model.activeTab == .journal) {
+            NavItem(icon: .bookOpen, label: "Journal", selected: model.activeTab == .journal) {
                 model.activeTab = .journal
             }
-            NavItem(icon: .tree, label: "Tree", selected: model.activeTab == .tree) {
+            NavItem(icon: .network, label: "Tree", selected: model.activeTab == .tree) {
                 model.activeTab = .tree
             }
         }
