@@ -286,6 +286,10 @@ final class AppModel: ObservableObject {
         await debugComposeIfAsked()
     }
 
+    var debugOpenSettings: Bool {
+        ProcessInfo.processInfo.arguments.contains("-openSettings")
+    }
+
     private func debugComposeIfAsked() async {
         if case .journal = phase, let compose = Self.launchArgument("-composeEntry") {
             let parts = compose.split(separator: "|", maxSplits: 1).map(String.init)

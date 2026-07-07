@@ -6,12 +6,17 @@ struct HomeView: View {
     @EnvironmentObject private var model: AppModel
     let entries: [AppModel.Entry]
 
+    @State private var showSettings = false
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 20) {
                 tabButton("Journal", tab: .journal)
                 tabButton("Tree", tab: .tree)
                 Spacer()
+                Button("Settings") { showSettings = true }
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.textMuted)
                 Button("Lock") { model.lock() }
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textMuted)
@@ -37,6 +42,10 @@ struct HomeView: View {
                 }
             }
         }
+        .sheet(isPresented: $showSettings) { SettingsView() }
+        #if DEBUG
+        .onAppear { if model.debugOpenSettings { showSettings = true } }
+        #endif
     }
 
     private func tabButton(_ label: String, tab: AppModel.Tab) -> some View {
