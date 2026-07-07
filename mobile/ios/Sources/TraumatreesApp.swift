@@ -7,6 +7,7 @@ struct TraumatreesApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .modifier(PrivacyShieldModifier())
                 .environmentObject(model)
                 .preferredColorScheme(.dark)
         }

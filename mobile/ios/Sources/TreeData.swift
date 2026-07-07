@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import TraumabomenCore
 
 /// The decrypted, render-ready tree: persons with their desktop canvas
@@ -6,6 +7,55 @@ import TraumabomenCore
 struct TreeData {
     let persons: [TreePerson]
     let edges: [TreeEdge]
+    let stories: [String: PersonStory]
+}
+
+/// Everything attached to one person: the badge grammar's three shapes.
+struct PersonStory {
+    var trauma: [StoryItem] = []
+    var life: [StoryItem] = []
+    var turning: [StoryItem] = []
+
+    var isEmpty: Bool { trauma.isEmpty && life.isEmpty && turning.isEmpty }
+}
+
+struct StoryItem: Identifiable {
+    let id: String
+    let title: String
+    let description: String?
+    let category: String?
+    let date: String?
+}
+
+/// The closed category color set from theme.css; never extended casually.
+enum CategoryColors {
+    static let trauma: [String: Color] = [
+        "loss": Color(red: 0x81 / 255, green: 0x8c / 255, blue: 0xf8 / 255),
+        "abuse": Color(red: 0xf8 / 255, green: 0x71 / 255, blue: 0x71 / 255),
+        "addiction": Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255),
+        "war": Color(red: 0xa8 / 255, green: 0xa2 / 255, blue: 0x9e / 255),
+        "displacement": Color(red: 0xe8 / 255, green: 0x79 / 255, blue: 0xf9 / 255),
+        "illness": Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255),
+        "poverty": Color(red: 0xa7 / 255, green: 0x8b / 255, blue: 0xfa / 255),
+    ]
+    static let life: [String: Color] = [
+        "family": Color(red: 0x60 / 255, green: 0xa5 / 255, blue: 0xfa / 255),
+        "education": Color(red: 0xa7 / 255, green: 0x8b / 255, blue: 0xfa / 255),
+        "career": Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255),
+        "relocation": Color(red: 0x2d / 255, green: 0xd4 / 255, blue: 0xbf / 255),
+        "health": Color(red: 0xf4 / 255, green: 0x72 / 255, blue: 0xb6 / 255),
+        "medication": Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255),
+        "other": Color(red: 0x94 / 255, green: 0xa3 / 255, blue: 0xb8 / 255),
+    ]
+    static let turningPoint = Color(red: 0x05 / 255, green: 0x96 / 255, blue: 0x69 / 255)
+
+    static func trauma(_ category: String?) -> Color {
+        trauma[category ?? ""] ?? trauma["loss"]!
+    }
+
+    static func life(_ category: String?) -> Color {
+        life[category ?? ""] ?? life["other"]!
+    }
 }
 
 struct TreePerson: Identifiable {
@@ -54,6 +104,32 @@ enum TreeDecoding {
             let x: Double
             let y: Double
         }
+    }
+
+    private struct StoryJson: Decodable {
+        let title: String
+        let description: String?
+        let category: String?
+        let approximate_date: String?
+    }
+
+    static func storyItem(_ row: MirrorEntry, key: AesGcmKey) -> (personIds: [String], item: StoryItem)? {
+        guard
+            let plaintext = try? TraumaCrypto.shared.decryptJsonFromApi(
+                encryptedData: row.encryptedData, key: key
+            ),
+            let json = try? JSONDecoder().decode(StoryJson.self, from: Data(plaintext.utf8))
+        else { return nil }
+        return (
+            row.personIds,
+            StoryItem(
+                id: row.id,
+                title: json.title,
+                description: json.description,
+                category: json.category,
+                date: json.approximate_date
+            )
+        )
     }
 
     private struct RelationshipJson: Decodable {

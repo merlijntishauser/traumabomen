@@ -135,9 +135,16 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Lock only when something is unlocked (the background grace timer).
+    func lockIfUnlocked() {
+        if case .journal = phase { lock() }
+    }
+
     /// Drop the key; Face ID (if custody is fresh) or passphrase reopens.
     func lock() {
         masterKey = nil
+        treeKey = nil
+        treeData = nil
         phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
     }
 
@@ -176,7 +183,23 @@ final class AppModel: ObservableObject {
             TreeDecoding.person(row, key: key, fallbackIndex: index)
         }
         let edges = edgeRows.compactMap { TreeDecoding.edge($0, key: key) }
-        treeData = TreeData(persons: persons, edges: edges)
+
+        // The reflective layer attached to persons: the badge grammar.
+        var stories: [String: PersonStory] = [:]
+        func collect(_ type: EntityType, _ assign: (inout PersonStory, StoryItem) -> Void) async {
+            let rows = (try? await sync.pull(treeId: tree, type: type)) ?? []
+            for row in rows {
+                guard let (personIds, item) = TreeDecoding.storyItem(row, key: key) else { continue }
+                for pid in personIds {
+                    assign(&stories[pid, default: PersonStory()], item)
+                }
+            }
+        }
+        await collect(.traumaEvents) { $0.trauma.append($1) }
+        await collect(.lifeEvents) { $0.life.append($1) }
+        await collect(.turningPoints) { $0.turning.append($1) }
+
+        treeData = TreeData(persons: persons, edges: edges, stories: stories)
     }
 
     /// Pull, reconcile, and decrypt the local journal view from the mirror.

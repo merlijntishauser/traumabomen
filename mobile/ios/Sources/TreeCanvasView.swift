@@ -55,7 +55,9 @@ struct TreeCanvasView: View {
                 }
             }
         }
-        .sheet(item: $selected) { PersonSheet(person: $0) }
+        .sheet(item: $selected) { person in
+            PersonSheet(person: person, story: data.stories[person.id] ?? PersonStory())
+        }
     }
 
     // Center the tree's bounding box in the viewport at a readable scale.
@@ -151,55 +153,138 @@ struct TreeCanvasView: View {
                 Text(person.yearsLabel)
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.textMuted),
-                at: CGPoint(x: rect.minX + 12, y: rect.minY + 38),
+                at: CGPoint(x: rect.minX + 12, y: rect.minY + 34),
                 anchor: .leading
             )
+            drawBadges(for: person, in: rect, ctx: &ctx)
+        }
+    }
+
+    /// The web's badge grammar on the node card: circles for trauma events,
+    /// squares for life events, a star for turning points.
+    private func drawBadges(for person: TreePerson, in rect: CGRect, ctx: inout GraphicsContext) {
+        guard let story = data.stories[person.id], !story.isEmpty else { return }
+        var x = rect.minX + 12
+        let y = rect.maxY - 14
+        let s: CGFloat = 9
+
+        for item in story.trauma {
+            let dot = Path(ellipseIn: CGRect(x: x, y: y, width: s, height: s))
+            ctx.fill(dot, with: .color(CategoryColors.trauma(item.category)))
+            x += s + 4
+        }
+        for item in story.life {
+            let square = Path(CGRect(x: x, y: y + 0.5, width: s - 1, height: s - 1))
+            ctx.fill(square, with: .color(CategoryColors.life(item.category)))
+            x += s + 4
+        }
+        for _ in story.turning {
+            var star = Path()
+            let c = CGPoint(x: x + s / 2, y: y + s / 2)
+            for i in 0..<10 {
+                let r = i % 2 == 0 ? s / 2 : s / 4.6
+                let a = -CGFloat.pi / 2 + CGFloat(i) * .pi / 5
+                let p = CGPoint(x: c.x + r * cos(a), y: c.y + r * sin(a))
+                i == 0 ? star.move(to: p) : star.addLine(to: p)
+            }
+            star.closeSubpath()
+            ctx.fill(star, with: .color(CategoryColors.turningPoint))
+            x += s + 4
         }
     }
 }
 
-/// A person's page: their years and notes, read-only. The full story
-/// (events, classifications, turning points) joins in a later slice.
+/// A person's page: years, notes, and their story in the badge grammar's
+/// order: what happened, life events, turning points. Read-only.
 struct PersonSheet: View {
     let person: TreePerson
+    let story: PersonStory
 
     var body: some View {
         ZStack {
             Theme.bgPrimary.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 12) {
-                Text(person.name)
-                    .font(.system(size: 26, weight: .light))
-                    .foregroundStyle(Theme.textPrimary)
-                    .padding(.top, 28)
-
-                Text(person.yearsLabel)
-                    .font(.system(size: Theme.bodySize))
-                    .foregroundStyle(Theme.textMuted)
-
-                if person.isAdopted {
-                    Text("Adopted")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.textMuted)
-                }
-
-                if let notes = person.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.system(size: Theme.bodySize))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(person.name)
+                        .font(.system(size: 26, weight: .light))
                         .foregroundStyle(Theme.textPrimary)
-                        .padding(.top, 8)
+                        .padding(.top, 28)
+
+                    Text(person.yearsLabel)
+                        .font(.system(size: Theme.bodySize))
+                        .foregroundStyle(Theme.textMuted)
+
+                    if person.isAdopted {
+                        Text("Adopted")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.textMuted)
+                    }
+
+                    if let notes = person.notes, !notes.isEmpty {
+                        Text(notes)
+                            .font(.system(size: Theme.bodySize))
+                            .foregroundStyle(Theme.textPrimary)
+                            .padding(.top, 4)
+                    }
+
+                    storySection("What happened", items: story.trauma) {
+                        Circle().fill(CategoryColors.trauma($0.category))
+                    }
+                    storySection("Life events", items: story.life) {
+                        Rectangle().fill(CategoryColors.life($0.category))
+                    }
+                    storySection("Turning points", items: story.turning) { _ in
+                        Circle().fill(CategoryColors.turningPoint)
+                    }
+
+                    Text("Editing happens at the desk; the phone is for looking and writing.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.textMuted)
+                        .padding(.top, 20)
+                        .padding(.bottom, 16)
                 }
-
-                Spacer()
-
-                Text("Editing happens at the desk; the phone is for looking and writing.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.textMuted)
-                    .padding(.bottom, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    @ViewBuilder
+    private func storySection(
+        _ title: String,
+        items: [StoryItem],
+        @ViewBuilder marker: @escaping (StoryItem) -> some View
+    ) -> some View {
+        if !items.isEmpty {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.textMuted)
+                .padding(.top, 14)
+            ForEach(items) { item in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    marker(item)
+                        .frame(width: 9, height: 9)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 8) {
+                            Text(item.title)
+                                .font(.system(size: Theme.bodySize))
+                                .foregroundStyle(Theme.textPrimary)
+                            if let date = item.date {
+                                Text(date)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.textMuted)
+                            }
+                        }
+                        if let description = item.description, !description.isEmpty {
+                            Text(description)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Theme.textMuted)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
