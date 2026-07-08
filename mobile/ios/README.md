@@ -61,6 +61,53 @@ Notes:
   `DEVELOPMENT_TEAM: <10-char Team ID>` in `project.yml` (find it in Xcode ->
   Settings -> Accounts -> Manage Certificates, or the Apple Developer portal).
 
+## Distribute to testers via TestFlight
+
+Requires a paid Apple Developer Program membership. One-time setup, then a
+repeatable per-build loop.
+
+One-time:
+
+1. At [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list),
+   register `org.traumabomen.companion` as an explicit App ID (Xcode's
+   automatic signing usually creates this the first time you archive).
+2. At [App Store Connect](https://appstoreconnect.apple.com) -> **Apps** ->
+   **+** -> **New App**: platform iOS, name Traumatrees, the bundle id above,
+   and any unique SKU.
+
+Per build:
+
+1. Build the release core and regenerate the project:
+   ```bash
+   cd mobile/core && gradle assembleTraumabomenCoreReleaseXCFramework
+   cd ../ios && xcodegen generate && open Traumatrees.xcodeproj
+   ```
+   (For a beta the debug XCFramework also works, but the release slice is
+   smaller and optimized. If you build the release framework, point the
+   `framework:` path in `project.yml` at `.../XCFrameworks/release/...` before
+   generating.)
+2. Bump `CURRENT_PROJECT_VERSION` in `project.yml` (must be unique per upload;
+   bump `MARKETING_VERSION` too when you start a new beta round), then
+   `xcodegen generate` again.
+3. In Xcode, set the run destination to **Any iOS Device (arm64)**, then
+   **Product -> Archive**.
+4. In the Organizer window: select the archive -> **Distribute App** ->
+   **TestFlight & App Store** -> **Upload**. Automatic signing produces the
+   distribution profile.
+5. Wait for App Store Connect to finish processing the build (minutes).
+6. In App Store Connect -> your app -> **TestFlight**:
+   - **Internal testers** (people on your App Store Connect team, up to 100):
+     add them to an internal group; they get the build immediately, no review.
+   - **External testers** (up to 10,000): create a group, add emails or share
+     the public link, fill in "what to test", and submit for **Beta App
+     Review** (Apple reviews the first external build, usually about a day).
+7. Testers install the **TestFlight** app from the App Store and redeem the
+   invite.
+
+The `ITSAppUsesNonExemptEncryption: false` key in `project.yml` declares the
+standard-encryption export exemption so uploads skip the compliance question;
+review that declaration before your first public App Store release.
+
 ## Layout
 
 - `Sources/` — SwiftUI views, the `AppModel` state machine, key custody
