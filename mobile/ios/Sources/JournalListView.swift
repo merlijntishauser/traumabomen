@@ -109,11 +109,7 @@ struct JournalListView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.bgSecondary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Theme.borderPrimary, lineWidth: 1)
-        )
+        .cardSurface()
     }
 
     private var statusLine: String {

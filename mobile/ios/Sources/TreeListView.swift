@@ -53,8 +53,10 @@ struct TreeListView: View {
             LucideIcon.network.image
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 22, height: 22)
                 .foregroundStyle(Theme.action)
+                .frame(width: 44, height: 44)
+                .background(Theme.action.opacity(0.12), in: Circle())
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(tree.name)
@@ -71,8 +73,7 @@ struct TreeListView: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.bgSecondary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.borderPrimary, lineWidth: 1))
+        .cardSurface(radius: 16)
     }
 
     private func subtitle(_ tree: AppModel.TreeChoice) -> String {

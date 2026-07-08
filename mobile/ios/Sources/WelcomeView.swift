@@ -20,19 +20,14 @@ struct WelcomeView: View {
             AppBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    Spacer(minLength: 40)
-
-                    Text(t("Traumatrees"))
-                        .font(Theme.heading(34))
-                        .foregroundStyle(Theme.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    heroHeader
 
                     Text(t("A quiet place to see what repeats in a family, and to write about it."))
                         .font(Theme.display(17))
                         .foregroundStyle(Theme.textSecondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 12)
+                        .padding(.top, 20)
                         .padding(.horizontal, 8)
 
                     VStack(alignment: .leading, spacing: 22) {
@@ -84,6 +79,36 @@ struct WelcomeView: View {
                 .padding(.horizontal, 28)
             }
         }
+    }
+
+    /// A forest photo banner with the wordmark over it, fading into the page.
+    private var heroHeader: some View {
+        ZStack(alignment: .bottom) {
+            GeometryReader { proxy in
+                Image("welcome")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: proxy.size.width, height: 260)
+                    .clipped()
+                    .overlay(
+                        LinearGradient(
+                            colors: [Theme.bgPrimary.opacity(0.2), .clear, Theme.bgPrimary],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    )
+                    .overlay(AmbientMotes())
+            }
+            .frame(height: 260)
+
+            Text(t("Traumatrees"))
+                .font(Theme.heading(36))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.5), radius: 8, y: 2)
+                .padding(.bottom, 8)
+        }
+        .frame(height: 260)
+        .padding(.horizontal, -28) // escape the content inset for a full-bleed banner
+        .padding(.bottom, 4)
     }
 
     private func capability(icon: LucideIcon, title: String, body: String) -> some View {
