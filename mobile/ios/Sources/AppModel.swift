@@ -69,6 +69,7 @@ final class AppModel: ObservableObject {
     @Published var trees: [TreeChoice] = []
     @Published var selectedTreeId: String?
     @Published var linkTargets: [LinkTarget] = []
+    @Published var savedWhisper = false
 
     struct TreeChoice: Identifiable, Equatable {
         let id: String
@@ -420,6 +421,7 @@ final class AppModel: ObservableObject {
         _ = sync.createLocal(treeId: tree, encryptedData: encrypted)
         _ = try? await sync.push(treeId: tree)
         phase = .journal(entries: await refreshEntries())
+        whisperSaved()
     }
 
     func updateEntry(id: String, text: String, links: [LinkRef]) async {
@@ -428,6 +430,7 @@ final class AppModel: ObservableObject {
         sync.updateLocal(id: id, encryptedData: encrypted)
         _ = try? await sync.push(treeId: tree)
         phase = .journal(entries: await refreshEntries())
+        whisperSaved()
     }
 
     func deleteEntry(id: String) async {
@@ -435,6 +438,14 @@ final class AppModel: ObservableObject {
         sync.deleteLocal(id: id)
         _ = try? await sync.push(treeId: tree)
         phase = .journal(entries: await refreshEntries())
+    }
+
+    private func whisperSaved() {
+        savedWhisper = true
+        Task {
+            try? await Task.sleep(nanoseconds: 2_200_000_000)
+            savedWhisper = false
+        }
     }
 
     /// Title of a linked entity for display, resolved against the tree.

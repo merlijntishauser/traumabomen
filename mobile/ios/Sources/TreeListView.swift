@@ -7,22 +7,17 @@ import SwiftUI
 struct TreeListView: View {
     @EnvironmentObject private var model: AppModel
     @ObservedObject private var loc = Loc.shared
+    @State private var showSettings = false
 
     var body: some View {
         ZStack {
             AppBackground()
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text(t("Your trees"))
-                        .font(Theme.heading(26))
-                        .foregroundStyle(Theme.textPrimary)
-                    Spacer()
-                    Button(t("Lock")) { model.lock() }
-                        .font(Theme.body(13))
-                        .foregroundStyle(Theme.textMuted)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                Text(t("Your trees"))
+                    .font(Theme.heading(26))
+                    .foregroundStyle(Theme.textPrimary)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
 
                 Text(t("Each tree holds its own family, journal, and canvas."))
                     .font(Theme.body(13))
@@ -44,8 +39,26 @@ struct TreeListView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 20)
                 }
+
+                // The same menu-bar grammar as inside a tree: Settings and Lock
+                // are always reachable, here without the Journal/Tree tabs.
+                HStack(spacing: 0) {
+                    NavItem(icon: .settings, label: t("Settings")) { showSettings = true }
+                    NavItem(icon: .lock, label: t("Lock")) { model.lock() }
+                }
+                .padding(.top, 10)
+                .padding(.bottom, 4)
+                .background(
+                    Theme.bgSecondary
+                        .overlay(alignment: .top) {
+                            Rectangle().fill(Theme.borderPrimary).frame(height: 1)
+                        }
+                        .ignoresSafeArea(edges: .bottom)
+                )
             }
+            .appearFade()
         }
+        .sheet(isPresented: $showSettings) { SettingsView() }
     }
 
     private func treeCard(_ tree: AppModel.TreeChoice) -> some View {

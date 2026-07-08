@@ -68,8 +68,13 @@ struct HomeView: View {
         if let tree = model.treeData, !tree.persons.isEmpty {
             TreeCanvasView(data: tree)
         } else {
-            VStack {
+            VStack(spacing: 16) {
                 Spacer()
+                LucideIcon.network.image
+                    .resizable().scaledToFit().frame(width: 38, height: 38)
+                    .foregroundStyle(Theme.textMuted.opacity(0.55))
+                    .frame(width: 84, height: 84)
+                    .background(Theme.action.opacity(0.06), in: Circle())
                 Text(t("No tree yet. Trees grow at the desk; this canvas shows yours read-only."))
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textMuted)

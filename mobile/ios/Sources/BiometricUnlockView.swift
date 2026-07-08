@@ -46,6 +46,7 @@ struct BiometricUnlockView: View {
 
                     Spacer(minLength: 40)
                 }
+                .appearFade()
             }
         }
     }

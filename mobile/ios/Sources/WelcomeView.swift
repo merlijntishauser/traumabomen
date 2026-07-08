@@ -78,6 +78,7 @@ struct WelcomeView: View {
                 }
                 .padding(.horizontal, 28)
             }
+            .appearFade()
         }
     }
 

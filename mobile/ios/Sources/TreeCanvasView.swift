@@ -54,6 +54,17 @@ struct TreeCanvasView: View {
                         .contains(contentPoint)
                 }
             }
+            // A soft vignette so the tree floats on the atmosphere rather than
+            // sitting on a hard edge.
+            .overlay(
+                RadialGradient(
+                    colors: [.clear, .clear, Theme.bgPrimary.opacity(0.5)],
+                    center: .center,
+                    startRadius: geo.size.width * 0.35,
+                    endRadius: geo.size.width * 0.95
+                )
+                .allowsHitTesting(false)
+            )
         }
         .sheet(item: $selected) { person in
             PersonSheet(person: person, story: data.stories[person.id] ?? PersonStory())

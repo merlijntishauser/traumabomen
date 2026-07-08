@@ -25,11 +25,20 @@ struct JournalListView: View {
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
-            Text(statusLine)
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.textMuted)
-                .padding(.horizontal, 24)
-                .padding(.top, 2)
+            HStack(spacing: 8) {
+                Text(statusLine)
+                    .font(Theme.body(13))
+                    .foregroundStyle(Theme.textMuted)
+                if model.savedWhisper {
+                    Text(t("Saved"))
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.action)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: model.savedWhisper)
+            .padding(.horizontal, 24)
+            .padding(.top, 2)
 
             if entries.isEmpty {
                 Spacer()

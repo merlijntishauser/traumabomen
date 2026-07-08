@@ -55,6 +55,7 @@ struct UnlockView: View {
 
                     Spacer(minLength: 40)
                 }
+                .appearFade()
             }
         }
     }

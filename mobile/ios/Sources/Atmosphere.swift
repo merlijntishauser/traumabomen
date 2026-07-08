@@ -148,6 +148,12 @@ struct GlassCard<Content: View>: View {
 }
 
 extension View {
+    /// A gentle entrance: fade and a small upward settle when the view appears.
+    /// The only screen-level motion, in keeping with the restrained grammar.
+    func appearFade() -> some View {
+        modifier(AppearFade())
+    }
+
     /// The app's solid card surface: a slightly translucent secondary fill so
     /// the atmospheric wash shows faintly through, a hairline border, and a
     /// soft layered shadow (the design's shadow-lg). Data-dense, never glass.
@@ -156,6 +162,19 @@ extension View {
             .background(Theme.bgSecondary.opacity(0.82), in: RoundedRectangle(cornerRadius: radius))
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.borderPrimary, lineWidth: 1))
             .shadow(color: .black.opacity(0.22), radius: 14, y: 5)
+    }
+}
+
+/// Fades and settles content in on first appearance.
+struct AppearFade: ViewModifier {
+    @State private var shown = false
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 8)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.35)) { shown = true }
+            }
     }
 }
 

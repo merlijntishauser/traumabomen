@@ -19,10 +19,16 @@ struct PrivacyShieldModifier: ViewModifier {
             content
             if covered {
                 ZStack {
-                    AppBackground()
-                    Text(t("Traumatrees"))
-                        .font(Theme.heading(24))
-                        .foregroundStyle(Theme.textMuted)
+                    HeroBackground()
+                    VStack(spacing: 14) {
+                        LockGlyph().stroke(.white, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                            .frame(width: 30, height: 34)
+                            .shadow(color: .black.opacity(0.5), radius: 6, y: 2)
+                        Text(t("Traumatrees"))
+                            .font(Theme.heading(26))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 8, y: 2)
+                    }
                 }
                 .transition(.opacity)
             }
@@ -45,5 +51,29 @@ struct PrivacyShieldModifier: ViewModifier {
                 covered = true
             }
         }
+    }
+}
+
+/// A padlock in Lucide's grammar, for the privacy cover.
+struct LockGlyph: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let bodyTop = rect.minY + rect.height * 0.42
+        // Body
+        p.addRoundedRect(
+            in: CGRect(x: rect.minX, y: bodyTop, width: rect.width, height: rect.maxY - bodyTop),
+            cornerSize: CGSize(width: rect.width * 0.16, height: rect.width * 0.16)
+        )
+        // Shackle
+        let sInset = rect.width * 0.2
+        p.move(to: CGPoint(x: rect.minX + sInset, y: bodyTop))
+        p.addLine(to: CGPoint(x: rect.minX + sInset, y: rect.minY + rect.height * 0.24))
+        p.addArc(
+            center: CGPoint(x: rect.midX, y: rect.minY + rect.height * 0.24),
+            radius: rect.width / 2 - sInset,
+            startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false
+        )
+        p.addLine(to: CGPoint(x: rect.maxX - sInset, y: bodyTop))
+        return p
     }
 }

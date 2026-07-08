@@ -51,6 +51,7 @@ struct LoginView: View {
 
                     Spacer(minLength: 40)
                 }
+                .appearFade()
             }
         }
     }

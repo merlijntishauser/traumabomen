@@ -135,6 +135,7 @@ private let NL: [String: String] = [
     "Unknown": "Onbekend",
     "Cancel": "Annuleren",
     "Save": "Opslaan",
+    "Saved": "Opgeslagen",
     "Saving": "Bezig met opslaan",
     "Delete": "Verwijderen",
     "Confirm delete": "Bevestig verwijderen",
