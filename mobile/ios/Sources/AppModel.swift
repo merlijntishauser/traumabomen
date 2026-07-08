@@ -21,9 +21,27 @@ final class AppModel: ObservableObject {
 
     struct Entry: Identifiable {
         let id: String
-        let title: String
-        let content: String
+        let text: String
+        var links: [LinkRef] = []
         var pending: Bool = false
+
+        /// The first non-empty line, for the list preview.
+        var previewTitle: String {
+            text.split(separator: "\n", omittingEmptySubsequences: true).first.map(String.init) ?? ""
+        }
+    }
+
+    /// A journal link, matching the web's linked_entities entries.
+    struct LinkRef: Equatable, Codable {
+        let entityType: String  // "turning_point" | "trauma_event" | "life_event"
+        let entityId: String
+    }
+
+    /// A linkable entity in the current tree, offered by the composer.
+    struct LinkTarget: Identifiable, Equatable {
+        let id: String
+        let entityType: String
+        let title: String
     }
 
     enum Tab { case journal, tree }
@@ -36,6 +54,7 @@ final class AppModel: ObservableObject {
     }
     @Published var trees: [TreeChoice] = []
     @Published var selectedTreeId: String?
+    @Published var linkTargets: [LinkTarget] = []
 
     struct TreeChoice: Identifiable, Equatable {
         let id: String
@@ -175,6 +194,7 @@ final class AppModel: ObservableObject {
         treeKeys = [:]
         treeData = nil
         trees = []
+        linkTargets = []
         phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
     }
 
@@ -322,6 +342,20 @@ final class AppModel: ObservableObject {
         await collect(.lifeEvents) { $0.life.append($1) }
         await collect(.turningPoints) { $0.turning.append($1) }
 
+        // Linkable targets for the journal composer, with their web entity_type.
+        var targets: [LinkTarget] = []
+        func collectTargets(_ type: EntityType, _ entityType: String) async {
+            let rows = (try? await sync.pull(treeId: tree, type: type)) ?? []
+            for row in rows {
+                guard let (_, item) = TreeDecoding.storyItem(row, key: key) else { continue }
+                targets.append(LinkTarget(id: item.id, entityType: entityType, title: item.title))
+            }
+        }
+        await collectTargets(.turningPoints, "turning_point")
+        await collectTargets(.traumaEvents, "trauma_event")
+        await collectTargets(.lifeEvents, "life_event")
+        linkTargets = targets
+
         treeData = TreeData(persons: persons, edges: edges, stories: stories)
     }
 
@@ -339,17 +373,45 @@ final class AppModel: ObservableObject {
 
     /// Encrypt and queue a new entry, then try to push; the entry is
     /// visible immediately either way, and the queue survives restarts.
-    func createEntry(title: String, content: String) async {
-        guard let tree = treeId, let key = treeKey else { return }
-        let payload = ["title": title, "content": content]
-        guard
-            let data = try? JSONEncoder().encode(payload),
-            let json = String(data: data, encoding: .utf8)
+    func createEntry(text: String, links: [LinkRef]) async {
+        guard let tree = treeId, let key = treeKey, let encrypted = encodeEntry(text: text, links: links, key: key)
         else { return }
-        let encrypted = TraumaCrypto.shared.encryptJsonForApi(plaintextJson: json, key: key)
         _ = sync.createLocal(treeId: tree, encryptedData: encrypted)
         _ = try? await sync.push(treeId: tree)
         phase = .journal(entries: await refreshEntries())
+    }
+
+    func updateEntry(id: String, text: String, links: [LinkRef]) async {
+        guard let tree = treeId, let key = treeKey, let encrypted = encodeEntry(text: text, links: links, key: key)
+        else { return }
+        sync.updateLocal(id: id, encryptedData: encrypted)
+        _ = try? await sync.push(treeId: tree)
+        phase = .journal(entries: await refreshEntries())
+    }
+
+    func deleteEntry(id: String) async {
+        guard let tree = treeId else { return }
+        sync.deleteLocal(id: id)
+        _ = try? await sync.push(treeId: tree)
+        phase = .journal(entries: await refreshEntries())
+    }
+
+    /// Title of a linked entity for display, resolved against the tree.
+    func linkTitle(_ ref: LinkRef) -> String? {
+        for target in linkTargets where target.id == ref.entityId {
+            return target.title
+        }
+        return nil
+    }
+
+    private func encodeEntry(text: String, links: [LinkRef], key: AesGcmKey) -> String? {
+        let payload = EntryJson(
+            text: text,
+            linked_entities: links.map { .init(entity_type: $0.entityType, entity_id: $0.entityId) }
+        )
+        guard let data = try? JSONEncoder().encode(payload),
+              let json = String(data: data, encoding: .utf8) else { return nil }
+        return TraumaCrypto.shared.encryptJsonForApi(plaintextJson: json, key: key)
     }
 
     private var currentHint: String? {
@@ -364,9 +426,14 @@ final class AppModel: ObservableObject {
         }.value
     }
 
-    private struct EntryJson: Decodable {
-        let title: String
-        let content: String
+    private struct EntryJson: Codable {
+        let text: String
+        let linked_entities: [LinkedRefJson]
+
+        struct LinkedRefJson: Codable {
+            let entity_type: String
+            let entity_id: String
+        }
     }
 
     private nonisolated static func decryptTreeName(_ blob: String, key: AesGcmKey) -> String? {
@@ -385,7 +452,8 @@ final class AppModel: ObservableObject {
             ),
             let entry = try? JSONDecoder().decode(EntryJson.self, from: Data(plaintext.utf8))
         else { return nil }
-        return Entry(id: row.id, title: entry.title, content: entry.content, pending: row.pendingSync)
+        let links = entry.linked_entities.map { LinkRef(entityType: $0.entity_type, entityId: $0.entity_id) }
+        return Entry(id: row.id, text: entry.text, links: links, pending: row.pendingSync)
     }
 
     static func launchArgument(_ name: String) -> String? {
@@ -424,8 +492,17 @@ final class AppModel: ObservableObject {
 
     private func debugComposeIfAsked() async {
         if case .journal = phase, let compose = Self.launchArgument("-composeEntry") {
-            let parts = compose.split(separator: "|", maxSplits: 1).map(String.init)
-            await createEntry(title: parts.first ?? "", content: parts.count > 1 ? parts[1] : "")
+            await createEntry(text: compose, links: [])
+        }
+        if case .journal(let entries) = phase,
+           ProcessInfo.processInfo.arguments.contains("-editFirstEntry"),
+           let first = entries.first {
+            await updateEntry(id: first.id, text: first.text + " [bewerkt]", links: first.links)
+        }
+        if case .journal(let entries) = phase,
+           ProcessInfo.processInfo.arguments.contains("-deleteFirstEntry"),
+           let first = entries.first {
+            await deleteEntry(id: first.id)
         }
     }
     #endif

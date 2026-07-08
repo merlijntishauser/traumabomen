@@ -20,6 +20,14 @@ class TreeSync(db: org.traumabomen.core.db.CoreDatabase, private val api: ApiCli
     fun createLocal(treeId: String, encryptedData: String): String =
         engine.localCreate(treeId, EntityType.JOURNAL_ENTRIES, encryptedData)
 
+    /** Queue an edit to an existing entry. */
+    fun updateLocal(id: String, encryptedData: String) =
+        engine.localUpdate(EntityType.JOURNAL_ENTRIES, id, encryptedData)
+
+    /** Queue a deletion of an entry. */
+    fun deleteLocal(id: String) =
+        engine.localDelete(EntityType.JOURNAL_ENTRIES, id)
+
     /** Push queued ops; returns true when the queue drained. */
     @Throws(Exception::class)
     suspend fun push(treeId: String): Boolean {
