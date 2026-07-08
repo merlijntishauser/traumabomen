@@ -77,7 +77,8 @@ struct TreeListView: View {
     private func subtitle(_ tree: AppModel.TreeChoice) -> String {
         let people = tree.personCount == 1 ? "1 person" : "\(tree.personCount) people"
         let moments = tree.momentCount == 1 ? "1 moment" : "\(tree.momentCount) moments"
-        return "\(people), \(moments)"
+        let entries = tree.journalCount == 1 ? "1 journal entry" : "\(tree.journalCount) journal entries"
+        return "\(people), \(moments), \(entries)"
     }
 }
 

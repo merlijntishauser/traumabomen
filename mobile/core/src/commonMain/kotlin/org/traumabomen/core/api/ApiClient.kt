@@ -46,6 +46,7 @@ data class TreeSummary(
     val isDemo: Boolean,
     val personCount: Int,
     val momentCount: Int,
+    val journalCount: Int,
 )
 
 /**
@@ -124,6 +125,7 @@ class ApiClient(
                 isDemo = obj["is_demo"]?.jsonPrimitive?.content == "true",
                 personCount = obj["person_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
                 momentCount = obj["moment_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+                journalCount = obj["journal_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
             )
         }
     }

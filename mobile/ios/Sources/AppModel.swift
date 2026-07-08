@@ -42,6 +42,7 @@ final class AppModel: ObservableObject {
         let name: String
         var personCount: Int = 0
         var momentCount: Int = 0
+        var journalCount: Int = 0
     }
 
     private var treeKeys: [String: AesGcmKey] = [:]
@@ -234,14 +235,16 @@ final class AppModel: ObservableObject {
     /// and pick the selected tree: the persisted choice if still present,
     /// else the first.
     private func buildTreeList(ring: [String: String]) async {
-        struct Summary { let id: String; let blob: String; let people: Int; let moments: Int }
+        struct Summary { let id: String; let blob: String; let people: Int; let moments: Int; let journals: Int }
         var summaries: [Summary] = []
         if let fetched = try? await api.listTrees() {
             summaries = fetched.map {
-                Summary(id: $0.id, blob: $0.encryptedData, people: Int($0.personCount), moments: Int($0.momentCount))
+                Summary(id: $0.id, blob: $0.encryptedData,
+                        people: Int($0.personCount), moments: Int($0.momentCount), journals: Int($0.journalCount))
             }
             cache.treeList = try? JSONEncoder().encode(summaries.map {
-                ["id": $0.id, "blob": $0.blob, "people": String($0.people), "moments": String($0.moments)]
+                ["id": $0.id, "blob": $0.blob, "people": String($0.people),
+                 "moments": String($0.moments), "journals": String($0.journals)]
             }).base64EncodedString()
         } else if let cached = cache.treeList,
                   let data = Data(base64Encoded: cached),
@@ -250,7 +253,8 @@ final class AppModel: ObservableObject {
                 guard let id = row["id"], let blob = row["blob"] else { return nil }
                 return Summary(id: id, blob: blob,
                                people: Int(row["people"] ?? "0") ?? 0,
-                               moments: Int(row["moments"] ?? "0") ?? 0)
+                               moments: Int(row["moments"] ?? "0") ?? 0,
+                               journals: Int(row["journals"] ?? "0") ?? 0)
             }
         }
 
@@ -258,8 +262,8 @@ final class AppModel: ObservableObject {
         for summary in summaries {
             guard let key = treeKeys[summary.id] else { continue }
             let name = Self.decryptTreeName(summary.blob, key: key) ?? "Untitled tree"
-            choices.append(TreeChoice(id: summary.id, name: name,
-                                      personCount: summary.people, momentCount: summary.moments))
+            choices.append(TreeChoice(id: summary.id, name: name, personCount: summary.people,
+                                      momentCount: summary.moments, journalCount: summary.journals))
         }
         for id in treeKeys.keys where !choices.contains(where: { $0.id == id }) {
             choices.append(TreeChoice(id: id, name: "Untitled tree"))

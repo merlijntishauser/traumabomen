@@ -75,12 +75,18 @@ class TestListTrees:
             headers=headers,
             json={"encrypted_data": "encrypted-pattern", "person_ids": [person_id]},
         )
+        await client.post(
+            f"/trees/{tree['id']}/journal",
+            headers=headers,
+            json={"encrypted_data": "encrypted-journal"},
+        )
 
         resp = await client.get("/trees", headers=headers)
         entry = resp.json()[0]
         assert entry["person_count"] == 1
         assert entry["moment_count"] == 2
         assert entry["pattern_count"] == 1
+        assert entry["journal_count"] == 1
 
     @pytest.mark.asyncio
     async def test_list_isolation(self, client, headers, tree, db_session):

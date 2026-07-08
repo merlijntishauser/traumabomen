@@ -29,6 +29,7 @@ class TreeResponse(BaseModel):
     person_count: int = 0
     moment_count: int = 0
     pattern_count: int = 0
+    journal_count: int = 0
 
 
 # --- Person ---

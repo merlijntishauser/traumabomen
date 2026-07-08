@@ -6,6 +6,7 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.dependencies import get_owned_tree
 from app.models.event import TraumaEvent
+from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent
 from app.models.pattern import Pattern
 from app.models.person import Person
@@ -35,7 +36,12 @@ async def create_tree(
 async def _counts_by_tree(
     db: AsyncSession,
     user_id: object,
-    model: type[Person] | type[TraumaEvent] | type[LifeEvent] | type[TurningPoint] | type[Pattern],
+    model: type[Person]
+    | type[TraumaEvent]
+    | type[LifeEvent]
+    | type[TurningPoint]
+    | type[Pattern]
+    | type[JournalEntry],
 ) -> dict[object, int]:
     """Row counts per tree for one entity type: structure, never content."""
     result = await db.execute(
@@ -57,6 +63,7 @@ async def list_trees(
 
     persons = await _counts_by_tree(db, user.id, Person)
     patterns = await _counts_by_tree(db, user.id, Pattern)
+    journals = await _counts_by_tree(db, user.id, JournalEntry)
     moments: dict[object, int] = {}
     for model in (TraumaEvent, LifeEvent, TurningPoint):
         for tree_id, count in (await _counts_by_tree(db, user.id, model)).items():
@@ -68,6 +75,7 @@ async def list_trees(
         response.person_count = persons.get(t.id, 0)
         response.moment_count = moments.get(t.id, 0)
         response.pattern_count = patterns.get(t.id, 0)
+        response.journal_count = journals.get(t.id, 0)
         responses.append(response)
     return responses
 
