@@ -35,6 +35,10 @@ targets:
         UILaunchScreen:
           UIColorName: LaunchBackground
         UIUserInterfaceStyle: Automatic
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         # The dev backend is plain HTTP on the Mac's loopback; production
         # talks HTTPS only, which ATS allows by default.
         NSAppTransportSecurity:

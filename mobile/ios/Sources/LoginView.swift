@@ -7,6 +7,7 @@ struct LoginView: View {
     @State private var password = ""
 
     var body: some View {
+        CenteredScroll {
         VStack(spacing: 24) {
             Spacer()
 
@@ -50,6 +51,7 @@ struct LoginView: View {
 
             Spacer()
             Spacer()
+        }
         }
     }
 

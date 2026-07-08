@@ -7,6 +7,7 @@ struct BiometricUnlockView: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
+        CenteredScroll {
         VStack(spacing: 24) {
             Spacer()
 
@@ -38,6 +39,7 @@ struct BiometricUnlockView: View {
 
             Spacer()
             Spacer()
+        }
         }
     }
 }

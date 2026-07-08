@@ -10,6 +10,7 @@ struct UnlockView: View {
     @State private var passphrase = ""
 
     var body: some View {
+        CenteredScroll {
         VStack(spacing: 24) {
             Spacer()
 
@@ -61,6 +62,7 @@ struct UnlockView: View {
 
             Spacer()
             Spacer()
+        }
         }
     }
 
