@@ -6,6 +6,7 @@ import SwiftUI
 /// tree list). A single tree opens directly and never lands here.
 struct TreeListView: View {
     @EnvironmentObject private var model: AppModel
+    @ObservedObject private var loc = Loc.shared
 
     var body: some View {
         ZStack {

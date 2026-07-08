@@ -8,6 +8,7 @@ struct HomeView: View {
     let entries: [AppModel.Entry]
 
     @State private var showSettings = false
+    @ObservedObject private var loc = Loc.shared
 
     var body: some View {
         VStack(spacing: 0) {

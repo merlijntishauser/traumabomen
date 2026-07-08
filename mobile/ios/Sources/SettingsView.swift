@@ -77,6 +77,7 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .id("theme-\(loc.effective)")
 
                 Text(t("Language"))
                     .font(Theme.body(13, weight: .semibold))
@@ -89,6 +90,7 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .id("lang-\(loc.effective)")
 
                 Text(t("Account"))
                     .font(Theme.body(13, weight: .semibold))

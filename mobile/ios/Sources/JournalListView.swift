@@ -9,6 +9,7 @@ struct JournalListView: View {
 
     @State private var composing = false
     @State private var editingEntry: AppModel.Entry?
+    @ObservedObject private var loc = Loc.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -70,7 +71,7 @@ struct JournalListView: View {
     private func entryCard(_ entry: AppModel.Entry) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text(entry.previewTitle)
+                Text(entry.title)
                     .font(Theme.body(17, weight: .light))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
@@ -80,17 +81,19 @@ struct JournalListView: View {
                         .foregroundStyle(Theme.textMuted)
                 }
             }
-            Text(entry.text)
-                .font(Theme.body(Theme.bodySize))
-                .foregroundStyle(Theme.textMuted)
-                .lineLimit(3)
+            if !entry.body.isEmpty {
+                Text(entry.body)
+                    .font(Theme.body(Theme.bodySize))
+                    .foregroundStyle(Theme.textMuted)
+                    .lineLimit(3)
+            }
 
             if !entry.links.isEmpty {
                 HStack(spacing: 10) {
                     ForEach(entry.links.prefix(3), id: \.entityId) { ref in
                         HStack(spacing: 5) {
                             Circle().fill(Theme.linkColor(ref.entityType)).frame(width: 5, height: 5)
-                            Text(model.linkTitle(ref) ?? "Unknown")
+                            Text(model.linkTitle(ref) ?? t("Unknown"))
                                 .font(Theme.body(12))
                                 .foregroundStyle(Theme.textMuted)
                         }

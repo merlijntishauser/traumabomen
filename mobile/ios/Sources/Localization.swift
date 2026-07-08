@@ -51,6 +51,9 @@ func t(_ english: String) -> String {
 /// The Dutch strings, matching the web's terminology (Encryptiesleutel,
 /// Dagboek, Boomweergave) and its restrained voice.
 private let NL: [String: String] = [
+    // Brand: the site is Traumabomen on the Dutch domain.
+    "Traumatrees": "Traumabomen",
+
     // Login / unlock
     "A quiet place to see what repeats, and to write about it.":
         "Een rustige plek om te zien wat zich herhaalt, en om erover te schrijven.",
@@ -107,6 +110,9 @@ private let NL: [String: String] = [
     "Settings": "Instellingen",
     "Lock": "Vergrendelen",
     "New entry": "Nieuw item",
+    "Title": "Titel",
+    "Body": "Tekst",
+    "A title": "Een titel",
     "No tree yet. Trees grow at the desk; this canvas shows yours read-only.":
         "Nog geen boom. Bomen groeien aan het bureau; deze weergave toont die van jou alleen-lezen.",
 

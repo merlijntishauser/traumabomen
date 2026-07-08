@@ -10,7 +10,8 @@ struct ComposerView: View {
     /// nil = new entry; otherwise the entry being edited.
     let editing: AppModel.Entry?
 
-    @State private var text: String
+    @State private var title: String
+    @State private var bodyText: String
     @State private var links: [AppModel.LinkRef]
     @State private var showLinkPicker = false
     @State private var confirmingDelete = false
@@ -18,24 +19,37 @@ struct ComposerView: View {
 
     init(editing: AppModel.Entry? = nil) {
         self.editing = editing
-        _text = State(initialValue: editing?.text ?? "")
+        _title = State(initialValue: editing?.title ?? "")
+        _bodyText = State(initialValue: editing?.body ?? "")
         _links = State(initialValue: editing?.links ?? [])
     }
 
     var body: some View {
         ZStack {
             Theme.bgPrimary.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 header
 
-                TextEditor(text: $text)
+                // Title: the first line, shown larger; it is what the list and
+                // the web preview use as the entry's heading.
+                TextField(t("A title"), text: $title, axis: .vertical)
+                    .font(Theme.body(19, weight: .light))
+                    .foregroundStyle(Theme.textPrimary)
+                    .lineLimit(1...2)
+                    .padding(.horizontal, 24)
+
+                Rectangle().fill(Theme.borderPrimary).frame(height: 1)
+                    .padding(.horizontal, 24)
+
+                // Body: everything else.
+                TextEditor(text: $bodyText)
                     .scrollContentBackground(.hidden)
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.horizontal, 19)
-                    .frame(minHeight: 160)
+                    .frame(minHeight: 140)
                     .overlay(alignment: .topLeading) {
-                        if text.isEmpty {
+                        if bodyText.isEmpty {
                             Text(t("What was never spoken about, but everyone knew?"))
                                 .font(Theme.body(Theme.bodySize))
                                 .foregroundStyle(Theme.textMuted.opacity(0.6))
@@ -96,9 +110,9 @@ struct ComposerView: View {
                 .disabled(model.linkTargets.isEmpty)
             }
             if links.isEmpty {
-                Text(model.linkTargets.isEmpty
+                Text(t(model.linkTargets.isEmpty
                     ? "This tree has nothing to link yet."
-                    : "Tie this entry to a person, turning point, or event in the tree.")
+                    : "Tie this entry to a person, turning point, or event in the tree."))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
             } else {
@@ -106,7 +120,7 @@ struct ComposerView: View {
                     ForEach(links, id: \.entityId) { ref in
                         HStack(spacing: 6) {
                             Circle().fill(Theme.linkColor(ref.entityType)).frame(width: 6, height: 6)
-                            Text(model.linkTitle(ref) ?? "Unknown")
+                            Text(model.linkTitle(ref) ?? t("Unknown"))
                                 .font(Theme.body(13))
                                 .foregroundStyle(Theme.textPrimary)
                         }
@@ -117,17 +131,21 @@ struct ComposerView: View {
         .padding(.horizontal, 24)
     }
 
-    private var canSave: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var canSave: Bool {
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     private func save() {
         guard canSave, !saving else { return }
         saving = true
-        let (t, l) = (text.trimmingCharacters(in: .whitespacesAndNewlines), links)
+        let composed = AppModel.Entry.compose(title: title, body: bodyText)
+        let l = links
         Task {
             if let entry = editing {
-                await model.updateEntry(id: entry.id, text: t, links: l)
+                await model.updateEntry(id: entry.id, text: composed, links: l)
             } else {
-                await model.createEntry(text: t, links: l)
+                await model.createEntry(text: composed, links: l)
             }
             dismiss()
         }

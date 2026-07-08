@@ -25,9 +25,23 @@ final class AppModel: ObservableObject {
         var links: [LinkRef] = []
         var pending: Bool = false
 
-        /// The first non-empty line, for the list preview.
-        var previewTitle: String {
-            text.split(separator: "\n", omittingEmptySubsequences: true).first.map(String.init) ?? ""
+        /// The first line is the title; everything after it is the body. The
+        /// stored `text` remains the web's single field ("title\n\nbody").
+        var title: String {
+            text.components(separatedBy: "\n").first ?? text
+        }
+
+        var body: String {
+            text.components(separatedBy: "\n").dropFirst()
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        /// Combine a title and body back into the stored text field.
+        static func compose(title: String, body: String) -> String {
+            let ti = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            let bo = body.trimmingCharacters(in: .whitespacesAndNewlines)
+            return bo.isEmpty ? ti : "\(ti)\n\n\(bo)"
         }
     }
 
