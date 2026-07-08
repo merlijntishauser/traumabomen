@@ -32,3 +32,6 @@ SELECT COUNT(*) FROM outboxOp WHERE opId = ?;
 
 removeByOpIds:
 DELETE FROM outboxOp WHERE opId IN ?;
+
+deleteAll:
+DELETE FROM outboxOp;

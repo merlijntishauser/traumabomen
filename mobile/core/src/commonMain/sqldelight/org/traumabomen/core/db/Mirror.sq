@@ -29,3 +29,6 @@ DELETE FROM mirrorRow WHERE entityType = ? AND id = ?;
 
 deleteByTreeAndType:
 DELETE FROM mirrorRow WHERE treeId = ? AND entityType = ?;
+
+deleteAll:
+DELETE FROM mirrorRow;

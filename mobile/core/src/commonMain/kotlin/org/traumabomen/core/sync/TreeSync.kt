@@ -10,9 +10,16 @@ import org.traumabomen.core.api.ApiClient
  * truth until the network returns.
  */
 class TreeSync(db: org.traumabomen.core.db.CoreDatabase, private val api: ApiClient) {
+    private val database = db
     private val mirror = SqlDelightMirrorStore(db)
     private val outbox = SqlDelightOutboxStore(db)
     private val engine = SyncEngine(mirror, outbox)
+
+    /** Wipe all local ciphertext and the queue (on logout / account switch). */
+    fun wipe() {
+        database.mirrorQueries.deleteAll()
+        database.outboxQueries.deleteAll()
+    }
 
     fun pendingCount(treeId: String): Int = engine.pendingCount(treeId)
 

@@ -160,6 +160,21 @@ class ApiClient(
         authed(HttpMethod.Post, "/trees/$treeId/sync", request)
     }
 
+    /** Revoke the refresh token server-side and drop both tokens locally. */
+    @Throws(Exception::class)
+    suspend fun logout() {
+        val refresh = tokens.refreshToken
+        if (refresh != null) {
+            try {
+                authed(HttpMethod.Post, "/auth/logout", buildJsonObject { put("refresh_token", refresh) })
+            } catch (_: Exception) {
+                // Best effort: a network failure must not block local logout.
+            }
+        }
+        tokens.accessToken = null
+        tokens.refreshToken = null
+    }
+
     /**
      * Send an authenticated request; on 401, rotate the token pair through
      * /auth/refresh once and retry. A refresh failure surfaces as ApiError

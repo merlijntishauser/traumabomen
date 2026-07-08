@@ -7,6 +7,8 @@ struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
 
+    @State private var confirmingLogout = false
+
     @State private var enabled = false
     @State private var weekday = 1
     @State private var hour = 20
@@ -74,6 +76,27 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+
+                Text("Account")
+                    .font(Theme.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.textMuted)
+                    .padding(.top, 8)
+
+                Button {
+                    if confirmingLogout {
+                        Task { await model.logout(); dismiss() }
+                    } else {
+                        confirmingLogout = true
+                    }
+                } label: {
+                    Text(confirmingLogout ? "Tap again to log out" : "Log out")
+                        .font(Theme.body(Theme.bodySize))
+                        .foregroundStyle(Theme.danger)
+                }
+
+                Text("Logging out clears this device and returns to the sign-in screen, so you can use a different account.")
+                    .font(Theme.body(13))
+                    .foregroundStyle(Theme.textMuted)
 
                 Text("About")
                     .font(Theme.body(13, weight: .semibold))

@@ -179,6 +179,28 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Log out fully: revoke the session server-side, wipe the local cache,
+    /// custody, and ciphertext, and return to the login screen so a different
+    /// account can be used.
+    func logout() async {
+        try? await api.logout()
+        KeychainTokenStore.clear()
+        KeyCustody.purge()
+        cache.clear()
+        sync.wipe()
+        WelcomeView.hasBeenSeen = true
+        masterKey = nil
+        treeKey = nil
+        treeKeys = [:]
+        treeData = nil
+        trees = []
+        linkTargets = []
+        selectedTreeId = nil
+        saltBase64 = nil
+        errorMessage = nil
+        phase = .login
+    }
+
     /// Lock only when something is unlocked (the background grace timer).
     func lockIfUnlocked() {
         switch phase {
@@ -508,6 +530,9 @@ final class AppModel: ObservableObject {
            ProcessInfo.processInfo.arguments.contains("-deleteFirstEntry"),
            let first = entries.first {
             await deleteEntry(id: first.id)
+        }
+        if ProcessInfo.processInfo.arguments.contains("-logoutNow") {
+            await logout()
         }
     }
     #endif
