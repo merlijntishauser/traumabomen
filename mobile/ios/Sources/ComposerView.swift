@@ -84,11 +84,11 @@ struct ComposerView: View {
     private var linksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Linked moments")
+                Text("Linked")
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                 Spacer()
-                Button(links.isEmpty ? "Link a moment" : "Edit links") {
+                Button(links.isEmpty ? "Link an item" : "Edit links") {
                     showLinkPicker = true
                 }
                 .font(Theme.body(13))
@@ -97,15 +97,15 @@ struct ComposerView: View {
             }
             if links.isEmpty {
                 Text(model.linkTargets.isEmpty
-                    ? "This tree has no moments to link yet."
-                    : "Tie this entry to a turning point or event in the tree.")
+                    ? "This tree has nothing to link yet."
+                    : "Tie this entry to a person, turning point, or event in the tree.")
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
             } else {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(links, id: \.entityId) { ref in
                         HStack(spacing: 6) {
-                            Circle().fill(Theme.action).frame(width: 5, height: 5)
+                            Circle().fill(Theme.linkColor(ref.entityType)).frame(width: 6, height: 6)
                             Text(model.linkTitle(ref) ?? "Unknown")
                                 .font(Theme.body(13))
                                 .foregroundStyle(Theme.textPrimary)
@@ -150,6 +150,7 @@ struct LinkPickerView: View {
     @Binding var selected: [AppModel.LinkRef]
 
     private let groups: [(label: String, type: String)] = [
+        ("People", "person"),
         ("Turning points", "turning_point"),
         ("Trauma events", "trauma_event"),
         ("Life events", "life_event"),
@@ -160,7 +161,7 @@ struct LinkPickerView: View {
             Theme.bgPrimary.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Link a moment")
+                    Text("Link an item")
                         .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
@@ -209,14 +210,14 @@ struct LinkPickerView: View {
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
                 if isSelected {
-                    Circle().fill(Theme.action).frame(width: 8, height: 8)
+                    Circle().fill(Theme.linkColor(item.entityType)).frame(width: 8, height: 8)
                 }
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.bgSecondary, in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(
-                isSelected ? Theme.action : Theme.borderPrimary, lineWidth: 1))
+                isSelected ? Theme.linkColor(item.entityType) : Theme.borderPrimary, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }

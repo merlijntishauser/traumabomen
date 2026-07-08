@@ -86,14 +86,20 @@ struct JournalListView: View {
                 .lineLimit(3)
 
             if !entry.links.isEmpty {
-                HStack(spacing: 6) {
-                    LucideIcon.penLine.image
-                        .resizable().scaledToFit().frame(width: 12, height: 12)
-                        .foregroundStyle(Theme.action)
-                    Text(entry.links.compactMap { model.linkTitle($0) }.joined(separator: ", "))
-                        .font(Theme.body(12))
-                        .foregroundStyle(Theme.action)
-                        .lineLimit(1)
+                HStack(spacing: 10) {
+                    ForEach(entry.links.prefix(3), id: \.entityId) { ref in
+                        HStack(spacing: 5) {
+                            Circle().fill(Theme.linkColor(ref.entityType)).frame(width: 5, height: 5)
+                            Text(model.linkTitle(ref) ?? "Unknown")
+                                .font(Theme.body(12))
+                                .foregroundStyle(Theme.textMuted)
+                        }
+                    }
+                    if entry.links.count > 3 {
+                        Text("+\(entry.links.count - 3)")
+                            .font(Theme.body(12))
+                            .foregroundStyle(Theme.textMuted)
+                    }
                 }
                 .padding(.top, 2)
             }

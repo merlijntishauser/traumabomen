@@ -68,6 +68,18 @@ enum Theme {
         Font.custom("Lato", size: size).weight(weight)
     }
 
+    /// Journal link-chip colors per entity type, matching the web's
+    /// CHIP_COLORS: people take the accent, the rest their category hue.
+    static func linkColor(_ entityType: String) -> Color {
+        switch entityType {
+        case "trauma_event": Color(red: 0xf8 / 255, green: 0x71 / 255, blue: 0x71 / 255)
+        case "life_event": Color(red: 0x60 / 255, green: 0xa5 / 255, blue: 0xfa / 255)
+        case "turning_point": Color(red: 0x34 / 255, green: 0xd3 / 255, blue: 0x99 / 255)
+        case "classification": Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255)
+        default: accent  // person, pattern
+        }
+    }
+
     private static func dynamic(dark: UInt32, light: UInt32) -> Color {
         Color(UIColor { traits in
             UIColor(rgb: traits.userInterfaceStyle == .dark ? dark : light)

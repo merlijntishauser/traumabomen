@@ -33,7 +33,7 @@ final class AppModel: ObservableObject {
 
     /// A journal link, matching the web's linked_entities entries.
     struct LinkRef: Equatable, Codable {
-        let entityType: String  // "turning_point" | "trauma_event" | "life_event"
+        let entityType: String  // "person" | "turning_point" | "trauma_event" | "life_event"
         let entityId: String
     }
 
@@ -350,6 +350,11 @@ final class AppModel: ObservableObject {
                 guard let (_, item) = TreeDecoding.storyItem(row, key: key) else { continue }
                 targets.append(LinkTarget(id: item.id, entityType: entityType, title: item.title))
             }
+        }
+        // Persons are linkable too (the web lists them first), resolved from
+        // the already-decrypted people rather than a story pull.
+        for person in persons {
+            targets.append(LinkTarget(id: person.id, entityType: "person", title: person.name))
         }
         await collectTargets(.turningPoints, "turning_point")
         await collectTargets(.traumaEvents, "trauma_event")
