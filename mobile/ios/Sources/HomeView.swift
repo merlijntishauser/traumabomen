@@ -32,28 +32,19 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             if model.trees.count > 1 {
-                Menu {
-                    ForEach(model.trees) { tree in
-                        Button {
-                            Task { await model.selectTree(tree.id) }
-                        } label: {
-                            if tree.id == model.selectedTreeId {
-                                Label(tree.name, systemImage: "checkmark")
-                            } else {
-                                Text(tree.name)
-                            }
-                        }
-                    }
+                // Back to the tree list, since the tree is the top context.
+                Button {
+                    model.showTreeList()
                 } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
+                        LucideChevronLeft()
+                            .stroke(Theme.textMuted, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                            .frame(width: 7, height: 12)
                         Text(currentTreeName)
                             .font(Theme.body(14, weight: .semibold))
                             .foregroundStyle(Theme.textPrimary)
-                        DisclosureChevron()
-                            .stroke(Theme.textMuted, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-                            .frame(width: 10, height: 6)
                     }
                 }
             } else {
@@ -112,13 +103,13 @@ struct HomeView: View {
     }
 }
 
-/// A small downward chevron in Lucide's grammar for the tree-switcher menu.
-struct DisclosureChevron: Shape {
+/// A left-facing chevron in Lucide's grammar for the back-to-trees control.
+struct LucideChevronLeft: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         return path
     }
 }

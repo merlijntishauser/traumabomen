@@ -40,7 +40,13 @@ class ApiError(val status: Int, message: String) : Exception("HTTP $status: $mes
 
 data class SaltInfo(val encryptionSalt: String, val passphraseHint: String?)
 
-data class TreeSummary(val id: String, val encryptedData: String, val isDemo: Boolean)
+data class TreeSummary(
+    val id: String,
+    val encryptedData: String,
+    val isDemo: Boolean,
+    val personCount: Int,
+    val momentCount: Int,
+)
 
 /**
  * The thin typed client over the existing backend. No new endpoints: JWT
@@ -116,6 +122,8 @@ class ApiClient(
                 id = obj.str("id"),
                 encryptedData = obj.str("encrypted_data"),
                 isDemo = obj["is_demo"]?.jsonPrimitive?.content == "true",
+                personCount = obj["person_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+                momentCount = obj["moment_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
             )
         }
     }

@@ -13,6 +13,7 @@ final class AppModel: ObservableObject {
         case welcome
         case login
         case biometric
+        case treeList
         case unlock(hint: String?)
         case working(String)
         case journal(entries: [Entry])
@@ -39,6 +40,8 @@ final class AppModel: ObservableObject {
     struct TreeChoice: Identifiable, Equatable {
         let id: String
         let name: String
+        var personCount: Int = 0
+        var momentCount: Int = 0
     }
 
     private var treeKeys: [String: AesGcmKey] = [:]
@@ -101,13 +104,13 @@ final class AppModel: ObservableObject {
         let rawKey = await Self.deriveKeyBytes(passphrase: passphrase, salt: salt)
         let master = TraumaCrypto.shared.keyFromBytes(rawKey: rawKey)
         do {
-            let entries = try await openJournal(with: master)
+            try await decryptRing(with: master)
             // Only a verified key (the ring decrypted) enters custody.
             if KeyCustody.isAvailable {
                 try? KeyCustody.store(masterKey: rawKey.toData())
             }
             masterKey = master
-            phase = .journal(entries: entries)
+            await presentAfterUnlock()
         } catch {
             errorMessage = "Incorrect passphrase."
             phase = .unlock(hint: hint)
@@ -125,9 +128,9 @@ final class AppModel: ObservableObject {
         phase = .working("Unlocking")
         let master = TraumaCrypto.shared.keyFromBytes(rawKey: KotlinByteArray.from(rawKey))
         do {
-            let entries = try await openJournal(with: master)
+            try await decryptRing(with: master)
             masterKey = master
-            phase = .journal(entries: entries)
+            await presentAfterUnlock()
         } catch {
             // Session expired beyond refresh; a fresh login re-establishes it.
             KeychainTokenStore.clear()
@@ -158,7 +161,10 @@ final class AppModel: ObservableObject {
 
     /// Lock only when something is unlocked (the background grace timer).
     func lockIfUnlocked() {
-        if case .journal = phase { lock() }
+        switch phase {
+        case .journal, .treeList: lock()
+        default: break
+        }
     }
 
     /// Drop the key; Face ID (if custody is fresh) or passphrase reopens.
@@ -171,7 +177,8 @@ final class AppModel: ObservableObject {
         phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
     }
 
-    private func openJournal(with master: AesGcmKey) async throws -> [Entry] {
+    /// Decrypt the key ring (verifying the key) and build the tree list.
+    private func decryptRing(with master: AesGcmKey) async throws {
         // Fresh ring when the network allows; the cached copy opens the app
         // offline. Both are ciphertext only the right key can use.
         let ringBlob: String
@@ -191,26 +198,59 @@ final class AppModel: ObservableObject {
             dict[pair.key] = TraumaCrypto.shared.importTreeKey(base64Key: pair.value)
         }
         await buildTreeList(ring: ring)
-        guard let chosen = selectedTreeId, treeKeys[chosen] != nil else { return [] }
-        return await loadTree(chosen)
+    }
+
+    /// The tree is the app's top-level context: land on the tree list, unless
+    /// there is exactly one (open it directly) or a debug tree was requested.
+    private func presentAfterUnlock() async {
+        if let chosen = selectedTreeId, treeKeys[chosen] != nil, trees.count == 1 {
+            phase = .journal(entries: await loadTree(chosen))
+        } else if let chosen = selectedTreeId, treeKeys[chosen] != nil, forcedTreeSelection {
+            phase = .journal(entries: await loadTree(chosen))
+        } else if trees.isEmpty {
+            phase = .journal(entries: [])
+        } else {
+            phase = .treeList
+        }
+    }
+
+    /// Open a tree from the list into its journal and canvas.
+    func enterTree(_ id: String) async {
+        guard treeKeys[id] != nil else { return }
+        selectedTreeId = id
+        cache.selectedTreeId = id
+        phase = .working("Opening")
+        phase = .journal(entries: await loadTree(id))
+    }
+
+    /// Return to the tree list without dropping the keys.
+    func showTreeList() {
+        activeTab = .journal
+        treeData = nil
+        phase = .treeList
     }
 
     /// Decrypt each tree's name (from the server list, cached for offline)
     /// and pick the selected tree: the persisted choice if still present,
     /// else the first.
     private func buildTreeList(ring: [String: String]) async {
-        var summaries: [(id: String, blob: String)] = []
+        struct Summary { let id: String; let blob: String; let people: Int; let moments: Int }
+        var summaries: [Summary] = []
         if let fetched = try? await api.listTrees() {
-            summaries = fetched.map { ($0.id, $0.encryptedData) }
-            cache.treeList = try? JSONEncoder().encode(
-                summaries.map { ["id": $0.id, "blob": $0.blob] }
-            ).base64EncodedString()
+            summaries = fetched.map {
+                Summary(id: $0.id, blob: $0.encryptedData, people: Int($0.personCount), moments: Int($0.momentCount))
+            }
+            cache.treeList = try? JSONEncoder().encode(summaries.map {
+                ["id": $0.id, "blob": $0.blob, "people": String($0.people), "moments": String($0.moments)]
+            }).base64EncodedString()
         } else if let cached = cache.treeList,
                   let data = Data(base64Encoded: cached),
                   let rows = try? JSONDecoder().decode([[String: String]].self, from: data) {
             summaries = rows.compactMap { row in
                 guard let id = row["id"], let blob = row["blob"] else { return nil }
-                return (id, blob)
+                return Summary(id: id, blob: blob,
+                               people: Int(row["people"] ?? "0") ?? 0,
+                               moments: Int(row["moments"] ?? "0") ?? 0)
             }
         }
 
@@ -218,17 +258,20 @@ final class AppModel: ObservableObject {
         for summary in summaries {
             guard let key = treeKeys[summary.id] else { continue }
             let name = Self.decryptTreeName(summary.blob, key: key) ?? "Untitled tree"
-            choices.append(TreeChoice(id: summary.id, name: name))
+            choices.append(TreeChoice(id: summary.id, name: name,
+                                      personCount: summary.people, momentCount: summary.moments))
         }
         for id in treeKeys.keys where !choices.contains(where: { $0.id == id }) {
             choices.append(TreeChoice(id: id, name: "Untitled tree"))
         }
         trees = choices.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
 
+        forcedTreeSelection = false
         #if DEBUG
         if let want = Self.launchArgument("-selectTree"),
            let match = trees.first(where: { $0.name.localizedCaseInsensitiveContains(want) }) {
             selectedTreeId = match.id
+            forcedTreeSelection = true
             return
         }
         #endif
@@ -237,15 +280,7 @@ final class AppModel: ObservableObject {
             ?? trees.first?.id
     }
 
-    /// Switch to a tree: persist the choice and reload its content.
-    func selectTree(_ id: String) async {
-        guard id != selectedTreeId, treeKeys[id] != nil else { return }
-        selectedTreeId = id
-        cache.selectedTreeId = id
-        phase = .working("Opening")
-        let entries = await loadTree(id)
-        phase = .journal(entries: entries)
-    }
+    private var forcedTreeSelection = false
 
     /// Load one tree's journal, canvas, and stories into memory.
     private func loadTree(_ id: String) async -> [Entry] {

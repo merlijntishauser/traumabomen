@@ -28,6 +28,8 @@ struct RootView: View {
                 LoginView()
             case .biometric:
                 BiometricUnlockView()
+            case .treeList:
+                TreeListView()
             case .unlock(let hint):
                 UnlockView(hint: hint)
             case .working(let message):
