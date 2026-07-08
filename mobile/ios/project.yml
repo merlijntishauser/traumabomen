@@ -48,4 +48,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.traumabomen.companion
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        CODE_SIGN_IDENTITY: "-"
+        # Automatic signing for on-device runs. Set your team in Xcode
+        # (Signing & Capabilities), or set DEVELOPMENT_TEAM below to your
+        # 10-char Team ID so it survives `xcodegen generate`. Simulator
+        # builds need no signing (pass CODE_SIGNING_ALLOWED=NO on the CLI).
+        CODE_SIGN_STYLE: Automatic
+        # DEVELOPMENT_TEAM: XXXXXXXXXX

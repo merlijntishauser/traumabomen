@@ -96,7 +96,7 @@ final class AppModel: ObservableObject {
             KeyCustody.relaxedForSimulatorTesting = true
         }
         #endif
-        let base = Self.launchArgument("-apiBase") ?? "http://localhost:8000"
+        let base = Self.launchArgument("-apiBase") ?? Self.defaultApiBase
         let tokens = KeychainTokenStore()
         api = PlatformHttpKt.createApiClient(baseUrl: base, tokens: tokens)
         let db = CoreDb_iosKt.openCoreDatabase(name: "traumabomen-core.db")
@@ -506,6 +506,17 @@ final class AppModel: ObservableObject {
         else { return nil }
         let links = entry.linked_entities.map { LinkRef(entityType: $0.entity_type, entityId: $0.entity_id) }
         return Entry(id: row.id, text: entry.text, links: links, pending: row.pendingSync)
+    }
+
+    /// Where the app talks by default: the local dev backend on the simulator,
+    /// production on a real device. Override either with the -apiBase launch
+    /// argument (set in the Xcode scheme).
+    static var defaultApiBase: String {
+        #if targetEnvironment(simulator)
+        return "http://localhost:8000"
+        #else
+        return "https://www.traumatrees.org/api"
+        #endif
     }
 
     static func launchArgument(_ name: String) -> String? {
