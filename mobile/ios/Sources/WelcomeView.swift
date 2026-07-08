@@ -17,7 +17,7 @@ struct WelcomeView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer(minLength: 40)

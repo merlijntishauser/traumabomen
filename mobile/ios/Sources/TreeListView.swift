@@ -10,7 +10,7 @@ struct TreeListView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text(t("Your trees"))

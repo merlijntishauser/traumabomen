@@ -11,7 +11,9 @@ struct HomeView: View {
     @ObservedObject private var loc = Loc.shared
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
+            AppBackground()
+            VStack(spacing: 0) {
             header
 
             Group {
@@ -25,6 +27,7 @@ struct HomeView: View {
             .frame(maxHeight: .infinity)
 
             navBar
+            }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
         #if DEBUG

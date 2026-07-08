@@ -26,7 +26,7 @@ struct ComposerView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             VStack(alignment: .leading, spacing: 12) {
                 header
 
@@ -176,7 +176,7 @@ struct LinkPickerView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text(t("Link an item"))

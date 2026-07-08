@@ -19,7 +19,7 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {

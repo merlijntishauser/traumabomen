@@ -22,7 +22,6 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
             switch model.phase {
             case .welcome:
                 WelcomeView { }
@@ -36,11 +35,14 @@ struct RootView: View {
             case .unlock(let hint):
                 UnlockView(hint: hint)
             case .working(let message):
-                VStack(spacing: 16) {
-                    ProgressView().tint(Theme.textMuted)
-                    Text(message)
-                        .font(Theme.body(Theme.bodySize))
-                        .foregroundStyle(Theme.textMuted)
+                ZStack {
+                    AppBackground()
+                    VStack(spacing: 16) {
+                        ProgressView().tint(Theme.textMuted)
+                        Text(message)
+                            .font(Theme.body(Theme.bodySize))
+                            .foregroundStyle(Theme.textMuted)
+                    }
                 }
             case .journal(let entries):
                 HomeView(entries: entries)

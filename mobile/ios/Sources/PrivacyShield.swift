@@ -19,7 +19,7 @@ struct PrivacyShieldModifier: ViewModifier {
             content
             if covered {
                 ZStack {
-                    Theme.bgPrimary.ignoresSafeArea()
+                    AppBackground()
                     Text(t("Traumatrees"))
                         .font(Theme.heading(24))
                         .foregroundStyle(Theme.textMuted)

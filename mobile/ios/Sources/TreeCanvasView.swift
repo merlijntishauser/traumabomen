@@ -253,7 +253,7 @@ struct PersonSheet: View {
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
+            AppBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(person.name)
