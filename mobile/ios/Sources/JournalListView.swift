@@ -13,11 +13,11 @@ struct JournalListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline, spacing: 16) {
-                Text("Journal")
+                Text(t("Journal"))
                     .font(Theme.heading(20))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Button("New entry") { composing = true }
+                Button(t("New entry")) { composing = true }
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.action)
             }
@@ -32,7 +32,7 @@ struct JournalListView: View {
 
             if entries.isEmpty {
                 Spacer()
-                Text("Nothing here yet. Your first entry can be a single sentence.")
+                Text(t("Nothing here yet. Your first entry can be a single sentence."))
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textMuted)
                     .multilineTextAlignment(.center)
@@ -75,7 +75,7 @@ struct JournalListView: View {
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 if entry.pending {
-                    Text("waiting to sync")
+                    Text(t("waiting to sync"))
                         .font(Theme.body(11))
                         .foregroundStyle(Theme.textMuted)
                 }
@@ -114,8 +114,8 @@ struct JournalListView: View {
     }
 
     private var statusLine: String {
-        let count = entries.count == 1 ? "1 entry" : "\(entries.count) entries"
+        let count = Plural.entries(entries.count)
         let pending = model.pendingSyncCount
-        return pending > 0 ? "\(count); \(pending) waiting to sync" : count
+        return pending > 0 ? "\(count); \(pending) \(t("waiting to sync"))" : count
     }
 }

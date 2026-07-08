@@ -23,9 +23,9 @@ enum ThemeMode: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .auto: "Auto"
-        case .light: "Light"
-        case .dark: "Dark"
+        case .auto: t("Auto")
+        case .light: t("Light")
+        case .dark: t("Dark")
         }
     }
 }

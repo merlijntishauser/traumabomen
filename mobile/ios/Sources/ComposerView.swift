@@ -36,7 +36,7 @@ struct ComposerView: View {
                     .frame(minHeight: 160)
                     .overlay(alignment: .topLeading) {
                         if text.isEmpty {
-                            Text("What was never spoken about, but everyone knew?")
+                            Text(t("What was never spoken about, but everyone knew?"))
                                 .font(Theme.body(Theme.bodySize))
                                 .foregroundStyle(Theme.textMuted.opacity(0.6))
                                 .padding(.horizontal, 24)
@@ -58,12 +58,12 @@ struct ComposerView: View {
 
     private var header: some View {
         HStack {
-            Button("Cancel") { dismiss() }
+            Button(t("Cancel")) { dismiss() }
                 .font(Theme.body(13))
                 .foregroundStyle(Theme.textMuted)
             Spacer()
             if editing != nil {
-                Button(confirmingDelete ? "Confirm delete" : "Delete") {
+                Button(t(confirmingDelete ? "Confirm delete" : "Delete")) {
                     if confirmingDelete { delete() } else { confirmingDelete = true }
                 }
                 .font(Theme.body(13))
@@ -71,7 +71,7 @@ struct ComposerView: View {
                 .padding(.trailing, 12)
             }
             Button(action: save) {
-                Text(saving ? "Saving" : "Save")
+                Text(t(saving ? "Saving" : "Save"))
                     .font(Theme.body(Theme.bodySize, weight: .semibold))
                     .foregroundStyle(canSave ? Theme.action : Theme.textMuted)
             }
@@ -84,11 +84,11 @@ struct ComposerView: View {
     private var linksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Linked")
+                Text(t("Linked"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                 Spacer()
-                Button(links.isEmpty ? "Link an item" : "Edit links") {
+                Button(t(links.isEmpty ? "Link an item" : "Edit links")) {
                     showLinkPicker = true
                 }
                 .font(Theme.body(13))
@@ -161,11 +161,11 @@ struct LinkPickerView: View {
             Theme.bgPrimary.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Link an item")
+                    Text(t("Link an item"))
                         .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button("Done") { dismiss() }
+                    Button(t("Done")) { dismiss() }
                         .font(Theme.body(Theme.bodySize, weight: .semibold))
                         .foregroundStyle(Theme.action)
                 }
@@ -178,7 +178,7 @@ struct LinkPickerView: View {
                             let items = model.linkTargets.filter { $0.entityType == group.type }
                             if !items.isEmpty {
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(group.label)
+                                    Text(t(group.label))
                                         .font(Theme.body(13, weight: .semibold))
                                         .foregroundStyle(Theme.textMuted)
                                     ForEach(items) { item in

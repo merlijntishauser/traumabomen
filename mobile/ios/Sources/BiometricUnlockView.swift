@@ -10,18 +10,18 @@ struct BiometricUnlockView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text("Traumatrees")
+            Text(t("Traumatrees"))
                 .font(Theme.heading(26))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("Welcome back.")
+            Text(t("Welcome back."))
                 .font(Theme.body(Theme.bodySize))
                 .foregroundStyle(Theme.textMuted)
 
             Button {
                 Task { await model.biometricUnlock() }
             } label: {
-                Text("Unlock with Face ID")
+                Text(t("Unlock with Face ID"))
                     .font(Theme.body(Theme.bodySize, weight: .semibold))
             }
             .frame(width: 220, height: 44)
@@ -31,7 +31,7 @@ struct BiometricUnlockView: View {
             Button {
                 Task { await model.usePassphraseInstead() }
             } label: {
-                Text("Use passphrase instead")
+                Text(t("Use passphrase instead"))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
             }

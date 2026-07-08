@@ -266,7 +266,7 @@ struct PersonSheet: View {
                         .foregroundStyle(Theme.textMuted)
 
                     if person.isAdopted {
-                        Text("Adopted")
+                        Text(t("Adopted"))
                             .font(Theme.body(13))
                             .foregroundStyle(Theme.textMuted)
                     }
@@ -278,17 +278,17 @@ struct PersonSheet: View {
                             .padding(.top, 4)
                     }
 
-                    storySection("What happened", items: story.trauma) {
+                    storySection(t("What happened"), items: story.trauma) {
                         Circle().fill(CategoryColors.trauma($0.category))
                     }
-                    storySection("Life events", items: story.life) {
+                    storySection(t("Life events"), items: story.life) {
                         Rectangle().fill(CategoryColors.life($0.category))
                     }
-                    storySection("Turning points", items: story.turning) { _ in
+                    storySection(t("Turning points"), items: story.turning) { _ in
                         Circle().fill(CategoryColors.turningPoint)
                     }
 
-                    Text("Editing happens at the desk; the phone is for looking and writing.")
+                    Text(t("Editing happens at the desk; the phone is for looking and writing."))
                         .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                         .padding(.top, 20)

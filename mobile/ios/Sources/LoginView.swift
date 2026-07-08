@@ -10,24 +10,24 @@ struct LoginView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text("Traumatrees")
+            Text(t("Traumatrees"))
                 .font(Theme.heading(26))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("A quiet place to see what repeats, and to write about it.")
+            Text(t("A quiet place to see what repeats, and to write about it."))
                 .font(Theme.body(Theme.bodySize))
                 .foregroundStyle(Theme.textMuted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
             VStack(spacing: 12) {
-                TextField("Email", text: $email)
+                TextField(t("Email"), text: $email)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
                     .autocorrectionDisabled()
                     .modifier(FieldStyle())
 
-                SecureField("Password", text: $password)
+                SecureField(t("Password"), text: $password)
                     .modifier(FieldStyle())
                     .submitLabel(.go)
                     .onSubmit(submit)
@@ -39,7 +39,7 @@ struct LoginView: View {
                 }
 
                 Button(action: submit) {
-                    Text("Log in")
+                    Text(t("Log in"))
                         .font(Theme.body(Theme.bodySize, weight: .semibold))
                 }
                 .frame(width: 200, height: 44)

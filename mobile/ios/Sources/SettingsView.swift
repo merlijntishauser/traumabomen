@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var confirmingLogout = false
+    @ObservedObject private var loc = Loc.shared
 
     @State private var enabled = false
     @State private var weekday = 1
@@ -22,23 +23,23 @@ struct SettingsView: View {
             ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
-                    Text("Settings")
+                    Text(t("Settings"))
                         .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button("Done") { save() }
+                    Button(t("Done")) { save() }
                         .font(Theme.body(Theme.bodySize, weight: .semibold))
                         .foregroundStyle(Theme.action)
                         .disabled(saving)
                 }
                 .padding(.top, 24)
 
-                Text("Reminders")
+                Text(t("Reminders"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
 
                 Toggle(isOn: $enabled) {
-                    Text("A weekly reminder")
+                    Text(t("A weekly reminder"))
                         .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.textPrimary)
                 }
@@ -48,7 +49,7 @@ struct SettingsView: View {
                     HStack {
                         Picker("Day", selection: $weekday) {
                             ForEach(1...7, id: \.self) { day in
-                                Text(Reminders.weekdayNames[day] ?? "").tag(day)
+                                Text(Reminders.weekdayName(day)).tag(day)
                             }
                         }
                         Picker("Hour", selection: $hour) {
@@ -61,23 +62,35 @@ struct SettingsView: View {
                     .tint(Theme.textPrimary)
                 }
 
-                Text("A gentle nudge, delivered on your device. The reminder never names what this app is for.")
+                Text(t("A gentle nudge, delivered on your device. The reminder never names what this app is for."))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
 
-                Text("Appearance")
+                Text(t("Appearance"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                     .padding(.top, 8)
 
-                Picker("Theme", selection: $model.themeMode) {
+                Picker(t("Theme"), selection: $model.themeMode) {
                     ForEach(ThemeMode.allCases, id: \.self) { mode in
                         Text(mode.label).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)
 
-                Text("Account")
+                Text(t("Language"))
+                    .font(Theme.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.textMuted)
+                    .padding(.top, 8)
+
+                Picker(t("Language"), selection: $loc.language) {
+                    ForEach(AppLanguage.allCases, id: \.self) { lang in
+                        Text(lang.label).tag(lang)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Text(t("Account"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                     .padding(.top, 8)
@@ -89,32 +102,32 @@ struct SettingsView: View {
                         confirmingLogout = true
                     }
                 } label: {
-                    Text(confirmingLogout ? "Tap again to log out" : "Log out")
+                    Text(t(confirmingLogout ? "Tap again to log out" : "Log out"))
                         .font(Theme.body(Theme.bodySize))
                         .foregroundStyle(Theme.danger)
                 }
 
-                Text("Logging out clears this device and returns to the sign-in screen, so you can use a different account.")
+                Text(t("Logging out clears this device and returns to the sign-in screen, so you can use a different account."))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
 
-                Text("About")
+                Text(t("About"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                     .padding(.top, 8)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Traumatrees is a personal reflection tool, not therapy and not crisis support.")
+                    Text(t("Traumatrees is a personal reflection tool, not therapy and not crisis support."))
                         .font(Theme.body(13))
                         .foregroundStyle(Theme.textPrimary)
-                    Text("Everything you write is encrypted on this device; the server only ever stores ciphertext. If you lose your passphrase, your data is unrecoverable. This is by design.")
+                    Text(t("Everything you write is encrypted on this device; the server only ever stores ciphertext. If you lose your passphrase, your data is unrecoverable. This is by design."))
                         .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
-                    Text("Open source under AGPL-3.0. Bundled fonts (Playwrite NZ Basic, Lato, Fraunces) use the SIL Open Font License; icons are from Lucide (ISC License).")
+                    Text(t("Open source under AGPL-3.0. Bundled fonts (Playwrite NZ Basic, Lato, Fraunces) use the SIL Open Font License; icons are from Lucide (ISC License)."))
                         .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                         .padding(.top, 4)
-                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev")")
+                    Text("\(t("Version")) \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? t("dev"))")
                         .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                 }

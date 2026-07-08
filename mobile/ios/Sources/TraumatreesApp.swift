@@ -16,6 +16,9 @@ struct TraumatreesApp: App {
 
 struct RootView: View {
     @EnvironmentObject private var model: AppModel
+    // Observe the language so a switch re-renders the tree in place, rather
+    // than rebuilding the root (which would dismiss the settings sheet).
+    @ObservedObject private var loc = Loc.shared
 
     var body: some View {
         ZStack {

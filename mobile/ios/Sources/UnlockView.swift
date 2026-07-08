@@ -13,18 +13,18 @@ struct UnlockView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text("Traumatrees")
+            Text(t("Traumatrees"))
                 .font(Theme.heading(26))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("Your encryption passphrase unlocks your data on this device. We can never read it.")
+            Text(t("Your encryption passphrase unlocks your data on this device. We can never read it."))
                 .font(Theme.body(Theme.bodySize))
                 .foregroundStyle(Theme.textMuted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
             VStack(spacing: 12) {
-                SecureField("Encryption passphrase", text: $passphrase)
+                SecureField(t("Encryption passphrase"), text: $passphrase)
                     .textFieldStyle(.plain)
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textPrimary)
@@ -38,7 +38,7 @@ struct UnlockView: View {
                     .onSubmit(submit)
 
                 if let hint, !hint.isEmpty {
-                    Text("Hint: \(hint)")
+                    Text("\(t("Hint")): \(hint)")
                         .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
                 }
@@ -50,7 +50,7 @@ struct UnlockView: View {
                 }
 
                 Button(action: submit) {
-                    Text("Unlock")
+                    Text(t("Unlock"))
                         .font(Theme.body(Theme.bodySize, weight: .semibold))
                 }
                 .frame(width: 200, height: 44)

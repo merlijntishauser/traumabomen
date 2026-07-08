@@ -22,12 +22,12 @@ struct WelcomeView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer(minLength: 40)
 
-                    Text("Traumatrees")
+                    Text(t("Traumatrees"))
                         .font(Theme.heading(34))
                         .foregroundStyle(Theme.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .center)
 
-                    Text("A quiet place to see what repeats in a family, and to write about it.")
+                    Text(t("A quiet place to see what repeats in a family, and to write about it."))
                         .font(Theme.display(17))
                         .foregroundStyle(Theme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -38,30 +38,30 @@ struct WelcomeView: View {
                     VStack(alignment: .leading, spacing: 22) {
                         capability(
                             icon: .network,
-                            title: "Map your family",
-                            body: "Place the people, how they are connected, and what happened to them, across generations."
+                            title: t("Map your family"),
+                            body: t("Place the people, how they are connected, and what happened to them, across generations.")
                         )
                         capability(
                             icon: .penLine,
-                            title: "Write, at your own pace",
-                            body: "Keep a private journal of what you notice. You set the pace; pause or stop whenever you want."
+                            title: t("Write, at your own pace"),
+                            body: t("Keep a private journal of what you notice. You set the pace; pause or stop whenever you want.")
                         )
                         capability(
                             icon: .lock,
-                            title: "Only you can read it",
-                            body: "Everything is encrypted on this device before it is stored. We can never see your family's story."
+                            title: t("Only you can read it"),
+                            body: t("Everything is encrypted on this device before it is stored. We can never see your family's story.")
                         )
                     }
                     .padding(.top, 36)
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("A few honest things")
+                        Text(t("A few honest things"))
                             .font(Theme.body(13, weight: .semibold))
                             .foregroundStyle(Theme.textMuted)
 
-                        honest("This is a personal reflection tool. It is not therapy, and not crisis support.")
-                        honest("Building the tree itself happens at the desk, on the web. Here you look, and you write.")
-                        honest("If you lose your passphrase, your data is unrecoverable. This is by design.")
+                        honest(t("This is a personal reflection tool. It is not therapy, and not crisis support."))
+                        honest(t("Building the tree itself happens at the desk, on the web. Here you look, and you write."))
+                        honest(t("If you lose your passphrase, your data is unrecoverable. This is by design."))
                     }
                     .padding(.top, 32)
 
@@ -70,7 +70,7 @@ struct WelcomeView: View {
                         model.dismissWelcome()
                         onContinue()
                     }) {
-                        Text("Continue")
+                        Text(t("Continue"))
                             .font(Theme.body(Theme.bodySize, weight: .semibold))
                             .frame(maxWidth: .infinity)
                     }

@@ -13,8 +13,7 @@ enum Reminders {
     private static let requestId = "org.traumabomen.companion.weekly-reminder"
 
     // Neutral by design: an invitation, not an instruction, and no subject.
-    private static let title = "A quiet moment"
-    private static let body = "If you would like one, it is here."
+
 
     struct Schedule: Equatable {
         var enabled: Bool
@@ -59,8 +58,8 @@ enum Reminders {
         guard effective.enabled else { return effective }
 
         let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
+        content.title = t("A quiet moment")
+        content.body = t("If you would like one, it is here.")
 
         var components = DateComponents()
         components.weekday = effective.weekday
@@ -87,8 +86,11 @@ enum Reminders {
         }
     }
 
-    static let weekdayNames = [
-        1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday",
-        5: "Thursday", 6: "Friday", 7: "Saturday",
-    ]
+    static func weekdayName(_ day: Int) -> String {
+        let en = [1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday",
+                  5: "Thursday", 6: "Friday", 7: "Saturday"]
+        let nl = [1: "zondag", 2: "maandag", 3: "dinsdag", 4: "woensdag",
+                  5: "donderdag", 6: "vrijdag", 7: "zaterdag"]
+        return (Loc.shared.effective == "nl" ? nl : en)[day] ?? ""
+    }
 }

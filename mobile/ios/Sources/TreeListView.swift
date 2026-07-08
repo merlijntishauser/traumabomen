@@ -12,18 +12,18 @@ struct TreeListView: View {
             Theme.bgPrimary.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Your trees")
+                    Text(t("Your trees"))
                         .font(Theme.heading(26))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button("Lock") { model.lock() }
+                    Button(t("Lock")) { model.lock() }
                         .font(Theme.body(13))
                         .foregroundStyle(Theme.textMuted)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
 
-                Text("Each tree holds its own family, journal, and canvas.")
+                Text(t("Each tree holds its own family, journal, and canvas."))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
                     .padding(.horizontal, 24)
@@ -75,10 +75,7 @@ struct TreeListView: View {
     }
 
     private func subtitle(_ tree: AppModel.TreeChoice) -> String {
-        let people = tree.personCount == 1 ? "1 person" : "\(tree.personCount) people"
-        let moments = tree.momentCount == 1 ? "1 moment" : "\(tree.momentCount) moments"
-        let entries = tree.journalCount == 1 ? "1 journal entry" : "\(tree.journalCount) journal entries"
-        return "\(people), \(moments), \(entries)"
+        return "\(Plural.people(tree.personCount)), \(Plural.moments(tree.momentCount)), \(Plural.journalEntries(tree.journalCount))"
     }
 }
 

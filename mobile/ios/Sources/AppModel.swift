@@ -102,7 +102,7 @@ final class AppModel: ObservableObject {
 
     func login(email: String, password: String) async {
         errorMessage = nil
-        phase = .working("Logging in")
+        phase = .working(t("Logging in"))
         do {
             let salt = try await api.login(email: email, password: password)
             saltBase64 = salt.encryptionSalt
@@ -110,7 +110,7 @@ final class AppModel: ObservableObject {
             cache.passphraseHint = salt.passphraseHint
             phase = .unlock(hint: salt.passphraseHint)
         } catch {
-            errorMessage = "Login failed. Check your email and password."
+            errorMessage = t("Login failed. Check your email and password.")
             phase = .login
         }
     }
@@ -119,7 +119,7 @@ final class AppModel: ObservableObject {
         guard let salt = saltBase64 else { return }
         let hint = currentHint
         errorMessage = nil
-        phase = .working("Unlocking")
+        phase = .working(t("Unlocking"))
 
         let rawKey = await Self.deriveKeyBytes(passphrase: passphrase, salt: salt)
         let master = TraumaCrypto.shared.keyFromBytes(rawKey: rawKey)
@@ -132,7 +132,7 @@ final class AppModel: ObservableObject {
             masterKey = master
             await presentAfterUnlock()
         } catch {
-            errorMessage = "Incorrect passphrase."
+            errorMessage = t("Incorrect passphrase.")
             phase = .unlock(hint: hint)
         }
     }
@@ -145,7 +145,7 @@ final class AppModel: ObservableObject {
             await usePassphraseInstead()
             return
         }
-        phase = .working("Unlocking")
+        phase = .working(t("Unlocking"))
         let master = TraumaCrypto.shared.keyFromBytes(rawKey: KotlinByteArray.from(rawKey))
         do {
             try await decryptRing(with: master)
@@ -262,7 +262,7 @@ final class AppModel: ObservableObject {
         guard treeKeys[id] != nil else { return }
         selectedTreeId = id
         cache.selectedTreeId = id
-        phase = .working("Opening")
+        phase = .working(t("Opening"))
         phase = .journal(entries: await loadTree(id))
     }
 
@@ -303,12 +303,12 @@ final class AppModel: ObservableObject {
         var choices: [TreeChoice] = []
         for summary in summaries {
             guard let key = treeKeys[summary.id] else { continue }
-            let name = Self.decryptTreeName(summary.blob, key: key) ?? "Untitled tree"
+            let name = Self.decryptTreeName(summary.blob, key: key) ?? t("Untitled tree")
             choices.append(TreeChoice(id: summary.id, name: name, personCount: summary.people,
                                       momentCount: summary.moments, journalCount: summary.journals))
         }
         for id in treeKeys.keys where !choices.contains(where: { $0.id == id }) {
-            choices.append(TreeChoice(id: id, name: "Untitled tree"))
+            choices.append(TreeChoice(id: id, name: t("Untitled tree")))
         }
         trees = choices.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
 

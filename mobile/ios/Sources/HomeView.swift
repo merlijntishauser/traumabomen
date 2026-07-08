@@ -66,7 +66,7 @@ struct HomeView: View {
         } else {
             VStack {
                 Spacer()
-                Text("No tree yet. Trees grow at the desk; this canvas shows yours read-only.")
+                Text(t("No tree yet. Trees grow at the desk; this canvas shows yours read-only."))
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textMuted)
                     .multilineTextAlignment(.center)
@@ -78,14 +78,14 @@ struct HomeView: View {
 
     private var navBar: some View {
         HStack(spacing: 0) {
-            NavItem(icon: .bookOpen, label: "Journal", selected: model.activeTab == .journal) {
+            NavItem(icon: .bookOpen, label: t("Journal"), selected: model.activeTab == .journal) {
                 model.activeTab = .journal
             }
-            NavItem(icon: .network, label: "Tree", selected: model.activeTab == .tree) {
+            NavItem(icon: .network, label: t("Tree"), selected: model.activeTab == .tree) {
                 model.activeTab = .tree
             }
-            NavItem(icon: .settings, label: "Settings") { showSettings = true }
-            NavItem(icon: .lock, label: "Lock") { model.lock() }
+            NavItem(icon: .settings, label: t("Settings")) { showSettings = true }
+            NavItem(icon: .lock, label: t("Lock")) { model.lock() }
         }
         .padding(.top, 10)
         .padding(.bottom, 4)
