@@ -12,7 +12,7 @@ gitignored).
 
 ```bash
 brew install xcodegen                                   # once
-cd mobile/core && gradle assembleTraumabomenCoreDebugXCFramework
+cd mobile/core && ./gradlew assembleTraumabomenCoreDebugXCFramework
 cd ../ios && xcodegen generate
 open Traumatrees.xcodeproj
 ```
@@ -36,7 +36,7 @@ register on the web first if needed).
 
 1. Build the core and generate the project:
    ```bash
-   cd mobile/core && gradle assembleTraumabomenCoreDebugXCFramework
+   cd mobile/core && ./gradlew assembleTraumabomenCoreDebugXCFramework
    cd ../ios && xcodegen generate && open Traumatrees.xcodeproj
    ```
 2. In Xcode, select the **Traumatrees** target -> **Signing & Capabilities**,
@@ -61,52 +61,60 @@ Notes:
   `DEVELOPMENT_TEAM: <10-char Team ID>` in `project.yml` (find it in Xcode ->
   Settings -> Accounts -> Manage Certificates, or the Apple Developer portal).
 
-## Distribute to testers via TestFlight
+## Distribute to testers via TestFlight (Xcode Cloud)
 
-Requires a paid Apple Developer Program membership. One-time setup, then a
-repeatable per-build loop.
+Requires a paid Apple Developer Program membership. Builds run in Xcode Cloud
+and auto-deliver to TestFlight on push; you don't archive locally.
 
 One-time:
 
-1. At [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list),
-   register `org.traumabomen.companion` as an explicit App ID (Xcode's
-   automatic signing usually creates this the first time you archive).
-2. At [App Store Connect](https://appstoreconnect.apple.com) -> **Apps** ->
-   **+** -> **New App**: platform iOS, name Traumatrees, the bundle id above,
-   and any unique SKU.
+1. At [App Store Connect](https://appstoreconnect.apple.com) -> **Apps** ->
+   **+** -> **New App**: platform iOS, name Traumatrees, bundle id
+   `org.traumabomen.companion`, any unique SKU. (Automatic signing usually
+   registers the App ID for you the first time.)
+2. Set up the Xcode Cloud workflow (Xcode -> Integrate, or App Store Connect ->
+   your app -> Xcode Cloud): connect this repo, point the project at
+   `mobile/ios/Traumatrees.xcodeproj`, use an **Archive - iOS** action for the
+   **Traumatrees** scheme, and add a **TestFlight (Internal)** post-action.
+
+Because the project (`Traumatrees.xcodeproj`) and the core framework are both
+generated build outputs (gitignored), Xcode Cloud can't build them from a bare
+clone. `ci_scripts/ci_post_clone.sh` reconstructs them on each run: it installs
+xcodegen and a JVM, builds the KMP core XCFramework via the committed Gradle
+wrapper (`mobile/core/gradlew`, pinned to 9.6.1), and runs `xcodegen generate`.
+Xcode Cloud only runs that script because it is named exactly
+`ci_scripts/ci_post_clone.sh`, sits next to the project, and is executable.
 
 Per build:
 
-1. Build the release core and regenerate the project:
-   ```bash
-   cd mobile/core && gradle assembleTraumabomenCoreReleaseXCFramework
-   cd ../ios && xcodegen generate && open Traumatrees.xcodeproj
-   ```
-   (For a beta the debug XCFramework also works, but the release slice is
-   smaller and optimized. If you build the release framework, point the
-   `framework:` path in `project.yml` at `.../XCFrameworks/release/...` before
-   generating.)
-2. Bump `CURRENT_PROJECT_VERSION` in `project.yml` (must be unique per upload;
-   bump `MARKETING_VERSION` too when you start a new beta round), then
-   `xcodegen generate` again.
-3. In Xcode, set the run destination to **Any iOS Device (arm64)**, then
-   **Product -> Archive**.
-4. In the Organizer window: select the archive -> **Distribute App** ->
-   **TestFlight & App Store** -> **Upload**. Automatic signing produces the
-   distribution profile.
-5. Wait for App Store Connect to finish processing the build (minutes).
-6. In App Store Connect -> your app -> **TestFlight**:
-   - **Internal testers** (people on your App Store Connect team, up to 100):
-     add them to an internal group; they get the build immediately, no review.
+1. Bump `CURRENT_PROJECT_VERSION` in `project.yml` (Apple rejects duplicate
+   build numbers; bump `MARKETING_VERSION` too when starting a new beta round).
+   No local `xcodegen generate` needed, the cloud script does it.
+2. Commit and push to `main`. Xcode Cloud builds and, after processing,
+   delivers the build to TestFlight.
+3. In App Store Connect -> your app -> **TestFlight**:
+   - **Internal testers** (App Store Connect team, up to 100): immediate, no
+     review.
    - **External testers** (up to 10,000): create a group, add emails or share
-     the public link, fill in "what to test", and submit for **Beta App
-     Review** (Apple reviews the first external build, usually about a day).
-7. Testers install the **TestFlight** app from the App Store and redeem the
-   invite.
+     the public link, and submit for **Beta App Review** (first build only,
+     about a day).
+4. Testers install the **TestFlight** app and redeem the invite.
+
+First cloud build is slow: `ci_post_clone.sh` downloads the Kotlin/Native
+toolchain and builds libsodium from source. Later builds reuse less, but expect
+several minutes of setup before the Xcode build starts.
 
 The `ITSAppUsesNonExemptEncryption: false` key in `project.yml` declares the
-standard-encryption export exemption so uploads skip the compliance question;
+standard-encryption export exemption so builds skip the compliance question;
 review that declaration before your first public App Store release.
+
+### Local archive (fallback)
+
+If you'd rather archive from your Mac instead of Xcode Cloud: build the core
+(`cd mobile/core && ./gradlew assembleTraumabomenCoreDebugXCFramework`),
+`cd ../ios && xcodegen generate && open Traumatrees.xcodeproj`, select **Any
+iOS Device (arm64)**, **Product -> Archive**, then in the Organizer
+**Distribute App -> TestFlight & App Store -> Upload**.
 
 ## Layout
 

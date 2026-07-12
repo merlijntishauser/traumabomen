@@ -57,7 +57,7 @@ targets:
         # User-facing version (bump for each TestFlight beta round) and build
         # number (must be unique per upload; bump for every archive you send).
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "2"
         # Automatic signing for on-device runs. Set your team in Xcode
         # (Signing & Capabilities), or set DEVELOPMENT_TEAM below to your
         # 10-char Team ID so it survives `xcodegen generate`. Simulator
