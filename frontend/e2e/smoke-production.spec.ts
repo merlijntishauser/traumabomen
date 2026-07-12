@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { createTree, dismissOnboarding, loginAndUnlock, logout } from "./helpers/auth";
+import { createTree, dismissOnboarding, login, logout } from "./helpers/auth";
 
 /**
  * Production smoketest, run against the live deployment after each deploy:
@@ -39,6 +39,47 @@ async function gotoTreeList(page: Page): Promise<void> {
 // can take several seconds on a cold Cloud Run instance.
 const COLD = 30_000;
 
+/**
+ * Unlock resiliently against a freshly-deployed, possibly cold backend. The
+ * unlock button only arms once GET /auth/salt resolves and populates the salt;
+ * on a cold Cloud Run instance (or a token refresh on the round-trip re-login)
+ * that request can stall past the test's patience, leaving the button disabled.
+ * Rather than hang for the full test timeout, wait a bounded time for the button
+ * to enable and otherwise reload, which re-fires the salt fetch: reloading while
+ * locked keeps the session (tokens live in storage) but re-mounts the unlock
+ * screen. If it is a real hang this still fails, just faster and with a clearer
+ * signal than a single 180s timeout.
+ */
+async function unlockResilient(page: Page, passphrase: string, attempts = 3): Promise<void> {
+  const modal = page.locator(".auth-modal");
+  const submit = modal.getByRole("button", { name: /unlock/i });
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    await modal.waitFor({ state: "visible", timeout: 15_000 });
+    await modal.getByLabel(/^encryption key$/i).fill(passphrase);
+    try {
+      // Enabling waits for the salt fetch; keep it bounded so a stall triggers
+      // a reload-retry instead of consuming the whole test budget.
+      await expect(submit).toBeEnabled({ timeout: 20_000 });
+      await submit.click();
+      await modal.waitFor({ state: "hidden", timeout: COLD });
+      return;
+    } catch (error) {
+      if (attempt === attempts) throw error;
+      await page.reload();
+    }
+  }
+}
+
+/** Log in, then unlock with the cold-start-tolerant unlock above. */
+async function loginAndUnlockResilient(
+  page: Page,
+  email: string,
+  credentials: { password: string; passphrase: string },
+): Promise<void> {
+  await login(page, email, credentials.password);
+  await unlockResilient(page, credentials.passphrase);
+}
+
 /** Delete every tree whose name contains `text`, via the tree list UI. */
 async function deleteTreesNamed(page: Page, text: string): Promise<void> {
   await gotoTreeList(page);
@@ -67,7 +108,7 @@ test.describe("Production smoke", () => {
       "SMOKETEST_EMAIL, SMOKETEST_PASSWORD, and SMOKETEST_PASSPHRASE must be set",
     ).toBeTruthy();
 
-    await loginAndUnlock(page, EMAIL, CREDENTIALS);
+    await loginAndUnlockResilient(page, EMAIL, CREDENTIALS);
     await dismissOnboarding(page);
 
     // Remove leftovers from previously failed runs.
@@ -92,7 +133,7 @@ test.describe("Production smoke", () => {
 
     // Full crypto round-trip: a fresh session must decrypt the stored data.
     await logout(page);
-    await loginAndUnlock(page, EMAIL, CREDENTIALS);
+    await loginAndUnlockResilient(page, EMAIL, CREDENTIALS);
     await page.locator(".tree-list-item__link").filter({ hasText: treeName }).click();
     await page.waitForURL("**/trees/*");
     await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
