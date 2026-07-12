@@ -54,8 +54,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.traumabomen.companion
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        # User-facing version (bump for each TestFlight beta round) and build
-        # number (must be unique per upload; bump for every archive you send).
+        # Fallback version + build number for local archives. Xcode Cloud
+        # overrides both in ci_scripts/ci_post_clone.sh (CFBundleShortVersionString
+        # from the v* release tag, CFBundleVersion from CI_BUILD_NUMBER), so
+        # cloud builds are always unique without editing these by hand.
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "2"
         # Automatic signing for on-device runs. Set your team in Xcode

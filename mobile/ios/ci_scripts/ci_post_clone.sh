@@ -47,4 +47,22 @@ echo "--- Generating the Xcode project from project.yml ---"
 cd "$REPO/mobile/ios"
 xcodegen generate
 
+# Stamp versions so every TestFlight build is unique and matches the release
+# tag, without hand-editing project.yml. The workflow triggers on v* tags
+# (make bump), so:
+#   - CFBundleVersion            = CI_BUILD_NUMBER (Xcode Cloud's monotonic counter)
+#   - CFBundleShortVersionString = the v* tag, minus the leading "v"
+# Both fall back to the project.yml literals when either variable is absent
+# (e.g. a manually started build).
+PLIST="$REPO/mobile/ios/Info.plist"
+if [ -n "${CI_BUILD_NUMBER:-}" ]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CI_BUILD_NUMBER" "$PLIST"
+    echo "CFBundleVersion -> $CI_BUILD_NUMBER"
+fi
+if [ -n "${CI_TAG:-}" ]; then
+    MARKETING="${CI_TAG#v}"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING" "$PLIST"
+    echo "CFBundleShortVersionString -> $MARKETING"
+fi
+
 echo "--- ci_post_clone complete ---"

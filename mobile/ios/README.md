@@ -76,6 +76,10 @@ One-time:
    your app -> Xcode Cloud): connect this repo, point the project at
    `mobile/ios/Traumatrees.xcodeproj`, use an **Archive - iOS** action for the
    **Traumatrees** scheme, and add a **TestFlight (Internal)** post-action.
+3. Set the workflow's **start condition** to **Tag Changes** matching `v*`, and
+   remove any branch start condition. That ties the build to `make bump` (which
+   tags and pushes `v*`) instead of every push to `main`. The same `v*` tag
+   already drives the web deploy, so a release cuts both together.
 
 Because the project (`Traumatrees.xcodeproj`) and the core framework are both
 generated build outputs (gitignored), Xcode Cloud can't build them from a bare
@@ -87,11 +91,12 @@ Xcode Cloud only runs that script because it is named exactly
 
 Per build:
 
-1. Bump `CURRENT_PROJECT_VERSION` in `project.yml` (Apple rejects duplicate
-   build numbers; bump `MARKETING_VERSION` too when starting a new beta round).
-   No local `xcodegen generate` needed, the cloud script does it.
-2. Commit and push to `main`. Xcode Cloud builds and, after processing,
-   delivers the build to TestFlight.
+1. Run `make bump` (tags a new `v*` release and pushes it). The tag triggers
+   the Xcode Cloud build. No version editing needed: `ci_post_clone.sh` stamps
+   `CFBundleVersion` from Xcode Cloud's monotonic `CI_BUILD_NUMBER` and
+   `CFBundleShortVersionString` from the tag, so every build is unique and
+   matches the release version.
+2. After the cloud build processes, it delivers to TestFlight automatically.
 3. In App Store Connect -> your app -> **TestFlight**:
    - **Internal testers** (App Store Connect team, up to 100): immediate, no
      review.
