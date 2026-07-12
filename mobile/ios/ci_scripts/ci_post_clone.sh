@@ -21,12 +21,18 @@ set -eu
 REPO="${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/../../.." && pwd)}"
 
 echo "--- Installing build tools (xcodegen + JDK) ---"
-# Homebrew is preinstalled on Xcode Cloud. The Gradle wrapper (pinned 9.6.1)
-# is committed, so only xcodegen and a JVM to launch it are needed here.
-brew install xcodegen openjdk
+# Homebrew is preinstalled on Xcode Cloud and verifies each formula's bottle
+# checksum on download. Supply-chain posture of everything this script pulls:
+#   - Gradle distribution: SHA-256 pinned in gradle/wrapper/gradle-wrapper.properties
+#   - libsodium: version + SHA-256 pinned in mobile/core/scripts/build-libsodium.sh
+#   - JDK: pinned to a fixed LTS major (openjdk@21) to avoid version drift
+#   - Kotlin/Native + Maven deps: resolved by the pinned Gradle build
+# xcodegen only rewrites our own project.yml into a project, so it tracks the
+# current formula.
+brew install xcodegen openjdk@21
 
 # Homebrew's openjdk is keg-only; point Gradle at it explicitly.
-JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
+JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
 export JAVA_HOME
 export PATH="$JAVA_HOME/bin:$PATH"
 
