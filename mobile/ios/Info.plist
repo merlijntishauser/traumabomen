@@ -27,6 +27,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID unlocks your encrypted data on this device without re-entering your passphrase.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PlaywriteNZBasic.ttf</string>

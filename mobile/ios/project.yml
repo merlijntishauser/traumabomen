@@ -26,6 +26,10 @@ targets:
       path: Info.plist
       properties:
         CFBundleDisplayName: Traumatrees
+        # Required for Face ID: the Secure Enclave prompt in KeyCustody.retrieve
+        # fails without this string, so biometric unlock silently falls back to
+        # the passphrase. Shown in the system Face ID dialog.
+        NSFaceIDUsageDescription: Face ID unlocks your encrypted data on this device without re-entering your passphrase.
         UIAppFonts:
           - PlaywriteNZBasic.ttf
           - Lato-Light.ttf
