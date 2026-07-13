@@ -26,13 +26,24 @@ vi.mock("react-router-dom", () => ({
   Link: ({
     to,
     children,
+    onClick,
     ...rest
   }: {
     to: string;
     children: React.ReactNode;
+    onClick?: (e: React.MouseEvent) => void;
     [key: string]: unknown;
   }) => (
-    <a href={to} {...rest}>
+    // Mirror react-router's Link: intercept the click so jsdom does not attempt
+    // a real navigation to another document (which it cannot implement).
+    <a
+      href={to}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick?.(e);
+      }}
+      {...rest}
+    >
       {children}
     </a>
   ),

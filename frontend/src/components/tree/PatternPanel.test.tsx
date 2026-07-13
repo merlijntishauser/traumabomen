@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type {
   DecryptedClassification,
@@ -139,7 +139,7 @@ describe("PatternPanel", () => {
     expect(screen.getByText("common.add")).toBeInTheDocument();
   });
 
-  it("edit form: typing name and adding calls onSave with correct data for a new pattern", () => {
+  it("edit form: typing name and adding calls onSave with correct data for a new pattern", async () => {
     const props = renderPanel();
 
     fireEvent.click(screen.getByText("pattern.newPattern"));
@@ -147,7 +147,10 @@ describe("PatternPanel", () => {
     const nameInput = screen.getByTestId("pattern-name-input");
     fireEvent.change(nameInput, { target: { value: "New Pattern Name" } });
 
-    fireEvent.click(screen.getByText("common.add"));
+    // Add triggers save-then-whisper; await so the whisper state update lands in act.
+    await act(async () => {
+      fireEvent.click(screen.getByText("common.add"));
+    });
 
     expect(props.onSave).toHaveBeenCalledTimes(1);
     expect(props.onSave).toHaveBeenCalledWith(

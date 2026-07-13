@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -1049,8 +1049,10 @@ describe("PersonDetailPanel", () => {
 
       const startYearInput = screen.getByDisplayValue("2000");
       fireEvent.change(startYearInput, { target: { value: "2005" } });
-      // Year fields commit on blur
-      fireEvent.blur(startYearInput);
+      // Year fields commit on blur (save-then-whisper; await so it lands in act).
+      await act(async () => {
+        fireEvent.blur(startYearInput);
+      });
 
       expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
@@ -1079,7 +1081,9 @@ describe("PersonDetailPanel", () => {
       const endYearLabel = screen.getByText("common.endYear");
       const endYearInput = endYearLabel.closest("label")!.querySelector("input")!;
       fireEvent.change(endYearInput, { target: { value: "2010" } });
-      fireEvent.blur(endYearInput);
+      await act(async () => {
+        fireEvent.blur(endYearInput);
+      });
 
       expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",
@@ -1106,7 +1110,9 @@ describe("PersonDetailPanel", () => {
 
       const endYearInput = screen.getByDisplayValue("2010");
       fireEvent.change(endYearInput, { target: { value: "" } });
-      fireEvent.blur(endYearInput);
+      await act(async () => {
+        fireEvent.blur(endYearInput);
+      });
 
       expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
         "r1",

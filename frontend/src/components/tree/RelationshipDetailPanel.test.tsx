@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DecryptedPerson, DecryptedRelationship } from "../../hooks/useTreeData";
@@ -240,7 +240,7 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("editing period start_year commits on blur", () => {
+  it("editing period start_year commits on blur", async () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
@@ -250,7 +250,10 @@ describe("RelationshipDetailPanel", () => {
     const startYearInput = getStartYearInput();
     fireEvent.change(startYearInput, { target: { value: "1995" } });
     expect(props.onSaveRelationship).not.toHaveBeenCalled();
-    fireEvent.blur(startYearInput);
+    // Blur triggers save-then-whisper; await so the whisper state update lands in act.
+    await act(async () => {
+      fireEvent.blur(startYearInput);
+    });
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -259,7 +262,7 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("editing period end_year commits on blur", () => {
+  it("editing period end_year commits on blur", async () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
@@ -268,7 +271,9 @@ describe("RelationshipDetailPanel", () => {
 
     const endYearInput = getEndYearInput();
     fireEvent.change(endYearInput, { target: { value: "2010" } });
-    fireEvent.blur(endYearInput);
+    await act(async () => {
+      fireEvent.blur(endYearInput);
+    });
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,
@@ -277,7 +282,7 @@ describe("RelationshipDetailPanel", () => {
     });
   });
 
-  it("clearing end_year sets it to null", () => {
+  it("clearing end_year sets it to null", async () => {
     const props = defaultProps();
     props.relationship = makeRelationship({
       periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Together }],
@@ -286,7 +291,9 @@ describe("RelationshipDetailPanel", () => {
 
     const endYearInput = screen.getByDisplayValue("2010");
     fireEvent.change(endYearInput, { target: { value: "" } });
-    fireEvent.blur(endYearInput);
+    await act(async () => {
+      fireEvent.blur(endYearInput);
+    });
 
     expect(props.onSaveRelationship).toHaveBeenCalledWith("r1", {
       type: RelationshipType.Partner,

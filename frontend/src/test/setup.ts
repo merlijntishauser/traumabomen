@@ -17,6 +17,16 @@ if (dialogProto && !dialogProto.showModal) {
   };
 }
 
+// jsdom does not implement <canvas> rendering; its getContext() returns null
+// and logs "not implemented" noise for every hero that mounts AmbientBackground.
+// Those components already guard the null context (ctx?.), so override
+// getContext to return null quietly, matching that behaviour without the log.
+// Tests that assert on canvas drawing spy on getContext themselves.
+const canvasProto = globalThis.HTMLCanvasElement?.prototype;
+if (canvasProto) {
+  canvasProto.getContext = (() => null) as HTMLCanvasElement["getContext"];
+}
+
 // Suppress Node 25 warning about --localstorage-file when jsdom sets globalThis.localStorage
 const _origEmit = process.emit.bind(process) as typeof process.emit;
 process.emit = function (this: NodeJS.Process, event: string, ...args: unknown[]) {
