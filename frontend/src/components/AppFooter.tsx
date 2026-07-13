@@ -8,6 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
 
 const T_FEEDBACK = "feedback.button";
+const T_LOCK = "safety.footer.lock";
 
 const resources: Record<string, { name: string; url: string }> = {
   nl: { name: "Wij zijn Mind", url: "https://wijzijnmind.nl" },
@@ -122,8 +123,8 @@ export function AppFooter({ onLock }: Props) {
                 type="button"
                 className="app-footer__btn"
                 onClick={onLock}
-                aria-label={t("safety.footer.lock")}
-                title={t("safety.footer.lock")}
+                aria-label={t(T_LOCK)}
+                title={t(T_LOCK)}
               >
                 <Lock size={14} aria-hidden="true" />
               </button>
@@ -205,7 +206,7 @@ export function AppFooter({ onLock }: Props) {
                   closeMenu();
                 }}
               >
-                {t("safety.footer.lock")}
+                {t(T_LOCK)}
               </button>
             )}
             <Link className="app-footer__menu-item" to="/privacy" onClick={closeMenu}>

@@ -365,6 +365,10 @@ export function TimelineYearsContent({
     [onSelectPerson, selectedPersonId],
   );
 
+  // Hoist the gradient colours once (also avoids repeated cssVar lookups).
+  const gridFadeColor = cssVar("--color-text-muted");
+  const genFadeColor = cssVar("--color-accent");
+
   return (
     <>
       <svg ref={svgRef} width={width} height={totalHeight}>
@@ -374,16 +378,16 @@ export function TimelineYearsContent({
           </clipPath>
           {/* Year gridlines fade out toward both ends, like light between trees */}
           <linearGradient id="tl-grid-fade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
-            <stop offset="0.12" stopColor={cssVar("--color-text-muted")} stopOpacity="0.28" />
-            <stop offset="0.75" stopColor={cssVar("--color-text-muted")} stopOpacity="0.14" />
-            <stop offset="1" stopColor={cssVar("--color-text-muted")} stopOpacity="0" />
+            <stop offset="0" stopColor={gridFadeColor} stopOpacity="0" />
+            <stop offset="0.12" stopColor={gridFadeColor} stopOpacity="0.28" />
+            <stop offset="0.75" stopColor={gridFadeColor} stopOpacity="0.14" />
+            <stop offset="1" stopColor={gridFadeColor} stopOpacity="0" />
           </linearGradient>
           {/* Generation boundaries carry the accent signature, fading right */}
           <linearGradient id="tl-gen-fade" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor={cssVar("--color-accent")} stopOpacity="0.45" />
-            <stop offset="0.55" stopColor={cssVar("--color-accent")} stopOpacity="0.12" />
-            <stop offset="1" stopColor={cssVar("--color-accent")} stopOpacity="0" />
+            <stop offset="0" stopColor={genFadeColor} stopOpacity="0.45" />
+            <stop offset="0.55" stopColor={genFadeColor} stopOpacity="0.12" />
+            <stop offset="1" stopColor={genFadeColor} stopOpacity="0" />
           </linearGradient>
         </defs>
 
