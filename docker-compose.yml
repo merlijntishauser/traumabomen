@@ -64,7 +64,10 @@ services:
     command: npx vite dev --host
 
   e2e:
-    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    # Must track @playwright/test in frontend/package.json: the image ships the
+    # matching browser binaries, so a version drift fails with "Executable
+    # doesn't exist". Dependabot bumps the npm package but not this tag.
+    image: mcr.microsoft.com/playwright:v1.61.1-noble
     working_dir: /app
     volumes:
       - ./frontend:/app
