@@ -16,6 +16,10 @@ targets:
       - path: Resources/Fonts
         buildPhase: resources
       - Resources/Assets.xcassets
+      # Localized InfoPlist.strings (en + nl) for the system Face ID prompt.
+      # Scanning the parent dir lets xcodegen detect the .lproj folders, build
+      # one InfoPlist.strings variant group, and register en + nl as regions.
+      - Resources/Strings
     dependencies:
       # Build with: cd ../core && gradle assembleTraumabomenCoreDebugXCFramework
       - framework: ../core/build/XCFrameworks/debug/TraumabomenCore.xcframework

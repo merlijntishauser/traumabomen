@@ -1,0 +1,2 @@
+/* System Face ID permission prompt (English). */
+"NSFaceIDUsageDescription" = "Face ID unlocks your encrypted data on this device without re-entering your passphrase.";

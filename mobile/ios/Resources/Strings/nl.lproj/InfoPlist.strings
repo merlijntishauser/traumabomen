@@ -1,0 +1,3 @@
+/* System Face ID permission prompt (Dutch). Terminology matches the app:
+   "encryptiesleutel" for passphrase, informal "je". */
+"NSFaceIDUsageDescription" = "Face ID ontgrendelt je versleutelde gegevens op dit apparaat zonder je encryptiesleutel opnieuw in te voeren.";
