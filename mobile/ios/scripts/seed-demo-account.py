@@ -114,8 +114,9 @@ def main():
             "encrypted_data": encrypt_for_api(data, tree_key),
         }, access)
 
-    print(f"seeded {EMAIL} / {PASSWORD}")
-    print(f"passphrase: {PASSPHRASE} (hint: boomsoort en jaartal)")
+    # Do not echo the password/passphrase; they are the EMAIL/PASSWORD/PASSPHRASE
+    # constants at the top of this script (hint: boomsoort en jaartal).
+    print(f"seeded {EMAIL} (credentials: see the constants at the top of this script)")
     print(f"tree {tree_id}: {len(ENTRIES)} journal entries, {len(persons)} persons, {len(relationships)} relationships")
 
 
