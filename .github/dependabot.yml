@@ -21,6 +21,14 @@ updates:
     schedule:
       interval: monthly
 
+  # Root docker-compose.yml image tags (postgres, mailpit, and the Playwright
+  # e2e image). Weekly so the Playwright image tracks the weekly @playwright/test
+  # npm bump: a drift between the two fails e2e with "Executable doesn't exist".
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
