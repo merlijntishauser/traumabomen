@@ -130,7 +130,7 @@ describe("TimelineYearsContent", () => {
     it("renders person name labels", () => {
       const { container } = renderSinglePerson();
       const labels = container.querySelectorAll(".tl-person-label");
-      expect(labels.length).toBe(1);
+      expect(labels).toHaveLength(1);
       expect(labels[0].textContent).toBe("Alice");
     });
 
@@ -201,7 +201,7 @@ describe("TimelineYearsContent", () => {
       const props = makeTwoPersonProps();
       const { container } = render(<TimelineYearsContent {...props} />);
       const labels = container.querySelectorAll(".tl-person-label");
-      expect(labels.length).toBe(2);
+      expect(labels).toHaveLength(2);
       const names = Array.from(labels).map((l) => l.textContent);
       expect(names).toContain("Alice");
       expect(names).toContain("Bob");

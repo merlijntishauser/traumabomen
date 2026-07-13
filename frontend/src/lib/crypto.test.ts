@@ -32,7 +32,7 @@ describe("generateSalt", () => {
   it("returns a base64 string that decodes to 16 bytes", () => {
     const salt = generateSalt();
     const bytes = Uint8Array.from(atob(salt), (c) => c.charCodeAt(0));
-    expect(bytes.length).toBe(16);
+    expect(bytes).toHaveLength(16);
   });
 
   it("returns different values on each call", () => {
@@ -132,7 +132,7 @@ describe("hashPassphrase", () => {
     expect(hash.length).toBeGreaterThan(0);
     // Verify it's valid base64 by decoding
     const bytes = Uint8Array.from(atob(hash), (c) => c.charCodeAt(0));
-    expect(bytes.length).toBe(32); // SHA-256 produces 32 bytes
+    expect(bytes).toHaveLength(32); // SHA-256 produces 32 bytes
   });
 
   it("returns same hash for same input", async () => {
@@ -291,7 +291,7 @@ describe("generateTreeKey", () => {
     expect(key.usages).toContain("decrypt");
     expect(typeof base64).toBe("string");
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    expect(bytes.length).toBe(32);
+    expect(bytes).toHaveLength(32);
   });
 
   it("produces different keys on each call", async () => {
@@ -317,7 +317,7 @@ describe("importTreeKey", () => {
   it("imports a valid base64 key of 32 bytes", async () => {
     const { base64 } = await generateTreeKey();
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    expect(bytes.length).toBe(32);
+    expect(bytes).toHaveLength(32);
   });
 });
 

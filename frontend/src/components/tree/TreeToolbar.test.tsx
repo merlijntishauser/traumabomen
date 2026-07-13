@@ -91,7 +91,7 @@ describe("TreeToolbar", () => {
     // There should be exactly one separator (before the right group)
     // not two (which would exist if children section rendered)
     const separators = container.querySelectorAll(".tree-toolbar__separator");
-    expect(separators.length).toBe(1);
+    expect(separators).toHaveLength(1);
   });
 
   it("renders two separators when children are provided", () => {
@@ -99,6 +99,6 @@ describe("TreeToolbar", () => {
       children: <button type="button">Extra</button>,
     });
     const separators = container.querySelectorAll(".tree-toolbar__separator");
-    expect(separators.length).toBe(2);
+    expect(separators).toHaveLength(2);
   });
 });

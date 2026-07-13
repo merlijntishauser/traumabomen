@@ -39,7 +39,7 @@ describe("makeGrid", () => {
   it("samples the field over the requested bounds", () => {
     const grid = makeGrid(singlePeak, { x0: -200, y0: -200, x1: 200, y1: 200 }, 50);
     expect(grid.nx).toBeGreaterThan(2);
-    expect(grid.values.length).toBe(grid.nx * grid.ny);
+    expect(grid.values).toHaveLength(grid.nx * grid.ny);
     // The centre sample should dominate the corner sample
     const centre = grid.values[Math.floor(grid.ny / 2) * grid.nx + Math.floor(grid.nx / 2)];
     expect(centre).toBeGreaterThan(grid.values[0]);

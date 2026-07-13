@@ -630,7 +630,7 @@ describe("TimelineFilterPanel", () => {
       const groupsSection = container.querySelector(".tl-filter-panel__groups")!;
       const activePills = groupsSection.querySelectorAll(".tl-filter-panel__pill--active");
       const allPills = groupsSection.querySelectorAll(".tl-filter-panel__pill");
-      expect(activePills.length).toBe(allPills.length);
+      expect(activePills).toHaveLength(allPills.length);
     });
 
     it("marks group pill as inactive when its key is not in activeGroupKeys", () => {

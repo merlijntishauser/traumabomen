@@ -254,7 +254,7 @@ describe("positionFriendNodes", () => {
     const { graph } = layoutDagreGraph(persons, rels, friendOnlyIds);
     const result = positionFriendNodes(persons, rels, friendOnlyIds, graph);
     const positions = [...result.values()];
-    expect(positions.length).toBe(2);
+    expect(positions).toHaveLength(2);
     expect(Math.abs(positions[0].y - positions[1].y)).toBeGreaterThanOrEqual(NODE_HEIGHT);
   });
 });

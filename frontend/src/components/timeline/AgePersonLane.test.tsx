@@ -130,7 +130,7 @@ describe("AgePersonLane", () => {
     );
 
     const circles = container.querySelectorAll("circle");
-    expect(circles.length).toBe(1);
+    expect(circles).toHaveLength(1);
     // Age at 2000: 2000 - 1980 = 20
     expect(circles[0].getAttribute("cy")).toBe("20");
   });
@@ -259,7 +259,7 @@ describe("AgePersonLane", () => {
     );
 
     const paths = container.querySelectorAll("path");
-    expect(paths.length).toBe(1);
+    expect(paths).toHaveLength(1);
   });
 
   it("does not duplicate label when diagnosis_year equals period start_year", () => {
@@ -400,7 +400,7 @@ describe("AgePersonLane", () => {
 
     // Diamond is a rotated rect, find the marker-class rect (not hitarea/lifebar)
     const markers = container.querySelectorAll(".tl-marker");
-    expect(markers.length).toBe(1);
+    expect(markers).toHaveLength(1);
     fireEvent.click(markers[0]);
     expect(onClickMarker).toHaveBeenCalledWith({
       personId: "p1",
@@ -532,7 +532,7 @@ describe("AgePersonLane", () => {
     );
 
     const circles = container.querySelectorAll("circle");
-    expect(circles.length).toBe(0);
+    expect(circles).toHaveLength(0);
   });
 
   it("shows tooltip on classification strip hover", () => {
@@ -715,7 +715,7 @@ describe("AgePersonLane", () => {
     );
 
     const rings = container.querySelectorAll(".tl-selection-ring");
-    expect(rings.length).toBe(1);
+    expect(rings).toHaveLength(1);
   });
 
   it("does not render selection ring when entity is not selected", () => {
@@ -740,7 +740,7 @@ describe("AgePersonLane", () => {
     );
 
     const rings = container.querySelectorAll(".tl-selection-ring");
-    expect(rings.length).toBe(0);
+    expect(rings).toHaveLength(0);
   });
 
   it("calls onToggleEntitySelect when marker clicked in annotate mode", () => {

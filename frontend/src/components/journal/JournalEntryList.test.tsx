@@ -126,7 +126,7 @@ describe("JournalEntryList", () => {
 
     // Markdown rendered (via mock that renders text in a div)
     const markdowns = screen.getAllByTestId("markdown");
-    expect(markdowns.length).toBe(2);
+    expect(markdowns).toHaveLength(2);
     expect(markdowns[0]).toHaveTextContent(mockEntry.text);
   });
 

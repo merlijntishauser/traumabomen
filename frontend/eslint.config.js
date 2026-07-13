@@ -43,6 +43,9 @@ export default tseslint.config(
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-duplicate-string": "off",
       "sonarjs/no-identical-functions": "off",
+      // Dummy credentials in test fixtures are not secrets; the rule stays on
+      // for real app code (where a hard-coded password would be a genuine bug).
+      "sonarjs/no-hardcoded-passwords": "off",
     },
   },
   // Existing complex files -- reduce over time

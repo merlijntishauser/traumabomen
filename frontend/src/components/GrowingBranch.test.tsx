@@ -81,7 +81,7 @@ describe("GrowingBranch", () => {
 
     // Dark theme: leaves, not gems.
     expect(svg.querySelectorAll(".growing-branch__leaf").length).toBeGreaterThan(0);
-    expect(svg.querySelectorAll(".growing-branch__gem").length).toBe(0);
+    expect(svg.querySelectorAll(".growing-branch__gem")).toHaveLength(0);
 
     // A scroll event queues a frame; running it reveals nodes near the top.
     document.querySelector(".landing")?.dispatchEvent(new Event("scroll"));
@@ -124,7 +124,7 @@ describe("GrowingBranch", () => {
     const svg = container.querySelector("svg.growing-branch") as SVGSVGElement;
 
     expect(svg.querySelectorAll(".growing-branch__gem").length).toBeGreaterThan(0);
-    expect(svg.querySelectorAll(".growing-branch__leaf").length).toBe(0);
+    expect(svg.querySelectorAll(".growing-branch__leaf")).toHaveLength(0);
 
     // Theme observer fires on a data-theme change and rebuilds (now dark).
     document.documentElement.removeAttribute("data-theme");
@@ -160,6 +160,6 @@ describe("GrowingBranch", () => {
 
     const { container } = renderInLanding();
     const svg = container.querySelector("svg.growing-branch") as SVGSVGElement;
-    expect(svg.querySelectorAll(".growing-branch__node").length).toBe(0);
+    expect(svg.querySelectorAll(".growing-branch__node")).toHaveLength(0);
   });
 });

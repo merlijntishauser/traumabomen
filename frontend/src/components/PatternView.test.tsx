@@ -201,7 +201,7 @@ describe("PatternView", () => {
     const card = screen.getByTestId("pattern-card");
     // Only 4 entity items should be rendered on the card
     const entityItems = card.querySelectorAll(".pattern-view__card-entity");
-    expect(entityItems.length).toBe(4);
+    expect(entityItems).toHaveLength(4);
     // "+2 more" overflow indicator
     expect(screen.getByText("+2 more")).toBeTruthy();
   });
@@ -252,7 +252,7 @@ describe("PatternView", () => {
 
     // All 5 entities should be visible in the detail view (no max limit)
     const detailEntities = container.querySelectorAll(".pattern-view__detail-entity");
-    expect(detailEntities.length).toBe(5);
+    expect(detailEntities).toHaveLength(5);
 
     // "Edit on canvas" link is present and points to the tree
     const editLink = screen.getByText("pattern.editOnCanvas");

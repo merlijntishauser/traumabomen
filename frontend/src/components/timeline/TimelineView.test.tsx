@@ -347,24 +347,24 @@ describe("TimelineView", () => {
       const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
       const lanes = container.querySelectorAll(".tl-lane");
       const selectedLanes = container.querySelectorAll(".tl-lane--selected");
-      expect(lanes.length).toBe(2);
-      expect(selectedLanes.length).toBe(1);
+      expect(lanes).toHaveLength(2);
+      expect(selectedLanes).toHaveLength(1);
     });
 
     it("applies dimmed class to non-selected person lanes", () => {
       const props = makeTwoPersonProps();
       const { container } = render(<TimelineView {...props} selectedPersonId="p1" />);
       const dimmedLanes = container.querySelectorAll(".tl-lane--dimmed");
-      expect(dimmedLanes.length).toBe(1);
+      expect(dimmedLanes).toHaveLength(1);
     });
 
     it("no selection means no selected or dimmed classes", () => {
       const props = makeTwoPersonProps();
       const { container } = render(<TimelineView {...props} selectedPersonId={null} />);
-      expect(container.querySelectorAll(".tl-lane--selected").length).toBe(0);
-      expect(container.querySelectorAll(".tl-lane--dimmed").length).toBe(0);
-      expect(container.querySelectorAll(".tl-person-label--selected").length).toBe(0);
-      expect(container.querySelectorAll(".tl-person-label--dimmed").length).toBe(0);
+      expect(container.querySelectorAll(".tl-lane--selected")).toHaveLength(0);
+      expect(container.querySelectorAll(".tl-lane--dimmed")).toHaveLength(0);
+      expect(container.querySelectorAll(".tl-person-label--selected")).toHaveLength(0);
+      expect(container.querySelectorAll(".tl-person-label--dimmed")).toHaveLength(0);
     });
 
     it("calls onSelectPerson when person label is clicked", () => {
@@ -530,8 +530,8 @@ describe("TimelineView", () => {
       );
       const selectedLanes = container.querySelectorAll(".tl-lane--selected");
       const dimmedLanes = container.querySelectorAll(".tl-lane--dimmed");
-      expect(selectedLanes.length).toBe(1);
-      expect(dimmedLanes.length).toBe(1);
+      expect(selectedLanes).toHaveLength(1);
+      expect(dimmedLanes).toHaveLength(1);
     });
   });
 });
