@@ -1,6 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppFooter } from "./AppFooter";
+
+// Render inside a real router so react-router's Link handles clicks (it prevents
+// the browser default internally, which jsdom cannot perform). Using the real
+// Link avoids a hand-rolled preventDefault mock in the test.
+const render = (ui: Parameters<typeof rtlRender>[0]) => rtlRender(ui, { wrapper: MemoryRouter });
 
 let mockLanguage = "en";
 let mockIsLoggedIn = true;
@@ -20,33 +26,6 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("../lib/api", () => ({
   getAccessToken: () => (mockIsLoggedIn ? "stub" : null),
-}));
-
-vi.mock("react-router-dom", () => ({
-  Link: ({
-    to,
-    children,
-    onClick,
-    ...rest
-  }: {
-    to: string;
-    children: React.ReactNode;
-    onClick?: (e: React.MouseEvent) => void;
-    [key: string]: unknown;
-  }) => (
-    // Mirror react-router's Link: intercept the click so jsdom does not attempt
-    // a real navigation to another document (which it cannot implement).
-    <a
-      href={to}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.(e);
-      }}
-      {...rest}
-    >
-      {children}
-    </a>
-  ),
 }));
 
 vi.mock("./ThemeToggle", () => ({
