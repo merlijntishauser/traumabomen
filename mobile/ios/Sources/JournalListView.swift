@@ -18,9 +18,9 @@ struct JournalListView: View {
                     .font(Theme.heading(20))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Button(t("New entry")) { composing = true }
-                    .font(Theme.body(13, weight: .semibold))
-                    .foregroundStyle(Theme.action)
+                Button { composing = true } label: {
+                    ActionLabel(mark: LucidePlus(), text: t("New entry"), color: Theme.action, markSize: 11)
+                }
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)

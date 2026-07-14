@@ -27,10 +27,10 @@ struct SettingsView: View {
                         .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button(t("Done")) { save() }
-                        .font(Theme.body(Theme.bodySize, weight: .semibold))
-                        .foregroundStyle(Theme.action)
-                        .disabled(saving)
+                    Button { save() } label: {
+                        ActionLabel(mark: LucideCheck(), text: t("Done"), color: Theme.action, font: Theme.body(Theme.bodySize, weight: .semibold))
+                    }
+                    .disabled(saving)
                 }
                 .padding(.top, 24)
 

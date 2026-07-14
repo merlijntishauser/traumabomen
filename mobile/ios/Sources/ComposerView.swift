@@ -72,22 +72,27 @@ struct ComposerView: View {
 
     private var header: some View {
         HStack {
-            Button(t("Cancel")) { dismiss() }
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.textMuted)
+            Button { dismiss() } label: {
+                ActionLabel(mark: LucideX(), text: t("Cancel"), color: Theme.textMuted, font: Theme.body(13), markSize: 11)
+            }
             Spacer()
             if editing != nil {
-                Button(t(confirmingDelete ? "Confirm delete" : "Delete")) {
+                Button {
                     if confirmingDelete { delete() } else { confirmingDelete = true }
+                } label: {
+                    ActionLabel(
+                        mark: LucideTrash(), text: t(confirmingDelete ? "Confirm delete" : "Delete"),
+                        color: Theme.danger, font: Theme.body(13)
+                    )
                 }
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.danger)
                 .padding(.trailing, 12)
             }
             Button(action: save) {
-                Text(t(saving ? "Saving" : "Save"))
-                    .font(Theme.body(Theme.bodySize, weight: .semibold))
-                    .foregroundStyle(canSave ? Theme.action : Theme.textMuted)
+                ActionLabel(
+                    mark: LucideCheck(), text: t(saving ? "Saving" : "Save"),
+                    color: canSave ? Theme.action : Theme.textMuted,
+                    font: Theme.body(Theme.bodySize, weight: .semibold)
+                )
             }
             .disabled(!canSave || saving)
         }
@@ -102,11 +107,12 @@ struct ComposerView: View {
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
                 Spacer()
-                Button(t(links.isEmpty ? "Link an item" : "Edit links")) {
-                    showLinkPicker = true
+                Button { showLinkPicker = true } label: {
+                    ActionLabel(
+                        mark: LucidePlus(), text: t(links.isEmpty ? "Link an item" : "Edit links"),
+                        color: Theme.action, font: Theme.body(13), markSize: 11
+                    )
                 }
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.action)
                 .disabled(model.linkTargets.isEmpty)
             }
             if links.isEmpty {
@@ -183,9 +189,9 @@ struct LinkPickerView: View {
                         .font(Theme.heading(19))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button(t("Done")) { dismiss() }
-                        .font(Theme.body(Theme.bodySize, weight: .semibold))
-                        .foregroundStyle(Theme.action)
+                    Button { dismiss() } label: {
+                        ActionLabel(mark: LucideCheck(), text: t("Done"), color: Theme.action, font: Theme.body(Theme.bodySize, weight: .semibold))
+                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
