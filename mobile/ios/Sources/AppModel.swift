@@ -440,6 +440,51 @@ final class AppModel: ObservableObject {
         phase = .journal(entries: await refreshEntries())
     }
 
+    // --- Reflective-layer entities attached to a person: trauma events, life
+    // events, turning points, classifications. Full field parity with the web,
+    // encrypted with the tree key and queued like the journal. A nil id
+    // creates; an id updates. `personIds` are the plaintext links (multi-person).
+
+    func saveTraumaEvent(id: String?, content: TraumaEventContent, personIds: [String]) async {
+        await saveEntity(type: .traumaEvents, id: id, content: content, personIds: personIds)
+    }
+
+    func saveLifeEvent(id: String?, content: LifeEventContent, personIds: [String]) async {
+        await saveEntity(type: .lifeEvents, id: id, content: content, personIds: personIds)
+    }
+
+    func saveTurningPoint(id: String?, content: TurningPointContent, personIds: [String]) async {
+        await saveEntity(type: .turningPoints, id: id, content: content, personIds: personIds)
+    }
+
+    func saveClassification(id: String?, content: ClassificationContent, personIds: [String]) async {
+        await saveEntity(type: .classifications, id: id, content: content, personIds: personIds)
+    }
+
+    func deleteStoryItem(type: EntityType, id: String) async {
+        guard let tree = treeId else { return }
+        sync.deleteEntity(type: type, id: id)
+        _ = try? await sync.push(treeId: tree)
+        await refreshTree()
+    }
+
+    private func saveEntity<T: Encodable>(
+        type: EntityType, id: String?, content: T, personIds: [String]
+    ) async {
+        guard let tree = treeId, let key = treeKey,
+              let data = try? JSONEncoder().encode(content),
+              let json = String(data: data, encoding: .utf8)
+        else { return }
+        let encrypted = TraumaCrypto.shared.encryptJsonForApi(plaintextJson: json, key: key)
+        if let id {
+            sync.updateEntity(type: type, id: id, encryptedData: encrypted, personIds: personIds)
+        } else {
+            _ = sync.createEntity(treeId: tree, type: type, encryptedData: encrypted, personIds: personIds)
+        }
+        _ = try? await sync.push(treeId: tree)
+        await refreshTree()
+    }
+
     private func whisperSaved() {
         savedWhisper = true
         Task {
