@@ -185,6 +185,16 @@ private let NL: [String: String] = [
     "to": "tot",
     "Ongoing": "Lopend",
     "Add period": "Periode toevoegen",
+    "Add milestone": "Mijlpaal toevoegen",
+    "Edit milestone": "Mijlpaal bewerken",
+    "Category": "Categorie",
+    "When": "Wanneer",
+    "Approximate date": "Ongeveer wanneer",
+    "Significance": "Betekenis",
+    "Description": "Beschrijving",
+    "Tags": "Labels",
+    "Attached to": "Gekoppeld aan",
+    "None yet.": "Nog niets.",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.

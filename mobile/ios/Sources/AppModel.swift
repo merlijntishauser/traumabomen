@@ -461,6 +461,22 @@ final class AppModel: ObservableObject {
         await saveEntity(type: .classifications, id: id, content: content, personIds: personIds)
     }
 
+    /// Decrypt and decode one entity's full content (all fields) and its person
+    /// links, for populating an edit form. Nil if it is gone or undecodable.
+    func loadEntityContent<T: Decodable>(
+        type: EntityType, id: String
+    ) async -> (content: T, personIds: [String])? {
+        guard let tree = treeId, let key = treeKey else { return nil }
+        let rows = (try? await sync.pull(treeId: tree, type: type)) ?? []
+        guard let row = rows.first(where: { $0.id == id }),
+              let plaintext = try? TraumaCrypto.shared.decryptJsonFromApi(
+                  encryptedData: row.encryptedData, key: key
+              ),
+              let content = try? JSONDecoder().decode(T.self, from: Data(plaintext.utf8))
+        else { return nil }
+        return (content, row.personIds)
+    }
+
     func deleteStoryItem(type: EntityType, id: String) async {
         guard let tree = treeId else { return }
         sync.deleteEntity(type: type, id: id)

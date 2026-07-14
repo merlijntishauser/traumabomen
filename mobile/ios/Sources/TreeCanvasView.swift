@@ -92,7 +92,7 @@ struct TreeCanvasView: View {
             )
         }
         .sheet(item: $selected) { person in
-            PersonSheet(person: person, story: data.stories[person.id] ?? PersonStory())
+            PersonSheet(person: person)
         }
     }
 
@@ -282,10 +282,17 @@ struct TreeCanvasView: View {
 }
 
 /// A person's page: years, notes, and their story in the badge grammar's
-/// order: what happened, life events, turning points. Read-only.
+/// order. The reflective layer is editable (add / edit / delete); person
+/// fields, relationships, and the canvas stay desk work. Reads the story live
+/// from the model so a save reflects immediately.
 struct PersonSheet: View {
+    @EnvironmentObject private var model: AppModel
     let person: TreePerson
-    let story: PersonStory
+
+    @State private var turningEdit: TurningEditTarget?
+
+    private var story: PersonStory { model.treeData?.stories[person.id] ?? PersonStory() }
+    private var persons: [TreePerson] { model.treeData?.persons ?? [] }
 
     var body: some View {
         ZStack {
@@ -314,17 +321,20 @@ struct PersonSheet: View {
                             .padding(.top, 4)
                     }
 
-                    storySection(t("What happened"), items: story.trauma) {
+                    readOnlySection(t("What happened"), items: story.trauma) {
                         Circle().fill(CategoryColors.trauma($0.category))
                     }
-                    storySection(t("Life events"), items: story.life) {
+                    readOnlySection(t("Life events"), items: story.life) {
                         Rectangle().fill(CategoryColors.life($0.category))
                     }
-                    storySection(t("Turning points"), items: story.turning) { _ in
-                        Circle().fill(CategoryColors.turningPoint)
-                    }
+                    editableSection(
+                        t("Turning points"),
+                        items: story.turning,
+                        onAdd: { turningEdit = TurningEditTarget(id: "new", editingId: nil) },
+                        onTap: { turningEdit = TurningEditTarget(id: $0.id, editingId: $0.id) }
+                    ) { _ in Circle().fill(CategoryColors.turningPoint) }
 
-                    Text(t("Editing happens at the desk; the phone is for looking and writing."))
+                    Text(t("Names, relationships, and the canvas are edited at the desk."))
                         .font(Theme.body(12))
                         .foregroundStyle(Theme.textMuted)
                         .padding(.top, 20)
@@ -336,42 +346,87 @@ struct PersonSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .sheet(item: $turningEdit) { target in
+            TurningPointForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+        }
     }
 
     @ViewBuilder
-    private func storySection(
-        _ title: String,
-        items: [StoryItem],
-        @ViewBuilder marker: @escaping (StoryItem) -> some View
-    ) -> some View {
-        if !items.isEmpty {
+    private func sectionHeader(_ title: String, onAdd: (() -> Void)?) -> some View {
+        HStack {
             Text(title)
                 .font(Theme.body(13, weight: .semibold))
                 .foregroundStyle(Theme.textMuted)
-                .padding(.top, 14)
-            ForEach(items) { item in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    marker(item)
-                        .frame(width: 9, height: 9)
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 8) {
-                            Text(item.title)
-                                .font(Theme.body(Theme.bodySize))
-                                .foregroundStyle(Theme.textPrimary)
-                            if let date = item.date {
-                                Text(date)
-                                    .font(Theme.body(12))
-                                    .foregroundStyle(Theme.textMuted)
-                            }
-                        }
-                        if let description = item.description, !description.isEmpty {
-                            Text(description)
-                                .font(Theme.body(13))
-                                .foregroundStyle(Theme.textMuted)
-                        }
-                    }
+            Spacer()
+            if let onAdd {
+                Button(action: onAdd) {
+                    Text(t("Add"))
+                        .font(Theme.body(13, weight: .semibold))
+                        .foregroundStyle(Theme.action)
                 }
             }
         }
+        .padding(.top, 14)
     }
+
+    private func itemRow<M: View>(_ item: StoryItem, @ViewBuilder marker: (StoryItem) -> M) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            marker(item)
+                .frame(width: 9, height: 9)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(item.title)
+                        .font(Theme.body(Theme.bodySize))
+                        .foregroundStyle(Theme.textPrimary)
+                    if let date = item.date {
+                        Text(date)
+                            .font(Theme.body(12))
+                            .foregroundStyle(Theme.textMuted)
+                    }
+                }
+                if let description = item.description, !description.isEmpty {
+                    Text(description)
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.textMuted)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private func readOnlySection<M: View>(
+        _ title: String, items: [StoryItem],
+        @ViewBuilder marker: @escaping (StoryItem) -> M
+    ) -> some View {
+        if !items.isEmpty {
+            sectionHeader(title, onAdd: nil)
+            ForEach(items) { itemRow($0, marker: marker) }
+        }
+    }
+
+    @ViewBuilder
+    private func editableSection<M: View>(
+        _ title: String, items: [StoryItem],
+        onAdd: @escaping () -> Void, onTap: @escaping (StoryItem) -> Void,
+        @ViewBuilder marker: @escaping (StoryItem) -> M
+    ) -> some View {
+        sectionHeader(title, onAdd: onAdd)
+        if items.isEmpty {
+            Text(t("None yet."))
+                .font(Theme.body(13))
+                .foregroundStyle(Theme.textMuted)
+        } else {
+            ForEach(items) { item in
+                Button { onTap(item) } label: { itemRow(item, marker: marker) }
+                    .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+/// Identifies the turning-point form to present: create (editingId nil) or edit.
+struct TurningEditTarget: Identifiable {
+    let id: String
+    let editingId: String?
 }
