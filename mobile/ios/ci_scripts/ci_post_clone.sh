@@ -20,6 +20,25 @@ set -eu
 # Fall back to walking up from this script (ci_scripts -> ios -> mobile -> root).
 REPO="${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/../../.." && pwd)}"
 
+# Retry a network-heavy command a few times. A cold Xcode Cloud build downloads
+# Homebrew bottles, the Kotlin/Native toolchain (~1GB), libsodium source, and
+# Gradle dependencies; any can hiccup transiently and fail the whole script, so
+# a transient failure self-recovers instead of failing the build.
+retry() {
+    attempt=1
+    max=3
+    until "$@"; do
+        status=$?
+        if [ "$attempt" -ge "$max" ]; then
+            echo "retry: '$*' failed after $max attempts (exit $status)"
+            return "$status"
+        fi
+        echo "retry: '$*' failed (exit $status); attempt $attempt/$max, retrying in 15s"
+        attempt=$((attempt + 1))
+        sleep 15
+    done
+}
+
 echo "--- Installing build tools (xcodegen + JDK) ---"
 # Homebrew is preinstalled on Xcode Cloud and verifies each formula's bottle
 # checksum on download. Supply-chain posture of everything this script pulls:
@@ -29,7 +48,7 @@ echo "--- Installing build tools (xcodegen + JDK) ---"
 #   - Kotlin/Native + Maven deps: resolved by the pinned Gradle build
 # xcodegen only rewrites our own project.yml into a project, so it tracks the
 # current formula.
-brew install xcodegen openjdk@21
+retry brew install xcodegen openjdk@21
 
 # Homebrew's openjdk is keg-only; point Gradle at it explicitly.
 JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
@@ -41,7 +60,7 @@ echo "--- Building the KMP core XCFramework ---"
 # downloads the Kotlin/Native toolchain and builds libsodium from source, so
 # this step is the slow one.
 cd "$REPO/mobile/core"
-./gradlew --no-daemon assembleTraumabomenCoreDebugXCFramework
+retry ./gradlew --no-daemon assembleTraumabomenCoreDebugXCFramework
 
 echo "--- Generating the Xcode project from project.yml ---"
 cd "$REPO/mobile/ios"
