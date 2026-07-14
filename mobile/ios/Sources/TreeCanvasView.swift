@@ -9,21 +9,27 @@ struct TreeCanvasView: View {
 
     @State private var zoom: CGFloat = 1
     @State private var pan: CGSize = .zero
-    @GestureState private var pinch: CGFloat = 1
     @GestureState private var drag: CGSize = .zero
     @State private var selected: TreePerson?
+
+    // Pinch focal-zoom bookkeeping: captured at the start of a pinch so the
+    // point under the fingers stays put, instead of the tree scaling away
+    // from the origin.
+    @State private var pinchAnchor: CGPoint?
+    @State private var zoomAtPinchStart: CGFloat = 1
+    @State private var panAtPinchStart: CGSize = .zero
 
     private static let nodeSize = CGSize(width: 170, height: 62)
 
     var body: some View {
         GeometryReader { geo in
             let fit = fitTransform(in: geo.size)
-            let effectiveZoom = zoom * pinch
+            let scale = fit.scale * zoom
             let effectivePan = CGSize(width: pan.width + drag.width, height: pan.height + drag.height)
 
             Canvas { ctx, _ in
                 ctx.translateBy(x: effectivePan.width, y: effectivePan.height)
-                ctx.scaleBy(x: fit.scale * effectiveZoom, y: fit.scale * effectiveZoom)
+                ctx.scaleBy(x: scale, y: scale)
                 ctx.translateBy(x: fit.offset.width, y: fit.offset.height)
 
                 drawEdges(in: &ctx)
@@ -39,14 +45,33 @@ struct TreeCanvasView: View {
                     }
             )
             .simultaneousGesture(
-                MagnificationGesture()
-                    .updating($pinch) { value, state, _ in state = value }
-                    .onEnded { value in zoom = max(0.3, min(4, zoom * value)) }
+                MagnifyGesture()
+                    .onChanged { value in
+                        // Capture the anchor (the midpoint between the fingers)
+                        // and the transform at the pinch's start.
+                        if pinchAnchor == nil {
+                            pinchAnchor = value.startLocation
+                            zoomAtPinchStart = zoom
+                            panAtPinchStart = pan
+                        }
+                        guard let anchor = pinchAnchor else { return }
+                        let clamped = max(0.3, min(4, zoomAtPinchStart * value.magnification))
+                        // Zoom about the anchor: solve for the pan that keeps the
+                        // content point under the anchor stationary (fit.scale
+                        // cancels, so only the zoom ratio matters).
+                        let m = clamped / zoomAtPinchStart
+                        zoom = clamped
+                        pan = CGSize(
+                            width: anchor.x * (1 - m) + m * panAtPinchStart.width,
+                            height: anchor.y * (1 - m) + m * panAtPinchStart.height
+                        )
+                    }
+                    .onEnded { _ in pinchAnchor = nil }
             )
             .onTapGesture { location in
                 let contentPoint = CGPoint(
-                    x: ((location.x - effectivePan.width) / (fit.scale * effectiveZoom)) - fit.offset.width,
-                    y: ((location.y - effectivePan.height) / (fit.scale * effectiveZoom)) - fit.offset.height
+                    x: ((location.x - effectivePan.width) / scale) - fit.offset.width,
+                    y: ((location.y - effectivePan.height) / scale) - fit.offset.height
                 )
                 selected = data.persons.first { person in
                     CGRect(origin: CGPoint(x: person.x, y: person.y), size: Self.nodeSize)
