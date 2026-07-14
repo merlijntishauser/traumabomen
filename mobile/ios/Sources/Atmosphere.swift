@@ -58,8 +58,13 @@ struct HeroBackground: View {
                 )
                 AmbientMotes()
             }
-            .ignoresSafeArea()
         }
+        // Ignore the keyboard region too (not just the container insets): the
+        // hero must stay full-screen when a field is focused. Otherwise the
+        // GeometryReader shrinks with the keyboard and the photo pulls away,
+        // leaving the plain surface showing at the top. The scroll content
+        // still avoids the keyboard on its own.
+        .ignoresSafeArea()
     }
 }
 
