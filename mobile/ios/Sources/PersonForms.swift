@@ -250,3 +250,82 @@ struct LifeEventForm: View {
         loaded = true
     }
 }
+
+struct ClassificationForm: View {
+    @EnvironmentObject private var model: AppModel
+    let editingId: String?
+    let persons: [TreePerson]
+    let defaultPersonId: String
+
+    @State private var content = ClassificationContent()
+    @State private var personIds: Set<String> = []
+    @State private var loaded = false
+
+    private let statusTerms = [
+        Term("suspected", "Suspected", "Vermoed"),
+        Term("diagnosed", "Diagnosed", "Gediagnosticeerd"),
+    ]
+
+    var body: some View {
+        let subTerms = [Term("", "None", "Geen")]
+            + (Taxonomies.dsmGroup(content.dsm_category)?.subcategories ?? [])
+        EntityFormScaffold(
+            title: editingId == nil ? t("Add classification") : t("Edit classification"),
+            canSave: !content.dsm_category.isEmpty && !personIds.isEmpty,
+            onSave: {
+                let (c, ids) = (content, Array(personIds))
+                Task { await model.saveClassification(id: editingId, content: c, personIds: ids) }
+            },
+            onDelete: editingId.map { id in
+                { Task { await model.deleteStoryItem(type: .classifications, id: id) } }
+            }
+        ) {
+            FormField(label: t("DSM category")) {
+                // Setting a new category clears a now-mismatched subcategory.
+                TermMenu(terms: Taxonomies.dsm.map(\.term), selection: Binding(
+                    get: { content.dsm_category },
+                    set: { content.dsm_category = $0; content.dsm_subcategory = nil }
+                ))
+            }
+            FormField(label: t("Subcategory")) {
+                TermMenu(terms: subTerms, selection: Binding(
+                    get: { content.dsm_subcategory ?? "" },
+                    set: { content.dsm_subcategory = $0.isEmpty ? nil : $0 }
+                ))
+            }
+            FormField(label: t("Status")) {
+                TermMenu(terms: statusTerms, selection: $content.status)
+            }
+            FormField(label: t("Diagnosis year")) {
+                YearField(placeholder: t("Year"), year: $content.diagnosis_year)
+            }
+            FormField(label: t("Periods")) {
+                PeriodEditor(periods: $content.periods)
+            }
+            FormField(label: t("Notes")) {
+                DescriptionField(placeholder: t("Notes"), text: Binding(
+                    get: { content.notes ?? "" },
+                    set: { content.notes = $0.isEmpty ? nil : $0 }
+                ))
+            }
+            FormField(label: t("Attached to")) {
+                PersonMultiPicker(persons: persons, selected: $personIds)
+            }
+        }
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !loaded else { return }
+        if let editingId,
+           let result: (content: ClassificationContent, personIds: [String]) =
+               await model.loadEntityContent(type: .classifications, id: editingId) {
+            content = result.content
+            personIds = Set(result.personIds)
+        } else {
+            content.dsm_category = "anxiety"
+            personIds = [defaultPersonId]
+        }
+        loaded = true
+    }
+}

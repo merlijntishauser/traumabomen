@@ -201,6 +201,19 @@ private let NL: [String: String] = [
     "Add life event": "Levensgebeurtenis toevoegen",
     "Edit life event": "Levensgebeurtenis bewerken",
     "Impact": "Impact",
+    "Classifications": "Classificaties",
+    "Add classification": "Classificatie toevoegen",
+    "Edit classification": "Classificatie bewerken",
+    "DSM category": "DSM-categorie",
+    "Subcategory": "Subcategorie",
+    "Status": "Status",
+    "Diagnosis year": "Jaar van diagnose",
+    "Year": "Jaar",
+    "Periods": "Periodes",
+    "Notes": "Notities",
+    "None": "Geen",
+    "Suspected": "Vermoed",
+    "Diagnosed": "Gediagnosticeerd",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.

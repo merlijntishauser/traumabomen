@@ -379,6 +379,15 @@ final class AppModel: ObservableObject {
         await collect(.lifeEvents) { $0.life.append($1) }
         await collect(.turningPoints) { $0.turning.append($1) }
 
+        // Classifications decode differently (DSM label, status, diagnosis year).
+        let classRows = (try? await sync.pull(treeId: tree, type: .classifications)) ?? []
+        for row in classRows {
+            guard let (personIds, item) = TreeDecoding.classificationItem(row, key: key) else { continue }
+            for pid in personIds {
+                stories[pid, default: PersonStory()].classifications.append(item)
+            }
+        }
+
         // Linkable targets for the journal composer, with their web entity_type.
         var targets: [LinkTarget] = []
         func collectTargets(_ type: EntityType, _ entityType: String) async {

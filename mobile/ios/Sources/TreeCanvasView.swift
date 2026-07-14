@@ -339,6 +339,12 @@ struct PersonSheet: View {
                         onAdd: { editing = .create(.turning) },
                         onTap: { editing = .edit(.turning, $0.id) }
                     ) { _ in Circle().fill(CategoryColors.turningPoint) }
+                    editableSection(
+                        t("Classifications"),
+                        items: story.classifications,
+                        onAdd: { editing = .create(.classification) },
+                        onTap: { editing = .edit(.classification, $0.id) }
+                    ) { StoryTriangle().fill(CategoryColors.classification($0.category)) }
 
                     Text(t("Names, relationships, and the canvas are edited at the desk."))
                         .font(Theme.body(12))
@@ -360,6 +366,8 @@ struct PersonSheet: View {
                 LifeEventForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
             case .turning:
                 TurningPointForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+            case .classification:
+                ClassificationForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
             }
         }
     }
@@ -440,7 +448,7 @@ struct PersonSheet: View {
 
 /// Identifies which story form to present and whether it creates or edits.
 struct StoryEditTarget: Identifiable {
-    enum Kind { case trauma, life, turning }
+    enum Kind { case trauma, life, turning, classification }
     let id: String
     let kind: Kind
     let editingId: String?

@@ -15,8 +15,11 @@ struct PersonStory {
     var trauma: [StoryItem] = []
     var life: [StoryItem] = []
     var turning: [StoryItem] = []
+    var classifications: [StoryItem] = []
 
-    var isEmpty: Bool { trauma.isEmpty && life.isEmpty && turning.isEmpty }
+    var isEmpty: Bool {
+        trauma.isEmpty && life.isEmpty && turning.isEmpty && classifications.isEmpty
+    }
 }
 
 struct StoryItem: Identifiable {
@@ -55,6 +58,13 @@ enum CategoryColors {
 
     static func life(_ category: String?) -> Color {
         life[category ?? ""] ?? life["other"]!
+    }
+
+    /// Classification status: amber suspected, blue diagnosed (the badge grammar).
+    static func classification(_ status: String?) -> Color {
+        status == "diagnosed"
+            ? Color(red: 0x60 / 255, green: 0xa5 / 255, blue: 0xfa / 255)
+            : Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255)
     }
 }
 
@@ -128,6 +138,40 @@ enum TreeDecoding {
                 description: json.description,
                 category: json.category,
                 date: json.approximate_date
+            )
+        )
+    }
+
+    private struct ClassificationJson: Decodable {
+        let dsm_category: String
+        let dsm_subcategory: String?
+        let status: String?
+        let diagnosis_year: Int?
+        let notes: String?
+    }
+
+    /// A classification rendered as a story item: its title is the DSM label
+    /// (subcategory if set, else category), the status drives the badge colour,
+    /// the diagnosis year sits in the date slot, and notes form the description.
+    static func classificationItem(_ row: MirrorEntry, key: AesGcmKey) -> (personIds: [String], item: StoryItem)? {
+        guard
+            let plaintext = try? TraumaCrypto.shared.decryptJsonFromApi(
+                encryptedData: row.encryptedData, key: key
+            ),
+            let json = try? JSONDecoder().decode(ClassificationJson.self, from: Data(plaintext.utf8))
+        else { return nil }
+        let title = Taxonomies.dsmLabel(
+            category: json.dsm_category, subcategory: json.dsm_subcategory,
+            language: Loc.shared.effective
+        )
+        return (
+            row.personIds,
+            StoryItem(
+                id: row.id,
+                title: title,
+                description: json.notes,
+                category: json.status,
+                date: json.diagnosis_year.map(String.init)
             )
         )
     }
