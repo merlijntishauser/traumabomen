@@ -404,6 +404,11 @@ struct PersonSheet: View {
                             .font(Theme.body(12))
                             .foregroundStyle(Theme.textMuted)
                     }
+                    if item.pending {
+                        Text(t("on this device"))
+                            .font(Theme.body(11))
+                            .foregroundStyle(Theme.textMuted)
+                    }
                 }
                 if let description = item.description, !description.isEmpty {
                     Text(description)

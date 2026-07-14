@@ -214,6 +214,7 @@ private let NL: [String: String] = [
     "None": "Geen",
     "Suspected": "Vermoed",
     "Diagnosed": "Gediagnosticeerd",
+    "on this device": "op dit apparaat",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.

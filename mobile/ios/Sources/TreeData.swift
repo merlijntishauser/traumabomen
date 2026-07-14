@@ -28,6 +28,8 @@ struct StoryItem: Identifiable {
     let description: String?
     let category: String?
     let date: String?
+    /// Still queued in the outbox (saved on this device, not yet synced).
+    var pending: Bool = false
 }
 
 /// The closed category color set from theme.css; never extended casually.
@@ -137,7 +139,8 @@ enum TreeDecoding {
                 title: json.title,
                 description: json.description,
                 category: json.category,
-                date: json.approximate_date
+                date: json.approximate_date,
+                pending: row.pendingSync
             )
         )
     }
@@ -171,7 +174,8 @@ enum TreeDecoding {
                 title: title,
                 description: json.notes,
                 category: json.status,
-                date: json.diagnosis_year.map(String.init)
+                date: json.diagnosis_year.map(String.init),
+                pending: row.pendingSync
             )
         )
     }
