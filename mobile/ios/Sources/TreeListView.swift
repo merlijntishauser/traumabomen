@@ -44,6 +44,9 @@ struct TreeListView: View {
                         .padding(.bottom, 28)
                     }
                 }
+                // Let the hero bleed up under the status bar for an immersive
+                // top; the banner is grown by the status-bar height to match.
+                .ignoresSafeArea(edges: .top)
 
                 // The same menu-bar grammar as inside a tree: Settings and Lock
                 // are always reachable, here without the Journal/Tree tabs.
@@ -63,7 +66,7 @@ struct TreeListView: View {
                 Image("welcome")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: proxy.size.width, height: 210)
+                    .frame(width: proxy.size.width, height: 260)
                     .clipped()
                     .overlay(
                         LinearGradient(
@@ -73,7 +76,7 @@ struct TreeListView: View {
                     )
                     .overlay(AmbientMotes())
             }
-            .frame(height: 210)
+            .frame(height: 260)
 
             Text(t("Traumatrees"))
                 .font(Theme.heading(32))
@@ -81,7 +84,7 @@ struct TreeListView: View {
                 .shadow(color: .black.opacity(0.5), radius: 8, y: 2)
                 .padding(.bottom, 10)
         }
-        .frame(height: 210)
+        .frame(height: 260)
         .padding(.bottom, 4)
     }
 
