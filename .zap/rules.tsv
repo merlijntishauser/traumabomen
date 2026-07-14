@@ -2,6 +2,7 @@
 10027	IGNORE	(Information Disclosure - Suspicious Comments)
 10038	IGNORE	(Content Security Policy (CSP) Header Not Set)
 10049	IGNORE	(Non-Storable Content)
+10055	IGNORE	(CSP: only style-src unsafe-inline remains, required for React inline styles and accepted; connect-src wildcard fixed in nginx.conf, CSP guarded by code review there)
 10098	IGNORE	(Cross-Domain Misconfiguration)
 10109	IGNORE	(Modern Web Application)
 90003	IGNORE	(Sub Resource Integrity Attribute Missing)
