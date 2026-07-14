@@ -176,6 +176,15 @@ private let NL: [String: String] = [
     // Reminder notification (neutral)
     "A quiet moment": "Een rustig moment",
     "If you would like one, it is here.": "Als je er een wilt, hij is er.",
+
+    // Person-page edit form fields
+    "Choose": "Kies",
+    "Add a tag": "Voeg een label toe",
+    "Add": "Toevoegen",
+    "Start": "Begin",
+    "to": "tot",
+    "Ongoing": "Lopend",
+    "Add period": "Periode toevoegen",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.
