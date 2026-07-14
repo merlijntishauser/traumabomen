@@ -1,0 +1,35 @@
+{
+  "_comment": "Canonical wire shapes for the person-page reflective-layer entities, shared between the web (Vitest) and the iOS models (mobile/ios/scripts/verify-entities.sh). Nullable fields are written as explicit null, exactly as the web produces. Keep in step with frontend/src/types/domain.ts; a drift here should fail both suites.",
+  "trauma_event": {
+    "title": "The war years",
+    "description": "Displaced during the war.",
+    "category": "war",
+    "approximate_date": "1943",
+    "severity": 4,
+    "tags": ["war", "displacement"]
+  },
+  "life_event": {
+    "title": "First job",
+    "description": "",
+    "category": "career",
+    "approximate_date": "1961",
+    "impact": null,
+    "tags": []
+  },
+  "turning_point": {
+    "title": "Leaving home",
+    "description": "A quiet decision that changed everything.",
+    "category": "positive_change",
+    "approximate_date": "1968",
+    "significance": null,
+    "tags": ["independence"]
+  },
+  "classification": {
+    "dsm_category": "neurodevelopmental",
+    "dsm_subcategory": "adhd",
+    "status": "diagnosed",
+    "diagnosis_year": 2010,
+    "periods": [{ "start_year": 2008, "end_year": null }],
+    "notes": null
+  }
+}
