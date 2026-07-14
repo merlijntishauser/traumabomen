@@ -97,10 +97,14 @@ struct TagField: View {
                     .modifier(FieldStyle())
                     .submitLabel(.done)
                     .onSubmit(add)
-                Button(t("Add"), action: add)
-                    .font(Theme.body(13, weight: .semibold))
-                    .foregroundStyle(draft.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.textMuted : Theme.action)
-                    .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button(action: add) {
+                    ActionLabel(
+                        mark: LucidePlus(), text: t("Add"),
+                        color: draft.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.textMuted : Theme.action,
+                        markSize: 11
+                    )
+                }
+                .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
     }
@@ -149,11 +153,11 @@ struct PeriodEditor: View {
                     }
                 }
             }
-            Button(t("Add period")) {
+            Button {
                 periods.append(ClassificationPeriodContent(start_year: 2000))
+            } label: {
+                ActionLabel(mark: LucidePlus(), text: t("Add period"), color: Theme.action, markSize: 11)
             }
-            .font(Theme.body(13, weight: .semibold))
-            .foregroundStyle(Theme.action)
         }
     }
 }
@@ -190,6 +194,63 @@ struct PersonMultiPicker: View {
 
     private func toggle(_ id: String) {
         if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
+    }
+}
+
+/// A plus in Lucide's grammar for add / new actions.
+struct LucidePlus: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        p.move(to: CGPoint(x: rect.minX, y: rect.midY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        return p
+    }
+}
+
+/// A trash can in Lucide's grammar (trash-2) for delete actions.
+struct LucideTrash: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        var p = Path()
+        // Lid.
+        p.move(to: CGPoint(x: rect.minX, y: rect.minY + h * 0.22))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + h * 0.22))
+        // Handle.
+        p.move(to: CGPoint(x: rect.minX + w * 0.34, y: rect.minY + h * 0.22))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.34, y: rect.minY + h * 0.08))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.66, y: rect.minY + h * 0.08))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.66, y: rect.minY + h * 0.22))
+        // Body.
+        p.move(to: CGPoint(x: rect.minX + w * 0.18, y: rect.minY + h * 0.22))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.25, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.75, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.82, y: rect.minY + h * 0.22))
+        // Ribs.
+        p.move(to: CGPoint(x: rect.midX - w * 0.1, y: rect.minY + h * 0.38))
+        p.addLine(to: CGPoint(x: rect.midX - w * 0.1, y: rect.maxY - h * 0.1))
+        p.move(to: CGPoint(x: rect.midX + w * 0.1, y: rect.minY + h * 0.38))
+        p.addLine(to: CGPoint(x: rect.midX + w * 0.1, y: rect.maxY - h * 0.1))
+        return p
+    }
+}
+
+/// A Lucide stroke mark before an action's text, both drawn in one colour.
+struct ActionLabel<Mark: Shape>: View {
+    let mark: Mark
+    let text: String
+    var color: Color = Theme.action
+    var font: Font = Theme.body(13, weight: .semibold)
+    var markSize: CGFloat = 13
+
+    var body: some View {
+        HStack(spacing: 6) {
+            mark
+                .stroke(color, style: StrokeStyle(lineWidth: 1.7, lineCap: .round, lineJoin: .round))
+                .frame(width: markSize, height: markSize)
+            Text(text).font(font).foregroundStyle(color)
+        }
     }
 }
 

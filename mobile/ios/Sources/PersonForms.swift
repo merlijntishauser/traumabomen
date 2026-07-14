@@ -17,18 +17,25 @@ struct EntityFormScaffold<Content: View>: View {
             AppBackground()
             VStack(spacing: 0) {
                 HStack {
-                    Button(t("Cancel")) { dismiss() }
-                        .font(Theme.body(Theme.bodySize))
-                        .foregroundStyle(Theme.textSecondary)
+                    Button { dismiss() } label: {
+                        ActionLabel(
+                            mark: LucideX(), text: t("Cancel"),
+                            color: Theme.textSecondary, font: Theme.body(Theme.bodySize), markSize: 12
+                        )
+                    }
                     Spacer()
                     Text(title)
                         .font(Theme.heading(18))
                         .foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Button(t("Save")) { onSave(); dismiss() }
-                        .font(Theme.body(Theme.bodySize, weight: .semibold))
-                        .foregroundStyle(canSave ? Theme.action : Theme.textMuted)
-                        .disabled(!canSave)
+                    Button { onSave(); dismiss() } label: {
+                        ActionLabel(
+                            mark: LucideCheck(), text: t("Save"),
+                            color: canSave ? Theme.action : Theme.textMuted,
+                            font: Theme.body(Theme.bodySize, weight: .semibold)
+                        )
+                    }
+                    .disabled(!canSave)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
@@ -38,10 +45,14 @@ struct EntityFormScaffold<Content: View>: View {
                     VStack(alignment: .leading, spacing: 18) {
                         content
                         if let onDelete {
-                            Button(t("Delete")) { onDelete(); dismiss() }
-                                .font(Theme.body(Theme.bodySize, weight: .semibold))
-                                .foregroundStyle(Theme.danger)
-                                .padding(.top, 8)
+                            Button { onDelete(); dismiss() } label: {
+                                ActionLabel(
+                                    mark: LucideTrash(), text: t("Delete"),
+                                    color: Theme.danger,
+                                    font: Theme.body(Theme.bodySize, weight: .semibold), markSize: 15
+                                )
+                            }
+                            .padding(.top, 8)
                         }
                     }
                     .padding(20)

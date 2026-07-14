@@ -381,9 +381,7 @@ struct PersonSheet: View {
             Spacer()
             if let onAdd {
                 Button(action: onAdd) {
-                    Text(t("Add"))
-                        .font(Theme.body(13, weight: .semibold))
-                        .foregroundStyle(Theme.action)
+                    ActionLabel(mark: LucidePlus(), text: t("Add"), color: Theme.action, markSize: 11)
                 }
             }
         }
