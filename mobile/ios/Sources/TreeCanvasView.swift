@@ -289,7 +289,7 @@ struct PersonSheet: View {
     @EnvironmentObject private var model: AppModel
     let person: TreePerson
 
-    @State private var turningEdit: TurningEditTarget?
+    @State private var editing: StoryEditTarget?
 
     private var story: PersonStory { model.treeData?.stories[person.id] ?? PersonStory() }
     private var persons: [TreePerson] { model.treeData?.persons ?? [] }
@@ -321,17 +321,23 @@ struct PersonSheet: View {
                             .padding(.top, 4)
                     }
 
-                    readOnlySection(t("What happened"), items: story.trauma) {
-                        Circle().fill(CategoryColors.trauma($0.category))
-                    }
-                    readOnlySection(t("Life events"), items: story.life) {
-                        Rectangle().fill(CategoryColors.life($0.category))
-                    }
+                    editableSection(
+                        t("What happened"),
+                        items: story.trauma,
+                        onAdd: { editing = .create(.trauma) },
+                        onTap: { editing = .edit(.trauma, $0.id) }
+                    ) { Circle().fill(CategoryColors.trauma($0.category)) }
+                    editableSection(
+                        t("Life events"),
+                        items: story.life,
+                        onAdd: { editing = .create(.life) },
+                        onTap: { editing = .edit(.life, $0.id) }
+                    ) { Rectangle().fill(CategoryColors.life($0.category)) }
                     editableSection(
                         t("Turning points"),
                         items: story.turning,
-                        onAdd: { turningEdit = TurningEditTarget(id: "new", editingId: nil) },
-                        onTap: { turningEdit = TurningEditTarget(id: $0.id, editingId: $0.id) }
+                        onAdd: { editing = .create(.turning) },
+                        onTap: { editing = .edit(.turning, $0.id) }
                     ) { _ in Circle().fill(CategoryColors.turningPoint) }
 
                     Text(t("Names, relationships, and the canvas are edited at the desk."))
@@ -346,8 +352,15 @@ struct PersonSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .sheet(item: $turningEdit) { target in
-            TurningPointForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+        .sheet(item: $editing) { target in
+            switch target.kind {
+            case .trauma:
+                TraumaEventForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+            case .life:
+                LifeEventForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+            case .turning:
+                TurningPointForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
+            }
         }
     }
 
@@ -425,8 +438,18 @@ struct PersonSheet: View {
     }
 }
 
-/// Identifies the turning-point form to present: create (editingId nil) or edit.
-struct TurningEditTarget: Identifiable {
+/// Identifies which story form to present and whether it creates or edits.
+struct StoryEditTarget: Identifiable {
+    enum Kind { case trauma, life, turning }
     let id: String
+    let kind: Kind
     let editingId: String?
+
+    static func create(_ kind: Kind) -> StoryEditTarget {
+        StoryEditTarget(id: "new-\(kind)", kind: kind, editingId: nil)
+    }
+
+    static func edit(_ kind: Kind, _ id: String) -> StoryEditTarget {
+        StoryEditTarget(id: id, kind: kind, editingId: id)
+    }
 }

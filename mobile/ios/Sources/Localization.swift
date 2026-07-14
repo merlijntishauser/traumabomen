@@ -195,6 +195,12 @@ private let NL: [String: String] = [
     "Tags": "Labels",
     "Attached to": "Gekoppeld aan",
     "None yet.": "Nog niets.",
+    "Add trauma event": "Trauma toevoegen",
+    "Edit trauma event": "Trauma bewerken",
+    "Severity": "Ernst",
+    "Add life event": "Levensgebeurtenis toevoegen",
+    "Edit life event": "Levensgebeurtenis bewerken",
+    "Impact": "Impact",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.

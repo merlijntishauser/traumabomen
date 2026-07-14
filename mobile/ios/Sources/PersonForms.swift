@@ -124,3 +124,129 @@ struct TurningPointForm: View {
         loaded = true
     }
 }
+
+struct TraumaEventForm: View {
+    @EnvironmentObject private var model: AppModel
+    let editingId: String?
+    let persons: [TreePerson]
+    let defaultPersonId: String
+
+    @State private var content = TraumaEventContent()
+    @State private var personIds: Set<String> = []
+    @State private var loaded = false
+
+    var body: some View {
+        EntityFormScaffold(
+            title: editingId == nil ? t("Add trauma event") : t("Edit trauma event"),
+            canSave: !content.title.trimmingCharacters(in: .whitespaces).isEmpty && !personIds.isEmpty,
+            onSave: {
+                let (c, ids) = (content, Array(personIds))
+                Task { await model.saveTraumaEvent(id: editingId, content: c, personIds: ids) }
+            },
+            onDelete: editingId.map { id in
+                { Task { await model.deleteStoryItem(type: .traumaEvents, id: id) } }
+            }
+        ) {
+            FormField(label: t("Title")) {
+                TextField(t("Title"), text: $content.title).modifier(FieldStyle())
+            }
+            FormField(label: t("Category")) {
+                TermMenu(terms: Taxonomies.trauma, selection: $content.category)
+            }
+            FormField(label: t("When")) {
+                TextField(t("Approximate date"), text: $content.approximate_date).modifier(FieldStyle())
+            }
+            FormField(label: t("Severity")) {
+                // Severity is always set; a tap on the current value keeps it.
+                ScaleDots(value: Binding(
+                    get: { content.severity },
+                    set: { content.severity = $0 ?? content.severity }
+                ))
+            }
+            FormField(label: t("Description")) {
+                DescriptionField(placeholder: t("Description"), text: $content.description)
+            }
+            FormField(label: t("Tags")) {
+                TagField(tags: $content.tags)
+            }
+            FormField(label: t("Attached to")) {
+                PersonMultiPicker(persons: persons, selected: $personIds)
+            }
+        }
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !loaded else { return }
+        if let editingId,
+           let result: (content: TraumaEventContent, personIds: [String]) =
+               await model.loadEntityContent(type: .traumaEvents, id: editingId) {
+            content = result.content
+            personIds = Set(result.personIds)
+        } else {
+            personIds = [defaultPersonId]
+        }
+        loaded = true
+    }
+}
+
+struct LifeEventForm: View {
+    @EnvironmentObject private var model: AppModel
+    let editingId: String?
+    let persons: [TreePerson]
+    let defaultPersonId: String
+
+    @State private var content = LifeEventContent()
+    @State private var personIds: Set<String> = []
+    @State private var loaded = false
+
+    var body: some View {
+        EntityFormScaffold(
+            title: editingId == nil ? t("Add life event") : t("Edit life event"),
+            canSave: !content.title.trimmingCharacters(in: .whitespaces).isEmpty && !personIds.isEmpty,
+            onSave: {
+                let (c, ids) = (content, Array(personIds))
+                Task { await model.saveLifeEvent(id: editingId, content: c, personIds: ids) }
+            },
+            onDelete: editingId.map { id in
+                { Task { await model.deleteStoryItem(type: .lifeEvents, id: id) } }
+            }
+        ) {
+            FormField(label: t("Title")) {
+                TextField(t("Title"), text: $content.title).modifier(FieldStyle())
+            }
+            FormField(label: t("Category")) {
+                TermMenu(terms: Taxonomies.life, selection: $content.category)
+            }
+            FormField(label: t("When")) {
+                TextField(t("Approximate date"), text: $content.approximate_date).modifier(FieldStyle())
+            }
+            FormField(label: t("Impact")) {
+                ScaleDots(value: $content.impact)
+            }
+            FormField(label: t("Description")) {
+                DescriptionField(placeholder: t("Description"), text: $content.description)
+            }
+            FormField(label: t("Tags")) {
+                TagField(tags: $content.tags)
+            }
+            FormField(label: t("Attached to")) {
+                PersonMultiPicker(persons: persons, selected: $personIds)
+            }
+        }
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !loaded else { return }
+        if let editingId,
+           let result: (content: LifeEventContent, personIds: [String]) =
+               await model.loadEntityContent(type: .lifeEvents, id: editingId) {
+            content = result.content
+            personIds = Set(result.personIds)
+        } else {
+            personIds = [defaultPersonId]
+        }
+        loaded = true
+    }
+}
