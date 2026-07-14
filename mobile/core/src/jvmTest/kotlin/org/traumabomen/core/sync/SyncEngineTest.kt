@@ -210,6 +210,23 @@ class SyncEngineTest {
     }
 
     @Test
+    fun offlineCreateOfAPersonLinkedEntitySurvivesAReconcilingPull() {
+        // Add a classification offline (queued, links attached), then a pull
+        // that does not include it (a fresh-UUID create cannot conflict). It
+        // must survive the reconcile with its person links and still push them,
+        // the offline-first path the person page relies on.
+        val id = engine.localCreate(TREE, EntityType.CLASSIFICATIONS, "blob-c", listOf("p1", "p2"))
+
+        engine.applyPull(TREE, EntityType.CLASSIFICATIONS, emptyList())
+
+        val row = mirror.get(EntityType.CLASSIFICATIONS, id)!!
+        assertTrue(row.pendingSync)
+        assertEquals(listOf("p1", "p2"), row.personIds)
+        val creates = engine.buildPush(TREE).request["classifications_create"]!!.jsonArray
+        assertEquals(2, creates[0].jsonObject["person_ids"]!!.jsonArray.size)
+    }
+
+    @Test
     fun editingAPersonLinkedEntityWithNullLinksKeepsThem() {
         val id = engine.localCreate(TREE, EntityType.TRAUMA_EVENTS, "blob-a", listOf("p1", "p2"))
         // A content-only edit (null person ids) must not drop the links.

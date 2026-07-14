@@ -19,10 +19,19 @@ writes, and EN/NL labels.
   `b25e6fc`) done
 - Phase 5: KMP `jvmTest` and the iOS simulator build are green.
 
-Deferred polish (not blocking): a per-item "saved on this device" pending badge;
-an iOS XCTest target hosting the round-trip fixture (verified via `swift` CLI for
-now) and the shared web/iOS golden fixture; an on-device offline write/relaunch
-test.
+Deferred polish now done:
+
+- Per-item "saved on this device" pending badge (`35a2105`).
+- Shared web/iOS golden fixture (`ee82f90`): a Vitest test guards it against
+  `domain.ts`, and `mobile/ios/scripts/verify-entities.sh` round-trips the iOS
+  models against it (pure Foundation via `swift`, no Xcode app host, CI-friendly).
+- Offline coverage (`<this commit>`): the person-linked writable types now have a
+  KMP test proving an offline create survives a reconciling pull with its person
+  links intact and still pushes them. The durable outbox is covered by the
+  SqlDelight store tests.
+
+Still manual QA (needs a device + backend, not automatable here): the literal
+airplane-mode write, force-quit, relaunch, reconnect, sync walkthrough.
 
 ## Phase 1 — Core data layer + golden fixture (KMP)
 
