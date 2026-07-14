@@ -23,17 +23,42 @@ class TreeSync(db: org.traumabomen.core.db.CoreDatabase, private val api: ApiCli
 
     fun pendingCount(treeId: String): Int = engine.pendingCount(treeId)
 
-    /** Queue a new encrypted entry; visible locally immediately. */
+    // --- Generic writes for the reflective layer (trauma/life events, turning
+    // points, classifications, journal). The engine enforces companionWritable.
+
+    /** Queue a new encrypted entity of [type]; visible locally immediately. */
+    fun createEntity(
+        treeId: String,
+        type: EntityType,
+        encryptedData: String,
+        personIds: List<String> = emptyList(),
+    ): String = engine.localCreate(treeId, type, encryptedData, personIds)
+
+    /** Queue an edit; passing null person ids keeps the existing links. */
+    fun updateEntity(
+        type: EntityType,
+        id: String,
+        encryptedData: String,
+        personIds: List<String>? = null,
+    ) = engine.localUpdate(type, id, encryptedData, personIds)
+
+    /** Queue a deletion of an entity of [type]. */
+    fun deleteEntity(type: EntityType, id: String) =
+        engine.localDelete(type, id)
+
+    // --- Journal convenience wrappers (unchanged signatures for the composer).
+
+    /** Queue a new encrypted journal entry; visible locally immediately. */
     fun createLocal(treeId: String, encryptedData: String): String =
-        engine.localCreate(treeId, EntityType.JOURNAL_ENTRIES, encryptedData)
+        createEntity(treeId, EntityType.JOURNAL_ENTRIES, encryptedData)
 
-    /** Queue an edit to an existing entry. */
+    /** Queue an edit to an existing journal entry. */
     fun updateLocal(id: String, encryptedData: String) =
-        engine.localUpdate(EntityType.JOURNAL_ENTRIES, id, encryptedData)
+        updateEntity(EntityType.JOURNAL_ENTRIES, id, encryptedData)
 
-    /** Queue a deletion of an entry. */
+    /** Queue a deletion of a journal entry. */
     fun deleteLocal(id: String) =
-        engine.localDelete(EntityType.JOURNAL_ENTRIES, id)
+        deleteEntity(EntityType.JOURNAL_ENTRIES, id)
 
     /** Push queued ops; returns true when the queue drained. */
     @Throws(Exception::class)

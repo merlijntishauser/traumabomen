@@ -198,4 +198,26 @@ class SyncEngineTest {
             engine.localCreate(TREE, EntityType.PATTERNS, "blob")
         }
     }
+
+    @Test
+    fun classificationsAreWritableAndCarryPersonIds() {
+        val id = engine.localCreate(TREE, EntityType.CLASSIFICATIONS, "blob-c", listOf("p1"))
+
+        assertEquals("blob-c", mirror.get(EntityType.CLASSIFICATIONS, id)!!.encryptedData)
+        val creates = engine.buildPush(TREE).request["classifications_create"]!!.jsonArray
+        assertEquals(id, creates[0].jsonObject["id"]!!.jsonPrimitive.content)
+        assertEquals(1, creates[0].jsonObject["person_ids"]!!.jsonArray.size)
+    }
+
+    @Test
+    fun editingAPersonLinkedEntityWithNullLinksKeepsThem() {
+        val id = engine.localCreate(TREE, EntityType.TRAUMA_EVENTS, "blob-a", listOf("p1", "p2"))
+        // A content-only edit (null person ids) must not drop the links.
+        engine.localUpdate(EntityType.TRAUMA_EVENTS, id, "blob-b")
+
+        assertEquals(listOf("p1", "p2"), mirror.get(EntityType.TRAUMA_EVENTS, id)!!.personIds)
+        val creates = engine.buildPush(TREE).request["events_create"]!!.jsonArray
+        assertEquals("blob-b", creates[0].jsonObject["encrypted_data"]!!.jsonPrimitive.content)
+        assertEquals(2, creates[0].jsonObject["person_ids"]!!.jsonArray.size)
+    }
 }
