@@ -4,6 +4,26 @@ Design: `2026-07-14-ios-person-editing-design.md`
 Approach: trunk-based, small self-contained commits, `main` stays green after
 each phase. No worktree / feature branch (project convention).
 
+## Status (2026-07-14)
+
+Phases 1-4 done and shipped; the feature is functionally complete: tapping a
+person lets you add / edit / delete trauma events, life events, milestones, and
+classifications, with full web field parity, a multi-person picker, offline-first
+writes, and EN/NL labels.
+
+- Phase 1 (core) done: `5adb5bb`
+- Phase 2 (models + CRUD) done: `711bf91` (models round-trip-verified via the
+  `swift` CLI)
+- Phase 3 (taxonomies `30e1742`, components `8604fbb`) done
+- Phase 4 (forms: turning `720f122`, trauma+life `df5a47d`, classification
+  `b25e6fc`) done
+- Phase 5: KMP `jvmTest` and the iOS simulator build are green.
+
+Deferred polish (not blocking): a per-item "saved on this device" pending badge;
+an iOS XCTest target hosting the round-trip fixture (verified via `swift` CLI for
+now) and the shared web/iOS golden fixture; an on-device offline write/relaunch
+test.
+
 ## Phase 1 — Core data layer + golden fixture (KMP)
 
 The smallest, safest first step; unblocks everything and is fully testable
