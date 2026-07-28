@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import { AppFooter } from "./components/AppFooter";
 import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";

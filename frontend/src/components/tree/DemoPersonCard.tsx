@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { type DecryptedPerson, filterByPerson } from "../../hooks/useTreeData";
 import type { DemoTreeState } from "../../lib/buildDemoState";
 import "./DemoPersonCard.css";

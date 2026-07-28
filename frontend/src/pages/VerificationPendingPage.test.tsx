@@ -25,7 +25,7 @@ vi.mock("../lib/api", () => ({
 }));
 
 let mockLocationState: { email?: string } | null = { email: "test@example.com" };
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
   useLocation: () => ({ state: mockLocationState }),
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>

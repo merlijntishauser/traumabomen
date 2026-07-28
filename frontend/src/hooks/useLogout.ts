@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useEncryption } from "../contexts/useEncryption";
 import { clearTokens, clearWasAuthenticated, getRefreshToken, logout } from "../lib/api";
 

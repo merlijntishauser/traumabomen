@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { BackHome } from "../components/BackHome";
 import { Glimpse } from "../components/Glimpse";
 import { genogramJsonLd } from "../prerender/html";

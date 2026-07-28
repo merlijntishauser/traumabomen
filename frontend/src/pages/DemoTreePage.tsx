@@ -9,7 +9,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { BackHome } from "../components/BackHome";
 import { DemoPersonCard } from "../components/tree/DemoPersonCard";
 import { PatternFocusMenu } from "../components/tree/PatternFocusMenu";

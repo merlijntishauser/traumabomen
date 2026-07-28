@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
 import { type FormEvent, useCallback, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { Logomark } from "../components/Logomark";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";

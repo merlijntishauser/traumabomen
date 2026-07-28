@@ -1,7 +1,7 @@
 import { createInstance } from "i18next";
 import { renderToString } from "react-dom/server";
 import { I18nextProvider, initReactI18next } from "react-i18next";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 import GenogramPage, { type GenogramLang } from "../pages/GenogramPage";
 import { GENOGRAM_PATHS } from "./html";
 

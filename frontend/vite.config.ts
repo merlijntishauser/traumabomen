@@ -77,7 +77,7 @@ export default defineConfig({
             return "vendor-reactflow";
           if (/[\\/]@tanstack[\\/]/.test(id)) return "vendor-query";
           if (/[\\/]d3(-[^\\/]*)?[\\/]/.test(id)) return "vendor-d3";
-          if (/[\\/](react-dom|react-router-dom|react)[\\/]/.test(id))
+          if (/[\\/](react-dom|react-router|react)[\\/]/.test(id))
             return "vendor-react";
         },
       },

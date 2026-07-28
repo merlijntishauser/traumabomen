@@ -11,7 +11,7 @@ const mockClearTokens = vi.fn();
 const mockGetRefreshToken = vi.fn();
 const mockClearWasAuthenticated = vi.fn();
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
 }));
 

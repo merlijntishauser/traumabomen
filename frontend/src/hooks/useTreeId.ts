@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { compactToUuid, isUuid } from "../lib/compactId";
 
 /** Extract tree UUID from route params, decoding compact IDs. */

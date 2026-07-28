@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { ApiError, resendVerification } from "../lib/api";
 import "../styles/auth.css";

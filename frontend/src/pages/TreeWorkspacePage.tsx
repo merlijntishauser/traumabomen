@@ -16,7 +16,7 @@ import { TreePine, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";

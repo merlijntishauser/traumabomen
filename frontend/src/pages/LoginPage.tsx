@@ -1,7 +1,7 @@
 import { Lock, LogIn, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, login } from "../lib/api";

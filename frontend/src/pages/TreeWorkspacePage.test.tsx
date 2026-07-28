@@ -18,7 +18,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (k: string) => k, i18n: { language: "en" } }),
 }));
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
   useParams: () => ({ id: "tree-123" }),
   useNavigate: () => vi.fn(),
   useLocation: () => ({ state: null }),

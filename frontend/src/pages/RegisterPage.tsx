@@ -2,7 +2,7 @@ import { Check, Key, Lock, Mail, UserPlus } from "lucide-react";
 import type React from "react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PassphraseInput } from "../components/PassphraseInput";
 import { PasswordInput } from "../components/PasswordInput";

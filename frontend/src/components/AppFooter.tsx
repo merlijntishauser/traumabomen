@@ -1,7 +1,7 @@
 import { Heart, Lock, Menu, MessageSquare, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { getAccessToken } from "../lib/api";
 import { FeedbackModal } from "./FeedbackModal";
 import { ThemeToggle } from "./ThemeToggle";

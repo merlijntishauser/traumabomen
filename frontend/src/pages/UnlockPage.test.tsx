@@ -31,7 +31,7 @@ vi.mock("../contexts/useEncryption", () => ({
 
 const mockNavigate = vi.fn();
 let mockLocationState: { from?: string } | null = null;
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => ({ state: mockLocationState }),
 }));

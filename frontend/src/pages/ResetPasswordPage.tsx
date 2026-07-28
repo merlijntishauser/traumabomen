@@ -1,7 +1,7 @@
 import { Lock } from "lucide-react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PasswordInput } from "../components/PasswordInput";
 import { ApiError, resetPassword } from "../lib/api";

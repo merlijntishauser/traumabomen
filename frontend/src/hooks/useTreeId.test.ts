@@ -1,10 +1,10 @@
 import { renderHook } from "@testing-library/react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { uuidToCompact } from "../lib/compactId";
 import { useTreeId } from "./useTreeId";
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router", () => ({
   useParams: vi.fn(),
 }));
 

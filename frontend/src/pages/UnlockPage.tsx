@@ -1,7 +1,7 @@
 import { Key } from "lucide-react";
 import { type FormEvent, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PassphraseInput } from "../components/PassphraseInput";
 import { useEncryption } from "../contexts/useEncryption";

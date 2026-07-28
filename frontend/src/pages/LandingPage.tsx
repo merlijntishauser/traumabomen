@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router";
 import { AmbientBackground } from "../components/AmbientBackground";
 import { Glimpse } from "../components/Glimpse";
 import { GrowingBranch } from "../components/GrowingBranch";
