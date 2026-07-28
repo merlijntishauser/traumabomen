@@ -12,14 +12,19 @@ export default defineConfig({
   expect: { timeout: IS_SMOKETEST ? 30_000 : 10_000 },
   fullyParallel: true,
   workers: IS_SMOKETEST ? 1 : 3,
-  retries: IS_SMOKETEST ? 2 : 1,
+  // The local suite does not retry: a retry that turns a red run green hides
+  // real bugs (it masked a person-name data-loss race). The smoketest keeps
+  // its retries, where the flakiness is a cold remote deployment, not us.
+  retries: IS_SMOKETEST ? 2 : 0,
   // The smoketest runs against a live deployment: there is no test database
   // to reset, and only the production-safe smoke spec may run (the regular
   // suite registers throwaway users, which production must never allow).
   globalSetup: IS_SMOKETEST ? undefined : "./e2e/global-setup.ts",
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
+    // Without retries there is no second attempt to trace, so keep the trace
+    // from the failing run itself.
+    trace: IS_SMOKETEST ? "on-first-retry" : "retain-on-failure",
     screenshot: "only-on-failure",
   },
   projects: [
