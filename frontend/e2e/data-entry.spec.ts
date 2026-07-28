@@ -62,7 +62,7 @@ test.describe("Data entry", () => {
 
     // Fill event form
     const form = panel.locator(".detail-panel__sub-body");
-    await form.locator("input[type='text']").first().fill("Childhood trauma");
+    await form.getByLabel("Title", { exact: true }).fill("Childhood trauma");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
@@ -82,7 +82,7 @@ test.describe("Data entry", () => {
     await panel.getByRole("button", { name: /new|add/i }).click();
 
     const form = panel.locator(".detail-panel__sub-body");
-    await form.locator("input[type='text']").first().fill("Started university");
+    await form.getByLabel("Title", { exact: true }).fill("Started university");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
@@ -101,7 +101,7 @@ test.describe("Data entry", () => {
     await panel.getByRole("button", { name: /new|add/i }).click();
 
     const form = panel.locator(".detail-panel__sub-body");
-    await form.locator("input[type='text']").first().fill("Left toxic environment");
+    await form.getByLabel("Title", { exact: true }).fill("Left toxic environment");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
