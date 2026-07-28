@@ -361,4 +361,83 @@ describe("PersonTab", () => {
       expect(saved.cause_of_death).toBe("illness");
     });
   });
+
+  describe("select-on-focus", () => {
+    // The name field selects its content one frame after focus, so a click
+    // lands on a fully selected "New person" ready to type over. select()
+    // also focuses, so the deferred call must not run once focus has moved
+    // on: it would drag the caret back and the next keystrokes would
+    // overwrite the name (a birth year typed straight after a name used to
+    // land in the name field).
+    function captureRaf() {
+      const frames: FrameRequestCallback[] = [];
+      vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+        frames.push(cb);
+        return frames.length;
+      });
+      return () => {
+        const pending = [...frames];
+        frames.length = 0;
+        for (const cb of pending) cb(0);
+      };
+    }
+
+    /** jsdom's select() is a no-op on focus; real browsers focus the input. */
+    function stubBrowserSelect(input: HTMLInputElement) {
+      return vi.spyOn(input, "select").mockImplementation(function (this: HTMLInputElement) {
+        this.focus();
+      });
+    }
+
+    it("selects the name once the frame runs and focus stayed put", () => {
+      const flushFrames = captureRaf();
+      renderTab({ name: "New person" });
+      const name = screen.getByLabelText("person.name") as HTMLInputElement;
+      const select = stubBrowserSelect(name);
+
+      name.focus();
+      flushFrames();
+
+      expect(select).toHaveBeenCalled();
+      expect(document.activeElement).toBe(name);
+    });
+
+    it("leaves focus alone when it moved to the birth year before the frame ran", () => {
+      const flushFrames = captureRaf();
+      renderTab({ name: "Alice" });
+      const name = screen.getByLabelText("person.name") as HTMLInputElement;
+      const year = screen.getByLabelText("person.birthYear") as HTMLInputElement;
+      const select = stubBrowserSelect(name);
+
+      name.focus();
+      year.focus();
+      flushFrames();
+
+      expect(select).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(year);
+    });
+
+    it("keeps a birth year typed straight after the name out of the name field", () => {
+      const flushFrames = captureRaf();
+      const { onSavePerson } = renderTab({ name: "New person", birth_year: null });
+      const name = screen.getByLabelText("person.name") as HTMLInputElement;
+      const year = screen.getByLabelText("person.birthYear") as HTMLInputElement;
+      stubBrowserSelect(name);
+
+      name.focus();
+      fireEvent.change(name, { target: { value: "Alice" } });
+      // Focus moves on within the same frame, then the deferred select runs.
+      year.focus();
+      fireEvent.blur(name);
+      flushFrames();
+
+      // Whatever is typed now must reach the year, not overwrite the name.
+      fireEvent.change(document.activeElement as HTMLElement, { target: { value: "1960" } });
+      fireEvent.blur(document.activeElement as HTMLElement);
+
+      const saved = onSavePerson.mock.calls.at(-1)?.[0] as Person;
+      expect(saved.name).toBe("Alice");
+      expect(saved.birth_year).toBe(1960);
+    });
+  });
 });

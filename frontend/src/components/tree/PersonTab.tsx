@@ -154,7 +154,13 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
           onKeyDown={blurOnEnter}
           onFocus={(e) => {
             const target = e.target;
-            requestAnimationFrame(() => target.select());
+            // Deferred a frame so the click that focused us does not collapse
+            // the selection. select() also focuses, so skip it when focus has
+            // already moved on: otherwise it drags the caret back here and the
+            // next keystrokes overwrite the name.
+            requestAnimationFrame(() => {
+              if (document.activeElement === target) target.select();
+            });
           }}
         />
       </InspectorField>
