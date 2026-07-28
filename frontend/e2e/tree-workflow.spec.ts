@@ -22,8 +22,8 @@ test.describe("Tree workflow", () => {
     const panel = page.locator(".detail-panel");
     await expect(panel).toBeVisible();
 
-    await panel.locator("input[type='text']").first().fill("Alice");
-    const aliceYear = panel.locator("input[inputmode='numeric']").first();
+    await panel.getByLabel("Name", { exact: true }).fill("Alice");
+    const aliceYear = panel.getByLabel("Birth year", { exact: true });
     await aliceYear.fill("1960");
     // Autosave commits on blur; wait for the node label round trip.
     await aliceYear.blur();
@@ -39,8 +39,8 @@ test.describe("Tree workflow", () => {
     await page.getByLabel("Add person").click();
     await expect(panel).toBeVisible();
 
-    await panel.locator("input[type='text']").first().fill("Bob");
-    const bobYear = panel.locator("input[inputmode='numeric']").first();
+    await panel.getByLabel("Name", { exact: true }).fill("Bob");
+    const bobYear = panel.getByLabel("Birth year", { exact: true });
     await bobYear.fill("1958");
     await bobYear.blur();
     await expect(page.locator(".react-flow__node").filter({ hasText: "Bob" })).toBeAttached({

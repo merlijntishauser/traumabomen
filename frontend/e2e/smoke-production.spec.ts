@@ -121,8 +121,8 @@ test.describe("Production smoke", () => {
     await page.getByLabel("Add person").click();
     const panel = page.locator(".detail-panel");
     await expect(panel).toBeVisible();
-    await panel.locator("input[type='text']").first().fill("Alice");
-    const yearInput = panel.locator("input[inputmode='numeric']").first();
+    await panel.getByLabel("Name", { exact: true }).fill("Alice");
+    const yearInput = panel.getByLabel("Birth year", { exact: true });
     await yearInput.fill("1960");
     await yearInput.blur();
     await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
