@@ -157,6 +157,8 @@ export function AppFooter({ onLock }: Props) {
           <span className="app-footer__colophon-sep" aria-hidden="true" />
           <Link to="/privacy">{t("nav.privacy")}</Link>
           <span className="app-footer__colophon-sep" aria-hidden="true" />
+          <Link to="/support">{t("nav.support")}</Link>
+          <span className="app-footer__colophon-sep" aria-hidden="true" />
           <Link to="/learn">{t("nav.learn")}</Link>
           <span className="app-footer__colophon-sep" aria-hidden="true" />
           <Link to={genogramPath}>{t("nav.genogram")}</Link>
@@ -211,6 +213,9 @@ export function AppFooter({ onLock }: Props) {
             )}
             <Link className="app-footer__menu-item" to="/privacy" onClick={closeMenu}>
               {t("nav.privacy")}
+            </Link>
+            <Link className="app-footer__menu-item" to="/support" onClick={closeMenu}>
+              {t("nav.support")}
             </Link>
             <Link className="app-footer__menu-item" to="/learn" onClick={closeMenu}>
               {t("nav.learn")}

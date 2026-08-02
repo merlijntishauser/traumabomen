@@ -1,0 +1,94 @@
+/* Support page: a plain prose column, the same measure and rhythm as the
+   privacy page. Nothing decorative; someone reading this is stuck. */
+
+.support-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 48px var(--space-6);
+  background: var(--color-bg-primary);
+}
+
+.support-content {
+  max-width: 700px;
+  width: 100%;
+}
+
+.support-content > .back-home {
+  margin-bottom: var(--space-6);
+}
+
+.support-title {
+  font-family: var(--font-display);
+  font-weight: 350;
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.support-lede {
+  color: var(--color-text-secondary);
+  margin-bottom: 32px;
+}
+
+.support-section {
+  margin-bottom: 28px;
+}
+
+.support-section h2 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.support-section p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.support-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Questions and answers. Plain blocks rather than accordions: every answer
+   here is short, and hiding them behind a click helps nobody. */
+.support-qa {
+  margin-bottom: var(--space-4);
+}
+
+.support-qa:last-child {
+  margin-bottom: 0;
+}
+
+.support-qa__q {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.support-qa__a {
+  color: var(--color-text-secondary);
+}
+
+/* The one thing we cannot fix, said plainly. Matches auth-warning--prominent,
+   the existing exception to the no-left-border-callouts rule. */
+.support-warning {
+  border-left: 3px solid var(--color-danger);
+  padding-left: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.support-warning p {
+  color: var(--color-text-primary);
+  margin-bottom: 0;
+}
+
+.support-contact {
+  margin-top: var(--space-2);
+}
+
+.support-contact a {
+  color: var(--color-action);
+}

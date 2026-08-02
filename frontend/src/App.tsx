@@ -31,6 +31,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SecurityPage from "./pages/SecurityPage";
+import SupportPage from "./pages/SupportPage";
 import TourPage from "./pages/TourPage";
 import UnlockPage from "./pages/UnlockPage";
 import VerificationPendingPage from "./pages/VerificationPendingPage";
@@ -157,6 +158,7 @@ function AppContent() {
   const isPublicRoute =
     pathname === "/privacy" ||
     pathname === "/security" ||
+    pathname === "/support" ||
     pathname === "/learn" ||
     pathname === "/genogram" ||
     pathname === "/genogram-maken" ||
@@ -280,6 +282,7 @@ function AppContent() {
               <Route path="/waitlist" element={<WaitlistPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/security" element={<SecurityPage />} />
+              <Route path="/support" element={<SupportPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/genogram" element={<GenogramPage lang="en" />} />
               <Route path="/genogram-maken" element={<GenogramPage lang="nl" />} />
