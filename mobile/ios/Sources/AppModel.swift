@@ -197,8 +197,35 @@ final class AppModel: ObservableObject {
     /// Log out fully: revoke the session server-side, wipe the local cache,
     /// custody, and ciphertext, and return to the login screen so a different
     /// account can be used.
+    /// Delete the account server-side, then wipe this device.
+    ///
+    /// The server re-checks the password, so a wrong one leaves the account
+    /// (and this session) intact and only surfaces an error. Local state is
+    /// cleared through the same path as logout, because a deleted account must
+    /// not leave a cached ring or a wrapped key behind.
+    func deleteAccount(password: String) async -> Bool {
+        errorMessage = nil
+        phase = .working(t("Deleting your account"))
+        do {
+            try await api.deleteAccount(password: password)
+        } catch {
+            errorMessage = t("Could not delete the account. Check your password.")
+            await presentAfterUnlock()
+            return false
+        }
+        await wipeLocalState()
+        phase = .login
+        return true
+    }
+
     func logout() async {
         try? await api.logout()
+        await wipeLocalState()
+        phase = .login
+    }
+
+    /// Clear every trace of the session from this device.
+    private func wipeLocalState() async {
         KeychainTokenStore.clear()
         KeyCustody.purge()
         cache.clear()
@@ -213,7 +240,8 @@ final class AppModel: ObservableObject {
         selectedTreeId = nil
         saltBase64 = nil
         errorMessage = nil
-        phase = .login
+        // The caller decides where to land: logout and deletion both end at
+        // the sign-in screen, but only the caller knows which just happened.
     }
 
     /// Lock only when something is unlocked (the background grace timer).

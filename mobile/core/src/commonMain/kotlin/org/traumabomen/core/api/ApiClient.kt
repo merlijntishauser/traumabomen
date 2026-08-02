@@ -176,6 +176,19 @@ class ApiClient(
     }
 
     /**
+     * Delete the account and everything the server holds for it. The password
+     * is re-checked server-side, so a wrong one surfaces as ApiError 401 and
+     * nothing is deleted. Tokens are dropped only once the server confirms:
+     * clearing them first would strand a caller whose delete failed.
+     */
+    @Throws(Exception::class)
+    suspend fun deleteAccount(password: String) {
+        authed(HttpMethod.Delete, "/auth/account", buildJsonObject { put("password", password) })
+        tokens.accessToken = null
+        tokens.refreshToken = null
+    }
+
+    /**
      * Send an authenticated request; on 401, rotate the token pair through
      * /auth/refresh once and retry. A refresh failure surfaces as ApiError
      * 401: the session is over and the UI must re-authenticate.

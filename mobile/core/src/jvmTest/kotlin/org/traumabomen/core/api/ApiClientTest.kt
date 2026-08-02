@@ -177,4 +177,43 @@ class ApiClientTest {
         assertEquals(500, error.status)
         assertTrue(error.message!!.contains("boom"))
     }
+
+    @Test
+    fun deleteAccountSendsThePasswordAndClearsTheTokens() = runBlocking {
+        val (api, store, recorded) = harness { respond("", HttpStatusCode.NoContent) }
+        store.accessToken = "acc-1"
+        store.refreshToken = "ref-1"
+
+        api.deleteAccount("hunter2")
+
+        val req = recorded.requests.single()
+        assertEquals("DELETE", req.method.value)
+        assertEquals("https://api.test/auth/account", req.url.toString())
+        assertEquals("Bearer acc-1", req.headers["Authorization"])
+        val body = Json.parseToJsonElement(req.bodyText()).jsonObject
+        assertEquals("hunter2", body["password"]!!.jsonPrimitive.content)
+        // Only a confirmed deletion ends the session.
+        assertNull(store.accessToken)
+        assertNull(store.refreshToken)
+    }
+
+    @Test
+    fun deleteAccountKeepsTheSessionWhenThePasswordIsRejected() = runBlocking {
+        val (api, store, _) = harness { request ->
+            when (request.url.encodedPath) {
+                "/auth/refresh" ->
+                    respond("""{"access_token":"acc-2","refresh_token":"ref-2"}""", headers = jsonHeaders())
+                else -> respond("Password is incorrect", HttpStatusCode.Unauthorized)
+            }
+        }
+        store.accessToken = "acc-1"
+        store.refreshToken = "ref-1"
+
+        val error = assertFailsWith<ApiError> { api.deleteAccount("wrong") }
+
+        assertEquals(401, error.status)
+        // The account still exists, so the caller must still be signed in.
+        assertEquals("acc-2", store.accessToken)
+        assertEquals("ref-2", store.refreshToken)
+    }
 }

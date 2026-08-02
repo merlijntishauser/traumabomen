@@ -8,6 +8,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var confirmingLogout = false
+    @State private var showingDelete = false
+    @State private var deletePassword = ""
+    @State private var deleting = false
     @ObservedObject private var loc = Loc.shared
 
     @State private var enabled = false
@@ -112,6 +115,53 @@ struct SettingsView: View {
                 Text(t("Logging out clears this device and returns to the sign-in screen, so you can use a different account."))
                     .font(Theme.body(13))
                     .foregroundStyle(Theme.textMuted)
+
+                if showingDelete {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(t("Enter your password to confirm. Everything you have written is deleted from the server and from this device. This cannot be undone."))
+                            .font(Theme.body(13))
+                            .foregroundStyle(Theme.textPrimary)
+
+                        SecureField(t("Password"), text: $deletePassword)
+                            .modifier(FieldStyle())
+
+                        HStack(spacing: 16) {
+                            Button {
+                                showingDelete = false
+                                deletePassword = ""
+                            } label: {
+                                Text(t("Cancel"))
+                                    .font(Theme.body(Theme.bodySize))
+                                    .foregroundStyle(Theme.textMuted)
+                            }
+
+                            Button {
+                                deleting = true
+                                Task {
+                                    let gone = await model.deleteAccount(password: deletePassword)
+                                    deletePassword = ""
+                                    deleting = false
+                                    if gone { dismiss() } else { showingDelete = false }
+                                }
+                            } label: {
+                                Text(t(deleting ? "Deleting" : "Delete my account"))
+                                    .font(Theme.body(Theme.bodySize))
+                                    .foregroundStyle(Theme.danger)
+                            }
+                            .disabled(deletePassword.isEmpty || deleting)
+                        }
+                    }
+                    .padding(.top, 4)
+                } else {
+                    Button {
+                        showingDelete = true
+                    } label: {
+                        Text(t("Delete account"))
+                            .font(Theme.body(Theme.bodySize))
+                            .foregroundStyle(Theme.danger)
+                    }
+                    .padding(.top, 4)
+                }
 
                 Text(t("About"))
                     .font(Theme.body(13, weight: .semibold))

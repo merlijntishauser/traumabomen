@@ -160,6 +160,14 @@ private let NL: [String: String] = [
     "Tap again to log out": "Tik nogmaals om uit te loggen",
     "Logging out clears this device and returns to the sign-in screen, so you can use a different account.":
         "Uitloggen wist dit apparaat en keert terug naar het inlogscherm, zodat je een ander account kunt gebruiken.",
+    "Delete account": "Account verwijderen",
+    "Delete my account": "Verwijder mijn account",
+    "Deleting": "Bezig met verwijderen",
+    "Deleting your account": "Je account verwijderen",
+    "Enter your password to confirm. Everything you have written is deleted from the server and from this device. This cannot be undone.":
+        "Voer je wachtwoord in ter bevestiging. Alles wat je hebt geschreven wordt van de server en van dit apparaat verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "Could not delete the account. Check your password.":
+        "Kon het account niet verwijderen. Controleer je wachtwoord.",
     "About": "Over",
     "Traumatrees is a personal reflection tool, not therapy and not crisis support.":
         "Traumabomen is een persoonlijk reflectie-instrument, geen therapie en geen crisishulp.",
