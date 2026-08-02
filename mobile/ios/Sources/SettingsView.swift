@@ -125,6 +125,12 @@ struct SettingsView: View {
                         SecureField(t("Password"), text: $deletePassword)
                             .modifier(FieldStyle())
 
+                        if let error = model.errorMessage {
+                            Text(error)
+                                .font(Theme.body(13))
+                                .foregroundStyle(Theme.danger)
+                        }
+
                         HStack(spacing: 16) {
                             Button {
                                 showingDelete = false
@@ -141,7 +147,9 @@ struct SettingsView: View {
                                     let gone = await model.deleteAccount(password: deletePassword)
                                     deletePassword = ""
                                     deleting = false
-                                    if gone { dismiss() } else { showingDelete = false }
+                                    // Stay open on failure so the reason is
+                                    // readable and the password can be retyped.
+                                    if gone { dismiss() }
                                 }
                             } label: {
                                 Text(t(deleting ? "Deleting" : "Delete my account"))

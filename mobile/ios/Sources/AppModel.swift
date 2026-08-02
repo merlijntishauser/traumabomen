@@ -285,12 +285,13 @@ final class AppModel: ObservableObject {
     /// not leave a cached ring or a wrapped key behind.
     func deleteAccount(password: String) async -> Bool {
         errorMessage = nil
-        phase = .working(t("Deleting your account"))
         do {
             try await api.deleteAccount(password: password)
         } catch {
+            // Deliberately no phase change on the way in or out: deletion is
+            // driven from the settings sheet, and swapping the root view under
+            // it tears the sheet down and takes this message with it.
             errorMessage = t("Could not delete the account. Check your password.")
-            await presentAfterUnlock()
             return false
         }
         await wipeLocalState()
