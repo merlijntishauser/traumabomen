@@ -27,6 +27,7 @@ import GenogramPage from "./pages/GenogramPage";
 import LandingPage from "./pages/LandingPage";
 import LearnPage from "./pages/LearnPage";
 import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -39,6 +40,9 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import WaitlistPage from "./pages/WaitlistPage";
 
 const RELOAD_KEY = "traumabomen_chunk_reload";
+
+/** Paths behind authentication; everything else is public or a 404. */
+const APP_ROUTE_PREFIXES = ["/unlock", "/trees", "/admin"];
 
 /**
  * Wrap a dynamic import so that a failed chunk load (stale deploy) triggers
@@ -155,21 +159,13 @@ function AppContent() {
   const wasAuth = getWasAuthenticated();
   const { pathname } = useLocation();
 
-  const isPublicRoute =
-    pathname === "/privacy" ||
-    pathname === "/security" ||
-    pathname === "/support" ||
-    pathname === "/learn" ||
-    pathname === "/genogram" ||
-    pathname === "/genogram-maken" ||
-    pathname === "/tour" ||
-    pathname === "/demo" ||
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname === "/waitlist" ||
-    pathname === "/forgot-password" ||
-    pathname === "/reset-password" ||
-    pathname.startsWith("/verify");
+  // Only these need a session. Inverted rather than listing the public pages,
+  // because the list has to cover unknown paths too: those render the 404, and
+  // asking someone to log in to see a page that does not exist is nonsense.
+  // It also means a new public page needs no edit here.
+  const isPublicRoute = !APP_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
   // Determine auth modal mode (skip on public routes)
   let authModalMode: "unlock" | "reauth" | null = null;
@@ -370,7 +366,7 @@ function AppContent() {
                   </AdminGuard>
                 }
               />
-              <Route path="*" element={<Navigate to="/trees" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </main>

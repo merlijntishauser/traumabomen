@@ -1010,5 +1010,9 @@
   "support.security.body": "If you have found a vulnerability, please report it privately rather than opening a public issue.",
   "support.more.heading": "More",
   "support.more.security": "How the encryption works",
-  "nav.support": "Support"
+  "nav.support": "Support",
+  "notFound.title": "This page does not exist",
+  "notFound.body": "The link may be old, or the address may have a typo in it. Nothing has gone wrong with your account.",
+  "notFound.home": "Go to the home page",
+  "notFound.linksLabel": "Where to go instead"
 }

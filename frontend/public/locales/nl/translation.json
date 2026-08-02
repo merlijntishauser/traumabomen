@@ -1010,5 +1010,9 @@
   "support.security.body": "Heb je een kwetsbaarheid gevonden, meld die dan privé in plaats van een openbaar issue te openen.",
   "support.more.heading": "Meer",
   "support.more.security": "Hoe de versleuteling werkt",
-  "nav.support": "Hulp"
+  "nav.support": "Hulp",
+  "notFound.title": "Deze pagina bestaat niet",
+  "notFound.body": "De link is misschien oud, of er staat een typefout in het adres. Er is niets mis met je account.",
+  "notFound.home": "Naar de startpagina",
+  "notFound.linksLabel": "Waar je wel heen kunt"
 }

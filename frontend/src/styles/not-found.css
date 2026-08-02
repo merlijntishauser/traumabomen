@@ -1,0 +1,41 @@
+/* Not found: a short, calm column. Someone here followed a broken link, so
+   the page says what happened and points at the few places worth going. */
+
+.not-found-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px var(--space-6);
+  background: var(--color-bg-primary);
+}
+
+.not-found-content {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.not-found-title {
+  font-family: var(--font-display);
+  font-weight: 350;
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.not-found-body {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.not-found-links {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.not-found-links a {
+  color: var(--color-action);
+}
