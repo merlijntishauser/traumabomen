@@ -73,7 +73,14 @@ def main():
     }, access)
 
     for entry in ENTRIES:
-        call("POST", f"/trees/{tree_id}/journal", {"encrypted_data": encrypt_for_api(entry, tree_key)}, access)
+        # The app (like the web) stores one "text" field, first line as the
+        # title, plus linked_entities. Posting {"title", "content"} decodes to
+        # nothing and the entries silently never appear.
+        payload = {
+            "text": f"{entry['title']}\n\n{entry['content']}",
+            "linked_entities": [],
+        }
+        call("POST", f"/trees/{tree_id}/journal", {"encrypted_data": encrypt_for_api(payload, tree_key)}, access)
 
     # A small three-generation family with canvas positions, so the app's
     # tree view has something true to render.
