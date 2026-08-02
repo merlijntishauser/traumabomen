@@ -90,9 +90,12 @@ already indexes those, and the space is better spent elsewhere.
 
 - Marketing URL: `https://www.traumatrees.org`
 - Privacy policy URL: `https://www.traumatrees.org/privacy`
-- Support URL: **you need to fill this in.** Apple requires a page where a
-  user can actually reach you. The site has no support or contact page today,
-  so either add one or point this at something that works.
+- Support URL: `https://www.traumatrees.org/support`
+
+The support page answers the questions people arrive with, links the crisis
+resources, and publishes `support@traumatrees.org`. **Create that alias before
+you submit**: Apple checks the support URL, and a page whose address bounces is
+worse than no page.
 
 ## Category
 

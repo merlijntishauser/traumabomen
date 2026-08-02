@@ -90,7 +90,11 @@ genogram,stamboom,dagboek,reflectie,generaties,privacy,versleuteld,familie,patro
 
 - Marketing-URL: `https://www.traumabomen.nl`
 - Privacybeleid: `https://www.traumabomen.nl/privacy`
-- Support-URL: **nog invullen**, net als bij de Engelse editie.
+- Support-URL: `https://www.traumabomen.nl/support`
+
+Dezelfde pagina, in het Nederlands, met 113 als crisisnummer. Het adres
+`support@traumatrees.org` moet bestaan voordat je indient; beide domeinen
+verwijzen naar hetzelfde adres.
 
 ## Let op
 
