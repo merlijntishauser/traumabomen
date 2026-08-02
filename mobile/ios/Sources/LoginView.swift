@@ -45,6 +45,15 @@ struct LoginView: View {
                             .foregroundStyle(.white)
                             .disabled(email.isEmpty || password.isEmpty)
                             .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1)
+
+                            Button {
+                                model.showRegister()
+                            } label: {
+                                Text(t("Create an account"))
+                                    .font(Theme.body(13))
+                                    .foregroundStyle(.white.opacity(0.85))
+                            }
+                            .padding(.top, 4)
                         }
                     }
                     .padding(.horizontal, 28)

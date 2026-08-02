@@ -12,6 +12,8 @@ final class AppModel: ObservableObject {
     enum Phase {
         case welcome
         case login
+        case register
+        case verifyPending(email: String)
         case biometric
         case treeList
         case unlock(hint: String?)
@@ -113,6 +115,75 @@ final class AppModel: ObservableObject {
 
     func dismissWelcome() {
         phase = (KeychainTokenStore().refreshToken != nil && KeyCustody.hasFreshKey()) ? .biometric : .login
+    }
+
+    func showRegister() {
+        errorMessage = nil
+        phase = .register
+    }
+
+    func showLogin() {
+        errorMessage = nil
+        phase = .login
+    }
+
+    /// Create an account. The server requires email verification, so this
+    /// cannot sign the user in: it ends on the "check your email" screen and
+    /// the normal login path takes over once they have clicked the link.
+    ///
+    /// The salt is generated here and handed to the server, which only ever
+    /// stores it. The passphrase never leaves the device, so nothing derived
+    /// from it can be sent until the account can actually authenticate.
+    func register(email: String, password: String) async {
+        errorMessage = nil
+        phase = .working(t("Creating your account"))
+        do {
+            try await api.register(
+                email: email, password: password, encryptionSalt: Self.generateSalt()
+            )
+        } catch {
+            switch Self.apiStatus(of: error) {
+            case 403:
+                errorMessage = t("Sign-ups are paused right now. You can join the waitlist on traumatrees.org.")
+            case 409:
+                errorMessage = t("That email already has an account. Try logging in instead.")
+            case 422:
+                errorMessage = t("That password is too weak. Use a longer one.")
+            default:
+                errorMessage = t("Could not create the account. Please try again.")
+            }
+            phase = .register
+            return
+        }
+        phase = .verifyPending(email: email)
+    }
+
+    /// The HTTP status behind a Kotlin ApiError, when that is what failed.
+    ///
+    /// Kotlin exceptions arrive as NSError carrying the throwable. The message
+    /// is parsed as a fallback because the bridged cast is the kind of thing a
+    /// Kotlin or compiler upgrade can quietly change, and the key ring
+    /// bootstrap keys off a 404: silently losing the status there would turn
+    /// sign-up into an account nobody can unlock.
+    private static func apiStatus(of error: Error) -> Int? {
+        let nsError = error as NSError
+        if let apiError = nsError.userInfo["KotlinException"] as? ApiError {
+            return Int(apiError.status)
+        }
+        // ApiError's message is "HTTP <status>: <body>".
+        let text = (nsError.userInfo[NSLocalizedDescriptionKey] as? String) ?? nsError.description
+        guard let range = text.range(of: #"HTTP (\d{3})"#, options: .regularExpression) else {
+            return nil
+        }
+        return Int(text[range].dropFirst("HTTP ".count))
+    }
+
+    /// 16 random bytes, base64: the same shape as the web's generateSalt().
+    private static func generateSalt() -> String {
+        var bytes = [UInt8](repeating: 0, count: 16)
+        let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        precondition(status == errSecSuccess, "the system RNG failed")
+        return Data(bytes).base64EncodedString()
     }
 
     func login(email: String, password: String) async {
@@ -268,13 +339,24 @@ final class AppModel: ObservableObject {
         // Fresh ring when the network allows; the cached copy opens the app
         // offline. Both are ciphertext only the right key can use.
         let ringBlob: String
-        if let fetched = try? await api.fetchKeyRing() {
+        do {
+            let fetched = try await api.fetchKeyRing()
             cache.encryptedKeyRing = fetched
             ringBlob = fetched
-        } else if let cached = cache.encryptedKeyRing {
-            ringBlob = cached
-        } else {
-            throw UnlockError.noKeyRing
+        } catch {
+            if let cached = cache.encryptedKeyRing {
+                ringBlob = cached
+            } else if Self.apiStatus(of: error) == 404 {
+                // Only a 404 means the account genuinely has no ring yet, which
+                // is a fresh sign-up. Anything else (offline, 500) must not get
+                // here: PUT /auth/key-ring overwrites unconditionally, so
+                // treating a dropped connection as "no ring" would replace a
+                // real key ring with an empty one and orphan every tree key.
+                try await createEmptyKeyRing(with: master)
+                return
+            } else {
+                throw UnlockError.noKeyRing
+            }
         }
         // A wrong key fails right here, on authenticated decryption.
         let ring = try TraumaCrypto.shared.decryptKeyRing(
@@ -284,6 +366,20 @@ final class AppModel: ObservableObject {
             dict[pair.key] = TraumaCrypto.shared.importTreeKey(base64Key: pair.value)
         }
         await buildTreeList(ring: ring)
+    }
+
+    /// Write the first key ring for an account that has never had one.
+    ///
+    /// The ring is empty because a new account owns no trees yet; the first
+    /// tree adds itself to it. Encrypting it with the master key is also what
+    /// makes the passphrase real: from here on, unlocking is the ordinary
+    /// decrypt path.
+    private func createEmptyKeyRing(with master: AesGcmKey) async throws {
+        let blob = TraumaCrypto.shared.encryptKeyRing(keyRing: [:], masterKey: master)
+        try await api.putKeyRing(encryptedKeyRing: blob)
+        cache.encryptedKeyRing = blob
+        treeKeys = [:]
+        await buildTreeList(ring: [:])
     }
 
     /// The tree is the app's top-level context: land on the tree list, unless

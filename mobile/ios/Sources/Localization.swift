@@ -68,6 +68,29 @@ private let NL: [String: String] = [
     "Unlock": "Ontgrendelen",
     "Incorrect passphrase.": "Onjuiste encryptiesleutel.",
     "Welcome back.": "Welkom terug.",
+
+    // Registration
+    "Create an account": "Een account aanmaken",
+    "Create account": "Account aanmaken",
+    "Creating your account": "Je account aanmaken",
+    "I already have an account": "Ik heb al een account",
+    "Repeat encryption passphrase": "Herhaal encryptiesleutel",
+    "Your encryption passphrase is separate from your password. It unlocks your writing on this device, and we never receive it.":
+        "Je encryptiesleutel staat los van je wachtwoord. Hij ontgrendelt wat je schrijft op dit apparaat, en wij ontvangen hem nooit.",
+    "The two passphrases do not match.": "De twee encryptiesleutels komen niet overeen.",
+    "Sign-ups are paused right now. You can join the waitlist on traumatrees.org.":
+        "Aanmelden is nu tijdelijk gesloten. Je kunt je op traumabomen.nl op de wachtlijst zetten.",
+    "That email already has an account. Try logging in instead.":
+        "Dit e-mailadres heeft al een account. Probeer in te loggen.",
+    "That password is too weak. Use a longer one.":
+        "Dit wachtwoord is te zwak. Kies een langer wachtwoord.",
+    "Could not create the account. Please try again.":
+        "Kon het account niet aanmaken. Probeer het opnieuw.",
+    "Check your email": "Controleer je e-mail",
+    "We sent a link to": "We hebben een link gestuurd naar",
+    "Open it to confirm your address, then come back here and log in.":
+        "Open die om je adres te bevestigen, kom dan hier terug en log in.",
+    "I have confirmed, log in": "Ik heb bevestigd, inloggen",
     "Unlock with Face ID": "Ontgrendel met Face ID",
     "Use passphrase instead": "Gebruik je encryptiesleutel",
 

@@ -28,6 +28,10 @@ struct RootView: View {
                     .environmentObject(model)
             case .login:
                 LoginView()
+            case .register:
+                RegisterView()
+            case .verifyPending(let email):
+                VerifyPendingView(email: email)
             case .biometric:
                 BiometricUnlockView()
             case .treeList:
