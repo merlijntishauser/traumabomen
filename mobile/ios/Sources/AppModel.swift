@@ -82,6 +82,10 @@ final class AppModel: ObservableObject {
     }
 
     private var treeKeys: [String: AesGcmKey] = [:]
+    /// The key ring as the server stores it (tree id to base64 key). Kept
+    /// alongside the imported keys so adding a tree can re-encrypt the ring
+    /// without decrypting it again.
+    private var ringBase64: [String: String] = [:]
     @Published var treeData: TreeData?
 
     private let api: ApiClient
@@ -179,8 +183,13 @@ final class AppModel: ObservableObject {
     }
 
     /// 16 random bytes, base64: the same shape as the web's generateSalt().
-    private static func generateSalt() -> String {
-        var bytes = [UInt8](repeating: 0, count: 16)
+    private static func generateSalt() -> String { randomBase64(byteCount: 16) }
+
+    /// Cryptographically random bytes, base64. Traps rather than falling back
+    /// to a weaker source: a predictable salt or tree key cannot be recovered
+    /// from later, so degrading key material silently is worse than crashing.
+    private static func randomBase64(byteCount: Int) -> String {
+        var bytes = [UInt8](repeating: 0, count: byteCount)
         let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         precondition(status == errSecSuccess, "the system RNG failed")
         return Data(bytes).base64EncodedString()
@@ -305,6 +314,7 @@ final class AppModel: ObservableObject {
         masterKey = nil
         treeKey = nil
         treeKeys = [:]
+        ringBase64 = [:]
         treeData = nil
         trees = []
         linkTargets = []
@@ -328,6 +338,7 @@ final class AppModel: ObservableObject {
         masterKey = nil
         treeKey = nil
         treeKeys = [:]
+        ringBase64 = [:]
         treeData = nil
         trees = []
         linkTargets = []
@@ -362,6 +373,7 @@ final class AppModel: ObservableObject {
         let ring = try TraumaCrypto.shared.decryptKeyRing(
             encryptedKeyRing: ringBlob, masterKey: master
         )
+        ringBase64 = ring
         treeKeys = ring.reduce(into: [:]) { dict, pair in
             dict[pair.key] = TraumaCrypto.shared.importTreeKey(base64Key: pair.value)
         }
@@ -378,8 +390,50 @@ final class AppModel: ObservableObject {
         let blob = TraumaCrypto.shared.encryptKeyRing(keyRing: [:], masterKey: master)
         try await api.putKeyRing(encryptedKeyRing: blob)
         cache.encryptedKeyRing = blob
+        ringBase64 = [:]
         treeKeys = [:]
         await buildTreeList(ring: [:])
+    }
+
+    /// Create a tree and add its key to the ring.
+    ///
+    /// The tree key is generated here and only ever leaves the device inside
+    /// the ring, encrypted under the master key. Shape matches the web
+    /// (32 random bytes, `{"name": ...}` as the payload) so a tree made on the
+    /// phone opens at the desk.
+    func createTree(name: String) async {
+        guard let master = masterKey else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        errorMessage = nil
+        phase = .working(t("Creating your tree"))
+        do {
+            let keyBase64 = Self.randomBase64(byteCount: 32)
+            let treeKey = TraumaCrypto.shared.importTreeKey(base64Key: keyBase64)
+            let payload = String(
+                decoding: try JSONEncoder().encode(["name": trimmed]), as: UTF8.self
+            )
+            let blob = TraumaCrypto.shared.encryptJsonForApi(plaintextJson: payload, key: treeKey)
+
+            let id = try await api.createTree(encryptedData: blob)
+
+            // The tree exists but is unreadable until its key is in the ring,
+            // so this must land before we treat it as created.
+            var ring = ringBase64
+            ring[id] = keyBase64
+            let ringBlob = TraumaCrypto.shared.encryptKeyRing(keyRing: ring, masterKey: master)
+            try await api.putKeyRing(encryptedKeyRing: ringBlob)
+
+            ringBase64 = ring
+            cache.encryptedKeyRing = ringBlob
+            treeKeys[id] = treeKey
+            await buildTreeList(ring: ring)
+            await enterTree(id)
+        } catch {
+            errorMessage = t("Could not create the tree. Please try again.")
+            phase = .treeList
+        }
     }
 
     /// The tree is the app's top-level context: land on the tree list, unless
@@ -390,7 +444,10 @@ final class AppModel: ObservableObject {
         } else if let chosen = selectedTreeId, treeKeys[chosen] != nil, forcedTreeSelection {
             phase = .journal(entries: await loadTree(chosen))
         } else if trees.isEmpty {
-            phase = .journal(entries: [])
+            // No trees means a new account: the list is where a tree gets
+            // made, so land there rather than in a journal with nothing
+            // behind it and no way to add one.
+            phase = .treeList
         } else {
             phase = .treeList
         }

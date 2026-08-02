@@ -9,6 +9,8 @@ struct TreeListView: View {
     @EnvironmentObject private var model: AppModel
     @ObservedObject private var loc = Loc.shared
     @State private var showSettings = false
+    @State private var naming = false
+    @State private var newTreeName = ""
 
     var body: some View {
         ZStack {
@@ -38,6 +40,8 @@ struct TreeListView: View {
                                 }
                                 .buttonStyle(.plain)
                             }
+
+                            newTreeRow
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 20)
@@ -55,6 +59,67 @@ struct TreeListView: View {
             .appearFade()
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+    }
+
+    /// Start a tree. Named up front because the name is the only thing a tree
+    /// carries until people are added to it, and an unnamed one reads as a bug.
+    @ViewBuilder private var newTreeRow: some View {
+        if naming {
+            VStack(alignment: .leading, spacing: 10) {
+                TextField(t("Tree name"), text: $newTreeName)
+                    .modifier(FieldStyle())
+                    .submitLabel(.done)
+                    .onSubmit(create)
+
+                if let error = model.errorMessage {
+                    Text(error)
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.danger)
+                }
+
+                HStack(spacing: 16) {
+                    Button {
+                        naming = false
+                        newTreeName = ""
+                    } label: {
+                        Text(t("Cancel"))
+                            .font(Theme.body(Theme.bodySize))
+                            .foregroundStyle(Theme.textMuted)
+                    }
+
+                    Button(action: create) {
+                        Text(t("Create tree"))
+                            .font(Theme.body(Theme.bodySize, weight: .semibold))
+                            .foregroundStyle(Theme.action)
+                    }
+                    .disabled(newTreeName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cardSurface(radius: 16)
+        } else {
+            Button {
+                model.errorMessage = nil
+                naming = true
+            } label: {
+                Text(model.trees.isEmpty ? t("Create your first tree") : t("New tree"))
+                    .font(Theme.body(Theme.bodySize, weight: .semibold))
+                    .foregroundStyle(Theme.action)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .cardSurface(radius: 16)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func create() {
+        let name = newTreeName
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        naming = false
+        newTreeName = ""
+        Task { await model.createTree(name: name) }
     }
 
     /// A forest-photo banner with the wordmark over it, drifting ambient light,

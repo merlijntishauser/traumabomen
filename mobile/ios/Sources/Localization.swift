@@ -69,6 +69,15 @@ private let NL: [String: String] = [
     "Incorrect passphrase.": "Onjuiste encryptiesleutel.",
     "Welcome back.": "Welkom terug.",
 
+    // Trees
+    "Create your first tree": "Maak je eerste boom",
+    "New tree": "Nieuwe boom",
+    "Tree name": "Naam van de boom",
+    "Create tree": "Boom aanmaken",
+    "Creating your tree": "Je boom aanmaken",
+    "Could not create the tree. Please try again.":
+        "Kon de boom niet aanmaken. Probeer het opnieuw.",
+
     // Registration
     "Create an account": "Een account aanmaken",
     "Create account": "Account aanmaken",
