@@ -56,14 +56,24 @@ export JAVA_HOME
 export PATH="$JAVA_HOME/bin:$PATH"
 
 echo "--- Building the KMP core XCFramework ---"
-# Debug slice: matches the framework path project.yml links. First run also
-# downloads the Kotlin/Native toolchain and builds libsodium from source, so
-# this step is the slow one.
+# Release slice: cloud builds are archived and shipped, so they must not carry
+# the debug core (unoptimised, assertions on). First run also downloads the
+# Kotlin/Native toolchain and builds libsodium from source, so this step is the
+# slow one.
 cd "$REPO/mobile/core"
-retry ./gradlew --no-daemon assembleTraumabomenCoreDebugXCFramework
+retry ./gradlew --no-daemon assembleTraumabomenCoreReleaseXCFramework
 
 echo "--- Generating the Xcode project from project.yml ---"
 cd "$REPO/mobile/ios"
+# project.yml links the debug slice, which is what a developer building locally
+# wants. Retarget it to the release slice we just built. This edits the
+# throwaway CI clone only and never reaches the repository, which keeps the
+# local workflow (a plain `xcodegen generate`) working unchanged.
+sed -i '' 's|/XCFrameworks/debug/|/XCFrameworks/release/|' project.yml
+grep -q '/XCFrameworks/release/' project.yml || {
+    echo "Failed to retarget project.yml at the release XCFramework" >&2
+    exit 1
+}
 xcodegen generate
 
 # Stamp versions so every TestFlight build is unique and matches the release
