@@ -15,6 +15,7 @@ import {
   TraumaCategory,
   TurningPointCategory,
 } from "../types/domain";
+import type { InferredSibling } from "./inferSiblings";
 import {
   adjustEdgeOverlaps,
   assignMarkerShapes,
@@ -1630,5 +1631,312 @@ describe("layoutDagreGraph overlap resolution", () => {
     const na = graph.node("a");
     const nb = graph.node("b");
     expect(na.y).toBe(nb.y);
+  });
+});
+
+// ---- Coverage of previously unexercised paths ----
+
+describe("layoutDagreGraph with inferred siblings", () => {
+  it("adds a zero-length edge between two inferred siblings in the graph", () => {
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+    ]);
+    const inferred: InferredSibling[] = [
+      { personAId: "a", personBId: "b", type: "full_sibling", sharedParentIds: ["p"] },
+    ];
+
+    const { graph } = layoutDagreGraph(
+      persons,
+      new Map<string, DecryptedRelationship>(),
+      new Set<string>(),
+      inferred,
+    );
+
+    expect(graph.hasEdge("a", "b")).toBe(true);
+    expect(graph.edge("a", "b")).toMatchObject({ minlen: 0 });
+  });
+
+  it("skips an inferred sibling whose counterpart is not a node", () => {
+    const persons = new Map<string, DecryptedPerson>([["a", makePerson("a", "A")]]);
+    const inferred: InferredSibling[] = [
+      { personAId: "a", personBId: "ghost", type: "half_sibling", sharedParentIds: ["p"] },
+    ];
+
+    const { graph } = layoutDagreGraph(
+      persons,
+      new Map<string, DecryptedRelationship>(),
+      new Set<string>(),
+      inferred,
+    );
+
+    expect(graph.hasEdge("a", "ghost")).toBe(false);
+    expect(graph.hasNode("a")).toBe(true);
+  });
+
+  it("leaves an invisible sibling group out of the graph", () => {
+    const persons = new Map<string, DecryptedPerson>([["a", makePerson("a", "A")]]);
+    // No members: isSiblingGroupVisible is false, so it must not be laid out.
+    const empty: DecryptedSiblingGroup = { id: "sg1", person_ids: ["a"], members: [] };
+    const groups = new Map<string, DecryptedSiblingGroup>([["sg1", empty]]);
+
+    const { graph } = layoutDagreGraph(
+      persons,
+      new Map<string, DecryptedRelationship>(),
+      new Set<string>(),
+      undefined,
+      groups,
+    );
+
+    expect(graph.hasNode("sibling-group-sg1")).toBe(false);
+  });
+});
+
+describe("resolveEdgeHandles fallback", () => {
+  it("falls back to bottom/top for a parent edge with unknown node positions", () => {
+    const rels = new Map<string, DecryptedRelationship>([
+      ["r1", makeRel("r1", RelationshipType.BiologicalParent, "a", "b")],
+    ]);
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+    ]);
+
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      // Empty: neither endpoint has a centre, so the handles fall back.
+      nodeCenter: new Map<string, { x: number; y: number }>(),
+      childCoupleColor: new Map<string, string>(),
+      useCoupleColors: false,
+      forkDataByEdge: new Map(),
+      forkHiddenIds: new Set<string>(),
+      inferred: [],
+    });
+
+    expect(edges).toHaveLength(1);
+    expect(edges[0].sourceHandle).toBe("bottom");
+    expect(edges[0].targetHandle).toBe("top");
+  });
+
+  it("falls back to right/left for a non-parent edge with unknown node positions", () => {
+    const rels = new Map<string, DecryptedRelationship>([
+      ["r1", makeRel("r1", RelationshipType.Friend, "a", "b")],
+    ]);
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+    ]);
+
+    const edges = buildRelationshipEdges({
+      relationships: rels,
+      persons,
+      nodeCenter: new Map<string, { x: number; y: number }>(),
+      childCoupleColor: new Map<string, string>(),
+      useCoupleColors: false,
+      forkDataByEdge: new Map(),
+      forkHiddenIds: new Set<string>(),
+      inferred: [],
+    });
+
+    expect(edges[0].sourceHandle).toBe("right");
+    expect(edges[0].targetHandle).toBe("left");
+  });
+});
+
+describe("assignMarkerShapes reuse", () => {
+  it("keeps the first marker when an edge appears in two side groups", () => {
+    const edges = [
+      { id: "e1", source: "a", target: "b", data: {} },
+      { id: "e2", source: "a", target: "c", data: {} },
+      { id: "e3", source: "a", target: "d", data: {} },
+    ] as unknown as RelationshipEdgeType[];
+
+    // e1 sits in both groups; the second pass must not overwrite its marker.
+    const sideGroups = new Map<string, { edgeIdx: number; end: "source" | "target" }[]>([
+      [
+        "a:right",
+        [
+          { edgeIdx: 0, end: "source" },
+          { edgeIdx: 1, end: "source" },
+        ],
+      ],
+      [
+        "a:bottom",
+        [
+          { edgeIdx: 0, end: "source" },
+          { edgeIdx: 2, end: "source" },
+        ],
+      ],
+    ]);
+
+    assignMarkerShapes(edges, sideGroups as never);
+
+    const first = edges[0].data?.markerShape;
+    expect(first).toBeDefined();
+    expect(MARKER_SHAPES).toContain(first as string);
+  });
+});
+
+describe("buildSiblingGroupNodes without a laid-out node", () => {
+  it("skips a visible group that has neither a saved position nor a graph node", () => {
+    const groups = new Map<string, DecryptedSiblingGroup>([
+      ["sg1", makeSiblingGroup("sg1", ["p1"])],
+    ]);
+    // Empty graph: the group has no dagre position to fall back on.
+    const graph = new dagre.graphlib.Graph();
+    graph.setGraph({});
+
+    expect(buildSiblingGroupNodes(groups, graph)).toEqual([]);
+  });
+});
+
+describe("buildJunctionForks edge classification", () => {
+  it("marks the first parent edge primary and hides the rest of the couple's edges", () => {
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+      ["c", makePerson("c", "Child")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>([
+      ["r-a", makeRel("r-a", RelationshipType.BiologicalParent, "a", "c")],
+      ["r-b", makeRel("r-b", RelationshipType.BiologicalParent, "b", "c")],
+      // Ignored: not a biological parent edge for this couple.
+      ["r-x", makeRel("r-x", RelationshipType.Friend, "a", "b")],
+    ]);
+    const nodeCenter = new Map<string, { x: number; y: number }>([
+      ["a", { x: 0, y: 0 }],
+      ["b", { x: 200, y: 0 }],
+      ["c", { x: 100, y: 200 }],
+    ]);
+    const coupleChildren = new Map<string, string[]>([["a|b", ["c"]]]);
+
+    const result = buildJunctionForks(coupleChildren, nodeCenter, rels, persons);
+
+    // One edge carries the fork; the other is hidden behind it.
+    expect(result.forkPrimaryIds.size).toBe(1);
+    expect(result.forkHiddenIds.size).toBe(1);
+    expect([...result.forkPrimaryIds][0]).not.toBe([...result.forkHiddenIds][0]);
+
+    const primaryId = [...result.forkPrimaryIds][0];
+    expect(result.forkDataByEdge.get(primaryId)).toMatchObject({
+      parentIds: ["a", "b"],
+      childIds: ["c"],
+      parentNames: ["A", "B"],
+      childNames: ["Child"],
+    });
+    expect(result.forkDataByEdge.has([...result.forkHiddenIds][0])).toBe(false);
+  });
+});
+
+describe("adjustEdgeOverlaps spreading", () => {
+  function edge(
+    id: string,
+    source: string,
+    target: string,
+    sourceHandle: string,
+    targetHandle: string,
+  ): RelationshipEdgeType {
+    return {
+      id,
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+      data: {},
+    } as unknown as RelationshipEdgeType;
+  }
+
+  it("spreads shared left/right target handles along y", () => {
+    // Both edges arrive at c's left handle: a left/right side spreads
+    // vertically, so the offsets differ in y and share x.
+    const edges = [edge("e1", "a", "c", "right", "left"), edge("e2", "b", "c", "right", "left")];
+    const nodeCenter = new Map<string, { x: number; y: number }>([
+      ["a", { x: 0, y: 0 }],
+      ["b", { x: 0, y: 100 }],
+      ["c", { x: 300, y: 50 }],
+    ]);
+
+    adjustEdgeOverlaps(edges, nodeCenter, false);
+
+    const o1 = edges[0].data?.targetOffset as { x: number; y: number };
+    const o2 = edges[1].data?.targetOffset as { x: number; y: number };
+    expect(o1.x).toBe(0);
+    expect(o2.x).toBe(0);
+    expect(o1.y).not.toBe(o2.y);
+  });
+
+  it("keeps the original order when an edge's far endpoint has no centre", () => {
+    // e2's target is absent from nodeCenter, so the comparator cannot order
+    // the pair and leaves them as they are rather than throwing.
+    const edges = [
+      edge("e1", "a", "c", "bottom", "top"),
+      edge("e2", "a", "ghost", "bottom", "top"),
+    ];
+    const nodeCenter = new Map<string, { x: number; y: number }>([
+      ["a", { x: 0, y: 0 }],
+      ["c", { x: 100, y: 200 }],
+    ]);
+
+    expect(() => adjustEdgeOverlaps(edges, nodeCenter, false)).not.toThrow();
+
+    // Shared bottom handle on "a": a top/bottom side spreads horizontally.
+    const o1 = edges[0].data?.sourceOffset as { x: number; y: number };
+    const o2 = edges[1].data?.sourceOffset as { x: number; y: number };
+    expect(o1.y).toBe(0);
+    expect(o2.y).toBe(0);
+    expect(o1.x).not.toBe(o2.x);
+  });
+});
+
+describe("buildJunctionForks filtering", () => {
+  it("ignores parent edges from outside the couple and to children of other couples", () => {
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+      ["c", makePerson("c", "Child")],
+      ["z", makePerson("z", "Outsider")],
+      ["other", makePerson("other", "Other child")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>([
+      ["r-a", makeRel("r-a", RelationshipType.BiologicalParent, "a", "c")],
+      // Parent edge from someone who is not in this couple.
+      ["r-z", makeRel("r-z", RelationshipType.BiologicalParent, "z", "c")],
+      // Parent edge from a couple member, but to a child outside the couple.
+      ["r-a2", makeRel("r-a2", RelationshipType.BiologicalParent, "a", "other")],
+    ]);
+    const nodeCenter = new Map<string, { x: number; y: number }>([
+      ["a", { x: 0, y: 0 }],
+      ["b", { x: 200, y: 0 }],
+      ["c", { x: 100, y: 200 }],
+      ["z", { x: 400, y: 0 }],
+      ["other", { x: 500, y: 200 }],
+    ]);
+    const coupleChildren = new Map<string, string[]>([["a|b", ["c"]]]);
+
+    const result = buildJunctionForks(coupleChildren, nodeCenter, rels, persons);
+
+    // Only r-a belongs to this couple and child, so nothing is hidden.
+    expect([...result.forkPrimaryIds]).toEqual(["r-a"]);
+    expect(result.forkHiddenIds.size).toBe(0);
+  });
+});
+
+describe("layoutDagreGraph partner alignment guards", () => {
+  it("skips alignment when a partner was excluded from the graph", () => {
+    const persons = new Map<string, DecryptedPerson>([
+      ["a", makePerson("a", "A")],
+      ["b", makePerson("b", "B")],
+    ]);
+    const rels = new Map<string, DecryptedRelationship>([
+      ["r1", makeRel("r1", RelationshipType.Partner, "a", "b")],
+    ]);
+
+    // "b" is excluded from the graph, so the pair has no node to align to.
+    const { graph, partnerPairs } = layoutDagreGraph(persons, rels, new Set(["b"]));
+
+    expect(partnerPairs).toEqual([["a", "b"]]);
+    expect(graph.hasNode("b")).toBe(false);
+    expect(graph.node("a")).toBeDefined();
   });
 });
