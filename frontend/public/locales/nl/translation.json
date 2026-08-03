@@ -997,7 +997,7 @@
   "support.faq.delete.q": "Hoe verwijder ik mijn account?",
   "support.faq.delete.a": "In instellingen, onder account. Verwijderen wist je account en alles wat erbij hoort, en kan niet ongedaan worden gemaakt. De iPhone-app heeft dezelfde optie in de instellingen.",
   "support.faq.export.q": "Kan ik mijn gegevens exporteren?",
-  "support.faq.export.a": "Nog niet. Exporteren willen we graag toevoegen; tot die tijd staat wat je schrijft in de app en nergens anders.",
+  "support.faq.export.a": "Ja. Open een boom, ga naar instellingen en exporteer hem. De versleutelde back-up kun je weer importeren, in dit account of een nieuw account, en blijft onleesbaar zonder je encryptiesleutel. De gewone export is normale JSON die elk programma kan lezen, wat ook betekent dat iedereen die het bestand krijgt het kan lezen.",
   "support.faq.mobile.q": "Is er een app voor mijn telefoon?",
   "support.faq.mobile.a": "Er wordt aan een iPhone-app gewerkt. Die leest en schrijft je dagboek en toont je boom; de boom zelf bouw je hier, op het web.",
   "support.passphrase.heading": "Een verloren encryptiesleutel",

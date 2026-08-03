@@ -997,7 +997,7 @@
   "support.faq.delete.q": "How do I delete my account?",
   "support.faq.delete.a": "In settings, under account. Deletion removes your account and everything stored with it, and cannot be undone. The iPhone app has the same option in its settings.",
   "support.faq.export.q": "Can I get my data out?",
-  "support.faq.export.a": "Not yet. Export is something we want to add; until then, your writing lives in the app and nowhere else.",
+  "support.faq.export.a": "Yes. Open a tree, go to settings, and export it. The encrypted backup can be imported again, into this account or a new one, and stays unreadable without your passphrase. The plain export is ordinary JSON that any program can read, which also means anyone who gets the file can read it.",
   "support.faq.mobile.q": "Is there a phone app?",
   "support.faq.mobile.a": "An iPhone companion is in the works. It reads and writes your journal and shows your tree; building the tree itself happens here, on the web.",
   "support.passphrase.heading": "A lost passphrase",
