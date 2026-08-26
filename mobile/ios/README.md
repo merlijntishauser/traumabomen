@@ -31,8 +31,8 @@ xcodebuild -project Traumatrees.xcodeproj -scheme Traumatrees \
 ## Run on your iPhone (against production)
 
 Prerequisites: Xcode, an iPhone on iOS 17+, an Apple ID, and an existing
-**production account** on traumatrees.org (the app has no sign-up screen;
-register on the web first if needed).
+**production account** on traumatrees.org (or create one from the app's
+"Create an account" screen, then verify the address by email).
 
 1. Build the core and generate the project:
    ```bash
