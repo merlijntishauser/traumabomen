@@ -18,7 +18,7 @@ Een privé familiedagboek
 Alternatieven:
 
 - `Zie wat zich herhaalt` (21) — het dichtst bij de merkregel
-- `Breng je familie in kaart` (25) — legt de nadruk op de boom
+- `Je boom, in je broekzak` (23) — legt de nadruk op de begeleidende rol
 
 ## Promotietekst (max 170 tekens, aanpasbaar zonder nieuwe build)
 
@@ -37,12 +37,13 @@ Een manier van stil worden. Een vertrek. Een patroon dat een generatie later
 opnieuw opduikt, in andere kleren. Traumabomen geeft je een plek om dat uit te
 leggen en ernaar te kijken.
 
-BRENG JE FAMILIE IN KAART
+ZIE JE FAMILIE
 
-Plaats de mensen, hoe ze verbonden zijn, en wat hen is overkomen, over
-generaties heen. Partners, ouders, stiefouders, broers en zussen, degenen die
-erbij kwamen en degenen die weggingen. De weergave houdt de vorm van een
-familie vast zonder die plat te slaan.
+Je familiekaart leeft op het web, op traumabomen.nl. Daar plaats je de mensen
+en hoe ze verbonden zijn: partners, ouders, stiefouders, broers en zussen,
+degenen die erbij kwamen en degenen die weggingen. Deze app hoort bij die
+kaart. Hij toont de boom op je telefoon en laat je vastleggen wat ieder is
+overkomen, over generaties heen, zonder de vorm van een familie plat te slaan.
 
 SCHRIJF, IN JE EIGEN TEMPO
 
@@ -68,6 +69,9 @@ crisishulp. Bel bij crisis 113 (Zelfmoordpreventie) of je huisarts.
 
 Er is geen tijdlijn, niets om te delen, en niemand voor wie je iets moet
 voorstellen. Niets van wat je schrijft is zichtbaar voor een ander.
+
+De boom zelf bouw en bewerk je op het web, aan een bureau. Deze app is om te
+kijken, en om te schrijven.
 
 Traumabomen is open source onder de AGPL-3.0.
 

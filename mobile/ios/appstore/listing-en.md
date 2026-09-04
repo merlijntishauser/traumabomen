@@ -18,7 +18,7 @@ A private family journal
 Alternatives, if you want a different emphasis:
 
 - `See what repeats` (16) — closest to the brand line
-- `Map your family, privately` (26) — leads on the tree
+- `Your tree, in your pocket` (25) — leads on the companion role
 - `Encrypted family reflection` (27) — leads on privacy
 
 ## Promotional text (170 characters max, editable without a new build)
@@ -38,12 +38,13 @@ going silent. A leaving. A pattern that shows up again a generation later,
 wearing different clothes. Traumatrees gives you somewhere to lay that out and
 look at it.
 
-MAP YOUR FAMILY
+SEE YOUR FAMILY
 
-Place the people, how they are connected, and what happened to them, across
-generations. Partners, parents, step-parents, siblings, the ones who were
-adopted in and the ones who left. The canvas holds the shape of a family
-without flattening it.
+Your family map lives on the web at traumatrees.org, where you place the
+people and how they are connected: partners, parents, step-parents, siblings,
+the ones who were adopted in and the ones who left. This app is the companion
+to that map. It shows the tree on your phone and lets you record what happened
+to each person, across generations, without flattening the shape of a family.
 
 WRITE, AT YOUR OWN PACE
 
@@ -68,6 +69,9 @@ support. If you are in crisis, please contact a local crisis line.
 
 There is no feed, no sharing, and no one else to perform for. Nothing you write
 is visible to another person.
+
+Building and editing the tree itself happens on the web, at a desk. This app
+is for looking, and for writing.
 
 Traumatrees is open source under the AGPL-3.0.
 
