@@ -123,7 +123,7 @@ docker build --target production -t traumabomen-api ./api
 ## Tech Stack
 
 ### Frontend
-- **Framework:** Vite 7 + React 19 + React Router 7 + TypeScript 5.9
+- **Framework:** Vite 8 + React 19 + React Router 8 + TypeScript 7 (typecheck via `@typescript/native`; the `typescript` package is the TS 6 API shim for ESLint tooling)
 - **Tree visualization:** React Flow (@xyflow/react) + Dagre auto-layout
 - **Timeline visualization:** D3.js
 - **State management:** TanStack Query (React Query) v5
