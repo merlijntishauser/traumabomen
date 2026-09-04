@@ -29,11 +29,6 @@ plus the parts only you can supply.
    without a `v*` tag; the deploy and Xcode Cloud workflows both trigger on
    it. Tags `v0.2.11` and `v0.2.12` (2026-08-03) already include this pack,
    so a TestFlight build should exist. If it does not, cut a new tag.
-5. **Update the support page FAQ before submitting.** "Is there a phone app?"
-   currently answers that an iPhone companion is in the works
-   (`support.faq.mobile.a` in both translation files). A reviewer opens the
-   support URL, and by then the answer is that it exists. Ship that change
-   before the review starts, not after.
 
 ## Screenshots
 

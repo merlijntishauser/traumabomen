@@ -999,7 +999,7 @@
   "support.faq.export.q": "Can I get my data out?",
   "support.faq.export.a": "Yes. Open a tree, go to settings, and export it. The encrypted backup can be imported again, into this account or a new one, and stays unreadable without your passphrase. The plain export is ordinary JSON that any program can read, which also means anyone who gets the file can read it.",
   "support.faq.mobile.q": "Is there a phone app?",
-  "support.faq.mobile.a": "An iPhone companion is in the works. It reads and writes your journal and shows your tree; building the tree itself happens here, on the web.",
+  "support.faq.mobile.a": "There is an iPhone companion on the App Store. It shows your tree and reads and writes your journal; building the tree itself happens here, on the web.",
   "support.passphrase.heading": "A lost passphrase",
   "support.passphrase.warning": "If you lose your encryption passphrase, your data is unrecoverable. This is by design.",
   "support.passphrase.body": "We cannot reset it, and we cannot recover what it protected. There is no copy of your passphrase anywhere, which is the same reason nobody else can read what you wrote. If this has happened, you can delete the account and start again; we are sorry, and we would rather be honest than pretend there is a way back.",

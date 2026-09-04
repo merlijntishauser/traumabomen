@@ -999,7 +999,7 @@
   "support.faq.export.q": "Kan ik mijn gegevens exporteren?",
   "support.faq.export.a": "Ja. Open een boom, ga naar instellingen en exporteer hem. De versleutelde back-up kun je weer importeren, in dit account of een nieuw account, en blijft onleesbaar zonder je encryptiesleutel. De gewone export is normale JSON die elk programma kan lezen, wat ook betekent dat iedereen die het bestand krijgt het kan lezen.",
   "support.faq.mobile.q": "Is er een app voor mijn telefoon?",
-  "support.faq.mobile.a": "Er wordt aan een iPhone-app gewerkt. Die leest en schrijft je dagboek en toont je boom; de boom zelf bouw je hier, op het web.",
+  "support.faq.mobile.a": "Er is een iPhone-app in de App Store. Die toont je boom en leest en schrijft je dagboek; de boom zelf bouw je hier, op het web.",
   "support.passphrase.heading": "Een verloren encryptiesleutel",
   "support.passphrase.warning": "Als je je encryptiesleutel kwijtraakt, zijn je gegevens onherstelbaar. Dat is met opzet zo.",
   "support.passphrase.body": "Wij kunnen hem niet herstellen, en we kunnen niet terughalen wat hij beschermde. Er bestaat nergens een kopie van je sleutel, en juist daarom kan niemand anders lezen wat jij schreef. Is dit gebeurd, dan kun je het account verwijderen en opnieuw beginnen; het spijt ons, en we zijn liever eerlijk dan dat we doen alsof er een weg terug is.",
