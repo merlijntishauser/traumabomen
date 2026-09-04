@@ -43,7 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Add date of death" row, and delete becomes a quiet text action. Closing a
   panel or switching persons can no longer discard edits, and panel saves no
   longer reset a manually placed node to auto-layout.
-- Dependency updates (frontend and API).
+- Dependency updates (frontend and API). The frontend now typechecks and
+  builds with TypeScript 7 (the native compiler), while lint tooling keeps
+  the TypeScript 6 API through Microsoft's side-by-side shim.
 
 ## [0.1.161 – 0.1.167] - 2026-06
 
