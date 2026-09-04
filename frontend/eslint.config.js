@@ -46,6 +46,10 @@ export default tseslint.config(
       // Dummy credentials in test fixtures are not secrets; the rule stays on
       // for real app code (where a hard-coded password would be a genuine bug).
       "sonarjs/no-hardcoded-passwords": "off",
+      // Added to recommended in sonarjs 4.2. Sibling tests here share setup
+      // but assert different things; folding them into it.each hides the
+      // intent of each case behind a table.
+      "sonarjs/parameterized-tests": "off",
     },
   },
   // Existing complex files -- reduce over time
