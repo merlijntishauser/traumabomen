@@ -59,8 +59,8 @@ passphrase never leaves your phone, and we never receive it. The server holds
 ciphertext and nothing else, so we cannot read your family's story even if we
 wanted to.
 
-That guarantee has a cost, and we would rather say it plainly: if you lose your
-passphrase, your data is unrecoverable. This is by design.
+The same guarantee means that if you lose your passphrase, your data is
+unrecoverable. This is by design.
 
 A FEW HONEST THINGS
 

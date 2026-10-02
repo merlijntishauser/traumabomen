@@ -58,9 +58,8 @@ encryptiesleutel verlaat je telefoon nooit, en wij ontvangen hem nooit. De
 server bewaart alleen versleutelde tekst, dus wij kunnen het verhaal van je
 familie niet lezen, ook niet als we dat zouden willen.
 
-Die garantie heeft een prijs, en we zeggen het liever gewoon: als je je
-encryptiesleutel kwijtraakt, zijn je gegevens onherstelbaar. Dat is met opzet
-zo.
+Dezelfde garantie betekent dat je gegevens onherstelbaar zijn als je je
+encryptiesleutel kwijtraakt. Dat is met opzet zo.
 
 EEN PAAR EERLIJKE DINGEN
 

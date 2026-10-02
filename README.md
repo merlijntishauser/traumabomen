@@ -1,19 +1,19 @@
 # Traumabomen
 
-A zero-knowledge encrypted web app for mapping intergenerational trauma onto visual family trees. Built as a personal reflection tool -- all sensitive data is encrypted client-side before it ever reaches the server.
+A zero-knowledge encrypted web app for mapping intergenerational trauma onto visual family trees. It is a personal reflection tool, and all sensitive data is encrypted client-side before it reaches the server.
 
 **Live at [traumatrees.org](https://traumatrees.org) and [traumabomen.nl](https://www.traumabomen.nl)**
 
-## How It Works
+## How it works
 
 - Build a family tree with people, relationships, and life events
-- Annotate trauma events across generations to surface patterns
+- Record trauma events across generations and link the ones that repeat
 - Visualize the tree and a generational timeline side by side
-- Everything is encrypted with a passphrase only you know -- the server stores opaque ciphertext
+- Everything is encrypted with a passphrase only you know; the server stores opaque ciphertext
 
 **If you lose your passphrase, your data is unrecoverable.** This is by design.
 
-## Tech Stack
+## Tech stack
 
 | Layer | Stack |
 |-------|-------|
@@ -24,7 +24,7 @@ A zero-knowledge encrypted web app for mapping intergenerational trauma onto vis
 | i18n | English + Dutch |
 | Infrastructure | Google Cloud Run, Artifact Registry, Cloud SQL |
 
-## Getting Started
+## Getting started
 
 Prerequisites: [Docker](https://docs.docker.com/get-docker/) and Docker Compose.
 
@@ -47,7 +47,7 @@ This starts four containers:
 
 The frontend proxies `/api/*` requests to the backend automatically.
 
-## Make Targets
+## Make targets
 
 Run `make help` to see all available targets:
 
@@ -70,7 +70,7 @@ Run `make help` to see all available targets:
 | `make bump` | Tag a new version and push |
 | `make privacy-scan` | Scan for leaked secrets and PII |
 
-## Project Structure
+## Project structure
 
 ```
 traumabomen/

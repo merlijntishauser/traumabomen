@@ -29,7 +29,7 @@ const TREE_PREFIX = "Smoketest";
  */
 async function gotoTreeList(page: Page): Promise<void> {
   if (!page.url().endsWith("/trees")) {
-    await page.getByRole("link", { name: "My Trees" }).click();
+    await page.getByRole("link", { name: "My trees" }).click();
   }
   await page.waitForURL("**/trees");
 }
