@@ -34,8 +34,7 @@
     radial-gradient(ellipse 60% 35% at 50% 0%, rgba(143, 170, 151, 0.08) 0%, transparent 70%),
     /* Subtle ground fog at bottom */
     linear-gradient(to top, rgba(10, 26, 15, 0.4) 0%, transparent 30%),
-    /* Base dark overlay */
-    rgba(10, 26, 15, 0.82);
+    /* Base dark overlay */ rgba(10, 26, 15, 0.82);
 }
 
 .lock-screen::backdrop {
