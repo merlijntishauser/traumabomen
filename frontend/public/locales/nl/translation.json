@@ -679,7 +679,7 @@
   "landing.faqQ5": "Wat is intergenerationeel trauma?",
   "landing.faqA5": "Leed dat doorklinkt van de ene generatie naar de volgende. Gebeurtenissen in de levens van ouders en grootouders kunnen bepalen hoe een familie praat, omgaat met moeilijkheden en zich verbindt, lang nadat de gebeurtenissen zelf voorbij zijn. Door ze in kaart te brengen worden die echo's zichtbaar.",
   "landing.faqQ6": "Wie kan mijn gegevens zien?",
-  "landing.faqA6": "Alleen jij. Alles wordt op je apparaat versleuteld met AES-256-GCM, met een sleutel die met Argon2id uit je encryptiesleutel wordt afgeleid, voordat het onze server bereikt. Wij bewaren alleen onleesbare versleutelde gegevens en kunnen niet meekijken. Een boom delen met iemand die je kiest, zoals een therapeut, staat gepland maar is nog niet beschikbaar.",
+  "landing.faqA6": "Alleen jij. Alles wordt op je eigen apparaat versleuteld met AES-256-GCM, met een sleutel die met Argon2id uit je encryptiesleutel wordt afgeleid, voordat het onze server bereikt. We bewaren alleen onleesbare cijfertekst en kunnen niet meekijken. Een boom delen met iemand die je kiest, zoals een therapeut, staat gepland maar is nog niet beschikbaar.",
   "landing.faqQ7": "Kan ik mijn gegevens verwijderen?",
   "landing.faqA7": "Ja. Je kunt losse notities, hele bomen of je volledige account verwijderen in de instellingen. Als je je account verwijdert, worden alle bijbehorende gegevens permanent uit onze systemen verwijderd.",
   "landing.finalCtaTitle": "Begin wanneer je er klaar voor bent",
