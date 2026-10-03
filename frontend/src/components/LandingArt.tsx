@@ -1,6 +1,6 @@
 /**
  * Decorative art for the public landing page.
- * Pure SVG drawn with theme tokens so dark/light/watercolor all hold.
+ * Pure SVG drawn with theme tokens so dark and light both hold.
  * Decorative only (aria-hidden): the surrounding copy carries the meaning.
  */
 

@@ -507,8 +507,8 @@ All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. 
 
 - **Ambient hero life:** `<AmbientBackground>` draws a slow drift of fireflies (dark) or warm light motes (light) on a 2D canvas over the hero photography (landing + auth heroes). ~30fps, pauses on hidden tabs, disabled entirely under `prefers-reduced-motion`. Hand-rolled canvas, deliberately not a 3D library, to protect the performance budget.
 - **Toolbar accent line:** 3px gradient (`--color-accent` to transparent) via `::after` pseudo-element on `.tree-toolbar`
-- **Background gradient:** Radial gradient with noise texture overlay (`feTurbulence` SVG filter at `opacity: 0.035`) to prevent banding
-- **BranchDecoration:** Procedurally generated SVG trees in bottom-left corner at `opacity: 0.12`, randomized on page load, drawn with Bezier curves in accent color
+- **Background gradient:** Radial gradient with noise texture overlay (`feTurbulence` SVG filter at `opacity: 0.06`) to prevent banding
+- **BranchDecoration:** Procedurally generated topographic contour lines in accent color: a peak beyond a random corner plus a lower knoll and gentle ripples, contoured with marching squares (`contourField.ts`) and smoothed with Chaikin. Randomized on page load; layer opacity via `--decoration-opacity` (0.3 dark, 0.18 light)
 - **Lock screen:** Multi-layered CSS backgrounds simulating moonlit canopy (dark) or morning mist (light) using 6-8 radial gradients with `backdrop-filter: blur(20px)`
 - **Auth hero:** Theme-aware photo images with gradient overlays fading to background color
 

@@ -151,15 +151,15 @@ components:
 
 **Creative North Star: "The Quiet Forest"**
 
-Every surface sits inside a forest at a quiet hour. In the dark theme it is a midnight canopy: near-black greens, a slow drift of fireflies over the hero photography, branches drawn faintly into the corner of the canvas. In the light theme it is morning linen: warm off-white paper with literary indigo ink. The atmosphere is always there and never asks for attention. It gives depth to screens where people write about the hardest parts of their family's history, so they do not feel like a database or a clinic.
+Every surface sits inside a forest at a quiet hour. In the dark theme it is a midnight canopy: near-black greens, a slow drift of fireflies over the hero photography, faint contour lines rising from a corner of the canvas like a map of hills. In the light theme it is morning linen: warm off-white paper with literary indigo ink. The atmosphere is always there and never asks for attention. It gives depth to screens where people write about the hardest parts of their family's history, so they do not feel like a database or a clinic.
 
-Data lives calmly inside that atmosphere. The workspace, panels, and settings are solid and legible: closed color sets for domain meaning, plain text for loading states, and the same 0.15s color fade for every state change. The expressive layer is narrow and fixed: radial accent washes with a noise dither, procedural branch decorations, forest photography with no faces, and the handwriting face that signs the product's voice. Everything else stays still.
+Data lives calmly inside that atmosphere. The workspace, panels, and settings are solid and legible: closed color sets for domain meaning, plain text for loading states, and the same 0.15s color fade for every state change. The expressive layer is narrow and fixed: radial accent washes with a noise dither, procedural contour-line decorations, forest photography with no faces, and the handwriting face that signs the product's voice. Everything else stays still.
 
 Three typefaces split the work. Playwrite NZ Basic is the voice: the wordmark, taglines, person names, and in-app headings, always light. Fraunces carries structure on the public pages, set light and never bold. Lato does everything else at 15px. On iOS the same tokens, faces, and background wash are ported into SwiftUI, and they sit inside native navigation and controls instead of replacing them.
 
 **Key Characteristics:**
 - Two themes: Midnight forest (dark, default) and Morning linen (light, indigo accent).
-- Atmosphere through layered radial gradients, noise texture, branch decorations, and ambient particles over hero photography.
+- Atmosphere through layered radial gradients, noise texture, contour-line decorations, and ambient particles over hero photography.
 - Solid, readable surfaces for data; glass only on auth and lock cards over photography.
 - Domain colors are a closed set of tools for thinking, never decoration.
 - One motion grammar: 0.15s color fades, plus two named entrances (`auth-reveal`, `slide-in-right`).
@@ -234,7 +234,7 @@ Public pages use centered containers of 1100 to 1140px for sections, with a narr
 
 ## Elevation & Depth
 
-Depth comes from layered atmosphere first and shadow second. The page sits on a canvas color washed by two radial gradients of the accent (one from the top right, one from the bottom left). A fractal-noise SVG at 6% opacity stops banding, and procedural branch decorations add a faint drawing at 0.3 opacity in dark and 0.18 in light. Over that, surfaces lift with soft shadows. In dark, each shadow pairs a black layer with a faint green layer, so even shadows carry the forest tint. In light, the shadows are slate-tinted.
+Depth comes from layered atmosphere first and shadow second. The page sits on a canvas color washed by two radial gradients of the accent (one from the top right, one from the bottom left). A fractal-noise SVG at 6% opacity stops banding, and procedural contour lines add a faint topographic drawing at 0.3 opacity in dark and 0.18 in light. Over that, surfaces lift with soft shadows. In dark, each shadow pairs a black layer with a faint green layer, so even shadows carry the forest tint. In light, the shadows are slate-tinted.
 
 ### Shadow Vocabulary
 - **Small** (`--shadow-sm`): nodes and small raised controls.
@@ -288,7 +288,7 @@ A 180 by 80px card on the canvas with a node-surface background, a 2px node bord
 A 400px solid overlay on the right edge of the workspace with a left border and a large shadow, sliding in over 0.25s ease-out. The header row holds a voice-face title and a matched 34px action and close pair. Fields autosave on blur or change, and a quiet "saved" whisper appears in the header to confirm.
 
 ### Atmosphere (signature)
-The background wash plus noise, the procedural branch decoration in the canvas corner, and the ambient particle layer over hero photography (fireflies in dark, warm light motes in light). The particles run on a hand-rolled 2D canvas at about 30fps, pause on hidden tabs, and switch off entirely under reduced motion. iOS recreates the wash and particles natively.
+The background wash plus noise, the procedural contour lines rising from a random canvas corner (marching squares over gaussian hills, regenerated on each load), and the ambient particle layer over hero photography (fireflies in dark, warm light motes in light). The particles run on a hand-rolled 2D canvas at about 30fps, pause on hidden tabs, and switch off entirely under reduced motion. iOS recreates the wash and particles natively.
 
 ## Do's and Don'ts
 

@@ -1,7 +1,7 @@
 /* Quiet inspector primitives: fields read as calm text on the panel surface;
    hover reveals a subtle field background, focus restores the full input
-   look. All colors come from theme tokens, so dark, light, and watercolor
-   are covered by construction. */
+   look. All colors come from theme tokens, so dark and light are covered
+   by construction. */
 
 .inspector-field {
   display: grid;
