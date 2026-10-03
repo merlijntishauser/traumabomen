@@ -151,18 +151,22 @@ components:
 
 **Creative North Star: "The Quiet Forest"**
 
-Every surface sits inside a forest at a quiet hour. In the dark theme it is a midnight canopy: near-black greens, a slow drift of fireflies over the hero photography, faint contour lines rising from a corner of the canvas like a map of hills. In the light theme it is morning linen: warm off-white paper with literary indigo ink. The atmosphere is always there and never asks for attention. It gives depth to screens where people write about the hardest parts of their family's history, so they do not feel like a database or a clinic.
+Every surface sits inside a forest at a quiet hour. In the dark theme it is a midnight canopy: near-black greens, a slow drift of fireflies over the hero photography, faint contour lines rising from a corner of the canvas like a map of hills. In the light theme it is morning linen: warm off-white paper with literary indigo ink, and its hero imagery leaves the forest for soft pastel paintings. The atmosphere is always there and never asks for attention. It gives depth to screens where people write about the hardest parts of their family's history, so they do not feel like a database or a clinic.
 
-Data lives calmly inside that atmosphere. The workspace, panels, and settings are solid and legible: closed color sets for domain meaning, plain text for loading states, and the same 0.15s color fade for every state change. The expressive layer is narrow and fixed: radial accent washes with a noise dither, procedural contour-line decorations, forest photography with no faces, and the handwriting face that signs the product's voice. Everything else stays still.
+Data lives calmly inside that atmosphere. The workspace, panels, and settings are solid and legible: closed color sets for domain meaning, plain text for loading states, and the same 0.15s color fade for every state change. The expressive layer is narrow and fixed: radial accent washes with a noise dither, procedural contour-line decorations, hero imagery with no faces (forest photography in dark, soft pastel paintings in light), and the handwriting face that signs the product's voice. Everything else stays still.
 
 Three typefaces split the work. Playwrite NZ Basic is the voice: the wordmark, taglines, person names, and in-app headings, always light. Fraunces carries structure on the public pages, set light and never bold. Lato does everything else at 15px. On iOS the same tokens, faces, and background wash are ported into SwiftUI, and they sit inside native navigation and controls instead of replacing them.
 
 **Key Characteristics:**
 - Two themes: Midnight forest (dark, default) and Morning linen (light, indigo accent).
-- Atmosphere through layered radial gradients, noise texture, contour-line decorations, and ambient particles over hero photography.
+- Atmosphere through layered radial gradients, noise texture, contour-line decorations, and ambient particles over hero imagery.
+- Hero imagery differs by theme: forest photography in dark, soft pastel paintings in light.
 - Solid, readable surfaces for data; glass only on auth and lock cards over photography.
 - Domain colors are a closed set of tools for thinking, never decoration.
 - One motion grammar: 0.15s color fades, plus two named entrances (`auth-reveal`, `slide-in-right`).
+
+### Named Rules
+**The Two Lights Rule.** Dark-theme heroes are forest photography at night; light-theme heroes are soft pastel paintings, not forest photos. The two themes do not need to show the same scene, but both stay quiet, faceless, and low contrast behind the text.
 
 ## Colors
 
@@ -298,7 +302,8 @@ The background wash plus noise, the procedural contour lines rising from a rando
 - **Do** use Lucide icons, imported one at a time. Draw domain marks as 24 by 24 SVGs with a 2px stroke in Lucide's style. On iOS, use SF Symbols.
 - **Do** design and check both themes for every surface. Light-theme domain colors are the darker variants.
 - **Do** show loading as plain text: "Loading…".
-- **Do** use forest photography with no faces for heroes, with dark and light variants.
+- **Do** use forest photography for dark-theme heroes and soft pastel paintings for light-theme heroes (calm, impressionist, low contrast, sky and landscape). Never faces, in either theme.
+- **Do** keep text over a light-theme painting on a linen scrim strong enough for 4.5:1 at every pixel; paintings are busier than they look.
 
 ### Don't:
 - **Don't** use scale transforms, press shrink, springs, bounces, or attention-seeking motion.

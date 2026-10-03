@@ -124,7 +124,7 @@ A 4-px scale (`--space-1` = 4px) up to `--space-15` = 60px. Dot/half steps are f
 
 ### Backgrounds
 
-- **Full-bleed photography** on the auth landing and unlock pages — forest paths, tree canopies. Each image ships in dark + light variants and dark + light WebP + JPEG. A radial vignette (`rgba(10, 26, 15, 0.15) → 0.6`) tames the brightness.
+- **Full-bleed hero imagery** on the auth landing and unlock pages — forest photography in dark, soft pastel paintings in light. Each image ships in dark + light variants and dark + light WebP + JPEG. A radial vignette (`rgba(10, 26, 15, 0.15) → 0.6`) tames the brightness.
 - **Subtle radial gradient** on workspace canvases (`bg-gradient` class) — accent-tinted ellipse from bottom-left, fading to canvas color, dithered with an SVG noise filter at 6% opacity to prevent banding.
 - **Decorative SVG contour lines** layered on auth/landing surfaces at 16% opacity (`contour-decoration` class).
 - **Generation banding** in the timeline alternates `rgba(255,255,255,0.02)` ↔ transparent — barely visible, just enough rhythm.
@@ -175,7 +175,7 @@ All blur is wrapped in `@supports (backdrop-filter)` with a solid fallback. Neve
 
 ### Imagery character
 
-Photography is **moody, cool, foggy forest scenes**. Welcome card images are slightly warmer (sun through trees). Faces never appear. The unlock hero is darker and tighter — it's the locked door. Light-theme variants of every hero are **brighter, warmer, less foggy** but still photographic, still respectful, still no people.
+Dark-theme imagery is **moody, cool, foggy forest photography**. Welcome card images are slightly warmer (sun through trees). The unlock hero is darker and tighter — it's the locked door. The light theme does not use forest photography: its heroes are **soft pastel paintings**, calm and impressionist, low in contrast, still respectful, still no people. Faces never appear in either theme.
 
 ### Layout rules
 

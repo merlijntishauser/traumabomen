@@ -43,4 +43,4 @@ A personal reflection tool, **not therapy**, **not crisis support**. The user ma
 2. Pick the right card pattern: **glass card** for auth/lock surfaces over photography, **solid card** (`var(--color-bg-secondary)` + 1px border + `--shadow-lg`) for everything inside the app.
 3. Use atoms from `ui_kits/traumatrees-app/components.jsx` — load it as `<script type="text/babel" src="…/components.jsx">` and the atoms attach to `window`.
 4. Match copy tone to the existing translations (see README microcopy examples).
-5. Photography only: forest scenes, no faces, dark + light variants. Use placeholders if needed and ask the user for the real material.
+5. Hero imagery, no faces: forest photography in the dark theme, soft pastel paintings in the light theme. Use placeholders if needed and ask the user for the real material.

@@ -75,11 +75,11 @@ All tokens are documented inline in `colors_and_type.css` with comments. Highlig
 
 ## Photography & assets
 
-- 4 hero `.webp`s, all forest scenes, no faces. Dark + light variants for the auth landing; a separate `hero-unlock-dark.webp` for the unlock page; `welcome-dark.webp` / `welcome-light.webp` for the My Trees welcome card.
+- 4 hero `.webp`s, no faces: forest photography for the dark theme, soft pastel paintings for the light theme. Dark + light variants for the auth landing; a separate `hero-unlock-dark.webp` for the unlock page; `welcome-dark.webp` / `welcome-light.webp` for the My Trees welcome card.
 - `favicon.svg` — tree-of-life mark. Used as logomark too.
 - `leaf-motif.svg` — decorative pseudo-element on non-landing auth surfaces.
 
-If new photography is needed, brief: **forest scenes, no faces, sun-through-canopy in light mode, deep shadow with green highlights in dark mode**.
+If new imagery is needed, brief: **no faces; dark mode is forest photography in deep shadow with green highlights; light mode is a soft pastel painting (calm, impressionist, low contrast)**.
 
 ## Interaction & behaviour notes
 
