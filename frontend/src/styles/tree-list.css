@@ -73,7 +73,6 @@
   gap: var(--space-0\.5);
   padding: var(--space-3) 18px var(--space-3) var(--space-3);
   color: var(--color-text-primary);
-  font-weight: 500;
   text-decoration: none;
   transition: var(--transition-colors);
   min-width: 0;
@@ -101,38 +100,6 @@
   color: var(--color-action);
 }
 
-/* Shared small button for edit/delete/save/cancel */
-.tree-list-item__btn {
-  padding: var(--space-1) var(--space-2\.5);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  cursor: pointer;
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-  transition: var(--transition-colors);
-}
-
-.tree-list-item__btn:hover {
-  background: var(--color-bg-hover);
-  color: var(--color-text-primary);
-}
-
-.tree-list-item__btn--danger {
-  color: var(--color-danger);
-  border-color: var(--color-danger-border);
-}
-
-.tree-list-item__btn--danger:hover {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-}
-
-.tree-list-item__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Inline rename form */
 .tree-list-item__edit {
   display: flex;
@@ -143,8 +110,7 @@
 
 .tree-list-item__input {
   flex: 1;
-  padding: var(--space-1\.5) var(--space-2\.5);
-  font-size: 14px;
+  min-width: 0;
 }
 
 /* Delete confirmation: names the tree and states the hard truth plainly */
@@ -240,12 +206,27 @@
   color: var(--color-danger);
 }
 
-/* Inline create form */
+/* Create form: a labelled field with an example and a reassurance, on a
+   solid panel above the list. Inside the empty state it drops the panel so
+   cards do not nest. */
 .tree-list-create {
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-5);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+}
+
+.tree-list-create__hint {
+  margin-top: var(--space-1\.5);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.tree-list-create__actions {
   display: flex;
-  align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  margin-top: var(--space-4);
 }
 
 .tree-list-loading {
@@ -367,7 +348,11 @@
 }
 
 .first-tree .tree-list-create {
+  max-width: 420px;
+  padding: 0;
   margin-bottom: 0;
+  background: none;
+  border: none;
 }
 
 @media (max-width: 480px) {
@@ -388,7 +373,7 @@
   margin-left: var(--space-2);
   padding: 1px var(--space-1\.5);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.4;
   color: var(--color-accent);
   background: var(--color-accent-subtle);
@@ -406,10 +391,11 @@
 }
 
 .tree-continue__label {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
 }
 
 .tree-continue__link {
@@ -462,4 +448,28 @@
 
 .tree-continue__prompt:hover {
   color: var(--color-text-secondary);
+}
+
+/* Phones: the title never truncates and toolbar labels stay on one line.
+   The demo tree stays reachable from the empty state; here it gives way. */
+.tree-list-page .tree-toolbar__title {
+  flex-shrink: 0;
+}
+
+.tree-list-page .tree-toolbar__btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .tree-list-page .tree-toolbar__btn:not(.tree-toolbar__btn--primary) {
+    display: none;
+  }
+
+  .tree-list-content {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .tree-list-create {
+    padding: var(--space-4);
+  }
 }

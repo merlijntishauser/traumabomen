@@ -63,7 +63,7 @@ function ContinueCard({
   const started = tree.person_count > 0;
   return (
     <div className="tree-continue">
-      <span className="tree-continue__label">{t("tree.continue")}</span>
+      <h2 className="tree-continue__label">{t("tree.continue")}</h2>
       <Link className="tree-continue__link" to={treePath}>
         <span className="tree-continue__name">{tree.name}</span>
         <span className="tree-continue__meta">{metaLine}</span>
@@ -276,15 +276,17 @@ function TreeListItemRow({
       <form className="tree-list-item__edit" onSubmit={onRenameSubmit}>
         <input
           ref={editInputRef}
+          type="text"
+          autoComplete="off"
           className="tree-list-item__input"
           value={editName}
           onChange={(e) => onEditNameChange(e.target.value)}
           aria-label={t(T_NAME_PLACEHOLDER)}
         />
-        <button className="tree-list-item__btn" type="submit" disabled={renamePending}>
+        <button className="btn btn--primary" type="submit" disabled={renamePending}>
           {t("common.save")}
         </button>
-        <button className="tree-list-item__btn" type="button" onClick={onCancelEdit}>
+        <button className="btn" type="button" onClick={onCancelEdit}>
           {t(T_CANCEL)}
         </button>
       </form>
@@ -624,28 +626,32 @@ export default function TreeListPage() {
 
   const createForm = state.creating ? (
     <form className="tree-list-create" onSubmit={handleCreateSubmit}>
+      <label htmlFor="new-tree-name">{t("tree.nameLabel")}</label>
       <input
+        id="new-tree-name"
         ref={createInputRef}
-        className="tree-list-item__input"
+        type="text"
+        autoComplete="off"
         value={state.newName}
         onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
-        placeholder={t(T_NAME_PLACEHOLDER)}
-        aria-label={t(T_NAME_PLACEHOLDER)}
+        placeholder={t("tree.nameExample")}
+        aria-describedby="new-tree-hint"
       />
-      <button
-        className="tree-list-item__btn"
-        type="submit"
-        disabled={!state.newName.trim() || createMutation.isPending}
-      >
-        {t("tree.create")}
-      </button>
-      <button
-        className="tree-list-item__btn"
-        type="button"
-        onClick={() => dispatch({ type: "STOP_CREATING" })}
-      >
-        {t(T_CANCEL)}
-      </button>
+      <p id="new-tree-hint" className="tree-list-create__hint">
+        {t("tree.nameHint")}
+      </p>
+      <div className="tree-list-create__actions">
+        <button
+          className="btn btn--primary"
+          type="submit"
+          disabled={!state.newName.trim() || createMutation.isPending}
+        >
+          {t("tree.create")}
+        </button>
+        <button className="btn" type="button" onClick={() => dispatch({ type: "STOP_CREATING" })}>
+          {t(T_CANCEL)}
+        </button>
+      </div>
     </form>
   ) : null;
 

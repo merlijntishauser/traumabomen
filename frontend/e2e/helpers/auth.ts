@@ -122,7 +122,7 @@ export async function createTree(
   // toolbar offers "Create tree". Exactly one of them is visible.
   await page.getByRole("button", { name: /^create (your first )?tree$/i }).click();
   // Fill the tree name in the inline form
-  await page.getByRole("textbox", { name: /tree name/i }).fill(name);
+  await page.getByRole("textbox", { name: /name this tree/i }).fill(name);
   // Submit via the form's "Create tree" button
   await page.locator("form").getByRole("button", { name: /create tree/i }).click();
   await page.waitForURL("**/trees/*", { timeout: 30_000 });

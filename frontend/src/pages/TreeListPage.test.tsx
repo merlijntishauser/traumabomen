@@ -366,9 +366,10 @@ describe("TreeListPage accessibility", () => {
     mockQueryReturn = oneTree;
     render(<TreeListPage />);
     fireEvent.click(screen.getByRole("button", { name: "tree.create" }));
-    expect(document.activeElement).toBe(
-      screen.getByRole("textbox", { name: "tree.namePlaceholder" }),
-    );
+    const field = screen.getByRole("textbox", { name: "tree.nameLabel" });
+    expect(document.activeElement).toBe(field);
+    expect(field).toHaveAttribute("placeholder", "tree.nameExample");
+    expect(field).toHaveAccessibleDescription("tree.nameHint");
 
     fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "tree.create" }));
