@@ -83,7 +83,7 @@
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-colors);
@@ -117,7 +117,7 @@
   gap: 0;
   height: 24px;
   padding: 0 var(--space-4);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.03em;
   color: var(--color-text-muted);
   border-top: 1px solid var(--color-border-secondary);

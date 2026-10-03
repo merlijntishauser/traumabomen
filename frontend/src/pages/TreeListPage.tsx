@@ -181,6 +181,7 @@ function FirstTreeWelcome({
             <button
               type="button"
               className="btn btn--primary"
+              data-create-trigger
               onClick={onCreateTree}
               disabled={createDisabled}
             >
@@ -239,11 +240,30 @@ function TreeListItemRow({
   onDelete,
 }: TreeListItemProps) {
   const { t, i18n } = useTranslation();
+  const isEditing = editingId === tree.id;
+  const isDeleting = deletingId === tree.id;
+  const linkRef = useRef<HTMLAnchorElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+  const wasOpenRef = useRef(false);
 
-  if (editingId === tree.id) {
+  // Rename and delete replace the row, so the button that opened them is
+  // gone. Move focus into the rename field, and back to the row's link when
+  // either closes, so keyboard and screen reader users keep their place.
+  useEffect(() => {
+    if (isEditing) {
+      editInputRef.current?.focus();
+      editInputRef.current?.select();
+    } else if (!isDeleting && wasOpenRef.current) {
+      linkRef.current?.focus();
+    }
+    wasOpenRef.current = isEditing || isDeleting;
+  }, [isEditing, isDeleting]);
+
+  if (isEditing) {
     return (
       <form className="tree-list-item__edit" onSubmit={onRenameSubmit}>
         <input
+          ref={editInputRef}
           className="tree-list-item__input"
           value={editName}
           onChange={(e) => onEditNameChange(e.target.value)}
@@ -259,7 +279,7 @@ function TreeListItemRow({
     );
   }
 
-  if (deletingId === tree.id) {
+  if (isDeleting) {
     return (
       <div className="tree-list-item__confirm">
         <span>{t("tree.confirmDelete")}</span>
@@ -281,7 +301,7 @@ function TreeListItemRow({
   return (
     <div className="tree-list-item">
       <Logomark size={24} className="tree-list-item__mark" />
-      <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+      <Link ref={linkRef} className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
         <span className="tree-list-item__name">
           {tree.name}
           {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
@@ -293,7 +313,7 @@ function TreeListItemRow({
           type="button"
           className="tree-list-item__btn"
           onClick={() => onStartEditing(tree)}
-          title={t("common.edit")}
+          aria-label={t("tree.editNamed", { name: tree.name })}
         >
           {t("common.edit")}
         </button>
@@ -301,7 +321,7 @@ function TreeListItemRow({
           type="button"
           className="tree-list-item__btn tree-list-item__btn--danger"
           onClick={() => onConfirmDelete(tree.id)}
-          title={t(T_DELETE)}
+          aria-label={t("tree.deleteNamed", { name: tree.name })}
         >
           {t(T_DELETE)}
         </button>
@@ -339,7 +359,7 @@ function TreeListToolbar({
   const { t } = useTranslation();
   return (
     <div className="tree-toolbar">
-      <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
+      <h1 className="tree-toolbar__title">{t("tree.myTrees")}</h1>
       <div className="tree-toolbar__spacer" />
       {showCreateActions && (
         <>
@@ -354,6 +374,7 @@ function TreeListToolbar({
           <button
             type="button"
             className="tree-toolbar__btn tree-toolbar__btn--primary"
+            data-create-trigger
             onClick={onStartCreating}
             disabled={createDisabled}
           >
@@ -418,6 +439,19 @@ export default function TreeListPage() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const createInputRef = useRef<HTMLInputElement>(null);
+  const createWasOpenRef = useRef(false);
+
+  // The create form replaces the button that opened it. Focus the name field
+  // when it opens and return to a create button when it is cancelled.
+  useEffect(() => {
+    if (state.creating) {
+      createInputRef.current?.focus();
+    } else if (createWasOpenRef.current) {
+      document.querySelector<HTMLButtonElement>("[data-create-trigger]")?.focus();
+    }
+    createWasOpenRef.current = state.creating;
+  }, [state.creating]);
   const { importTree } = useImportTree();
 
   const treeListViewTab = useMemo(
@@ -588,6 +622,7 @@ export default function TreeListPage() {
   const createForm = state.creating ? (
     <form className="tree-list-create" onSubmit={handleCreateSubmit}>
       <input
+        ref={createInputRef}
         className="tree-list-item__input"
         value={state.newName}
         onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
@@ -614,6 +649,9 @@ export default function TreeListPage() {
   return (
     <>
       <div className="tree-list-page bg-gradient">
+        <a className="skip-link" href="#tree-list-content">
+          {t("tree.skipToTrees")}
+        </a>
         <TreeListToolbar
           showCreateActions={!isEmpty}
           demoMutationPending={demoMutation.isPending}
@@ -628,7 +666,7 @@ export default function TreeListPage() {
           onLogout={logout}
         />
 
-        <div className="tree-list-content">
+        <div className="tree-list-content" id="tree-list-content" tabIndex={-1}>
           {isEmpty ? (
             <FirstTreeWelcome
               onCreateTree={() => dispatch({ type: "START_CREATING" })}

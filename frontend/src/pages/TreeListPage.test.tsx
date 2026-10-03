@@ -302,3 +302,52 @@ describe("TreeListPage demo tree", () => {
     expect(screen.queryByText("demo.badge")).not.toBeInTheDocument();
   });
 });
+
+describe("TreeListPage accessibility", () => {
+  const oneTree = {
+    data: [{ id: "tree-1", name: "Mother's side", is_demo: false }],
+    isLoading: false,
+  };
+
+  it("uses the page title as its h1", () => {
+    mockQueryReturn = oneTree;
+    render(<TreeListPage />);
+    expect(screen.getByRole("heading", { level: 1, name: "tree.myTrees" })).toBeInTheDocument();
+  });
+
+  it("offers a skip link to the tree list", () => {
+    mockQueryReturn = oneTree;
+    const { container } = render(<TreeListPage />);
+    const skip = screen.getByText("tree.skipToTrees");
+    expect(skip).toHaveAttribute("href", "#tree-list-content");
+    expect(container.querySelector("#tree-list-content")).not.toBeNull();
+  });
+
+  it("names the tree in the row's edit and delete labels", () => {
+    mockQueryReturn = oneTree;
+    render(<TreeListPage />);
+    expect(screen.getByRole("button", { name: "tree.editNamed" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "tree.deleteNamed" })).toBeInTheDocument();
+  });
+
+  it("focuses the name field when creating and returns focus on cancel", () => {
+    mockQueryReturn = oneTree;
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.create" }));
+    expect(document.activeElement).toBe(
+      screen.getByRole("textbox", { name: "tree.namePlaceholder" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "tree.create" }));
+  });
+
+  it("focuses the rename field when editing a tree", () => {
+    mockQueryReturn = oneTree;
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.editNamed" }));
+    expect(document.activeElement).toBe(
+      screen.getByRole("textbox", { name: "tree.namePlaceholder" }),
+    );
+  });
+});

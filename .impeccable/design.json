@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-03T15:35:23+00:00",
+  "generatedAt": "2026-10-03T16:06:06+00:00",
   "title": "Design System: Traumatrees",
   "extensions": {
     "colorMeta": {
@@ -307,31 +307,31 @@
       "linen-text-secondary": {
         "role": "neutral",
         "displayName": "Linen Secondary Text",
-        "canonical": "#6b7a8d",
+        "canonical": "#4e5b6e",
         "tonalRamp": [
-          "#030b19",
-          "#192636",
-          "#364354",
-          "#546375",
-          "#758497",
-          "#97a7bb",
-          "#bacbe0",
-          "#e4f0fe"
+          "#030b1a",
+          "#1a2636",
+          "#364355",
+          "#556275",
+          "#768398",
+          "#98a6bb",
+          "#bbcae0",
+          "#e5effe"
         ]
       },
       "linen-text-muted": {
         "role": "neutral",
         "displayName": "Linen Muted Text",
-        "canonical": "#9aa5b2",
+        "canonical": "#5e6b7e",
         "tonalRamp": [
-          "#050c14",
-          "#1d2630",
-          "#3a434e",
-          "#58626e",
-          "#798390",
-          "#9ba6b3",
-          "#bfcad8",
-          "#e4f0fe"
+          "#030b19",
+          "#1b2636",
+          "#374354",
+          "#556275",
+          "#768397",
+          "#98a6bb",
+          "#bccae0",
+          "#e5effe"
         ]
       },
       "ink-indigo": {
@@ -367,16 +367,16 @@
       "danger-dark": {
         "role": "semantic",
         "displayName": "Danger (dark theme)",
-        "canonical": "#ef4444",
+        "canonical": "#f26b6b",
         "tonalRamp": [
-          "#1e0001",
-          "#4d0006",
-          "#7f0612",
-          "#b51220",
-          "#e4393b",
-          "#fa776f",
-          "#ffb3ab",
-          "#fee9e6"
+          "#1f0002",
+          "#4b040c",
+          "#7c0f1c",
+          "#ac2932",
+          "#d45052",
+          "#fc7474",
+          "#fcb3b0",
+          "#ffe9e7"
         ]
       },
       "danger-light": {

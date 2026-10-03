@@ -49,7 +49,7 @@
   --color-action-border: rgba(51, 154, 102, 0.3);
 
   /* Danger */
-  --color-danger: #ef4444;
+  --color-danger: #f26b6b;
   --color-danger-bg: rgba(239, 68, 68, 0.1);
   --color-danger-border: rgba(239, 68, 68, 0.3);
 
@@ -244,8 +244,8 @@
   --color-border-focus: #4a9bb5;
 
   --color-text-primary: #2c3340;
-  --color-text-secondary: #6b7a8d;
-  --color-text-muted: #9aa5b2;
+  --color-text-secondary: #4e5b6e;
+  --color-text-muted: #5e6b7e;
   --color-text-inverse: #ffffff;
 
   /* The light theme reads indigo. Green on cream reads generic-wellness;
@@ -529,6 +529,32 @@ label {
 button {
   font-family: var(--font-body);
   cursor: pointer;
+}
+
+/* Keyboard focus in the palette instead of the browser's blue. :where keeps
+   specificity at zero so components with their own focus style still win. */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+/* Skip link: off-screen until focused, then pinned top-left. */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
 }
 
 /* Scrollbar styling (dark theme) */

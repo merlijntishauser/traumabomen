@@ -42,15 +42,15 @@ enum Theme {
 
     // Text
     static let textPrimary = dynamic(dark: 0xe0e8e3, light: 0x2c3340)
-    static let textSecondary = dynamic(dark: 0xa8bfb1, light: 0x6b7a8d)
-    static let textMuted = dynamic(dark: 0x7a9a84, light: 0x9aa5b2)
+    static let textSecondary = dynamic(dark: 0xa8bfb1, light: 0x4e5b6e)
+    static let textMuted = dynamic(dark: 0x7a9a84, light: 0x5e6b7e)
 
     // Brand accent: forest green in dark, indigo in light.
     static let accent = dynamic(dark: 0x2d8a5e, light: 0x4f46e5)
     // What the user does (buttons, links): green in dark, the same indigo in light.
     static let action = dynamic(dark: 0x339a66, light: 0x4f46e5)
 
-    static let danger = dynamic(dark: 0xef4444, light: 0xdc2626)
+    static let danger = dynamic(dark: 0xf26b6b, light: 0xdc2626)
 
     static let bodySize: CGFloat = 15
 
