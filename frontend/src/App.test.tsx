@@ -150,6 +150,51 @@ describe("OnboardingGuard", () => {
     expect(screen.getByTestId("child")).toBeInTheDocument();
     expect(screen.queryByText("safety.onboarding.continue")).not.toBeInTheDocument();
   });
+
+  it("re-arms the gate when a new account registers in the same tab", () => {
+    // First account already acknowledged the gate.
+    mockAccessToken = "token-a";
+    mockKey = {} as CryptoKey;
+    mockOnboardingFlag = true;
+
+    const { rerender } = render(
+      <OnboardingGuard>
+        <div data-testid="child">content</div>
+      </OnboardingGuard>,
+    );
+    expect(screen.getByTestId("child")).toBeInTheDocument();
+
+    // Logout, then register() sets the flag back to false and a new key unlocks.
+    mockAccessToken = "token-b";
+    mockKey = {} as CryptoKey;
+    mockOnboardingFlag = false;
+
+    rerender(
+      <OnboardingGuard>
+        <div data-testid="child">content</div>
+      </OnboardingGuard>,
+    );
+
+    expect(screen.queryByTestId("child")).not.toBeInTheDocument();
+    expect(screen.getByText("safety.onboarding.continue")).toBeInTheDocument();
+  });
+
+  it("passes demo and logout actions through to the gate", () => {
+    mockAccessToken = "token";
+    mockKey = {} as CryptoKey;
+    mockOnboardingFlag = false;
+
+    render(
+      <OnboardingGuard onStartDemo={vi.fn()} onLogout={vi.fn()}>
+        <div data-testid="child">content</div>
+      </OnboardingGuard>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "safety.onboarding.startWithDemo" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "safety.onboarding.notNow" })).toBeInTheDocument();
+  });
 });
 
 describe("LazyBoundary", () => {

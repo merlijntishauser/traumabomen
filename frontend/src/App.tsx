@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Route, Routes, useLocation } from "react-router";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 import { AppFooter } from "./components/AppFooter";
 import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";
@@ -121,20 +121,30 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+export function OnboardingGuard({
+  children,
+  onStartDemo,
+  onLogout,
+}: {
+  children: React.ReactNode;
+  onStartDemo?: () => void;
+  onLogout?: () => void;
+}) {
   const { masterKey } = useEncryption();
-  const [acknowledged, setAcknowledged] = useState(getOnboardingFlag);
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
   const isAuthenticated = !!getAccessToken();
 
-  // login() updates the localStorage flag after this component already mounted
-  // with the stale pre-login value. Re-sync during render rather than through an
-  // effect, which would otherwise cost an extra render showing the stale value.
-  if (!acknowledged && getOnboardingFlag()) {
-    setAcknowledged(true);
-  }
+  // Read the flag on every render instead of caching it in state. login() and
+  // register() rewrite it after this guard has mounted, in both directions: a
+  // cached "acknowledged" from an earlier account in the same tab would let a
+  // newly registered account skip the safety gate. Unlocking sets masterKey,
+  // which re-renders this guard after either call.
+  const acknowledged = getOnboardingFlag();
 
   if (isAuthenticated && masterKey && !acknowledged) {
-    return <OnboardingGate onAcknowledged={() => setAcknowledged(true)} />;
+    return (
+      <OnboardingGate onAcknowledged={rerender} onStartDemo={onStartDemo} onLogout={onLogout} />
+    );
   }
 
   return <>{children}</>;
@@ -215,6 +225,8 @@ function AppContent() {
   });
 
   const handleLogout = useLogout();
+  const navigate = useNavigate();
+  const handleStartDemo = useCallback(() => navigate("/trees?start=demo"), [navigate]);
 
   const handleLockUnlock = useCallback(
     async (passphrase: string) => {
@@ -249,7 +261,7 @@ function AppContent() {
   }
 
   return (
-    <OnboardingGuard>
+    <OnboardingGuard onStartDemo={handleStartDemo} onLogout={handleLogout}>
       {authModalMode && (
         <AuthModal
           mode={authModalMode}

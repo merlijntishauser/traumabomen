@@ -24,7 +24,12 @@ vi.mock("react-router", () => ({
     </a>
   ),
   useNavigate: () => vi.fn(),
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams],
 }));
+
+let mockSearchParams = new URLSearchParams();
+const mockSetSearchParams = vi.fn();
+const mockMutate = vi.fn();
 
 vi.mock("../components/FeedbackModal", () => ({
   FeedbackModal: ({ onClose }: { onClose: () => void }) => (
@@ -82,7 +87,7 @@ let mockQueryReturn: {
 vi.mock("@tanstack/react-query", () => ({
   useQuery: () => mockQueryReturn,
   useMutation: () => ({
-    mutate: vi.fn(),
+    mutate: mockMutate,
     isPending: false,
   }),
   useQueryClient: () => ({
@@ -229,6 +234,27 @@ describe("TreeListPage demo tree", () => {
     localStorageStore[STORAGE_KEY] = "true";
     renderPage();
     expect(screen.getByText("demo.badge")).toBeInTheDocument();
+  });
+
+  it("creates the demo tree once when arriving with ?start=demo", () => {
+    mockQueryReturn = { data: [], isLoading: false };
+    mockSearchParams = new URLSearchParams("start=demo");
+    mockMutate.mockClear();
+    mockSetSearchParams.mockClear();
+
+    const { rerender } = renderPage();
+    rerender(<TreeListPage />);
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParams).toHaveBeenCalledWith({}, { replace: true });
+    mockSearchParams = new URLSearchParams();
+  });
+
+  it("does not create a demo tree without the start param", () => {
+    mockQueryReturn = { data: [], isLoading: false };
+    mockMutate.mockClear();
+    renderPage();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it("does not show demo badge on non-demo trees", () => {

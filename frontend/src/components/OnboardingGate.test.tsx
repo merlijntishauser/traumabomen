@@ -11,6 +11,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("../lib/api", () => ({
   acknowledgeOnboarding: vi.fn().mockResolvedValue(undefined),
+  setOnboardingFlag: vi.fn(),
 }));
 
 describe("OnboardingGate", () => {
@@ -49,21 +50,68 @@ describe("OnboardingGate", () => {
     });
   });
 
-  it("re-enables button when API call fails", async () => {
-    const { acknowledgeOnboarding } = await import("../lib/api");
+  it("lets the user in for this session when the server save fails", async () => {
+    const { acknowledgeOnboarding, setOnboardingFlag } = await import("../lib/api");
     (acknowledgeOnboarding as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("network"));
 
     const onAcknowledged = vi.fn();
     render(<OnboardingGate onAcknowledged={onAcknowledged} />);
 
-    const continueButton = screen.getByRole("button", { name: "safety.onboarding.continue" });
-    fireEvent.click(continueButton);
+    fireEvent.click(screen.getByRole("button", { name: "safety.onboarding.continue" }));
 
     await waitFor(() => {
-      expect(continueButton).not.toBeDisabled();
+      expect(onAcknowledged).toHaveBeenCalledTimes(1);
     });
+    expect(setOnboardingFlag).toHaveBeenCalledWith(true);
+  });
 
+  it("starts the demo after acknowledging", async () => {
+    const onAcknowledged = vi.fn();
+    const onStartDemo = vi.fn();
+    render(<OnboardingGate onAcknowledged={onAcknowledged} onStartDemo={onStartDemo} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "safety.onboarding.startWithDemo" }));
+
+    await waitFor(() => {
+      expect(onStartDemo).toHaveBeenCalledTimes(1);
+    });
+    expect(onAcknowledged).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides the demo and exit actions when no handlers are given", () => {
+    render(<OnboardingGate onAcknowledged={vi.fn()} />);
+
+    expect(
+      screen.queryByRole("button", { name: "safety.onboarding.startWithDemo" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "safety.onboarding.notNow" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers a way out without acknowledging", () => {
+    const onAcknowledged = vi.fn();
+    const onLogout = vi.fn();
+    render(<OnboardingGate onAcknowledged={onAcknowledged} onLogout={onLogout} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "safety.onboarding.notNow" }));
+
+    expect(onLogout).toHaveBeenCalledTimes(1);
     expect(onAcknowledged).not.toHaveBeenCalled();
+  });
+
+  it("links to support resources in a new tab", () => {
+    render(<OnboardingGate onAcknowledged={vi.fn()} />);
+
+    const link = screen.getByText("safety.onboarding.supportLink");
+    expect(link).toHaveAttribute("href", "/support");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("moves initial focus to the title", () => {
+    render(<OnboardingGate onAcknowledged={vi.fn()} />);
+
+    expect(document.activeElement).toBe(screen.getByRole("heading", { level: 1 }));
   });
 
   it("privacy link opens in a new tab", () => {

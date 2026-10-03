@@ -1,8 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useReducer, useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { Logomark } from "../components/Logomark";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
@@ -502,6 +510,20 @@ export default function TreeListPage() {
       navigate(`/trees/${uuidToCompact(treeId)}`);
     },
   });
+
+  // The onboarding gate's "Start with the demo tree" lands here with
+  // ?start=demo. Create the demo once and drop the param so a reload or the
+  // back button does not create a second one.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const demoStartedRef = useRef(false);
+  const startDemo = searchParams.get("start") === "demo";
+  const { mutate: createDemo } = demoMutation;
+  useEffect(() => {
+    if (!startDemo || !masterKey || demoStartedRef.current) return;
+    demoStartedRef.current = true;
+    setSearchParams({}, { replace: true });
+    createDemo();
+  }, [startDemo, masterKey, setSearchParams, createDemo]);
 
   const renameMutation = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {

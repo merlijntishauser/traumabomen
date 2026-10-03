@@ -70,15 +70,60 @@
   margin: 0;
 }
 
-.onboarding-gate__privacy-link {
+.onboarding-gate__link {
   display: inline;
-  font-size: 14px;
   color: var(--color-action);
-  font-weight: 500;
+  font-weight: 700;
 }
 
-.onboarding-gate__privacy-link:hover {
+.onboarding-gate__link:hover {
   color: var(--color-action-hover);
+}
+
+/* Programmatic focus target only; not interactive, so no ring. */
+.onboarding-gate__title:focus {
+  outline: none;
+}
+
+.onboarding-gate__secondary {
+  margin-top: var(--space-3);
+  height: 32px;
+  padding: 0 var(--space-4);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.onboarding-gate__secondary:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+}
+
+.onboarding-gate__exit {
+  display: block;
+  margin: var(--space-4) auto 0;
+  height: 24px;
+  padding: 0 var(--space-2);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.onboarding-gate__exit:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.onboarding-gate__secondary:disabled,
+.onboarding-gate__exit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .onboarding-gate__continue {
