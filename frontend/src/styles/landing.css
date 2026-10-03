@@ -542,8 +542,11 @@ figure.landing__art {
 }
 
 .landing__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--color-action);
-  font-weight: 500;
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -577,7 +580,25 @@ figure.landing__art {
 
 /* Collapse the zigzag and hero split before they get cramped. */
 @media (max-width: 900px) {
+  /* Stacked hero: the product glimpse moves below the calls to action instead
+     of disappearing, cropped and faded so it reads as a preview. */
+  .landing__hero-shell {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--space-8);
+  }
+
   .landing__hero-art {
+    width: 100%;
+    max-width: 520px;
+    max-height: 220px;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, #000 65%, transparent);
+  }
+
+  /* With content stacked the cue would sit among the buttons and glimpse. */
+  .landing__scroll-cue {
     display: none;
   }
 
@@ -607,6 +628,10 @@ figure.landing__art {
 }
 
 @media (max-width: 640px) {
+  .landing__link {
+    min-height: 32px;
+  }
+
   .landing__hero {
     min-height: 420px;
   }

@@ -2,6 +2,7 @@ import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpBackend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
+import { htmlLangFor } from "./lib/documentLanguage";
 
 const hostnameDetector = {
   name: "hostname",
@@ -34,3 +35,8 @@ i18n
       escapeValue: false,
     },
   });
+
+// Keep <html lang> in step with the UI language (index.html ships "en").
+i18n.on("languageChanged", (language) => {
+  document.documentElement.lang = htmlLangFor(language);
+});
