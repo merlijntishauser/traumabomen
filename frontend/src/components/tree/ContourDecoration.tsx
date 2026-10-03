@@ -108,12 +108,12 @@ function generateContours(): ContourLine[] {
   return lines;
 }
 
-export function BranchDecoration() {
+export function ContourDecoration() {
   const contours = useMemo(generateContours, []);
 
   return (
     <svg
-      className="branch-decoration"
+      className="contour-decoration"
       viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
       preserveAspectRatio="xMidYMid slice"
       fill="none"

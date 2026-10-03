@@ -24,8 +24,8 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("../tree/BranchDecoration", () => ({
-  BranchDecoration: () => <div data-testid="branch-decoration" />,
+vi.mock("../tree/ContourDecoration", () => ({
+  ContourDecoration: () => <div data-testid="contour-decoration" />,
 }));
 
 vi.mock("./TimelineView.css", () => ({}));
@@ -136,10 +136,10 @@ describe("TimelineView", () => {
     expect(container.querySelector("svg")).toBeTruthy();
   });
 
-  it("renders the BranchDecoration component", () => {
+  it("renders the ContourDecoration component", () => {
     const props = makeEmptyProps();
     render(<TimelineView {...props} />);
-    expect(screen.getByTestId("branch-decoration")).toBeTruthy();
+    expect(screen.getByTestId("contour-decoration")).toBeTruthy();
   });
 
   it("renders the timeline-container with bg-gradient class", () => {

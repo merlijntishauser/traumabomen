@@ -259,8 +259,8 @@ vi.mock("../hooks/useSelectedPersonEntities", () => ({
 }));
 
 // Mock all child components
-vi.mock("../components/tree/BranchDecoration", () => ({
-  BranchDecoration: () => <div data-testid="branch-decoration" />,
+vi.mock("../components/tree/ContourDecoration", () => ({
+  ContourDecoration: () => <div data-testid="contour-decoration" />,
 }));
 
 vi.mock("../components/tree/TreeToolbar", () => ({
@@ -419,7 +419,7 @@ describe("TreeWorkspacePage", () => {
 
   it("renders branch decoration when grid is off", () => {
     render(<TreeWorkspacePage />);
-    expect(screen.getByTestId("branch-decoration")).toBeInTheDocument();
+    expect(screen.getByTestId("contour-decoration")).toBeInTheDocument();
   });
 
   it("shows loading state", () => {

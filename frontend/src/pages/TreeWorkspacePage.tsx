@@ -17,9 +17,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
-import { BranchDecoration } from "../components/tree/BranchDecoration";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
 import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
+import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { NodeContextMenuHost } from "../components/tree/NodeContextMenu";
 import { PatternFocusPanel } from "../components/tree/PatternFocusPanel";
 import type { PersonDetailSection } from "../components/tree/PersonDetailPanel";
@@ -1173,7 +1173,7 @@ function TreeWorkspaceInner() {
       </TreeToolbar>
 
       <div className="tree-canvas-wrapper bg-gradient">
-        {!canvasSettings.showGrid && <BranchDecoration />}
+        {!canvasSettings.showGrid && <ContourDecoration />}
         {isLoading ? (
           <div style={{ padding: 20 }}>{t("common.loading")}</div>
         ) : (

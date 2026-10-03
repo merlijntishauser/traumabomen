@@ -693,7 +693,7 @@ button {
 }
 
 /* Decorative contour lines */
-.branch-decoration {
+.contour-decoration {
   position: absolute;
   inset: 0;
   width: 100%;

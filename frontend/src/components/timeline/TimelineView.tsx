@@ -11,7 +11,7 @@ import type {
   DecryptedRelationship,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
-import { BranchDecoration } from "../tree/BranchDecoration";
+import { ContourDecoration } from "../tree/ContourDecoration";
 import { TimelineAgeContent } from "./TimelineAgeContent";
 import { TimelineTooltip } from "./TimelineTooltip";
 import { TimelineYearsContent } from "./TimelineYearsContent";
@@ -121,7 +121,7 @@ export function TimelineView({
   if (persons.size === 0) {
     return (
       <div className="timeline-container bg-gradient" ref={setContainer}>
-        <BranchDecoration />
+        <ContourDecoration />
         <div className="timeline-empty">{t("timeline.noData")}</div>
       </div>
     );
@@ -158,7 +158,7 @@ export function TimelineView({
 
   return (
     <div className="timeline-container bg-gradient" ref={setContainer}>
-      <BranchDecoration />
+      <ContourDecoration />
       {layoutMode === "years" ? (
         <TimelineYearsContent {...contentProps} />
       ) : (

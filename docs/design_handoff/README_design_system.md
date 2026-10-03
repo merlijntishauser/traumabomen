@@ -126,7 +126,7 @@ A 4-px scale (`--space-1` = 4px) up to `--space-15` = 60px. Dot/half steps are f
 
 - **Full-bleed photography** on the auth landing and unlock pages — forest paths, tree canopies. Each image ships in dark + light variants and dark + light WebP + JPEG. A radial vignette (`rgba(10, 26, 15, 0.15) → 0.6`) tames the brightness.
 - **Subtle radial gradient** on workspace canvases (`bg-gradient` class) — accent-tinted ellipse from bottom-left, fading to canvas color, dithered with an SVG noise filter at 6% opacity to prevent banding.
-- **Decorative SVG contour lines** layered on auth/landing surfaces at 16% opacity (`branch-decoration` class).
+- **Decorative SVG contour lines** layered on auth/landing surfaces at 16% opacity (`contour-decoration` class).
 - **Generation banding** in the timeline alternates `rgba(255,255,255,0.02)` ↔ transparent — barely visible, just enough rhythm.
 
 ### Cards & surfaces
