@@ -1,0 +1,659 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-03T15:33:19+00:00",
+  "title": "Design System: Traumatrees",
+  "extensions": {
+    "colorMeta": {
+      "midnight-floor": {
+        "role": "neutral",
+        "displayName": "Midnight Floor",
+        "canonical": "#0a1a0f",
+        "tonalRamp": [
+          "#020f05",
+          "#192a1e",
+          "#36473a",
+          "#546759",
+          "#75887a",
+          "#97ab9c",
+          "#bbcfc0",
+          "#e0f5e5"
+        ]
+      },
+      "midnight-surface": {
+        "role": "neutral",
+        "displayName": "Midnight Surface",
+        "canonical": "#0f261a",
+        "tonalRamp": [
+          "#000f06",
+          "#142b1e",
+          "#30483b",
+          "#4f685a",
+          "#708a7a",
+          "#92ad9d",
+          "#b5d1c0",
+          "#daf7e6"
+        ]
+      },
+      "midnight-raised": {
+        "role": "neutral",
+        "displayName": "Midnight Raised",
+        "canonical": "#163027",
+        "tonalRamp": [
+          "#010f09",
+          "#112b22",
+          "#2e483f",
+          "#4d685e",
+          "#6d8a7f",
+          "#8fada1",
+          "#b3d1c5",
+          "#d8f7ea"
+        ]
+      },
+      "midnight-canvas": {
+        "role": "neutral",
+        "displayName": "Midnight Canvas",
+        "canonical": "#0d1f14",
+        "tonalRamp": [
+          "#010f06",
+          "#182a1e",
+          "#34473b",
+          "#536759",
+          "#73887a",
+          "#96ab9d",
+          "#b9d0c0",
+          "#def5e5"
+        ]
+      },
+      "midnight-hover": {
+        "role": "neutral",
+        "displayName": "Midnight Hover",
+        "canonical": "#1a3d2a",
+        "tonalRamp": [
+          "#000f06",
+          "#082d1b",
+          "#284b37",
+          "#476b56",
+          "#678c76",
+          "#8ab098",
+          "#add4bc",
+          "#d2fae1"
+        ]
+      },
+      "midnight-border": {
+        "role": "neutral",
+        "displayName": "Midnight Border",
+        "canonical": "#1f4d35",
+        "tonalRamp": [
+          "#000f06",
+          "#012e19",
+          "#1e4c34",
+          "#3f6d53",
+          "#608f73",
+          "#82b296",
+          "#a6d7b9",
+          "#cafdde"
+        ]
+      },
+      "midnight-text": {
+        "role": "neutral",
+        "displayName": "Midnight Text",
+        "canonical": "#e0e8e3",
+        "tonalRamp": [
+          "#070d09",
+          "#212723",
+          "#3d4440",
+          "#5c635f",
+          "#7d8480",
+          "#a0a7a2",
+          "#c4cbc6",
+          "#e9f1ec"
+        ]
+      },
+      "midnight-text-secondary": {
+        "role": "neutral",
+        "displayName": "Midnight Sage Text",
+        "canonical": "#8faa97",
+        "tonalRamp": [
+          "#001005",
+          "#142b1c",
+          "#314938",
+          "#4f6857",
+          "#708a78",
+          "#92ad9a",
+          "#b5d1be",
+          "#daf7e3"
+        ]
+      },
+      "midnight-text-muted": {
+        "role": "neutral",
+        "displayName": "Midnight Muted Text",
+        "canonical": "#7a9a84",
+        "tonalRamp": [
+          "#001005",
+          "#0f2c1a",
+          "#2c4a37",
+          "#4b6a55",
+          "#6c8b76",
+          "#8eae98",
+          "#b1d3bc",
+          "#d6f9e1"
+        ]
+      },
+      "forest-accent": {
+        "role": "primary",
+        "displayName": "Forest Green",
+        "canonical": "#2d8a5e",
+        "tonalRamp": [
+          "#000f06",
+          "#042d1b",
+          "#024f30",
+          "#097449",
+          "#3b9669",
+          "#61ba8b",
+          "#86dfaf",
+          "#c5fedd"
+        ]
+      },
+      "forest-accent-hover": {
+        "role": "primary",
+        "displayName": "Deep Forest Green",
+        "canonical": "#24704c",
+        "tonalRamp": [
+          "#000f06",
+          "#032d1b",
+          "#004f30",
+          "#26714d",
+          "#4b946e",
+          "#6eb78f",
+          "#92dcb3",
+          "#c5fedd"
+        ]
+      },
+      "forest-action": {
+        "role": "primary",
+        "displayName": "Grove Green",
+        "canonical": "#339a66",
+        "tonalRamp": [
+          "#000f06",
+          "#042d19",
+          "#02502e",
+          "#0a7447",
+          "#319864",
+          "#59bc86",
+          "#7fe1a9",
+          "#c5fedb"
+        ]
+      },
+      "forest-action-hover": {
+        "role": "primary",
+        "displayName": "Grove Green Hover",
+        "canonical": "#2f9362",
+        "tonalRamp": [
+          "#000f06",
+          "#012e19",
+          "#074f30",
+          "#127348",
+          "#349766",
+          "#5cbc88",
+          "#81e1ab",
+          "#c7fedc"
+        ]
+      },
+      "linen-floor": {
+        "role": "neutral",
+        "displayName": "Linen Floor",
+        "canonical": "#f7f5f2",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262523",
+          "#43423f",
+          "#63615e",
+          "#84827f",
+          "#a6a5a2",
+          "#cbc9c6",
+          "#f0eeeb"
+        ]
+      },
+      "linen-surface": {
+        "role": "neutral",
+        "displayName": "Linen Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "linen-raised": {
+        "role": "neutral",
+        "displayName": "Linen Raised",
+        "canonical": "#f0edea",
+        "tonalRamp": [
+          "#0d0b09",
+          "#272522",
+          "#44413f",
+          "#63615e",
+          "#84827f",
+          "#a7a4a2",
+          "#cbc8c6",
+          "#f1eeeb"
+        ]
+      },
+      "linen-canvas": {
+        "role": "neutral",
+        "displayName": "Linen Canvas",
+        "canonical": "#f4f1ed",
+        "tonalRamp": [
+          "#0d0b08",
+          "#272522",
+          "#44423e",
+          "#63615d",
+          "#84827e",
+          "#a7a4a1",
+          "#cbc9c5",
+          "#f1eeea"
+        ]
+      },
+      "linen-hover": {
+        "role": "neutral",
+        "displayName": "Linen Hover",
+        "canonical": "#ebe7e2",
+        "tonalRamp": [
+          "#0d0b08",
+          "#272521",
+          "#45413d",
+          "#64615c",
+          "#85827d",
+          "#a8a4a0",
+          "#ccc8c4",
+          "#f2eee9"
+        ]
+      },
+      "linen-border": {
+        "role": "neutral",
+        "displayName": "Linen Border",
+        "canonical": "#d4cec6",
+        "tonalRamp": [
+          "#0e0a06",
+          "#29241e",
+          "#46413b",
+          "#666059",
+          "#87817a",
+          "#aaa49c",
+          "#cec8c0",
+          "#f4ede5"
+        ]
+      },
+      "linen-text": {
+        "role": "neutral",
+        "displayName": "Linen Slate Text",
+        "canonical": "#2c3340",
+        "tonalRamp": [
+          "#060b16",
+          "#1f2532",
+          "#3b4250",
+          "#5a6170",
+          "#7a8392",
+          "#9da5b5",
+          "#c1cada",
+          "#e6efff"
+        ]
+      },
+      "linen-text-secondary": {
+        "role": "neutral",
+        "displayName": "Linen Secondary Text",
+        "canonical": "#6b7a8d",
+        "tonalRamp": [
+          "#030b19",
+          "#192636",
+          "#364354",
+          "#546375",
+          "#758497",
+          "#97a7bb",
+          "#bacbe0",
+          "#e4f0fe"
+        ]
+      },
+      "linen-text-muted": {
+        "role": "neutral",
+        "displayName": "Linen Muted Text",
+        "canonical": "#9aa5b2",
+        "tonalRamp": [
+          "#050c14",
+          "#1d2630",
+          "#3a434e",
+          "#58626e",
+          "#798390",
+          "#9ba6b3",
+          "#bfcad8",
+          "#e4f0fe"
+        ]
+      },
+      "ink-indigo": {
+        "role": "primary",
+        "displayName": "Ink Indigo",
+        "canonical": "#4f46e5",
+        "tonalRamp": [
+          "#070030",
+          "#1b086c",
+          "#3406b7",
+          "#4b40df",
+          "#686cfd",
+          "#909bfb",
+          "#bcc5fc",
+          "#eaeefe"
+        ]
+      },
+      "ink-indigo-hover": {
+        "role": "primary",
+        "displayName": "Deep Ink Indigo",
+        "canonical": "#4338ca",
+        "tonalRamp": [
+          "#070031",
+          "#1c076d",
+          "#3317af",
+          "#4b45d6",
+          "#686bff",
+          "#8f9bfc",
+          "#bcc5fd",
+          "#eaedfe"
+        ]
+      },
+      "danger-dark": {
+        "role": "semantic",
+        "displayName": "Danger (dark theme)",
+        "canonical": "#ef4444",
+        "tonalRamp": [
+          "#1e0001",
+          "#4d0006",
+          "#7f0612",
+          "#b51220",
+          "#e4393b",
+          "#fa776f",
+          "#ffb3ab",
+          "#fee9e6"
+        ]
+      },
+      "danger-light": {
+        "role": "semantic",
+        "displayName": "Danger (light theme)",
+        "canonical": "#dc2626",
+        "tonalRamp": [
+          "#1f0000",
+          "#4b0405",
+          "#810008",
+          "#b70713",
+          "#e73430",
+          "#fc7569",
+          "#fcb4ab",
+          "#ffe9e6"
+        ]
+      },
+      "danger-solid": {
+        "role": "semantic",
+        "displayName": "Danger Solid",
+        "canonical": "#b91c1c",
+        "tonalRamp": [
+          "#1e0001",
+          "#4d0103",
+          "#7f080c",
+          "#b51517",
+          "#dd453c",
+          "#fa786b",
+          "#ffb3a9",
+          "#fee9e6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Fraunces hero statements on public pages."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Fraunces section headings on public pages."
+      },
+      "voice-h1": {
+        "displayName": "Voice H1",
+        "purpose": "In-app page headings in the handwriting face."
+      },
+      "voice-h2": {
+        "displayName": "Voice H2",
+        "purpose": "Panel and section headings in the app."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Compact panel headers, person names; taglines at weight 300."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All running text and UI; 15px."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Secondary text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Button and form labels."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Metadata and small-button text."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "Uppercase kicker above headings."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(45,138,94,0.06)",
+        "purpose": "Nodes and small raised controls (dark; light uses slate-tinted equivalents)."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 12px rgba(0,0,0,0.35), 0 2px 8px rgba(45,138,94,0.08)",
+        "purpose": "Popovers, menus, hovered nodes."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 8px 24px rgba(0,0,0,0.4), 0 4px 16px rgba(45,138,94,0.1)",
+        "purpose": "Side panels, modals, solid cards."
+      },
+      {
+        "name": "shadow-glass",
+        "value": "0 8px 40px rgba(0,0,0,0.35)",
+        "purpose": "Glass auth and lock cards over hero photography only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-colors",
+        "value": "color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease",
+        "purpose": "Every state change."
+      },
+      {
+        "name": "slide-in-right",
+        "value": "transform translateX(100%) to 0, 0.25s ease-out",
+        "purpose": "Side panels entering from the right."
+      },
+      {
+        "name": "auth-reveal",
+        "value": "0.6s ease-out",
+        "purpose": "Auth card entrance over hero photography."
+      },
+      {
+        "name": "ambient-particles",
+        "value": "~30fps 2D canvas, paused on hidden tabs, off under prefers-reduced-motion",
+        "purpose": "Fireflies (dark) or warm motes (light) over hero photography."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xs",
+        "value": "380px"
+      },
+      {
+        "name": "sm",
+        "value": "480px"
+      },
+      {
+        "name": "sm-plus",
+        "value": "560px"
+      },
+      {
+        "name": "md",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "The everyday button: surface background, one-pixel border, bold small label.",
+      "html": "<button class=\"ds-btn\">Add person</button>",
+      "css": ".ds-btn{padding:9px 16px;border:1px solid var(--color-border-primary,#1f4d35);border-radius:var(--radius-sm,6px);font-family:var(--font-body,Lato,sans-serif);font-size:13px;font-weight:700;line-height:1.2;background:var(--color-bg-secondary,#0f261a);color:var(--color-text-primary,#e0e8e3);cursor:pointer;transition:color .15s ease,background-color .15s ease,border-color .15s ease,box-shadow .15s ease}.ds-btn:hover{background:var(--color-bg-hover,#1a3d2a)}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--color-action-focus-ring,rgba(51,154,102,.35))}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action on a surface; action-color fill with inverse label.",
+      "html": "<button class=\"ds-btn-primary\">Save</button>",
+      "css": ".ds-btn-primary{padding:9px 16px;border:1px solid var(--color-action,#339a66);border-radius:var(--radius-sm,6px);font-family:var(--font-body,Lato,sans-serif);font-size:13px;font-weight:700;line-height:1.2;background:var(--color-action,#339a66);color:var(--color-text-inverse,#0a1a0f);cursor:pointer;transition:color .15s ease,background-color .15s ease,border-color .15s ease,box-shadow .15s ease}.ds-btn-primary:hover{background:var(--color-action-hover,#2f9362)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--color-action-focus-ring,rgba(51,154,102,.35))}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions: danger text and tinted border, tinted fill on hover.",
+      "html": "<button class=\"ds-btn-danger\">Delete tree</button>",
+      "css": ".ds-btn-danger{padding:9px 16px;border:1px solid var(--color-danger-border,rgba(239,68,68,.3));border-radius:var(--radius-sm,6px);font-family:var(--font-body,Lato,sans-serif);font-size:13px;font-weight:700;line-height:1.2;background:var(--color-bg-secondary,#0f261a);color:var(--color-danger,#ef4444);cursor:pointer;transition:color .15s ease,background-color .15s ease,border-color .15s ease,box-shadow .15s ease}.ds-btn-danger:hover{background:var(--color-danger-bg,rgba(239,68,68,.1))}.ds-btn-danger:focus-visible{outline:none;box-shadow:0 0 0 2px var(--color-danger-border,rgba(239,68,68,.3))}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled field on the raised surface; focus shifts the border to the action color with a soft ring.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Name</span><input class=\"ds-input\" type=\"text\" placeholder=\"e.g. Grandmother\"></label>",
+      "css": ".ds-field{display:block;font-family:var(--font-body,Lato,sans-serif)}.ds-field__label{display:block;font-size:13px;font-weight:500;color:var(--color-text-secondary,#8faa97);margin-bottom:4px}.ds-input{width:100%;font-family:var(--font-body,Lato,sans-serif);font-size:15px;padding:8px 12px;background:var(--color-bg-tertiary,#163027);border:1px solid var(--color-border-primary,#1f4d35);border-radius:var(--radius-md,8px);color:var(--color-text-primary,#e0e8e3);transition:color .15s ease,background-color .15s ease,border-color .15s ease,box-shadow .15s ease}.ds-input:focus{outline:none;border-color:var(--color-action,#339a66);box-shadow:0 0 0 2px var(--color-action-focus-ring,rgba(51,154,102,.35))}"
+    },
+    {
+      "name": "Workspace Toolbar",
+      "kind": "nav",
+      "refersTo": "toolbar-button",
+      "description": "Toolbar over the canvas: uniform 32px buttons and a 3px accent line fading to transparent.",
+      "html": "<nav class=\"ds-toolbar\"><span class=\"ds-toolbar__title\">The Jansen family</span><button class=\"ds-toolbar__btn\">Timeline</button><button class=\"ds-toolbar__btn\">Patterns</button><button class=\"ds-toolbar__btn ds-toolbar__btn--icon\" aria-label=\"Theme\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\"/></svg></button></nav>",
+      "css": ".ds-toolbar{position:relative;display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--color-bg-secondary,#0f261a);border-bottom:1px solid var(--color-border-primary,#1f4d35);box-shadow:0 2px 8px rgba(0,0,0,.25);font-family:var(--font-body,Lato,sans-serif)}.ds-toolbar::after{content:\"\";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(to right,var(--color-accent,#2d8a5e),transparent)}.ds-toolbar__title{font-family:var(--font-heading,'Playwrite NZ Basic',cursive);font-weight:300;font-size:1.1rem;color:var(--color-text-primary,#e0e8e3);margin-right:auto}.ds-toolbar__btn{height:32px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--color-border-primary,#1f4d35);border-radius:var(--radius-sm,6px);background:var(--color-bg-secondary,#0f261a);color:var(--color-text-primary,#e0e8e3);font-size:13px;font-weight:700;cursor:pointer;transition:color .15s ease,background-color .15s ease,border-color .15s ease}.ds-toolbar__btn--icon{width:32px;justify-content:center;padding:0}.ds-toolbar__btn:hover{background:var(--color-bg-hover,#1a3d2a)}.ds-toolbar__btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--color-action-focus-ring,rgba(51,154,102,.35))}"
+    },
+    {
+      "name": "Solid Card",
+      "kind": "card",
+      "refersTo": "card-solid",
+      "description": "The in-app card: surface, one-pixel border, large shadow, 12px corners.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card__title\">Paternal line</h3><p class=\"ds-card__body\">14 persons, 6 events, 2 patterns.</p></article>",
+      "css": ".ds-card{background:var(--color-bg-secondary,#0f261a);border:1px solid var(--color-border-primary,#1f4d35);border-radius:var(--radius-lg,12px);box-shadow:var(--shadow-lg,0 8px 24px rgba(0,0,0,.4),0 4px 16px rgba(45,138,94,.1));padding:20px 24px;font-family:var(--font-body,Lato,sans-serif);transition:color .15s ease,background-color .15s ease,border-color .15s ease}.ds-card:hover{border-color:var(--color-accent-border,rgba(45,138,94,.3))}.ds-card__title{font-family:var(--font-heading,'Playwrite NZ Basic',cursive);font-weight:300;font-size:1.35rem;color:var(--color-text-primary,#e0e8e3);margin:0 0 6px}.ds-card__body{font-size:15px;line-height:1.5;color:var(--color-text-secondary,#8faa97);margin:0}"
+    },
+    {
+      "name": "Person Node",
+      "kind": "custom",
+      "refersTo": "person-node",
+      "description": "Signature canvas node: 180x80, accent top edge, voice-face name, shape-coded event badges.",
+      "html": "<div class=\"ds-node\" tabindex=\"0\"><div class=\"ds-node__name\">Anna de Vries</div><div class=\"ds-node__years\">1931 - 2004</div><div class=\"ds-node__badges\"><span class=\"ds-badge ds-badge--circle\" style=\"background:#818cf8\"></span><span class=\"ds-badge ds-badge--circle\" style=\"background:#a8a29e\"></span><span class=\"ds-badge ds-badge--square\" style=\"background:#2dd4bf\"></span><span class=\"ds-badge ds-badge--triangle\" style=\"border-bottom-color:#fbbf24\"></span></div></div>",
+      "css": ".ds-node{position:relative;width:180px;height:80px;padding:10px 12px;background:var(--color-node-bg,#0f261a);border:2px solid var(--color-node-border,#1f4d35);border-top:3px solid var(--color-accent,#2d8a5e);border-radius:var(--radius-lg,12px);font-family:var(--font-body,Lato,sans-serif);font-size:13px;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}.ds-node:hover{box-shadow:var(--shadow-md,0 4px 12px rgba(0,0,0,.35),0 2px 8px rgba(45,138,94,.08))}.ds-node:focus-visible{outline:none;border-color:var(--color-node-selected,#2d8a5e)}.ds-node__name{font-family:var(--font-heading,'Playwrite NZ Basic',cursive);font-weight:400;font-size:14px;color:var(--color-text-primary,#e0e8e3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-node__years{color:var(--color-text-muted,#7a9a84);font-size:11px;margin-top:2px}.ds-node__badges{display:flex;gap:4px;margin-top:8px;align-items:center}.ds-badge{display:inline-block;width:9px;height:9px}.ds-badge--circle{border-radius:50%}.ds-badge--square{border-radius:1px}.ds-badge--triangle{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid}"
+    },
+    {
+      "name": "Glass Auth Card",
+      "kind": "card",
+      "refersTo": "card-solid",
+      "description": "Reserved: translucent blurred card used only on auth and lock surfaces over hero photography.",
+      "html": "<div class=\"ds-glass-stage\"><div class=\"ds-glass\"><p class=\"ds-glass__voice\">Welcome back</p><p class=\"ds-glass__body\">Enter your passphrase to unlock your trees.</p></div></div>",
+      "css": ".ds-glass-stage{padding:32px;background:radial-gradient(ellipse at 30% 20%,#1f4d35,#0a1a0f 70%);border-radius:12px}.ds-glass{background:rgba(10,26,15,.68);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border:1px solid rgba(31,77,53,.5);border-radius:var(--radius-lg,12px);box-shadow:var(--shadow-glass,0 8px 40px rgba(0,0,0,.35));padding:28px 24px 24px;font-family:var(--font-body,Lato,sans-serif)}.ds-glass__voice{font-family:var(--font-heading,'Playwrite NZ Basic',cursive);font-weight:200;font-size:1.6rem;color:#e0e8e3;margin:0 0 8px}.ds-glass__body{font-size:15px;color:#8faa97;margin:0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Forest",
+    "overview": "**Creative North Star: \"The Quiet Forest\"**\n\nEvery surface sits inside a forest at a quiet hour. In the dark theme it is a midnight canopy: near-black greens, a slow drift of fireflies over the hero photography, branches drawn faintly into the corner of the canvas. In the light theme it is morning linen: warm off-white paper with literary indigo ink. The atmosphere is always there and never asks for attention. It gives depth to screens where people write about the hardest parts of their family's history, so they do not feel like a database or a clinic.\n\nData lives calmly inside that atmosphere. The workspace, panels, and settings are solid and legible: closed color sets for domain meaning, plain text for loading states, and the same 0.15s color fade for every state change. The expressive layer is narrow and fixed: radial accent washes with a noise dither, procedural branch decorations, forest photography with no faces, and the handwriting face that signs the product's voice. Everything else stays still.\n\nThree typefaces split the work. Playwrite NZ Basic is the voice: the wordmark, taglines, person names, and in-app headings, always light. Fraunces carries structure on the public pages, set light and never bold. Lato does everything else at 15px. On iOS the same tokens, faces, and background wash are ported into SwiftUI, and they sit inside native navigation and controls instead of replacing them.",
+    "keyCharacteristics": [
+      "Two themes: Midnight forest (dark, default) and Morning linen (light, indigo accent).",
+      "Atmosphere through layered radial gradients, noise texture, branch decorations, and ambient particles over hero photography.",
+      "Solid, readable surfaces for data; glass only on auth and lock cards over photography.",
+      "Domain colors are a closed set of tools for thinking, never decoration.",
+      "One motion grammar: 0.15s color fades, plus two named entrances (`auth-reveal`, `slide-in-right`)."
+    ],
+    "rules": [
+      {
+        "name": "The Closed Set Rule",
+        "body": "Domain palettes are fixed tools for the user to think with. Never add a category color without defining it for both themes. Never reuse one as decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Greens Rule",
+        "body": "In the dark theme, accent (brand and atmosphere) and action (what the user does) are separate tokens and must not be swapped. In the light theme they are the same indigo. Reach for `--color-action` for anything clickable and `--color-accent` for anything ambient.",
+        "section": "colors"
+      },
+      {
+        "name": "The Light Hand Rule",
+        "body": "The handwriting face is never heavier than 400, and Fraunces is never heavier than 380. Weight never creates emphasis in a heading. Use size and spacing instead.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fifteen Rule",
+        "body": "Body text is 15px. Not 14, not 16. Components inherit it. When a tag does not match the role it plays, use the `.t-*` role classes.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Every label, including buttons, is in sentence case. Only eyebrows use uppercase, and only through the token.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uniform Height Rule",
+        "body": "Every button in a bar shares one explicit height: 32px for toolbars, 24px for footers, and 34px for a panel header's action and close button pair. Padding alone never sets a button's height.",
+        "section": "layout"
+      },
+      {
+        "name": "The Glass Is For Photographs Rule",
+        "body": "Translucent, blurred cards appear only over hero photography (auth, unlock, lock screen). Workspace, panels, settings, and every data-dense surface use solid cards: Surface background, one-pixel border, large shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Shape Means Something Rule",
+        "body": "Circle, square, and triangle are reserved for the three event kinds. Never use them as generic decoration or for bullets.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** take every color, radius, shadow, and spacing value from the tokens in `frontend/src/styles/theme.css`. It is the only place values are defined.",
+      "**Do** use `var(--transition-colors)` (0.15s ease) for every state change. The only named entrances are `auth-reveal` and `slide-in-right` (0.25s ease-out).",
+      "**Do** use Lucide icons, imported one at a time. Draw domain marks as 24 by 24 SVGs with a 2px stroke in Lucide's style. On iOS, use SF Symbols.",
+      "**Do** design and check both themes for every surface. Light-theme domain colors are the darker variants.",
+      "**Do** show loading as plain text: \"Loading…\".",
+      "**Do** use forest photography with no faces for heroes, with dark and light variants."
+    ],
+    "donts": [
+      "**Don't** use scale transforms, press shrink, springs, bounces, or attention-seeking motion.",
+      "**Don't** use glassmorphism on the workspace, panels, settings, or any data-dense surface.",
+      "**Don't** use bluish-purple gradients. The only gradients are the radial accent wash, the vignette over hero photography, and the toolbar's accent line.",
+      "**Don't** use emoji anywhere: UI, copy, or translations.",
+      "**Don't** build left-border callout cards as a system. The only exceptions are the prominent auth warning (3px danger border) and the auth hint block (2px accent border).",
+      "**Don't** use drop caps, decorative quote marks, icons on rounded-square backgrounds, skeleton loaders with shimmer, or bouncy toasts.",
+      "**Don't** bold the handwriting face or Fraunces.",
+      "**Don't** use `--` or an em dash in user-facing text."
+    ]
+  }
+}
