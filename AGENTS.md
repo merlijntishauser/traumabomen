@@ -243,7 +243,7 @@ Key moments or transitions in a person's life used as anchors for journal reflec
 Personal reflections tied to a tree. Can link to turning points for context.
 
 ### FeatureFlag
-- `key`: string (primary key, e.g., `watercolor_theme`)
+- `key`: string (primary key, e.g., `some_feature`)
 - `audience`: `disabled` | `admins` | `selected` | `all`
 
 Controls feature availability. Audience determines who sees the feature: all users, admins only, a selected set of users, or nobody. Selected users stored in a `FeatureFlagUser` junction table (`flag_key`, `user_id`).
@@ -348,7 +348,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<AuthModal>` —Overlay modal for unlock (passphrase entry with hint) and re-auth (session expired, re-login) flows.
 - `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
-- `<ThemeToggle>` —Toolbar button cycling through available themes (dark/light/watercolor). Icons: Moon (dark), Sun (light), Droplets (watercolor).
+- `<ThemeToggle>` —Toolbar button switching between the dark and light themes. Shows the icon of the theme it switches to: Sun while dark, Moon while light.
 - `<JournalView>` —Journal entries page with entry list, create/edit/delete, linked turning points.
 - `<InsightsView>` —Personal insights summary page with aggregated tree statistics.
 
@@ -461,8 +461,7 @@ Backend tests are split into two directories under `api/tests/`:
 - Personal insights summary page
 - Feature flag system (audience-based: disabled/admins/selected/all)
 - Admin feature toggles UI
-- Watercolor theme (teal-blue on warm cream, feature-flagged)
-- Three-theme system (dark/light/watercolor) with synchronized state
+- Two-theme system (dark/light) with synchronized state
 - Sibling groups (compact sibling representation, promotion to full persons)
 - Passphrase hints (optional plaintext reminder, shown on unlock/auth modal, manageable in settings)
 
@@ -480,13 +479,12 @@ Backend tests are split into two directories under `api/tests/`:
 
 ### Visual Identity
 
-The app uses a nature-inspired aesthetic with strong thematic coherence. Three themes are available:
+The app uses a nature-inspired aesthetic with strong thematic coherence. Two themes are available:
 
 - **Dark** (default): "Midnight forest" with near-black greens. Accent: forest green (`#2d8a5e`).
-- **Light**: "Morning light through birches" with warm linen-sage. The light theme reads indigo: both the brand accent and actions/CTAs use indigo (`#4f46e5`), since green-on-cream reads generic-wellness while indigo reads literary.
-- **Watercolor** (feature-flagged): Soft teal-blue on warm cream/parchment. Accent: teal-blue (`#4a9bb5`). Gated behind the `watercolor_theme` feature flag; only visible when an admin enables it.
+- **Light**: "Morning linen", warm off-white paper. The light theme reads indigo: both the brand accent and actions/CTAs use indigo (`#4f46e5`), since green-on-cream reads generic-wellness while indigo reads literary.
 
-The theme system uses `useSyncExternalStore` for cross-component state synchronization, with `useAvailableThemes` deriving the theme list from feature flags. Settings show radio buttons; the toolbar ThemeToggle cycles through available themes.
+The theme system uses `useSyncExternalStore` for cross-component state synchronization, with `useAvailableThemes` returning the theme list (`dark`, `light`). Settings show radio buttons; the toolbar ThemeToggle switches between them. A former watercolor theme was folded into the light theme (commit `e489b93`), and its feature flag was removed.
 
 ### Typography
 
@@ -498,10 +496,10 @@ The theme system uses `useSyncExternalStore` for cross-component state synchroni
 
 ### Color Palette
 
-All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`, watercolor via `[data-theme="watercolor"]`.
+All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. The dark theme is the default (`:root`), light theme applies via `[data-theme="light"]`.
 
 - **Surfaces:** 5-level depth scale from `--color-bg-primary` (deepest) to `--color-bg-hover` (interactive)
-- **Accent vs action:** `--color-accent` is the brand/nature colour: forest green in dark (`#2d8a5e`), teal-blue in watercolor (`#4a9bb5`), and **indigo (`#4f46e5`) in the light theme** (green-on-cream reads generic-wellness; indigo reads literary). `--color-action` is what the user *does* (buttons, links, CTAs): green in dark and the same indigo in light. So in the light theme accent and action share one indigo; they diverge only in dark. All with hover, subtle, and focus-ring variants
+- **Accent vs action:** `--color-accent` is the brand/nature colour: forest green in dark (`#2d8a5e`) and **indigo (`#4f46e5`) in the light theme** (green-on-cream reads generic-wellness; indigo reads literary). `--color-action` is what the user *does* (buttons, links, CTAs): green in dark and the same indigo in light. So in the light theme accent and action share one indigo; they diverge only in dark. All with hover, subtle, and focus-ring variants
 - **Text:** 4-level hierarchy: primary, secondary, muted, inverse
 - **Semantic:** Danger (red), edge types (pink/purple/orange for partner/half-sibling/friend), trauma categories (7 colors), life event categories (6 colors), classification status (amber suspected, blue diagnosed)
 
@@ -518,7 +516,7 @@ All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. 
 
 When modifying the frontend, follow these principles:
 
-- **Stay in the theme palette.** New surfaces, borders, and shadows should use the existing CSS variables. Dark/light themes use green-tinted variables; watercolor uses warm neutrals with teal accents. Never introduce off-palette colors for structural elements.
+- **Stay in the theme palette.** New surfaces, borders, and shadows should use the existing CSS variables. The dark theme uses green-tinted variables; the light theme uses warm linen neutrals with an indigo accent. Never introduce off-palette colors for structural elements.
 - **Respect the atmosphere.** The app deliberately builds depth through layered gradients, noise textures, and organic SVG decorations. Don't flatten it with solid backgrounds.
 - **Heading font is personal.** Playwrite NZ Basic's flowing script gives headings a handwritten, journal-like quality. Use weight 200-300 for large display, 300-400 for compact panel headers. Pair with the clean Lato body font for readability.
 - **Category colors are a closed set.** Trauma, life event, and classification colors are carefully chosen to work in all themes. Don't add new ones without updating all theme variants.
