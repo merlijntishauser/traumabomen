@@ -377,6 +377,30 @@ describe("RegisterPage", () => {
     });
   });
 
+  it("returns to the account step when the email is taken", async () => {
+    const { ApiError } = await import("../lib/api");
+    mockRegister.mockRejectedValue(new ApiError(409, "email_taken"));
+    renderPage();
+    fillAllAndSubmit();
+    await waitFor(() => {
+      expect(screen.getByTestId("step-account")).toBeInTheDocument();
+    });
+  });
+
+  // -- Error: server rejects the email address (422) --
+
+  it("returns to the account step with a specific message when the server rejects the email", async () => {
+    const { ApiError } = await import("../lib/api");
+    const detail = [{ loc: ["body", "email"], msg: "special-use or reserved name" }];
+    mockRegister.mockRejectedValue(new ApiError(422, detail as unknown as string));
+    renderPage();
+    fillAllAndSubmit();
+    await waitFor(() => {
+      expect(screen.getByTestId("step-account")).toBeInTheDocument();
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("auth.emailRejected");
+  });
+
   // -- Error: invalid invite token --
 
   it("shows invalid invite error when token is expired", async () => {

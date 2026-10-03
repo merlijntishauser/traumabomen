@@ -366,7 +366,7 @@ describe("createDemoTree", () => {
     expect(mockCreateTree).toHaveBeenCalledTimes(1);
     // First encrypt call is the tree name
     const treeNameArg = encrypt.mock.calls[0][0] as { name: string };
-    expect(treeNameArg.name).toContain("Demo");
+    expect(treeNameArg.name).toBe("Een fictieve familie");
   });
 
   it("falls back to original entity id for unknown linked entity ids", async () => {

@@ -67,3 +67,12 @@ describe("TreeRowMenu", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 });
+
+describe("TreeRowMenu without rename", () => {
+  it("offers only delete and focuses it on open", () => {
+    render(<TreeRowMenu treeName="Unreadable tree" onDelete={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor:Unreadable tree" }));
+    expect(screen.queryByRole("menuitem", { name: "tree.rename" })).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(screen.getByRole("menuitem", { name: "tree.deleteTree" }));
+  });
+});

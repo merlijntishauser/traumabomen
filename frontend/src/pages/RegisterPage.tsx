@@ -12,19 +12,11 @@ import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
 import { getPasswordStrength } from "../lib/passwordStrength";
+import { registrationErrorFor } from "../lib/userFacingErrors";
 import "../styles/auth.css";
 
 type Step = "account" | "encryption" | "confirm";
 const STEPS: Step[] = ["account", "encryption", "confirm"];
-
-function getRegistrationError(err: unknown, t: (key: string) => string): string {
-  if (err instanceof ApiError && err.status === 409) return t("auth.emailTaken");
-  if (err instanceof ApiError && err.detail === "invalid_or_expired_invite")
-    return t("waitlist.invalidInvite");
-  if (err instanceof ApiError && err.detail === "invite_email_mismatch")
-    return t("waitlist.emailMismatch");
-  return t("auth.registerError");
-}
 
 interface RegisterState {
   step: Step;
@@ -474,7 +466,11 @@ export default function RegisterPage() {
         navigate("/waitlist", { replace: true });
         return;
       }
-      dispatch({ type: "SET_ERROR", error: getRegistrationError(err, t) });
+      const { key, step: fixStep } = registrationErrorFor(err);
+      // Send the user to the field that caused the problem, keeping
+      // everything they entered.
+      if (fixStep && fixStep !== step) dispatch({ type: "SET_STEP", step: fixStep });
+      dispatch({ type: "SET_ERROR", error: t(key) });
     } finally {
       dispatch({ type: "SET_LOADING", loading: false });
     }

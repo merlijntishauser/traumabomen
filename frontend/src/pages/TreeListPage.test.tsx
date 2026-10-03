@@ -384,3 +384,24 @@ describe("TreeListPage accessibility", () => {
     );
   });
 });
+
+describe("TreeListPage unreadable trees", () => {
+  it("labels a tree that could not be decrypted and offers no rename", () => {
+    mockQueryReturn = {
+      data: [
+        {
+          id: "tree-1",
+          name: "tree.unreadableName",
+          is_demo: false,
+          unreadable: true,
+        } as never,
+      ],
+      isLoading: false,
+    };
+    render(<TreeListPage />);
+    expect(screen.getByText("tree.unreadableHint")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    expect(screen.queryByRole("menuitem", { name: "tree.rename" })).not.toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "tree.deleteTree" })).toBeInTheDocument();
+  });
+});

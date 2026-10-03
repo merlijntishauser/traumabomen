@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 
 interface TreeRowMenuProps {
   treeName: string;
-  onRename: () => void;
+  /** Omitted when the tree cannot be renamed (its name could not be decrypted). */
+  onRename?: () => void;
   onDelete: () => void;
 }
 
@@ -22,7 +23,7 @@ export function TreeRowMenu({ treeName, onRename, onDelete }: TreeRowMenuProps) 
 
   useEffect(() => {
     if (!open) return;
-    itemRefs.current[0]?.focus();
+    itemRefs.current.find((el) => el)?.focus();
 
     function onPointerDown(e: MouseEvent) {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
@@ -71,17 +72,19 @@ export function TreeRowMenu({ treeName, onRename, onDelete }: TreeRowMenuProps) 
       </button>
       {open && (
         <div id={menuId} className="tree-row-menu__list" role="menu" onKeyDown={onMenuKeyDown}>
-          <button
-            ref={(el) => {
-              itemRefs.current[0] = el;
-            }}
-            type="button"
-            role="menuitem"
-            className="tree-row-menu__item"
-            onClick={() => choose(onRename)}
-          >
-            {t("tree.rename")}
-          </button>
+          {onRename && (
+            <button
+              ref={(el) => {
+                itemRefs.current[0] = el;
+              }}
+              type="button"
+              role="menuitem"
+              className="tree-row-menu__item"
+              onClick={() => choose(onRename)}
+            >
+              {t("tree.rename")}
+            </button>
+          )}
           <button
             ref={(el) => {
               itemRefs.current[1] = el;

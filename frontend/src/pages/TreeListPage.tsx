@@ -23,6 +23,7 @@ import {
 import { uuidToCompact } from "../lib/compactId";
 import { createDemoTree } from "../lib/createDemoTree";
 import { encryptForApi, generateTreeKey } from "../lib/crypto";
+import { importErrorKey } from "../lib/userFacingErrors";
 import "../components/tree/TreeCanvas.css";
 import { journalPromptText, pickJournalPromptIndex } from "../lib/reflectionPrompts";
 import { buildTreeMetaLine, sortByRecentlyTended } from "./treeListMeta";
@@ -41,6 +42,8 @@ interface DecryptedTree {
   moment_count: number;
   pattern_count: number;
   updated_at: string;
+  /** Decryption failed; `name` holds a placeholder, not the tree's name. */
+  unreadable?: boolean;
 }
 
 /** Front-porch hero: the most recently tended tree plus one open question. */
@@ -320,11 +323,13 @@ function TreeListItemRow({
           {tree.name}
           {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
         </span>
-        <span className="tree-list-item__meta">{buildTreeMetaLine(tree, t, i18n.language)}</span>
+        <span className="tree-list-item__meta">
+          {tree.unreadable ? t("tree.unreadableHint") : buildTreeMetaLine(tree, t, i18n.language)}
+        </span>
       </Link>
       <TreeRowMenu
         treeName={tree.name}
-        onRename={() => onStartEditing(tree)}
+        onRename={tree.unreadable ? undefined : () => onStartEditing(tree)}
         onDelete={() => onConfirmDelete(tree.id)}
       />
     </div>
@@ -403,7 +408,7 @@ function TreeListToolbar({
       <SettingsPanel viewTab={viewTab} className="tree-toolbar__icon-btn" />
       {getIsAdmin() && (
         <Link to="/admin" className="tree-toolbar__btn">
-          Admin
+          {t("nav.admin")}
         </Link>
       )}
       <button
@@ -481,7 +486,7 @@ export default function TreeListPage() {
             const data = await decrypt<{ name: string }>(r.encrypted_data, r.id);
             return { id: r.id, name: data.name, ...meta };
           } catch {
-            return { id: r.id, name: t("tree.decryptionError"), ...meta };
+            return { id: r.id, name: t("tree.unreadableName"), unreadable: true, ...meta };
           }
         }),
       );
@@ -496,7 +501,7 @@ export default function TreeListPage() {
   // Front porch: the most recently tended tree and one open question per
   // visit. With a single tree the list already says everything, so the
   // porch only appears once there is a choice to make.
-  const mostRecent = trees.length >= 2 ? trees[0] : null;
+  const mostRecent = trees.length >= 2 ? (trees.find((tree) => !tree.unreadable) ?? null) : null;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
   const createMutation = useMutation({
@@ -602,10 +607,7 @@ export default function TreeListPage() {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
       navigate(`/trees/${uuidToCompact(treeId)}`);
     } catch (err) {
-      dispatch({
-        type: "SET_IMPORT_ERROR",
-        error: err instanceof Error ? err.message : t("tree.importError"),
-      });
+      dispatch({ type: "SET_IMPORT_ERROR", error: t(importErrorKey(err)) });
     } finally {
       dispatch({ type: "SET_IMPORTING", value: false });
     }
