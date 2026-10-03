@@ -576,6 +576,19 @@ button {
   background: var(--color-accent);
 }
 
+/* Card reveal: auth and lock cards, and the onboarding gate. One of the two
+   named animations; callers disable it under prefers-reduced-motion. */
+@keyframes auth-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Panel slide-in animation */
 @keyframes slide-in-right {
   from {

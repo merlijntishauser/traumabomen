@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { acknowledgeOnboarding, setOnboardingFlag } from "../lib/api";
+import { ContourDecoration } from "./tree/ContourDecoration";
 import "./OnboardingGate.css";
 
 interface Props {
@@ -47,6 +48,9 @@ export function OnboardingGate({ onAcknowledged, onStartDemo, onLogout }: Props)
       aria-labelledby="onboarding-gate-title"
       onCancel={(e) => e.preventDefault()}
     >
+      <div className="onboarding-gate__atmosphere bg-gradient" aria-hidden="true">
+        <ContourDecoration />
+      </div>
       <div className="onboarding-gate__card">
         <h1
           id="onboarding-gate-title"

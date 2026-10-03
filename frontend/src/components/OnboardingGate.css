@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-canvas);
   padding: var(--space-6);
   overflow-y: auto;
   /* native <dialog> resets */
@@ -24,7 +24,19 @@
   background: transparent;
 }
 
+/* The app's quiet atmosphere behind the card: accent wash, noise, and contour
+   lines. Fixed so it stays put while a short screen scrolls the card. */
+.onboarding-gate .onboarding-gate__atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .onboarding-gate__card {
+  position: relative;
+  z-index: 1;
+  animation: auth-reveal 0.6s ease-out both;
   max-width: 540px;
   width: 100%;
   padding: var(--space-10) var(--space-8) 36px;
@@ -56,16 +68,16 @@
 
 .onboarding-gate__block-title {
   font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-body-size);
+  font-weight: 700;
+  line-height: 1.4;
   color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-  letter-spacing: 0.01em;
+  margin-bottom: var(--space-1\.5);
 }
 
 .onboarding-gate__block-body {
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--text-body-size);
+  line-height: 1.6;
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -105,9 +117,9 @@
 
 .onboarding-gate__exit {
   display: block;
-  margin: var(--space-4) auto 0;
-  height: 24px;
-  padding: 0 var(--space-2);
+  margin: var(--space-3) auto 0;
+  height: 32px;
+  padding: 0 var(--space-3);
   background: none;
   border: none;
   color: var(--color-text-secondary);
@@ -127,15 +139,18 @@
 }
 
 .onboarding-gate__continue {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: var(--space-3) var(--space-5);
+  height: 44px;
+  padding: 0 var(--space-5);
   background: var(--color-action);
   color: var(--color-text-inverse);
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body-size);
+  font-weight: 700;
   cursor: pointer;
   transition: var(--transition-colors);
 }
@@ -158,5 +173,11 @@
 
   .onboarding-gate__card {
     padding: 28px var(--space-5) var(--space-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-gate__card {
+    animation: none;
   }
 }

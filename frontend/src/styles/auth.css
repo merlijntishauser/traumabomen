@@ -169,17 +169,6 @@
    Landing variant: full-bleed hero, floating welcome + glass card
    ===================================================== */
 
-@keyframes auth-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* --- Card (non-landing pages) --- */
 .auth-card {
   width: 100%;
