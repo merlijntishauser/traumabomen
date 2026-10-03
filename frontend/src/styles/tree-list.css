@@ -21,7 +21,18 @@
   margin: 0;
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md);
-  overflow: hidden;
+}
+
+/* Round the first and last rows instead of clipping the list, so a row's
+   options menu can extend past the list's edge. */
+.tree-list li:first-child > * {
+  border-top-left-radius: calc(var(--radius-md) - 1px);
+  border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.tree-list li:last-child > * {
+  border-bottom-left-radius: calc(var(--radius-md) - 1px);
+  border-bottom-right-radius: calc(var(--radius-md) - 1px);
 }
 
 .tree-list li {
@@ -72,6 +83,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* One quiet line of life per tree */
@@ -86,12 +99,6 @@
 
 .tree-list-item:hover .tree-list-item__link {
   color: var(--color-action);
-}
-
-.tree-list-item__actions {
-  display: flex;
-  gap: var(--space-1);
-  padding-right: var(--space-3);
 }
 
 /* Shared small button for edit/delete/save/cancel */
@@ -140,18 +147,97 @@
   font-size: 14px;
 }
 
-/* Delete confirmation row */
+/* Delete confirmation: names the tree and states the hard truth plainly */
 .tree-list-item__confirm {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2\.5) var(--space-3);
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  padding: var(--space-4) 18px;
+  background: var(--color-danger-bg);
 }
 
-.tree-list-item__confirm span {
-  flex: 1;
+.tree-list-item__confirm-title {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+  margin-bottom: var(--space-1);
+}
+
+.tree-list-item__confirm-body {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  max-width: 60ch;
+  margin-bottom: var(--space-3);
+}
+
+.tree-list-item__confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Per-row options menu: rename and delete wait behind one quiet button */
+.tree-row-menu {
+  position: relative;
+  flex-shrink: 0;
+  padding-right: var(--space-3);
+}
+
+.tree-row-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.tree-row-menu__trigger:hover,
+.tree-row-menu__trigger[aria-expanded="true"] {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-primary);
+}
+
+.tree-row-menu__list {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: var(--space-3);
+  z-index: 5;
+  min-width: 160px;
+  padding: var(--space-1);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.tree-row-menu__item {
+  display: block;
+  width: 100%;
+  height: 32px;
+  padding: 0 var(--space-3);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.tree-row-menu__item:hover,
+.tree-row-menu__item:focus-visible {
+  background: var(--color-bg-hover);
+  outline: none;
+}
+
+.tree-row-menu__item--danger {
+  color: var(--color-danger);
 }
 
 /* Inline create form */

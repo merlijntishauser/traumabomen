@@ -323,11 +323,43 @@ describe("TreeListPage accessibility", () => {
     expect(container.querySelector("#tree-list-content")).not.toBeNull();
   });
 
-  it("names the tree in the row's edit and delete labels", () => {
+  it("keeps rename and delete behind a named options menu", () => {
     mockQueryReturn = oneTree;
     render(<TreeListPage />);
-    expect(screen.getByRole("button", { name: "tree.editNamed" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "tree.deleteNamed" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "common.delete" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    expect(screen.getByRole("menuitem", { name: "tree.rename" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "tree.deleteTree" })).toBeInTheDocument();
+  });
+
+  it("names the tree and starts on cancel when confirming delete", () => {
+    mockQueryReturn = oneTree;
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "tree.deleteTree" }));
+    expect(screen.getByText("tree.confirmDeleteNamed")).toBeInTheDocument();
+    expect(screen.getByText("tree.confirmDeleteBody")).toBeInTheDocument();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "common.cancel" }));
+  });
+
+  it("keeps only one row action open at a time", () => {
+    mockQueryReturn = {
+      data: [
+        { id: "tree-1", name: "Mother's side", is_demo: false },
+        { id: "tree-2", name: "Father's side", is_demo: false },
+      ],
+      isLoading: false,
+    };
+    render(<TreeListPage />);
+    const [first, second] = screen.getAllByRole("button", { name: "tree.optionsFor" });
+    fireEvent.click(first);
+    fireEvent.click(screen.getByRole("menuitem", { name: "tree.rename" }));
+    expect(screen.getByRole("textbox", { name: "tree.namePlaceholder" })).toBeInTheDocument();
+
+    fireEvent.click(second);
+    fireEvent.click(screen.getByRole("menuitem", { name: "tree.deleteTree" }));
+    expect(screen.getByText("tree.confirmDeleteNamed")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "tree.namePlaceholder" })).not.toBeInTheDocument();
   });
 
   it("focuses the name field when creating and returns focus on cancel", () => {
@@ -345,7 +377,8 @@ describe("TreeListPage accessibility", () => {
   it("focuses the rename field when editing a tree", () => {
     mockQueryReturn = oneTree;
     render(<TreeListPage />);
-    fireEvent.click(screen.getByRole("button", { name: "tree.editNamed" }));
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "tree.rename" }));
     expect(document.activeElement).toBe(
       screen.getByRole("textbox", { name: "tree.namePlaceholder" }),
     );

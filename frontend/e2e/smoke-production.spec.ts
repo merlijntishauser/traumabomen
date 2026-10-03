@@ -84,17 +84,20 @@ async function loginAndUnlockResilient(
 async function deleteTreesNamed(page: Page, text: string): Promise<void> {
   await gotoTreeList(page);
   // Wait for either the populated list or the empty state before counting.
-  await expect(page.locator(".tree-list, .tree-list-empty").first()).toBeVisible();
+  await expect(
+    page.locator('.tree-list, [data-testid="first-tree-welcome"]').first(),
+  ).toBeVisible();
   const items = page.locator(".tree-list li").filter({ hasText: text });
   // Guard-bounded loop so a stuck delete fails fast instead of hanging.
   for (let guard = 0; guard < 60; guard++) {
     const before = await items.count();
     if (before === 0) break;
-    await items.first().getByRole("button", { name: /delete/i }).click();
-    // The row swaps to an inline confirmation that replaces the tree name, so
-    // it no longer matches the name filter; only one confirm is open at a time.
+    // Rename and delete sit behind the row's options menu.
+    await items.first().getByRole("button", { name: /options for/i }).click();
+    await page.getByRole("menuitem", { name: /delete tree/i }).click();
+    // The row swaps to an inline confirmation; only one is open at a time.
     const confirm = page.locator(".tree-list-item__confirm");
-    await confirm.getByRole("button", { name: /delete/i }).click();
+    await confirm.getByRole("button", { name: /delete tree/i }).click();
     // Wait for the true signal (the matching item is gone), not just the
     // confirm dismissing, and allow for a slow post-delete refetch.
     await expect(items).toHaveCount(before - 1, { timeout: COLD });

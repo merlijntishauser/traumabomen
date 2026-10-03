@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { Logomark } from "../components/Logomark";
+import { TreeRowMenu } from "../components/TreeRowMenu";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
@@ -30,7 +31,6 @@ import "../styles/tree-list.css";
 const MAX_DEMO_TREES = 3;
 
 const T_CANCEL = "common.cancel";
-const T_DELETE = "common.delete";
 const T_NAME_PLACEHOLDER = "tree.namePlaceholder";
 
 interface DecryptedTree {
@@ -104,14 +104,19 @@ function treeListLocalReducer(
   action: TreeListLocalAction,
 ): TreeListLocalState {
   switch (action.type) {
+    // Rename and delete are mutually exclusive: opening one closes the other.
     case "START_EDITING":
-      return { ...state, editingId: action.id, editName: action.name };
+      return { ...state, editingId: action.id, editName: action.name, deletingId: null };
     case "SET_EDIT_NAME":
       return { ...state, editName: action.name };
     case "CANCEL_EDIT":
       return { ...state, editingId: null };
     case "SET_DELETING":
-      return { ...state, deletingId: action.id };
+      return {
+        ...state,
+        deletingId: action.id,
+        editingId: action.id ? null : state.editingId,
+      };
     case "START_CREATING":
       return { ...state, creating: true, newName: "" };
     case "STOP_CREATING":
@@ -244,6 +249,7 @@ function TreeListItemRow({
   const isDeleting = deletingId === tree.id;
   const linkRef = useRef<HTMLAnchorElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
+  const cancelDeleteRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
 
   // Rename and delete replace the row, so the button that opened them is
@@ -253,6 +259,9 @@ function TreeListItemRow({
     if (isEditing) {
       editInputRef.current?.focus();
       editInputRef.current?.select();
+    } else if (isDeleting) {
+      // Start on the safe choice.
+      cancelDeleteRef.current?.focus();
     } else if (!isDeleting && wasOpenRef.current) {
       linkRef.current?.focus();
     }
@@ -281,20 +290,25 @@ function TreeListItemRow({
 
   if (isDeleting) {
     return (
-      <div className="tree-list-item__confirm">
-        <span>{t("tree.confirmDelete")}</span>
-        <button
-          type="button"
-          className="tree-list-item__btn tree-list-item__btn--danger"
-          onClick={() => onDelete(tree.id)}
-          disabled={deletePending}
-        >
-          {t(T_DELETE)}
-        </button>
-        <button type="button" className="tree-list-item__btn" onClick={onCancelDelete}>
-          {t(T_CANCEL)}
-        </button>
-      </div>
+      <section className="tree-list-item__confirm" aria-labelledby={`delete-${tree.id}`}>
+        <p id={`delete-${tree.id}`} className="tree-list-item__confirm-title">
+          {t("tree.confirmDeleteNamed", { name: tree.name })}
+        </p>
+        <p className="tree-list-item__confirm-body">{t("tree.confirmDeleteBody")}</p>
+        <div className="tree-list-item__confirm-actions">
+          <button
+            type="button"
+            className="btn btn--danger"
+            onClick={() => onDelete(tree.id)}
+            disabled={deletePending}
+          >
+            {t("tree.deleteTree")}
+          </button>
+          <button ref={cancelDeleteRef} type="button" className="btn" onClick={onCancelDelete}>
+            {t(T_CANCEL)}
+          </button>
+        </div>
+      </section>
     );
   }
 
@@ -308,24 +322,11 @@ function TreeListItemRow({
         </span>
         <span className="tree-list-item__meta">{buildTreeMetaLine(tree, t, i18n.language)}</span>
       </Link>
-      <div className="tree-list-item__actions">
-        <button
-          type="button"
-          className="tree-list-item__btn"
-          onClick={() => onStartEditing(tree)}
-          aria-label={t("tree.editNamed", { name: tree.name })}
-        >
-          {t("common.edit")}
-        </button>
-        <button
-          type="button"
-          className="tree-list-item__btn tree-list-item__btn--danger"
-          onClick={() => onConfirmDelete(tree.id)}
-          aria-label={t("tree.deleteNamed", { name: tree.name })}
-        >
-          {t(T_DELETE)}
-        </button>
-      </div>
+      <TreeRowMenu
+        treeName={tree.name}
+        onRename={() => onStartEditing(tree)}
+        onDelete={() => onConfirmDelete(tree.id)}
+      />
     </div>
   );
 }
