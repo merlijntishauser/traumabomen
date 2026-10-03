@@ -590,6 +590,11 @@ export function getAdminWaitlistCapacity(): Promise<WaitlistCapacity> {
 
 // FAQ
 
+/** Public: whether the private beta has room for new accounts right now. */
+export function getRegistrationStatus(): Promise<{ open: boolean }> {
+  return apiFetch("/registration", { requiresAuth: false });
+}
+
 export function getFaq(): Promise<FaqListResponse> {
   return apiFetch("/faq", { requiresAuth: false });
 }

@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import require_admin
-from app.capacity import get_active_user_count
+from app.capacity import get_active_user_count, is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.email import send_email_background, send_waitlist_approval_email
@@ -64,6 +64,21 @@ async def join_waitlist(
         await db.rollback()
 
     return {"message": "joined_waitlist"}
+
+
+@router.get("/registration")
+async def registration_status(
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict[str, bool]:
+    """Whether new accounts can be created right now.
+
+    Public so the landing page and register form can say so up front instead
+    of letting someone choose an encryption key before learning the beta is
+    full. Only the boolean is exposed, never the counts; anyone can already
+    learn it by attempting to register.
+    """
+    return {"open": await is_registration_open(db, settings)}
 
 
 @router.get(

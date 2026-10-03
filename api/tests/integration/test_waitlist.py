@@ -330,3 +330,33 @@ class TestRegistrationWithWaitlist:
             },
         )
         assert resp.status_code == 201
+
+
+@pytest.mark.asyncio
+class TestRegistrationStatus:
+    async def test_open_when_waitlist_disabled(self, client):
+        with patch.object(TEST_SETTINGS, "ENABLE_WAITLIST", False):
+            resp = await client.get("/registration")
+        assert resp.status_code == 200
+        assert resp.json() == {"open": True}
+
+    async def test_closed_when_cap_reached(self, client, user):
+        with (
+            patch.object(TEST_SETTINGS, "ENABLE_WAITLIST", True),
+            patch.object(TEST_SETTINGS, "MAX_ACTIVE_USERS", 1),
+        ):
+            resp = await client.get("/registration")
+        assert resp.status_code == 200
+        assert resp.json() == {"open": False}
+
+    async def test_open_below_cap(self, client, user):
+        with (
+            patch.object(TEST_SETTINGS, "ENABLE_WAITLIST", True),
+            patch.object(TEST_SETTINGS, "MAX_ACTIVE_USERS", 10),
+        ):
+            resp = await client.get("/registration")
+        assert resp.json() == {"open": True}
+
+    async def test_exposes_no_counts(self, client):
+        resp = await client.get("/registration")
+        assert set(resp.json()) == {"open"}

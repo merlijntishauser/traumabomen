@@ -34,6 +34,11 @@ vi.mock("../lib/api", () => ({
   getFaq: () => Promise.resolve({ entries: [] }),
 }));
 
+let mockRegistrationOpen: boolean | undefined;
+vi.mock("../hooks/useRegistrationOpen", () => ({
+  useRegistrationOpen: () => mockRegistrationOpen,
+}));
+
 function renderLanding() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -46,6 +51,7 @@ function renderLanding() {
 describe("LandingPage", () => {
   afterEach(() => {
     mockGetAccessToken.mockReset();
+    mockRegistrationOpen = undefined;
     for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
       s.remove();
     }
@@ -95,5 +101,30 @@ describe("LandingPage", () => {
     // No marketing content or structured data when redirecting.
     expect(screen.queryByText("landing.howTitle")).not.toBeInTheDocument();
     expect(document.querySelector('script[type="application/ld+json"]')).toBeNull();
+  });
+
+  it("says plainly that it is a small beta", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    expect(screen.getByText("landing.betaNote")).toBeInTheDocument();
+  });
+
+  it("points both calls to action at the waitlist when the beta is full", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    mockRegistrationOpen = false;
+    renderLanding();
+    const ctas = screen.getAllByText("landing.ctaWaitlist");
+    expect(ctas).toHaveLength(2);
+    for (const cta of ctas) expect(cta.closest("a")).toHaveAttribute("href", "/waitlist");
+    expect(screen.queryByText("landing.ctaCreate")).not.toBeInTheDocument();
+    expect(screen.getByText("landing.finalCtaBodyFull")).toBeInTheDocument();
+  });
+
+  it("keeps the register calls to action while there is room or status is unknown", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    mockRegistrationOpen = true;
+    renderLanding();
+    expect(screen.getAllByText("landing.ctaCreate")).toHaveLength(2);
+    expect(screen.queryByText("landing.ctaWaitlist")).not.toBeInTheDocument();
   });
 });

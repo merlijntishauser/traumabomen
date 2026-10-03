@@ -127,11 +127,21 @@
 }
 
 .landing__hero-lede {
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--space-3);
   max-width: 46ch;
   font-size: 1.05rem;
   line-height: 1.6;
   color: rgba(244, 239, 230, 0.88);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* The beta, said plainly before anyone clicks: quieter than the lede. */
+.landing__hero-beta {
+  margin: 0 0 var(--space-6);
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(244, 239, 230, 0.8);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -280,6 +290,11 @@
 }
 
 [data-theme="light"] .landing__hero-lede {
+  color: var(--color-text-secondary);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .landing__hero-beta {
   color: var(--color-text-secondary);
   text-shadow: 0 1px 10px rgba(255, 255, 255, 0.7);
 }

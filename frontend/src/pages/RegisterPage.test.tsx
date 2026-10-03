@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import RegisterPage from "./RegisterPage";
 
@@ -50,6 +50,11 @@ vi.mock("react-router", async () => {
     useNavigate: () => mockNavigate,
   };
 });
+
+let mockRegistrationOpen: boolean | undefined;
+vi.mock("../hooks/useRegistrationOpen", () => ({
+  useRegistrationOpen: () => mockRegistrationOpen,
+}));
 
 const mockRegister = vi.fn();
 vi.mock("../lib/api", () => ({
@@ -108,6 +113,36 @@ describe("RegisterPage", () => {
       </MemoryRouter>,
     );
   }
+
+  // -- Capacity --
+
+  it("sends visitors to the waitlist before step 1 when the beta is full", () => {
+    mockRegistrationOpen = false;
+    render(
+      <MemoryRouter initialEntries={["/register"]}>
+        <Routes>
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/waitlist" element={<div data-testid="waitlist" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId("waitlist")).toBeInTheDocument();
+    mockRegistrationOpen = undefined;
+  });
+
+  it("lets an invited visitor register even when the beta is full", () => {
+    mockRegistrationOpen = false;
+    render(
+      <MemoryRouter initialEntries={["/register?invite=abc"]}>
+        <Routes>
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/waitlist" element={<div data-testid="waitlist" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId("step-account")).toBeInTheDocument();
+    mockRegistrationOpen = undefined;
+  });
 
   // -- Step 1: Account --
 

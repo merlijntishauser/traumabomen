@@ -2,12 +2,13 @@ import { Check, Key, Lock, Mail, UserPlus } from "lucide-react";
 import type React from "react";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PassphraseInput } from "../components/PassphraseInput";
 import { PasswordInput } from "../components/PasswordInput";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
+import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
 import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
@@ -355,6 +356,7 @@ export default function RegisterPage() {
     useEncryption();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
+  const registrationOpen = useRegistrationOpen();
 
   const [state, dispatch] = useReducer(registerReducer, registerInitialState);
   const {
@@ -474,6 +476,12 @@ export default function RegisterPage() {
     } finally {
       dispatch({ type: "SET_LOADING", loading: false });
     }
+  }
+
+  // A full beta sends people to the waitlist before they choose an encryption
+  // key, not after. An invite link bypasses the cap, so it always proceeds.
+  if (registrationOpen === false && !inviteToken) {
+    return <Navigate to="/waitlist" replace />;
   }
 
   return (

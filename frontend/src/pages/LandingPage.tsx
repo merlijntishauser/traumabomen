@@ -6,6 +6,7 @@ import { AmbientBackground } from "../components/AmbientBackground";
 import { Glimpse } from "../components/Glimpse";
 import { GrowingBranch } from "../components/GrowingBranch";
 import { ShieldGlimpse } from "../components/LandingArt";
+import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
 import { getAccessToken, getFaq } from "../lib/api";
 import "../styles/landing.css";
 
@@ -138,6 +139,13 @@ export default function LandingPage() {
     };
   }, [authed]);
 
+  // When the beta is full the way in is the waitlist, so say so on the
+  // buttons rather than after someone has chosen an encryption key.
+  const registrationClosed = useRegistrationOpen() === false;
+  const primaryCta = registrationClosed
+    ? { to: "/waitlist", label: t("landing.ctaWaitlist") }
+    : { to: "/register", label: t("landing.ctaCreate") };
+
   // Logged-in visitors skip the marketing page.
   if (authed) {
     return <Navigate to="/trees" replace />;
@@ -170,9 +178,10 @@ export default function LandingPage() {
             <h1 className="landing__hero-title">{t("app.title")}</h1>
             <p className="landing__hero-message">{t("landing.heroTagline")}</p>
             <p className="landing__hero-lede">{t("landing.heroIntro")}</p>
+            <p className="landing__hero-beta">{t("landing.betaNote")}</p>
             <div className="landing__cta-row">
-              <Link to="/register" className="landing__cta landing__cta--primary">
-                {t("landing.ctaCreate")}
+              <Link to={primaryCta.to} className="landing__cta landing__cta--primary">
+                {primaryCta.label}
               </Link>
               <Link to="/login" className="landing__cta landing__cta--ghost">
                 {t("landing.ctaLogin")}
@@ -281,9 +290,11 @@ export default function LandingPage() {
 
         <section className="landing__section landing__final">
           <h2 className="landing__section-title">{t("landing.finalCtaTitle")}</h2>
-          <p className="landing__prose">{t("landing.finalCtaBody")}</p>
-          <Link to="/register" className="landing__cta landing__cta--primary">
-            {t("landing.ctaCreate")}
+          <p className="landing__prose">
+            {registrationClosed ? t("landing.finalCtaBodyFull") : t("landing.finalCtaBody")}
+          </p>
+          <Link to={primaryCta.to} className="landing__cta landing__cta--primary">
+            {primaryCta.label}
           </Link>
         </section>
       </div>
