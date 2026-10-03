@@ -145,4 +145,21 @@ describe("LandingPage", () => {
     expect(link).toHaveAttribute("href", expect.stringContaining("github.com"));
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
+
+  it("groups the built-in FAQ into the tool and your data", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    expect(screen.getByRole("heading", { name: "landing.faqGroupTool" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "landing.faqGroupData" })).toBeInTheDocument();
+    expect(screen.queryByText("landing.faqQ2")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("term")).toHaveLength(6);
+  });
+
+  it("puts the founder story before the FAQ", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    const founder = screen.getByText("landing.founderTitle");
+    const faq = screen.getByText("landing.faqTitle");
+    expect(founder.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

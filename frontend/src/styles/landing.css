@@ -402,7 +402,8 @@ figure.landing__art {
   font-size: 15px;
   line-height: 1.7;
   color: var(--color-text-secondary);
-  max-width: 65ch;
+  /* ch measures the "0" glyph, so 54ch runs about 70 to 75 real characters. */
+  max-width: 54ch;
   margin: 0 0 var(--space-3);
 }
 
@@ -475,10 +476,34 @@ figure.landing__art {
 
 /* FAQ: two columns at desktop widths. */
 .landing__faq {
-  margin: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: var(--space-10);
+  row-gap: var(--space-6);
+}
+
+.landing__faq-list {
+  margin: 0;
+}
+
+/* A live, ungrouped FAQ spans both columns and flows its items into them. */
+.landing__faq-group:only-child {
+  grid-column: 1 / -1;
+}
+
+.landing__faq-group:only-child .landing__faq-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--space-10);
+}
+
+.landing__faq-group-title {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-1);
 }
 
 .landing__faq-item {
@@ -490,16 +515,14 @@ figure.landing__art {
   border-bottom: none;
 }
 
-/* The second-to-last item also closes a column in the 2-col grid. */
-@media (min-width: 901px) {
-  .landing__faq-item:nth-last-child(2) {
-    border-bottom: none;
-  }
+.landing__faq-more {
+  display: inline-block;
+  margin-top: var(--space-5);
 }
 
 .landing__faq-q {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 var(--space-2);
 }
@@ -573,7 +596,8 @@ figure.landing__art {
     order: 2;
   }
 
-  .landing__faq {
+  .landing__faq,
+  .landing__faq-group:only-child .landing__faq-list {
     grid-template-columns: 1fr;
   }
 

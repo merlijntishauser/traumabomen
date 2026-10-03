@@ -11,7 +11,12 @@ import { getAccessToken, getFaq } from "../lib/api";
 import { GITHUB_URL } from "../lib/links";
 import "../styles/landing.css";
 
-const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7] as const;
+// The built-in FAQ, in two groups of three. An admin-managed live FAQ
+// replaces it wholesale and renders as one ungrouped list.
+const FAQ_GROUPS = [
+  { key: "tool", title: "landing.faqGroupTool", numbers: [1, 5, 4] },
+  { key: "data", title: "landing.faqGroupData", numbers: [6, 3, 7] },
+] as const;
 
 const HOW_STEPS = [
   { n: 1, title: "landing.step1Title", body: "landing.step1Body" },
@@ -27,21 +32,27 @@ export default function LandingPage() {
   // Live admin-managed FAQ, falling back to the static i18n copy when the
   // endpoint is empty or unreachable (see docs/plans/2026-06-06-faq-admin-design.md).
   const { data: faqData } = useQuery({ queryKey: ["faq"], queryFn: getFaq, enabled: !authed });
-  const faqItems = useMemo(() => {
+  const faqGroups = useMemo(() => {
     const entries = faqData?.entries ?? [];
     if (entries.length > 0) {
-      return entries.map((e) => ({
+      const items = entries.map((e) => ({
         key: e.id,
         question: lang === "nl" ? e.question_nl : e.question_en,
         answer: lang === "nl" ? e.answer_nl : e.answer_en,
       }));
+      return [{ key: "live", title: null, items }];
     }
-    return FAQ_KEYS.map((n) => ({
-      key: `static-${n}`,
-      question: t(`landing.faqQ${n}`),
-      answer: t(`landing.faqA${n}`),
+    return FAQ_GROUPS.map((group) => ({
+      key: group.key,
+      title: group.title,
+      items: group.numbers.map((n) => ({
+        key: `static-${n}`,
+        question: t(`landing.faqQ${n}`),
+        answer: t(`landing.faqA${n}`),
+      })),
     }));
   }, [faqData, lang, t]);
+  const faqItems = useMemo(() => faqGroups.flatMap((group) => group.items), [faqGroups]);
 
   // Inject SoftwareApplication + FAQ structured data for search engines.
   useEffect(() => {
@@ -214,6 +225,15 @@ export default function LandingPage() {
           </figure>
         </section>
 
+        <section className="landing__section">
+          <h2 className="landing__section-title">{t("landing.whoTitle")}</h2>
+          <p className="landing__prose">{t("landing.whoBody")}</p>
+          <p className="landing__prose">{t("landing.whoClinician")}</p>
+          <Link to="/genogram" className="landing__link">
+            {t("landing.genogramLink")}
+          </Link>
+        </section>
+
         <section className="landing__section" id="how">
           <h2 className="landing__section-title">{t("landing.howTitle")}</h2>
           <ol className="landing__steps">
@@ -265,41 +285,34 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing__section">
-          <h2 className="landing__section-title">{t("landing.whoTitle")}</h2>
-          <p className="landing__prose">{t("landing.whoBody")}</p>
-          <p className="landing__prose">{t("landing.whoClinician")}</p>
-          <Link to="/genogram" className="landing__link">
-            {t("landing.genogramLink")}
-          </Link>
-        </section>
-
-        <section className="landing__section">
-          <h2 className="landing__section-title">{t("landing.learnTitle")}</h2>
-          <p className="landing__prose">{t("landing.learnTeaser")}</p>
-          <Link to="/learn" className="landing__link">
-            {t("landing.learnMore")}
-          </Link>
-        </section>
-
-        <section className="landing__section">
-          <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
-          <dl className="landing__faq">
-            {faqItems.map((item) => (
-              <div key={item.key} className="landing__faq-item">
-                <dt className="landing__faq-q">{item.question}</dt>
-                <dd className="landing__faq-a">{item.answer}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
         <section className="landing__section landing__founder">
           <h2 className="landing__section-title">{t("landing.founderTitle")}</h2>
           <p className="landing__prose">{t("landing.founderBody1")}</p>
           <p className="landing__prose">{t("landing.founderBody2")}</p>
           <p className="landing__prose">{t("landing.founderBody3")}</p>
           <p className="landing__founder-signature">{t("landing.founderSignature")}</p>
+        </section>
+
+        <section className="landing__section">
+          <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
+          <div className="landing__faq">
+            {faqGroups.map((group) => (
+              <div key={group.key} className="landing__faq-group">
+                {group.title && <h3 className="landing__faq-group-title">{t(group.title)}</h3>}
+                <dl className="landing__faq-list">
+                  {group.items.map((item) => (
+                    <div key={item.key} className="landing__faq-item">
+                      <dt className="landing__faq-q">{item.question}</dt>
+                      <dd className="landing__faq-a">{item.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+          <Link to="/learn" className="landing__link landing__faq-more">
+            {t("landing.learnMore")}
+          </Link>
         </section>
 
         <section className="landing__section landing__final">
