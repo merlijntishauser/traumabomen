@@ -127,4 +127,22 @@ describe("LandingPage", () => {
     expect(screen.getAllByText("landing.ctaCreate")).toHaveLength(2);
     expect(screen.queryByText("landing.ctaWaitlist")).not.toBeInTheDocument();
   });
+
+  it("speaks to people working with a therapist and links the genogram page", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    expect(screen.getByText("landing.whoClinician")).toBeInTheDocument();
+    expect(screen.getByText("landing.genogramLink").closest("a")).toHaveAttribute(
+      "href",
+      "/genogram",
+    );
+  });
+
+  it("points to the open source code as evidence for the privacy claim", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    const link = screen.getByText("landing.sourceLink").closest("a");
+    expect(link).toHaveAttribute("href", expect.stringContaining("github.com"));
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
 });

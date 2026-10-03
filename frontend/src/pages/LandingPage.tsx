@@ -8,6 +8,7 @@ import { GrowingBranch } from "../components/GrowingBranch";
 import { ShieldGlimpse } from "../components/LandingArt";
 import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
 import { getAccessToken, getFaq } from "../lib/api";
+import { GITHUB_URL } from "../lib/links";
 import "../styles/landing.css";
 
 const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7] as const;
@@ -241,6 +242,7 @@ export default function LandingPage() {
             <h2 className="landing__section-title">{t("landing.privacyHeading")}</h2>
             <p className="landing__glance">{t("landing.privacyGlance")}</p>
             <p className="landing__prose">{t("landing.privacy")}</p>
+            <p className="landing__prose">{t("landing.openSource")}</p>
             <div className="landing__links">
               <Link to="/security" className="landing__link">
                 {t("security.link")}
@@ -248,6 +250,14 @@ export default function LandingPage() {
               <Link to="/privacy" className="landing__link">
                 {t("landing.readPrivacyPolicy")}
               </Link>
+              <a
+                href={GITHUB_URL}
+                className="landing__link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("landing.sourceLink")}
+              </a>
             </div>
           </div>
           <div className="landing__art">
@@ -258,6 +268,10 @@ export default function LandingPage() {
         <section className="landing__section">
           <h2 className="landing__section-title">{t("landing.whoTitle")}</h2>
           <p className="landing__prose">{t("landing.whoBody")}</p>
+          <p className="landing__prose">{t("landing.whoClinician")}</p>
+          <Link to="/genogram" className="landing__link">
+            {t("landing.genogramLink")}
+          </Link>
         </section>
 
         <section className="landing__section">

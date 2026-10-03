@@ -6,6 +6,7 @@ import { getAccessToken } from "../lib/api";
 import { FeedbackModal } from "./FeedbackModal";
 import { ThemeToggle } from "./ThemeToggle";
 import "../styles/footer.css";
+import { GITHUB_URL, LICENSE_URL } from "../lib/links";
 
 const T_FEEDBACK = "feedback.button";
 const T_LOCK = "safety.footer.lock";
@@ -14,9 +15,6 @@ const resources: Record<string, { name: string; url: string }> = {
   nl: { name: "Wij zijn Mind", url: "https://wijzijnmind.nl" },
   en: { name: "Crisis Text Line", url: "https://www.crisistextline.org" },
 };
-
-const GITHUB_URL = "https://github.com/merlijntishauser/traumabomen";
-const LICENSE_URL = `${GITHUB_URL}/blob/main/LICENSE`;
 
 interface Props {
   onLock?: () => void;
