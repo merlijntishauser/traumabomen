@@ -50,7 +50,7 @@ export default function TourPage() {
               <h2>{t(`tour.${stop.key}Title`)}</h2>
               <p className="tour-prose">{t(`tour.${stop.key}Body`)}</p>
               <div className="tour-stop__shot">
-                <Glimpse name={stop.shot} alt={t(stop.altKey)} eager={i === 0} />
+                <Glimpse name={stop.shot} alt={t(stop.altKey)} />
               </div>
             </section>
           ))}

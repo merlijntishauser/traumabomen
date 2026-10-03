@@ -21,8 +21,13 @@ function getSnapshot(): string | null {
   return localStorage.getItem(STORAGE_KEY);
 }
 
+/** Prerendering has no stored choice: render the default (dark) theme. */
+function getServerSnapshot(): string | null {
+  return null;
+}
+
 export function useTheme(availableThemes: Theme[] = DEFAULT_THEMES) {
-  const stored = useSyncExternalStore(subscribe, getSnapshot);
+  const stored = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const theme: Theme =
     stored && availableThemes.includes(stored as Theme) ? (stored as Theme) : "dark";

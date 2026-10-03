@@ -22,6 +22,9 @@
   --color-text-secondary: #8faa97;
   --color-text-muted: #7a9a84;
   --color-text-inverse: #0a1a0f;
+  /* Text set on the dark hero photography. The light theme's hero switches
+     to the regular text tokens instead. */
+  --color-on-photo: #f4efe6;
 
   /* Accent — brand / content color.
      Used for the logomark, leaf icon, tree-edge "default", ambient hover

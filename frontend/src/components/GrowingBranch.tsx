@@ -3,8 +3,8 @@ import "./GrowingBranch.css";
 
 /**
  * A soft fall of foliage down the landing's left margin that grows in as the
- * visitor scrolls: green leaves in the dark theme, small indigo squares and
- * diamonds in the light theme. Purely decorative (aria-hidden), shown only on
+ * visitor scrolls. Leaves in both themes; their colour follows --color-action
+ * (green in dark, indigo in light). Purely decorative (aria-hidden), shown only on
  * wide viewports, and fully present under prefers-reduced-motion.
  *
  * Geometry is deterministic (seeded pseudo-random) so the scatter keeps its
@@ -37,36 +37,20 @@ export function GrowingBranch() {
     let height = 0;
     let raf = 0;
 
-    function makeDecor(x: number, y: number, seed: number, light: boolean): SVGGElement {
+    function makeDecor(x: number, y: number, seed: number): SVGGElement {
       const g = document.createElementNS(SVG_NS, "g");
       g.setAttribute("class", "growing-branch__node");
-      if (light) {
-        // Indigo squares and diamonds, in three shades, softly shimmering.
-        const size = 4 + rnd(seed + 1) * 5;
-        const gem = document.createElementNS(SVG_NS, "rect");
-        gem.setAttribute("x", String(x - size / 2));
-        gem.setAttribute("y", String(y - size / 2));
-        gem.setAttribute("width", String(size));
-        gem.setAttribute("height", String(size));
-        const diamond = rnd(seed + 2) > 0.4;
-        gem.setAttribute("transform", `rotate(${diamond ? 45 : 0} ${x} ${y})`);
-        const shade = ["a", "b", "c"][Math.floor(rnd(seed + 3) * 3)];
-        gem.setAttribute("class", `growing-branch__gem growing-branch__gem--${shade}`);
-        gem.style.animationDelay = `${(rnd(seed + 4) * 3).toFixed(2)}s`;
-        g.appendChild(gem);
-      } else {
-        const side = rnd(seed + 5) > 0.5 ? 1 : -1;
-        const leaf = document.createElementNS(SVG_NS, "ellipse");
-        leaf.setAttribute("cx", String(x));
-        leaf.setAttribute("cy", String(y));
-        leaf.setAttribute("rx", String(4 + rnd(seed + 6) * 3));
-        leaf.setAttribute("ry", String(2.5 + rnd(seed + 7) * 1.5));
-        leaf.setAttribute("transform", `rotate(${side * (24 + rnd(seed + 8) * 42)} ${x} ${y})`);
-        leaf.setAttribute("class", "growing-branch__leaf");
-        // Each leaf at its own depth: a varied opacity reads like a real canopy.
-        leaf.style.opacity = (0.25 + rnd(seed + 9) * 0.45).toFixed(2);
-        g.appendChild(leaf);
-      }
+      const side = rnd(seed + 5) > 0.5 ? 1 : -1;
+      const leaf = document.createElementNS(SVG_NS, "ellipse");
+      leaf.setAttribute("cx", String(x));
+      leaf.setAttribute("cy", String(y));
+      leaf.setAttribute("rx", String(4 + rnd(seed + 6) * 3));
+      leaf.setAttribute("ry", String(2.5 + rnd(seed + 7) * 1.5));
+      leaf.setAttribute("transform", `rotate(${side * (24 + rnd(seed + 8) * 42)} ${x} ${y})`);
+      leaf.setAttribute("class", "growing-branch__leaf");
+      // Each leaf at its own depth: a varied opacity reads like a real canopy.
+      leaf.style.opacity = (0.25 + rnd(seed + 9) * 0.45).toFixed(2);
+      g.appendChild(leaf);
       g.style.opacity = "0";
       svg?.appendChild(g);
       return g;
@@ -77,7 +61,6 @@ export function GrowingBranch() {
       height = container.clientHeight;
       const width = Math.max(svg.clientWidth, 60);
       if (height < 400) return;
-      const light = document.documentElement.getAttribute("data-theme") === "light";
       svg.replaceChildren();
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
       svg.setAttribute("preserveAspectRatio", "none");
@@ -92,7 +75,7 @@ export function GrowingBranch() {
           s += 1;
           const x = 8 + rnd(s * 3.1) * (width - 18);
           const py = y + (rnd(s * 5.7) - 0.5) * (ROW * 0.7);
-          decors.push({ el: makeDecor(x, py, s * 11 + 3, light), activateY: py - 20 });
+          decors.push({ el: makeDecor(x, py, s * 11 + 3), activateY: py - 20 });
         }
       }
 
@@ -133,21 +116,11 @@ export function GrowingBranch() {
           })
         : null;
     ro?.observe(container);
-    // The decor shapes differ per theme, so rebuild when the theme changes.
-    const mo =
-      typeof MutationObserver !== "undefined"
-        ? new MutationObserver(() => {
-            rebuild();
-            if (!reduced) update();
-          })
-        : null;
-    mo?.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     return () => {
       scroller.removeEventListener("scroll", onScroll);
       if (raf) cancelAnimationFrame(raf);
       ro?.disconnect();
-      mo?.disconnect();
     };
   }, []);
 

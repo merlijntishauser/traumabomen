@@ -100,37 +100,20 @@ describe("GrowingBranch", () => {
     unmount();
   });
 
-  it("draws indigo gems in the light theme and rebuilds when the theme changes", () => {
+  it("draws leaves in the light theme too, coloured by the action token", () => {
     document.documentElement.setAttribute("data-theme", "light");
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
     stubLayout(1000);
     vi.stubGlobal("requestAnimationFrame", () => 1);
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
-    let moCb: (() => void) | null = null;
-    class MO {
-      constructor(cb: () => void) {
-        moCb = cb;
-      }
-      observe() {}
-      disconnect() {}
-      takeRecords() {
-        return [];
-      }
-    }
-    vi.stubGlobal("MutationObserver", MO);
     vi.stubGlobal("ResizeObserver", NoopObserver);
 
     const { container } = renderInLanding();
     const svg = container.querySelector("svg.growing-branch") as SVGSVGElement;
 
-    expect(svg.querySelectorAll(".growing-branch__gem").length).toBeGreaterThan(0);
-    expect(svg.querySelectorAll(".growing-branch__leaf")).toHaveLength(0);
-
-    // Theme observer fires on a data-theme change and rebuilds (now dark).
-    document.documentElement.removeAttribute("data-theme");
-    expect(moCb).toBeTypeOf("function");
-    moCb?.();
     expect(svg.querySelectorAll(".growing-branch__leaf").length).toBeGreaterThan(0);
+    expect(svg.querySelectorAll("rect")).toHaveLength(0);
+    document.documentElement.removeAttribute("data-theme");
   });
 
   it("reveals every node at once under prefers-reduced-motion", () => {

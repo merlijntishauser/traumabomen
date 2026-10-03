@@ -29,11 +29,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  color: var(--color-edge-partner);
+  color: var(--color-text-secondary);
 }
 
 .app-footer__heart-icon {
   flex-shrink: 0;
+  color: var(--color-accent);
 }
 
 .app-footer__disclaimer-short {

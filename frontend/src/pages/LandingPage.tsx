@@ -7,6 +7,7 @@ import { Glimpse } from "../components/Glimpse";
 import { GrowingBranch } from "../components/GrowingBranch";
 import { ShieldGlimpse } from "../components/LandingArt";
 import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
+import { useTheme } from "../hooks/useTheme";
 import { getAccessToken, getFaq } from "../lib/api";
 import { GITHUB_URL } from "../lib/links";
 import "../styles/landing.css";
@@ -154,6 +155,7 @@ export default function LandingPage() {
   // When the beta is full the way in is the waitlist, so say so on the
   // buttons rather than after someone has chosen an encryption key.
   const registrationClosed = useRegistrationOpen() === false;
+  const { theme } = useTheme();
   const primaryCta = registrationClosed
     ? { to: "/waitlist", label: t("landing.ctaWaitlist") }
     : { to: "/register", label: t("landing.ctaCreate") };
@@ -166,22 +168,16 @@ export default function LandingPage() {
   return (
     <div className="landing">
       <section className="landing__hero">
+        {/* Only the active theme's photo, so the other is never downloaded.
+            It is the LCP element, so fetch it first. */}
         <picture>
-          <source srcSet="/images/hero-dark.webp" type="image/webp" />
+          <source srcSet={`/images/hero-${theme}.webp`} type="image/webp" />
           <img
-            className="landing__hero-img landing__hero-img--dark"
-            src="/images/hero-dark.jpg"
+            className={`landing__hero-img landing__hero-img--${theme}`}
+            src={`/images/hero-${theme}.jpg`}
             alt=""
             decoding="async"
-          />
-        </picture>
-        <picture>
-          <source srcSet="/images/hero-light.webp" type="image/webp" />
-          <img
-            className="landing__hero-img landing__hero-img--light"
-            src="/images/hero-light.jpg"
-            alt=""
-            decoding="async"
+            fetchPriority="high"
           />
         </picture>
         <AmbientBackground />
@@ -204,7 +200,7 @@ export default function LandingPage() {
             </div>
           </header>
           <div className="landing__hero-art">
-            <Glimpse name="tree" alt={t("landing.shotTreeAlt")} eager />
+            <Glimpse name="tree" alt={t("landing.shotTreeAlt")} />
           </div>
         </div>
         <div className="landing__scroll-cue" aria-hidden="true" />
