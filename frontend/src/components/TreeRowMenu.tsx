@@ -71,7 +71,13 @@ export function TreeRowMenu({ treeName, onRename, onDelete }: TreeRowMenuProps) 
         <MoreHorizontal size={16} aria-hidden="true" />
       </button>
       {open && (
-        <div id={menuId} className="tree-row-menu__list" role="menu" onKeyDown={onMenuKeyDown}>
+        <div
+          id={menuId}
+          className="tree-row-menu__list"
+          role="menu"
+          tabIndex={-1}
+          onKeyDown={onMenuKeyDown}
+        >
           {onRename && (
             <button
               ref={(el) => {

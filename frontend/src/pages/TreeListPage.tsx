@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, LogOut, Upload } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { Logomark } from "../components/Logomark";
 import { TreeRowMenu } from "../components/TreeRowMenu";
@@ -12,17 +12,9 @@ import { useEncryption } from "../contexts/useEncryption";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
 import { useTheme } from "../hooks/useTheme";
-import {
-  createTree,
-  deleteTree,
-  getIsAdmin,
-  getTrees,
-  modifyKeyRing,
-  updateTree,
-} from "../lib/api";
+import { useTreeListMutations } from "../hooks/useTreeListMutations";
+import { getIsAdmin, getTrees } from "../lib/api";
 import { uuidToCompact } from "../lib/compactId";
-import { createDemoTree } from "../lib/createDemoTree";
-import { encryptForApi, generateTreeKey } from "../lib/crypto";
 import { importErrorKey } from "../lib/userFacingErrors";
 import "../components/tree/TreeCanvas.css";
 import { journalPromptText, pickJournalPromptIndex } from "../lib/reflectionPrompts";
@@ -425,13 +417,66 @@ function TreeListToolbar({
   );
 }
 
+/** Labelled create form. Replaces the button that opened it, so it takes
+ *  focus on open and hands it back to a create button when it closes. */
+function CreateTreeForm({
+  name,
+  pending,
+  onNameChange,
+  onSubmit,
+  onCancel,
+}: {
+  name: string;
+  pending: boolean;
+  onNameChange: (name: string) => void;
+  onSubmit: (e: FormEvent) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    return () => {
+      document.querySelector<HTMLButtonElement>("[data-create-trigger]")?.focus();
+    };
+  }, []);
+
+  return (
+    <form className="tree-list-create" onSubmit={onSubmit}>
+      <label htmlFor="new-tree-name">{t("tree.nameLabel")}</label>
+      <input
+        id="new-tree-name"
+        ref={inputRef}
+        type="text"
+        autoComplete="off"
+        value={name}
+        onChange={(e) => onNameChange(e.target.value)}
+        placeholder={t("tree.nameExample")}
+        aria-describedby="new-tree-hint"
+      />
+      <p id="new-tree-hint" className="tree-list-create__hint">
+        {t("tree.nameHint")}
+      </p>
+      <div className="tree-list-create__actions">
+        <button className="btn btn--primary" type="submit" disabled={!name.trim() || pending}>
+          {t("tree.create")}
+        </button>
+        <button className="btn" type="button" onClick={onCancel}>
+          {t(T_CANCEL)}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 /* -- Main component -------------------------------------------------------- */
 
 export default function TreeListPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const logout = useLogout();
-  const { encrypt, decrypt, masterKey, addTreeKey, removeTreeKey } = useEncryption();
+  const { decrypt, masterKey } = useEncryption();
   const queryClient = useQueryClient();
 
   const [state, dispatch] = useReducer(treeListLocalReducer, {
@@ -447,19 +492,6 @@ export default function TreeListPage() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const createInputRef = useRef<HTMLInputElement>(null);
-  const createWasOpenRef = useRef(false);
-
-  // The create form replaces the button that opened it. Focus the name field
-  // when it opens and return to a create button when it is cancelled.
-  useEffect(() => {
-    if (state.creating) {
-      createInputRef.current?.focus();
-    } else if (createWasOpenRef.current) {
-      document.querySelector<HTMLButtonElement>("[data-create-trigger]")?.focus();
-    }
-    createWasOpenRef.current = state.creating;
-  }, [state.creating]);
   const { importTree } = useImportTree();
 
   const treeListViewTab = useMemo(
@@ -506,83 +538,10 @@ export default function TreeListPage() {
   const mostRecent = trees.length >= 2 ? (trees.find((tree) => !tree.unreadable) ?? null) : null;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
-  const createMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const { key: treeKey, base64: treeKeyBase64 } = await generateTreeKey();
-      const encrypted_data = await encryptForApi({ name }, treeKey);
-      const response = await createTree({ encrypted_data });
-      addTreeKey(response.id, treeKey, treeKeyBase64);
-      await modifyKeyRing(masterKey!, (entries) => ({
-        ...entries,
-        [response.id]: treeKeyBase64,
-      }));
-      return response;
-    },
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ["trees"] });
-      // Close the form so it is not still open when the user comes back.
-      dispatch({ type: "STOP_CREATING" });
-      navigate(`/trees/${uuidToCompact(response.id)}`);
-    },
-  });
-
-  const demoMutation = useMutation({
-    mutationFn: async () => {
-      const { key: treeKey, base64: treeKeyBase64 } = await generateTreeKey();
-      const boundEncrypt = (data: unknown) => encryptForApi(data, treeKey);
-      const treeId = await createDemoTree(boundEncrypt, i18n.language);
-      addTreeKey(treeId, treeKey, treeKeyBase64);
-      await modifyKeyRing(masterKey!, (entries) => ({
-        ...entries,
-        [treeId]: treeKeyBase64,
-      }));
-      return treeId;
-    },
-    onSuccess: (treeId) => {
-      queryClient.invalidateQueries({ queryKey: ["trees"] });
-      navigate(`/trees/${uuidToCompact(treeId)}`);
-    },
-  });
-
-  // The onboarding gate's "Start with the demo tree" lands here with
-  // ?start=demo. Create the demo once and drop the param so a reload or the
-  // back button does not create a second one.
-  const [searchParams, setSearchParams] = useSearchParams();
-  const demoStartedRef = useRef(false);
-  const startDemo = searchParams.get("start") === "demo";
-  const { mutate: createDemo } = demoMutation;
-  useEffect(() => {
-    if (!startDemo || !masterKey || demoStartedRef.current) return;
-    demoStartedRef.current = true;
-    setSearchParams({}, { replace: true });
-    createDemo();
-  }, [startDemo, masterKey, setSearchParams, createDemo]);
-
-  const renameMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const encrypted_data = await encrypt({ name }, id);
-      return updateTree(id, { encrypted_data });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trees"] });
-      dispatch({ type: "CANCEL_EDIT" });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await deleteTree(id);
-      removeTreeKey(id);
-      await modifyKeyRing(masterKey!, (entries) => {
-        const updated = { ...entries };
-        delete updated[id];
-        return updated;
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trees"] });
-      dispatch({ type: "SET_DELETING", id: null });
-    },
+  const { createMutation, demoMutation, renameMutation, deleteMutation } = useTreeListMutations({
+    onCreated: () => dispatch({ type: "STOP_CREATING" }),
+    onRenamed: () => dispatch({ type: "CANCEL_EDIT" }),
+    onDeleted: () => dispatch({ type: "SET_DELETING", id: null }),
   });
 
   function handleRenameSubmit(e: FormEvent) {
@@ -625,34 +584,13 @@ export default function TreeListPage() {
   }
 
   const createForm = state.creating ? (
-    <form className="tree-list-create" onSubmit={handleCreateSubmit}>
-      <label htmlFor="new-tree-name">{t("tree.nameLabel")}</label>
-      <input
-        id="new-tree-name"
-        ref={createInputRef}
-        type="text"
-        autoComplete="off"
-        value={state.newName}
-        onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
-        placeholder={t("tree.nameExample")}
-        aria-describedby="new-tree-hint"
-      />
-      <p id="new-tree-hint" className="tree-list-create__hint">
-        {t("tree.nameHint")}
-      </p>
-      <div className="tree-list-create__actions">
-        <button
-          className="btn btn--primary"
-          type="submit"
-          disabled={!state.newName.trim() || createMutation.isPending}
-        >
-          {t("tree.create")}
-        </button>
-        <button className="btn" type="button" onClick={() => dispatch({ type: "STOP_CREATING" })}>
-          {t(T_CANCEL)}
-        </button>
-      </div>
-    </form>
+    <CreateTreeForm
+      name={state.newName}
+      pending={createMutation.isPending}
+      onNameChange={(name) => dispatch({ type: "SET_NEW_NAME", name })}
+      onSubmit={handleCreateSubmit}
+      onCancel={() => dispatch({ type: "STOP_CREATING" })}
+    />
   ) : null;
 
   return (

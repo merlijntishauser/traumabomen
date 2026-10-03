@@ -30,7 +30,7 @@ export function buildTreeMetaLine(tree: TreeMeta, t: TFunc, locale: string): str
 
 /** Most recently tended first; ties keep their original order. */
 export function sortByRecentlyTended<T extends { updated_at: string }>(trees: readonly T[]): T[] {
-  return [...trees].sort((a, b) =>
+  return trees.toSorted((a, b) =>
     a.updated_at < b.updated_at ? 1 : a.updated_at > b.updated_at ? -1 : 0,
   );
 }
