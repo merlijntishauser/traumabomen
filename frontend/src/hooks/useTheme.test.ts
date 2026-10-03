@@ -43,6 +43,15 @@ describe("useTheme", () => {
     expect(result.current.theme).toBe("dark");
   });
 
+  it("falls back to dark when storage throws", () => {
+    const spy = vi.spyOn(localStorageMock, "getItem").mockImplementation(() => {
+      throw new Error("SecurityError");
+    });
+    const { result } = renderHook(() => useTheme());
+    expect(result.current.theme).toBe("dark");
+    spy.mockRestore();
+  });
+
   it("reads stored theme from localStorage", () => {
     localStorage.setItem(STORAGE_KEY, "light");
     const { result } = renderHook(() => useTheme());

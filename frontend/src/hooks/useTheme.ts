@@ -18,7 +18,13 @@ function subscribe(callback: () => void): () => void {
 }
 
 function getSnapshot(): string | null {
-  return localStorage.getItem(STORAGE_KEY);
+  // Storage can be missing or throw (private browsing, blocked site data,
+  // some test environments); fall back to the default theme.
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 /** Prerendering has no stored choice: render the default (dark) theme. */
