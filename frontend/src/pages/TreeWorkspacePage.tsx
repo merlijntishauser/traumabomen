@@ -11,6 +11,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useUpdateNodeInternals,
 } from "@xyflow/react";
 import { TreePine, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -271,6 +272,28 @@ function useCanvasNodes(
   const onNodesChange: OnNodesChange<AnyNodeType> = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
+
+  // A structural change can hand React Flow a node object that has no
+  // `measured` size yet (a node that mounted moments ago, rebuilt before its
+  // first measurement reached state). React Flow then drops that node's handle
+  // bounds, and since the DOM size never changes again nothing re-measures
+  // them: the node shows, but every edge to it silently fails to render (seen
+  // after "Add sibling" when the relationship refetch lands mid-measure).
+  // After each structural change, ask React Flow to re-measure once the
+  // browser has painted, which restores the handle bounds.
+  const updateNodeInternals = useUpdateNodeInternals();
+  // Keyed on structure (node ids and edge count), not on every layout pass,
+  // so selecting a node does not re-measure a large tree.
+  const structureKey = `${edgeCount}|${layoutNodes
+    .map((n) => n.id)
+    .sort()
+    .join(",")}`;
+  useEffect(() => {
+    const ids = structureKey.slice(structureKey.indexOf("|") + 1);
+    if (!ids) return;
+    const frame = requestAnimationFrame(() => updateNodeInternals(ids.split(",")));
+    return () => cancelAnimationFrame(frame);
+  }, [structureKey, updateNodeInternals]);
 
   useEffect(() => {
     if (layoutNodes.length > 0 && layoutNodes.length !== prevNodeCountRef.current) {

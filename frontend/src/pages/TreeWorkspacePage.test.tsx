@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   DecryptedClassification,
@@ -24,6 +24,7 @@ vi.mock("react-router", () => ({
   useLocation: () => ({ state: null }),
 }));
 
+const mockUpdateNodeInternals = vi.fn();
 vi.mock("@xyflow/react", () => {
   const ReactFlow = (props: Record<string, unknown>) => {
     const { nodes, edges, onPaneClick, onNodeClick, onEdgeClick, onConnect, children } = props as {
@@ -74,6 +75,7 @@ vi.mock("@xyflow/react", () => {
       fitView: vi.fn(),
       screenToFlowPosition: vi.fn().mockReturnValue({ x: 0, y: 0 }),
     }),
+    useUpdateNodeInternals: () => mockUpdateNodeInternals,
     applyNodeChanges: (_changes: unknown, nodes: unknown[]) => nodes,
     Background: () => <div data-testid="rf-background" />,
     Controls: () => <div data-testid="rf-controls" />,
@@ -380,6 +382,27 @@ describe("TreeWorkspacePage", () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it("re-measures node internals after the tree structure changes", async () => {
+    // Without this React Flow can keep a node whose handle bounds were dropped
+    // mid-measure, and edges to it silently fail to render.
+    STABLE_LAYOUT_NODES.push(
+      { id: "p2", type: "person", position: { x: 0, y: 0 }, data: {} },
+      { id: "p1", type: "person", position: { x: 200, y: 0 }, data: {} },
+    );
+    try {
+      render(<TreeWorkspacePage />);
+      await waitFor(() => expect(mockUpdateNodeInternals).toHaveBeenCalledWith(["p1", "p2"]));
+    } finally {
+      STABLE_LAYOUT_NODES.length = 0;
+    }
+  });
+
+  it("does not re-measure an empty canvas", async () => {
+    render(<TreeWorkspacePage />);
+    await new Promise((r) => setTimeout(r, 40));
+    expect(mockUpdateNodeInternals).not.toHaveBeenCalled();
   });
 
   it("renders within ReactFlowProvider", () => {
