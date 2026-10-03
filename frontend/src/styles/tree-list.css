@@ -15,11 +15,6 @@
   padding: var(--space-8) var(--space-6);
 }
 
-.tree-list-empty {
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
 .tree-list {
   list-style: none;
   padding: 0;
@@ -184,159 +179,121 @@
   border-radius: var(--radius-md);
 }
 
-/* Welcome card */
-.welcome-card {
-  position: relative;
+/* First-tree empty state: forest photo band above a solid card. The photo
+   carries the atmosphere; the text sits on a plain surface so it reads. */
+.first-tree {
   overflow: hidden;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
-  border-left: 3px solid var(--color-accent);
   border-radius: var(--radius-lg);
-  padding: var(--space-6) var(--space-10) var(--space-6) var(--space-6);
+  box-shadow: var(--shadow-lg);
   margin-bottom: var(--space-6);
 }
 
-/* Background images */
-.welcome-card__img {
+.first-tree picture {
+  display: block;
+  position: relative;
+  height: 168px;
+}
+
+.first-tree picture::after {
+  content: "";
   position: absolute;
   inset: 0;
+  background: linear-gradient(to bottom, transparent 45%, var(--color-bg-secondary) 100%);
+  pointer-events: none;
+}
+
+.first-tree__img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 40%;
-  transition: opacity 0.4s ease;
 }
 
-.welcome-card__img--dark {
+.first-tree__img--dark {
   object-position: center 55%;
-  opacity: 1;
 }
 
-.welcome-card__img--light {
-  opacity: 0;
+.first-tree__content {
+  padding: var(--space-2) var(--space-8) var(--space-6);
 }
 
-[data-theme="light"] .welcome-card__img--dark {
-  opacity: 0;
+.first-tree__title {
+  margin-bottom: var(--space-3);
 }
 
-[data-theme="light"] .welcome-card__img--light {
-  opacity: 1;
-}
-
-/* Semi-transparent overlay for text readability + vignette */
-.welcome-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(ellipse at 55% 50%, rgba(10, 26, 15, 0.35) 0%, rgba(10, 26, 15, 0.8) 100%),
-    linear-gradient(to right, rgba(10, 26, 15, 0.6) 20%, rgba(10, 26, 15, 0.3) 100%);
-  pointer-events: none;
-}
-
-[data-theme="light"] .welcome-card::before {
-  background:
-    radial-gradient(ellipse at 55% 50%, rgba(255, 253, 250, 0.5) 0%, rgba(255, 253, 250, 0.82) 100%),
-    linear-gradient(to right, rgba(255, 253, 250, 0.72) 20%, rgba(255, 253, 250, 0.45) 100%);
-}
-
-/* Card content above overlay */
-.welcome-card__dismiss,
-.welcome-card__title,
-.welcome-card__body,
-.welcome-card__actions {
-  position: relative;
-  z-index: 2;
-}
-
-.welcome-card__dismiss {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: var(--transition-colors);
-}
-
-.welcome-card__dismiss:hover {
+.first-tree__body {
+  max-width: 52ch;
   color: var(--color-text-secondary);
-  border-color: var(--color-border-primary);
+  margin-bottom: var(--space-6);
 }
 
-.welcome-card__title {
-  font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: 20px;
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-2);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="light"] .welcome-card__title {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.welcome-card__body {
-  font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--space-4);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="light"] .welcome-card__body {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.welcome-card__actions {
+.first-tree__actions {
   display: flex;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-5);
   flex-wrap: wrap;
 }
 
-.welcome-card__btn {
-  padding: var(--space-1\.5) var(--space-3\.5);
+.first-tree__quiet {
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
   font-size: 13px;
-  font-weight: 500;
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
+  font-weight: 700;
+  color: var(--color-action);
   cursor: pointer;
   transition: var(--transition-colors);
 }
 
-.welcome-card__btn:hover {
-  background: var(--color-bg-hover);
-  color: var(--color-text-primary);
+.first-tree__quiet:hover:not(:disabled) {
+  color: var(--color-action-hover);
 }
 
-.welcome-card__btn:disabled {
-  opacity: 0.5;
+.first-tree__quiet:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.welcome-card__btn--accent {
-  border-color: var(--color-action-border);
-  color: var(--color-action);
+.first-tree__beta {
+  padding: var(--space-4) var(--space-8);
+  border-top: 1px solid var(--color-border-secondary);
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
-.welcome-card__btn--accent:hover {
-  background: var(--color-action-subtle);
+.first-tree__beta-link {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 700;
   color: var(--color-action);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.first-tree__beta-link:hover {
+  color: var(--color-action-hover);
+}
+
+.first-tree .tree-list-create {
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .first-tree picture {
+    height: 120px;
+  }
+
+  .first-tree__content,
+  .first-tree__beta {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
 }
 
 /* Demo badge */

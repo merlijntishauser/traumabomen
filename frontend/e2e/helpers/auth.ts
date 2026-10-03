@@ -118,8 +118,9 @@ export async function createTree(
   page: Page,
   name = "Test Tree",
 ): Promise<void> {
-  // Click the toolbar "Create tree" button (exact match avoids "Create your first tree")
-  await page.getByRole("button", { name: "Create tree", exact: true }).click();
+  // An empty list offers "Create your first tree"; once trees exist the
+  // toolbar offers "Create tree". Exactly one of them is visible.
+  await page.getByRole("button", { name: /^create (your first )?tree$/i }).click();
   // Fill the tree name in the inline form
   await page.getByRole("textbox", { name: /tree name/i }).fill(name);
   // Submit via the form's "Create tree" button

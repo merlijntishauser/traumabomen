@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTreeMetaLine } from "./treeListMeta";
+import { buildTreeMetaLine, sortByRecentlyTended } from "./treeListMeta";
 
 const t = (key: string, opts?: Record<string, unknown>) =>
   opts?.count !== undefined
@@ -41,7 +41,7 @@ describe("buildTreeMetaLine", () => {
       t,
       "en",
     );
-    expect(line).toContain("tree.meta.empty");
+    expect(line).toBe("tree.meta.empty");
   });
 
   it("drops the time part for malformed timestamps", () => {
@@ -51,5 +51,26 @@ describe("buildTreeMetaLine", () => {
       "en",
     );
     expect(line).toBe("tree.meta.people:1");
+  });
+});
+
+describe("sortByRecentlyTended", () => {
+  it("puts the most recently updated tree first", () => {
+    const sorted = sortByRecentlyTended([
+      { id: "a", updated_at: "2026-01-01T00:00:00Z" },
+      { id: "b", updated_at: "2026-03-01T00:00:00Z" },
+      { id: "c", updated_at: "2026-02-01T00:00:00Z" },
+    ]);
+    expect(sorted.map((t) => t.id)).toEqual(["b", "c", "a"]);
+  });
+
+  it("keeps the original order for equal timestamps and does not mutate the input", () => {
+    const input = [
+      { id: "a", updated_at: "2026-01-01T00:00:00Z" },
+      { id: "b", updated_at: "2026-01-01T00:00:00Z" },
+    ];
+    const sorted = sortByRecentlyTended(input);
+    expect(sorted.map((t) => t.id)).toEqual(["a", "b"]);
+    expect(sorted).not.toBe(input);
   });
 });

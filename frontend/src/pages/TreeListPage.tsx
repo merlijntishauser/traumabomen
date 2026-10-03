@@ -1,14 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, LogOut, Upload, X } from "lucide-react";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { AlertTriangle, LogOut, Upload } from "lucide-react";
+import { type FormEvent, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
@@ -18,6 +10,7 @@ import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings"
 import { useEncryption } from "../contexts/useEncryption";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
+import { useTheme } from "../hooks/useTheme";
 import {
   createTree,
   deleteTree,
@@ -31,10 +24,9 @@ import { createDemoTree } from "../lib/createDemoTree";
 import { encryptForApi, generateTreeKey } from "../lib/crypto";
 import "../components/tree/TreeCanvas.css";
 import { journalPromptText, pickJournalPromptIndex } from "../lib/reflectionPrompts";
-import { buildTreeMetaLine } from "./treeListMeta";
+import { buildTreeMetaLine, sortByRecentlyTended } from "./treeListMeta";
 import "../styles/tree-list.css";
 
-const WELCOME_DISMISSED_KEY = "traumabomen_welcome_dismissed";
 const MAX_DEMO_TREES = 3;
 
 const T_CANCEL = "common.cancel";
@@ -57,20 +49,24 @@ function ContinueCard({
   metaLine,
   prompt,
 }: {
-  tree: { id: string; name: string };
+  tree: { id: string; name: string; person_count: number };
   metaLine: string;
   prompt: string;
 }) {
   const { t } = useTranslation();
+  const treePath = `/trees/${uuidToCompact(tree.id)}`;
+  // A journal prompt about ancestors means little in a tree with nobody in
+  // it yet; point at the canvas instead.
+  const started = tree.person_count > 0;
   return (
     <div className="tree-continue">
       <span className="tree-continue__label">{t("tree.continue")}</span>
-      <Link className="tree-continue__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+      <Link className="tree-continue__link" to={treePath}>
         <span className="tree-continue__name">{tree.name}</span>
         <span className="tree-continue__meta">{metaLine}</span>
       </Link>
-      <Link className="tree-continue__prompt" to={`/trees/${uuidToCompact(tree.id)}/journal`}>
-        {prompt}
+      <Link className="tree-continue__prompt" to={started ? `${treePath}/journal` : treePath}>
+        {started ? prompt : t("tree.startWithYourself")}
       </Link>
     </div>
   );
@@ -84,7 +80,6 @@ interface TreeListLocalState {
   deletingId: string | null;
   creating: boolean;
   newName: string;
-  welcomeDismissed: boolean;
   showFeedback: boolean;
   showDemoLimit: boolean;
   importing: boolean;
@@ -99,7 +94,6 @@ type TreeListLocalAction =
   | { type: "START_CREATING" }
   | { type: "STOP_CREATING" }
   | { type: "SET_NEW_NAME"; name: string }
-  | { type: "DISMISS_WELCOME" }
   | { type: "SET_SHOW_FEEDBACK"; value: boolean }
   | { type: "SET_SHOW_DEMO_LIMIT"; value: boolean }
   | { type: "SET_IMPORTING"; value: boolean }
@@ -124,8 +118,6 @@ function treeListLocalReducer(
       return { ...state, creating: false };
     case "SET_NEW_NAME":
       return { ...state, newName: action.name };
-    case "DISMISS_WELCOME":
-      return { ...state, welcomeDismissed: true };
     case "SET_SHOW_FEEDBACK":
       return { ...state, showFeedback: action.value };
     case "SET_SHOW_DEMO_LIMIT":
@@ -139,84 +131,79 @@ function treeListLocalReducer(
 
 /* -- Sub-components -------------------------------------------------------- */
 
-interface WelcomeCardProps {
-  onDismiss: () => void;
-  onSendMessage: () => void;
+interface FirstTreeWelcomeProps {
   onCreateTree: () => void;
   onDemoCreate: () => void;
-  showCreateButton: boolean;
+  onSendMessage: () => void;
   createDisabled: boolean;
-  demoDisabled: boolean;
+  demoPending: boolean;
+  /** The create form, rendered in place of the actions once the user starts. */
+  createForm: React.ReactNode | null;
 }
 
-function WelcomeCard({
-  onDismiss,
-  onSendMessage,
+/**
+ * The empty state for someone with no trees yet: what a tree is, one clear
+ * way to begin, a quiet way to look around first, and the beta note last.
+ */
+function FirstTreeWelcome({
   onCreateTree,
   onDemoCreate,
-  showCreateButton,
+  onSendMessage,
   createDisabled,
-  demoDisabled,
-}: WelcomeCardProps) {
+  demoPending,
+  createForm,
+}: FirstTreeWelcomeProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const image = theme === "light" ? "welcome-light" : "welcome-dark";
   return (
-    <div className="welcome-card" data-testid="welcome-card">
+    <section
+      className="first-tree"
+      data-testid="first-tree-welcome"
+      aria-labelledby="first-tree-title"
+    >
       <picture>
-        <source srcSet="/images/welcome-dark.webp" type="image/webp" />
+        <source srcSet={`/images/${image}.webp`} type="image/webp" />
         <img
-          src="/images/welcome-dark.jpg"
+          src={`/images/${image}.jpg`}
           alt=""
           aria-hidden="true"
-          className="welcome-card__img welcome-card__img--dark"
+          className={`first-tree__img first-tree__img--${theme}`}
         />
       </picture>
-      <picture>
-        <source srcSet="/images/welcome-light.webp" type="image/webp" />
-        <img
-          src="/images/welcome-light.jpg"
-          alt=""
-          aria-hidden="true"
-          className="welcome-card__img welcome-card__img--light"
-        />
-      </picture>
-      <button
-        type="button"
-        className="welcome-card__dismiss"
-        onClick={onDismiss}
-        aria-label={t("common.close")}
-      >
-        <X size={16} />
-      </button>
-      <h2 className="welcome-card__title">{t("welcome.title")}</h2>
-      <p className="welcome-card__body">{t("welcome.body")}</p>
-      <div className="welcome-card__actions">
-        <button
-          type="button"
-          className="welcome-card__btn welcome-card__btn--accent"
-          onClick={onSendMessage}
-        >
+      <div className="first-tree__content">
+        <h2 id="first-tree-title" className="first-tree__title">
+          {t("firstTree.title")}
+        </h2>
+        <p className="first-tree__body">{t("firstTree.body")}</p>
+        {createForm ?? (
+          <div className="first-tree__actions">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={onCreateTree}
+              disabled={createDisabled}
+            >
+              {t("welcome.createTree")}
+            </button>
+            <button
+              type="button"
+              className="first-tree__quiet"
+              onClick={onDemoCreate}
+              disabled={demoPending}
+            >
+              {demoPending ? t("demo.creating") : t("firstTree.exploreDemo")}
+            </button>
+          </div>
+        )}
+      </div>
+      <p className="first-tree__beta">
+        {t("firstTree.beta")}{" "}
+        <button type="button" className="first-tree__beta-link" onClick={onSendMessage}>
           {t("welcome.sendMessage")}
         </button>
-        {showCreateButton && (
-          <button
-            type="button"
-            className="welcome-card__btn"
-            onClick={onCreateTree}
-            disabled={createDisabled}
-          >
-            {t("welcome.createTree")}
-          </button>
-        )}
-        <button
-          type="button"
-          className="welcome-card__btn"
-          onClick={onDemoCreate}
-          disabled={demoDisabled}
-        >
-          {t("demo.createButton")}
-        </button>
-      </div>
-    </div>
+      </p>
+    </section>
   );
 }
 
@@ -324,6 +311,7 @@ function TreeListItemRow({
 }
 
 function TreeListToolbar({
+  showCreateActions,
   demoMutationPending,
   onDemoCreate,
   createDisabled,
@@ -335,6 +323,8 @@ function TreeListToolbar({
   viewTab,
   onLogout,
 }: {
+  /** Hidden while the list is empty: the empty state carries the one way in. */
+  showCreateActions: boolean;
   demoMutationPending: boolean;
   onDemoCreate: () => void;
   createDisabled: boolean;
@@ -351,22 +341,26 @@ function TreeListToolbar({
     <div className="tree-toolbar">
       <span className="tree-toolbar__title">{t("tree.myTrees")}</span>
       <div className="tree-toolbar__spacer" />
-      <button
-        type="button"
-        className="tree-toolbar__btn"
-        onClick={onDemoCreate}
-        disabled={demoMutationPending}
-      >
-        {demoMutationPending ? t("demo.creating") : t("demo.createButton")}
-      </button>
-      <button
-        type="button"
-        className="tree-toolbar__btn tree-toolbar__btn--primary"
-        onClick={onStartCreating}
-        disabled={createDisabled}
-      >
-        {t("tree.create")}
-      </button>
+      {showCreateActions && (
+        <>
+          <button
+            type="button"
+            className="tree-toolbar__btn"
+            onClick={onDemoCreate}
+            disabled={demoMutationPending}
+          >
+            {demoMutationPending ? t("demo.creating") : t("demo.createButton")}
+          </button>
+          <button
+            type="button"
+            className="tree-toolbar__btn tree-toolbar__btn--primary"
+            onClick={onStartCreating}
+            disabled={createDisabled}
+          >
+            {t("tree.create")}
+          </button>
+        </>
+      )}
       <button
         type="button"
         className="tree-toolbar__icon-btn"
@@ -417,7 +411,6 @@ export default function TreeListPage() {
     deletingId: null,
     creating: false,
     newName: "",
-    welcomeDismissed: localStorage.getItem(WELCOME_DISMISSED_KEY) === "true",
     showFeedback: false,
     showDemoLimit: false,
     importing: false,
@@ -434,11 +427,6 @@ export default function TreeListPage() {
     }),
     [t],
   );
-
-  const dismissWelcome = useCallback(() => {
-    localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
-    dispatch({ type: "DISMISS_WELCOME" });
-  }, []);
 
   const treesQuery = useQuery({
     queryKey: ["trees"],
@@ -466,13 +454,14 @@ export default function TreeListPage() {
     },
   });
 
-  const demoTreeCount = (treesQuery.data ?? []).filter((t) => t.is_demo).length;
+  const trees = useMemo(() => sortByRecentlyTended(treesQuery.data ?? []), [treesQuery.data]);
+  const isEmpty = treesQuery.data !== undefined && trees.length === 0;
+  const demoTreeCount = trees.filter((t) => t.is_demo).length;
 
-  // Front porch: the most recently tended tree, and one open question per visit
-  const mostRecent = (treesQuery.data ?? []).reduce<DecryptedTree | null>(
-    (best, tree) => (!best || tree.updated_at > best.updated_at ? tree : best),
-    null,
-  );
+  // Front porch: the most recently tended tree and one open question per
+  // visit. With a single tree the list already says everything, so the
+  // porch only appears once there is a choice to make.
+  const mostRecent = trees.length >= 2 ? trees[0] : null;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
   const createMutation = useMutation({
@@ -489,6 +478,8 @@ export default function TreeListPage() {
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });
+      // Close the form so it is not still open when the user comes back.
+      dispatch({ type: "STOP_CREATING" });
       navigate(`/trees/${uuidToCompact(response.id)}`);
     },
   });
@@ -585,19 +576,48 @@ export default function TreeListPage() {
     }
   }
 
+  function handleDemoCreate() {
+    if (demoTreeCount >= MAX_DEMO_TREES) {
+      dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: true });
+    } else {
+      dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: false });
+      demoMutation.mutate();
+    }
+  }
+
+  const createForm = state.creating ? (
+    <form className="tree-list-create" onSubmit={handleCreateSubmit}>
+      <input
+        className="tree-list-item__input"
+        value={state.newName}
+        onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
+        placeholder={t(T_NAME_PLACEHOLDER)}
+        aria-label={t(T_NAME_PLACEHOLDER)}
+      />
+      <button
+        className="tree-list-item__btn"
+        type="submit"
+        disabled={!state.newName.trim() || createMutation.isPending}
+      >
+        {t("tree.create")}
+      </button>
+      <button
+        className="tree-list-item__btn"
+        type="button"
+        onClick={() => dispatch({ type: "STOP_CREATING" })}
+      >
+        {t(T_CANCEL)}
+      </button>
+    </form>
+  ) : null;
+
   return (
     <>
       <div className="tree-list-page bg-gradient">
         <TreeListToolbar
+          showCreateActions={!isEmpty}
           demoMutationPending={demoMutation.isPending}
-          onDemoCreate={() => {
-            if (demoTreeCount >= MAX_DEMO_TREES) {
-              dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: true });
-            } else {
-              dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: false });
-              demoMutation.mutate();
-            }
-          }}
+          onDemoCreate={handleDemoCreate}
           createDisabled={state.creating || createMutation.isPending}
           onStartCreating={() => dispatch({ type: "START_CREATING" })}
           importing={state.importing}
@@ -609,50 +629,17 @@ export default function TreeListPage() {
         />
 
         <div className="tree-list-content">
-          {!(treesQuery.data && treesQuery.data.length > 0 && state.welcomeDismissed) &&
-            !state.creating && (
-              <WelcomeCard
-                onDismiss={dismissWelcome}
-                onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
-                onCreateTree={() => dispatch({ type: "START_CREATING" })}
-                onDemoCreate={() => {
-                  if (demoTreeCount >= MAX_DEMO_TREES) {
-                    dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: true });
-                  } else {
-                    dispatch({ type: "SET_SHOW_DEMO_LIMIT", value: false });
-                    demoMutation.mutate();
-                  }
-                }}
-                showCreateButton={!treesQuery.data || treesQuery.data.length === 0}
-                createDisabled={createMutation.isPending}
-                demoDisabled={demoMutation.isPending}
-              />
-            )}
-
-          {state.creating && (
-            <form className="tree-list-create" onSubmit={handleCreateSubmit}>
-              <input
-                className="tree-list-item__input"
-                value={state.newName}
-                onChange={(e) => dispatch({ type: "SET_NEW_NAME", name: e.target.value })}
-                placeholder={t(T_NAME_PLACEHOLDER)}
-                aria-label={t(T_NAME_PLACEHOLDER)}
-              />
-              <button
-                className="tree-list-item__btn"
-                type="submit"
-                disabled={!state.newName.trim() || createMutation.isPending}
-              >
-                {t("tree.create")}
-              </button>
-              <button
-                className="tree-list-item__btn"
-                type="button"
-                onClick={() => dispatch({ type: "STOP_CREATING" })}
-              >
-                {t(T_CANCEL)}
-              </button>
-            </form>
+          {isEmpty ? (
+            <FirstTreeWelcome
+              onCreateTree={() => dispatch({ type: "START_CREATING" })}
+              onDemoCreate={handleDemoCreate}
+              onSendMessage={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: true })}
+              createDisabled={createMutation.isPending}
+              demoPending={demoMutation.isPending}
+              createForm={createForm}
+            />
+          ) : (
+            createForm
           )}
 
           {state.showDemoLimit && demoTreeCount >= MAX_DEMO_TREES && (
@@ -673,10 +660,6 @@ export default function TreeListPage() {
 
           {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
 
-          {treesQuery.data && treesQuery.data.length === 0 && (
-            <p className="tree-list-empty">{t("tree.empty")}</p>
-          )}
-
           {mostRecent && (
             <ContinueCard
               tree={mostRecent}
@@ -685,9 +668,9 @@ export default function TreeListPage() {
             />
           )}
 
-          {treesQuery.data && treesQuery.data.length > 0 && (
+          {trees.length > 0 && (
             <ul className="tree-list">
-              {treesQuery.data.map((tree) => (
+              {trees.map((tree) => (
                 <li key={tree.id}>
                   <TreeListItemRow
                     tree={tree}

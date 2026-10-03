@@ -136,7 +136,7 @@ test("Traumabomen demo walkthrough", async ({ page }) => {
 	// -----------------------------------------------------------------------
 	// Scene 4: Create demo tree (0:35 - 0:43)
 	// -----------------------------------------------------------------------
-	const demoBtn = page.getByRole("button", { name: /create demo tree/i });
+	const demoBtn = page.getByRole("button", { name: /explore a fictional family first/i });
 	await expect(demoBtn).toBeVisible({ timeout: 5_000 });
 	await demoBtn.click();
 
