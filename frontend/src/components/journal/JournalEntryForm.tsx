@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Link2, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Link2, RefreshCw, X } from "lucide-react";
 import { useCallback, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
@@ -91,6 +91,50 @@ interface JournalEntryFormProps {
   onCancel: () => void;
   initialPrompt?: string;
   initialLinkedRef?: JournalLinkedRef;
+  /**
+   * "sheet" is the journal page's writing desk: one open question above a
+   * roomy writing surface instead of the folded inspiration list.
+   */
+  variant?: "panel" | "sheet";
+}
+
+const SHEET_QUESTION_COUNT = 10;
+
+/** One open question at a time, with a way to take it up or ask another. */
+function OpenQuestion({
+  questions,
+  onAnswer,
+}: {
+  questions: string[];
+  onAnswer: (question: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [index, setIndex] = useState(0);
+  const question = questions[index % questions.length];
+  return (
+    <div className="journal-form__question-block">
+      <p className="journal-form__question" aria-live="polite">
+        {question}
+      </p>
+      <div className="journal-form__question-actions">
+        <button
+          type="button"
+          className="journal-form__question-btn"
+          onClick={() => onAnswer(question)}
+        >
+          {t("journal.answerQuestion")}
+        </button>
+        <button
+          type="button"
+          className="journal-form__question-btn journal-form__question-btn--quiet"
+          onClick={() => setIndex((i) => i + 1)}
+        >
+          <RefreshCw size={13} aria-hidden="true" />
+          {t("journal.anotherQuestion")}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function JournalEntryForm({
@@ -106,6 +150,7 @@ export function JournalEntryForm({
   onCancel,
   initialPrompt,
   initialLinkedRef,
+  variant = "panel",
 }: JournalEntryFormProps) {
   const { t } = useTranslation();
   const isNew = entry === null;
@@ -117,7 +162,10 @@ export function JournalEntryForm({
     showPicker: false,
     showPrompts: false,
   });
-  const [prompts] = useState(() => getRandomJournalPrompts(t));
+  const isSheet = variant === "sheet";
+  const [prompts] = useState(() =>
+    getRandomJournalPrompts(t, isSheet ? SHEET_QUESTION_COUNT : undefined),
+  );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Measure on mount and whenever the textarea re-appears (switching back into
@@ -135,7 +183,25 @@ export function JournalEntryForm({
   const WRITE_ACTIVE = `${WRITE_CLASS} journal-form__mode-btn--active`;
 
   return (
-    <div className="journal-form" data-testid="journal-entry-form">
+    <div
+      className={`journal-form${isSheet ? " journal-form--sheet" : ""}`}
+      data-testid="journal-entry-form"
+    >
+      {isSheet && isNew && (
+        <OpenQuestion
+          questions={prompts}
+          onAnswer={(question) => {
+            // Kept as a quote, so rereading shows the question apart from the answer.
+            dispatch({ type: "APPLY_PROMPT", prompt: `> ${question}\n\n` });
+            requestAnimationFrame(() => {
+              if (textareaRef.current) {
+                resizeTextarea(textareaRef.current);
+                textareaRef.current.focus();
+              }
+            });
+          }}
+        />
+      )}
       <div className="journal-form__mode-toggle">
         <button
           type="button"
@@ -238,7 +304,7 @@ export function JournalEntryForm({
         </div>
       )}
 
-      {isNew && (
+      {isNew && !isSheet && (
         <div className="journal-form__prompts">
           <button
             type="button"

@@ -317,4 +317,40 @@ describe("JournalEntryForm", () => {
     const removeButtons = chips.querySelectorAll("button");
     expect(removeButtons).toHaveLength(1);
   });
+
+  describe("sheet variant", () => {
+    it("asks one open question instead of listing inspiration", () => {
+      renderForm({ variant: "sheet" });
+      expect(screen.getByText("Prompt A")).toBeInTheDocument();
+      expect(screen.queryByText("journal.inspiration")).not.toBeInTheDocument();
+    });
+
+    it("offers another question, cycling back to the first", () => {
+      renderForm({ variant: "sheet" });
+      const another = screen.getByRole("button", { name: "journal.anotherQuestion" });
+      fireEvent.click(another);
+      expect(screen.getByText("Prompt B")).toBeInTheDocument();
+      fireEvent.click(another);
+      fireEvent.click(another);
+      expect(screen.getByText("Prompt A")).toBeInTheDocument();
+    });
+
+    it("writes the question into the page when answered", () => {
+      renderForm({ variant: "sheet" });
+      fireEvent.click(screen.getByRole("button", { name: "journal.answerQuestion" }));
+      expect(screen.getByTestId("journal-textarea")).toHaveValue("> Prompt A\n\n");
+    });
+
+    it("leaves the question out when editing an existing entry", () => {
+      renderForm({ variant: "sheet", entry: existingEntry });
+      expect(
+        screen.queryByRole("button", { name: "journal.answerQuestion" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("marks the form as a sheet", () => {
+      renderForm({ variant: "sheet" });
+      expect(screen.getByTestId("journal-entry-form")).toHaveClass("journal-form--sheet");
+    });
+  });
 });

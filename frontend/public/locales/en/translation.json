@@ -1094,5 +1094,14 @@
   "treeList.otherTrees": "Other trees",
   "treeList.startNew": "Start a new tree",
   "treeList.exploreDemo": "Explore a fictional family",
+  "journal.answerQuestion": "Answer this question",
+  "journal.anotherQuestion": "Another question",
+  "journal.earlierEntries": "Earlier entries",
+  "journal.entryCount_one": "{{count}} entry",
+  "journal.entryCount_other": "{{count}} entries",
+  "journal.marginEmpty": "What you write appears here, newest first. Only you can read it.",
+  "journal.editedOn": "Edited {{date}}",
+  "journal.writeNew": "Write a new entry",
+  "journal.deskLabel": "Writing",
   "treeList.yourTrees": "Your trees"
 }

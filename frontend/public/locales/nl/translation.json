@@ -1094,5 +1094,14 @@
   "treeList.otherTrees": "Andere bomen",
   "treeList.startNew": "Nieuwe boom beginnen",
   "treeList.exploreDemo": "Verken een fictieve familie",
+  "journal.answerQuestion": "Deze vraag beantwoorden",
+  "journal.anotherQuestion": "Andere vraag",
+  "journal.earlierEntries": "Eerdere items",
+  "journal.entryCount_one": "{{count}} item",
+  "journal.entryCount_other": "{{count}} items",
+  "journal.marginEmpty": "Wat je schrijft verschijnt hier, het nieuwste bovenaan. Alleen jij kunt het lezen.",
+  "journal.editedOn": "Bewerkt op {{date}}",
+  "journal.writeNew": "Een nieuw item schrijven",
+  "journal.deskLabel": "Schrijven",
   "treeList.yourTrees": "Je bomen"
 }
