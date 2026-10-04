@@ -48,82 +48,60 @@ async function setupTreeWithPerson(
   return panel;
 }
 
+/** Open the person page's add menu and start a new entry of one kind. */
+async function startNewEntry(panel: import("@playwright/test").Locator, kind: RegExp) {
+  await panel.getByRole("button", { name: /add to .*life/i }).click();
+  await panel.getByRole("button", { name: kind }).click();
+  return panel.locator(".lifeline__editor--new");
+}
+
 test.describe("Data entry", () => {
   test("add trauma event to person", async ({ page }) => {
     const panel = await setupTreeWithPerson(page);
 
-    // Navigate to Events tab
-    await panel.getByRole("tab", { name: /events/i }).click();
-    // Click the first segment (trauma events - default)
-    await panel.locator(".detail-panel__segment").first().click();
-
-    // Add new trauma event
-    await panel.getByRole("button", { name: /new|add/i }).click();
-
-    // Fill event form
-    const form = panel.locator(".detail-panel__sub-body");
+    const form = await startNewEntry(panel, /^trauma event$/i);
     await form.getByLabel("Title", { exact: true }).fill("Childhood trauma");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
-    // Verify event card appears
-    await expect(panel.getByText("Childhood trauma")).toBeVisible();
+    // The entry joins the lifeline and the new-entry form closes.
+    await expect(panel.locator(".lifeline__entry").filter({ hasText: "Childhood trauma" })).toBeVisible();
+    await expect(form).not.toBeVisible();
   });
 
   test("add life event to person", async ({ page }) => {
     const panel = await setupTreeWithPerson(page);
 
-    // Navigate to Events tab
-    await panel.getByRole("tab", { name: /events/i }).click();
-    // Click the second segment (life events)
-    await panel.locator(".detail-panel__segment").nth(1).click();
-
-    // Add new life event
-    await panel.getByRole("button", { name: /new|add/i }).click();
-
-    const form = panel.locator(".detail-panel__sub-body");
+    const form = await startNewEntry(panel, /^life event$/i);
     await form.getByLabel("Title", { exact: true }).fill("Started university");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
-    await expect(panel.getByText("Started university")).toBeVisible();
+    await expect(panel.locator(".lifeline__entry").filter({ hasText: "Started university" })).toBeVisible();
   });
 
   test("add turning point to person", async ({ page }) => {
     const panel = await setupTreeWithPerson(page);
 
-    // Navigate to Events tab
-    await panel.getByRole("tab", { name: /events/i }).click();
-    // Click the third segment (turning points)
-    await panel.locator(".detail-panel__segment").nth(2).click();
-
-    // Add new turning point
-    await panel.getByRole("button", { name: /new|add/i }).click();
-
-    const form = panel.locator(".detail-panel__sub-body");
+    const form = await startNewEntry(panel, /^turning point$/i);
     await form.getByLabel("Title", { exact: true }).fill("Left toxic environment");
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
-    await expect(panel.getByText("Left toxic environment")).toBeVisible();
+    await expect(
+      panel.locator(".lifeline__entry").filter({ hasText: "Left toxic environment" }),
+    ).toBeVisible();
   });
 
   test("add classification to person", async ({ page }) => {
     const panel = await setupTreeWithPerson(page);
 
-    // Navigate to Classifications tab (labeled "DSM-5")
-    await panel.getByRole("tab", { name: /dsm|classification/i }).click();
-
-    // Add new classification
-    await panel.getByRole("button", { name: /new|add/i }).click();
-
-    const form = panel.locator(".detail-panel__sub-body");
+    const form = await startNewEntry(panel, /^classification$/i);
     // Select a DSM category from the dropdown
     await form.locator("select").first().selectOption({ index: 1 });
     await form.getByRole("button", { name: "Add", exact: true }).click();
 
-    // Verify classification card appears
-    await expect(panel.locator(".detail-panel__event-card")).toBeVisible();
+    await expect(panel.locator(".lifeline__entry")).toBeVisible();
   });
 
   test("right-click node menu: add trauma jumps to the form", async ({ page }) => {
@@ -134,9 +112,9 @@ test.describe("Data entry", () => {
     await node.click({ button: "right" });
     await page.getByRole("menu").getByText(/add trauma/i).click();
 
-    // Lands straight on the new-event form (Add button + a title field), not
-    // the events list.
-    const sub = page.locator(".detail-panel__sub-body");
+    // Lands straight on the new-entry form (Add button + a title field) on the
+    // person page.
+    const sub = page.locator(".lifeline__editor--new");
     await expect(sub).toBeVisible();
     await expect(sub.getByRole("button", { name: "Add", exact: true })).toBeVisible();
   });

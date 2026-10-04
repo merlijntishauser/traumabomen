@@ -9,6 +9,7 @@ import type {
 import type { LinkedEntity } from "../types/domain";
 import {
   buildPersonEntityGroups,
+  classificationLabel,
   derivePersonIds,
   type EntityMaps,
   resolveLinkedEntity,
@@ -234,5 +235,19 @@ describe("buildPersonEntityGroups", () => {
 
   it("returns empty array for empty maps", () => {
     expect(buildPersonEntityGroups(emptyMaps(), t)).toEqual([]);
+  });
+});
+
+describe("classificationLabel", () => {
+  it("returns the category label when there is no subcategory", () => {
+    expect(classificationLabel({ dsm_category: "mood", dsm_subcategory: null }, t)).toBe(
+      "dsm.mood",
+    );
+  });
+
+  it("returns the subcategory label when one is set", () => {
+    expect(
+      classificationLabel({ dsm_category: "neurodevelopmental", dsm_subcategory: "adhd" }, t),
+    ).toBe("dsm.sub.adhd");
   });
 });

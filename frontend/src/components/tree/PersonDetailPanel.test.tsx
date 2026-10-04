@@ -1,10 +1,12 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { CREATE_NEW } from "../../hooks/useLifelineEditing";
 import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
   DecryptedTurningPoint,
@@ -20,7 +22,9 @@ import { PersonDetailPanel } from "./PersonDetailPanel";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    // Mirrors i18next's context suffix for the gendered glance keys.
+    t: (key: string, opts?: { context?: string; name?: string }) =>
+      opts?.context === "female" || opts?.context === "male" ? `${key}_${opts.context}` : key,
     i18n: { language: "en" },
   }),
 }));
@@ -150,603 +154,100 @@ const defaultProps = () => ({
   },
 });
 
-async function openEventsTab(
-  user: ReturnType<typeof userEvent.setup>,
-  subTab: "trauma.tab" | "lifeEvent.tab" | "turningPoint.tab",
-) {
-  await user.click(screen.getByRole("tab", { name: /events.tab/ }));
-  await user.click(screen.getByText(subTab));
+function makePattern(overrides: Partial<DecryptedPattern> = {}): DecryptedPattern {
+  return {
+    id: "pat1",
+    name: "Silence after loss",
+    description: "",
+    color: "#818cf8",
+    linked_entities: [],
+    person_ids: ["p1"],
+    ...overrides,
+  };
+}
+
+function lifelineRows() {
+  return within(screen.getByRole("list")).getAllByRole("listitem");
 }
 
 describe("PersonDetailPanel", () => {
-  it("renders person name in header", () => {
-    render(<PersonDetailPanel {...defaultProps()} />);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Alice");
-  });
-
-  it("renders birth and death years in header", () => {
-    const props = defaultProps();
-    props.person = makePerson({ birth_year: 1950, death_year: 2020 });
-    render(<PersonDetailPanel {...props} />);
-    expect(screen.getByText("1950 - 2020")).toBeInTheDocument();
-  });
-
-  it("renders birth year with dash when still alive", () => {
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-    expect(screen.getByText("1960 -")).toBeInTheDocument();
-  });
-
-  it("does not render years when birth year is null", () => {
-    const props = defaultProps();
-    props.person = makePerson({ birth_year: null });
-    render(<PersonDetailPanel {...props} />);
-    expect(screen.queryByText(/-/)).not.toBeInTheDocument();
-  });
-
-  it("renders tab bar with 4 tabs", () => {
-    render(<PersonDetailPanel {...defaultProps()} />);
-    const tabs = screen.getAllByRole("tab");
-    expect(tabs).toHaveLength(4);
-  });
-
-  it("shows person tab as active by default", () => {
-    render(<PersonDetailPanel {...defaultProps()} />);
-    const personTab = screen.getByRole("tab", { name: /person.tab/ });
-    expect(personTab).toHaveAttribute("aria-selected", "true");
-  });
-
-  it("shows count badges on tabs with items", () => {
-    const props = defaultProps();
-    props.events = [makeEvent()];
-    props.lifeEvents = [makeLifeEvent()];
-    props.classifications = [makeClassification()];
-    const bob = makePerson({ id: "p2", name: "Bob" });
-    props.allPersons.set("p2", bob);
-    props.relationships = [makeRelationship()];
-    render(<PersonDetailPanel {...props} />);
-
-    // Relationships tab should show count 1
-    const relsTab = screen.getByRole("tab", { name: /relationship.tab/ });
-    expect(relsTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
-
-    // Events tab should show combined count of trauma + life + turning points = 2
-    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-    expect(eventsTab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("2");
-  });
-
-  it("maps initialSection to correct tab", () => {
-    const props = defaultProps();
-    props.events = [makeEvent()];
-    render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
-
-    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-    expect(eventsTab).toHaveAttribute("aria-selected", "true");
-    // Trauma content should be visible
-    expect(screen.getByText("Test Event")).toBeInTheDocument();
-  });
-
-  it("opens trauma event edit form when initialEntityId is provided", () => {
-    const props = defaultProps();
-    props.events = [makeEvent({ id: "e1" })];
-    render(<PersonDetailPanel {...props} initialSection="trauma_event" initialEntityId="e1" />);
-
-    // Should be on events tab with edit form open
-    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-    expect(eventsTab).toHaveAttribute("aria-selected", "true");
-    // Edit form should be visible (not the card list)
-    expect(screen.getByText("trauma.title")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Test Event")).toBeInTheDocument();
-  });
-
-  it("opens life event edit form when initialEntityId is provided", () => {
-    const props = defaultProps();
-    props.lifeEvents = [makeLifeEvent({ id: "le1" })];
-    render(<PersonDetailPanel {...props} initialSection="life_event" initialEntityId="le1" />);
-
-    const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-    expect(eventsTab).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
-  });
-
-  it("opens classification edit form when initialEntityId is provided", () => {
-    const props = defaultProps();
-    props.classifications = [makeClassification({ id: "cls1" })];
-    render(<PersonDetailPanel {...props} initialSection="classification" initialEntityId="cls1" />);
-
-    const clsTab = screen.getByRole("tab", { name: /classification.tab/ });
-    expect(clsTab).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("classification.category")).toBeInTheDocument();
-  });
-
-  it("calls onClose when close button is clicked", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-    await user.click(screen.getByText("common.close"));
-    expect(props.handlers.onClose).toHaveBeenCalledOnce();
-  });
-
-  it("has person details section open by default", () => {
-    render(<PersonDetailPanel {...defaultProps()} />);
-    expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
-  });
-
-  it("does not show relationship content when person tab is active", () => {
-    const props = defaultProps();
-    props.relationships = [makeRelationship()];
-    render(<PersonDetailPanel {...props} />);
-    expect(screen.queryByText("relationship.type.partner")).not.toBeInTheDocument();
-  });
-
-  it("does not show trauma content when person tab is active", () => {
-    const props = defaultProps();
-    props.events = [makeEvent()];
-    render(<PersonDetailPanel {...props} />);
-    expect(screen.queryByText("Test Event")).not.toBeInTheDocument();
-  });
-
-  it("switches to relationships tab on click", async () => {
-    const user = userEvent.setup();
-    const bob = makePerson({ id: "p2", name: "Bob" });
-    const props = defaultProps();
-    props.allPersons.set("p2", bob);
-    props.relationships = [makeRelationship()];
-    render(<PersonDetailPanel {...props} />);
-
-    await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-    expect(screen.getByText("Bob")).toBeInTheDocument();
-  });
-
-  it("switches to trauma tab on click", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    props.events = [makeEvent()];
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    expect(screen.getByText("Test Event")).toBeInTheDocument();
-  });
-
-  it("calls onSavePerson with updated data on blur", () => {
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-
-    const nameInput = screen.getByDisplayValue("Alice");
-    fireEvent.change(nameInput, { target: { value: "Carol" } });
-    fireEvent.blur(nameInput);
-
-    expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Carol" }),
-    );
-  });
-
-  it("requires two clicks to delete a person", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-
-    const deleteBtn = screen.getByText("person.delete");
-    await user.click(deleteBtn);
-    expect(props.handlers.onDeletePerson).not.toHaveBeenCalled();
-    expect(screen.getByText("person.confirmDelete")).toBeInTheDocument();
-
-    await user.click(screen.getByText("person.delete"));
-    expect(props.handlers.onDeletePerson).toHaveBeenCalledWith("p1");
-  });
-
-  it("shows new event form when 'New event' button is clicked", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    await user.click(screen.getByText("trauma.newEvent"));
-
-    expect(screen.getByText("trauma.title")).toBeInTheDocument();
-  });
-
-  it("calls onSaveEvent with null id for new events", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    await user.click(screen.getByText("trauma.newEvent"));
-
-    const titleInput = screen.getByRole("textbox", { name: /trauma.title/i });
-    fireEvent.change(titleInput, { target: { value: "New trauma" } });
-
-    await user.click(screen.getByText("common.add"));
-
-    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
-      null,
-      expect.objectContaining({ title: "New trauma" }),
-      expect.arrayContaining(["p1"]),
-    );
-  });
-
-  it("passes updated person IDs when editing an event", async () => {
-    const user = userEvent.setup();
-    const bob = makePerson({ id: "p2", name: "Bob" });
-    const props = defaultProps();
-    props.allPersons.set("p2", bob);
-    props.events = [makeEvent({ person_ids: ["p1"] })];
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    await user.click(screen.getByText("Test Event"));
-
-    // Expand PersonLinkField and add Bob; checkbox changes commit immediately
-    await user.click(screen.getByText(/link/i));
-    const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
-    await user.click(bobCheckbox);
-
-    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
-      "e1",
-      expect.objectContaining({ title: "Test Event" }),
-      expect.arrayContaining(["p1", "p2"]),
-    );
-  });
-
-  it("prevents unchecking the last person in event form", async () => {
-    const user = userEvent.setup();
-    const props = defaultProps();
-    props.events = [makeEvent({ person_ids: ["p1"] })];
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    await user.click(screen.getByText("Test Event"));
-
-    // Expand PersonLinkField
-    await user.click(screen.getByText(/link/i));
-    const aliceCheckbox = screen.getByRole("checkbox", { name: "Alice" });
-    expect(aliceCheckbox).toBeChecked();
-    await user.click(aliceCheckbox);
-
-    expect(aliceCheckbox).toBeChecked();
-  });
-
-  it("unchecking a person in multi-person event removes them", async () => {
-    const user = userEvent.setup();
-    const bob = makePerson({ id: "p2", name: "Bob" });
-    const props = defaultProps();
-    props.allPersons.set("p2", bob);
-    props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
-    render(<PersonDetailPanel {...props} />);
-
-    await openEventsTab(user, "trauma.tab");
-    await user.click(screen.getByText("Test Event"));
-
-    // Expand PersonLinkField
-    await user.click(screen.getByText(/link/i));
-    const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
-    expect(bobCheckbox).toBeChecked();
-
-    // Uncheck Bob; the change commits immediately
-    await user.click(bobCheckbox);
-    expect(bobCheckbox).not.toBeChecked();
-
-    expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
-      "e1",
-      expect.objectContaining({ title: "Test Event" }),
-      ["p1"],
-    );
-  });
-
-  describe("person form fields", () => {
-    it("saves death year when provided", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      // Death fields hide behind the ghost row until revealed.
-      await user.click(screen.getByText("person.addDeathDate"));
-      const deathYearInput = screen
-        .getByText("person.deathYear")
-        .closest("label")
-        ?.querySelector("input") as HTMLInputElement;
-      fireEvent.change(deathYearInput, { target: { value: "2020" } });
-      fireEvent.blur(deathYearInput);
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({ death_year: 2020 }),
-      );
-    });
-
-    it("saves gender change immediately", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.selectOptions(screen.getByDisplayValue("person.female"), "male");
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({ gender: "male" }),
-      );
-    });
-
-    it("saves adopted toggle immediately", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("checkbox"));
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({ is_adopted: true }),
-      );
-    });
-
-    it("saves notes on blur", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      const notesTextarea = screen.getByRole("textbox", { name: /person.notes/i });
-      fireEvent.change(notesTextarea, { target: { value: "Some notes" } });
-      fireEvent.blur(notesTextarea);
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({ notes: "Some notes" }),
-      );
-    });
-
-    it("saves null notes when emptied", () => {
-      const props = defaultProps();
-      props.person = makePerson({ notes: "existing" });
-      render(<PersonDetailPanel {...props} />);
-
-      const notesTextarea = screen.getByRole("textbox", { name: /person.notes/i });
-      fireEvent.change(notesTextarea, { target: { value: "" } });
-      fireEvent.blur(notesTextarea);
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({ notes: null }),
-      );
-    });
-
-    it("shows death year from person data", () => {
-      const props = defaultProps();
-      props.person = makePerson({ death_year: 2010 });
-      render(<PersonDetailPanel {...props} />);
-      expect(screen.getByDisplayValue("2010")).toBeInTheDocument();
-    });
-
-    it("hides person form when switching to another tab", async () => {
-      const user = userEvent.setup();
+  describe("header", () => {
+    it("shows the name as the page heading", () => {
       render(<PersonDetailPanel {...defaultProps()} />);
-
-      expect(screen.getByDisplayValue("Alice")).toBeInTheDocument();
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.queryByDisplayValue("Alice")).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2, name: "Alice" })).toBeInTheDocument();
     });
-  });
 
-  describe("death month and day clearing", () => {
-    it("clearing death month clears death day", () => {
+    it("labels the page with the person's name", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      expect(screen.getByRole("complementary", { name: "Alice" })).toBeInTheDocument();
+    });
+
+    it("shows the year range for someone who died", () => {
       const props = defaultProps();
-      props.person = makePerson({ death_year: 2020, death_month: 6, death_day: 15 });
+      props.person = makePerson({ birth_year: 1927, death_year: 2011 });
       render(<PersonDetailPanel {...props} />);
-
-      // Verify death day is visible
-      expect(screen.getByLabelText("person.deathDay")).toBeInTheDocument();
-
-      // Clear death month
-      const deathMonthSelect = screen.getByLabelText("person.deathMonth");
-      // Month selects commit immediately on change.
-      fireEvent.change(deathMonthSelect, { target: { value: "" } });
-
-      // Death day dropdown should disappear
-      expect(screen.queryByLabelText("person.deathDay")).not.toBeInTheDocument();
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({
-          death_year: 2020,
-          death_month: null,
-          death_day: null,
-        }),
-      );
+      expect(screen.getByText("1927 - 2011")).toBeInTheDocument();
     });
 
-    it("clearing death year clears death month and day", () => {
+    it("shows the birth line for someone living", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      expect(screen.getByText("personPage.born")).toBeInTheDocument();
+    });
+
+    it("shows the death line when only the death year is known", () => {
       const props = defaultProps();
-      props.person = makePerson({ death_year: 2020, death_month: 6, death_day: 15 });
+      props.person = makePerson({ birth_year: null, death_year: 1990 });
       render(<PersonDetailPanel {...props} />);
-
-      // Verify death month is visible
-      expect(screen.getByLabelText("person.deathMonth")).toBeInTheDocument();
-
-      // Clear death year
-      const deathYearInput = screen.getByDisplayValue("2020");
-      fireEvent.change(deathYearInput, { target: { value: "" } });
-
-      // Death month dropdown should disappear
-      expect(screen.queryByLabelText("person.deathMonth")).not.toBeInTheDocument();
-
-      // Year inputs commit on blur
-      fireEvent.blur(deathYearInput);
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({
-          death_year: null,
-          death_month: null,
-          death_day: null,
-        }),
-      );
+      expect(screen.getByText("personPage.died")).toBeInTheDocument();
     });
-  });
 
-  describe("birth/death month and day fields", () => {
-    it("shows birth month dropdown when birth year is set", () => {
+    it("mentions adoption", () => {
       const props = defaultProps();
+      props.person = makePerson({ birth_year: null, is_adopted: true });
       render(<PersonDetailPanel {...props} />);
-
-      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
+      expect(screen.getByText("person.isadopted")).toBeInTheDocument();
     });
 
-    it("does not show birth month dropdown when birth year is empty", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_year: null });
-      render(<PersonDetailPanel {...props} />);
-
-      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
-    });
-
-    it("shows birth day dropdown when birth month is set", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 3 });
-      render(<PersonDetailPanel {...props} />);
-
-      expect(screen.getByLabelText("person.birthDay")).toBeInTheDocument();
-    });
-
-    it("does not show birth day dropdown when birth month is empty", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      expect(screen.queryByLabelText("person.birthDay")).not.toBeInTheDocument();
-    });
-
-    it("shows death month dropdown when death year is set", () => {
-      const props = defaultProps();
-      props.person = makePerson({ death_year: 2020 });
-      render(<PersonDetailPanel {...props} />);
-
-      expect(screen.getByLabelText("person.deathMonth")).toBeInTheDocument();
-    });
-
-    it("does not show death month dropdown when death year is empty", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      expect(screen.queryByLabelText("person.deathMonth")).not.toBeInTheDocument();
-    });
-
-    it("day dropdown has 28 options for February", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 2 });
-      render(<PersonDetailPanel {...props} />);
-
-      const daySelect = screen.getByLabelText("person.birthDay");
-      // 28 day options + 1 empty "---" option = 29
-      const options = daySelect.querySelectorAll("option");
-      expect(options).toHaveLength(29);
-    });
-
-    it("day dropdown has 31 options for January", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 1 });
-      render(<PersonDetailPanel {...props} />);
-
-      const daySelect = screen.getByLabelText("person.birthDay");
-      // 31 day options + 1 empty "---" option = 32
-      const options = daySelect.querySelectorAll("option");
-      expect(options).toHaveLength(32);
-    });
-
-    it("save payload includes month and day fields", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 7, birth_day: 15 });
-      render(<PersonDetailPanel {...props} />);
-
-      // Editing the name commits the whole payload, months included.
-      const nameInput = screen.getByDisplayValue("Alice");
-      fireEvent.change(nameInput, { target: { value: "Alicia" } });
-      fireEvent.blur(nameInput);
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({
-          birth_month: 7,
-          birth_day: 15,
-          death_month: null,
-          death_day: null,
-        }),
-      );
-    });
-
-    it("clearing birth year clears month and day", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 6, birth_day: 10 });
-      render(<PersonDetailPanel {...props} />);
-
-      // Verify month is visible
-      expect(screen.getByLabelText("person.birthMonth")).toBeInTheDocument();
-
-      // Clear birth year
-      const birthYearInput = screen.getByDisplayValue("1960");
-      fireEvent.change(birthYearInput, { target: { value: "" } });
-
-      // Month dropdown should disappear
-      expect(screen.queryByLabelText("person.birthMonth")).not.toBeInTheDocument();
-
-      // Year inputs commit on blur
-      fireEvent.blur(birthYearInput);
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({
-          birth_year: null,
-          birth_month: null,
-          birth_day: null,
-        }),
-      );
-    });
-
-    it("clearing birth month clears day", () => {
-      const props = defaultProps();
-      props.person = makePerson({ birth_month: 3, birth_day: 20 });
-      render(<PersonDetailPanel {...props} />);
-
-      // Verify day is visible
-      expect(screen.getByLabelText("person.birthDay")).toBeInTheDocument();
-
-      // Clear birth month; selects commit immediately.
-      const monthSelect = screen.getByLabelText("person.birthMonth");
-      fireEvent.change(monthSelect, { target: { value: "" } });
-
-      // Day dropdown should disappear
-      expect(screen.queryByLabelText("person.birthDay")).not.toBeInTheDocument();
-
-      expect(props.handlers.onSavePerson).toHaveBeenCalledWith(
-        expect.objectContaining({
-          birth_month: null,
-          birth_day: null,
-        }),
-      );
-    });
-  });
-
-  describe("relationship display", () => {
-    it("shows empty message when no relationships or inferred siblings", async () => {
+    it("calls onClose from the close button", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      const { container } = render(<PersonDetailPanel {...props} />);
+      render(<PersonDetailPanel {...props} />);
+      await user.click(screen.getByRole("button", { name: "common.close" }));
+      expect(props.handlers.onClose).toHaveBeenCalledOnce();
+    });
+  });
 
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      const emptyMsg = container.querySelector(".detail-panel__empty");
-      expect(emptyMsg).toBeTruthy();
-      expect(emptyMsg?.textContent).toBe("relationship.none");
+  describe("glance line", () => {
+    it("says when the person is not connected to anyone", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      expect(screen.getByText("personPage.glance.none")).toBeInTheDocument();
     });
 
-    it("shows ex-partner label when all periods have end_year", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
+    it("names parents with the gendered phrase", () => {
       const props = defaultProps();
-      props.allPersons.set("p2", bob);
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["p2", makePerson({ id: "p2", name: "Margriet" })],
+      ]);
       props.relationships = [
         makeRelationship({
-          periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Divorced }],
+          type: RelationshipType.BiologicalParent,
+          source_person_id: "p2",
+          target_person_id: "p1",
         }),
       ];
       render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("relationship.type.exPartner")).toBeInTheDocument();
+      expect(screen.getByText(/personPage\.glance\.childOf_female/)).toBeInTheDocument();
+      expect(screen.getByText("Margriet")).toBeInTheDocument();
     });
 
-    it("shows childOf label for parent-type relationships when source", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
+    it("falls back to the neutral phrase without a known gender", () => {
       const props = defaultProps();
-      props.allPersons.set("p2", bob);
+      props.person = makePerson({ gender: "" });
+      props.allPersons = new Map([
+        ["p1", props.person],
+        ["p2", makePerson({ id: "p2", name: "Kid" })],
+      ]);
       props.relationships = [
         makeRelationship({
           type: RelationshipType.BiologicalParent,
@@ -755,1564 +256,511 @@ describe("PersonDetailPanel", () => {
         }),
       ];
       render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("relationship.childOf.biological_parent")).toBeInTheDocument();
+      expect(screen.getByText(/personPage\.glance\.parentOf\b/)).toBeInTheDocument();
     });
 
-    it("shows parent type label for parent-type relationships when target", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
+    it("lists several people in one phrase", () => {
       const props = defaultProps();
-      props.allPersons.set("p2", bob);
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["k1", makePerson({ id: "k1", name: "Pieter" })],
+        ["k2", makePerson({ id: "k2", name: "Anna" })],
+      ]);
       props.relationships = [
         makeRelationship({
-          type: RelationshipType.StepParent,
-          source_person_id: "p2",
-          target_person_id: "p1",
+          id: "r1",
+          type: RelationshipType.BiologicalParent,
+          source_person_id: "p1",
+          target_person_id: "k1",
+        }),
+        makeRelationship({
+          id: "r2",
+          type: RelationshipType.BiologicalParent,
+          source_person_id: "p1",
+          target_person_id: "k2",
         }),
       ];
       render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("relationship.type.step_parent")).toBeInTheDocument();
+      const glance = screen.getByText(/personPage\.glance\.parentOf_female/);
+      expect(glance).toHaveTextContent("Pieter and Anna.");
     });
 
-    it("shows partner periods when present", async () => {
+    it("opens another person's page from a name", async () => {
       const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
+      const onSelectPerson = vi.fn();
       const props = defaultProps();
-      props.allPersons.set("p2", bob);
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["p2", makePerson({ id: "p2", name: "Hendrik" })],
+      ]);
       props.relationships = [
         makeRelationship({
-          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Married }],
+          periods: [{ start_year: 1949, end_year: null, status: PartnerStatus.Married }],
         }),
       ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText(/relationship.status.married.*2000/)).toBeInTheDocument();
+      render(<PersonDetailPanel {...props} onSelectPerson={onSelectPerson} />);
+      expect(screen.getByText(/personPage\.glance\.marriedTo/)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Hendrik" }));
+      expect(onSelectPerson).toHaveBeenCalledWith("p2");
     });
 
-    it("shows inferred siblings with shared parent names", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const carol = makePerson({ id: "p3", name: "Carol" });
+    it("shows names as plain text without a selection handler", () => {
       const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.allPersons.set("p3", carol);
-      props.inferredSiblings = [
-        { personAId: "p1", personBId: "p2", sharedParentIds: ["p3"], type: "half_sibling" },
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("relationship.type.half_sibling")).toBeInTheDocument();
-      expect(screen.getByText("Bob")).toBeInTheDocument();
-      expect(screen.getByText(/relationship.viaParent/)).toBeInTheDocument();
-    });
-
-    it("shows full sibling inferred relationship", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const carol = makePerson({ id: "p3", name: "Carol" });
-      const dave = makePerson({ id: "p4", name: "Dave" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.allPersons.set("p3", carol);
-      props.allPersons.set("p4", dave);
-      props.inferredSiblings = [
-        {
-          personAId: "p1",
-          personBId: "p2",
-          sharedParentIds: ["p3", "p4"],
-          type: "full_sibling",
-        },
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("relationship.type.full_sibling")).toBeInTheDocument();
-      expect(screen.getByText("Bob")).toBeInTheDocument();
-    });
-
-    it("shows inferred sibling when current person is personB", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const carol = makePerson({ id: "p3", name: "Carol" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.allPersons.set("p3", carol);
-      props.inferredSiblings = [
-        { personAId: "p2", personBId: "p1", sharedParentIds: ["p3"], type: "half_sibling" },
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("Bob")).toBeInTheDocument();
-      expect(screen.getByText("relationship.type.half_sibling")).toBeInTheDocument();
-    });
-
-    it("shows ? for unknown other person in relationship", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      // p2 is not in allPersons
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["p2", makePerson({ id: "p2", name: "Hendrik" })],
+      ]);
       props.relationships = [makeRelationship()];
       render(<PersonDetailPanel {...props} />);
+      expect(screen.queryByRole("button", { name: "Hendrik" })).not.toBeInTheDocument();
+    });
 
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      expect(screen.getByText("?")).toBeInTheDocument();
+    it("shows ? for a person missing from the tree", () => {
+      const props = defaultProps();
+      props.relationships = [makeRelationship({ target_person_id: "gone" })];
+      render(<PersonDetailPanel {...props} />);
+      expect(screen.getByText(/personPage\.glance\.partnerOf/)).toHaveTextContent("?");
     });
   });
 
-  describe("partner period editor", () => {
-    it("opens partner editor on edit click", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [makeRelationship()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      // Autosaving editor: no seeded period, the add button is the way in
-      expect(screen.getByText("relationship.addPeriod")).toBeInTheDocument();
-      expect(screen.queryByText("common.save")).not.toBeInTheDocument();
-    });
-
-    it("commits the first period when add period is clicked", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [makeRelationship()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-      await user.click(screen.getByText("relationship.addPeriod"));
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          type: RelationshipType.Partner,
-          periods: expect.arrayContaining([
-            expect.objectContaining({ status: PartnerStatus.Together }),
-          ]),
-        }),
+  describe("patterns", () => {
+    it("shows the patterns this person belongs to", () => {
+      render(
+        <PersonDetailPanel
+          {...defaultProps()}
+          patterns={[makePattern(), makePattern({ id: "pat2", name: "Other", person_ids: ["p9"] })]}
+          onFocusPattern={vi.fn()}
+        />,
       );
+      expect(screen.getByRole("button", { name: "Silence after loss" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Other" })).not.toBeInTheDocument();
     });
 
-    it("closes partner editor without saving when nothing changed", async () => {
+    it("focuses a pattern and clears the focus when pressed again", async () => {
       const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [makeRelationship()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-      // The editor's own close button, not the panel-level one
-      const editorClose = screen
-        .getAllByText("common.close")
-        .find((el) => el.classList.contains("detail-panel__btn--small"));
-      expect(editorClose).toBeTruthy();
-      await user.click(editorClose as HTMLElement);
-
-      // Editor should close, edit button should reappear, nothing saved
-      expect(screen.queryByText("relationship.addPeriod")).not.toBeInTheDocument();
-      expect(screen.getByText("common.edit")).toBeInTheDocument();
-      expect(props.handlers.onSaveRelationship).not.toHaveBeenCalled();
-    });
-
-    it("adds a second period in partner editor", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [makeRelationship()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      // No seeded period: add two, each commit happens immediately
-      await user.click(screen.getByText("relationship.addPeriod"));
-      await user.click(screen.getByText("relationship.addPeriod"));
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenLastCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: expect.arrayContaining([
-            expect.objectContaining({ status: PartnerStatus.Together }),
-            expect.objectContaining({ status: PartnerStatus.Together }),
-          ]),
-        }),
+      const onFocusPattern = vi.fn();
+      const { rerender } = render(
+        <PersonDetailPanel
+          {...defaultProps()}
+          patterns={[makePattern()]}
+          onFocusPattern={onFocusPattern}
+        />,
       );
-    });
+      const chip = screen.getByRole("button", { name: "Silence after loss" });
+      expect(chip).toHaveAttribute("aria-pressed", "false");
+      await user.click(chip);
+      expect(onFocusPattern).toHaveBeenLastCalledWith("pat1");
 
-    it("removes a period in partner editor when multiple exist", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [
-            { start_year: 2000, end_year: 2005, status: PartnerStatus.Married },
-            { start_year: 2010, end_year: null, status: PartnerStatus.Together },
-          ],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      // Should see 2 remove buttons
-      const removeBtns = screen.getAllByText("relationship.removePeriod");
-      expect(removeBtns).toHaveLength(2);
-
-      // Remove the first period; the removal commits immediately
-      await user.click(removeBtns[0]);
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ start_year: 2010, status: PartnerStatus.Together })],
-        }),
+      rerender(
+        <PersonDetailPanel
+          {...defaultProps()}
+          patterns={[makePattern()]}
+          focusedPatternId="pat1"
+          onFocusPattern={onFocusPattern}
+        />,
       );
+      const pressed = screen.getByRole("button", { name: "Silence after loss" });
+      expect(pressed).toHaveAttribute("aria-pressed", "true");
+      await user.click(pressed);
+      expect(onFocusPattern).toHaveBeenLastCalledWith(null);
     });
 
-    it("changes period status in partner editor", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      const statusSelect = screen.getByDisplayValue("relationship.status.together");
-      await user.selectOptions(statusSelect, PartnerStatus.Married);
-
-      // Status changes commit immediately
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ status: PartnerStatus.Married })],
-        }),
-      );
-    });
-
-    it("shows a remove button even when only one period exists", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      expect(screen.getByText("relationship.removePeriod")).toBeInTheDocument();
-    });
-
-    it("changes start_year in partner period editor", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      const startYearInput = screen.getByDisplayValue("2000");
-      fireEvent.change(startYearInput, { target: { value: "2005" } });
-      // Year fields commit on blur (save-then-whisper; await so it lands in act).
-      await act(async () => {
-        fireEvent.blur(startYearInput);
-      });
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ start_year: 2005 })],
-        }),
-      );
-    });
-
-    it("changes end_year in partner period editor", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [{ start_year: 2000, end_year: null, status: PartnerStatus.Together }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      // Find the end year input within the period editor (next to the "common.endYear" label)
-      const endYearLabel = screen.getByText("common.endYear");
-      const endYearInput = endYearLabel.closest("label")!.querySelector("input")!;
-      fireEvent.change(endYearInput, { target: { value: "2010" } });
-      await act(async () => {
-        fireEvent.blur(endYearInput);
-      });
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ end_year: 2010 })],
-        }),
-      );
-    });
-
-    it("clears end_year to null in partner period editor", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      props.relationships = [
-        makeRelationship({
-          periods: [{ start_year: 2000, end_year: 2010, status: PartnerStatus.Married }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /relationship.tab/ }));
-      await user.click(screen.getByText("common.edit"));
-
-      const endYearInput = screen.getByDisplayValue("2010");
-      fireEvent.change(endYearInput, { target: { value: "" } });
-      await act(async () => {
-        fireEvent.blur(endYearInput);
-      });
-
-      expect(props.handlers.onSaveRelationship).toHaveBeenCalledWith(
-        "r1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ end_year: null })],
-        }),
-      );
+    it("disables the chips without a focus handler", () => {
+      render(<PersonDetailPanel {...defaultProps()} patterns={[makePattern()]} />);
+      expect(screen.getByRole("button", { name: "Silence after loss" })).toBeDisabled();
     });
   });
 
-  describe("event form edge cases", () => {
-    it("opens sub-panel when event card is clicked", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.events = [makeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("Test Event"));
-
-      // Sub-panel should be visible with form fields
-      expect(screen.getByText("trauma.title")).toBeInTheDocument();
-      // Back button should be present
-      expect(screen.getByLabelText("common.close")).toBeInTheDocument();
+  describe("lifeline", () => {
+    it("says nothing is recorded yet for an empty life", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      expect(screen.getByText("personPage.nothingYet")).toBeInTheDocument();
     });
 
-    it("returns to card list when back button is clicked", async () => {
-      const user = userEvent.setup();
+    it("reads every kind in year order between birth and death", () => {
       const props = defaultProps();
-      props.events = [makeEvent()];
+      props.person = makePerson({ birth_year: 1927, death_year: 2011 });
+      props.events = [makeEvent({ title: "Hunger winter", approximate_date: "1944" })];
+      props.lifeEvents = [makeLifeEvent({ title: "Married", approximate_date: "1949" })];
+      props.turningPoints = [
+        makeTurningPoint({ title: "Told the story", approximate_date: "1997" }),
+      ];
+      props.classifications = [
+        makeClassification({ periods: [{ start_year: 1958, end_year: 1964 }] }),
+      ];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("Test Event"));
-
-      // Click back button
-      await user.click(screen.getByLabelText("common.close"));
-
-      // Should return to card list
-      expect(screen.queryByText("trauma.title")).not.toBeInTheDocument();
-      expect(screen.getByText("Test Event")).toBeInTheDocument();
+      const text = lifelineRows().map((row) => row.textContent);
+      expect(text[0]).toContain("personPage.birth");
+      expect(text[1]).toContain("Hunger winter");
+      expect(text[2]).toContain("Married");
+      expect(text[3]).toContain("dsm.anxiety");
+      expect(text.at(-1)).toContain("personPage.death");
+      expect(text.some((t) => t?.includes("Told the story"))).toBe(true);
+      expect(screen.getByText("personPage.entries")).toBeInTheDocument();
     });
 
-    it("closes event editor via the close button without saving", async () => {
-      const user = userEvent.setup();
+    it("shows the category and other people involved", () => {
       const props = defaultProps();
-      props.events = [makeEvent()];
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["p2", makePerson({ id: "p2", name: "Hendrik" })],
+      ]);
+      props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("Test Event"));
-
-      // Form should be visible
-      expect(screen.getByText("trauma.title")).toBeInTheDocument();
-
-      // Edit mode has no cancel; the back button closes the editor
-      await user.click(screen.getByLabelText("common.close"));
-
-      // Form should close, event display should return; nothing was dirty
-      expect(screen.queryByText("trauma.title")).not.toBeInTheDocument();
-      expect(screen.getByText("Test Event")).toBeInTheDocument();
-      expect(props.entityHandlers.onSaveEvent).not.toHaveBeenCalled();
+      expect(
+        screen.getByText("personPage.kind.trauma_event, trauma.category.loss, personPage.with"),
+      ).toBeInTheDocument();
     });
 
-    it("cancels new event form", async () => {
-      const user = userEvent.setup();
+    it("shows a classification's status and years", () => {
       const props = defaultProps();
+      props.classifications = [
+        makeClassification({ periods: [{ start_year: 2001, end_year: null }] }),
+      ];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("trauma.newEvent"));
-
-      expect(screen.getByText("trauma.title")).toBeInTheDocument();
-
-      await user.click(screen.getByText("common.cancel"));
-
-      expect(screen.queryByText("trauma.title")).not.toBeInTheDocument();
-      expect(screen.getByText("trauma.newEvent")).toBeInTheDocument();
+      expect(
+        screen.getByText("classification.status.suspected, 2001, common.ongoing"),
+      ).toBeInTheDocument();
     });
 
-    it("deletes event with two-click confirmation", async () => {
-      const user = userEvent.setup();
+    it("shows the description while closed", () => {
       const props = defaultProps();
-      props.events = [makeEvent()];
+      props.events = [makeEvent({ description: "Nobody spoke of it" })];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("Test Event"));
-
-      // First click shows confirmation
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteEvent).not.toHaveBeenCalled();
-      expect(screen.getByText("trauma.confirmDelete")).toBeInTheDocument();
-
-      // Second click deletes
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteEvent).toHaveBeenCalledWith("e1");
+      expect(screen.getByText("Nobody spoke of it")).toBeInTheDocument();
     });
 
-    it("shows event approximate date in display mode", async () => {
+    it("names a long silence and offers to add something", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      props.events = [makeEvent({ approximate_date: "1990" })];
+      props.events = [
+        makeEvent({ id: "a", approximate_date: "1971" }),
+        makeEvent({ id: "b", approximate_date: "1989" }),
+      ];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      expect(screen.getByText("1990")).toBeInTheDocument();
+      expect(screen.getByText(/personPage\.gap/)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "personPage.addSomething" }));
+      expect(
+        screen.getByRole("button", { name: "personPage.kind.life_event" }),
+      ).toBeInTheDocument();
     });
 
-    it("saves event with all fields", async () => {
-      const user = userEvent.setup();
+    it("lists entries without a year separately", () => {
       const props = defaultProps();
+      props.events = [makeEvent({ title: "Childhood", approximate_date: "childhood" })];
       render(<PersonDetailPanel {...props} />);
+      expect(screen.getByText("personPage.undated")).toBeInTheDocument();
+      expect(screen.getByText("Childhood")).toBeInTheDocument();
+    });
 
-      await openEventsTab(user, "trauma.tab");
-      await user.click(screen.getByText("trauma.newEvent"));
-
-      fireEvent.change(screen.getByRole("textbox", { name: /trauma.title/i }), {
-        target: { value: "Flood" },
-      });
-      fireEvent.change(screen.getByRole("textbox", { name: /trauma.description/i }), {
-        target: { value: "Big flood" },
-      });
-      await user.selectOptions(
-        screen.getByRole("combobox", { name: /trauma.category/i }),
-        TraumaCategory.War,
-      );
-      fireEvent.change(screen.getByRole("textbox", { name: /trauma.approximateDate/i }), {
-        target: { value: "1999" },
-      });
-      fireEvent.change(screen.getByRole("textbox", { name: /trauma.tags/i }), {
-        target: { value: "nature, water" },
-      });
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveEvent).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          title: "Flood",
-          description: "Big flood",
-          category: TraumaCategory.War,
-          approximate_date: "1999",
-          tags: ["nature", "water"],
-        }),
-        expect.arrayContaining(["p1"]),
-      );
+    it("falls back to a placeholder for an untitled entry", () => {
+      const props = defaultProps();
+      props.events = [makeEvent({ title: "" })];
+      render(<PersonDetailPanel {...props} />);
+      expect(screen.getByText("personPage.untitled")).toBeInTheDocument();
     });
   });
 
-  describe("trauma event card display", () => {
-    it("shows category pill with translated category name", async () => {
+  describe("editing in place", () => {
+    it("opens and closes an entry's form", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      props.events = [makeEvent({ category: TraumaCategory.Abuse })];
+      props.events = [makeEvent({ title: "Loss" })];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      expect(screen.getByText("trauma.category.abuse")).toBeInTheDocument();
-      const pill = screen.getByText("trauma.category.abuse");
-      expect(pill).toHaveClass("detail-panel__category-pill");
+      const entry = screen.getByRole("button", { name: /Loss/ });
+      await user.click(entry);
+      expect(entry).toHaveAttribute("aria-expanded", "true");
+      expect(screen.getByDisplayValue("Loss")).toBeInTheDocument();
+      await user.click(entry);
+      expect(screen.queryByDisplayValue("Loss")).not.toBeInTheDocument();
     });
 
-    it("shows severity bar with correct filled count", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.events = [makeEvent({ severity: 7 })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      const severityBar = screen.getByText("7/10").closest(".detail-panel__severity-bar")!;
-      expect(severityBar).toBeInTheDocument();
-      const dots = severityBar.querySelectorAll(".detail-panel__severity-dot");
-      expect(dots).toHaveLength(10);
-    });
-
-    it("does not show severity bar when severity is 0", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.events = [makeEvent({ severity: 0 })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
-    });
-
-    it("does not show severity bar when severity is undefined", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.events = [makeEvent({ severity: undefined as unknown as number })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
-    });
-
-    it("shows date on the first row next to title", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.events = [makeEvent({ approximate_date: "1992" })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "trauma.tab");
-      const dateEl = screen.getByText("1992");
-      expect(dateEl).toHaveClass("detail-panel__event-card-date");
-    });
-  });
-
-  describe("life event card display", () => {
-    it("shows category pill with translated category name", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent({ category: LifeEventCategory.Education })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      expect(screen.getByText("lifeEvent.category.education")).toBeInTheDocument();
-      const pill = screen.getByText("lifeEvent.category.education");
-      expect(pill).toHaveClass("detail-panel__category-pill");
-    });
-
-    it("shows impact bar with correct filled count", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent({ impact: 4 })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      const impactBar = screen.getByText("4/10").closest(".detail-panel__severity-bar")!;
-      expect(impactBar).toBeInTheDocument();
-      const dots = impactBar.querySelectorAll(".detail-panel__severity-dot");
-      expect(dots).toHaveLength(10);
-    });
-
-    it("does not show impact bar when impact is 0", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent({ impact: 0 })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
-    });
-
-    it("does not show impact bar when impact is null", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent({ impact: null })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
-    });
-  });
-
-  describe("life events tab", () => {
-    it("does not show life event content when person tab is active", () => {
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-      expect(screen.queryByText("Graduation")).not.toBeInTheDocument();
-    });
-
-    it("shows life events when tab is clicked", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      expect(screen.getByText("Graduation")).toBeInTheDocument();
-    });
-
-    it("shows life event approximate date", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent({ approximate_date: "2005" })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      expect(screen.getByText("2005")).toBeInTheDocument();
-    });
-
-    it("opens new life event form", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("lifeEvent.newEvent"));
-
-      expect(screen.getByText("lifeEvent.title")).toBeInTheDocument();
-    });
-
-    it("saves new life event with null id", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("lifeEvent.newEvent"));
-
-      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
-        target: { value: "New Job" },
-      });
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({ title: "New Job" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("saves life event with all fields", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("lifeEvent.newEvent"));
-
-      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.title/i }), {
-        target: { value: "Moved" },
-      });
-      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.description/i }), {
-        target: { value: "Moved to city" },
-      });
-      await user.selectOptions(
-        screen.getByRole("combobox", { name: /lifeEvent.category/i }),
-        LifeEventCategory.Relocation,
-      );
-      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.approximateDate/i }), {
-        target: { value: "2005" },
-      });
-      fireEvent.change(screen.getByRole("textbox", { name: /lifeEvent.tags/i }), {
-        target: { value: "move, city" },
-      });
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          title: "Moved",
-          description: "Moved to city",
-          category: LifeEventCategory.Relocation,
-          approximate_date: "2005",
-          tags: ["move", "city"],
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("edits existing life event", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("Graduation"));
-
-      // Title should be pre-filled
-      expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
-
-      // Change title; text inputs commit on blur
-      const titleInput = screen.getByDisplayValue("Graduation");
-      fireEvent.change(titleInput, { target: { value: "PhD" } });
-      fireEvent.blur(titleInput);
-
-      expect(props.entityHandlers.onSaveLifeEvent).toHaveBeenCalledWith(
+    it.each([
+      ["trauma event", "events", () => makeEvent({ title: "Entry" }), "onSaveEvent", "e1"],
+      [
+        "life event",
+        "lifeEvents",
+        () => makeLifeEvent({ title: "Entry" }),
+        "onSaveLifeEvent",
         "le1",
-        expect.objectContaining({ title: "PhD" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("closes life event editor via the close button", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("Graduation"));
-      await user.click(screen.getByLabelText("common.close"));
-
-      // Should go back to display mode
-      expect(screen.getByText("Graduation")).toBeInTheDocument();
-    });
-
-    it("deletes life event with two-click confirmation", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("Graduation"));
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteLifeEvent).not.toHaveBeenCalled();
-      expect(screen.getByText("lifeEvent.confirmDelete")).toBeInTheDocument();
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteLifeEvent).toHaveBeenCalledWith("le1");
-    });
-
-    it("cancels new life event form", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("lifeEvent.newEvent"));
-      await user.click(screen.getByText("common.cancel"));
-
-      expect(screen.getByText("lifeEvent.newEvent")).toBeInTheDocument();
-    });
-
-    it("returns to card list when back button is clicked on life event sub-panel", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "lifeEvent.tab");
-      await user.click(screen.getByText("Graduation"));
-
-      await user.click(screen.getByLabelText("common.close"));
-
-      expect(screen.getByText("Graduation")).toBeInTheDocument();
-      expect(screen.queryByText("lifeEvent.title")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("turning points tab", () => {
-    it("does not show turning point content when person tab is active", () => {
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} />);
-      expect(screen.queryByText("Therapy Start")).not.toBeInTheDocument();
-    });
-
-    it("shows turning points when tab is clicked", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
-    });
-
-    it("shows turning point approximate date", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint({ approximate_date: "2015" })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      expect(screen.getByText("2015")).toBeInTheDocument();
-    });
-
-    it("shows turning point count badge on events tab", () => {
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} />);
-
-      const tab = screen.getByRole("tab", { name: /events.tab/ });
-      expect(tab.querySelector(".detail-panel__tab-badge")).toHaveTextContent("1");
-    });
-
-    it("opens new turning point form", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("turningPoint.newEvent"));
-
-      expect(screen.getByText("turningPoint.titleField")).toBeInTheDocument();
-    });
-
-    it("saves new turning point with null id", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("turningPoint.newEvent"));
-
-      fireEvent.change(screen.getByRole("textbox", { name: /turningPoint.titleField/i }), {
-        target: { value: "Started Meditation" },
-      });
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveTurningPoint).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({ title: "Started Meditation" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("edits existing turning point", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("Therapy Start"));
-
-      expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
-
-      // Text inputs commit on blur
-      const titleInput = screen.getByDisplayValue("Therapy Start");
-      fireEvent.change(titleInput, { target: { value: "Group Therapy" } });
-      fireEvent.blur(titleInput);
-
-      expect(props.entityHandlers.onSaveTurningPoint).toHaveBeenCalledWith(
+      ],
+      [
+        "turning point",
+        "turningPoints",
+        () => makeTurningPoint({ title: "Entry" }),
+        "onSaveTurningPoint",
         "tp1",
-        expect.objectContaining({ title: "Group Therapy" }),
-        expect.arrayContaining(["p1"]),
+      ],
+    ] as const)("autosaves an edited %s with its id", async (_label, field, make, handler, id) => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      (props as Record<string, unknown>)[field] = [make()];
+      render(<PersonDetailPanel {...props} />);
+      await user.click(screen.getByRole("button", { name: /Entry/ }));
+      const input = screen.getByDisplayValue("Entry");
+      await user.clear(input);
+      await user.type(input, "Renamed");
+      await user.tab();
+      expect(props.entityHandlers[handler]).toHaveBeenCalledWith(
+        id,
+        expect.objectContaining({ title: "Renamed" }),
+        ["p1"],
       );
     });
 
-    it("closes turning point editor via the close button", async () => {
+    it("opens a classification's form", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
+      props.classifications = [makeClassification({ diagnosis_year: 2001 })];
       render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("Therapy Start"));
-      await user.click(screen.getByLabelText("common.close"));
-
-      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /dsm\.anxiety/ }));
+      expect(screen.getByText("common.delete")).toBeInTheDocument();
     });
 
-    it("deletes turning point with two-click confirmation", async () => {
-      const user = userEvent.setup();
+    it.each([
+      ["events", () => makeEvent(), "onDeleteEvent", "e1", /Test Event/],
+      ["lifeEvents", () => makeLifeEvent(), "onDeleteLifeEvent", "le1", /Graduation/],
+      ["turningPoints", () => makeTurningPoint(), "onDeleteTurningPoint", "tp1", /Therapy Start/],
+      [
+        "classifications",
+        () => makeClassification({ diagnosis_year: 2001 }),
+        "onDeleteClassification",
+        "cls1",
+        /dsm\.anxiety/,
+      ],
+    ] as const)(
+      "deletes from %s after confirming and closes the form",
+      async (field, make, handler, id, name) => {
+        const user = userEvent.setup();
+        const props = defaultProps();
+        (props as Record<string, unknown>)[field] = [make()];
+        render(<PersonDetailPanel {...props} />);
+        const entry = screen.getByRole("button", { name });
+        await user.click(entry);
+        await user.click(screen.getByText("common.delete"));
+        await user.click(screen.getByRole("button", { name: "common.delete" }));
+        expect(props.entityHandlers[handler]).toHaveBeenCalledWith(id);
+        expect(entry).toHaveAttribute("aria-expanded", "false");
+      },
+    );
+
+    it("opens the requested entity from initialSection and initialEntityId", () => {
       const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("Therapy Start"));
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteTurningPoint).not.toHaveBeenCalled();
-      expect(screen.getByText("turningPoint.confirmDelete")).toBeInTheDocument();
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteTurningPoint).toHaveBeenCalledWith("tp1");
-    });
-
-    it("cancels new turning point form", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      await user.click(screen.getByText("turningPoint.newEvent"));
-      await user.click(screen.getByText("common.cancel"));
-
-      expect(screen.getByText("turningPoint.newEvent")).toBeInTheDocument();
-    });
-
-    it("maps turning_point initialSection to events tab", () => {
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint()];
-      render(<PersonDetailPanel {...props} initialSection="turning_point" />);
-
-      const tab = screen.getByRole("tab", { name: /events.tab/ });
-      expect(tab).toHaveAttribute("aria-selected", "true");
-      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
-    });
-
-    it("opens turning point edit form when initialEntityId is provided", () => {
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint({ id: "tp1" })];
-      render(<PersonDetailPanel {...props} initialSection="turning_point" initialEntityId="tp1" />);
-
-      const tab = screen.getByRole("tab", { name: /events.tab/ });
-      expect(tab).toHaveAttribute("aria-selected", "true");
-      expect(screen.getByDisplayValue("Therapy Start")).toBeInTheDocument();
-    });
-
-    it("shows category pill with translated category name", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint({ category: TurningPointCategory.Achievement })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      expect(screen.getByText("turningPoint.category.achievement")).toBeInTheDocument();
-      const pill = screen.getByText("turningPoint.category.achievement");
-      expect(pill).toHaveClass("detail-panel__category-pill");
-    });
-
-    it("shows significance bar with correct filled count", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint({ significance: 6 })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      const sigBar = screen.getByText("6/10").closest(".detail-panel__severity-bar")!;
-      expect(sigBar).toBeInTheDocument();
-      const dots = sigBar.querySelectorAll(".detail-panel__severity-dot");
-      expect(dots).toHaveLength(10);
-    });
-
-    it("does not show significance bar when significance is null", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.turningPoints = [makeTurningPoint({ significance: null })];
-      render(<PersonDetailPanel {...props} />);
-
-      await openEventsTab(user, "turningPoint.tab");
-      expect(screen.queryByLabelText(/\/10/)).not.toBeInTheDocument();
+      props.lifeEvents = [makeLifeEvent()];
+      render(<PersonDetailPanel {...props} initialSection="life_event" initialEntityId="le1" />);
+      expect(screen.getByDisplayValue("Graduation")).toBeInTheDocument();
     });
   });
 
-  describe("classifications tab", () => {
-    it("does not show classification content when person tab is active", () => {
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-      expect(screen.queryByText("dsm.anxiety")).not.toBeInTheDocument();
-    });
-
-    it("shows classifications when tab is clicked", async () => {
+  describe("adding to a life", () => {
+    it("offers the four kinds", async () => {
       const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
+      render(<PersonDetailPanel {...defaultProps()} />);
+      const add = screen.getByRole("button", { name: /personPage\.addTo/ });
+      expect(add).toHaveAttribute("aria-expanded", "false");
+      await user.click(add);
+      expect(add).toHaveAttribute("aria-expanded", "true");
+      for (const kind of ["trauma_event", "life_event", "classification", "turning_point"]) {
+        expect(screen.getByRole("button", { name: `personPage.kind.${kind}` })).toBeInTheDocument();
+      }
     });
 
-    it("shows classification status pill", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          status: "diagnosed",
-          diagnosis_year: 2015,
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
+    it.each([
+      ["trauma_event", "onSaveEvent", "trauma.title"],
+      ["life_event", "onSaveLifeEvent", "lifeEvent.title"],
+      ["turning_point", "onSaveTurningPoint", "turningPoint.titleField"],
+    ] as const)(
+      "adds a new %s with a null id and closes the form",
+      async (kind, handler, label) => {
+        const user = userEvent.setup();
+        const props = defaultProps();
+        render(<PersonDetailPanel {...props} />);
+        await user.click(screen.getByRole("button", { name: /personPage\.addTo/ }));
+        await user.click(screen.getByRole("button", { name: `personPage.kind.${kind}` }));
+        expect(screen.getByText(`personPage.new.${kind}`)).toBeInTheDocument();
+        await user.type(screen.getByLabelText(label), "Something new");
+        await user.click(screen.getByRole("button", { name: "common.add" }));
+        expect(props.entityHandlers[handler]).toHaveBeenCalledWith(
+          null,
+          expect.objectContaining({ title: "Something new" }),
+          ["p1"],
+        );
+        expect(screen.queryByText(`personPage.new.${kind}`)).not.toBeInTheDocument();
+      },
+    );
 
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      const pill = screen.getByText("classification.status.diagnosed");
-      expect(pill).toHaveClass("detail-panel__status-pill");
-      expect(pill).toHaveClass("detail-panel__status-pill--diagnosed");
-    });
-
-    it("shows period summary from diagnosis year", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          status: "diagnosed",
-          diagnosis_year: 2015,
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      expect(screen.getByText(/2015.*common\.ongoing/)).toBeInTheDocument();
-    });
-
-    it("shows period summary from explicit periods", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          periods: [{ start_year: 2010, end_year: 2018 }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      expect(screen.getByText("2010-2018")).toBeInTheDocument();
-    });
-
-    it("shows ongoing period summary", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          periods: [{ start_year: 2020, end_year: null }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      expect(screen.getByText(/2020.*common\.ongoing/)).toBeInTheDocument();
-    });
-
-    it("shows subcategory as card title with category in meta", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          dsm_category: "neurodevelopmental",
-          dsm_subcategory: "adhd",
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      // Subcategory is the card title
-      const title = screen.getByText("dsm.sub.adhd");
-      expect(title).toHaveClass("detail-panel__event-card-title");
-      // Category shown in meta area
-      expect(screen.getByText("dsm.neurodevelopmental")).toBeInTheDocument();
-    });
-
-    it("opens new classification form", async () => {
+    it("adds a new classification with a null id", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
       render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      expect(screen.getByText("classification.category")).toBeInTheDocument();
-    });
-
-    it("saves new classification", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          dsm_category: "anxiety",
-          status: "suspected",
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("edits existing classification", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("dsm.anxiety"));
-
-      // Form should be visible in sub-panel
-      expect(screen.getByText("classification.category")).toBeInTheDocument();
-
-      // Status radios commit immediately on change
-      const diagnosedRadio = screen.getByRole("radio", {
-        name: /classification.status.diagnosed/i,
-      });
-      await user.click(diagnosedRadio);
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        "cls1",
-        expect.objectContaining({ dsm_category: "anxiety", status: "diagnosed" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("closes classification editor via the close button", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("dsm.anxiety"));
-      await user.click(screen.getByLabelText("common.close"));
-
-      expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
-    });
-
-    it("deletes classification with two-click confirmation", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("dsm.anxiety"));
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteClassification).not.toHaveBeenCalled();
-      expect(screen.getByText("classification.confirmDelete")).toBeInTheDocument();
-
-      await user.click(screen.getByText("common.delete"));
-      expect(props.entityHandlers.onDeleteClassification).toHaveBeenCalledWith("cls1");
-    });
-
-    it("cancels new classification form", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-      await user.click(screen.getByText("common.cancel"));
-
-      expect(screen.getByText("classification.newClassification")).toBeInTheDocument();
-    });
-
-    it("returns to card list when back button is clicked on classification sub-panel", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [makeClassification()];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("dsm.anxiety"));
-
-      await user.click(screen.getByLabelText("common.close"));
-
-      expect(screen.getByText("dsm.anxiety")).toBeInTheDocument();
-      expect(screen.queryByText("classification.category")).not.toBeInTheDocument();
-    });
-
-    it("switches to diagnosed status and shows diagnosis year", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Switch to diagnosed
-      const diagnosedRadio = screen.getByRole("radio", {
-        name: /classification.status.diagnosed/i,
-      });
-      await user.click(diagnosedRadio);
-
-      // Diagnosis year field should appear (a text input, located via its label)
-      const yearInput = screen
-        .getByText("classification.diagnosisYear")
-        .closest("label")!
-        .querySelector("input")!;
-      fireEvent.change(yearInput, { target: { value: "2020" } });
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          status: "diagnosed",
-          diagnosis_year: 2020,
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("saves classification with notes", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      const notesTextarea = screen.getByRole("textbox", {
-        name: /classification.notes/i,
-      });
-      fireEvent.change(notesTextarea, { target: { value: "Some clinical notes" } });
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({ notes: "Some clinical notes" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("adds and removes classification periods", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Add a period
-      await user.click(screen.getByText("classification.addPeriod"));
-
-      // Should see a remove button
-      expect(screen.getByText("classification.removePeriod")).toBeInTheDocument();
-
-      // Remove it
-      await user.click(screen.getByText("classification.removePeriod"));
-
-      // Period row gone
-      expect(screen.queryByText("classification.removePeriod")).not.toBeInTheDocument();
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({ periods: [] }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("changes DSM category", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Change category to depressive
-      const categorySelect = screen.getByDisplayValue("dsm.anxiety");
-      await user.selectOptions(categorySelect, "depressive");
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({ dsm_category: "depressive" }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("shows subcategories as options within optgroup", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // The select should contain subcategory options (e.g. ADHD under neurodevelopmental)
-      const categorySelect = screen.getByDisplayValue("dsm.anxiety");
-      const adhdOption = within(categorySelect).getByText(/dsm\.sub\.adhd/);
-      expect(adhdOption).toBeInTheDocument();
-      expect(adhdOption.getAttribute("value")).toBe("neurodevelopmental::adhd");
-    });
-
-    it("filters DSM categories by search text", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Type search text - since t() returns the key, search for "anxiety"
-      const searchInput = screen.getByPlaceholderText("classification.searchPlaceholder");
-      fireEvent.change(searchInput, { target: { value: "anxiety" } });
-
-      // The select should now only show matching categories
-      const categorySelect = screen.getByDisplayValue("dsm.anxiety");
-      const options = within(categorySelect).getAllByRole("option");
-      // Should be filtered to only categories containing "anxiety"
-      expect(options.length).toBeLessThan(22);
-    });
-
-    it("changes classification period start_year", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Add a period
-      await user.click(screen.getByText("classification.addPeriod"));
-
-      // The period should have the current year as start_year
-      const currentYear = new Date().getFullYear();
-      const startYearInput = screen.getByDisplayValue(String(currentYear));
-      fireEvent.change(startYearInput, { target: { value: "2015" } });
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          periods: [expect.objectContaining({ start_year: 2015 })],
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("changes classification period end_year", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Add a period
-      await user.click(screen.getByText("classification.addPeriod"));
-
-      // Find end year input within the period row (next to "common.endYear" label)
-      const endYearLabel = screen.getByText("common.endYear");
-      const endYearInput = endYearLabel.closest("label")!.querySelector("input")!;
-      fireEvent.change(endYearInput, { target: { value: "2020" } });
-
-      await user.click(screen.getByText("common.add"));
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        null,
-        expect.objectContaining({
-          periods: [expect.objectContaining({ end_year: 2020 })],
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("clears classification period end_year to null", async () => {
-      const user = userEvent.setup();
-      const props = defaultProps();
-      props.classifications = [
-        makeClassification({
-          periods: [{ start_year: 2010, end_year: 2020 }],
-        }),
-      ];
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("dsm.anxiety"));
-
-      // Clear the end_year; period year inputs commit on blur
-      const endYearInput = screen.getByDisplayValue("2020");
-      fireEvent.change(endYearInput, { target: { value: "" } });
-      fireEvent.blur(endYearInput);
-
-      expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
-        "cls1",
-        expect.objectContaining({
-          periods: [expect.objectContaining({ start_year: 2010, end_year: null })],
-        }),
-        expect.arrayContaining(["p1"]),
-      );
-    });
-
-    it("links classification to multiple persons", async () => {
-      const user = userEvent.setup();
-      const bob = makePerson({ id: "p2", name: "Bob" });
-      const props = defaultProps();
-      props.allPersons.set("p2", bob);
-      render(<PersonDetailPanel {...props} />);
-
-      await user.click(screen.getByRole("tab", { name: /classification.tab/ }));
-      await user.click(screen.getByText("classification.newClassification"));
-
-      // Expand PersonLinkField and add Bob
-      await user.click(screen.getByText(/link/i));
-      const bobCheckbox = screen.getByRole("checkbox", { name: "Bob" });
-      await user.click(bobCheckbox);
-
-      await user.click(screen.getByText("common.add"));
-
+      await user.click(screen.getByRole("button", { name: /personPage\.addTo/ }));
+      await user.click(screen.getByRole("button", { name: "personPage.kind.classification" }));
+      await user.click(screen.getByRole("button", { name: "common.add" }));
       expect(props.entityHandlers.onSaveClassification).toHaveBeenCalledWith(
         null,
         expect.any(Object),
-        expect.arrayContaining(["p1", "p2"]),
+        ["p1"],
       );
+    });
+
+    it("cancels a new entry", async () => {
+      const user = userEvent.setup();
+      render(<PersonDetailPanel {...defaultProps()} />);
+      await user.click(screen.getByRole("button", { name: /personPage\.addTo/ }));
+      await user.click(screen.getByRole("button", { name: "personPage.kind.trauma_event" }));
+      await user.click(screen.getByRole("button", { name: "common.cancel" }));
+      expect(screen.queryByText("personPage.new.trauma_event")).not.toBeInTheDocument();
+    });
+
+    it("opens a new form for the context menu's create shortcut", () => {
+      render(
+        <PersonDetailPanel
+          {...defaultProps()}
+          initialSection="turning_point"
+          initialEntityId={CREATE_NEW}
+        />,
+      );
+      expect(screen.getByText("personPage.new.turning_point")).toBeInTheDocument();
     });
   });
 
-  describe("reflection prompt", () => {
-    it("renders reflection prompt when showReflectionPrompts is true", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} showReflectionPrompts={true} onOpenJournal={vi.fn()} />);
-      expect(screen.getByText("Reflect on Alice")).toBeInTheDocument();
-    });
-
-    it("does not render reflection prompt when showReflectionPrompts is false", () => {
-      const props = defaultProps();
-      render(
-        <PersonDetailPanel {...props} showReflectionPrompts={false} onOpenJournal={vi.fn()} />,
-      );
-      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
-    });
-
-    it("does not render reflection prompt when onOpenJournal is not provided", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} showReflectionPrompts={true} />);
-      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
-    });
-
-    it("calls onOpenJournal with prompt and person ref when prompt is clicked", async () => {
+  describe("reflection", () => {
+    it("offers a prompt that opens the journal linked to the person", async () => {
       const user = userEvent.setup();
       const onOpenJournal = vi.fn();
-      const props = defaultProps();
       render(
-        <PersonDetailPanel {...props} showReflectionPrompts={true} onOpenJournal={onOpenJournal} />,
+        <PersonDetailPanel
+          {...defaultProps()}
+          showReflectionPrompts
+          onOpenJournal={onOpenJournal}
+        />,
       );
-
-      await user.click(screen.getByText("Reflect on Alice"));
+      expect(screen.getByText("Reflect on Alice")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "personPage.writeJournal" }));
       expect(onOpenJournal).toHaveBeenCalledWith("Reflect on Alice", {
         entity_type: "person",
         entity_id: "p1",
       });
     });
+
+    it("is hidden when prompts are off", () => {
+      render(
+        <PersonDetailPanel
+          {...defaultProps()}
+          showReflectionPrompts={false}
+          onOpenJournal={vi.fn()}
+        />,
+      );
+      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
+    });
+
+    it("is hidden without a journal handler", () => {
+      render(<PersonDetailPanel {...defaultProps()} showReflectionPrompts />);
+      expect(screen.queryByText("Reflect on Alice")).not.toBeInTheDocument();
+    });
   });
 
-  describe("tab selection", () => {
-    it("maps initialSection='person' to the person tab", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} initialSection="person" />);
-      const personTab = screen.getByRole("tab", { name: /person.tab/ });
-      expect(personTab).toHaveAttribute("aria-selected", "true");
+  describe("folded sections", () => {
+    function fold(name: string) {
+      return screen.getByText(name).closest("details") as HTMLDetailsElement;
+    }
+
+    it("keeps relationships and details folded by default", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      expect(fold("relationship.tab").open).toBe(false);
+      expect(fold("personPage.details").open).toBe(false);
     });
 
-    it("maps initialSection='relationships' to the relationships tab", () => {
-      const props = defaultProps();
-      render(<PersonDetailPanel {...props} initialSection="relationships" />);
-      const relsTab = screen.getByRole("tab", { name: /relationship.tab/ });
-      expect(relsTab).toHaveAttribute("aria-selected", "true");
+    it("opens the relationships section on request", () => {
+      render(<PersonDetailPanel {...defaultProps()} initialSection="relationships" />);
+      expect(fold("relationship.tab").open).toBe(true);
     });
 
-    it("maps initialSection='life_event' to the events tab with life sub-tab", () => {
-      const props = defaultProps();
-      props.lifeEvents = [makeLifeEvent()];
-      render(<PersonDetailPanel {...props} initialSection="life_event" />);
-      const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-      expect(eventsTab).toHaveAttribute("aria-selected", "true");
-      // Life event title should be visible; sub-tab defaulted to life
-      expect(screen.getByText("Graduation")).toBeInTheDocument();
+    it("opens the details section on request", () => {
+      render(<PersonDetailPanel {...defaultProps()} initialSection="person" />);
+      expect(fold("personPage.details").open).toBe(true);
     });
 
-    it("switches back to the person tab when clicked", async () => {
+    it("follows a later request while open", () => {
+      const props = defaultProps();
+      const { rerender } = render(<PersonDetailPanel {...props} />);
+      rerender(<PersonDetailPanel {...props} initialSection="relationships" />);
+      expect(fold("relationship.tab").open).toBe(true);
+    });
+
+    it("tracks the user's toggling", () => {
+      render(<PersonDetailPanel {...defaultProps()} />);
+      const details = fold("personPage.details");
+      details.open = true;
+      fireEvent(details, new Event("toggle"));
+      expect(details.open).toBe(true);
+      details.open = false;
+      fireEvent(details, new Event("toggle"));
+      expect(details.open).toBe(false);
+    });
+
+    it("holds the person form and the relationship list", () => {
+      const props = defaultProps();
+      render(<PersonDetailPanel {...props} />);
+      expect(within(fold("personPage.details")).getByDisplayValue("Alice")).toBeInTheDocument();
+      expect(within(fold("relationship.tab")).getByText("relationship.none")).toBeInTheDocument();
+    });
+  });
+
+  describe("switching people", () => {
+    it("starts over with folds and forms closed", async () => {
       const user = userEvent.setup();
       const props = defaultProps();
-      props.events = [makeEvent()];
-      render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
-      // Starts on events tab
-      const eventsTab = screen.getByRole("tab", { name: /events.tab/ });
-      expect(eventsTab).toHaveAttribute("aria-selected", "true");
+      props.events = [makeEvent({ title: "Loss" })];
+      const { rerender } = render(<PersonDetailPanel {...props} initialSection="person" />);
+      await user.click(screen.getByRole("button", { name: /Loss/ }));
+      expect(screen.getByDisplayValue("Loss")).toBeInTheDocument();
 
-      await user.click(screen.getByRole("tab", { name: /person.tab/ }));
-      const personTab = screen.getByRole("tab", { name: /person.tab/ });
-      expect(personTab).toHaveAttribute("aria-selected", "true");
-      expect(eventsTab).toHaveAttribute("aria-selected", "false");
+      const bob = makePerson({ id: "p2", name: "Bob" });
+      rerender(
+        <PersonDetailPanel {...props} person={bob} events={props.events} initialSection={null} />,
+      );
+      expect(screen.queryByDisplayValue("Loss")).not.toBeInTheDocument();
+      const details = screen.getByText("personPage.details").closest("details");
+      expect(details?.open).toBe(false);
     });
 
-    it("resets the active tab and event sub-tab when initialSection prop changes", () => {
+    it("opens the details of a newly added person", () => {
       const props = defaultProps();
-      props.events = [makeEvent()];
-      props.lifeEvents = [makeLifeEvent()];
-      props.turningPoints = [makeTurningPoint()];
-      const { rerender } = render(<PersonDetailPanel {...props} initialSection="trauma_event" />);
-      expect(screen.getByRole("tab", { name: /events.tab/ })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-      // Trauma sub-tab selected: event title visible.
-      expect(screen.getByText("Test Event")).toBeInTheDocument();
+      const { rerender } = render(<PersonDetailPanel {...props} initialSection="person" />);
+      const fresh = makePerson({ id: "p3", name: "New person" });
+      rerender(<PersonDetailPanel {...props} person={fresh} initialSection="person" />);
+      const details = screen.getByText("personPage.details").closest("details");
+      expect(details?.open).toBe(true);
+    });
+  });
 
-      // Re-render with a different initialSection — mid-render effect should
-      // switch the active tab *and* the events sub-tab.
-      rerender(<PersonDetailPanel {...props} initialSection="turning_point" />);
-      expect(screen.getByRole("tab", { name: /events.tab/ })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-      expect(screen.getByText("Therapy Start")).toBeInTheDocument();
-
-      // Switching to relationships should change the active tab.
-      rerender(<PersonDetailPanel {...props} initialSection="relationships" />);
-      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
+  describe("canvas highlight", () => {
+    it("lights up the hovered entry's badge and the other people involved", async () => {
+      const user = userEvent.setup();
+      const props = defaultProps();
+      props.allPersons = new Map([
+        ["p1", makePerson()],
+        ["p2", makePerson({ id: "p2", name: "Hendrik" })],
+      ]);
+      props.events = [makeEvent({ person_ids: ["p1", "p2"] })];
+      const { container } = render(<PersonDetailPanel {...props} />);
+      await user.hover(screen.getByRole("button", { name: /Test Event/ }));
+      const style = container.querySelector("style")?.textContent ?? "";
+      expect(style).toContain('[data-badge-id="e1"]');
+      expect(style).toContain('[data-id="p2"]');
+      expect(style).not.toContain('[data-id="p1"]');
+      await user.unhover(screen.getByRole("button", { name: /Test Event/ }));
+      expect(container.querySelector("style")).toBeNull();
     });
 
-    it("ignores initialSection changes that are undefined", () => {
+    it("refuses ids that are not plain identifiers", async () => {
+      const user = userEvent.setup();
       const props = defaultProps();
-      const { rerender } = render(<PersonDetailPanel {...props} initialSection="relationships" />);
-      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
-      // Removing initialSection should not force a reset — the current tab stays.
-      rerender(<PersonDetailPanel {...props} />);
-      expect(screen.getByRole("tab", { name: /relationship.tab/ })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
+      props.events = [makeEvent({ id: 'e1"]{}' })];
+      const { container } = render(<PersonDetailPanel {...props} />);
+      await user.hover(screen.getByRole("button", { name: /Test Event/ }));
+      expect(container.querySelector("style")).toBeNull();
     });
   });
 });

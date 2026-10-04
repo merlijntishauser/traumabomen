@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedClassification, DecryptedPerson } from "../../hooks/useTreeData";
-import { getClassificationColor } from "../../lib/classificationColors";
 import { DSM_CATEGORIES } from "../../lib/dsmCategories";
 import type {
   Classification,
@@ -14,148 +12,9 @@ import { blurOnEnter, sanitizeYearInput } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
-import { EditSubPanel } from "./EditSubPanel";
 import { PersonLinkField } from "./PersonLinkField";
 
-/** Subcategory label when present, otherwise the category label. */
-function classificationLabel(
-  cls: { dsm_category: string; dsm_subcategory: string | null },
-  t: (key: string) => string,
-): string {
-  return cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : t(`dsm.${cls.dsm_category}`);
-}
-
-/** Format classification periods as a compact summary string. */
-function formatClassificationPeriods(
-  cls: {
-    periods: { start_year: number; end_year: number | null }[];
-    diagnosis_year: number | null;
-  },
-  t: (key: string) => string,
-): React.ReactNode {
-  if (cls.periods.length > 0) {
-    const parts = cls.periods.map((p) =>
-      p.end_year ? `${p.start_year}-${p.end_year}` : `${p.start_year}, ${t("common.ongoing")}`,
-    );
-    return <span className="detail-panel__period-summary">{parts.join("; ")}</span>;
-  }
-  if (cls.diagnosis_year) {
-    return (
-      <span className="detail-panel__period-summary">
-        {cls.diagnosis_year}, {t("common.ongoing")}
-      </span>
-    );
-  }
-  return null;
-}
-
-interface ClassificationsTabProps {
-  person: DecryptedPerson;
-  classifications: DecryptedClassification[];
-  allPersons: Map<string, DecryptedPerson>;
-  onSaveClassification: (
-    classificationId: string | null,
-    data: Classification,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteClassification: (classificationId: string) => void;
-  initialEditId?: string;
-}
-
-export function ClassificationsTab({
-  person,
-  classifications,
-  allPersons,
-  onSaveClassification,
-  onDeleteClassification,
-  initialEditId,
-}: ClassificationsTabProps) {
-  const { t } = useTranslation();
-  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
-    useEditingState(initialEditId);
-
-  if (isEditing) {
-    const cls = editingId ? (classifications.find((c) => c.id === editingId) ?? null) : null;
-    return (
-      <EditSubPanel
-        title={
-          editingId
-            ? cls
-              ? classificationLabel(cls, t)
-              : t("classification.editClassification")
-            : t("classification.newClassification")
-        }
-        onBack={clearEditing}
-        closeLabel={editingId ? t("common.close") : undefined}
-      >
-        <ClassificationForm
-          key={editingId ?? "new"}
-          classification={cls}
-          allPersons={allPersons}
-          initialPersonIds={cls?.person_ids ?? [person.id]}
-          onSave={(data, personIds) => {
-            const result = onSaveClassification(editingId, data, personIds);
-            if (!editingId) clearEditing();
-            return result;
-          }}
-          onDelete={
-            editingId
-              ? () => {
-                  onDeleteClassification(editingId);
-                  setEditingId(null);
-                }
-              : undefined
-          }
-        />
-      </EditSubPanel>
-    );
-  }
-
-  return (
-    <>
-      {classifications.map((cls) => (
-        <button
-          key={cls.id}
-          type="button"
-          className="detail-panel__event-card"
-          onClick={() => setEditingId(cls.id)}
-        >
-          <div className="detail-panel__event-card-row">
-            <span
-              className="detail-panel__event-card-dot"
-              style={{
-                backgroundColor: getClassificationColor(cls.status),
-                borderRadius: 0,
-                clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
-              }}
-            />
-            <span className="detail-panel__event-card-title">{classificationLabel(cls, t)}</span>
-          </div>
-          <div className="detail-panel__event-card-meta">
-            <span className={`detail-panel__status-pill detail-panel__status-pill--${cls.status}`}>
-              {t(`classification.status.${cls.status}`)}
-            </span>
-            {cls.dsm_subcategory && (
-              <span className="detail-panel__classification-category">
-                {t(`dsm.${cls.dsm_category}`)}
-              </span>
-            )}
-            {formatClassificationPeriods(cls, t)}
-          </div>
-        </button>
-      ))}
-      <button
-        type="button"
-        className="btn detail-panel__btn--secondary"
-        onClick={() => setShowNew(true)}
-      >
-        {t("classification.newClassification")}
-      </button>
-    </>
-  );
-}
-
-interface ClassificationFormProps {
+export interface ClassificationFormProps {
   classification: DecryptedClassification | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
@@ -204,7 +63,7 @@ function buildClassificationData(
   };
 }
 
-function ClassificationForm({
+export function ClassificationForm({
   classification,
   allPersons,
   initialPersonIds,

@@ -1,37 +1,32 @@
-import { CalendarDays, Circle, GitFork, Square, Star, Triangle, User } from "lucide-react";
-import { useRef, useState } from "react";
+import type { TFunction } from "i18next";
+import { ChevronDown, PenLine, X } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLifelineEditing } from "../../hooks/useLifelineEditing";
 import type {
   DecryptedClassification,
   DecryptedEvent,
   DecryptedLifeEvent,
+  DecryptedPattern,
   DecryptedPerson,
   DecryptedRelationship,
   DecryptedSiblingGroup,
   DecryptedTurningPoint,
 } from "../../hooks/useTreeData";
 import type { InferredSibling } from "../../lib/inferSiblings";
+import type { LifelineEntry } from "../../lib/lifeline";
+import { getPatternColor } from "../../lib/patternColors";
+import { buildGlanceGroups, type GlanceGroup } from "../../lib/personGlance";
 import { personPromptText, pickPersonPromptIndex } from "../../lib/reflectionPrompts";
-import type {
-  Classification,
-  JournalLinkedRef,
-  LifeEvent,
-  Person,
-  RelationshipData,
-  TraumaEvent,
-  TurningPoint,
-} from "../../types/domain";
+import type { JournalLinkedRef, Person, RelationshipData } from "../../types/domain";
 import {
   InspectorSaveWhisper,
   InspectorStatusProvider,
   useInspectorStatus,
 } from "../inspector/InspectorStatus";
-import { ClassificationsTab } from "./ClassificationsTab";
-import { LifeEventsTab } from "./LifeEventsTab";
+import { type LifelineEntityHandlers, PersonLifeline } from "./PersonLifeline";
 import { PersonTab } from "./PersonTab";
 import { RelationshipsTab } from "./RelationshipsTab";
-import { TraumaEventsTab } from "./TraumaEventsTab";
-import { TurningPointsTab } from "./TurningPointsTab";
 import "./PersonDetailPanel.css";
 
 export type PersonDetailSection =
@@ -43,85 +38,11 @@ export type PersonDetailSection =
   | "classification"
   | null;
 
-type DetailTab = "person" | "relationships" | "events" | "classifications";
-
-type EventSubTab = "trauma" | "life" | "turning";
-
-const TAB_CLASS = "detail-panel__tab";
-const TAB_ACTIVE_CLASS = `${TAB_CLASS} ${TAB_CLASS}--active`;
-const SEG_CLASS = "detail-panel__segment";
-const SEG_ACTIVE_CLASS = `${SEG_CLASS} ${SEG_CLASS}--active`;
-
-function tabClassName(isActive: boolean): string {
-  return isActive ? TAB_ACTIVE_CLASS : TAB_CLASS;
-}
-
-function segClassName(isActive: boolean): string {
-  return isActive ? SEG_ACTIVE_CLASS : SEG_CLASS;
-}
-
-function sectionToTab(section: PersonDetailSection): DetailTab {
-  switch (section) {
-    case "person":
-      return "person";
-    case "relationships":
-      return "relationships";
-    case "trauma_event":
-    case "life_event":
-    case "turning_point":
-      return "events";
-    case "classification":
-      return "classifications";
-    default:
-      return "person";
-  }
-}
-
-function sectionToEventSubTab(section: PersonDetailSection): EventSubTab | null {
-  switch (section) {
-    case "trauma_event":
-      return "trauma";
-    case "life_event":
-      return "life";
-    case "turning_point":
-      return "turning";
-    default:
-      return null;
-  }
-}
-
 interface PersonDetailHandlers {
   onSavePerson: (data: Person) => Promise<unknown> | undefined;
   onDeletePerson: (personId: string) => void;
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => Promise<unknown>;
   onClose: () => void;
-}
-
-interface EntityHandlers {
-  onSaveEvent: (
-    eventId: string | null,
-    data: TraumaEvent,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteEvent: (eventId: string) => void;
-  onSaveLifeEvent: (
-    lifeEventId: string | null,
-    data: LifeEvent,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteLifeEvent: (lifeEventId: string) => void;
-  onSaveTurningPoint: (
-    turningPointId: string | null,
-    data: TurningPoint,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteTurningPoint: (turningPointId: string) => void;
-  onSaveClassification: (
-    classificationId: string | null,
-    data: Classification,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteClassification: (classificationId: string) => void;
 }
 
 interface PersonDetailPanelProps {
@@ -136,14 +57,210 @@ interface PersonDetailPanelProps {
   initialSection?: PersonDetailSection;
   initialEntityId?: string;
   handlers: PersonDetailHandlers;
-  entityHandlers: EntityHandlers;
+  entityHandlers: LifelineEntityHandlers;
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
   siblingGroup?: DecryptedSiblingGroup | null;
   onCreateSiblingGroup?: () => void;
   onOpenSiblingGroup?: (groupId: string) => void;
+  /** Opens another person's page from a name in the glance line. */
+  onSelectPerson?: (personId: string) => void;
+  /** Patterns this person belongs to, shown as focusable chips. */
+  patterns?: DecryptedPattern[];
+  focusedPatternId?: string | null;
+  onFocusPattern?: (patternId: string | null) => void;
 }
 
+type FoldSection = "relationships" | "details";
+
+const EMPTY_PATTERNS: DecryptedPattern[] = [];
+const SAFE_ID = /^[\w-]+$/;
+
+function foldFor(section: PersonDetailSection | undefined): FoldSection | null {
+  if (section === "relationships") return "relationships";
+  if (section === "person") return "details";
+  return null;
+}
+
+function yearsLine(person: DecryptedPerson, t: TFunction): string {
+  const parts: string[] = [];
+  const by = person.birth_year;
+  const dy = person.death_year;
+  if (by != null && dy != null) parts.push(`${by} - ${dy}`);
+  else if (by != null) parts.push(t("personPage.born", { year: by }));
+  else if (dy != null) parts.push(t("personPage.died", { year: dy }));
+  if (person.is_adopted) parts.push(t("person.isAdopted").toLowerCase());
+  return parts.join(", ");
+}
+
+/**
+ * Light up the canvas badge for the hovered lifeline entry, and the nodes of the
+ * other people it involves. Rendered as a scoped style rule so the canvas nodes
+ * do not re-render on every hover.
+ */
+function HoverHighlight({ entry, personId }: { entry: LifelineEntry | null; personId: string }) {
+  if (!entry || !SAFE_ID.test(entry.id)) return null;
+  const others = entry.entity.person_ids.filter((id) => id !== personId && SAFE_ID.test(id));
+  const rules = [
+    `.person-node__badge-wrap[data-badge-id="${entry.id}"] .person-node__badge{outline:2px solid currentColor;outline-offset:2px;color:var(--color-text-primary)}`,
+    ...others.map(
+      (id) =>
+        `.react-flow__node[data-id="${id}"] .person-node{box-shadow:0 0 0 3px var(--color-action-focus-ring),var(--shadow-md)}`,
+    ),
+  ];
+  return <style>{rules.join("")}</style>;
+}
+
+interface GlanceNamesProps {
+  ids: string[];
+  allPersons: Map<string, DecryptedPerson>;
+  listFormat: Intl.ListFormat;
+  onSelectPerson?: (personId: string) => void;
+}
+
+/** Names joined as a sentence list; the last one carries the full stop so it never wraps alone. */
+function GlanceNames({ ids, allPersons, listFormat, onSelectPerson }: GlanceNamesProps) {
+  const names = ids.map((id) => allPersons.get(id)?.name ?? "?");
+  const parts = listFormat.formatToParts(names);
+  let index = 0;
+  let previousId = "start";
+  return parts.map((part) => {
+    if (part.type === "literal") {
+      return <span key={`after-${previousId}`}>{part.value}</span>;
+    }
+    const id = ids[index++];
+    previousId = id;
+    const isLast = index === ids.length;
+    return (
+      <span key={id} className={isLast ? "person-page__last-name" : undefined}>
+        {onSelectPerson ? (
+          <button
+            type="button"
+            className="person-page__person-link"
+            onClick={() => onSelectPerson(id)}
+          >
+            {part.value}
+          </button>
+        ) : (
+          part.value
+        )}
+        {isLast && "."}
+      </span>
+    );
+  });
+}
+
+interface GlanceProps {
+  person: DecryptedPerson;
+  groups: GlanceGroup[];
+  allPersons: Map<string, DecryptedPerson>;
+  onSelectPerson?: (personId: string) => void;
+}
+
+/** "Married to Hendrik. Mother of Pieter and Anna." */
+function PersonGlance({ person, groups, allPersons, onSelectPerson }: GlanceProps) {
+  const { t, i18n } = useTranslation();
+  const listFormat = useMemo(
+    () => new Intl.ListFormat(i18n.language, { type: "conjunction" }),
+    [i18n.language],
+  );
+  if (groups.length === 0) {
+    return <p className="person-page__glance">{t("personPage.glance.none")}</p>;
+  }
+  return (
+    <p className="person-page__glance">
+      {groups.map((group, i) => (
+        <span key={group.role}>
+          {i > 0 && " "}
+          {t(`personPage.glance.${group.role}`, { context: person.gender })}{" "}
+          <GlanceNames
+            ids={group.personIds}
+            allPersons={allPersons}
+            listFormat={listFormat}
+            onSelectPerson={onSelectPerson}
+          />
+        </span>
+      ))}
+    </p>
+  );
+}
+
+interface PatternChipsProps {
+  patterns: DecryptedPattern[];
+  focusedPatternId: string | null;
+  onFocusPattern?: (patternId: string | null) => void;
+}
+
+function PatternChips({ patterns, focusedPatternId, onFocusPattern }: PatternChipsProps) {
+  if (patterns.length === 0) return null;
+  return (
+    <div className="person-page__patterns">
+      {patterns.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          className="person-page__pattern"
+          aria-pressed={focusedPatternId === p.id}
+          disabled={!onFocusPattern}
+          onClick={() => onFocusPattern?.(focusedPatternId === p.id ? null : p.id)}
+        >
+          <span
+            className="person-page__pattern-swatch"
+            style={{ backgroundColor: getPatternColor(p.color) }}
+          />
+          {p.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface FoldProps {
+  section: FoldSection;
+  label: string;
+  openFold: FoldSection | null;
+  onOpenFoldChange: (update: (current: FoldSection | null) => FoldSection | null) => void;
+  children: ReactNode;
+}
+
+function PageFold({ section, label, openFold, onOpenFoldChange, children }: FoldProps) {
+  return (
+    <details
+      className="person-page__fold"
+      open={openFold === section}
+      onToggle={(e) => {
+        const isOpen = e.currentTarget.open;
+        onOpenFoldChange((current) => (isOpen ? section : current === section ? null : current));
+      }}
+    >
+      <summary>
+        <ChevronDown size={15} aria-hidden="true" />
+        {label}
+      </summary>
+      <div className="person-page__fold-body">{children}</div>
+    </details>
+  );
+}
+
+function ReflectionPrompt({ prompt, onWrite }: { prompt: string; onWrite: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <section className="person-page__reflect" aria-label={t("journal.tab")}>
+      <p className="person-page__prompt">{prompt}</p>
+      <button type="button" className="btn" onClick={onWrite}>
+        <PenLine size={15} aria-hidden="true" />
+        {t("personPage.writeJournal")}
+      </button>
+    </section>
+  );
+}
+
+/**
+ * The person page: a margin page in a family notebook beside the canvas. A
+ * handwritten name, a plain sentence about who they are to others, their
+ * patterns, then their life read in order, edited in place. Relationships
+ * and the person's details fold away at the bottom.
+ */
 export function PersonDetailPanel({
   person,
   relationships,
@@ -162,31 +279,26 @@ export function PersonDetailPanel({
   siblingGroup,
   onCreateSiblingGroup,
   onOpenSiblingGroup,
+  onSelectPerson,
+  patterns = EMPTY_PATTERNS,
+  focusedPatternId = null,
+  onFocusPattern,
 }: PersonDetailPanelProps) {
   const { onSavePerson, onDeletePerson, onSaveRelationship, onClose } = handlers;
-  const {
-    onSaveEvent,
-    onDeleteEvent,
-    onSaveLifeEvent,
-    onDeleteLifeEvent,
-    onSaveTurningPoint,
-    onDeleteTurningPoint,
-    onSaveClassification,
-    onDeleteClassification,
-  } = entityHandlers;
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<DetailTab>(() => sectionToTab(initialSection ?? null));
-  const [eventSubTab, setEventSubTab] = useState<EventSubTab>(
-    () => sectionToEventSubTab(initialSection ?? null) ?? "trauma",
-  );
+  const { status, report } = useInspectorStatus();
+  const editing = useLifelineEditing(initialSection, initialEntityId, person.id);
+  const [hovered, setHovered] = useState<LifelineEntry | null>(null);
 
-  const prevSectionRef = useRef(initialSection);
-  if (initialSection && initialSection !== prevSectionRef.current) {
-    setActiveTab(sectionToTab(initialSection));
-    const sub = sectionToEventSubTab(initialSection);
-    if (sub) setEventSubTab(sub);
+  const [openFold, setOpenFold] = useState<FoldSection | null>(() => foldFor(initialSection));
+  // Follow a new section request; a different person starts from their own.
+  const [foldRequest, setFoldRequest] = useState({ section: initialSection, personId: person.id });
+  if (foldRequest.section !== initialSection || foldRequest.personId !== person.id) {
+    const personChanged = foldRequest.personId !== person.id;
+    setFoldRequest({ section: initialSection, personId: person.id });
+    const fold = foldFor(initialSection);
+    if (fold || personChanged) setOpenFold(fold);
   }
-  prevSectionRef.current = initialSection;
 
   // Stable prompt per person: re-roll the random selection during render when a
   // different person is shown, then translate live (also follows name edits).
@@ -199,106 +311,70 @@ export function PersonDetailPanel({
   }
   const personPrompt = personPromptText(t, promptPick.index, person.name);
 
-  const { status, report } = useInspectorStatus();
-
-  const relsCount = relationships.length + inferredSiblings.length;
-  const eventsCount = events.length + lifeEvents.length + turningPoints.length;
-
-  function formatYears(): string {
-    const by = person.birth_year;
-    if (by == null) return "";
-    const dy = person.death_year;
-    return dy != null ? `${by} - ${dy}` : `${by} -`;
-  }
+  const years = yearsLine(person, t);
+  const glance = buildGlanceGroups(person.id, relationships, inferredSiblings);
+  const personPatterns = patterns.filter((p) => p.person_ids.includes(person.id));
 
   return (
     <InspectorStatusProvider value={report}>
-      <div className="panel-overlay detail-panel">
-        <div className="detail-panel__person-header">
-          <div className="detail-panel__person-info">
-            <h2 className="detail-panel__person-name">{person.name}</h2>
-            <span className="detail-panel__person-subrow">
-              <span className="detail-panel__person-years">
-                {person.birth_year != null ? formatYears() : ""}
-              </span>
-              <InspectorSaveWhisper status={status} />
-            </span>
+      <aside className="panel-overlay detail-panel person-page" aria-label={person.name}>
+        <HoverHighlight entry={hovered} personId={person.id} />
+        <header className="person-page__head">
+          <h2 className="person-page__name">{person.name}</h2>
+          <div className="person-page__head-actions">
+            <InspectorSaveWhisper status={status} />
+            <button
+              type="button"
+              className="person-page__close"
+              onClick={onClose}
+              aria-label={t("common.close")}
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button type="button" className="panel-close" onClick={onClose}>
-            {t("common.close")}
-          </button>
-        </div>
+        </header>
 
-        {showReflectionPrompts && onOpenJournal && (
-          <button
-            type="button"
-            className="detail-panel__prompt"
-            onClick={() =>
-              onOpenJournal(personPrompt, { entity_type: "person", entity_id: person.id })
-            }
-          >
-            {personPrompt}
-          </button>
-        )}
+        <div className="person-page__scroll">
+          {years && <p className="person-page__years">{years}</p>}
+          <PersonGlance
+            person={person}
+            groups={glance}
+            allPersons={allPersons}
+            onSelectPerson={onSelectPerson}
+          />
+          <PatternChips
+            patterns={personPatterns}
+            focusedPatternId={focusedPatternId}
+            onFocusPattern={onFocusPattern}
+          />
 
-        <div className="detail-panel__tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "person"}
-            className={tabClassName(activeTab === "person")}
-            onClick={() => setActiveTab("person")}
-          >
-            <User size={14} />
-            {t("person.tab")}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "relationships"}
-            className={tabClassName(activeTab === "relationships")}
-            onClick={() => setActiveTab("relationships")}
-          >
-            <GitFork size={14} />
-            {t("relationship.tab")}
-            {relsCount > 0 && <span className="detail-panel__tab-badge">{relsCount}</span>}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "events"}
-            className={tabClassName(activeTab === "events")}
-            onClick={() => setActiveTab("events")}
-          >
-            <CalendarDays size={14} />
-            {t("events.tab")}
-            {eventsCount > 0 && <span className="detail-panel__tab-badge">{eventsCount}</span>}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "classifications"}
-            className={tabClassName(activeTab === "classifications")}
-            onClick={() => setActiveTab("classifications")}
-          >
-            <Triangle size={14} />
-            {t("classification.tab")}
-            {classifications.length > 0 && (
-              <span className="detail-panel__tab-badge">{classifications.length}</span>
-            )}
-          </button>
-        </div>
+          <PersonLifeline
+            person={person}
+            allPersons={allPersons}
+            handlers={entityHandlers}
+            editing={editing}
+            onHover={setHovered}
+            events={events}
+            lifeEvents={lifeEvents}
+            turningPoints={turningPoints}
+            classifications={classifications}
+          />
 
-        <div className="detail-panel__content">
-          {activeTab === "person" && (
-            <PersonTab
-              key={person.id}
-              person={person}
-              onSavePerson={onSavePerson}
-              onDeletePerson={onDeletePerson}
+          {showReflectionPrompts && onOpenJournal && (
+            <ReflectionPrompt
+              prompt={personPrompt}
+              onWrite={() =>
+                onOpenJournal(personPrompt, { entity_type: "person", entity_id: person.id })
+              }
             />
           )}
-          {activeTab === "relationships" && (
+
+          <PageFold
+            section="relationships"
+            label={t("relationship.tab")}
+            openFold={openFold}
+            onOpenFoldChange={setOpenFold}
+          >
             <RelationshipsTab
               person={person}
               relationships={relationships}
@@ -309,88 +385,23 @@ export function PersonDetailPanel({
               onCreateSiblingGroup={onCreateSiblingGroup}
               onOpenSiblingGroup={onOpenSiblingGroup}
             />
-          )}
-          {activeTab === "events" && (
-            <>
-              <div className="detail-panel__segment-control">
-                <button
-                  type="button"
-                  className={segClassName(eventSubTab === "trauma")}
-                  onClick={() => setEventSubTab("trauma")}
-                >
-                  <Circle size={10} />
-                  {t("trauma.tab")}
-                  {events.length > 0 && (
-                    <span className="detail-panel__segment-badge">{events.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={segClassName(eventSubTab === "life")}
-                  onClick={() => setEventSubTab("life")}
-                >
-                  <Square size={10} />
-                  {t("lifeEvent.tab")}
-                  {lifeEvents.length > 0 && (
-                    <span className="detail-panel__segment-badge">{lifeEvents.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={segClassName(eventSubTab === "turning")}
-                  onClick={() => setEventSubTab("turning")}
-                >
-                  <Star size={10} />
-                  {t("turningPoint.tab")}
-                  {turningPoints.length > 0 && (
-                    <span className="detail-panel__segment-badge">{turningPoints.length}</span>
-                  )}
-                </button>
-              </div>
-              {eventSubTab === "trauma" && (
-                <TraumaEventsTab
-                  person={person}
-                  events={events}
-                  allPersons={allPersons}
-                  onSaveEvent={onSaveEvent}
-                  onDeleteEvent={onDeleteEvent}
-                  initialEditId={initialSection === "trauma_event" ? initialEntityId : undefined}
-                />
-              )}
-              {eventSubTab === "life" && (
-                <LifeEventsTab
-                  person={person}
-                  lifeEvents={lifeEvents}
-                  allPersons={allPersons}
-                  onSaveLifeEvent={onSaveLifeEvent}
-                  onDeleteLifeEvent={onDeleteLifeEvent}
-                  initialEditId={initialSection === "life_event" ? initialEntityId : undefined}
-                />
-              )}
-              {eventSubTab === "turning" && (
-                <TurningPointsTab
-                  person={person}
-                  turningPoints={turningPoints}
-                  allPersons={allPersons}
-                  onSaveTurningPoint={onSaveTurningPoint}
-                  onDeleteTurningPoint={onDeleteTurningPoint}
-                  initialEditId={initialSection === "turning_point" ? initialEntityId : undefined}
-                />
-              )}
-            </>
-          )}
-          {activeTab === "classifications" && (
-            <ClassificationsTab
+          </PageFold>
+
+          <PageFold
+            section="details"
+            label={t("personPage.details")}
+            openFold={openFold}
+            onOpenFoldChange={setOpenFold}
+          >
+            <PersonTab
+              key={person.id}
               person={person}
-              classifications={classifications}
-              allPersons={allPersons}
-              onSaveClassification={onSaveClassification}
-              onDeleteClassification={onDeleteClassification}
-              initialEditId={initialSection === "classification" ? initialEntityId : undefined}
+              onSavePerson={onSavePerson}
+              onDeletePerson={onDeletePerson}
             />
-          )}
+          </PageFold>
         </div>
-      </div>
+      </aside>
     </InspectorStatusProvider>
   );
 }

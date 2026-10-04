@@ -42,7 +42,7 @@ export type LifelineRow =
   | { type: "death"; year: number };
 
 /** Years without a recorded entry before the lifeline names the silence. */
-export const LIFELINE_GAP_YEARS = 15;
+const LIFELINE_GAP_YEARS = 15;
 
 interface LifelineSources {
   events: DecryptedEvent[];

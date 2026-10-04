@@ -215,6 +215,8 @@ vi.mock("../hooks/usePromoteMember", () => ({
   usePromoteMember: () => ({ mutate: vi.fn() }),
 }));
 
+const mockSetInitialSection = vi.fn();
+
 vi.mock("../hooks/useWorkspacePanels", () => ({
   useWorkspacePanels: () => ({
     selectedPersonId: null,
@@ -229,7 +231,7 @@ vi.mock("../hooks/useWorkspacePanels", () => ({
     hoveredPatternId: null,
     setHoveredPatternId: vi.fn(),
     initialSection: null,
-    setInitialSection: vi.fn(),
+    setInitialSection: mockSetInitialSection,
   }),
 }));
 
@@ -507,6 +509,16 @@ describe("TreeWorkspacePage", () => {
     expect(calledWith).toHaveProperty("gender", "");
     expect(calledWith).toHaveProperty("is_adopted", false);
     expect(calledWith).toHaveProperty("position");
+  });
+
+  it("opens a newly added person on their details", () => {
+    mockCreatePersonMutate.mockImplementation(
+      (_person: unknown, opts: { onSuccess: (r: { id: string }) => void }) =>
+        opts.onSuccess({ id: "new-person" }),
+    );
+    render(<TreeWorkspacePage />);
+    fireEvent.click(screen.getByTestId("add-person-btn"));
+    expect(mockSetInitialSection).toHaveBeenCalledWith("person");
   });
 
   it("calls createPerson.mutate when empty state button is clicked", () => {

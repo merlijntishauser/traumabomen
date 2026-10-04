@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedPerson, DecryptedTurningPoint } from "../../hooks/useTreeData";
-import { getTurningPointColor } from "../../lib/turningPointColors";
 import type { TurningPoint } from "../../types/domain";
 import { TurningPointCategory } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
@@ -9,24 +7,9 @@ import { blurOnEnter } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
-import { EditSubPanel } from "./EditSubPanel";
-import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
 
-interface TurningPointsTabProps {
-  person: DecryptedPerson;
-  turningPoints: DecryptedTurningPoint[];
-  allPersons: Map<string, DecryptedPerson>;
-  onSaveTurningPoint: (
-    turningPointId: string | null,
-    data: TurningPoint,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteTurningPoint: (turningPointId: string) => void;
-  initialEditId?: string;
-}
-
-interface TurningPointFormProps {
+export interface TurningPointFormProps {
   turningPoint: DecryptedTurningPoint | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
@@ -64,7 +47,7 @@ function buildTurningPointData(
   };
 }
 
-function TurningPointForm({
+export function TurningPointForm({
   turningPoint,
   allPersons,
   initialPersonIds,
@@ -196,80 +179,6 @@ function TurningPointForm({
           </div>
         )
       )}
-    </>
-  );
-}
-
-export function TurningPointsTab({
-  person,
-  turningPoints,
-  allPersons,
-  onSaveTurningPoint,
-  onDeleteTurningPoint,
-  initialEditId,
-}: TurningPointsTabProps) {
-  const { t } = useTranslation();
-  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
-    useEditingState(initialEditId);
-
-  if (isEditing) {
-    const turningPoint = editingId
-      ? (turningPoints.find((tp) => tp.id === editingId) ?? null)
-      : null;
-    return (
-      <EditSubPanel
-        title={
-          editingId
-            ? (turningPoint?.title ?? t("turningPoint.editEvent"))
-            : t("turningPoint.newEvent")
-        }
-        onBack={clearEditing}
-        closeLabel={editingId ? t("common.close") : undefined}
-      >
-        <TurningPointForm
-          key={editingId ?? "new"}
-          turningPoint={turningPoint}
-          allPersons={allPersons}
-          initialPersonIds={turningPoint?.person_ids ?? [person.id]}
-          onSave={(data, personIds) => {
-            const result = onSaveTurningPoint(editingId, data, personIds);
-            if (!editingId) clearEditing();
-            return result;
-          }}
-          onDelete={
-            editingId
-              ? () => {
-                  onDeleteTurningPoint(editingId);
-                  setEditingId(null);
-                }
-              : undefined
-          }
-        />
-      </EditSubPanel>
-    );
-  }
-
-  return (
-    <>
-      {turningPoints.map((tp) => (
-        <EventCard
-          key={tp.id}
-          title={tp.title}
-          approximateDate={tp.approximate_date}
-          categoryLabel={t(`turningPoint.category.${tp.category}`)}
-          color={getTurningPointColor(tp.category)}
-          barValue={tp.significance}
-          dotClassName="detail-panel__event-card-dot detail-panel__event-card-dot--turning-point"
-          onClick={() => setEditingId(tp.id)}
-        />
-      ))}
-      <button
-        type="button"
-        className="btn detail-panel__btn--secondary"
-        onClick={() => setShowNew(true)}
-      >
-        {t("turningPoint.newEvent")}
-      </button>
     </>
   );
 }

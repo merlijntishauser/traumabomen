@@ -35,8 +35,8 @@ import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
-import { CREATE_NEW } from "../hooks/useEditingState";
 import { useExportTree } from "../hooks/useExportTree";
+import { CREATE_NEW } from "../hooks/useLifelineEditing";
 import { useLinkedEntityPanelHandlers } from "../hooks/useLinkedEntityPanelHandlers";
 import { usePatternFocus } from "../hooks/usePatternFocus";
 import type { PositionSnapshot } from "../hooks/usePositionHistory";
@@ -319,6 +319,7 @@ function useCanvasActions(opts: {
   setSelectedPersonId: (id: string | null) => void;
   panels: {
     setPatternPanelOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+    setInitialSection: (section: PersonDetailSection) => void;
   };
   screenToFlowPosition: ReturnType<typeof useReactFlow>["screenToFlowPosition"];
   pushPositionSnapshot: (snapshot: PositionSnapshot) => void;
@@ -416,6 +417,8 @@ function useCanvasActions(opts: {
     mutations.createPerson.mutate(newPerson, {
       onSuccess: (response) => {
         setSelectedPersonId(response.id);
+        // A new person opens on their details so they can be named straight away.
+        panels.setInitialSection("person");
         panels.setPatternPanelOpen(false);
         if (canvasSettings.promptRelationship && persons.size > 0) {
           dispatchCanvas({ type: "SET_RELATIONSHIP_PROMPT", personId: response.id });
@@ -472,6 +475,7 @@ function useCanvasActions(opts: {
         await mutations.bulkCreateRelationships.mutateAsync(plan.relationships);
       }
       setSelectedPersonId(created.id);
+      panels.setInitialSection("person");
       panels.setPatternPanelOpen(false);
     } catch {
       // Mutation errors surface through the mutation's own error handling; the
@@ -1258,6 +1262,8 @@ function TreeWorkspaceInner() {
           onOpenSiblingGroup={(groupId) =>
             dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: groupId })
           }
+          focusedPatternId={focusedPatternId}
+          onFocusPattern={setFocusedPatternId}
         />
 
         {openSiblingGroup && (

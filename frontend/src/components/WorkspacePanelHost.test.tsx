@@ -252,7 +252,7 @@ describe("WorkspacePanelHost", () => {
         showReflectionPrompts={false}
       />,
     );
-    const closeBtn = container.querySelector(".panel-close");
+    const closeBtn = container.querySelector(".person-page__close");
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
     expect(setSelectedPersonId).toHaveBeenCalledWith(null);

@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
-import { getTraumaColor } from "../../lib/traumaColors";
 import type { TraumaEvent } from "../../types/domain";
 import { TraumaCategory } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
@@ -9,91 +7,9 @@ import { blurOnEnter } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
-import { EditSubPanel } from "./EditSubPanel";
-import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
 
-interface TraumaEventsTabProps {
-  person: DecryptedPerson;
-  events: DecryptedEvent[];
-  allPersons: Map<string, DecryptedPerson>;
-  onSaveEvent: (
-    eventId: string | null,
-    data: TraumaEvent,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteEvent: (eventId: string) => void;
-  initialEditId?: string;
-}
-
-export function TraumaEventsTab({
-  person,
-  events,
-  allPersons,
-  onSaveEvent,
-  onDeleteEvent,
-  initialEditId,
-}: TraumaEventsTabProps) {
-  const { t } = useTranslation();
-  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
-    useEditingState(initialEditId);
-
-  if (isEditing) {
-    const event = editingId ? (events.find((e) => e.id === editingId) ?? null) : null;
-    return (
-      <EditSubPanel
-        title={editingId ? (event?.title ?? t("trauma.editEvent")) : t("trauma.newEvent")}
-        onBack={clearEditing}
-        closeLabel={editingId ? t("common.close") : undefined}
-      >
-        <EventForm
-          key={editingId ?? "new"}
-          event={event}
-          allPersons={allPersons}
-          initialPersonIds={event?.person_ids ?? [person.id]}
-          onSave={(data, personIds) => {
-            const result = onSaveEvent(editingId, data, personIds);
-            if (!editingId) clearEditing();
-            return result;
-          }}
-          onDelete={
-            editingId
-              ? () => {
-                  onDeleteEvent(editingId);
-                  setEditingId(null);
-                }
-              : undefined
-          }
-        />
-      </EditSubPanel>
-    );
-  }
-
-  return (
-    <>
-      {events.map((event) => (
-        <EventCard
-          key={event.id}
-          title={event.title}
-          approximateDate={event.approximate_date}
-          categoryLabel={t(`trauma.category.${event.category}`)}
-          color={getTraumaColor(event.category)}
-          barValue={event.severity}
-          onClick={() => setEditingId(event.id)}
-        />
-      ))}
-      <button
-        type="button"
-        className="btn detail-panel__btn--secondary"
-        onClick={() => setShowNew(true)}
-      >
-        {t("trauma.newEvent")}
-      </button>
-    </>
-  );
-}
-
-interface EventFormProps {
+export interface TraumaEventFormProps {
   event: DecryptedEvent | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
@@ -129,7 +45,13 @@ function buildEventData(draft: EventDraft): { data: TraumaEvent; personIds: stri
   };
 }
 
-function EventForm({ event, allPersons, initialPersonIds, onSave, onDelete }: EventFormProps) {
+export function TraumaEventForm({
+  event,
+  allPersons,
+  initialPersonIds,
+  onSave,
+  onDelete,
+}: TraumaEventFormProps) {
   const { t } = useTranslation();
   const report = useSaveReporter();
 

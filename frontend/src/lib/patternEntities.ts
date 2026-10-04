@@ -40,7 +40,11 @@ interface ResolvedEntity {
   personId: string;
 }
 
-function classificationLabel(cls: DecryptedClassification, t: (key: string) => string): string {
+/** Subcategory label when present, otherwise the category label. */
+export function classificationLabel(
+  cls: Pick<DecryptedClassification, "dsm_category" | "dsm_subcategory">,
+  t: (key: string) => string,
+): string {
   return cls.dsm_subcategory ? t(`dsm.sub.${cls.dsm_subcategory}`) : t(`dsm.${cls.dsm_category}`);
 }
 

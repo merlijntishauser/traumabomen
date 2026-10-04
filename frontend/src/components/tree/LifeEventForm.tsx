@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useEditingState } from "../../hooks/useEditingState";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
-import { getLifeEventColor } from "../../lib/lifeEventColors";
 import type { LifeEvent } from "../../types/domain";
 import { LifeEventCategory } from "../../types/domain";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
@@ -9,24 +7,9 @@ import { blurOnEnter } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
-import { EditSubPanel } from "./EditSubPanel";
-import { EventCard } from "./EventCard";
 import { PersonLinkField } from "./PersonLinkField";
 
-interface LifeEventsTabProps {
-  person: DecryptedPerson;
-  lifeEvents: DecryptedLifeEvent[];
-  allPersons: Map<string, DecryptedPerson>;
-  onSaveLifeEvent: (
-    lifeEventId: string | null,
-    data: LifeEvent,
-    personIds: string[],
-  ) => Promise<unknown> | undefined;
-  onDeleteLifeEvent: (lifeEventId: string) => void;
-  initialEditId?: string;
-}
-
-interface LifeEventFormProps {
+export interface LifeEventFormProps {
   event: DecryptedLifeEvent | null;
   allPersons: Map<string, DecryptedPerson>;
   initialPersonIds: string[];
@@ -64,7 +47,7 @@ function buildLifeEventData(
   };
 }
 
-function LifeEventForm({
+export function LifeEventForm({
   event,
   allPersons,
   initialPersonIds,
@@ -196,74 +179,6 @@ function LifeEventForm({
           </div>
         )
       )}
-    </>
-  );
-}
-
-export function LifeEventsTab({
-  person,
-  lifeEvents,
-  allPersons,
-  onSaveLifeEvent,
-  onDeleteLifeEvent,
-  initialEditId,
-}: LifeEventsTabProps) {
-  const { t } = useTranslation();
-  const { editingId, setEditingId, isEditing, setShowNew, clearEditing } =
-    useEditingState(initialEditId);
-
-  if (isEditing) {
-    const event = editingId ? (lifeEvents.find((e) => e.id === editingId) ?? null) : null;
-    return (
-      <EditSubPanel
-        title={editingId ? (event?.title ?? t("lifeEvent.editEvent")) : t("lifeEvent.newEvent")}
-        onBack={clearEditing}
-        closeLabel={editingId ? t("common.close") : undefined}
-      >
-        <LifeEventForm
-          key={editingId ?? "new"}
-          event={event}
-          allPersons={allPersons}
-          initialPersonIds={event?.person_ids ?? [person.id]}
-          onSave={(data, personIds) => {
-            const result = onSaveLifeEvent(editingId, data, personIds);
-            if (!editingId) clearEditing();
-            return result;
-          }}
-          onDelete={
-            editingId
-              ? () => {
-                  onDeleteLifeEvent(editingId);
-                  setEditingId(null);
-                }
-              : undefined
-          }
-        />
-      </EditSubPanel>
-    );
-  }
-
-  return (
-    <>
-      {lifeEvents.map((event) => (
-        <EventCard
-          key={event.id}
-          title={event.title}
-          approximateDate={event.approximate_date}
-          categoryLabel={t(`lifeEvent.category.${event.category}`)}
-          color={getLifeEventColor(event.category)}
-          barValue={event.impact}
-          dotStyle={{ borderRadius: 2 }}
-          onClick={() => setEditingId(event.id)}
-        />
-      ))}
-      <button
-        type="button"
-        className="btn detail-panel__btn--secondary"
-        onClick={() => setShowNew(true)}
-      >
-        {t("lifeEvent.newEvent")}
-      </button>
     </>
   );
 }

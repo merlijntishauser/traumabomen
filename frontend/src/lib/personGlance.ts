@@ -47,7 +47,7 @@ const PARENT_TYPES = new Set<RelationshipType>([
 
 function partnerRole(rel: DecryptedRelationship): GlanceRole {
   if (rel.periods.length === 0) return "partnerOf";
-  const latest = [...rel.periods].sort((a, b) => a.start_year - b.start_year).at(-1);
+  const latest = rel.periods.toSorted((a, b) => a.start_year - b.start_year).at(-1);
   if (!latest || latest.end_year != null) return "formerPartnerOf";
   if (latest.status === PartnerStatus.Separated || latest.status === PartnerStatus.Divorced) {
     return "formerPartnerOf";

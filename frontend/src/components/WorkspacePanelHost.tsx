@@ -21,6 +21,8 @@ interface WorkspacePanelHostProps {
   siblingGroup?: DecryptedSiblingGroup | null;
   onCreateSiblingGroup?: () => void;
   onOpenSiblingGroup?: (groupId: string) => void;
+  focusedPatternId?: string | null;
+  onFocusPattern?: (patternId: string | null) => void;
 }
 
 export function WorkspacePanelHost({
@@ -38,6 +40,8 @@ export function WorkspacePanelHost({
   siblingGroup,
   onCreateSiblingGroup,
   onOpenSiblingGroup,
+  focusedPatternId,
+  onFocusPattern,
 }: WorkspacePanelHostProps) {
   const { persons, events, lifeEvents, turningPoints, classifications, patterns, journalEntries } =
     treeData;
@@ -81,6 +85,10 @@ export function WorkspacePanelHost({
           siblingGroup={siblingGroup}
           onCreateSiblingGroup={onCreateSiblingGroup}
           onOpenSiblingGroup={onOpenSiblingGroup}
+          onSelectPerson={panels.setSelectedPersonId}
+          patterns={Array.from(patterns.values())}
+          focusedPatternId={focusedPatternId}
+          onFocusPattern={onFocusPattern}
         />
       )}
 
