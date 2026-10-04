@@ -351,7 +351,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
 - `<ThemeToggle>` —Toolbar button switching between the dark and light themes. Shows the icon of the theme it switches to: Sun while dark, Moon while light.
-- `<JournalView>` —Journal entries page with entry list, create/edit/delete, linked turning points.
+- `<JournalPage>` —The journal as a writing desk: the entry form's `sheet` variant (one open question, a roomy page) in the left column, `<JournalMargin>` of earlier entries on the right, and `<JournalReader>` to reread one. Excerpts and dates come from `lib/journalExcerpt.ts`. The workspace's `<JournalPanel>` keeps the compact list and form.
 - `<InsightsView>` —Personal insights summary page with aggregated tree statistics.
 
 ### Relationship Visual Styles
