@@ -281,7 +281,8 @@ Quiet and steady: labels in bold Lato at a small size, corners of 6 to 8px, and 
 - **Labels:** 13px weight 500 in the secondary text color, 4px above the field.
 
 ### Navigation
-- **Workspace toolbar:** Surface background, bottom border, a soft drop shadow, and a 3px gradient line from accent to transparent along the bottom edge. Buttons are uniform at 32px. The theme toggle cycles dark and light with Lucide Moon and Sun icons.
+- **Workspace header:** Surface background, bottom border, a soft drop shadow, and a 3px gradient line from accent to transparent along the bottom edge. It holds the tree name in the voice face (weight 300), the view tabs as quiet text tabs (the active one on the raised surface), a muted "Encrypted on this device" note, and the account controls. Header buttons are uniform at 32px. Canvas tools never live here.
+- **Workspace rail:** a 56px column on the canvas's left edge, Surface background with a right border, holding the canvas tools as 40px icon buttons in two groups split by a hairline: building (add person, auto-layout, undo), then reflecting (pattern focus, journal). Labels show as tooltips to the right; a pressed tool takes the action-subtle background. The pattern menu opens beside the rail. Below 760px the rail runs along the bottom instead.
 - **Links:** action color with no underline, moving to the action hover color.
 - **iOS:** native tab bar and navigation stack, tinted with the action color.
 
@@ -290,6 +291,9 @@ A 180 by 80px card on the canvas with a node-surface background, a 2px node bord
 
 ### Side Panel (signature)
 A 400px solid overlay on the right edge of the workspace with a left border and a large shadow, sliding in over 0.25s ease-out. The header row holds a voice-face title and a matched 34px action and close pair. Fields autosave on blur or change, and a quiet "saved" whisper appears in the header to confirm.
+
+### Person Page (signature)
+The person's side panel reads as a margin page in a family notebook, not a tabbed form. Top to bottom: the name in the voice face (weight 300, 1.35rem); the years; a glance sentence naming who they are to others ("Married to Hendrik. Mother of Pieter and Anna."), each name a link to that person's page; their patterns as chips with a short stroke swatch (never a circle). Then the lifeline: a year column with ages, a 2px spine, and every trauma event, life event, classification, and turning point on one line in year order, each marked with its badge shape and category color. Fifteen or more years without an entry show as a dashed stretch that names the silence and offers to add something; undated entries sit below the line. Opening an entry expands its form in place under the row; new entries come from an "Add to [name]'s life" menu. Hovering an entry rings the matching badge on the canvas and the nodes of anyone else it involves. A reflection prompt in the voice face leads to the journal, and relationships and the person's own details fold away at the bottom.
 
 ### Atmosphere (signature)
 The background wash plus noise, the procedural contour lines rising from a random canvas corner (marching squares over gaussian hills, regenerated on each load), and the ambient particle layer over hero photography (fireflies in dark, warm light motes in light). The particles run on a hand-rolled 2D canvas at about 30fps, pause on hidden tabs, and switch off entirely under reduced motion. iOS recreates the wash and particles natively.

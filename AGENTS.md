@@ -337,7 +337,8 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<OnboardingGuard>` —Shows safety acknowledgment modal on first login. Syncs with server-side flag via `PUT /auth/onboarding`.
 - `<TreeWorkspacePage>` —React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
 - `<PersonNode>` —Custom React Flow node. Name, years, adoption icon. Badges: circles (trauma events), squares (life events), triangles (classifications).
-- `<PersonDetailPanel>` —Slide-out quiet inspector. Edit person fields, relationships, trauma events, life events, classifications. Fields autosave on blur/change (encrypt-then-save per commit); a saved whisper in the header confirms; creating sub-entities uses an explicit Add.
+- `<WorkspaceRail>` —The canvas tools in a left-edge rail (bottom bar on narrow screens): add person, auto-layout, undo, pattern focus, journal.
+- `<PersonDetailPanel>` —The person page: a margin page beside the canvas. Glance sentence of relationships (names link to that person), pattern chips, and `<PersonLifeline>`: every trauma event, life event, classification and turning point on one year-ordered line with long silences named, each opening its form in place. Relationships and person fields fold away at the bottom. Fields autosave on blur/change (encrypt-then-save per commit); a saved whisper in the header confirms; creating entries uses an explicit Add. Ordering and glance rules live in `lib/lifeline.ts` and `lib/personGlance.ts`.
 - `<RelationshipDetailPanel>` —Panel for editing relationship details and periods.
 - `<PatternPanel>` —Inline panel in tree workspace for pattern CRUD: create/edit/delete patterns, link entities (trauma events, life events, classifications), color picker, visibility toggle.
 - `<PatternView>` —Dedicated page showing pattern cards with linked entities, generation span, and detail expansion.
@@ -400,7 +401,7 @@ Tests are split into two tiers with strict naming. The `vitest.config.ts` `proje
 
 ### Integration Tests (Vitest, `*.test.ts` / `*.test.tsx`)
 - PersonNode rendering (adopted, trauma badges, various states)
-- PersonDetailPanel CRUD flows
+- PersonDetailPanel lifeline, in-place editing and add flows
 - Relationship period editor (add/remove periods)
 - Hook state transitions (useTreeData, useLockScreen, useCanvasSettings)
 - Tested against decrypted in-memory state, no crypto in component tests
