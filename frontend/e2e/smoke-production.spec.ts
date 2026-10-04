@@ -85,9 +85,10 @@ async function deleteTreesNamed(page: Page, text: string): Promise<void> {
   await gotoTreeList(page);
   // Wait for either the populated list or the empty state before counting.
   await expect(
-    page.locator('.tree-list, [data-testid="first-tree-welcome"]').first(),
+    page.locator('.tree-band, [data-testid="first-tree-welcome"]').first(),
   ).toBeVisible();
-  const items = page.locator(".tree-list li").filter({ hasText: text });
+  // The latest tree sits in the band, the rest in the list below it.
+  const items = page.locator(".tree-band, .tree-list li").filter({ hasText: text });
   // Guard-bounded loop so a stuck delete fails fast instead of hanging.
   for (let guard = 0; guard < 60; guard++) {
     const before = await items.count();
@@ -137,7 +138,8 @@ test.describe("Production smoke", () => {
     // Full crypto round-trip: a fresh session must decrypt the stored data.
     await logout(page);
     await loginAndUnlockResilient(page, EMAIL, CREDENTIALS);
-    await page.locator(".tree-list-item__link").filter({ hasText: treeName }).click();
+    // The tree just made is the latest one, drawn in the band.
+    await page.locator(".tree-band").filter({ hasText: treeName }).getByRole("link", { name: /^open tree$/i }).click();
     await page.waitForURL("**/trees/*");
     await expect(page.locator(".react-flow__node").filter({ hasText: "Alice" })).toBeAttached({
       timeout: COLD,

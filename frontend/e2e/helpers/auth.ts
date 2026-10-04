@@ -113,14 +113,14 @@ export async function loginAndUnlock(
   await unlock(page, credentials?.passphrase);
 }
 
-/** Click "Create tree", fill name, submit, wait for workspace URL. */
+/** Start a new tree, fill its name, submit, wait for the workspace URL. */
 export async function createTree(
   page: Page,
   name = "Test Tree",
 ): Promise<void> {
   // An empty list offers "Create your first tree"; once trees exist the
-  // toolbar offers "Create tree". Exactly one of them is visible.
-  await page.getByRole("button", { name: /^create (your first )?tree$/i }).click();
+  // page offers "Start a new tree" below them. Exactly one is visible.
+  await page.getByRole("button", { name: /^(create (your first )?tree|start a new tree)$/i }).click();
   // Fill the tree name in the inline form
   await page.getByRole("textbox", { name: /name this tree/i }).fill(name);
   // Submit via the form's "Create tree" button

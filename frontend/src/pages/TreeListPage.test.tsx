@@ -57,6 +57,24 @@ vi.mock("../contexts/useEncryption", () => ({
   }),
 }));
 
+// The threshold band decrypts the latest tree; here it draws from empty data.
+vi.mock("../hooks/useTreeData", () => ({
+  useTreeData: () => ({
+    persons: new Map(),
+    relationships: new Map(),
+    events: new Map(),
+    lifeEvents: new Map(),
+    turningPoints: new Map(),
+    classifications: new Map(),
+    siblingGroups: new Map(),
+    isLoading: false,
+  }),
+}));
+
+vi.mock("../hooks/useTreeLayout", () => ({
+  useTreeLayout: () => ({ nodes: [], edges: [] }),
+}));
+
 vi.mock("../hooks/useLogout", () => ({
   useLogout: () => vi.fn(),
 }));
@@ -144,11 +162,11 @@ describe("TreeListPage first-tree empty state", () => {
     expect(screen.getByRole("button", { name: "firstTree.exploreDemo" })).toBeInTheDocument();
   });
 
-  it("hides the toolbar create and demo buttons while the list is empty", () => {
+  it("keeps the start actions out of the way while the list is empty", () => {
     mockQueryReturn = { data: [], isLoading: false };
     renderPage();
-    expect(screen.queryByRole("button", { name: "tree.create" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "demo.createButton" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "treeList.startNew" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "treeList.exploreDemo" })).not.toBeInTheDocument();
   });
 
   it("shows the create form inside the welcome after choosing to create", () => {
@@ -175,18 +193,18 @@ describe("TreeListPage first-tree empty state", () => {
     expect(screen.getByText("common.loading")).toBeInTheDocument();
   });
 
-  it("retires the welcome and shows toolbar actions once a tree exists", () => {
+  it("retires the welcome and offers a new tree below once a tree exists", () => {
     mockQueryReturn = {
       data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
     expect(screen.queryByTestId("first-tree-welcome")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "tree.create" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "treeList.startNew" })).toBeInTheDocument();
   });
 });
 
-describe("TreeListPage continue card", () => {
+describe("TreeListPage threshold", () => {
   function tree(id: string, updated_at: string, person_count = 1) {
     return {
       id,
@@ -199,32 +217,14 @@ describe("TreeListPage continue card", () => {
     };
   }
 
-  it("is hidden with a single tree, which the list already shows", () => {
+  it("draws a single tree in the band, with no list of others", () => {
     mockQueryReturn = { data: [tree("a", "2026-01-01T00:00:00Z")], isLoading: false };
     render(<TreeListPage />);
-    expect(screen.queryByText("tree.continue")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Tree a" })).toBeInTheDocument();
+    expect(screen.queryByText("treeList.otherTrees")).not.toBeInTheDocument();
   });
 
-  it("features the most recently tended tree when there are several", () => {
-    mockQueryReturn = {
-      data: [tree("a", "2026-01-01T00:00:00Z"), tree("b", "2026-03-01T00:00:00Z")],
-      isLoading: false,
-    };
-    const { container } = render(<TreeListPage />);
-    expect(container.querySelector(".tree-continue__name")?.textContent).toBe("Tree b");
-  });
-
-  it("points an unstarted tree at the canvas instead of a journal prompt", () => {
-    mockQueryReturn = {
-      data: [tree("a", "2026-01-01T00:00:00Z"), tree("b", "2026-03-01T00:00:00Z", 0)],
-      isLoading: false,
-    };
-    render(<TreeListPage />);
-    const link = screen.getByText("tree.startWithYourself");
-    expect(link.getAttribute("href")).not.toContain("/journal");
-  });
-
-  it("lists trees most recently tended first", () => {
+  it("features the most recently tended tree and lists the others below", () => {
     mockQueryReturn = {
       data: [
         tree("a", "2026-01-01T00:00:00Z"),
@@ -234,10 +234,39 @@ describe("TreeListPage continue card", () => {
       isLoading: false,
     };
     const { container } = render(<TreeListPage />);
+    expect(screen.getByRole("heading", { level: 2, name: "Tree b" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "treeList.otherTrees" }),
+    ).toBeInTheDocument();
     const names = [...container.querySelectorAll(".tree-list-item__name")].map((n) =>
       n.textContent?.trim(),
     );
-    expect(names).toEqual(["Tree b", "Tree c", "Tree a"]);
+    expect(names).toEqual(["Tree c", "Tree a"]);
+  });
+
+  it("offers a journal prompt for a tree with people in it", () => {
+    mockQueryReturn = { data: [tree("a", "2026-01-01T00:00:00Z")], isLoading: false };
+    render(<TreeListPage />);
+    expect(screen.getByText("treeList.writeAboutIt").closest("a")).toHaveAttribute(
+      "href",
+      "/trees/a/journal",
+    );
+  });
+
+  it("points an unstarted tree at its first person instead of the journal", () => {
+    mockQueryReturn = { data: [tree("a", "2026-01-01T00:00:00Z", 0)], isLoading: false };
+    render(<TreeListPage />);
+    expect(screen.getByText("treeList.firstPersonHint")).toBeInTheDocument();
+    expect(screen.queryByText("treeList.writeAboutIt")).not.toBeInTheDocument();
+  });
+
+  it("keeps a renamed tree's form in the band", () => {
+    mockQueryReturn = { data: [tree("a", "2026-01-01T00:00:00Z")], isLoading: false };
+    const { container } = render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "tree.rename" }));
+    expect(container.querySelector(".tree-band .tree-list-item__edit")).not.toBeNull();
+    expect(screen.queryByRole("heading", { level: 2, name: "Tree a" })).not.toBeInTheDocument();
   });
 });
 
@@ -251,13 +280,15 @@ describe("TreeListPage demo tree", () => {
     return render(<TreeListPage />);
   }
 
-  it("offers the demo tree from the toolbar once trees exist", () => {
+  it("offers the demo tree below the trees once trees exist", () => {
     mockQueryReturn = {
       data: [{ id: "tree-1", name: "My Tree", is_demo: false }],
       isLoading: false,
     };
     renderPage();
-    expect(screen.getByRole("button", { name: "demo.createButton" })).toBeInTheDocument();
+    mockMutate.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "treeList.exploreDemo" }));
+    expect(mockMutate).toHaveBeenCalledTimes(1);
   });
 
   it("shows demo badge on demo trees", () => {
@@ -365,14 +396,14 @@ describe("TreeListPage accessibility", () => {
   it("focuses the name field when creating and returns focus on cancel", () => {
     mockQueryReturn = oneTree;
     render(<TreeListPage />);
-    fireEvent.click(screen.getByRole("button", { name: "tree.create" }));
+    fireEvent.click(screen.getByRole("button", { name: "treeList.startNew" }));
     const field = screen.getByRole("textbox", { name: "tree.nameLabel" });
     expect(document.activeElement).toBe(field);
     expect(field).toHaveAttribute("placeholder", "tree.nameExample");
     expect(field).toHaveAccessibleDescription("tree.nameHint");
 
     fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: "tree.create" }));
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "treeList.startNew" }));
   });
 
   it("focuses the rename field when editing a tree", () => {

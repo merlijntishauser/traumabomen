@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, LogOut, Upload } from "lucide-react";
+import { AlertTriangle, LogOut, Plus, Upload } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
+import { LatestTreeBand } from "../components/LatestTreeBand";
 import { Logomark } from "../components/Logomark";
 import { TreeRowMenu } from "../components/TreeRowMenu";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
@@ -36,35 +37,6 @@ interface DecryptedTree {
   updated_at: string;
   /** Decryption failed; `name` holds a placeholder, not the tree's name. */
   unreadable?: boolean;
-}
-
-/** Front-porch hero: the most recently tended tree plus one open question. */
-function ContinueCard({
-  tree,
-  metaLine,
-  prompt,
-}: {
-  tree: { id: string; name: string; person_count: number };
-  metaLine: string;
-  prompt: string;
-}) {
-  const { t } = useTranslation();
-  const treePath = `/trees/${uuidToCompact(tree.id)}`;
-  // A journal prompt about ancestors means little in a tree with nobody in
-  // it yet; point at the canvas instead.
-  const started = tree.person_count > 0;
-  return (
-    <div className="tree-continue">
-      <h2 className="tree-continue__label">{t("tree.continue")}</h2>
-      <Link className="tree-continue__link" to={treePath}>
-        <span className="tree-continue__name">{tree.name}</span>
-        <span className="tree-continue__meta">{metaLine}</span>
-      </Link>
-      <Link className="tree-continue__prompt" to={started ? `${treePath}/journal` : treePath}>
-        {started ? prompt : t("tree.startWithYourself")}
-      </Link>
-    </div>
-  );
 }
 
 /* -- Local state ----------------------------------------------------------- */
@@ -331,11 +303,6 @@ function TreeListItemRow({
 }
 
 function TreeListToolbar({
-  showCreateActions,
-  demoMutationPending,
-  onDemoCreate,
-  createDisabled,
-  onStartCreating,
   importing,
   onImportClick,
   fileInputRef,
@@ -343,12 +310,6 @@ function TreeListToolbar({
   viewTab,
   onLogout,
 }: {
-  /** Hidden while the list is empty: the empty state carries the one way in. */
-  showCreateActions: boolean;
-  demoMutationPending: boolean;
-  onDemoCreate: () => void;
-  createDisabled: boolean;
-  onStartCreating: () => void;
   importing: boolean;
   onImportClick: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -361,27 +322,6 @@ function TreeListToolbar({
     <div className="tree-toolbar">
       <h1 className="tree-toolbar__title">{t("tree.myTrees")}</h1>
       <div className="tree-toolbar__spacer" />
-      {showCreateActions && (
-        <>
-          <button
-            type="button"
-            className="tree-toolbar__btn"
-            onClick={onDemoCreate}
-            disabled={demoMutationPending}
-          >
-            {demoMutationPending ? t("demo.creating") : t("demo.createButton")}
-          </button>
-          <button
-            type="button"
-            className="tree-toolbar__btn tree-toolbar__btn--primary"
-            data-create-trigger
-            onClick={onStartCreating}
-            disabled={createDisabled}
-          >
-            {t("tree.create")}
-          </button>
-        </>
-      )}
       <button
         type="button"
         className="tree-toolbar__icon-btn"
@@ -532,10 +472,10 @@ export default function TreeListPage() {
   const isEmpty = treesQuery.data !== undefined && trees.length === 0;
   const demoTreeCount = trees.filter((t) => t.is_demo).length;
 
-  // Front porch: the most recently tended tree and one open question per
-  // visit. With a single tree the list already says everything, so the
-  // porch only appears once there is a choice to make.
-  const mostRecent = trees.length >= 2 ? (trees.find((tree) => !tree.unreadable) ?? null) : null;
+  // The threshold: the most recently tended readable tree, drawn large. The
+  // rest sit below it as rows.
+  const latest = trees.find((tree) => !tree.unreadable) ?? null;
+  const otherTrees = latest ? trees.filter((tree) => tree.id !== latest.id) : trees;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
   const { createMutation, demoMutation, renameMutation, deleteMutation } = useTreeListMutations({
@@ -583,6 +523,25 @@ export default function TreeListPage() {
     }
   }
 
+  function rowProps(tree: DecryptedTree) {
+    return {
+      tree,
+      editingId: state.editingId,
+      editName: state.editName,
+      deletingId: state.deletingId,
+      renamePending: renameMutation.isPending,
+      deletePending: deleteMutation.isPending,
+      onEditNameChange: (name: string) => dispatch({ type: "SET_EDIT_NAME", name }),
+      onRenameSubmit: handleRenameSubmit,
+      onStartEditing: (row: { id: string; name: string }) =>
+        dispatch({ type: "START_EDITING", id: row.id, name: row.name }),
+      onCancelEdit: () => dispatch({ type: "CANCEL_EDIT" }),
+      onConfirmDelete: (id: string) => dispatch({ type: "SET_DELETING", id }),
+      onCancelDelete: () => dispatch({ type: "SET_DELETING", id: null }),
+      onDelete: (id: string) => deleteMutation.mutate(id),
+    };
+  }
+
   const createForm = state.creating ? (
     <CreateTreeForm
       name={state.newName}
@@ -600,11 +559,6 @@ export default function TreeListPage() {
           {t("tree.skipToTrees")}
         </a>
         <TreeListToolbar
-          showCreateActions={!isEmpty}
-          demoMutationPending={demoMutation.isPending}
-          onDemoCreate={handleDemoCreate}
-          createDisabled={state.creating || createMutation.isPending}
-          onStartCreating={() => dispatch({ type: "START_CREATING" })}
           importing={state.importing}
           onImportClick={() => fileInputRef.current?.click()}
           fileInputRef={fileInputRef}
@@ -614,7 +568,7 @@ export default function TreeListPage() {
         />
 
         <div className="tree-list-content" id="tree-list-content" tabIndex={-1}>
-          {isEmpty ? (
+          {isEmpty && (
             <FirstTreeWelcome
               onCreateTree={() => dispatch({ type: "START_CREATING" })}
               onDemoCreate={handleDemoCreate}
@@ -623,8 +577,6 @@ export default function TreeListPage() {
               demoPending={demoMutation.isPending}
               createForm={createForm}
             />
-          ) : (
-            createForm
           )}
 
           {state.showDemoLimit && demoTreeCount >= MAX_DEMO_TREES && (
@@ -645,38 +597,60 @@ export default function TreeListPage() {
 
           {treesQuery.isLoading && <p className="tree-list-loading">{t("common.loading")}</p>}
 
-          {mostRecent && (
-            <ContinueCard
-              tree={mostRecent}
-              metaLine={buildTreeMetaLine(mostRecent, t, i18n.language)}
+          {latest && (
+            <LatestTreeBand
+              tree={latest}
+              metaLine={buildTreeMetaLine(latest, t, i18n.language)}
               prompt={journalPromptText(t, promptIndex)}
-            />
+              onRename={() => dispatch({ type: "START_EDITING", id: latest.id, name: latest.name })}
+              onDelete={() => dispatch({ type: "SET_DELETING", id: latest.id })}
+            >
+              {(state.editingId === latest.id || state.deletingId === latest.id) && (
+                <TreeListItemRow {...rowProps(latest)} />
+              )}
+            </LatestTreeBand>
           )}
 
-          {trees.length > 0 && (
-            <ul className="tree-list">
-              {trees.map((tree) => (
-                <li key={tree.id}>
-                  <TreeListItemRow
-                    tree={tree}
-                    editingId={state.editingId}
-                    editName={state.editName}
-                    deletingId={state.deletingId}
-                    renamePending={renameMutation.isPending}
-                    deletePending={deleteMutation.isPending}
-                    onEditNameChange={(name) => dispatch({ type: "SET_EDIT_NAME", name })}
-                    onRenameSubmit={handleRenameSubmit}
-                    onStartEditing={(tree) =>
-                      dispatch({ type: "START_EDITING", id: tree.id, name: tree.name })
-                    }
-                    onCancelEdit={() => dispatch({ type: "CANCEL_EDIT" })}
-                    onConfirmDelete={(id) => dispatch({ type: "SET_DELETING", id })}
-                    onCancelDelete={() => dispatch({ type: "SET_DELETING", id: null })}
-                    onDelete={(id) => deleteMutation.mutate(id)}
-                  />
-                </li>
-              ))}
-            </ul>
+          {otherTrees.length > 0 && (
+            <section className="tree-list-section" aria-labelledby="other-trees-title">
+              <h2 id="other-trees-title" className="tree-list-section__title">
+                {t("treeList.otherTrees")}
+              </h2>
+              <ul className="tree-list">
+                {otherTrees.map((tree) => (
+                  <li key={tree.id}>
+                    <TreeListItemRow {...rowProps(tree)} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {!isEmpty && treesQuery.data !== undefined && (
+            <div className="tree-list-start">
+              {createForm ?? (
+                <div className="tree-list-start__actions">
+                  <button
+                    type="button"
+                    className="btn"
+                    data-create-trigger
+                    onClick={() => dispatch({ type: "START_CREATING" })}
+                    disabled={createMutation.isPending}
+                  >
+                    <Plus size={15} aria-hidden="true" />
+                    {t("treeList.startNew")}
+                  </button>
+                  <button
+                    type="button"
+                    className="tree-list-start__quiet"
+                    onClick={handleDemoCreate}
+                    disabled={demoMutation.isPending}
+                  >
+                    {demoMutation.isPending ? t("demo.creating") : t("treeList.exploreDemo")}
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -253,7 +253,6 @@
   "tree.nameLabel": "Geef deze boom een naam",
   "tree.nameExample": "Bijvoorbeeld: Mama's kant",
   "tree.nameHint": "De naam wordt op je apparaat versleuteld. Je kunt hem later wijzigen.",
-  "tree.continue": "Ga verder waar je gebleven was",
   "tree.optionsFor": "Opties voor {{name}}",
   "tree.rename": "Naam wijzigen",
   "tree.deleteTree": "Boom verwijderen",
@@ -878,7 +877,6 @@
   "feedback.success": "Bedankt voor je feedback",
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
-  "demo.createButton": "Demoboom aanmaken",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximaal 3 demobomen",
   "demo.limitReachedHint": "Je hebt het maximum van 3 demobomen bereikt. Verwijder er een om een nieuwe aan te maken.",
@@ -1088,5 +1086,12 @@
   "personPage.glance.stepSiblingOf_male": "Stiefbroer van",
   "personPage.glance.friendOf": "Vriend van",
   "tree.tools": "Gereedschap voor de boom",
-  "tree.encryptedHere": "Versleuteld op dit apparaat"
+  "tree.encryptedHere": "Versleuteld op dit apparaat",
+  "treeList.openTree": "Boom openen",
+  "treeList.openNamed": "{{name}} openen",
+  "treeList.writeAboutIt": "Schrijf erover",
+  "treeList.firstPersonHint": "Er staat nog niemand in deze boom. Je kunt met jezelf beginnen, en daarna de mensen met wie je opgroeide.",
+  "treeList.otherTrees": "Andere bomen",
+  "treeList.startNew": "Nieuwe boom beginnen",
+  "treeList.exploreDemo": "Verken een fictieve familie"
 }

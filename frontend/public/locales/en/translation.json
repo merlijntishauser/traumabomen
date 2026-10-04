@@ -253,7 +253,6 @@
   "tree.nameLabel": "Name this tree",
   "tree.nameExample": "For example: Mum's side",
   "tree.nameHint": "The name is encrypted on your device. You can change it later.",
-  "tree.continue": "Continue where you left off",
   "tree.optionsFor": "Options for {{name}}",
   "tree.rename": "Rename",
   "tree.deleteTree": "Delete tree",
@@ -878,7 +877,6 @@
   "feedback.success": "Thank you for your feedback",
   "feedback.charCount": "{{count}} / {{max}}",
   "feedback.button": "Feedback",
-  "demo.createButton": "Create demo tree",
   "demo.badge": "Demo",
   "demo.limitReached": "Maximum 3 demo trees",
   "demo.limitReachedHint": "You have reached the maximum of 3 demo trees. Delete one to create a new one.",
@@ -1088,5 +1086,12 @@
   "personPage.glance.stepSiblingOf_male": "Stepbrother of",
   "personPage.glance.friendOf": "Friend of",
   "tree.tools": "Tree tools",
-  "tree.encryptedHere": "Encrypted on this device"
+  "tree.encryptedHere": "Encrypted on this device",
+  "treeList.openTree": "Open tree",
+  "treeList.openNamed": "Open {{name}}",
+  "treeList.writeAboutIt": "Write about it",
+  "treeList.firstPersonHint": "Nobody is in this tree yet. You could begin with yourself, then the people you grew up with.",
+  "treeList.otherTrees": "Other trees",
+  "treeList.startNew": "Start a new tree",
+  "treeList.exploreDemo": "Explore a fictional family"
 }

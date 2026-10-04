@@ -71,8 +71,8 @@ test.describe("Tree workflow", () => {
     await logout(page);
     await loginAndUnlock(page, email);
 
-    // Navigate to tree via the tree list item link
-    await page.locator(".tree-list-item__link").first().click();
+    // The only tree is the latest one, drawn in the band: open it from there.
+    await page.getByRole("link", { name: /^open tree$/i }).click();
     await page.waitForURL("**/trees/*");
 
     // Verify data persisted

@@ -9,10 +9,10 @@
 .tree-list-content {
   position: relative;
   z-index: 1;
-  max-width: 600px;
+  max-width: 1180px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-8) var(--space-6) var(--space-10);
 }
 
 .tree-list {
@@ -382,72 +382,10 @@
   vertical-align: middle;
 }
 
-/* Front-porch hero: continue where you left off, plus one open question */
-.tree-continue {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin-bottom: var(--space-5);
-}
-
-.tree-continue__label {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--color-text-secondary);
-}
-
-.tree-continue__link {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-0\.5);
-  padding: var(--space-4);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  transition: var(--transition-colors);
-}
-
-.tree-continue__link:hover {
-  border-color: var(--color-action);
-}
-
-.tree-continue__name {
-  font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: 20px;
-  color: var(--color-text-primary);
-  transition: var(--transition-colors);
-}
-
-.tree-continue__link:hover .tree-continue__name {
-  color: var(--color-action);
-}
-
 /* "My trees" is the page's h1; keep the toolbar title's compact look. */
 .tree-list-page h1.tree-toolbar__title {
   font-weight: 400;
   line-height: 1.5;
-}
-
-.tree-continue__meta {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.tree-continue__prompt {
-  padding: var(--space-2) var(--space-1);
-  font-size: 13px;
-  font-style: italic;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  transition: var(--transition-colors);
-}
-
-.tree-continue__prompt:hover {
-  color: var(--color-text-secondary);
 }
 
 /* Phones: the title never truncates and toolbar labels stay on one line.
@@ -472,4 +410,287 @@
   .tree-list-create {
     padding: var(--space-4);
   }
+}
+
+/* ------------------------------------------------------------------
+   The threshold: the most recently tended tree drawn as it sits on the
+   canvas, beside its name, one open question, and the way back in.
+   ------------------------------------------------------------------ */
+
+.tree-band {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: var(--space-10);
+  align-items: center;
+}
+
+.tree-band__preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(300px, calc(100vh - 380px), 560px);
+  padding: var(--space-6);
+  background: var(--color-bg-canvas);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transition: var(--transition-colors);
+}
+
+.tree-band__preview:hover {
+  border-color: var(--color-action-border);
+}
+
+.tree-band__svg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.tree-band__loading,
+.tree-band__empty {
+  position: relative;
+  z-index: 2;
+}
+
+.tree-band__node {
+  fill: var(--color-node-bg);
+  stroke: var(--color-node-border);
+  stroke-width: 2;
+}
+
+.tree-band__node-top {
+  fill: var(--color-accent);
+}
+
+.tree-band__node-name {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  fill: var(--color-text-primary);
+}
+
+.tree-band__link {
+  fill: none;
+  stroke: var(--color-edge-default);
+  stroke-width: 2.5;
+}
+
+.tree-band__link--partner {
+  stroke: var(--color-edge-partner);
+}
+
+.tree-band__link--formerPartner {
+  stroke: var(--color-edge-partner);
+  stroke-dasharray: 8 8;
+}
+
+.tree-band__link--chosenParent {
+  stroke: var(--color-edge-step);
+  stroke-dasharray: 10 7;
+}
+
+.tree-band__loading {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.tree-band__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tree-band__empty-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 80px;
+  border: 2px dashed var(--color-node-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.tree-band__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.tree-band__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.tree-band__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 200;
+  font-size: 2rem;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.tree-band__text .tree-list-item__demo-badge {
+  margin-top: var(--space-2);
+  margin-left: 0;
+}
+
+.tree-band__meta {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* The band's rename form and delete confirm sit where the name was. */
+.tree-band__text > .tree-list-item__edit,
+.tree-band__text > .tree-list-item__confirm {
+  width: 100%;
+  padding-inline: 0;
+  border-radius: var(--radius-md);
+}
+
+.tree-band__text > .tree-list-item__confirm {
+  padding: var(--space-4);
+}
+
+.tree-band__question {
+  margin: var(--space-8) 0 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-secondary);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+.tree-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.tree-band__open {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding-block: 0;
+  text-decoration: none;
+}
+
+.tree-band__write {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-action);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.tree-band__write:hover {
+  color: var(--color-action-hover);
+}
+
+/* Other trees, below the threshold. */
+.tree-list-section {
+  max-width: 760px;
+  margin-top: var(--space-10);
+}
+
+.tree-list-section__title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+/* Starting something new stays quiet: it is rarer than returning. */
+.tree-list-start {
+  max-width: 760px;
+  margin-top: var(--space-8);
+}
+
+.tree-list-start__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.tree-list-start__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  height: 34px;
+  padding-block: 0;
+}
+
+.tree-list-start__quiet {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.tree-list-start__quiet:hover:not(:disabled) {
+  color: var(--color-action);
+}
+
+.tree-list-start__quiet:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+@media (max-width: 860px) {
+  .tree-band {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .tree-band__preview {
+    height: clamp(220px, 38vh, 320px);
+    padding: var(--space-4);
+  }
+
+  .tree-band__name {
+    font-size: 1.6rem;
+  }
+
+  .tree-band__question {
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+  }
+}
+
+/* Messages, the first-run welcome and forms keep a reading width. */
+.tree-list-content > .first-tree,
+.tree-list-content > .tree-list-limit,
+.tree-list-content > .tree-list-loading {
+  max-width: 600px;
+  margin-inline: auto;
 }
