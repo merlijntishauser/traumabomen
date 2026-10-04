@@ -32,11 +32,12 @@
   box-shadow: var(--shadow-md);
 }
 
+/* The name is written in the voice face, as in a family notebook. */
 .person-node__name {
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
