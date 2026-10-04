@@ -64,3 +64,9 @@ scripts/perf_accounts.json
 loadtests/__pycache__/
 mobile/ios/build/
 mobile/ios/Traumatrees.xcodeproj/
+
+# impeccable scratch output (screenshots, build state, image drafts, per-machine config)
+.impeccable/review/
+.impeccable/build/
+.impeccable/mocks/
+.impeccable/config.local.json
