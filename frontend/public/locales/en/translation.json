@@ -1093,5 +1093,6 @@
   "treeList.firstPersonHint": "Nobody is in this tree yet. You could begin with yourself, then the people you grew up with.",
   "treeList.otherTrees": "Other trees",
   "treeList.startNew": "Start a new tree",
-  "treeList.exploreDemo": "Explore a fictional family"
+  "treeList.exploreDemo": "Explore a fictional family",
+  "treeList.yourTrees": "Your trees"
 }

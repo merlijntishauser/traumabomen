@@ -84,8 +84,10 @@ async function loginAndUnlockResilient(
 async function deleteTreesNamed(page: Page, text: string): Promise<void> {
   await gotoTreeList(page);
   // Wait for either the populated list or the empty state before counting.
+  // Readable trees put the latest in the band; an account with only unreadable
+  // trees shows just the list; an empty account shows the welcome.
   await expect(
-    page.locator('.tree-band, [data-testid="first-tree-welcome"]').first(),
+    page.locator('.tree-band, .tree-list, [data-testid="first-tree-welcome"]').first(),
   ).toBeVisible();
   // The latest tree sits in the band, the rest in the list below it.
   const items = page.locator(".tree-band, .tree-list li").filter({ hasText: text });

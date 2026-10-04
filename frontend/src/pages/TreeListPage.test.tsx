@@ -418,6 +418,20 @@ describe("TreeListPage accessibility", () => {
 });
 
 describe("TreeListPage unreadable trees", () => {
+  it("lists unreadable trees as your trees when none can be drawn", () => {
+    mockQueryReturn = {
+      data: [
+        { id: "tree-1", name: "tree.unreadableName", is_demo: false, unreadable: true } as never,
+      ],
+      isLoading: false,
+    };
+    render(<TreeListPage />);
+    expect(screen.queryByRole("heading", { name: "treeList.otherTrees" })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "treeList.yourTrees" }),
+    ).toBeInTheDocument();
+  });
+
   it("labels a tree that could not be decrypted and offers no rename", () => {
     mockQueryReturn = {
       data: [

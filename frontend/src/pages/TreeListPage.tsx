@@ -614,7 +614,8 @@ export default function TreeListPage() {
           {otherTrees.length > 0 && (
             <section className="tree-list-section" aria-labelledby="other-trees-title">
               <h2 id="other-trees-title" className="tree-list-section__title">
-                {t("treeList.otherTrees")}
+                {/* With no readable tree in the band, these are not "other" trees. */}
+                {t(latest ? "treeList.otherTrees" : "treeList.yourTrees")}
               </h2>
               <ul className="tree-list">
                 {otherTrees.map((tree) => (
