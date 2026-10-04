@@ -19,7 +19,6 @@ import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { CanvasSettingsContent } from "../components/tree/CanvasSettingsContent";
-import { CanvasToolbarButtons } from "../components/tree/CanvasToolbarButtons";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { NodeContextMenuHost } from "../components/tree/NodeContextMenu";
 import { PatternFocusPanel } from "../components/tree/PatternFocusPanel";
@@ -33,6 +32,7 @@ import { RelationshipPrompt } from "../components/tree/RelationshipPrompt";
 import SiblingGroupNode from "../components/tree/SiblingGroupNode";
 import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { WorkspaceRail } from "../components/tree/WorkspaceRail";
 import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
 import { useCanvasSettings } from "../hooks/useCanvasSettings";
 import { useExportTree } from "../hooks/useExportTree";
@@ -1182,8 +1182,15 @@ function TreeWorkspaceInner() {
 
   return (
     <div className="tree-workspace">
-      <TreeToolbar treeId={treeId!} treeName={treeName} activeView="canvas" viewTab={canvasViewTab}>
-        <CanvasToolbarButtons
+      <TreeToolbar
+        treeId={treeId!}
+        treeName={treeName}
+        activeView="canvas"
+        viewTab={canvasViewTab}
+      />
+
+      <div className="tree-workspace__body">
+        <WorkspaceRail
           onAddPerson={actions.handleAddPerson}
           isAddingPerson={mutations.createPerson.isPending}
           onAutoLayout={actions.handleAutoLayout}
@@ -1197,86 +1204,85 @@ function TreeWorkspaceInner() {
           journalPanelOpen={panels.journalPanelOpen}
           onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
         />
-      </TreeToolbar>
+        <div className="tree-canvas-wrapper bg-gradient">
+          {!canvasSettings.showGrid && <ContourDecoration />}
+          {isLoading ? (
+            <div style={{ padding: 20 }}>{t("common.loading")}</div>
+          ) : (
+            <CanvasContent
+              animatingLayout={canvasState.animatingLayout}
+              nodes={displayNodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onNodeClick={canvasEvents.onNodeClick}
+              onNodeContextMenu={canvasEvents.onNodeContextMenu}
+              onNodeDragStart={actions.handleNodeDragStart}
+              onNodeDragStop={actions.handleNodeDragStop}
+              onPaneClick={canvasEvents.onPaneClick}
+              onEdgeClick={canvasEvents.onEdgeClick}
+              onConnect={canvasEvents.onConnect}
+              canvasSettings={canvasSettings}
+              focused={!!focusedPattern}
+              showReflectionPrompts={canvasSettings.showReflectionPrompts}
+              journalPanelOpen={panels.journalPanelOpen}
+              personsSize={persons.size}
+              onAddPerson={actions.handleAddPerson}
+              openJournal={(prompt) => panels.openJournal(prompt)}
+              isLoading={isLoading}
+            />
+          )}
 
-      <div className="tree-canvas-wrapper bg-gradient">
-        {!canvasSettings.showGrid && <ContourDecoration />}
-        {isLoading ? (
-          <div style={{ padding: 20 }}>{t("common.loading")}</div>
-        ) : (
-          <CanvasContent
-            animatingLayout={canvasState.animatingLayout}
-            nodes={displayNodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onNodeClick={canvasEvents.onNodeClick}
-            onNodeContextMenu={canvasEvents.onNodeContextMenu}
-            onNodeDragStart={actions.handleNodeDragStart}
-            onNodeDragStop={actions.handleNodeDragStop}
-            onPaneClick={canvasEvents.onPaneClick}
-            onEdgeClick={canvasEvents.onEdgeClick}
-            onConnect={canvasEvents.onConnect}
-            canvasSettings={canvasSettings}
-            focused={!!focusedPattern}
+          {focusedPattern && focusColor && (
+            <PatternFocusPanel
+              pattern={focusedPattern}
+              color={focusColor}
+              entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
+              onEdit={() => panels.setPatternPanelOpen(true)}
+              onExit={() => setFocusedPatternId(null)}
+            />
+          )}
+
+          {selectedRelationship && (
+            <RelationshipDetailPanel
+              relationship={selectedRelationship}
+              allPersons={persons}
+              onSaveRelationship={actions.handleSaveRelationship}
+              onDeleteRelationship={actions.handleDeleteRelationship}
+              onClose={() => dispatchCanvas({ type: "SELECT_EDGE", id: null })}
+            />
+          )}
+
+          <WorkspacePanelHost
+            panels={panels}
+            handlers={handlers}
+            entities={selectedEntities}
+            treeData={treeData}
+            visiblePatternIds={visiblePatternIds}
+            onTogglePatternVisibility={handleTogglePatternVisibility}
+            initialExpandedPatternId={focusedPatternId ?? openPatternId}
+            initialEntityId={canvasState.initialEntityId ?? undefined}
             showReflectionPrompts={canvasSettings.showReflectionPrompts}
-            journalPanelOpen={panels.journalPanelOpen}
-            personsSize={persons.size}
-            onAddPerson={actions.handleAddPerson}
-            openJournal={(prompt) => panels.openJournal(prompt)}
-            isLoading={isLoading}
+            siblingGroup={selectedPersonSibGroup}
+            onCreateSiblingGroup={() => actions.handleCreateSiblingGroup(selectedPersonId)}
+            onOpenSiblingGroup={(groupId) =>
+              dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: groupId })
+            }
+            focusedPatternId={focusedPatternId}
+            onFocusPattern={setFocusedPatternId}
           />
-        )}
 
-        {focusedPattern && focusColor && (
-          <PatternFocusPanel
-            pattern={focusedPattern}
-            color={focusColor}
-            entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
-            onEdit={() => panels.setPatternPanelOpen(true)}
-            onExit={() => setFocusedPatternId(null)}
-          />
-        )}
-
-        {selectedRelationship && (
-          <RelationshipDetailPanel
-            relationship={selectedRelationship}
-            allPersons={persons}
-            onSaveRelationship={actions.handleSaveRelationship}
-            onDeleteRelationship={actions.handleDeleteRelationship}
-            onClose={() => dispatchCanvas({ type: "SELECT_EDGE", id: null })}
-          />
-        )}
-
-        <WorkspacePanelHost
-          panels={panels}
-          handlers={handlers}
-          entities={selectedEntities}
-          treeData={treeData}
-          visiblePatternIds={visiblePatternIds}
-          onTogglePatternVisibility={handleTogglePatternVisibility}
-          initialExpandedPatternId={focusedPatternId ?? openPatternId}
-          initialEntityId={canvasState.initialEntityId ?? undefined}
-          showReflectionPrompts={canvasSettings.showReflectionPrompts}
-          siblingGroup={selectedPersonSibGroup}
-          onCreateSiblingGroup={() => actions.handleCreateSiblingGroup(selectedPersonId)}
-          onOpenSiblingGroup={(groupId) =>
-            dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: groupId })
-          }
-          focusedPatternId={focusedPatternId}
-          onFocusPattern={setFocusedPatternId}
-        />
-
-        {openSiblingGroup && (
-          <SiblingGroupPanel
-            key={openSiblingGroup.id}
-            group={openSiblingGroup}
-            allPersons={persons}
-            onSave={actions.handleSaveSiblingGroup}
-            onDelete={actions.handleDeleteSiblingGroup}
-            onPromote={actions.handlePromoteMember}
-            onClose={() => dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null })}
-          />
-        )}
+          {openSiblingGroup && (
+            <SiblingGroupPanel
+              key={openSiblingGroup.id}
+              group={openSiblingGroup}
+              allPersons={persons}
+              onSave={actions.handleSaveSiblingGroup}
+              onDelete={actions.handleDeleteSiblingGroup}
+              onPromote={actions.handlePromoteMember}
+              onClose={() => dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null })}
+            />
+          )}
+        </div>
       </div>
 
       <CanvasOverlays

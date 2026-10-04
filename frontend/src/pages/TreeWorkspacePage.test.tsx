@@ -279,9 +279,9 @@ vi.mock("../components/tree/TreeToolbar", () => ({
   ),
 }));
 
-vi.mock("../components/tree/CanvasToolbarButtons", () => ({
-  CanvasToolbarButtons: (props: Record<string, unknown>) => (
-    <div data-testid="canvas-toolbar-buttons">
+vi.mock("../components/tree/WorkspaceRail", () => ({
+  WorkspaceRail: (props: Record<string, unknown>) => (
+    <div data-testid="workspace-rail">
       <button
         type="button"
         data-testid="add-person-btn"
@@ -431,9 +431,9 @@ describe("TreeWorkspacePage", () => {
     expect(screen.getByTestId("react-flow")).toBeInTheDocument();
   });
 
-  it("renders canvas toolbar buttons", () => {
+  it("renders the workspace rail beside the canvas", () => {
     render(<TreeWorkspacePage />);
-    expect(screen.getByTestId("canvas-toolbar-buttons")).toBeInTheDocument();
+    expect(screen.getByTestId("workspace-rail")).toBeInTheDocument();
     expect(screen.getByTestId("add-person-btn")).toBeInTheDocument();
   });
 
@@ -500,7 +500,7 @@ describe("TreeWorkspacePage", () => {
     expect(screen.queryByText("tree.canvasEmpty")).not.toBeInTheDocument();
   });
 
-  it("calls createPerson.mutate when add person toolbar button is clicked", () => {
+  it("calls createPerson.mutate when the rail add person button is clicked", () => {
     render(<TreeWorkspacePage />);
     fireEvent.click(screen.getByTestId("add-person-btn"));
     expect(mockCreatePersonMutate).toHaveBeenCalledTimes(1);

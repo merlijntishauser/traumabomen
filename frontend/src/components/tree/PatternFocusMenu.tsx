@@ -14,6 +14,11 @@ interface PatternFocusMenuProps {
   // When set, the trigger is a labeled indigo dropdown button instead of a bare
   // toolbar icon (used in the public demo header, beside the CTA).
   label?: string;
+  // Class for the bare icon trigger; its `--active` modifier marks a focus.
+  triggerClassName?: string;
+  iconSize?: number;
+  // "side" opens the dropdown beside the trigger (the workspace rail).
+  placement?: "below" | "side";
 }
 
 /**
@@ -26,6 +31,9 @@ export function PatternFocusMenu({
   onFocus,
   onManage,
   label,
+  triggerClassName = "tree-toolbar__icon-btn",
+  iconSize = 14,
+  placement = "below",
 }: PatternFocusMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -50,7 +58,11 @@ export function PatternFocusMenu({
   }, [open]);
 
   return (
-    <div className="pattern-focus-menu" ref={ref}>
+    <div
+      className={`pattern-focus-menu${placement === "side" ? " pattern-focus-menu--side" : ""}`}
+      data-open={open}
+      ref={ref}
+    >
       {label ? (
         <button
           type="button"
@@ -67,13 +79,13 @@ export function PatternFocusMenu({
       ) : (
         <button
           type="button"
-          className={`tree-toolbar__icon-btn${active ? " tree-toolbar__icon-btn--active" : ""}`}
+          className={`${triggerClassName}${active ? ` ${triggerClassName}--active` : ""}`}
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={t("pattern.focus.menu")}
         >
-          <Waypoints size={14} />
+          <Waypoints size={iconSize} />
         </button>
       )}
 

@@ -86,19 +86,20 @@ describe("TreeToolbar", () => {
     expect(screen.getByText("Custom")).toBeTruthy();
   });
 
-  it("does not render separator for children when none provided", () => {
+  it("renders no separator without children", () => {
     const { container } = renderToolbar();
-    // There should be exactly one separator (before the right group)
-    // not two (which would exist if children section rendered)
-    const separators = container.querySelectorAll(".tree-toolbar__separator");
-    expect(separators).toHaveLength(1);
+    expect(container.querySelectorAll(".tree-toolbar__separator")).toHaveLength(0);
   });
 
-  it("renders two separators when children are provided", () => {
+  it("separates children from the rest of the header", () => {
     const { container } = renderToolbar({
       children: <button type="button">Extra</button>,
     });
-    const separators = container.querySelectorAll(".tree-toolbar__separator");
-    expect(separators).toHaveLength(2);
+    expect(container.querySelectorAll(".tree-toolbar__separator")).toHaveLength(1);
+  });
+
+  it("notes that the tree is encrypted on this device", () => {
+    renderToolbar();
+    expect(screen.getByText("tree.encryptedHere")).toBeInTheDocument();
   });
 });

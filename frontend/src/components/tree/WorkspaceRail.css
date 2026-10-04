@@ -1,0 +1,137 @@
+/* The workspace tool rail: one quiet column of tools on the canvas's left
+   edge. Icon buttons share one 40px size; labels appear as tooltips. */
+
+.workspace-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: 56px;
+  flex-shrink: 0;
+  padding: var(--space-2\.5) 0;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border-primary);
+  position: relative;
+  z-index: 11;
+}
+
+.workspace-rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.workspace-rail__group + .workspace-rail__group {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.workspace-rail__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.workspace-rail__btn:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.workspace-rail__btn[aria-pressed="true"],
+.workspace-rail__btn--active {
+  background: var(--color-action-subtle);
+  border-color: var(--color-border-primary);
+  color: var(--color-action);
+}
+
+.workspace-rail__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.workspace-rail__btn:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+/* Tooltip to the right of the rail. */
+.workspace-rail__btn::after {
+  content: attr(aria-label);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.workspace-rail__btn:hover::after,
+.workspace-rail__btn:focus-visible::after {
+  opacity: 1;
+}
+
+/* The pattern menu opens beside the rail rather than below its trigger. */
+.workspace-rail .pattern-focus-menu--side .pattern-focus-menu__dropdown {
+  top: 0;
+  left: calc(100% + 10px);
+}
+
+.workspace-rail .pattern-focus-menu[data-open="true"] .workspace-rail__btn::after {
+  opacity: 0;
+}
+
+@media (max-width: 760px) {
+  .workspace-rail {
+    order: 2;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    height: 56px;
+    padding: 0 var(--space-2);
+    border-right: none;
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .workspace-rail__group {
+    flex-direction: row;
+  }
+
+  .workspace-rail__group + .workspace-rail__group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .workspace-rail__btn::after {
+    display: none;
+  }
+
+  .workspace-rail .pattern-focus-menu--side .pattern-focus-menu__dropdown {
+    top: auto;
+    bottom: calc(100% + 10px);
+    left: auto;
+    right: 0;
+  }
+}

@@ -1086,5 +1086,7 @@
   "personPage.glance.stepSiblingOf": "Stiefbroer of stiefzus van",
   "personPage.glance.stepSiblingOf_female": "Stiefzus van",
   "personPage.glance.stepSiblingOf_male": "Stiefbroer van",
-  "personPage.glance.friendOf": "Vriend van"
+  "personPage.glance.friendOf": "Vriend van",
+  "tree.tools": "Gereedschap voor de boom",
+  "tree.encryptedHere": "Versleuteld op dit apparaat"
 }

@@ -1086,5 +1086,7 @@
   "personPage.glance.stepSiblingOf": "Step-sibling of",
   "personPage.glance.stepSiblingOf_female": "Stepsister of",
   "personPage.glance.stepSiblingOf_male": "Stepbrother of",
-  "personPage.glance.friendOf": "Friend of"
+  "personPage.glance.friendOf": "Friend of",
+  "tree.tools": "Tree tools",
+  "tree.encryptedHere": "Encrypted on this device"
 }

@@ -113,4 +113,32 @@ describe("PatternFocusMenu", () => {
     openMenu();
     expect(screen.getByText("pattern.empty")).toBeInTheDocument();
   });
+
+  it("uses the toolbar trigger and opens below by default", () => {
+    const { container } = render(
+      <PatternFocusMenu patterns={patterns} focusedPatternId="p1" onFocus={vi.fn()} />,
+    );
+    const trigger = screen.getByRole("button", { name: "pattern.focus.menu" });
+    expect(trigger.className).toBe("tree-toolbar__icon-btn tree-toolbar__icon-btn--active");
+    expect(container.querySelector(".pattern-focus-menu--side")).toBeNull();
+  });
+
+  it("takes a custom trigger class and opens to the side", () => {
+    const { container } = render(
+      <PatternFocusMenu
+        patterns={patterns}
+        focusedPatternId={null}
+        onFocus={vi.fn()}
+        triggerClassName="rail-btn"
+        placement="side"
+      />,
+    );
+    const trigger = screen.getByRole("button", { name: "pattern.focus.menu" });
+    expect(trigger.className).toBe("rail-btn");
+    const root = container.querySelector(".pattern-focus-menu--side");
+    expect(root).not.toBeNull();
+    expect(root).toHaveAttribute("data-open", "false");
+    openMenu();
+    expect(root).toHaveAttribute("data-open", "true");
+  });
 });

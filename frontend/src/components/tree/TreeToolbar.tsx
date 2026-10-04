@@ -1,4 +1,4 @@
-import { House, LogOut } from "lucide-react";
+import { House, Lock, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -23,18 +23,21 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
   return (
     <div className="tree-toolbar">
       <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
-      <div className="tree-toolbar__spacer" />
-
       <ViewTabs treeId={treeId} activeView={activeView} />
+
+      <div className="tree-toolbar__spacer" />
 
       {children && (
         <>
-          <div className="tree-toolbar__separator" />
           <div className="tree-toolbar__group">{children}</div>
+          <div className="tree-toolbar__separator" />
         </>
       )}
 
-      <div className="tree-toolbar__separator" />
+      <span className="tree-toolbar__encrypted">
+        <Lock size={13} aria-hidden="true" />
+        {t("tree.encryptedHere")}
+      </span>
 
       <div className="tree-toolbar__group">
         <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
