@@ -7,6 +7,7 @@ import { FeedbackModal } from "../components/FeedbackModal";
 import { LatestTreeBand } from "../components/LatestTreeBand";
 import { Logomark } from "../components/Logomark";
 import { TreeRowMenu } from "../components/TreeRowMenu";
+import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
@@ -555,6 +556,7 @@ export default function TreeListPage() {
   return (
     <>
       <div className="tree-list-page bg-gradient">
+        <ContourDecoration />
         <a className="skip-link" href="#tree-list-content">
           {t("tree.skipToTrees")}
         </a>

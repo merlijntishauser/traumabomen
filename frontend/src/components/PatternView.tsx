@@ -14,6 +14,7 @@ import { getPatternColor } from "../lib/patternColors";
 import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
 import { patternPromptText, pickPatternPromptIndex } from "../lib/reflectionPrompts";
 import type { JournalLinkedRef, LinkedEntity } from "../types/domain";
+import { ContourDecoration } from "./tree/ContourDecoration";
 import "./PatternView.css";
 
 interface PatternViewProps {
@@ -79,10 +80,13 @@ export function PatternView({
 
   if (patternList.length === 0) {
     return (
-      <div className="pattern-view bg-gradient">
-        <div className="pattern-view__empty">
-          <p>{t("pattern.empty")}</p>
-          <Link to={`/trees/${compactId}`}>{t("pattern.createFirst")}</Link>
+      <div className="page-atmosphere bg-gradient">
+        <ContourDecoration />
+        <div className="pattern-view">
+          <div className="pattern-view__empty">
+            <p>{t("pattern.empty")}</p>
+            <Link to={`/trees/${compactId}`}>{t("pattern.createFirst")}</Link>
+          </div>
         </div>
       </div>
     );
@@ -91,79 +95,82 @@ export function PatternView({
   const expandedPattern = expandedId ? patterns.get(expandedId) : null;
 
   return (
-    <div className="pattern-view bg-gradient">
-      <div className="pattern-view__grid">
-        {expandedPattern && (
-          <PatternDetail
-            pattern={expandedPattern}
-            entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
-            treeId={treeId}
-            onClose={() => setExpandedId(null)}
-            showReflectionPrompts={showReflectionPrompts}
-            onOpenJournal={onOpenJournal}
-          />
-        )}
+    <div className="page-atmosphere bg-gradient">
+      <ContourDecoration />
+      <div className="pattern-view">
+        <div className="pattern-view__grid">
+          {expandedPattern && (
+            <PatternDetail
+              pattern={expandedPattern}
+              entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
+              treeId={treeId}
+              onClose={() => setExpandedId(null)}
+              showReflectionPrompts={showReflectionPrompts}
+              onOpenJournal={onOpenJournal}
+            />
+          )}
 
-        {patternList.map((pattern) => {
-          if (pattern.id === expandedId) return null;
-          const entityMaps: EntityMaps = {
-            events,
-            lifeEvents,
-            turningPoints,
-            classifications,
-            persons,
-          };
-          const displays = getEntityDisplays(pattern, entityMaps, t);
-          const generations = countGenerations(pattern.person_ids, persons);
+          {patternList.map((pattern) => {
+            if (pattern.id === expandedId) return null;
+            const entityMaps: EntityMaps = {
+              events,
+              lifeEvents,
+              turningPoints,
+              classifications,
+              persons,
+            };
+            const displays = getEntityDisplays(pattern, entityMaps, t);
+            const generations = countGenerations(pattern.person_ids, persons);
 
-          return (
-            <button
-              type="button"
-              key={pattern.id}
-              className="pattern-view__card"
-              onClick={() => setExpandedId(pattern.id)}
-              data-testid="pattern-card"
-            >
-              <div className="pattern-view__card-header">
-                <div
-                  className="pattern-view__card-dot"
-                  style={{ backgroundColor: getPatternColor(pattern.color) }}
-                />
-                <span className="pattern-view__card-name">{pattern.name}</span>
-                <span className="pattern-view__card-count">{pattern.linked_entities.length}</span>
-              </div>
-
-              {pattern.description && (
-                <div className="pattern-view__card-desc">{pattern.description}</div>
-              )}
-
-              {displays.length > 0 && (
-                <div className="pattern-view__card-entities">
-                  {displays.slice(0, MAX_CARD_ENTITIES).map((d) => (
-                    <div key={d.id} className="pattern-view__card-entity">
-                      <div
-                        className={`pattern-view__card-entity-dot pattern-view__card-entity-dot--${d.type}`}
-                      />
-                      <span>
-                        {d.label}
-                        {d.personName ? ` (${d.personName})` : ""}
-                      </span>
-                    </div>
-                  ))}
-                  {displays.length > MAX_CARD_ENTITIES && (
-                    <span className="pattern-view__card-more">
-                      +{displays.length - MAX_CARD_ENTITIES} more
-                    </span>
-                  )}
+            return (
+              <button
+                type="button"
+                key={pattern.id}
+                className="pattern-view__card"
+                onClick={() => setExpandedId(pattern.id)}
+                data-testid="pattern-card"
+              >
+                <div className="pattern-view__card-header">
+                  <div
+                    className="pattern-view__card-dot"
+                    style={{ backgroundColor: getPatternColor(pattern.color) }}
+                  />
+                  <span className="pattern-view__card-name">{pattern.name}</span>
+                  <span className="pattern-view__card-count">{pattern.linked_entities.length}</span>
                 </div>
-              )}
 
-              <div className="pattern-view__card-footer">
-                {t("pattern.spansGenerations", { count: generations })}
-              </div>
-            </button>
-          );
-        })}
+                {pattern.description && (
+                  <div className="pattern-view__card-desc">{pattern.description}</div>
+                )}
+
+                {displays.length > 0 && (
+                  <div className="pattern-view__card-entities">
+                    {displays.slice(0, MAX_CARD_ENTITIES).map((d) => (
+                      <div key={d.id} className="pattern-view__card-entity">
+                        <div
+                          className={`pattern-view__card-entity-dot pattern-view__card-entity-dot--${d.type}`}
+                        />
+                        <span>
+                          {d.label}
+                          {d.personName ? ` (${d.personName})` : ""}
+                        </span>
+                      </div>
+                    ))}
+                    {displays.length > MAX_CARD_ENTITIES && (
+                      <span className="pattern-view__card-more">
+                        +{displays.length - MAX_CARD_ENTITIES} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="pattern-view__card-footer">
+                  {t("pattern.spansGenerations", { count: generations })}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

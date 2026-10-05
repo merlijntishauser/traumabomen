@@ -139,7 +139,13 @@
   /* Generation band alternation */
   --color-band-even: color-mix(in srgb, var(--color-accent) 5%, transparent);
   --color-band-odd: transparent;
-  --decoration-opacity: 0.3;
+  --decoration-opacity: 0.42;
+  /* Background art: contour ink, the glow under each summit, the edge
+     vignette. Dark lifts the forest green slightly so lines read on
+     near-black; the vignette deepens the corners. */
+  --color-contour: color-mix(in srgb, var(--color-accent) 82%, var(--color-text-primary));
+  --color-contour-glow: var(--color-accent);
+  --color-vignette: rgba(0, 0, 0, 0.32);
 
   /* Typography. Three roles: the handwriting face is the personal voice
      (brand name, taglines, glances, signatures), the display serif carries
@@ -336,7 +342,14 @@
 
   --color-band-even: color-mix(in srgb, var(--color-accent) 4%, transparent);
   --color-band-odd: transparent;
-  --decoration-opacity: 0.18;
+  --decoration-opacity: 0.4;
+  /* Light: contour ink is indigo softened toward slate so the drawing reads
+     as pencil on linen, not blue; the summit glow and vignette are warm. */
+  --color-contour: color-mix(in srgb, var(--color-accent) 36%, var(--color-text-secondary));
+  /* Warm sand under the summits: an indigo glow on linen reads as a purple
+     gradient, which the light theme never uses. */
+  --color-contour-glow: #c8b496;
+  --color-vignette: rgba(92, 74, 52, 0.07);
 
   --shadow-sm: 0 1px 3px rgba(44, 51, 64, 0.12), 0 1px 2px rgba(44, 51, 64, 0.04);
   --shadow-md: 0 4px 12px rgba(44, 51, 64, 0.16), 0 2px 8px rgba(44, 51, 64, 0.06);
@@ -707,18 +720,20 @@ button {
   position: relative;
   transition: background 0.4s ease;
   background:
+    /* Edge vignette: depth at the corners, the centre left open for content. */
+    radial-gradient(ellipse 115% 105% at 50% 42%, transparent 58%, var(--color-vignette) 100%),
     radial-gradient(
       ellipse 130% 90% at 80% -25%,
-      color-mix(in srgb, var(--color-accent-subtle) 55%, transparent) 0%,
-      color-mix(in srgb, var(--color-accent-subtle) 25%, transparent) 35%,
-      transparent 60%
+      color-mix(in srgb, var(--color-accent-subtle) 80%, transparent) 0%,
+      color-mix(in srgb, var(--color-accent-subtle) 35%, transparent) 35%,
+      transparent 62%
     ),
     radial-gradient(
       ellipse at 0% 100%,
       var(--color-accent-subtle) 0%,
-      color-mix(in srgb, var(--color-accent-subtle) 60%, transparent) 20%,
-      color-mix(in srgb, var(--color-accent-subtle) 30%, transparent) 35%,
-      transparent 55%
+      color-mix(in srgb, var(--color-accent-subtle) 70%, transparent) 22%,
+      color-mix(in srgb, var(--color-accent-subtle) 30%, transparent) 38%,
+      transparent 58%
     ),
     var(--color-bg-canvas);
 }
@@ -732,6 +747,21 @@ button {
   z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
+}
+
+/* A page that scrolls inside its own container: the wash and contours stay
+   put on this frame while the scroller moves over them. */
+.page-atmosphere {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.page-atmosphere > :not(.contour-decoration) {
+  position: relative;
+  z-index: 2;
 }
 
 /* Decorative contour lines */
