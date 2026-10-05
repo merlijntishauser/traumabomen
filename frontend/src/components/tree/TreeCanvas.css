@@ -104,11 +104,13 @@
   flex-shrink: 0;
 }
 
+/* Tabs never shrink below their content: squeezed, they overlap whatever
+   sits next to them. Narrow screens wrap the header instead (below). */
 .tree-toolbar__tabs {
   display: flex;
   align-items: center;
   gap: 2px;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .tree-toolbar__tab {
@@ -683,4 +685,37 @@
 
 .relationship-popover__cancel:hover {
   background: var(--color-bg-hover);
+}
+
+/* Phones: the header wraps into rows instead of overflowing, in reading
+   order: title, view tabs, account controls, then a page's own controls
+   (the timeline's modes and actions). */
+@media (max-width: 720px) {
+  .tree-toolbar {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+  }
+
+  .tree-toolbar__title {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .tree-toolbar__tabs {
+    order: 1;
+  }
+
+  .tree-toolbar__account {
+    order: 2;
+  }
+
+  .tree-toolbar__extras {
+    order: 3;
+    flex-wrap: wrap;
+  }
+
+  .tree-toolbar__spacer,
+  .tree-toolbar__separator {
+    display: none;
+  }
 }

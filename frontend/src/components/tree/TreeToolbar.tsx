@@ -29,7 +29,7 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
 
       {children && (
         <>
-          <div className="tree-toolbar__group">{children}</div>
+          <div className="tree-toolbar__group tree-toolbar__extras">{children}</div>
           <div className="tree-toolbar__separator" />
         </>
       )}
@@ -39,7 +39,7 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
         {t("tree.encryptedHere")}
       </span>
 
-      <div className="tree-toolbar__group">
+      <div className="tree-toolbar__group tree-toolbar__account">
         <Link to="/trees" className="tree-toolbar__icon-btn" aria-label={t("nav.trees")}>
           <House size={14} />
         </Link>
