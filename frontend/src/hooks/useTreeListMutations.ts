@@ -84,11 +84,19 @@ export function useTreeListMutations({ onCreated, onRenamed, onDeleted }: Callba
     mutationFn: async (id: string) => {
       await deleteTree(id);
       removeTreeKey(id);
-      await modifyKeyRing(masterKey!, (entries) => {
-        const updated = { ...entries };
-        delete updated[id];
-        return updated;
-      });
+      // The tree is gone once the delete succeeds. Dropping its key from the
+      // stored ring is housekeeping: if it fails (a rate limit, a dropped
+      // connection), the orphaned entry is never used, and failing here would
+      // leave the page showing a tree that no longer exists.
+      try {
+        await modifyKeyRing(masterKey!, (entries) => {
+          const updated = { ...entries };
+          delete updated[id];
+          return updated;
+        });
+      } catch {
+        // Best effort; see above.
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trees"] });

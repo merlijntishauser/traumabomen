@@ -158,6 +158,29 @@ describe("useTreeListMutations", () => {
     expect(callbacks.onDeleted).toHaveBeenCalledTimes(1);
   });
 
+  it("finishes the delete when only the key ring cleanup fails", async () => {
+    mockDeleteTree.mockResolvedValue(undefined);
+    mockModifyKeyRing.mockRejectedValueOnce(new Error("429"));
+    const { result, callbacks } = setup();
+
+    await act(() => result.current.deleteMutation.mutateAsync("tree-1"));
+
+    expect(mockRemoveTreeKey).toHaveBeenCalledWith("tree-1");
+    expect(callbacks.onDeleted).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report a delete the server refused", async () => {
+    mockDeleteTree.mockRejectedValueOnce(new Error("500"));
+    const { result, callbacks } = setup();
+
+    await act(async () => {
+      await expect(result.current.deleteMutation.mutateAsync("tree-1")).rejects.toThrow("500");
+    });
+
+    expect(mockRemoveTreeKey).not.toHaveBeenCalled();
+    expect(callbacks.onDeleted).not.toHaveBeenCalled();
+  });
+
   it("creates the demo once when arriving with ?start=demo and drops the param", async () => {
     mockSearchParams = new URLSearchParams("start=demo");
     mockCreateDemoTree.mockResolvedValue("demo-1");
