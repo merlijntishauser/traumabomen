@@ -63,6 +63,7 @@ import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/s
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
+import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
 const edgeTypes = { relationship: RelationshipEdge };
@@ -1175,7 +1176,7 @@ function TreeWorkspaceInner() {
           activeView="canvas"
           viewTab={canvasViewTab}
         />
-        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
       </div>
     );
   }

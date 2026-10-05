@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "./api";
-import { importErrorKey, registrationErrorFor } from "./userFacingErrors";
+import { importErrorKey, registrationErrorFor, treeLoadErrorKey } from "./userFacingErrors";
 
 function validationError(field: string) {
   // FastAPI puts a list of issues in `detail`; ApiError types it as a string.
@@ -64,5 +64,16 @@ describe("importErrorKey", () => {
   it("falls back to the generic message", () => {
     expect(importErrorKey(new Error("network down"))).toBe("tree.importError");
     expect(importErrorKey("weird")).toBe("tree.importError");
+  });
+});
+
+describe("treeLoadErrorKey", () => {
+  it("calls a rate limit a busy server", () => {
+    expect(treeLoadErrorKey(new ApiError(429, "Too many requests"))).toBe("tree.loadBusy");
+  });
+
+  it("keeps the decryption message for other failures", () => {
+    expect(treeLoadErrorKey(new ApiError(500, "Boom"))).toBe("tree.decryptionError");
+    expect(treeLoadErrorKey(new Error("bad key"))).toBe("tree.decryptionError");
   });
 });

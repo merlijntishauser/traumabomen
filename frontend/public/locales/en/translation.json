@@ -1103,5 +1103,6 @@
   "journal.editedOn": "Edited {{date}}",
   "journal.writeNew": "Write a new entry",
   "journal.deskLabel": "Writing",
-  "treeList.yourTrees": "Your trees"
+  "treeList.yourTrees": "Your trees",
+  "tree.loadBusy": "The server is busy for a moment. Wait a few seconds and reload the page; your data is safe."
 }

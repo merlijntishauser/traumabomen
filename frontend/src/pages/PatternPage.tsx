@@ -6,6 +6,7 @@ import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import "../components/tree/TreeCanvas.css";
+import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 export default function PatternPage() {
   const treeId = useTreeId();
@@ -39,7 +40,7 @@ export default function PatternPage() {
           activeView="patterns"
           viewTab={patternViewTab}
         />
-        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
       </div>
     );
   }

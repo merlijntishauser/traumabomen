@@ -68,7 +68,8 @@ function EmptySilhouette() {
 }
 
 function useLatestTreeSilhouette(treeId: string): { silhouette: Silhouette; isLoading: boolean } {
-  const data = useTreeData(treeId);
+  // Only the outline: three requests instead of a full load of ten.
+  const data = useTreeData(treeId, { scope: "shape" });
   const { nodes } = useTreeLayout(
     data.persons,
     data.relationships,

@@ -136,9 +136,19 @@ function useLinkedEntityQuery<
   });
 }
 
-export function useTreeData(treeId: string) {
+/**
+ * "shape" loads only what draws the tree's outline (people, relationships,
+ * sibling groups): three requests instead of ten, for previews such as the
+ * tree list. The queries share keys with the full load, so opening the tree
+ * afterwards reuses them.
+ */
+export type TreeDataScope = "all" | "shape";
+
+export function useTreeData(treeId: string, { scope = "all" }: { scope?: TreeDataScope } = {}) {
   const { decrypt, masterKey, treeKeys } = useEncryption();
   const hasKey = masterKey !== null && treeKeys.has(treeId);
+  // Everything beyond the outline loads only for a full view.
+  const fullKey = hasKey && scope === "all";
 
   const treeQuery = useQuery({
     queryKey: treeQueryKeys.tree(treeId),
@@ -147,7 +157,7 @@ export function useTreeData(treeId: string) {
       const data = await decrypt<{ name: string }>(response.encrypted_data, treeId);
       return data.name;
     },
-    enabled: hasKey,
+    enabled: fullKey,
   });
 
   const personsQuery = useQuery({
@@ -210,7 +220,7 @@ export function useTreeData(treeId: string) {
     getEvents,
     treeId,
     decrypt,
-    hasKey,
+    fullKey,
   );
 
   const lifeEventsQuery = useLinkedEntityQuery<LifeEvent, DecryptedLifeEvent>(
@@ -218,7 +228,7 @@ export function useTreeData(treeId: string) {
     getLifeEvents,
     treeId,
     decrypt,
-    hasKey,
+    fullKey,
   );
 
   const turningPointsQuery = useLinkedEntityQuery<TurningPoint, DecryptedTurningPoint>(
@@ -226,7 +236,7 @@ export function useTreeData(treeId: string) {
     getTurningPoints,
     treeId,
     decrypt,
-    hasKey,
+    fullKey,
   );
 
   const classificationsQuery = useLinkedEntityQuery<Classification, DecryptedClassification>(
@@ -234,7 +244,7 @@ export function useTreeData(treeId: string) {
     getClassifications,
     treeId,
     decrypt,
-    hasKey,
+    fullKey,
   );
 
   const patternsQuery = useLinkedEntityQuery<Pattern, DecryptedPattern>(
@@ -242,7 +252,7 @@ export function useTreeData(treeId: string) {
     getPatterns,
     treeId,
     decrypt,
-    hasKey,
+    fullKey,
   );
 
   const siblingGroupsQuery = useLinkedEntityQuery<SiblingGroupData, DecryptedSiblingGroup>(
@@ -278,7 +288,7 @@ export function useTreeData(treeId: string) {
       const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
-    enabled: hasKey,
+    enabled: fullKey,
   });
 
   const allQueries = [

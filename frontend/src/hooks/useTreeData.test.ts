@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import * as api from "../lib/api";
 import { treeQueryKeys, useTreeData } from "./useTreeData";
 
 const mockCaptureMessage = vi.fn();
@@ -158,6 +159,22 @@ describe("useTreeData", () => {
     expect(result.current.siblingGroups.size).toBe(0);
     expect(result.current.journalEntries.size).toBe(0);
     expect(result.current.isLoading).toBe(true);
+  });
+
+  it("loads only the outline for the shape scope", async () => {
+    vi.mocked(api.getEvents).mockClear();
+    vi.mocked(api.getJournalEntries).mockClear();
+    vi.mocked(api.getTree).mockClear();
+    const { result } = renderHook(() => useTreeData("tree1", { scope: "shape" }), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.persons.get("p1")?.name).toBe("Alice");
+    expect(result.current.relationships.size).toBe(1);
+    expect(api.getEvents).not.toHaveBeenCalled();
+    expect(api.getJournalEntries).not.toHaveBeenCalled();
+    expect(api.getTree).not.toHaveBeenCalled();
+    expect(result.current.treeName).toBeNull();
   });
 
   it("decrypts and returns persons after loading", async () => {

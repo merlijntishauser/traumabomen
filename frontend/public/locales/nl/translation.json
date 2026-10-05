@@ -1103,5 +1103,6 @@
   "journal.editedOn": "Bewerkt op {{date}}",
   "journal.writeNew": "Een nieuw item schrijven",
   "journal.deskLabel": "Schrijven",
-  "treeList.yourTrees": "Je bomen"
+  "treeList.yourTrees": "Je bomen",
+  "tree.loadBusy": "De server heeft het even druk. Wacht een paar seconden en laad de pagina opnieuw; je gegevens zijn veilig."
 }

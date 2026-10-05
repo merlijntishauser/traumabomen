@@ -10,6 +10,7 @@ import { useTreeId } from "../hooks/useTreeId";
 import { computeInsights, type Insight } from "../lib/computeInsights";
 import "../components/tree/TreeCanvas.css";
 import "./InsightsPage.css";
+import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 const SECTION_ORDER: Insight["category"][] = ["generational", "temporal", "summary", "resilience"];
 
@@ -75,7 +76,7 @@ export default function InsightsPage() {
     return (
       <div className="tree-workspace">
         <TreeToolbar treeId={treeId!} treeName={treeName} activeView="insights" viewTab={viewTab} />
-        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
       </div>
     );
   }

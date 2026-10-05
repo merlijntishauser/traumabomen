@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
   acknowledgeOnboarding,
@@ -62,6 +62,7 @@ import {
   login,
   logout,
   markFeedbackRead,
+  rateLimitDelay,
   register,
   resendVerification,
   setTokens,
@@ -372,6 +373,60 @@ describe("apiFetch behaviour", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Rate limiting
+// ---------------------------------------------------------------------------
+
+describe("rate-limit backoff", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("doubles the delay per attempt and adds jitter", () => {
+    expect(rateLimitDelay(0, () => 0)).toBe(750);
+    expect(rateLimitDelay(1, () => 0)).toBe(1500);
+    expect(rateLimitDelay(2, () => 0.999)).toBe(3249);
+  });
+
+  it("retries a rate-limited request until it succeeds", async () => {
+    vi.useFakeTimers();
+    setTokens("tok", "refresh");
+    const trees = [{ id: "t1", encrypted_data: "x", created_at: "now", updated_at: "now" }];
+    mockFetch
+      .mockResolvedValueOnce(mockResponse({ detail: "Too many requests" }, 429))
+      .mockResolvedValueOnce(mockResponse({ detail: "Too many requests" }, 429))
+      .mockResolvedValueOnce(mockResponse(trees));
+
+    const pending = getTrees();
+    await vi.runAllTimersAsync();
+
+    await expect(pending).resolves.toEqual(trees);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("gives up after three retries", async () => {
+    vi.useFakeTimers();
+    setTokens("tok", "refresh");
+    mockFetch.mockResolvedValue(mockResponse({ detail: "Too many requests" }, 429));
+
+    const pending = getTrees();
+    const settled = pending.catch((error: unknown) => error);
+    await vi.runAllTimersAsync();
+
+    const error = await settled;
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(429);
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("does not retry other errors", async () => {
+    setTokens("tok", "refresh");
+    mockFetch.mockResolvedValueOnce(mockResponse({ detail: "Boom" }, 500));
+
+    await expect(getTrees()).rejects.toMatchObject({ status: 500 });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+});
+
 // Token refresh
 // ---------------------------------------------------------------------------
 

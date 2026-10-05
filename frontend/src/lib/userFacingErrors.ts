@@ -57,3 +57,13 @@ export function importErrorKey(err: unknown): string {
   }
   return "tree.importError";
 }
+
+/**
+ * The message for a tree that failed to load. A rate limit (429) is a busy
+ * server, not a key problem: telling someone their data cannot be decrypted
+ * and to log in again would send them down the wrong path.
+ */
+export function treeLoadErrorKey(err: unknown): string {
+  if (err instanceof ApiError && err.status === 429) return "tree.loadBusy";
+  return "tree.decryptionError";
+}

@@ -55,6 +55,7 @@ import { derivePersonIds } from "../lib/patternEntities";
 import { computeSmartFilterGroups } from "../lib/smartFilterGroups";
 import type { LinkedEntity, Pattern } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
+import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 const ICON_BTN = "tree-toolbar__icon-btn";
 const ICON_BTN_ACTIVE = `${ICON_BTN} ${ICON_BTN}--active`;
@@ -620,7 +621,7 @@ export default function TimelinePage() {
           activeView="timeline"
           viewTab={timelineViewTab}
         />
-        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
       </div>
     );
   }

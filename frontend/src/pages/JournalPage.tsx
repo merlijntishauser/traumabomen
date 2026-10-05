@@ -14,6 +14,7 @@ import { useTreeMutations } from "../hooks/useTreeMutations";
 import type { JournalEntry } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 import "./JournalPage.css";
+import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 /** What the writing column shows: a fresh page, an earlier entry, or that entry being edited. */
 type DeskView = { kind: "new" } | { kind: "read"; id: string } | { kind: "edit"; id: string };
@@ -141,7 +142,7 @@ export default function JournalPage() {
           activeView="journal"
           viewTab={journalViewTab}
         />
-        <div style={{ padding: 20 }}>{t("tree.decryptionError")}</div>
+        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
       </div>
     );
   }

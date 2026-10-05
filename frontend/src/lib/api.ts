@@ -202,7 +202,7 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
-async function apiFetchWithRetry<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+async function apiFetchRefreshing<T>(endpoint: string, options: FetchOptions): Promise<T> {
   try {
     return await apiFetch<T>(endpoint, options);
   } catch (error) {
@@ -213,6 +213,40 @@ async function apiFetchWithRetry<T>(endpoint: string, options: FetchOptions = {}
       }
     }
     throw error;
+  }
+}
+
+/** Retries after a 429 before giving up. Opening a tree fires about ten parallel reads. */
+const RATE_LIMIT_RETRIES = 3;
+const RATE_LIMIT_BASE_DELAY_MS = 750;
+const RATE_LIMIT_JITTER_MS = 250;
+
+/** Doubling delay per attempt, with jitter so parallel requests do not retry in lockstep. */
+export function rateLimitDelay(attempt: number, random: () => number = Math.random): number {
+  return RATE_LIMIT_BASE_DELAY_MS * 2 ** attempt + Math.floor(random() * RATE_LIMIT_JITTER_MS);
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Authenticated fetch: refreshes an expired access token once, and backs
+ * off and retries when the gateway rate-limits (429), so a burst of reads
+ * or a quick series of edits slows down instead of failing.
+ */
+async function apiFetchWithRetry<T>(
+  endpoint: string,
+  options: FetchOptions = {},
+  attempt = 0,
+): Promise<T> {
+  try {
+    return await apiFetchRefreshing<T>(endpoint, options);
+  } catch (error) {
+    const rateLimited = error instanceof ApiError && error.status === 429;
+    if (!rateLimited || attempt >= RATE_LIMIT_RETRIES) throw error;
+    await wait(rateLimitDelay(attempt));
+    return apiFetchWithRetry<T>(endpoint, options, attempt + 1);
   }
 }
 
