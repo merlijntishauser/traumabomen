@@ -12,7 +12,7 @@
   padding: var(--space-10) var(--space-5);
   text-align: center;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .tl-gen-label {
@@ -51,7 +51,7 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
   pointer-events: none;
   z-index: 50;
@@ -102,7 +102,7 @@
   border-radius: 7px;
   background: var(--color-action);
   color: var(--color-text-inverse);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -205,7 +205,7 @@
 }
 
 .tl-create-pattern__count {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-action);
 }
@@ -242,7 +242,7 @@
   border-bottom: 1px solid var(--color-border-secondary);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 /* Workspace area for timeline panels */
@@ -332,7 +332,7 @@
 .tl-summary-card__name {
   font-family: var(--font-heading);
   font-weight: 300;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--color-accent);
 }
 
@@ -356,13 +356,13 @@
 }
 
 .tl-summary-card__years {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
   margin-top: var(--space-0\.5);
 }
 
 .tl-summary-card__age {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -379,7 +379,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 var(--space-1\.5);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--color-text-primary);
   border-radius: 10px;
@@ -398,12 +398,12 @@
 }
 
 .tl-summary-card__detail {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .tl-summary-card__person {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   margin-top: var(--space-1);
   font-style: italic;

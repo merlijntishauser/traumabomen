@@ -11,7 +11,7 @@
   background: none;
   border: none;
   border-bottom: 1px dashed var(--color-border-primary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-style: italic;
   font-family: inherit;
   color: var(--color-text-muted);
@@ -43,7 +43,7 @@
 }
 
 .detail-panel__rel-between {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   padding: var(--space-1) 0;
 }
@@ -59,7 +59,7 @@
   border: none;
   padding: var(--space-2\.5) var(--space-5);
   text-align: left;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -112,7 +112,7 @@
   padding: var(--space-0\.5) var(--space-2);
   border: 1px solid var(--color-border-primary);
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   cursor: pointer;
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
@@ -125,7 +125,7 @@
 
 .detail-panel__empty {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin: 0;
 }
 
@@ -138,7 +138,7 @@
 .detail-panel__rel-item {
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .detail-panel__rel-item:last-child {
@@ -147,7 +147,7 @@
 
 .detail-panel__rel-type {
   display: block;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -159,7 +159,7 @@
 
 .detail-panel__rel-via {
   display: block;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -170,7 +170,7 @@
 
 .detail-panel__period {
   display: block;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 
@@ -224,7 +224,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 
@@ -300,14 +300,14 @@
 
 .person-page__years {
   margin: var(--space-0\.5) 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .person-page__glance {
   margin: var(--space-3\.5) 0 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.6;
   color: var(--color-text-secondary);
 }
@@ -352,7 +352,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -397,7 +397,7 @@
 }
 
 .person-page__section-head span {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -418,7 +418,7 @@
 .lifeline__year {
   padding-top: 9px;
   text-align: right;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-text-secondary);
@@ -428,7 +428,7 @@
 .lifeline__year small {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 400;
   color: var(--color-text-muted);
 }
@@ -553,7 +553,7 @@
 
 .lifeline__title {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -562,14 +562,14 @@
 .lifeline__meta {
   display: block;
   margin-top: 1px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .lifeline__desc {
   display: -webkit-box;
   margin-top: var(--space-1);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--color-text-secondary);
   -webkit-line-clamp: 3;
@@ -579,12 +579,12 @@
 
 .lifeline__plain {
   padding: var(--space-2) 0 var(--space-2\.5);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
 .lifeline__row--gap .lifeline__plain {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -609,17 +609,17 @@
   justify-content: space-between;
   margin-bottom: var(--space-2\.5);
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .lifeline__new-head .person-page__person-link {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .person-page__undated {
   margin: var(--space-4) 0 var(--space-1);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -658,7 +658,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-align: left;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -706,7 +706,7 @@
   gap: var(--space-2);
   height: 32px;
   list-style: none;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-text-secondary);
   cursor: pointer;

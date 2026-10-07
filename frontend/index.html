@@ -8,6 +8,10 @@
         if (t === "light" || t === "watercolor") {
           document.documentElement.setAttribute("data-theme", t);
         }
+        var s = localStorage.getItem("traumabomen-text-size");
+        if (s === "small" || s === "large") {
+          document.documentElement.setAttribute("data-text-size", s);
+        }
       })();
     </script>
     <meta charset="UTF-8" />

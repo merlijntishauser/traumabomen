@@ -6,7 +6,7 @@
 
 .pattern-panel__header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
 }
 
@@ -28,7 +28,7 @@
   padding: var(--space-5);
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* Pattern list item */
@@ -63,7 +63,7 @@
 
 .pattern-panel__item-name {
   flex: 1;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -71,7 +71,7 @@
 }
 
 .pattern-panel__item-count {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
@@ -121,7 +121,7 @@
 }
 
 .pattern-panel__field > span {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
@@ -131,7 +131,7 @@
   padding: var(--space-1\.5) var(--space-2\.5);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-family: inherit;
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
@@ -191,7 +191,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .pattern-panel__entity-type-icon {
@@ -242,7 +242,7 @@
 }
 
 .pattern-panel__entity-person {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
@@ -252,7 +252,7 @@
   border: none;
   cursor: pointer;
   padding: var(--space-0\.5) var(--space-1);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   transition: var(--transition-colors);
   flex-shrink: 0;
@@ -281,7 +281,7 @@
 
 .pattern-panel__link-person-name {
   padding: var(--space-1\.5) var(--space-2\.5);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   background: var(--color-bg-hover);
@@ -293,7 +293,7 @@
   gap: var(--space-1\.5);
   padding: var(--space-1) var(--space-2\.5) var(--space-1) 18px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   transition: var(--transition-colors);
 }
 

@@ -1,11 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useAvailableThemes } from "../../hooks/useAvailableThemes";
+import { TEXT_SIZES, useTextSize } from "../../hooks/useTextSize";
 import { useTheme } from "../../hooks/useTheme";
 
 export function ThemeLanguageSettings() {
   const { t, i18n } = useTranslation();
   const availableThemes = useAvailableThemes();
   const { theme, setTheme } = useTheme(availableThemes);
+  const { textSize, setTextSize } = useTextSize();
 
   return (
     <>
@@ -22,6 +24,24 @@ export function ThemeLanguageSettings() {
                 onChange={() => setTheme(t_theme)}
               />
               <span>{t(`settings.theme.${t_theme}`)}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="settings-panel__group">
+        <span className="settings-panel__label">{t("settings.textSize")}</span>
+        <div className="settings-panel__radios">
+          {TEXT_SIZES.map((size) => (
+            <label key={size} className="settings-panel__radio">
+              <input
+                type="radio"
+                name="textSize"
+                value={size}
+                checked={textSize === size}
+                onChange={() => setTextSize(size)}
+              />
+              <span>{t(`settings.textSize.${size}`)}</span>
             </label>
           ))}
         </div>

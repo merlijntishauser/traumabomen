@@ -78,7 +78,7 @@
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-action);
   cursor: pointer;
@@ -122,7 +122,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.8;
   max-width: 68ch;
 }
@@ -166,13 +166,13 @@
 
 .journal-reader__edited {
   margin: var(--space-1) 0 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .journal-reader__body {
   max-width: 68ch;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.8;
   color: var(--color-text-primary);
   overflow-wrap: anywhere;
@@ -221,7 +221,7 @@
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-action);
   cursor: pointer;
@@ -247,13 +247,13 @@
   padding: 1px var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.6;
 }
 
 .journal-chips__more {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.6;
   color: var(--color-text-muted);
@@ -289,14 +289,14 @@
 }
 
 .journal-margin__count {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .journal-margin__empty {
   margin: 0;
   padding: var(--space-2);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--color-text-secondary);
 }
@@ -338,14 +338,14 @@
 
 .journal-margin__date {
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.4;
   color: var(--color-text-primary);
 }
 
 .journal-margin__excerpt {
   display: -webkit-box;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--color-text-secondary);
   -webkit-line-clamp: 3;

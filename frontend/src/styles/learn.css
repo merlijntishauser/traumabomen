@@ -64,7 +64,7 @@
 
 .learn-prose {
   margin: 0 0 var(--space-4);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.75;
   color: var(--color-text-secondary);
 }
@@ -116,7 +116,7 @@
   background: var(--color-action);
   color: var(--color-text-inverse);
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
   transition: var(--transition-colors);

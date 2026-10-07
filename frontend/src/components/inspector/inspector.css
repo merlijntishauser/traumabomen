@@ -14,7 +14,7 @@
 }
 
 .inspector-field__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
@@ -38,7 +38,7 @@
   padding: var(--space-1\.5) var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-family: inherit;
   background: color-mix(in srgb, var(--color-bg-tertiary) 55%, transparent);
   color: var(--color-text-primary);
@@ -175,7 +175,7 @@ fieldset.inspector-field {
 
 /* Muted informational line under a field group (e.g. computed age). */
 .inspector-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-left: calc(116px + var(--space-3));
   padding-left: var(--space-2);
@@ -204,7 +204,7 @@ fieldset.inspector-field {
 }
 
 .inspector-toggle__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
@@ -272,7 +272,7 @@ fieldset.inspector-field {
   background: transparent;
   color: var(--color-text-muted);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
   transition: var(--transition-colors);
@@ -288,7 +288,7 @@ fieldset.inspector-field {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   opacity: 0;
   transition: opacity 0.15s ease;

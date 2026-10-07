@@ -27,7 +27,7 @@
 }
 
 .privacy-updated {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   margin-bottom: var(--space-5);
 }
@@ -41,7 +41,7 @@
 }
 
 .privacy-tab {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-family: var(--font-heading);
   font-weight: 500;
   color: var(--color-text-muted);
@@ -78,7 +78,7 @@
 }
 
 .privacy-section p {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.7;
   color: var(--color-text-secondary);
   margin: 0;
@@ -129,7 +129,7 @@
 }
 
 .privacy-diagram__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text-secondary);
   text-align: center;
@@ -165,7 +165,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-1\.5);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text-muted);
   background: none;
@@ -192,7 +192,7 @@
   margin: var(--space-4) 0 var(--space-2);
   color: var(--color-action);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-decoration: none;
 }
 
@@ -202,7 +202,7 @@
 }
 
 .privacy-tech-details__body {
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--color-text-secondary);
   margin-top: var(--space-2);
@@ -225,7 +225,7 @@
   }
 
   .privacy-diagram__label {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
 }
 

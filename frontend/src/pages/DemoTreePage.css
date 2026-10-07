@@ -21,7 +21,7 @@
   min-width: 0;
   margin: 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--color-text-secondary);
 }
@@ -48,7 +48,7 @@
   place-items: center;
   height: 100%;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 640px) {

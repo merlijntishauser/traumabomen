@@ -88,7 +88,7 @@
 
 /* One quiet line of life per tree */
 .tree-list-item__meta {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 400;
   color: var(--color-text-muted);
   overflow: hidden;
@@ -127,7 +127,7 @@
 }
 
 .tree-list-item__confirm-body {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
   max-width: 60ch;
   margin-bottom: var(--space-3);
@@ -190,7 +190,7 @@
   border: none;
   border-radius: var(--radius-sm);
   text-align: left;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
   cursor: pointer;
   transition: var(--transition-colors);
@@ -219,7 +219,7 @@
 
 .tree-list-create__hint {
   margin-top: var(--space-1\.5);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
@@ -239,7 +239,7 @@
   gap: var(--space-2\.5);
   padding: var(--space-2\.5) var(--space-3\.5);
   margin-bottom: var(--space-4);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-danger);
   background: var(--color-danger-bg);
   border: 1px solid var(--color-danger-border);
@@ -309,7 +309,7 @@
   padding: 0;
   background: none;
   border: none;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-action);
   cursor: pointer;
@@ -328,7 +328,7 @@
 .first-tree__beta {
   padding: var(--space-4) var(--space-8);
   border-top: 1px solid var(--color-border-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
@@ -372,7 +372,7 @@
   display: inline-block;
   margin-left: var(--space-2);
   padding: 1px var(--space-1\.5);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.4;
   color: var(--color-accent);
@@ -468,7 +468,7 @@
 
 .tree-band__node-name {
   font-family: var(--font-heading);
-  font-size: 15px;
+  font-size: 0.9375rem;
   fill: var(--color-text-primary);
 }
 
@@ -493,7 +493,7 @@
 }
 
 .tree-band__loading {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
@@ -512,7 +512,7 @@
   border: 2px dashed var(--color-node-border);
   border-radius: var(--radius-lg);
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
 
@@ -550,7 +550,7 @@
 
 .tree-band__meta {
   margin: var(--space-2) 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 
@@ -598,7 +598,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1\.5);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-action);
   text-decoration: none;
@@ -650,7 +650,7 @@
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-text-secondary);
   cursor: pointer;

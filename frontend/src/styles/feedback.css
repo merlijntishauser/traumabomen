@@ -36,7 +36,7 @@
 .feedback-card__title {
   font-family: var(--font-heading);
   font-weight: 300;
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--color-text-primary);
   margin: 0 0 var(--space-5);
 }
@@ -51,7 +51,7 @@
 }
 
 .feedback-categories__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -64,7 +64,7 @@
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .feedback-message__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -98,7 +98,7 @@
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   resize: vertical;
   transition: border-color 0.15s ease;
@@ -115,7 +115,7 @@
 }
 
 .feedback-message__counter {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   text-align: right;
 }
@@ -134,7 +134,7 @@
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
 }
 
@@ -143,7 +143,7 @@
 }
 
 .feedback-anonymous__note {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   padding-left: var(--space-6);
 }
@@ -151,7 +151,7 @@
 /* Error message */
 
 .feedback-error {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-danger);
   margin: 0 0 var(--space-3);
 }
@@ -171,7 +171,7 @@
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: var(--transition-colors);
 }
@@ -188,7 +188,7 @@
   border: none;
   border-radius: var(--radius-sm);
   color: var(--color-text-inverse);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -209,5 +209,5 @@
   text-align: center;
   padding: var(--space-8) var(--space-4);
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }

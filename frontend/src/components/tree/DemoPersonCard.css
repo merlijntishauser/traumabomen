@@ -32,7 +32,7 @@
 .demo-card__name {
   font-family: var(--font-heading);
   font-weight: 300;
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.4;
   color: var(--color-accent);
   overflow: hidden;
@@ -42,7 +42,7 @@
 
 .demo-card__years {
   margin-top: var(--space-1);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 
@@ -77,7 +77,7 @@
 .demo-card__notes {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 
@@ -91,7 +91,7 @@
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 400;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-text-primary);
 }
 
@@ -103,20 +103,20 @@
 }
 
 .demo-card__item-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .demo-card__item-meta {
   margin-top: var(--space-0\.5);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .demo-card__item-body {
   margin: var(--space-2) 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--color-text-secondary);
 }
@@ -131,7 +131,7 @@
 
 .demo-card__cta-text {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--color-text-secondary);
 }

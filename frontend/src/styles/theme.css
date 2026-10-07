@@ -213,27 +213,27 @@
   --text-tagline-leading: 1.4;
 
   --text-body-family: var(--font-body);
-  --text-body-size: 15px;
+  --text-body-size: 0.9375rem;
   --text-body-weight: 400;
   --text-body-leading: 1.5;
 
   --text-small-family: var(--font-body);
-  --text-small-size: 13px;
+  --text-small-size: 0.8125rem;
   --text-small-weight: 400;
   --text-small-leading: 1.5;
 
   --text-micro-family: var(--font-body);
-  --text-micro-size: 11px;
+  --text-micro-size: 0.6875rem;
   --text-micro-weight: 600;
   --text-micro-leading: 1.4;
   --text-micro-tracking: 0.03em;
 
   --text-label-family: var(--font-body);
-  --text-label-size: 13px;
+  --text-label-size: 0.8125rem;
   --text-label-weight: 700;
 
   --text-eyebrow-family: var(--font-body);
-  --text-eyebrow-size: 10px;
+  --text-eyebrow-size: 0.625rem;
   --text-eyebrow-weight: 600;
   --text-eyebrow-tracking: 0.05em;
   --text-eyebrow-transform: uppercase;
@@ -372,6 +372,21 @@ body,
   height: 100%;
 }
 
+/* Text size setting (useTextSize). Every font size is in rem, so the root
+   scales all interface text; percentages respect the browser's own default.
+   Canvas nodes and timeline SVG labels stay in px: they follow canvas zoom. */
+html {
+  font-size: 100%;
+}
+
+html[data-text-size="small"] {
+  font-size: 90%;
+}
+
+html[data-text-size="large"] {
+  font-size: 120%;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -395,7 +410,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
@@ -536,7 +551,7 @@ textarea:focus {
 
 label {
   display: block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text-secondary);
   margin-bottom: 4px;
@@ -564,7 +579,7 @@ button {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   transform: translateY(-200%);
 }
@@ -647,7 +662,7 @@ button {
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
   transition: var(--transition-colors);
 }
@@ -662,7 +677,7 @@ button {
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.2;
   cursor: pointer;

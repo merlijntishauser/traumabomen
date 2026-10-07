@@ -136,7 +136,7 @@
 }
 
 .lock-screen__subtitle {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
   margin-bottom: var(--space-5);
 }
@@ -154,7 +154,7 @@
 .lock-screen__input {
   width: 100%;
   padding: var(--space-2\.5) var(--space-3\.5);
-  font-size: 14px;
+  font-size: 0.875rem;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-md);
@@ -196,7 +196,7 @@
 }
 
 .lock-screen__error {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-danger);
   min-height: 18px;
 }
@@ -209,7 +209,7 @@
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-colors);
@@ -228,7 +228,7 @@
   margin-top: var(--space-4);
   background: none;
   border: none;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: var(--transition-colors);

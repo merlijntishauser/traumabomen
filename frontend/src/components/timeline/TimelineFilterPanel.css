@@ -12,7 +12,7 @@
   background: none;
   border: none;
   color: var(--color-action);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   padding: var(--space-0\.5) var(--space-1\.5);
   border-radius: var(--radius-sm);
@@ -29,7 +29,7 @@
   border-radius: 12px;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-family: var(--font-body);
   cursor: pointer;
   transition:
@@ -58,14 +58,14 @@
 }
 
 .tl-filter-panel__quick-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   margin-right: var(--space-0\.5);
 }
 
 .tl-filter-panel__badge {
   margin-left: var(--space-1\.5);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   font-weight: 400;
 }
@@ -87,7 +87,7 @@
   background: none;
   border: none;
   color: var(--color-action);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   padding: var(--space-0\.5) var(--space-1);
 }
@@ -100,7 +100,7 @@
   background: none;
   border: none;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   padding: var(--space-1) 0;
   margin-top: var(--space-1);
@@ -115,7 +115,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: 3px 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
   cursor: pointer;
 }
@@ -134,7 +134,7 @@
 
 .tl-filter-panel__checkbox--sub {
   padding-left: var(--space-5);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .tl-filter-panel__sub-group {
@@ -145,7 +145,7 @@
 
 .tl-filter-panel__sub-label {
   display: block;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -154,7 +154,7 @@
 }
 
 .tl-filter-panel__hint {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   margin: 0 0 var(--space-2);
 }
@@ -169,7 +169,7 @@
   flex-direction: column;
   gap: var(--space-1);
   flex: 1;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 
@@ -188,7 +188,7 @@
 }
 
 .tl-filter-panel__group-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -208,7 +208,7 @@
   border-radius: 12px;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-family: var(--font-body);
   cursor: pointer;
   transition:

@@ -43,7 +43,7 @@
 /* The "everything here is fictional" note. */
 .tour-note {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--color-text-muted);
 }
@@ -79,7 +79,7 @@
 .tour-prose {
   margin: 0 0 var(--space-5);
   max-width: 65ch;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.75;
   color: var(--color-text-secondary);
 }
@@ -112,7 +112,7 @@
   background: var(--color-action);
   color: var(--color-text-inverse);
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
   transition: var(--transition-colors);

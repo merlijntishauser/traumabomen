@@ -57,7 +57,7 @@
   align-items: center;
   height: 44px;
   color: var(--color-action);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
   transition: var(--transition-colors);
@@ -70,7 +70,7 @@
 
 .genogram-other-language {
   margin: var(--space-5) 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .genogram-other-language a {

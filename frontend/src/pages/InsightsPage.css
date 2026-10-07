@@ -18,14 +18,14 @@
 .insights-page__title {
   font-family: var(--font-heading);
   font-weight: 300;
-  font-size: 28px;
+  font-size: 1.75rem;
   color: var(--color-text-primary);
   margin: 0 0 var(--space-2);
 }
 
 .insights-page__subtitle {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.5;
@@ -34,7 +34,7 @@
 .insights-page__empty {
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   padding: var(--space-15) var(--space-5);
 }
 
@@ -46,7 +46,7 @@
 
 .insights-page__section-title {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -114,13 +114,13 @@
 
 .insight-card__message {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--color-text-primary);
 }
 
 .insight-card__detail {
   margin: var(--space-1) 0 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }

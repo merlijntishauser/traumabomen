@@ -38,7 +38,7 @@
   background: transparent;
   color: var(--color-text-primary);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
   transition: var(--transition-colors);

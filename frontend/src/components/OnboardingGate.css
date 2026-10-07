@@ -105,7 +105,7 @@
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition-colors);
@@ -123,7 +123,7 @@
   background: none;
   border: none;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: var(--transition-colors);
 }
