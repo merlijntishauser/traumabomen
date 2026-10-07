@@ -132,13 +132,14 @@
   --color-node-selected: #2d8a5e;
   --color-node-handle: #5a7a64;
 
-  /* Life bar (timeline) */
-  --color-lifebar-fill: rgba(45, 138, 94, 0.2);
-  --color-lifebar-stroke: #2d8a5e;
+  /* Family stripes (timeline): the lived years, the decade grid, and the one
+     ink reserved for the year being read (used for nothing else). */
+  --color-stripe-lived: #1b3428;
+  --color-stripe-grid: rgba(224, 232, 227, 0.06);
+  --color-stripe-read: #ffffff;
+  --color-stripe-read-wash: rgba(255, 255, 255, 0.09);
+  --color-stripe-read-ink: #0a1a0f;
 
-  /* Generation band alternation */
-  --color-band-even: color-mix(in srgb, var(--color-accent) 5%, transparent);
-  --color-band-odd: transparent;
   --decoration-opacity: 0.42;
   /* Background art: contour ink, the glow under each summit, the edge
      vignette. Dark lifts the forest green slightly so lines read on
@@ -337,11 +338,12 @@
   --color-node-selected: #4f46e5;
   --color-node-handle: #9aa5b2;
 
-  --color-lifebar-fill: rgba(52, 160, 102, 0.12);
-  --color-lifebar-stroke: #34a066;
+  --color-stripe-lived: #e3ddd3;
+  --color-stripe-grid: rgba(44, 51, 64, 0.07);
+  --color-stripe-read: #14110f;
+  --color-stripe-read-wash: rgba(20, 17, 15, 0.07);
+  --color-stripe-read-ink: #ffffff;
 
-  --color-band-even: color-mix(in srgb, var(--color-accent) 4%, transparent);
-  --color-band-odd: transparent;
   --decoration-opacity: 0.4;
   /* Light: contour ink is indigo softened toward slate so the drawing reads
      as pencil on linen, not blue; the summit glow and vignette are warm. */

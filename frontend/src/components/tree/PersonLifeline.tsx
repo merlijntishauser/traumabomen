@@ -410,7 +410,7 @@ export function PersonLifeline({
     [i18n.language],
   );
 
-  const entries = buildLifelineEntries(sources);
+  const entries = buildLifelineEntries(sources, person.birth_year);
   const { rows, undated } = buildLifelineRows(entries, person.birth_year, person.death_year);
   const newKind = editing.editing?.id === null ? editing.editing.kind : null;
   const firstName = person.name.split(" ")[0] || person.name;

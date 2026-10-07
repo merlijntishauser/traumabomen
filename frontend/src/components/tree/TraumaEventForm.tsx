@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import type { TraumaEvent } from "../../types/domain";
@@ -7,6 +8,7 @@ import { blurOnEnter } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
+import { DateReadingHint } from "./DateReadingHint";
 import { PersonLinkField } from "./PersonLinkField";
 
 export interface TraumaEventFormProps {
@@ -53,6 +55,7 @@ export function TraumaEventForm({
   onDelete,
 }: TraumaEventFormProps) {
   const { t } = useTranslation();
+  const dateHintId = useId();
   const report = useSaveReporter();
 
   const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
@@ -123,6 +126,7 @@ export function TraumaEventForm({
         <input
           type="text"
           aria-label={t("trauma.approximateDate")}
+          aria-describedby={dateHintId}
           value={draft.approximateDate}
           onChange={(e) => update((d) => ({ ...d, approximateDate: e.target.value }))}
           onBlur={commit}
@@ -130,6 +134,12 @@ export function TraumaEventForm({
           placeholder={t("trauma.datePlaceholder")}
         />
       </InspectorField>
+      <DateReadingHint
+        id={dateHintId}
+        text={draft.approximateDate}
+        personIds={draft.personIds}
+        allPersons={allPersons}
+      />
       <InspectorField label={`${t("trauma.severity")} (${draft.severity})`}>
         <input
           type="range"

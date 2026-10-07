@@ -57,6 +57,15 @@ const defaultProps = (event: DecryptedEvent | null = null) => ({
 });
 
 describe("TraumaEventForm", () => {
+  it("shows how the date will read under the date field", () => {
+    render(<TraumaEventForm {...defaultProps(makeEvent())} />);
+    const input = screen.getByRole("textbox", { name: "trauma.approximateDate" });
+    const hint = screen.getByText("dateHint.readsWhen");
+    expect(input).toHaveAttribute("aria-describedby", hint.id);
+    fireEvent.change(input, { target: { value: "after the war" } });
+    expect(screen.getByText("dateHint.none")).toBeInTheDocument();
+  });
+
   describe("new event", () => {
     it("renders all form fields", () => {
       render(<TraumaEventForm {...defaultProps()} />);

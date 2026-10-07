@@ -61,6 +61,13 @@ function renderForm(turningPoint: DecryptedTurningPoint | null = null) {
 }
 
 describe("TurningPointForm", () => {
+  it("shows how the date will read under the date field", () => {
+    renderForm();
+    const input = screen.getByRole("textbox", { name: "turningPoint.approximate_date" });
+    fireEvent.change(input, { target: { value: "1999" } });
+    expect(screen.getByText("dateHint.readsWhen")).toBeInTheDocument();
+  });
+
   it("renders all fields for a new turning point", () => {
     renderForm();
 

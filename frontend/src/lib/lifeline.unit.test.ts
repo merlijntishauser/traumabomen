@@ -211,3 +211,31 @@ describe("buildLifelineRows", () => {
     expect(undated.map((e) => e.id)).toEqual(["undated"]);
   });
 });
+
+describe("buildLifelineEntries: dates read like the timeline", () => {
+  const none = { events: [], lifeEvents: [], turningPoints: [], classifications: [] };
+
+  it("places ages, stages of life and decades from the birth year", () => {
+    const entries = buildLifelineEntries(
+      {
+        ...none,
+        events: [
+          trauma("child", "as a child"),
+          trauma("twelve", "at 12"),
+          trauma("sixties", "the sixties"),
+        ],
+      },
+      1950,
+    );
+    expect(entries.map((e) => [e.id, e.year])).toEqual([
+      ["child", 1950],
+      ["sixties", 1960],
+      ["twelve", 1962],
+    ]);
+  });
+
+  it("leaves age-based dates undated when there is no birth year", () => {
+    const [entry] = buildLifelineEntries({ ...none, events: [trauma("child", "as a child")] });
+    expect(entry.year).toBeNull();
+  });
+});

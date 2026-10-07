@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { InsightCard } from "../components/insights/InsightCard";
-import { computeGenerations } from "../components/timeline/timelineHelpers";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { computeInsights, type Insight } from "../lib/computeInsights";
+import { computeGenerations } from "../lib/generations";
 import "../components/tree/TreeCanvas.css";
 import "./InsightsPage.css";
 import { treeLoadErrorKey } from "../lib/userFacingErrors";

@@ -29,8 +29,9 @@ test.describe("Views", () => {
     await page.locator(".tree-toolbar__tab").filter({ hasText: /timeline/i }).click();
     await page.waitForURL("**/timeline");
 
-    // Timeline container is present (contains the main SVG, controls, etc.)
-    await expect(page.locator(".timeline-container")).toBeVisible();
+    // Alice's stripe is on the field and the reading pane names her
+    await expect(page.getByRole("slider", { name: /year being read/i })).toBeVisible();
+    await expect(page.locator(".fs__name").filter({ hasText: "Alice" })).toBeVisible();
   });
 
   test("patterns view loads", async ({ page }) => {

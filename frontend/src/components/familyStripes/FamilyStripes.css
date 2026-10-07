@@ -1,0 +1,596 @@
+/* Family stripes: names | stripe field | reading pane, with the key under the chart.
+   Three type sizes (small, body, the read value). Marks never carry text: every
+   label lives in the reading pane. */
+
+/* The page area under the toolbar; panels slide over its right edge. */
+.fs-workspace {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Desktop: the chart and the reading pane scroll on their own, so the pane's
+   closing question stays in view. Stacked layouts scroll as one page. */
+.fs {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--color-bg-primary);
+  --fs-names: 190px;
+  --fs-dim: 0.32;
+}
+
+.fs__chart {
+  min-width: 0;
+  padding: 14px 0 24px 24px;
+  overflow-y: auto;
+}
+
+.fs,
+.fs__chart,
+.fs__scroller,
+.fs-pane {
+  scrollbar-color: var(--color-border-primary) transparent;
+  scrollbar-width: thin;
+}
+
+.fs__scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.fs__grid {
+  display: grid;
+  grid-template-columns: var(--fs-names) max-content;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Names column: sticky while the field scrolls sideways on narrow screens. */
+.fs__names {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--color-bg-primary);
+}
+
+.fs__corner {
+  height: 40px;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.fs-switch {
+  display: inline-flex;
+  min-width: 0;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+}
+
+.fs-switch__btn {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.fs-switch__btn:hover {
+  color: var(--color-text-primary);
+}
+
+.fs-switch__btn[aria-pressed="true"] {
+  background: var(--color-action);
+  color: var(--color-text-inverse);
+}
+
+.fs__gen {
+  height: 30px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4px;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.fs__person {
+  height: 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-right: 16px;
+  min-width: 0;
+  transition: opacity 0.15s ease;
+}
+
+.fs__name {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font: 400 0.9375rem / 1.25 var(--font-heading);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.fs__name:hover {
+  color: var(--color-action);
+}
+
+.fs__name-short {
+  display: none;
+}
+
+.fs__years {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The field: a slider over years (or ages). */
+.fs-field {
+  position: relative;
+  min-width: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+.fs-field:has(.fs-field__range:focus-visible) {
+  outline: 2px solid var(--color-action);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.fs-field svg {
+  display: block;
+  overflow: visible;
+}
+
+.fs-ruler text,
+.fs-flag text {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fs-ruler text {
+  fill: var(--color-text-muted);
+}
+
+.fs-flag text {
+  fill: var(--color-stripe-read-ink);
+  font-weight: 700;
+}
+
+.fs-row {
+  transition: opacity 0.15s ease;
+}
+
+/* The one authored moment: switching Years and Age slides every life into place. */
+.fs-row--sliding {
+  transition:
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.15s ease;
+}
+
+.fs-mark {
+  transition: opacity 0.15s ease;
+}
+
+.fs-field--lit .fs-mark:not(.fs-mark--lit) {
+  opacity: 0.14;
+}
+
+.fs-read {
+  pointer-events: none;
+}
+
+.is-dim {
+  opacity: var(--fs-dim);
+}
+
+/* Key under the chart: three groups that wrap as units, label first. */
+.fs__foot {
+  margin: 14px 0 0 var(--fs-names);
+  padding-right: 24px;
+}
+
+.fs-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.fs-key__set {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
+}
+
+.fs-key__label {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.fs-key__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.fs-key__swatch {
+  flex: none;
+  width: 16px;
+  border-radius: 2px;
+}
+
+.fs-key__item[aria-pressed="true"] {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.fs-key__item:focus-visible,
+.fs-entry:focus-visible,
+.fs__name:focus-visible,
+.fs-pane__name:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+.fs__undated {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-action);
+  font: inherit;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.fs__undated:hover {
+  color: var(--color-action-hover);
+}
+
+.fs__undated:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.fs__unplaced {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Reading pane */
+.fs-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 16px 24px 0;
+  border-left: 1px solid var(--color-border-primary);
+  background: var(--color-bg-secondary);
+}
+
+.fs-pane__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fs-pane__value {
+  margin: 0;
+  font: 300 2.5rem / 1 var(--font-body);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.fs-pane__value-unit {
+  margin-right: 6px;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+.fs-pane__steps {
+  display: flex;
+  gap: 6px;
+}
+
+.fs-pane__step {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 6px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.fs-pane__step:hover {
+  background: var(--color-bg-hover);
+}
+
+.fs-pane__hint {
+  margin: -6px 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.fs-pane__blocks {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fs-block {
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border-primary);
+  transition: opacity 0.15s ease;
+}
+
+.fs-block:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.fs-block__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fs-block__names {
+  font: 400 0.9375rem / 1.3 var(--font-heading);
+  color: var(--color-text-primary);
+}
+
+.fs-pane__name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.fs-pane__name:hover {
+  color: var(--color-action);
+}
+
+.fs-block__age {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fs-block__entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fs-entry {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 0 10px;
+  align-items: start;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.fs-entry__mark {
+  margin-top: 5px;
+}
+
+.fs-entry__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  min-width: 0;
+}
+
+.fs-entry__title {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.fs-entry:hover .fs-entry__title {
+  color: var(--color-action);
+}
+
+.fs-entry__meta {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The pane's foot: who is absent this year, then the open question. Pinned on
+   desktop so both stay in view while the reading scrolls. */
+.fs-pane__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0 20px;
+  border-top: 1px solid var(--color-border-primary);
+  background: var(--color-bg-secondary);
+}
+
+.fs-pane__absent {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.fs-pane__absent + .fs-pane__question {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-primary);
+}
+
+/* More of the reading is scrolled under the pinned question: fade into it. */
+.fs-pane--more .fs-pane__foot::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, var(--color-bg-secondary));
+  pointer-events: none;
+}
+
+.fs-pane__question p {
+  margin: 0;
+  font: 300 0.9375rem / 1.6 var(--font-heading);
+  color: var(--color-text-primary);
+  text-wrap: pretty;
+}
+
+.fs-empty {
+  padding: 40px 24px;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1080px) {
+  .fs {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    --fs-names: 160px;
+  }
+}
+
+@media (max-width: 860px) {
+  .fs {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    overflow-y: auto;
+  }
+
+  .fs__chart,
+  .fs-pane {
+    overflow: visible;
+  }
+
+  .fs-pane {
+    border-left: 0;
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .fs-pane__foot {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .fs {
+    --fs-names: 124px;
+  }
+
+  .fs__chart {
+    padding-left: 16px;
+  }
+
+  .fs__foot {
+    margin-left: 0;
+    padding-right: 16px;
+  }
+
+  .fs-pane {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .fs-switch__btn {
+    padding: 0 9px;
+  }
+
+  .fs__name-full {
+    display: none;
+  }
+
+  .fs__name-short {
+    display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-row--sliding {
+    transition: opacity 0.15s ease;
+  }
+}

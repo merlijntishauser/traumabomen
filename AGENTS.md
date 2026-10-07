@@ -22,7 +22,7 @@ traumabomen/
     Dockerfile            Multi-stage: dev / build / production (nginx)
     vite.config.ts        Build config with manual chunk splitting
     src/
-      components/         React components (tree/, timeline/, journal/, insights/)
+      components/         React components (tree/, familyStripes/, journal/, insights/)
       contexts/           React contexts (EncryptionContext)
       hooks/              Custom hooks (useTreeData, useTreeMutations, etc.)
       lib/                Utilities (api, crypto, colors, dsmCategories)
@@ -125,7 +125,7 @@ docker build --target production -t traumabomen-api ./api
 ### Frontend
 - **Framework:** Vite 8 + React 19 + React Router 8 + TypeScript 7 (typecheck via `@typescript/native`; the `typescript` package is the TS 6 API shim for ESLint tooling)
 - **Tree visualization:** React Flow (@xyflow/react) + Dagre auto-layout
-- **Timeline visualization:** D3.js
+- **Timeline visualization:** hand-drawn SVG (family stripes); D3.js only for the admin growth chart
 - **State management:** TanStack Query (React Query) v5
 - **i18n:** react-i18next (English + Dutch)
 - **Encryption:** Web Crypto API (AES-256-GCM) + Argon2id via argon2-browser WASM
@@ -348,7 +348,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<PassphraseHintSection>` —Account settings component for viewing, editing, and clearing the passphrase hint.
 - `<AutoLockSection>` —Account settings component for configuring the auto-lock timeout.
 - `<AuthModal>` —Overlay modal for unlock (passphrase entry with hint) and re-auth (session expired, re-login) flows.
-- `<TimelineView>` —D3 horizontal timeline. Generational rows, life bars, trauma/life event markers, classification period strips.
+- `<FamilyStripesView>` —The timeline as family stripes: every life is one band of whole-year cells, grouped by generation (`lib/generations.ts`). Trauma fills its years, approximate dates and suspected classifications are hatched, life events sit as squares on the band, classifications as a rule along its foot, turning points as a star above. One year (Years mode) or one age (Age mode, lives aligned at birth) is read at a time: a reserved-ink column on the field and `<ReadingPane>` listing what that year held for everyone, ending in an open question. Hovering an entry lights every entry with the same title; key items light their category and pin on click. Names and entries open the person page (entries deep-link to their form). Entries whose free-text date holds no year are never dropped silently: a count under the name opens the first one, a line under the key totals them, and the pane never says "nothing recorded" of someone who has them. Layout and reading rules live in `lib/familyStripes.ts`. Free-text dates are read by `lib/dateReading.ts` (English and Dutch): calendar years and ranges, decades in words ("the sixties", "jaren zestig"), ages ("at 12", "op haar 12e"), stages of life ("as a child", "in her twenties", "op oudere leeftijd") and two-digit years ("'85"). Ages and stages resolve against each person's birth year and are drawn hatched; the person page's lifeline places entries the same way. The trauma, life event and turning point forms show the reading under the date field as it is typed (`<DateReadingHint>`, sentence from `lib/dateReadingSentence.ts`).
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
 - `<ThemeToggle>` —Toolbar button switching between the dark and light themes. Shows the icon of the theme it switches to: Sun while dark, Moon while light.
 - `<JournalPage>` —The journal as a writing desk: the entry form's `sheet` variant (one open question, a roomy page) in the left column, `<JournalMargin>` of earlier entries on the right, and `<JournalReader>` to reread one. Excerpts and dates come from `lib/journalExcerpt.ts`. The workspace's `<JournalPanel>` keeps the compact list and form.
@@ -447,7 +447,7 @@ Backend tests are split into two directories under `api/tests/`:
 - DSM-5 classification CRUD (suspected/diagnosed, periods, subcategories)
 - Pattern CRUD (link trauma events, life events, classifications across persons; color-coded; canvas connectors)
 - Tree canvas view (React Flow + Dagre layout)
-- Timeline view (D3 with life bars, event markers, classification strips)
+- Timeline view (family stripes: Years and Age modes, year-by-year reading pane, highlight by entry or category)
 - Pattern view (dedicated page with card grid and detail expansion)
 - Zero-knowledge encryption
 - English + Dutch
@@ -510,7 +510,7 @@ All colors defined as CSS custom properties in `frontend/src/styles/theme.css`. 
 - **Ambient hero life:** `<AmbientBackground>` draws a slow drift of fireflies (dark) or warm light motes (light) on a 2D canvas over the hero photography (landing + auth heroes). ~30fps, pauses on hidden tabs, disabled entirely under `prefers-reduced-motion`. Hand-rolled canvas, deliberately not a 3D library, to protect the performance budget.
 - **Toolbar accent line:** 3px gradient (`--color-accent` to transparent) via `::after` pseudo-element on `.tree-toolbar`
 - **Background gradient:** Radial gradient with noise texture overlay (`feTurbulence` SVG filter at `opacity: 0.06`) to prevent banding
-- **ContourDecoration:** Procedurally generated topographic map: a peak beyond a random corner, a lower knoll, a low far hill toward the opposite corner and gentle ripples, contoured with marching squares (`contourField.ts`) and smoothed with Chaikin. Index contours every fifth level, no tiny summit rings, a soft glow under each summit. Ink and glow via `--color-contour` / `--color-contour-glow` (warm sand in light, never purple); layer opacity via `--decoration-opacity` (0.42 dark, 0.4 light). Behind the canvas, timeline, tree list, journal, patterns and insights; scrolling pages wrap it in `.page-atmosphere`.
+- **ContourDecoration:** Procedurally generated topographic map: a peak beyond a random corner, a lower knoll, a low far hill toward the opposite corner and gentle ripples, contoured with marching squares (`contourField.ts`) and smoothed with Chaikin. Index contours every fifth level, no tiny summit rings, a soft glow under each summit. Ink and glow via `--color-contour` / `--color-contour-glow` (warm sand in light, never purple); layer opacity via `--decoration-opacity` (0.42 dark, 0.4 light). Behind the canvas, tree list, journal, patterns and insights (not the timeline, where it would compete with the stripes); scrolling pages wrap it in `.page-atmosphere`.
 - **Lock screen:** Multi-layered CSS backgrounds simulating moonlit canopy (dark) or morning mist (light) using 6-8 radial gradients with `backdrop-filter: blur(20px)`
 - **Auth hero:** Theme-aware photo images with gradient overlays fading to background color
 
@@ -533,7 +533,7 @@ When modifying the frontend, follow these principles:
 - **Sentence case for every label**, including buttons. *"Add person"*, not *"Add Person"*. Only proper nouns capitalize.
 - **Lucide icons only** for stock UI. Import individually (`import { Heart, Lock } from "lucide-react"`), never the whole pack. For domain marks not in Lucide, draw a 24×24 / 2px-stroke SVG matching Lucide's grammar.
 - **Glass surfaces are reserved.** Use `tt-card--glass` / `--shadow-glass` only on auth and lock cards over hero photography. Never on workspace, settings, panels, or any data-dense surface — readability of dense data wins over depth.
-- **No press shrink, no scale transforms, no springs.** Every transition goes through `var(--transition-colors)` (0.15s ease). The two named animations (`auth-reveal`, `slide-in-right`) are the only motion grammar.
+- **No press shrink, no scale transforms, no springs.** Every transition goes through `var(--transition-colors)` (0.15s ease). The two named animations (`auth-reveal`, `slide-in-right`) are the only motion grammar, plus one authored moment on the timeline: switching Years and Age slides every life into place (`.fs-row--sliding`, off under reduced motion).
 
 ### What we do NOT do
 

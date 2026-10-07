@@ -447,10 +447,10 @@ describe("PersonDetailPanel", () => {
 
     it("lists entries without a year separately", () => {
       const props = defaultProps();
-      props.events = [makeEvent({ title: "Childhood", approximate_date: "childhood" })];
+      props.events = [makeEvent({ title: "After the war", approximate_date: "after the war" })];
       render(<PersonDetailPanel {...props} />);
       expect(screen.getByText("personPage.undated")).toBeInTheDocument();
-      expect(screen.getByText("Childhood")).toBeInTheDocument();
+      expect(screen.getByText("After the war")).toBeInTheDocument();
     });
 
     it("falls back to a placeholder for an untitled entry", () => {

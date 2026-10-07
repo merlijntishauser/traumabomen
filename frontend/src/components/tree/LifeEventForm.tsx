@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedLifeEvent, DecryptedPerson } from "../../hooks/useTreeData";
 import type { LifeEvent } from "../../types/domain";
@@ -7,6 +8,7 @@ import { blurOnEnter } from "../inspector/fieldHelpers";
 import { InspectorField } from "../inspector/InspectorField";
 import { useSaveReporter } from "../inspector/InspectorStatus";
 import { useEntityAutosave } from "../inspector/useEntityAutosave";
+import { DateReadingHint } from "./DateReadingHint";
 import { PersonLinkField } from "./PersonLinkField";
 
 export interface LifeEventFormProps {
@@ -55,6 +57,7 @@ export function LifeEventForm({
   onDelete,
 }: LifeEventFormProps) {
   const { t } = useTranslation();
+  const dateHintId = useId();
   const report = useSaveReporter();
 
   const { isNew, draft, update, commit, changeAndCommit, scheduleCommit, buildData } =
@@ -125,6 +128,7 @@ export function LifeEventForm({
         <input
           type="text"
           aria-label={t("lifeEvent.approximateDate")}
+          aria-describedby={dateHintId}
           value={draft.approximateDate}
           onChange={(e) => update((d) => ({ ...d, approximateDate: e.target.value }))}
           onBlur={commit}
@@ -132,6 +136,12 @@ export function LifeEventForm({
           placeholder={t("lifeEvent.datePlaceholder")}
         />
       </InspectorField>
+      <DateReadingHint
+        id={dateHintId}
+        text={draft.approximateDate}
+        personIds={draft.personIds}
+        allPersons={allPersons}
+      />
       <InspectorField label={`${t("lifeEvent.impact")} (${draft.impact || "-"})`}>
         <input
           type="range"

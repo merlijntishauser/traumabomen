@@ -57,6 +57,14 @@ const defaultProps = (event: DecryptedLifeEvent | null = null) => ({
 });
 
 describe("LifeEventForm", () => {
+  it("shows how the date will read under the date field", () => {
+    render(<LifeEventForm {...defaultProps()} />);
+    const input = screen.getByRole("textbox", { name: "lifeEvent.approximateDate" });
+    expect(screen.queryByText(/^dateHint\./)).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "as a child" } });
+    expect(screen.getByText("dateHint.readsFor")).toBeInTheDocument();
+  });
+
   describe("new event", () => {
     it("renders all form fields", () => {
       render(<LifeEventForm {...defaultProps()} />);

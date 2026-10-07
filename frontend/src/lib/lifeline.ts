@@ -4,7 +4,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedTurningPoint,
 } from "../hooks/useTreeData";
-import { parseYear } from "./computeInsights";
+import { readDate, yearsFor } from "./dateReading";
 
 /**
  * The lifeline is the person's page read in order: every trauma event, life
@@ -63,8 +63,16 @@ export function classificationEndYear(cls: DecryptedClassification): number | nu
   return Math.max(...cls.periods.map((p) => p.end_year as number));
 }
 
-function yearOf(approximateDate: string | undefined | null): number | null {
-  return approximateDate ? parseYear(approximateDate) : null;
+/**
+ * The year an entry sits at on this person's line: read the way the timeline
+ * reads it, so "as a child" or "at 12" lands from the birth year.
+ */
+function yearOf(
+  approximateDate: string | undefined | null,
+  birthYear: number | null,
+): number | null {
+  const reading = readDate(approximateDate);
+  return reading ? (yearsFor(reading, birthYear)?.from ?? null) : null;
 }
 
 function compareEntries(a: LifelineEntry, b: LifelineEntry): number {
@@ -77,13 +85,16 @@ function compareEntries(a: LifelineEntry, b: LifelineEntry): number {
 }
 
 /** All of a person's entries, dated ones in year order and undated ones last. */
-export function buildLifelineEntries(sources: LifelineSources): LifelineEntry[] {
+export function buildLifelineEntries(
+  sources: LifelineSources,
+  birthYear: number | null = null,
+): LifelineEntry[] {
   const entries: LifelineEntry[] = [
     ...sources.events.map(
       (entity): LifelineEntry => ({
         kind: "trauma_event",
         id: entity.id,
-        year: yearOf(entity.approximate_date),
+        year: yearOf(entity.approximate_date, birthYear),
         entity,
       }),
     ),
@@ -91,7 +102,7 @@ export function buildLifelineEntries(sources: LifelineSources): LifelineEntry[] 
       (entity): LifelineEntry => ({
         kind: "life_event",
         id: entity.id,
-        year: yearOf(entity.approximate_date),
+        year: yearOf(entity.approximate_date, birthYear),
         entity,
       }),
     ),
@@ -99,7 +110,7 @@ export function buildLifelineEntries(sources: LifelineSources): LifelineEntry[] 
       (entity): LifelineEntry => ({
         kind: "turning_point",
         id: entity.id,
-        year: yearOf(entity.approximate_date),
+        year: yearOf(entity.approximate_date, birthYear),
         entity,
       }),
     ),
