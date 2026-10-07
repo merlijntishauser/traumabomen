@@ -1,85 +1,85 @@
-# The app icon: growth rings. Writes the concept SVGs and final-{default,dark,tinted}.svg;
-# render them to 1024px PNGs in a browser, and strip the alpha channel from the default.
+# The app icon: growth rings around a heart beyond the corner. Writes the round-two
+# concepts and final-{default,dark,tinted}.svg; render those to 1024px PNGs in a
+# browser and strip the alpha channel from the default (App Store requirement).
+# Growth rings, second round: many thin rings around an off-centre heart,
+# rounder organic outlines, and no single bold ring (that read as an eye).
 import math, random
-GROUND = '''<defs><radialGradient id="g" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#123222"/><stop offset="1" stop-color="#08160d"/></radialGradient>
-<pattern id="hatch" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="34" height="34" fill="#163626"/><rect width="13" height="34" fill="#3fa874"/></pattern></defs>
-<rect width="1024" height="1024" fill="url(#g)"/>'''
-INK="#f3efe6"; ACC="#3fa874"; ACC2="#2d8a5e"; DIM="#1d3a29"
 
-def blob(cx, cy, r, seed, amp=0.06, n=180):
-    rnd = random.Random(seed)
-    ph = [rnd.uniform(0, 6.28) for _ in range(3)]
+INK = "#f3efe6"; ACC = "#3fa874"; DEEP = "#2d8a5e"
+GROUND = '''<defs><radialGradient id="g" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#123222"/><stop offset="1" stop-color="#08160d"/></radialGradient></defs>
+<rect width="1024" height="1024" fill="url(#g)"/>'''
+
+def outline(cx, cy, r, harmonics, n=240):
     pts = []
     for i in range(n):
-        a = 2*math.pi*i/n
-        k = 1 + amp*(math.sin(2*a+ph[0])*0.6 + math.sin(3*a+ph[1])*0.3 + math.sin(5*a+ph[2])*0.12)
-        pts.append((cx + r*k*math.cos(a), cy + r*k*math.sin(a)))
-    return "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in pts) + "Z"
+        a = 2 * math.pi * i / n
+        k = 1 + sum(amp * math.sin(h * a + ph) for h, amp, ph in harmonics)
+        pts.append((cx + r * k * math.cos(a), cy + r * k * math.sin(a)))
+    # Smooth closed path through the points (Catmull-Rom to cubic Bezier).
+    d = f"M{pts[0][0]:.1f},{pts[0][1]:.1f}"
+    for i in range(n):
+        p0, p1, p2, p3 = pts[i - 1], pts[i], pts[(i + 1) % n], pts[(i + 2) % n]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d += f" C{c1[0]:.1f},{c1[1]:.1f} {c2[0]:.1f},{c2[1]:.1f} {p2[0]:.1f},{p2[1]:.1f}"
+    return d + "Z"
 
-def rings():
-    # Growth rings drifting off-centre like contours; one ring read in the reserved ink.
-    out = [GROUND]
-    out.append(f'<path d="{blob(560, 478, 30, 7, 0.05)}" fill="{ACC}"/>')
-    for i, r in enumerate([92, 152, 236, 286, 352]):
-        cx, cy = 556 - i*11, 482 + i*7
-        col = INK if i == 2 else ACC
-        op = 1 if i == 2 else 0.92 - i*0.13
-        out.append(f'<path d="{blob(cx, cy, r, 7, 0.045 + i*0.012)}" fill="none" stroke="{col}" stroke-opacity="{op:.2f}" stroke-width="{30 if i == 2 else 26}" stroke-linejoin="round"/>')
-    return "".join(out)
+def ring_set(seed, heart, lean, count, r0, r1, wobble):
+    """Radii with uneven spacing (lean and full years); each ring grows more toward `lean`,
+    so the heart sits off-centre as in a real trunk. The outline wobble grows outward."""
+    rnd = random.Random(seed)
+    widths = [rnd.uniform(0.6, 1.4) for _ in range(count)]
+    total = sum(widths)
+    base = [(h, 0, rnd.uniform(0, 6.28)) for h in (2, 3, 4, 5, 7)]
+    rings, acc = [], 0
+    for i, w in enumerate(widths):
+        acc += w
+        r = r0 + (r1 - r0) * acc / total
+        t = acc / total
+        harm = [(h, wobble * t / h ** 1.3 * (1 + 0.15 * rnd.uniform(-1, 1)), ph + 0.25 * t) for h, _, ph in base]
+        cx = heart[0] + lean[0] * (r - r0)
+        cy = heart[1] + lean[1] * (r - r0)
+        rings.append(outline(cx, cy, r, harm))
+    return rings
 
-def lineage():
-    # One life in the middle: two parents above, two children below, the same branching mirrored.
-    out = [GROUND]
-    s = 'fill="none" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"'
-    out.append(f'<path d="M512 512 V392 M512 392 H352 V286 M512 392 H672 V286" stroke="{ACC}" {s}/>')
-    out.append(f'<path d="M512 512 V632 M512 632 H352 V738 M512 632 H672 V738" stroke="{ACC}" stroke-opacity="0.55" {s}/>')
-    for x, y, o in [(352, 238, 1), (672, 238, 1), (352, 786, .55), (672, 786, .55)]:
-        out.append(f'<circle cx="{x}" cy="{y}" r="56" fill="none" stroke="{ACC}" stroke-opacity="{o}" stroke-width="40"/>')
-    out.append(f'<circle cx="512" cy="512" r="74" fill="{INK}"/>')
-    return "".join(out)
+def svg(inner, ground=True):
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">{GROUND if ground else ""}{inner}</svg>'
 
-def stripes():
-    # Three generations as bands; one hatched year span; the reading column crossing them all.
-    out = [GROUND]
-    for x0, y, x1 in [(150, 262, 720), (262, 452, 874), (398, 642, 874)]:
-        out.append(f'<rect x="{x0}" y="{y}" width="{x1-x0}" height="132" rx="30" fill="#24493a"/>')
-    out.append(f'<rect x="330" y="262" width="140" height="132" fill="{ACC}"/>')
-    out.append(f'<rect x="640" y="452" width="170" height="132" fill="url(#hatch)"/>')
-    out.append(f'<rect x="540" y="182" width="64" height="676" rx="32" fill="none" stroke="{INK}" stroke-width="22"/>')
-    return "".join(out)
+def slice_(ground=True, mono=None):
+    # A: a whole slice of trunk inside the icon, bark as the outer, darker band.
+    rings = ring_set(14, (448, 452), (0.1, 0.08), 8, 52, 352, 0.11)
+    out = []
+    for i, d in enumerate(rings):
+        lit = i == 6
+        out.append(f'<path d="{d}" fill="none" stroke="{mono or (INK if lit else ACC)}" stroke-opacity="{1 if lit else 0.92 - i * 0.06:.2f}" stroke-width="{15 if lit else 14}"/>')
+    return svg("".join(out), ground)
 
-def canopy():
-    # The current mark redrawn as a contour map: the canopy is a hill, the trunk one line.
-    out = [GROUND]
-    for i, r in enumerate([300, 228, 158, 92]):
-        cy = 430 - i*26
-        cx = 512 + i*10
-        out.append(f'<path d="{blob(cx, cy, r, 3, 0.035)}" fill="{ACC2 if i==0 else "none"}" fill-opacity="0.22" stroke="{INK if i==3 else ACC}" stroke-opacity="{1 if i==3 else 0.9-i*0.12:.2f}" stroke-width="30" stroke-linejoin="round"/>')
-    out.append(f'<path d="M512 730 V880" stroke="{ACC}" stroke-width="44" stroke-linecap="round"/>')
-    return "".join(out)
+def corner(ground=True, mono=None):
+    # B: the heart sits beyond the lower-left edge; rings sweep across and leave the frame.
+    rings = ring_set(8, (128, 930), (0.07, -0.05), 12, 70, 1060, 0.16)
+    out = [f'<circle cx="128" cy="930" r="22" fill="{mono or ACC}"/>']
+    for i, d in enumerate(rings):
+        lit = i == 6
+        out.append(f'<path d="{d}" fill="none" stroke="{mono or (INK if lit else ACC)}" stroke-opacity="{1 if lit else 0.95 - i * 0.05:.2f}" stroke-width="{20 if lit else 15}"/>')
+    return svg(f'<g>{"".join(out)}</g>', ground)
 
-concepts = [("rings", "Growth rings", "A cross-section of the tree: years laid down ring by ring, drifting off-centre like the contour drawings. One ring is read in the reserved ink, the way the timeline reads one year.", rings()),
-            ("lineage", "One life between", "A person in the middle: parents above, children below, the same branching carried down and fading. The family tree in its plainest form.", lineage()),
-            ("stripes", "Family stripes", "Three generations as bands, a trauma year filled, an approximate span hatched, and the reading column crossing them all. The timeline as a mark.", stripes()),
-            ("canopy", "Contour canopy", "The current tree kept, redrawn as a contour map: the canopy becomes a hill with a summit read in the reserved ink. Recognisable, but finally in the app's own language.", canopy())]
-import json
-for key, *_ , svg in concepts:
-    open(f"{key}.svg", "w").write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">{svg}</svg>')
-json.dump([{"key": k, "name": n, "note": d} for k, n, d, _ in concepts], open("concepts.json", "w"))
-print("ok")
+def canopy(ground=True, mono=None):
+    # C: the rings drawn as a crown on a trunk: the tree and its years in one mark.
+    rings = ring_set(23, (500, 420), (0.06, -0.12), 8, 20, 262, 0.08)
+    out = [f'<path d="M512 690 C512 760 506 820 512 880" fill="none" stroke="{mono or DEEP}" stroke-width="40" stroke-linecap="round"/>']
+    for i, d in enumerate(rings):
+        lit = i == 4
+        out.append(f'<path d="{d}" fill="none" stroke="{mono or (INK if lit else ACC)}" stroke-opacity="{1 if lit else 0.9 - i * 0.05:.2f}" stroke-width="{18 if lit else 14}"/>')
+    return svg("".join(out), ground)
 
-def rings_variant(ground=True, tinted=False):
-    out = [GROUND if ground else ""]
-    acc = "#ffffff" if tinted else ACC
-    ink = "#ffffff" if tinted else INK
-    out.append(f'<path d="{blob(560, 478, 30, 7, 0.05)}" fill="{acc}" fill-opacity="{0.75 if tinted else 1}"/>')
-    for i, r in enumerate([92, 152, 236, 286, 352]):
-        cx, cy = 556 - i*11, 482 + i*7
-        col = ink if i == 2 else acc
-        op = 1 if i == 2 else (0.62 - i*0.09 if tinted else 0.92 - i*0.13)
-        out.append(f'<path d="{blob(cx, cy, r, 7, 0.045 + i*0.012)}" fill="none" stroke="{col}" stroke-opacity="{op:.2f}" stroke-width="{30 if i == 2 else 26}" stroke-linejoin="round"/>')
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">{"".join(out)}</svg>'
+if __name__ == "__main__":
+    for key, f in (("slice", slice_), ("corner", corner), ("canopy2", canopy)):
+        open(f"{key}.svg", "w").write(f())
+    print("ok")
 
-open("final-default.svg", "w").write(rings_variant())
-open("final-dark.svg", "w").write(rings_variant(ground=False))
-open("final-tinted.svg", "w").write(rings_variant(ground=False, tinted=True))
+def write_finals():
+    open("final-default.svg", "w").write(corner())
+    open("final-dark.svg", "w").write(corner(ground=False))
+    open("final-tinted.svg", "w").write(corner(ground=False, mono="#ffffff"))
+
+write_finals()
