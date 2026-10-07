@@ -9,6 +9,7 @@ enum LucideIcon: String {
     case penLine = "pen-line"
     case lock
     case settings
+    case ganttChart = "gantt-chart"
 
     var image: Image { Image(rawValue).renderingMode(.template) }
 }

@@ -22,6 +22,8 @@ struct HomeView: View {
                     JournalListView(entries: entries)
                 case .tree:
                     treeTab
+                case .timeline:
+                    timelineTab
                 }
             }
             .frame(maxHeight: .infinity)
@@ -85,6 +87,15 @@ struct HomeView: View {
         }
     }
 
+    @ViewBuilder
+    private var timelineTab: some View {
+        if let tree = model.treeData {
+            FamilyStripesView(data: tree)
+        } else {
+            Spacer()
+        }
+    }
+
     private var navBar: some View {
         HStack(spacing: 0) {
             NavItem(icon: .bookOpen, label: t("Journal"), selected: model.activeTab == .journal) {
@@ -92,6 +103,9 @@ struct HomeView: View {
             }
             NavItem(icon: .network, label: t("Tree"), selected: model.activeTab == .tree) {
                 model.activeTab = .tree
+            }
+            NavItem(icon: .ganttChart, label: t("Timeline"), selected: model.activeTab == .timeline) {
+                model.activeTab = .timeline
             }
             NavItem(icon: .settings, label: t("Settings")) { showSettings = true }
             NavItem(icon: .lock, label: t("Lock")) { model.lock() }

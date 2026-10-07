@@ -94,6 +94,13 @@ struct TreeCanvasView: View {
         .sheet(item: $selected) { person in
             PersonSheet(person: person)
         }
+        #if DEBUG
+        .onAppear {
+            if let name = AppModel.launchArgument("-openPerson") {
+                selected = data.persons.first { $0.name.localizedCaseInsensitiveContains(name) }
+            }
+        }
+        #endif
     }
 
     // Center the tree's bounding box in the viewport at a readable scale.
@@ -225,22 +232,28 @@ struct TreeCanvasView: View {
     private func drawNodes(in ctx: inout GraphicsContext) {
         for person in data.persons {
             let rect = CGRect(origin: CGPoint(x: person.x, y: person.y), size: Self.nodeSize)
-            let card = Path(roundedRect: rect, cornerRadius: 10)
+            let card = Path(roundedRect: rect, cornerRadius: 12)
             ctx.fill(card, with: .color(Theme.bgSecondary))
-            ctx.stroke(card, with: .color(Theme.borderPrimary), lineWidth: 1)
+            ctx.stroke(card, with: .color(Theme.borderPrimary), lineWidth: 1.5)
+            // The person node's 3px accent top edge, as on the web canvas.
+            ctx.fill(
+                Path(roundedRect: CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: 3), cornerRadius: 1.5),
+                with: .color(Theme.accent)
+            )
 
+            // The name in the voice face: the family notebook's handwriting.
             ctx.draw(
                 Text(person.name)
-                    .font(Theme.body(13, weight: .semibold))
+                    .font(Theme.heading(13))
                     .foregroundStyle(Theme.textPrimary),
-                at: CGPoint(x: rect.minX + 12, y: rect.minY + 16),
+                at: CGPoint(x: rect.minX + 12, y: rect.minY + 18),
                 anchor: .leading
             )
             ctx.draw(
                 Text(person.yearsLabel)
                     .font(Theme.body(11))
                     .foregroundStyle(Theme.textMuted),
-                at: CGPoint(x: rect.minX + 12, y: rect.minY + 34),
+                at: CGPoint(x: rect.minX + 12, y: rect.minY + 36),
                 anchor: .leading
             )
             drawBadges(for: person, in: rect, ctx: &ctx)
@@ -248,7 +261,7 @@ struct TreeCanvasView: View {
     }
 
     /// The web's badge grammar on the node card: circles for trauma events,
-    /// squares for life events, a star for turning points.
+    /// squares for life events, triangles for classifications, stars for turning points.
     private func drawBadges(for person: TreePerson, in rect: CGRect, ctx: inout GraphicsContext) {
         guard let story = data.stories[person.id], !story.isEmpty else { return }
         var x = rect.minX + 12
@@ -265,186 +278,19 @@ struct TreeCanvasView: View {
             ctx.fill(square, with: .color(CategoryColors.life(item.category)))
             x += s + 4
         }
-        for _ in story.turning {
-            var star = Path()
-            let c = CGPoint(x: x + s / 2, y: y + s / 2)
-            for i in 0..<10 {
-                let r = i % 2 == 0 ? s / 2 : s / 4.6
-                let a = -CGFloat.pi / 2 + CGFloat(i) * .pi / 5
-                let p = CGPoint(x: c.x + r * cos(a), y: c.y + r * sin(a))
-                i == 0 ? star.move(to: p) : star.addLine(to: p)
+        for item in story.classifications {
+            let triangle = StoryTriangle().path(in: CGRect(x: x, y: y, width: s + 1, height: s))
+            if item.category == "diagnosed" {
+                ctx.fill(triangle, with: .color(CategoryColors.classification(item.category)))
+            } else {
+                ctx.stroke(triangle, with: .color(CategoryColors.classification(item.category)), lineWidth: 1.4)
             }
-            star.closeSubpath()
-            ctx.fill(star, with: .color(CategoryColors.turningPoint))
+            x += s + 5
+        }
+        for item in story.turning {
+            let star = StarShape().path(in: CGRect(x: x - 0.5, y: y - 0.5, width: s + 1, height: s + 1))
+            ctx.fill(star, with: .color(CategoryColors.turning(item.category)))
             x += s + 4
-        }
-    }
-}
-
-/// A person's page: years, notes, and their story in the badge grammar's
-/// order. The reflective layer is editable (add / edit / delete); person
-/// fields, relationships, and the canvas stay desk work. Reads the story live
-/// from the model so a save reflects immediately.
-struct PersonSheet: View {
-    @EnvironmentObject private var model: AppModel
-    let person: TreePerson
-
-    @State private var editing: StoryEditTarget?
-
-    private var story: PersonStory { model.treeData?.stories[person.id] ?? PersonStory() }
-    private var persons: [TreePerson] { model.treeData?.persons ?? [] }
-
-    var body: some View {
-        ZStack {
-            AppBackground()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(person.name)
-                        .font(Theme.heading(19))
-                        .foregroundStyle(Theme.textPrimary)
-                        .padding(.top, 28)
-
-                    Text(person.yearsLabel)
-                        .font(Theme.body(Theme.bodySize))
-                        .foregroundStyle(Theme.textMuted)
-
-                    if person.isAdopted {
-                        Text(t("Adopted"))
-                            .font(Theme.body(13))
-                            .foregroundStyle(Theme.textMuted)
-                    }
-
-                    if let notes = person.notes, !notes.isEmpty {
-                        Text(notes)
-                            .font(Theme.body(Theme.bodySize))
-                            .foregroundStyle(Theme.textPrimary)
-                            .padding(.top, 4)
-                    }
-
-                    editableSection(
-                        t("What happened"),
-                        items: story.trauma,
-                        onAdd: { editing = .create(.trauma) },
-                        onTap: { editing = .edit(.trauma, $0.id) }
-                    ) { Circle().fill(CategoryColors.trauma($0.category)) }
-                    editableSection(
-                        t("Life events"),
-                        items: story.life,
-                        onAdd: { editing = .create(.life) },
-                        onTap: { editing = .edit(.life, $0.id) }
-                    ) { Rectangle().fill(CategoryColors.life($0.category)) }
-                    editableSection(
-                        t("Turning points"),
-                        items: story.turning,
-                        onAdd: { editing = .create(.turning) },
-                        onTap: { editing = .edit(.turning, $0.id) }
-                    ) { _ in Circle().fill(CategoryColors.turningPoint) }
-                    editableSection(
-                        t("Classifications"),
-                        items: story.classifications,
-                        onAdd: { editing = .create(.classification) },
-                        onTap: { editing = .edit(.classification, $0.id) }
-                    ) { StoryTriangle().fill(CategoryColors.classification($0.category)) }
-
-                    Text(t("Names, relationships, and the canvas are edited at the desk."))
-                        .font(Theme.body(12))
-                        .foregroundStyle(Theme.textMuted)
-                        .padding(.top, 20)
-                        .padding(.bottom, 16)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 24)
-            }
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-        .sheet(item: $editing) { target in
-            switch target.kind {
-            case .trauma:
-                TraumaEventForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
-            case .life:
-                LifeEventForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
-            case .turning:
-                TurningPointForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
-            case .classification:
-                ClassificationForm(editingId: target.editingId, persons: persons, defaultPersonId: person.id)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func sectionHeader(_ title: String, onAdd: (() -> Void)?) -> some View {
-        HStack {
-            Text(title)
-                .font(Theme.body(13, weight: .semibold))
-                .foregroundStyle(Theme.textMuted)
-            Spacer()
-            if let onAdd {
-                Button(action: onAdd) {
-                    ActionLabel(mark: LucidePlus(), text: t("Add"), color: Theme.action, markSize: 11)
-                }
-            }
-        }
-        .padding(.top, 14)
-    }
-
-    private func itemRow<M: View>(_ item: StoryItem, @ViewBuilder marker: (StoryItem) -> M) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            marker(item)
-                .frame(width: 9, height: 9)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(item.title)
-                        .font(Theme.body(Theme.bodySize))
-                        .foregroundStyle(Theme.textPrimary)
-                    if let date = item.date {
-                        Text(date)
-                            .font(Theme.body(12))
-                            .foregroundStyle(Theme.textMuted)
-                    }
-                    if item.pending {
-                        Text(t("on this device"))
-                            .font(Theme.body(11))
-                            .foregroundStyle(Theme.textMuted)
-                    }
-                }
-                if let description = item.description, !description.isEmpty {
-                    Text(description)
-                        .font(Theme.body(13))
-                        .foregroundStyle(Theme.textMuted)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    @ViewBuilder
-    private func readOnlySection<M: View>(
-        _ title: String, items: [StoryItem],
-        @ViewBuilder marker: @escaping (StoryItem) -> M
-    ) -> some View {
-        if !items.isEmpty {
-            sectionHeader(title, onAdd: nil)
-            ForEach(items) { itemRow($0, marker: marker) }
-        }
-    }
-
-    @ViewBuilder
-    private func editableSection<M: View>(
-        _ title: String, items: [StoryItem],
-        onAdd: @escaping () -> Void, onTap: @escaping (StoryItem) -> Void,
-        @ViewBuilder marker: @escaping (StoryItem) -> M
-    ) -> some View {
-        sectionHeader(title, onAdd: onAdd)
-        if items.isEmpty {
-            Text(t("None yet."))
-                .font(Theme.body(13))
-                .foregroundStyle(Theme.textMuted)
-        } else {
-            ForEach(items) { item in
-                Button { onTap(item) } label: { itemRow(item, marker: marker) }
-                    .buttonStyle(.plain)
-            }
         }
     }
 }

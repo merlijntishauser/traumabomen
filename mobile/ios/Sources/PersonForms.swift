@@ -104,7 +104,9 @@ struct TurningPointForm: View {
                 TermMenu(terms: Taxonomies.turning, selection: $content.category)
             }
             FormField(label: t("When")) {
-                TextField(t("Approximate date"), text: $content.approximate_date).modifier(FieldStyle())
+                TextField(t("e.g. 1985, the sixties, as a child"), text: $content.approximate_date)
+                    .modifier(FieldStyle())
+                DateHintText(text: content.approximate_date, persons: persons, personIds: personIds)
             }
             FormField(label: t("Significance")) {
                 ScaleDots(value: $content.significance)
@@ -165,7 +167,9 @@ struct TraumaEventForm: View {
                 TermMenu(terms: Taxonomies.trauma, selection: $content.category)
             }
             FormField(label: t("When")) {
-                TextField(t("Approximate date"), text: $content.approximate_date).modifier(FieldStyle())
+                TextField(t("e.g. 1985, the sixties, as a child"), text: $content.approximate_date)
+                    .modifier(FieldStyle())
+                DateHintText(text: content.approximate_date, persons: persons, personIds: personIds)
             }
             FormField(label: t("Severity")) {
                 // Severity is always set; a tap on the current value keeps it.
@@ -230,7 +234,9 @@ struct LifeEventForm: View {
                 TermMenu(terms: Taxonomies.life, selection: $content.category)
             }
             FormField(label: t("When")) {
-                TextField(t("Approximate date"), text: $content.approximate_date).modifier(FieldStyle())
+                TextField(t("e.g. 1985, the sixties, as a child"), text: $content.approximate_date)
+                    .modifier(FieldStyle())
+                DateHintText(text: content.approximate_date, persons: persons, personIds: personIds)
             }
             FormField(label: t("Impact")) {
                 ScaleDots(value: $content.impact)
@@ -338,5 +344,23 @@ struct ClassificationForm: View {
             personIds = [defaultPersonId]
         }
         loaded = true
+    }
+}
+
+/// How the timeline will read the date as it is typed ("Reads as 1944, when
+/// Harold was 12."), or what to try when it has no year to place.
+struct DateHintText: View {
+    let text: String
+    let persons: [TreePerson]
+    let personIds: Set<String>
+
+    var body: some View {
+        if let sentence = DateHint.sentence(for: text, people: persons.filter { personIds.contains($0.id) }) {
+            Text(sentence)
+                .font(Theme.body(12))
+                .foregroundStyle(Theme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(sentence)
+        }
     }
 }

@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// The reflective heart of the companion: journal entries, decrypted in
-/// memory, presented quietly. The sync state is one muted line, never a
-/// spinner takeover.
+/// The reflective heart of the companion, as the web's writing desk: a way
+/// in to a new entry (which opens on one open question), then a margin of
+/// earlier entries, newest first. Decrypted in memory, presented quietly; the
+/// sync state is one muted line, never a spinner takeover.
 struct JournalListView: View {
     @EnvironmentObject private var model: AppModel
     let entries: [AppModel.Entry]
@@ -42,7 +43,7 @@ struct JournalListView: View {
 
             if entries.isEmpty {
                 Spacer()
-                Text(t("Nothing here yet. Your first entry can be a single sentence."))
+                Text(t("What you write appears here, newest first. Only you can read it."))
                     .font(Theme.body(Theme.bodySize))
                     .foregroundStyle(Theme.textMuted)
                     .multilineTextAlignment(.center)
@@ -51,12 +52,19 @@ struct JournalListView: View {
                 Spacer()
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        Text(t("Earlier entries"))
+                            .font(Theme.heading(16))
+                            .fontWeight(.light)
+                            .foregroundStyle(Theme.textMuted)
+                            .padding(.bottom, 6)
+                            .accessibilityAddTraits(.isHeader)
                         ForEach(entries) { entry in
                             Button { editingEntry = entry } label: {
                                 entryCard(entry)
                             }
                             .buttonStyle(.plain)
+                            Rectangle().fill(Theme.borderPrimary).frame(height: 1)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -66,6 +74,13 @@ struct JournalListView: View {
         }
         .sheet(isPresented: $composing) {
             ComposerView().environmentObject(model)
+        }
+        .onAppear {
+            // "Write about it" from the tree list lands straight in a new entry.
+            if model.composeOnOpen {
+                model.composeOnOpen = false
+                composing = true
+            }
         }
         #if DEBUG
         .onAppear {
@@ -81,20 +96,24 @@ struct JournalListView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(entry.title)
-                    .font(Theme.body(17, weight: .light))
+                    .font(Theme.heading(16))
+                    .fontWeight(.light)
                     .foregroundStyle(Theme.textPrimary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
                 if entry.pending {
                     Text(t("waiting to sync"))
                         .font(Theme.body(11))
                         .foregroundStyle(Theme.textMuted)
                 }
             }
-            if !entry.body.isEmpty {
-                Text(entry.body)
+            if !excerpt(entry.body).isEmpty {
+                Text(excerpt(entry.body))
                     .font(Theme.body(Theme.bodySize))
-                    .foregroundStyle(Theme.textMuted)
+                    .foregroundStyle(Theme.textSecondary)
+                    .lineSpacing(3)
                     .lineLimit(3)
+                    .multilineTextAlignment(.leading)
             }
 
             if !entry.links.isEmpty {
@@ -116,9 +135,18 @@ struct JournalListView: View {
                 .padding(.top, 2)
             }
         }
-        .padding(16)
+        .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cardSurface()
+        .contentShape(Rectangle())
+    }
+
+    /// Plain text for the margin: quoted questions and markdown marks fall away.
+    private func excerpt(_ body: String) -> String {
+        body.components(separatedBy: "\n")
+            .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix(">") }
+            .map { $0.replacingOccurrences(of: "*", with: "").replacingOccurrences(of: "#", with: "") }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var statusLine: String {

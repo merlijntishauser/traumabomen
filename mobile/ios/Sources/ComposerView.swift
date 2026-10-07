@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// The distraction-free composer, for a new entry or an existing one. A
-/// single text field (like the web), an optional set of links to moments in
-/// the tree, and quiet save. Editing an entry also offers delete.
+/// The journal as a writing desk, for a new entry or an existing one. A new
+/// entry opens on one open question in the voice face; answering it quotes
+/// the question into the entry, so rereading shows the question apart from
+/// the answer (as on the web). A single text field, optional links to moments
+/// in the tree, and quiet save. Editing an entry also offers delete.
 struct ComposerView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -16,19 +18,28 @@ struct ComposerView: View {
     @State private var showLinkPicker = false
     @State private var confirmingDelete = false
     @State private var saving = false
+    /// The open question offered to a new entry: a given one (about a person), or a journal prompt.
+    @State private var question: String?
+    @State private var promptIndex = Int.random(in: 0..<JournalPrompts.count)
+    @FocusState private var bodyFocused: Bool
 
-    init(editing: AppModel.Entry? = nil) {
+    init(editing: AppModel.Entry? = nil, presetLinks: [AppModel.LinkRef] = [], question: String? = nil) {
         self.editing = editing
         _title = State(initialValue: editing?.title ?? "")
         _bodyText = State(initialValue: editing?.body ?? "")
-        _links = State(initialValue: editing?.links ?? [])
+        _links = State(initialValue: editing?.links ?? presetLinks)
+        _question = State(initialValue: question)
     }
+
+    private var shownQuestion: String { question ?? JournalPrompts.journal(promptIndex) }
 
     var body: some View {
         ZStack {
             AppBackground()
             VStack(alignment: .leading, spacing: 12) {
                 header
+
+                if editing == nil { questionBlock }
 
                 // Title: the first line, shown larger; it is what the list and
                 // the web preview use as the entry's heading.
@@ -48,9 +59,11 @@ struct ComposerView: View {
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.horizontal, 19)
                     .frame(minHeight: 140)
+                    .focused($bodyFocused)
+                    .lineSpacing(5)
                     .overlay(alignment: .topLeading) {
                         if bodyText.isEmpty {
-                            Text(t("What was never spoken about, but everyone knew?"))
+                            Text(t("Write your reflection here…"))
                                 .font(Theme.body(Theme.bodySize))
                                 .foregroundStyle(Theme.textMuted.opacity(0.6))
                                 .padding(.horizontal, 24)
@@ -68,6 +81,48 @@ struct ComposerView: View {
         .sheet(isPresented: $showLinkPicker) {
             LinkPickerView(selected: $links).environmentObject(model)
         }
+    }
+
+    /// One open question at the top of the sheet, with a way to answer it or ask another.
+    private var questionBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(shownQuestion)
+                .font(Theme.heading(20))
+                .fontWeight(.light)
+                .foregroundStyle(Theme.textPrimary)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            HStack(spacing: 20) {
+                Button(action: answer) {
+                    Text(t("Answer this question"))
+                        .font(Theme.body(13, weight: .semibold))
+                        .foregroundStyle(Theme.action)
+                        .frame(minHeight: 44)
+                }
+                Button {
+                    question = nil
+                    promptIndex = JournalPrompts.another(after: promptIndex, count: JournalPrompts.count)
+                } label: {
+                    Text(t("Another question"))
+                        .font(Theme.body(13))
+                        .foregroundStyle(Theme.textMuted)
+                        .frame(minHeight: 44)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+
+    /// Put the question into the entry as a quote, so rereading shows it apart from the answer.
+    private func answer() {
+        let quote = "> " + shownQuestion
+        if !bodyText.hasPrefix(quote) {
+            bodyText = bodyText.isEmpty ? quote + "\n\n" : quote + "\n\n" + bodyText
+        }
+        bodyFocused = true
     }
 
     private var header: some View {

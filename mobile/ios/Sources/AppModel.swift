@@ -60,7 +60,7 @@ final class AppModel: ObservableObject {
         let title: String
     }
 
-    enum Tab { case journal, tree }
+    enum Tab { case journal, tree, timeline }
 
     @Published var phase: Phase
     @Published var errorMessage: String?
@@ -87,6 +87,11 @@ final class AppModel: ObservableObject {
     /// without decrypting it again.
     private var ringBase64: [String: String] = [:]
     @Published var treeData: TreeData?
+    /// The latest tree's people and relationships, for the tree list's
+    /// threshold. Only this tree is decrypted for the preview.
+    @Published var previewTree: TreeData?
+    /// Open the composer when the journal next appears ("Write about it").
+    @Published var composeOnOpen = false
 
     private let api: ApiClient
     private let sync: TreeSync
@@ -470,6 +475,34 @@ final class AppModel: ObservableObject {
         phase = .treeList
     }
 
+    /// The tree the threshold shows: the one last opened, else the first.
+    var latestTreeId: String? {
+        selectedTreeId.flatMap { id in trees.first { $0.id == id }?.id } ?? trees.first?.id
+    }
+
+    /// Decrypt the latest tree's people and relationships for the threshold's
+    /// silhouette, from the mirror when offline.
+    func loadPreview() async {
+        guard let id = latestTreeId, let key = treeKeys[id] else {
+            previewTree = nil
+            return
+        }
+        let personRows = (try? await sync.pull(treeId: id, type: .persons)) ?? []
+        let edgeRows = (try? await sync.pull(treeId: id, type: .relationships)) ?? []
+        let persons = personRows.enumerated().compactMap { index, row in
+            TreeDecoding.person(row, key: key, fallbackIndex: index)
+        }
+        let edges = edgeRows.compactMap { TreeDecoding.edge($0, key: key) }
+        previewTree = TreeData(persons: persons, edges: edges, stories: [:])
+    }
+
+    /// Open the latest tree straight into a new journal entry.
+    func writeAbout(_ id: String) async {
+        composeOnOpen = true
+        activeTab = .journal
+        await enterTree(id)
+    }
+
     /// Decrypt each tree's name (from the server list, cached for offline)
     /// and pick the selected tree: the persisted choice if still present,
     /// else the first.
@@ -783,6 +816,9 @@ final class AppModel: ObservableObject {
     func debugAutoFlow() async {
         if ProcessInfo.processInfo.arguments.contains("-showTree") {
             activeTab = .tree
+        }
+        if ProcessInfo.processInfo.arguments.contains("-showTimeline") {
+            activeTab = .timeline
         }
         if case .biometric = phase,
            ProcessInfo.processInfo.arguments.contains("-autoBiometric") {

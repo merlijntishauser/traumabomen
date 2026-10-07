@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The app's home once unlocked: a warm forest-photo banner (the welcome
-/// screen's greeting brought into everyday use), then the trees you hold keys
-/// for. The selected tree is the top-level context, since both the journal and
+/// The app's home once unlocked, as the web's tree list threshold: it opens
+/// on your family (the latest tree as a silhouette of its own canvas), then
+/// the other trees you hold keys for. The selected tree is the top-level context, since both the journal and
 /// the canvas belong to it, so choosing one is an explicit step (mirroring the
 /// web's tree list). A single tree opens directly and never lands here.
 struct TreeListView: View {
@@ -12,45 +12,55 @@ struct TreeListView: View {
     @State private var naming = false
     @State private var newTreeName = ""
 
+    @State private var questionIndex = Int.random(in: 0..<JournalPrompts.count)
+
     var body: some View {
         ZStack {
             AppBackground()
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        heroBanner
-
-                        Text(t("Welcome back."))
-                            .font(Theme.heading(26))
+                        Text(t("Traumatrees"))
+                            .font(Theme.heading(20))
+                            .fontWeight(.light)
                             .foregroundStyle(Theme.textPrimary)
                             .padding(.horizontal, 24)
+                            .padding(.top, 12)
 
-                        Text(t("Each tree holds its own family, journal, and canvas."))
-                            .font(Theme.body(13))
-                            .foregroundStyle(Theme.textMuted)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 3)
-
-                        LazyVStack(spacing: 12) {
-                            ForEach(model.trees) { tree in
-                                Button {
-                                    Task { await model.enterTree(tree.id) }
-                                } label: {
-                                    treeCard(tree)
-                                }
-                                .buttonStyle(.plain)
-                            }
-
-                            newTreeRow
+                        if let latest = latestTree {
+                            threshold(latest).padding(.top, 18)
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 20)
-                        .padding(.bottom, 28)
+
+                        let others = model.trees.filter { $0.id != latestTree?.id }
+                        if !others.isEmpty {
+                            Text(t("Other trees"))
+                                .font(Theme.heading(16))
+                                .fontWeight(.light)
+                                .foregroundStyle(Theme.textMuted)
+                                .padding(.horizontal, 24)
+                                .padding(.top, 34)
+                                .accessibilityAddTraits(.isHeader)
+                            VStack(spacing: 0) {
+                                ForEach(others) { tree in
+                                    Button {
+                                        Task { await model.enterTree(tree.id) }
+                                    } label: {
+                                        treeRow(tree)
+                                    }
+                                    .buttonStyle(.plain)
+                                    Rectangle().fill(Theme.borderPrimary).frame(height: 1)
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.top, 6)
+                        }
+
+                        newTreeRow
+                            .padding(.horizontal, 24)
+                            .padding(.top, 26)
+                            .padding(.bottom, 28)
                     }
                 }
-                // Let the hero bleed up under the status bar for an immersive
-                // top; the banner is grown by the status-bar height to match.
-                .ignoresSafeArea(edges: .top)
 
                 // The same menu-bar grammar as inside a tree: Settings and Lock
                 // are always reachable, here without the Journal/Tree tabs.
@@ -59,6 +69,120 @@ struct TreeListView: View {
             .appearFade()
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .task(id: model.latestTreeId) { await model.loadPreview() }
+    }
+
+    private var latestTree: AppModel.TreeChoice? {
+        model.latestTreeId.flatMap { id in model.trees.first { $0.id == id } }
+    }
+
+    /// The page opens on your family: the latest tree's own layout in
+    /// miniature, its name, one open question, and the way in.
+    private func threshold(_ tree: AppModel.TreeChoice) -> some View {
+        let preview = model.previewTree
+        let empty = preview.map { $0.persons.isEmpty } ?? (tree.personCount == 0)
+        return VStack(alignment: .leading, spacing: 0) {
+            Button {
+                Task { await model.enterTree(tree.id) }
+            } label: {
+                Group {
+                    if empty {
+                        VStack(spacing: 10) {
+                            Text(t("Start with yourself"))
+                                .font(Theme.heading(18))
+                                .fontWeight(.light)
+                                .foregroundStyle(Theme.textPrimary)
+                            Text(t("Nobody is in this tree yet. You could begin with yourself, then the people you grew up with."))
+                                .font(Theme.body(13))
+                                .foregroundStyle(Theme.textMuted)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(24)
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Theme.borderPrimary, style: StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
+                        )
+                    } else if let preview {
+                        SilhouetteView(silhouette: Silhouette(persons: preview.persons, edges: preview.edges))
+                            .padding(14)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 230)
+                            .background(Theme.bgSecondary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.borderPrimary, lineWidth: 1))
+                    } else {
+                        Color.clear.frame(height: 230)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(tf("Open {name}", ["name": tree.name]))
+
+            Text(tree.name)
+                .font(Theme.heading(30))
+                .fontWeight(.ultraLight)
+                .foregroundStyle(Theme.textPrimary)
+                .padding(.top, 20)
+                .accessibilityAddTraits(.isHeader)
+            Text(subtitle(tree))
+                .font(Theme.body(13))
+                .foregroundStyle(Theme.textMuted)
+                .padding(.top, 4)
+
+            Rectangle().fill(Theme.borderPrimary).frame(height: 1)
+                .padding(.vertical, 18)
+
+            Text(JournalPrompts.journal(questionIndex))
+                .font(Theme.heading(17))
+                .fontWeight(.light)
+                .foregroundStyle(Theme.textPrimary)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 22) {
+                Button {
+                    Task { await model.enterTree(tree.id) }
+                } label: {
+                    Text(t("Open tree"))
+                        .font(Theme.body(Theme.bodySize, weight: .semibold))
+                        .foregroundStyle(Theme.bgPrimary)
+                        .padding(.horizontal, 20)
+                        .frame(minHeight: 44)
+                        .background(Theme.action, in: RoundedRectangle(cornerRadius: 8))
+                }
+                Button {
+                    Task { await model.writeAbout(tree.id) }
+                } label: {
+                    Text(t("Write about it"))
+                        .font(Theme.body(Theme.bodySize))
+                        .foregroundStyle(Theme.action)
+                        .frame(minHeight: 44)
+                }
+            }
+            .padding(.top, 18)
+        }
+        .padding(.horizontal, 24)
+    }
+
+    private func treeRow(_ tree: AppModel.TreeChoice) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(tree.name)
+                    .font(Theme.heading(17))
+                    .fontWeight(.light)
+                    .foregroundStyle(Theme.textPrimary)
+                Text(subtitle(tree))
+                    .font(Theme.body(12))
+                    .foregroundStyle(Theme.textMuted)
+            }
+            Spacer()
+            LucideChevronRight()
+                .stroke(Theme.textMuted, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                .frame(width: 7, height: 12)
+        }
+        .padding(.vertical, 14)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
     }
 
     /// Start a tree. Named up front because the name is the only thing a tree
@@ -103,7 +227,7 @@ struct TreeListView: View {
                 model.errorMessage = nil
                 naming = true
             } label: {
-                Text(model.trees.isEmpty ? t("Create your first tree") : t("New tree"))
+                Text(model.trees.isEmpty ? t("Create your first tree") : t("Start a new tree"))
                     .font(Theme.body(Theme.bodySize, weight: .semibold))
                     .foregroundStyle(Theme.action)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -122,37 +246,6 @@ struct TreeListView: View {
         Task { await model.createTree(name: name) }
     }
 
-    /// A forest-photo banner with the wordmark over it, drifting ambient light,
-    /// fading into the page. Full-bleed; the same warm greeting as the welcome
-    /// screen, now the everyday home.
-    private var heroBanner: some View {
-        ZStack(alignment: .bottom) {
-            GeometryReader { proxy in
-                Image("welcome")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: proxy.size.width, height: 260)
-                    .clipped()
-                    .overlay(
-                        LinearGradient(
-                            colors: [Theme.bgPrimary.opacity(0.15), .clear, Theme.bgPrimary],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
-                    .overlay(AmbientMotes())
-            }
-            .frame(height: 260)
-
-            Text(t("Traumatrees"))
-                .font(Theme.heading(32))
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.5), radius: 8, y: 2)
-                .padding(.bottom, 10)
-        }
-        .frame(height: 260)
-        .padding(.bottom, 4)
-    }
-
     private var menuBar: some View {
         HStack(spacing: 0) {
             NavItem(icon: .settings, label: t("Settings")) { showSettings = true }
@@ -167,34 +260,6 @@ struct TreeListView: View {
                 }
                 .ignoresSafeArea(edges: .bottom)
         )
-    }
-
-    private func treeCard(_ tree: AppModel.TreeChoice) -> some View {
-        HStack(spacing: 16) {
-            LucideIcon.network.image
-                .resizable()
-                .scaledToFit()
-                .frame(width: 22, height: 22)
-                .foregroundStyle(Theme.action)
-                .frame(width: 44, height: 44)
-                .background(Theme.action.opacity(0.12), in: Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(tree.name)
-                    .font(Theme.heading(19))
-                    .foregroundStyle(Theme.textPrimary)
-                Text(subtitle(tree))
-                    .font(Theme.body(13))
-                    .foregroundStyle(Theme.textMuted)
-            }
-            Spacer()
-            LucideChevronRight()
-                .stroke(Theme.textMuted, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-                .frame(width: 7, height: 12)
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cardSurface(radius: 16)
     }
 
     private func subtitle(_ tree: AppModel.TreeChoice) -> String {
