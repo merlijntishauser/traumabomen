@@ -322,6 +322,7 @@ final class AppModel: ObservableObject {
         treeKeys = [:]
         ringBase64 = [:]
         treeData = nil
+        previewTree = nil
         trees = []
         linkTargets = []
         selectedTreeId = nil
@@ -346,6 +347,7 @@ final class AppModel: ObservableObject {
         treeKeys = [:]
         ringBase64 = [:]
         treeData = nil
+        previewTree = nil
         trees = []
         linkTargets = []
         phase = KeyCustody.hasFreshKey() ? .biometric : .unlock(hint: currentHint)
@@ -493,6 +495,8 @@ final class AppModel: ObservableObject {
             TreeDecoding.person(row, key: key, fallbackIndex: index)
         }
         let edges = edgeRows.compactMap { TreeDecoding.edge($0, key: key) }
+        // Locked or logged out while the rows were pulled: keep nothing decrypted.
+        guard treeKeys[id] != nil else { return }
         previewTree = TreeData(persons: persons, edges: edges, stories: [:])
     }
 
