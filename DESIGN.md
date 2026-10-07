@@ -29,6 +29,16 @@ colors:
   danger-dark: "#f26b6b"
   danger-light: "#dc2626"
   danger-solid: "#b91c1c"
+  midnight-stripe-lived: "#1b3428"
+  midnight-stripe-grid: "rgba(224, 232, 227, 0.06)"
+  midnight-stripe-read: "#ffffff"
+  midnight-stripe-read-wash: "rgba(255, 255, 255, 0.09)"
+  midnight-stripe-read-ink: "#0a1a0f"
+  linen-stripe-lived: "#e3ddd3"
+  linen-stripe-grid: "rgba(44, 51, 64, 0.07)"
+  linen-stripe-read: "#14110f"
+  linen-stripe-read-wash: "rgba(20, 17, 15, 0.07)"
+  linen-stripe-read-ink: "#ffffff"
 typography:
   display:
     fontFamily: "Fraunces, Georgia, serif"
@@ -163,7 +173,7 @@ Three typefaces split the work. Playwrite NZ Basic is the voice: the wordmark, t
 - Hero imagery differs by theme: forest photography in dark, soft pastel paintings in light.
 - Solid, readable surfaces for data; glass only on auth and lock cards over photography.
 - Domain colors are a closed set of tools for thinking, never decoration.
-- One motion grammar: 0.15s color fades, plus two named entrances (`auth-reveal`, `slide-in-right`).
+- One motion grammar: 0.15s color fades, plus two named entrances (`auth-reveal`, `slide-in-right`) and one authored view motion (the timeline's Years/Age slide).
 
 ### Named Rules
 **The Two Lights Rule.** Dark-theme heroes are forest photography at night; light-theme heroes are soft pastel paintings, not forest photos. The two themes do not need to show the same scene, but both stay quiet, faceless, and low contrast behind the text.
@@ -173,7 +183,7 @@ Three typefaces split the work. Playwrite NZ Basic is the voice: the wordmark, t
 Near-black forest greens at night and warm linen with indigo ink in the morning. Saturated color is reserved for domain meaning.
 
 ### Primary
-- **Forest Green** (`forest-accent`): the brand accent in the dark theme. Used on the toolbar's 3px gradient line, the top border of person nodes, selected nodes, life bars, the radial background wash, and the scrollbar thumb on hover.
+- **Forest Green** (`forest-accent`): the brand accent in the dark theme. Used on the toolbar's 3px gradient line, the top border of person nodes, selected nodes, the radial background wash, and the scrollbar thumb on hover.
 - **Grove Green** (`forest-action`): the action color in the dark theme, slightly brighter than the accent so buttons and links stay legible on near-black. Covers primary buttons, links, and the focus border and ring on inputs.
 - **Ink Indigo** (`ink-indigo`): both accent and action in the light theme. Indigo was chosen because green on cream reads as generic wellness, while indigo reads as literary. In light, accent and action are the same color.
 
@@ -193,7 +203,13 @@ All defined per theme in `frontend/src/styles/theme.css`. The light-theme values
 - **Pattern rotation:** 8 colors, assigned in order to user-created patterns.
 - **Relationship edges:** default (sage), partner (pink), half-sibling (purple), step (muted green, dashed), friend (orange).
 
+- **Family stripes** (`*-stripe-*`, timeline only): **Lived** is the band of years a person lived, a tone one step off the floor (a deep green in dark, warm sand in light). **Grid** is the faint decade rule and the hover column. **Read** is the one reserved ink for the year being read: white in dark, near-black in light, with a translucent **read wash** filling the read column and **read ink** (the inverse) for the year flag's text.
+
 ### Named Rules
+**The Reading Ink Rule.** The stripe read ink marks the year being read (the column outline and the flag on the ruler) and nothing else. Never use it for a category, a selection, a button, or emphasis anywhere else.
+
+**The Form Not Hue Rule.** Uncertainty is drawn as form, never as a second color: approximate dates and suspected classifications are hatched at 45 degrees in their own category color over the lived band. Don't invent a lighter tint or a new hue to say "maybe".
+
 **The Closed Set Rule.** Domain palettes are fixed tools for the user to think with. Never add a category color without defining it for both themes. Never reuse one as decoration.
 
 **The Two Greens Rule.** In the dark theme, accent (brand and atmosphere) and action (what the user does) are separate tokens and must not be swapped. In the light theme they are the same indigo. Reach for `--color-action` for anything clickable and `--color-accent` for anything ambient.
@@ -251,10 +267,10 @@ Depth comes from layered atmosphere first and shadow second. The page sits on a 
 
 ## Shapes
 
-Corners are gently rounded and never pill-shaped or sharp. Small (6px) is for buttons, close controls, and chips. Medium (8px) is for inputs and menus. Large (12px) is for cards, panels, modals, and person nodes. Borders are one pixel throughout, except a person node, which has a 2px border with a 3px accent top edge. Badge shapes carry meaning: circles are trauma events, squares are life events, triangles are classifications.
+Corners are gently rounded and never pill-shaped or sharp. Small (6px) is for buttons, close controls, and chips. Medium (8px) is for inputs and menus. Large (12px) is for cards, panels, modals, and person nodes. Borders are one pixel throughout, except a person node, which has a 2px border with a 3px accent top edge. Badge shapes carry meaning: circles are trauma events, squares are life events, triangles are classifications, stars are turning points. Inside the timeline chart, corners shrink to fit the marks: 3px on a life band, 4px on the year flag, 1.5px on life-event squares.
 
 ### Named Rules
-**The Shape Means Something Rule.** Circle, square, and triangle are reserved for the three event kinds. Never use them as generic decoration or for bullets.
+**The Shape Means Something Rule.** Circle, square, triangle, and star are reserved for trauma events, life events, classifications, and turning points. Never use them as generic decoration or for bullets.
 
 ## Components
 
@@ -301,14 +317,30 @@ The page after unlock opens on your family, not on a file list. The most recentl
 ### Journal Desk (signature)
 The journal page is a writing desk, not a feed. On the left, a solid sheet (Surface, large shadow, 12px corners) opens on one open question in the voice face (weight 200, 1.6rem) with "Answer this question" and "Another question". Below a hairline sits a quiet Write/Preview text toggle and a borderless writing surface: 15px Lato at 1.8 line height, 68ch wide. Answering a question puts it into the entry as a markdown quote, so rereading shows the question apart from the answer. On the right, a sticky margin of earlier entries, newest first: the date in the voice face, a three-line plain-text excerpt, and up to three linked chips. The open entry is raised (Surface, border, small shadow). Choosing one opens it in the sheet to reread, with Edit and "Write a new entry". The contour lines replace the old lined paper. Under 900px the margin drops below the sheet.
 
+### Family Stripes (signature)
+The timeline reads a family like climate stripes, from across a room. Three columns: names by generation on the left (a muted generation label, each name in the voice face at 15px weight 400, years below in 13px tabular figures; the column stays put when the field scrolls sideways), the stripe field in the centre, and a 340px reading pane on the right (300px under 1080px; under 860px it drops below the chart). The page sits on the plain floor color with no contour lines behind it.
+
+- **The band:** each life is one band of whole-year cells, 28px tall with 3px corners, filled with the lived tone. Cell width fits the span to the available width (never under 6px). A decade ruler of 13px muted figures runs on top, with faint grid lines down the field and a dashed muted line at today in Years mode; a hairline in the border color separates generations.
+- **Marks:** trauma fills the cells of its years in its category color. When several traumas share a year they stack as equal horizontal slices, separated by a 3px gap in the floor color. Life events are 9px squares on the band's lower edge, outlined in the floor color. Classifications are a 4px rule along the foot of the band, diagnosed solid and suspected hatched. Turning points are a small star above the band. Approximate dates are hatched (see The Form Not Hue Rule). Marks never carry text; every label lives in the reading pane.
+- **The year being read:** one column outlined in the read ink (1.5px) over the read wash, with a flag on the ruler showing the year in bold 13px read-ink text. Hovering the field shades the column under the pointer in the grid tone. Clicking a column, the arrow keys (Shift moves ten), or the pane's 32px previous and next buttons move the reading; the field is a range input underneath, with a 2px action-color focus outline.
+- **Years and Age:** a two-button switch (8px container on the surface, 28px buttons in 13px bold Lato, the pressed one on the action color) above the names. Switching slides and rescales every life into its new place over 0.56s on `cubic-bezier(0.16, 1, 0.3, 1)`, then redraws it crisply. This is the view's one authored motion; under reduced motion it does not play.
+- **Reading pane:** Surface background with a left border. The year (or age, with a small "Age" unit) in Lato 300 at 2.5rem with tabular figures, a 13px muted hint, then one block per person alive that year, divided by hairlines: names in the voice face (in Years mode, people whose year held exactly the same entries share one block, and a shared surname is said once), their age on the right, and one line per entry with its badge mark, title, and a muted "category, date" (approximate dates say "about"). Everyone with nothing recorded, not yet born, or already gone is folded into one muted 13px line. The pane closes on one open question in the voice face (weight 300).
+- **Highlighting:** hovering or focusing an entry lights every entry with the same title; hovering a key item lights everything it describes, and clicking a key item pins it (underlined, `aria-pressed`). Unlit marks fade to 14% and unlit rows, blocks, and key items to 32%, over 0.15s.
+- **The key:** below the chart, aligned with the field, three groups that wrap as units (trauma with the approximate swatch, life events, then marks: diagnosed, suspected, turning point), each led by a muted label. Only categories present in the tree appear.
+- **Opening:** names in the names column and the pane open the person page; an entry in the pane opens the person page at that entry.
+- **Dates read like people write them:** besides calendar years, an entry can be dated by age ("at 12"), a stage of life ("as a child", "in her twenties"), a decade in words ("the sixties") or a two-digit year ("'85"). Ages and stages land on each person's own years from their birth year and are always hatched, because they are approximate. In the pane they read as ages ("ages 0 to 12", "from age 65"), not as the years they land on.
+- **Date preview in the forms:** under the date field of the trauma, life event and turning point forms, one muted line in the inspector-hint style says how the timeline reads what is typed ("Reads as 1944, when Harold was 12."; "Reads as ages 0 to 12: 1960 to 1972 for Robert."), or that it has no year to place yet and what to try instead.
+- **Entries without a year:** a date with no year to read (free text such as "as a child") cannot be placed, and is never dropped silently. Under the person's years, a small calendar-off icon with a count opens their page at the first such entry. Under the key, one muted line counts them all. In the pane, "Nothing recorded" names only people with no undated entries; anyone else gets their own line saying there may be more than the stripes show.
+- **Phones:** under 560px the names column narrows to 124px and shows short names, and the field scrolls sideways while keeping the read column in view.
+
 ### Atmosphere (signature)
-The background wash with its vignette and noise; the procedural contour map (marching squares over three gaussian hills: a main peak beyond a random corner, a knoll inward from it, a low far hill toward the opposite corner, plus gentle ripples; regenerated on each load) with heavier index contours every fifth level, levels that stop short of each summit, rings smaller than a node dropped so nothing reads as a target, and a soft summit glow. It sits behind the canvas, timeline, tree list, journal, patterns and insights; pages that scroll inside their own container use the `.page-atmosphere` frame so the map stays put; and the ambient particle layer over hero photography (fireflies in dark, warm light motes in light). The particles run on a hand-rolled 2D canvas at about 30fps, pause on hidden tabs, and switch off entirely under reduced motion. iOS recreates the wash and particles natively.
+The background wash with its vignette and noise; the procedural contour map (marching squares over three gaussian hills: a main peak beyond a random corner, a knoll inward from it, a low far hill toward the opposite corner, plus gentle ripples; regenerated on each load) with heavier index contours every fifth level, levels that stop short of each summit, rings smaller than a node dropped so nothing reads as a target, and a soft summit glow. It sits behind the canvas, tree list, journal, patterns and insights, and deliberately not behind the timeline, whose stripes sit on the plain floor color so the cells read flat; pages that scroll inside their own container use the `.page-atmosphere` frame so the map stays put; and the ambient particle layer over hero photography (fireflies in dark, warm light motes in light). The particles run on a hand-rolled 2D canvas at about 30fps, pause on hidden tabs, and switch off entirely under reduced motion. iOS recreates the wash and particles natively.
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** take every color, radius, shadow, and spacing value from the tokens in `frontend/src/styles/theme.css`. It is the only place values are defined.
-- **Do** use `var(--transition-colors)` (0.15s ease) for every state change. The only named entrances are `auth-reveal` and `slide-in-right` (0.25s ease-out).
+- **Do** use `var(--transition-colors)` (0.15s ease) for every state change. The only named entrances are `auth-reveal` and `slide-in-right` (0.25s ease-out); the only other authored motion is the timeline's Years/Age slide, and it is off under reduced motion.
 - **Do** use Lucide icons, imported one at a time. Draw domain marks as 24 by 24 SVGs with a 2px stroke in Lucide's style. On iOS, use SF Symbols.
 - **Do** design and check both themes for every surface. Light-theme domain colors are the darker variants.
 - **Do** show loading as plain text: "Loading…".
