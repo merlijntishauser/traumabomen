@@ -28,7 +28,7 @@
 
 .fs__chart {
   min-width: 0;
-  padding: 14px 0 24px 24px;
+  padding: 14px 0 0 24px;
   overflow-y: auto;
 }
 
@@ -216,9 +216,15 @@
 }
 
 /* Key under the chart: three groups that wrap as units, label first. */
+/* The key stays in view at the foot of the chart; the stripes scroll behind it. */
 .fs__foot {
-  margin: 14px 0 0 var(--fs-names);
-  padding-right: 24px;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 14px;
+  padding: 12px 24px 18px var(--fs-names);
+  border-top: 1px solid var(--color-border-primary);
+  background: var(--color-bg-primary);
 }
 
 .fs-key {
@@ -567,7 +573,7 @@
   }
 
   .fs__foot {
-    margin-left: 0;
+    padding-left: 0;
     padding-right: 16px;
   }
 
