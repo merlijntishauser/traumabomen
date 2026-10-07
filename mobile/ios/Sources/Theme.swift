@@ -80,6 +80,9 @@ enum Theme {
         }
     }
 
+    /// A color that follows the active scheme, for palettes defined outside this enum.
+    static func adaptive(dark: UInt32, light: UInt32) -> Color { dynamic(dark: dark, light: light) }
+
     private static func dynamic(dark: UInt32, light: UInt32) -> Color {
         Color(UIColor { traits in
             UIColor(rgb: traits.userInterfaceStyle == .dark ? dark : light)

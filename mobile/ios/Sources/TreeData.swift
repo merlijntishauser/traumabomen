@@ -28,45 +28,71 @@ struct StoryItem: Identifiable {
     let description: String?
     let category: String?
     let date: String?
+    /// Everyone the entry belongs to (an event can be shared).
+    var personIds: [String] = []
+    /// Classification periods (start year, optional end year); empty for events.
+    var periods: [ClassificationPeriod] = []
     /// Still queued in the outbox (saved on this device, not yet synced).
     var pending: Bool = false
 }
 
-/// The closed category color set from theme.css; never extended casually.
+struct ClassificationPeriod: Hashable {
+    let start: Int
+    let end: Int?
+}
+
+/// The closed category color set from theme.css, in both themes (the light
+/// values are darker so they hold contrast on linen). Never extended casually.
 enum CategoryColors {
-    static let trauma: [String: Color] = [
-        "loss": Color(red: 0x81 / 255, green: 0x8c / 255, blue: 0xf8 / 255),
-        "abuse": Color(red: 0xf8 / 255, green: 0x71 / 255, blue: 0x71 / 255),
-        "addiction": Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255),
-        "war": Color(red: 0xa8 / 255, green: 0xa2 / 255, blue: 0x9e / 255),
-        "displacement": Color(red: 0xe8 / 255, green: 0x79 / 255, blue: 0xf9 / 255),
-        "illness": Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255),
-        "poverty": Color(red: 0xa7 / 255, green: 0x8b / 255, blue: 0xfa / 255),
+    private static let traumaHex: [String: (dark: UInt32, light: UInt32)] = [
+        "loss": (0x818cf8, 0x6366f1),
+        "abuse": (0xf87171, 0xef4444),
+        "addiction": (0xfbbf24, 0xd97706),
+        "war": (0xa8a29e, 0x78716c),
+        "displacement": (0xe879f9, 0xc026d3),
+        "illness": (0x22d3ee, 0x0891b2),
+        "poverty": (0xa78bfa, 0x7c3aed),
     ]
-    static let life: [String: Color] = [
-        "family": Color(red: 0x60 / 255, green: 0xa5 / 255, blue: 0xfa / 255),
-        "education": Color(red: 0xa7 / 255, green: 0x8b / 255, blue: 0xfa / 255),
-        "career": Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255),
-        "relocation": Color(red: 0x2d / 255, green: 0xd4 / 255, blue: 0xbf / 255),
-        "health": Color(red: 0xf4 / 255, green: 0x72 / 255, blue: 0xb6 / 255),
-        "medication": Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255),
-        "other": Color(red: 0x94 / 255, green: 0xa3 / 255, blue: 0xb8 / 255),
+    private static let lifeHex: [String: (dark: UInt32, light: UInt32)] = [
+        "family": (0x60a5fa, 0x3b82f6),
+        "education": (0xa78bfa, 0x7c3aed),
+        "career": (0xfbbf24, 0xd97706),
+        "relocation": (0x2dd4bf, 0x0d9488),
+        "health": (0xf472b6, 0xdb2777),
+        "medication": (0x22d3ee, 0x0891b2),
+        "other": (0x94a3b8, 0x64748b),
     ]
-    static let turningPoint = Color(red: 0x05 / 255, green: 0x96 / 255, blue: 0x69 / 255)
+    private static let turningHex: [String: (dark: UInt32, light: UInt32)] = [
+        "cycle_breaking": (0x34d399, 0x059669),
+        "protective_relationship": (0x60a5fa, 0x2563eb),
+        "recovery": (0xa78bfa, 0x7c3aed),
+        "achievement": (0xfbbf24, 0xd97706),
+        "positive_change": (0x2dd4bf, 0x0d9488),
+    ]
+
+    /// The generic turning-point green, for a turning point without a category.
+    static let turningPoint = Theme.adaptive(dark: 0x10b981, light: 0x059669)
 
     static func trauma(_ category: String?) -> Color {
-        trauma[category ?? ""] ?? trauma["loss"]!
+        let hex = traumaHex[category ?? ""] ?? traumaHex["loss"]!
+        return Theme.adaptive(dark: hex.dark, light: hex.light)
     }
 
     static func life(_ category: String?) -> Color {
-        life[category ?? ""] ?? life["other"]!
+        let hex = lifeHex[category ?? ""] ?? lifeHex["other"]!
+        return Theme.adaptive(dark: hex.dark, light: hex.light)
     }
 
-    /// Classification status: amber suspected, blue diagnosed (the badge grammar).
+    static func turning(_ category: String?) -> Color {
+        guard let hex = turningHex[category ?? ""] else { return turningPoint }
+        return Theme.adaptive(dark: hex.dark, light: hex.light)
+    }
+
+    /// Classification status: amber suspected, sky blue diagnosed (the badge grammar).
     static func classification(_ status: String?) -> Color {
         status == "diagnosed"
-            ? Color(red: 0x60 / 255, green: 0xa5 / 255, blue: 0xfa / 255)
-            : Color(red: 0xfb / 255, green: 0xbf / 255, blue: 0x24 / 255)
+            ? Theme.adaptive(dark: 0x38bdf8, light: 0x0284c7)
+            : Theme.adaptive(dark: 0xfbbf24, light: 0xd97706)
     }
 }
 
@@ -77,6 +103,8 @@ struct TreePerson: Identifiable {
     let deathYear: Int?
     let notes: String?
     let isAdopted: Bool
+    /// "female", "male", or anything else; the glance sentence's wording follows it.
+    var gender: String = ""
     let x: CGFloat
     let y: CGFloat
 
@@ -101,6 +129,16 @@ struct TreeEdge: Identifiable {
     let targetId: String
     let kind: Kind
     let dashed: Bool
+    /// The web's relationship type ("biological_parent", "step_parent", "partner", ...).
+    var type: String = ""
+    /// Partner periods in start order, each with its status and end year.
+    var periods: [PartnerPeriod] = []
+}
+
+struct PartnerPeriod: Hashable {
+    let start: Int
+    let end: Int?
+    let status: String?
 }
 
 enum TreeDecoding {
@@ -110,6 +148,7 @@ enum TreeDecoding {
         let death_year: Int?
         let notes: String?
         let is_adopted: Bool?
+        let gender: String?
         let position: Position?
 
         struct Position: Decodable {
@@ -140,6 +179,7 @@ enum TreeDecoding {
                 description: json.description,
                 category: json.category,
                 date: json.approximate_date,
+                personIds: row.personIds,
                 pending: row.pendingSync
             )
         )
@@ -151,6 +191,12 @@ enum TreeDecoding {
         let status: String?
         let diagnosis_year: Int?
         let notes: String?
+        let periods: [Period]?
+
+        struct Period: Decodable {
+            let start_year: Int
+            let end_year: Int?
+        }
     }
 
     /// A classification rendered as a story item: its title is the DSM label
@@ -175,6 +221,8 @@ enum TreeDecoding {
                 description: json.notes,
                 category: json.status,
                 date: json.diagnosis_year.map(String.init),
+                personIds: row.personIds,
+                periods: (json.periods ?? []).map { ClassificationPeriod(start: $0.start_year, end: $0.end_year) },
                 pending: row.pendingSync
             )
         )
@@ -185,7 +233,9 @@ enum TreeDecoding {
         let periods: [Period]?
 
         struct Period: Decodable {
+            let start_year: Int?
             let end_year: Int?
+            let status: String?
         }
     }
 
@@ -207,6 +257,7 @@ enum TreeDecoding {
             deathYear: json.death_year,
             notes: json.notes,
             isAdopted: json.is_adopted ?? false,
+            gender: json.gender ?? "",
             x: x,
             y: y
         )
@@ -241,12 +292,17 @@ enum TreeDecoding {
             kind = .sibling
             dashed = true
         }
+        let periods = (json.periods ?? [])
+            .map { PartnerPeriod(start: $0.start_year ?? 0, end: $0.end_year, status: $0.status) }
+            .sorted { $0.start < $1.start }
         return TreeEdge(
             id: row.id,
             sourceId: row.personIds[0],
             targetId: row.personIds[1],
             kind: kind,
-            dashed: dashed
+            dashed: dashed,
+            type: json.type,
+            periods: periods
         )
     }
 }

@@ -48,6 +48,22 @@ func t(_ english: String) -> String {
     return NL[english] ?? english
 }
 
+/// Translate an English template, then fill its `{name}` placeholders. The
+/// template (with placeholders) is the key, so Dutch can reorder words.
+func tf(_ english: String, _ values: [String: String]) -> String {
+    var text = t(english)
+    for (key, value) in values {
+        text = text.replacingOccurrences(of: "{\(key)}", with: value)
+    }
+    return text
+}
+
+/// "A, B and C" in the active language.
+func listJoin(_ items: [String]) -> String {
+    let locale = Locale(identifier: Loc.shared.effective)
+    return items.formatted(.list(type: .and).locale(locale))
+}
+
 /// The Dutch strings, matching the web's terminology (Encryptiesleutel,
 /// Dagboek, Boomweergave) and its restrained voice.
 private let NL: [String: String] = [
@@ -255,6 +271,108 @@ private let NL: [String: String] = [
     "Suspected": "Vermoed",
     "Diagnosed": "Gediagnosticeerd",
     "on this device": "op dit apparaat",
+
+    // Synced with the web's newer design: person page, journal desk, tree list threshold,
+    // family stripes timeline, and date reading.
+    "1 entry has no year yet, so it is not on the stripes.": "1 gebeurtenis heeft nog geen jaartal en staat daarom niet op de strepen.",
+    "1 without a year": "1 zonder jaartal",
+    "Add a birth year to someone in the tree to see the family here.": "Geef iemand in de stamboom een geboortejaar om de familie hier te zien.",
+    "Add something": "Iets toevoegen",
+    "Add to {name}'s life": "Toevoegen aan het leven van {name}",
+    "Age": "Leeftijd",
+    "Age being read": "Gekozen leeftijd",
+    "Age {age}": "Leeftijd {age}",
+    "Another question": "Andere vraag",
+    "Answer this question": "Deze vraag beantwoorden",
+    "Born": "Geboren",
+    "Born {year}": "Geboren in {year}",
+    "Classification": "Classificatie",
+    "Details": "Gegevens",
+    "Did not reach {age}: {names}.": "Werd geen {age}: {names}.",
+    "Died": "Overleden",
+    "Died {year}": "Overleden in {year}",
+    "Earlier entries": "Eerdere items",
+    "Former partner of": "Voormalig partner van",
+    "Friend of": "Vriend van",
+    "Generation {number}": "Generatie {number}",
+    "Had died: {names}.": "Overleden: {names}.",
+    "Life": "Leven",
+    "Life event": "Mijlpaal",
+    "Lights up every entry with the same title": "Licht elke vermelding met dezelfde titel op",
+    "Lights up everything it describes": "Licht alles op wat het beschrijft",
+    "Line lives up by": "Levens uitlijnen op",
+    "Lives start together at birth. Tap an age.": "Levens beginnen samen bij de geboorte. Tik op een leeftijd.",
+    "Marks": "Tekens",
+    "Married to": "Getrouwd met",
+    "Names, relationships, and the canvas are edited at the desk.": "Namen, relaties en de boomweergave bewerk je aan je bureau.",
+    "Next age": "Volgende leeftijd",
+    "Next year": "Volgend jaar",
+    "No year to place yet, so this stays off the timeline. Try a year, an age (\"at 12\"), or a stage of life (\"as a child\").": "Nog geen jaar om te plaatsen, dus dit staat niet op de tijdlijn. Probeer een jaartal, een leeftijd (\"op 12-jarige leeftijd\") of een levensfase (\"als kind\").",
+    "Nobody is in this tree yet. You could begin with yourself, then the people you grew up with.": "Er staat nog niemand in deze boom. Je kunt met jezelf beginnen, en daarna de mensen met wie je opgroeide.",
+    "Not connected to anyone yet.": "Nog met niemand verbonden.",
+    "Not on the timeline yet, no birth year: {names}.": "Nog niet op de tijdlijn, geen geboortejaar: {names}.",
+    "Not yet born: {names}.": "Nog niet geboren: {names}.",
+    "Not yet {age}: {names}.": "Nog geen {age}: {names}.",
+    "Nothing recorded for {count} year.": "{count} jaar niets vastgelegd.",
+    "Nothing recorded for {count} years.": "{count} jaar niets vastgelegd.",
+    "Nothing recorded yet": "Nog niets vastgelegd",
+    "Nothing recorded: {names}.": "Niets vastgelegd: {names}.",
+    "Open tree": "Boom openen",
+    "Open {name}": "{name} openen",
+    "Opens this entry": "Opent deze vermelding",
+    "Other trees": "Andere bomen",
+    "Partner of": "Partner van",
+    "Previous age": "Vorige leeftijd",
+    "Previous year": "Vorig jaar",
+    "Reads as {what}. Add a birth year to place it on the timeline.": "Gelezen als {what}. Voeg een geboortejaar toe om het op de tijdlijn te zetten.",
+    "Reads as {what}: {where}.": "Gelezen als {what}: {where}.",
+    "Reads as {when}, when {who}.": "Gelezen als {when}, toen {who}.",
+    "Reads as {when}.": "Gelezen als {when}.",
+    "Start a new tree": "Nieuwe boom beginnen",
+    "Start with yourself": "Begin met jezelf",
+    "Tap a year in the stripes.": "Tik op een jaar in de strepen.",
+    "Timeline": "Tijdlijn",
+    "Trauma event": "Trauma",
+    "Trauma fills the year": "Trauma vult het jaar",
+    "Turning point": "Keerpunt",
+    "Untitled": "Zonder titel",
+    "What did each of them need at {age}, and who could give it?": "Wat had ieder van hen nodig op hun {age}e, en wie kon dat geven?",
+    "What did the youngest in the family understand about this year?": "Wat begreep de jongste in de familie van dit jaar?",
+    "What do you remember of being {age} yourself?": "Wat herinner je je van toen je zelf {age} was?",
+    "What was it like to be {age} in each of these homes?": "Hoe was het om {age} te zijn in elk van deze huizen?",
+    "What was said at the table that year, and what was not?": "Wat werd er dat jaar aan tafel gezegd, en wat niet?",
+    "What you write appears here, newest first. Only you can read it.": "Wat je schrijft verschijnt hier, het nieuwste bovenaan. Alleen jij kunt het lezen.",
+    "Who carried this year, and who was kept outside it?": "Wie droeg dit jaar, en wie werd erbuiten gehouden?",
+    "Who could anyone turn to that year?": "Bij wie kon iemand dat jaar terecht?",
+    "Without a year": "Zonder jaartal",
+    "Write about it": "Schrijf erover",
+    "Write in your journal": "Schrijf in je dagboek",
+    "Write your reflection here…": "Schrijf hier je reflectie…",
+    "Year being read": "Gekozen jaar",
+    "Years": "Jaren",
+    "about {when}": "rond {when}",
+    "age {age}": "{age} jaar",
+    "ages {ages}": "{ages} jaar",
+    "ages {from} to {to}": "{from} tot {to} jaar",
+    "and": "en",
+    "at {age}": "op {age}-jarige leeftijd",
+    "born this year": "dit jaar geboren",
+    "e.g. 1985, the sixties, as a child": "bijv. 1985, jaren zestig, als kind",
+    "from age {age}": "vanaf {age} jaar",
+    "from {year}": "vanaf {year}",
+    "in {year}": "in {year}",
+    "in {year}, this year": "in {year}, dit jaar",
+    "with {names}": "met {names}",
+    "{born}, living": "{born}, in leven",
+    "{count} entries have no year yet, so they are not on the stripes.": "{count} gebeurtenissen hebben nog geen jaartal en staan daarom niet op de strepen.",
+    "{count} more": "nog {count}",
+    "{count} without a year": "{count} zonder jaartal",
+    "{from} to {to}": "{from} tot {to}",
+    "{names} has entries without a year, so there may be more here than the stripes show.": "{names} heeft gebeurtenissen zonder jaartal, dus er kan hier meer zijn dan de strepen laten zien.",
+    "{names} have entries without a year, so there may be more here than the stripes show.": "{names} hebben gebeurtenissen zonder jaartal, dus er kan hier meer zijn dan de strepen laten zien.",
+    "{name} was {age}": "{name} {age} was",
+    "{years} for {name}": "{years} voor {name}",
+    "{year} onwards": "vanaf {year}",
 ]
 
 /// Localized counts with Dutch plurals, matching the tree cards and status line.
