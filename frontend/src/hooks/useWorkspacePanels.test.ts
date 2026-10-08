@@ -19,6 +19,22 @@ describe("useWorkspacePanels", () => {
     expect(result.current.patternPanelOpen).toBe(true);
   });
 
+  it("opens the pattern panel on the new-pattern form when asked at mount", () => {
+    const { result } = renderHook(() => useWorkspacePanels({ initialPatternCreating: true }));
+    expect(result.current.patternPanelOpen).toBe(true);
+    expect(result.current.patternPanelStart.creating).toBe(true);
+  });
+
+  it("each pattern panel request opens it and bumps the nonce", () => {
+    const { result } = renderHook(() => useWorkspacePanels());
+    expect(result.current.patternPanelStart).toEqual({ creating: false, nonce: 0 });
+    act(() => result.current.openPatternPanel(true));
+    expect(result.current.patternPanelOpen).toBe(true);
+    expect(result.current.patternPanelStart).toEqual({ creating: true, nonce: 1 });
+    act(() => result.current.openPatternPanel(false));
+    expect(result.current.patternPanelStart).toEqual({ creating: false, nonce: 2 });
+  });
+
   it("sets selectedPersonId", () => {
     const { result } = renderHook(() => useWorkspacePanels());
     act(() => result.current.setSelectedPersonId("person-1"));

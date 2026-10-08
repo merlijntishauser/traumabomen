@@ -64,6 +64,7 @@ import type { Person, RelationshipData, SiblingGroupMember } from "../types/doma
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 import { treeLoadErrorKey } from "../lib/userFacingErrors";
+import { workspaceNavOptions } from "../lib/workspaceNavState";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
 const edgeTypes = { relationship: RelationshipEdge };
@@ -1009,12 +1010,8 @@ function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
   const { fitView, screenToFlowPosition } = useReactFlow();
-  const location = useLocation();
-  const openPatternId = (location.state as { openPatternId?: string } | null)?.openPatternId;
-
-  const panels = useWorkspacePanels({
-    initialPatternPanelOpen: !!openPatternId,
-  });
+  const { openPatternId, ...panelOptions } = workspaceNavOptions(useLocation().state);
+  const panels = useWorkspacePanels(panelOptions);
   const { selectedPersonId, setSelectedPersonId } = panels;
   const [canvasState, dispatchCanvas] = useReducer(
     canvasInteractionReducer,
@@ -1201,7 +1198,8 @@ function TreeWorkspaceInner() {
           patterns={patterns}
           focusedPatternId={focusedPatternId}
           onFocusPattern={setFocusedPatternId}
-          onManagePatterns={() => panels.setPatternPanelOpen(true)}
+          onManagePatterns={() => panels.openPatternPanel(false)}
+          onCreatePattern={() => panels.openPatternPanel(true)}
           journalPanelOpen={panels.journalPanelOpen}
           onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
         />
@@ -1238,7 +1236,7 @@ function TreeWorkspaceInner() {
               pattern={focusedPattern}
               color={focusColor}
               entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
-              onEdit={() => panels.setPatternPanelOpen(true)}
+              onEdit={() => panels.openPatternPanel(false)}
               onExit={() => setFocusedPatternId(null)}
             />
           )}

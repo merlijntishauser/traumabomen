@@ -223,6 +223,8 @@ vi.mock("../hooks/useWorkspacePanels", () => ({
     setSelectedPersonId: vi.fn(),
     patternPanelOpen: false,
     setPatternPanelOpen: vi.fn(),
+    patternPanelStart: { creating: false, nonce: 0 },
+    openPatternPanel: vi.fn(),
     journalPanelOpen: false,
     setJournalPanelOpen: vi.fn(),
     journalInitialPrompt: "",

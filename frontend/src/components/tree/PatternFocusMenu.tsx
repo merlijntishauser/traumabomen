@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronUp, Settings2, Waypoints } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Plus, Settings2, Waypoints } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DecryptedPattern } from "../../hooks/useTreeData";
@@ -11,6 +11,8 @@ interface PatternFocusMenuProps {
   onFocus: (id: string | null) => void;
   // Omitted on read-only surfaces (the public demo) where patterns cannot be managed.
   onManage?: () => void;
+  // Opens the pattern manager on the new-pattern form; omitted where onManage is.
+  onCreate?: () => void;
   // When set, the trigger is a labeled indigo dropdown button instead of a bare
   // toolbar icon (used in the public demo header, beside the CTA).
   label?: string;
@@ -30,6 +32,7 @@ export function PatternFocusMenu({
   focusedPatternId,
   onFocus,
   onManage,
+  onCreate,
   label,
   triggerClassName = "tree-toolbar__icon-btn",
   iconSize = 14,
@@ -134,6 +137,19 @@ export function PatternFocusMenu({
                 );
               })}
             </>
+          )}
+          {onCreate && (
+            <button
+              type="button"
+              className="pattern-focus-menu__manage"
+              onClick={() => {
+                onCreate();
+                setOpen(false);
+              }}
+            >
+              <Plus size={13} />
+              {t("pattern.newPattern")}
+            </button>
           )}
           {onManage && (
             <button

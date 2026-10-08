@@ -139,6 +139,14 @@ describe("PatternPanel", () => {
     expect(screen.getByText("common.add")).toBeInTheDocument();
   });
 
+  it("opens straight into the new-pattern form when asked to start creating", () => {
+    renderPanel({ initialCreating: true, initialExpandedId: "p1" });
+
+    expect(screen.queryByText("pattern.empty")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pattern-name-input")).toBeInTheDocument();
+    expect(screen.getByText("common.add")).toBeInTheDocument();
+  });
+
   it("edit form: typing name and adding calls onSave with correct data for a new pattern", async () => {
     const props = renderPanel();
 

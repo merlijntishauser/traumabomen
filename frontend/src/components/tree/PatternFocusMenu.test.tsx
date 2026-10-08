@@ -141,4 +141,28 @@ describe("PatternFocusMenu", () => {
     openMenu();
     expect(root).toHaveAttribute("data-open", "true");
   });
+
+  it("offers a new pattern, also when there are none yet", () => {
+    const onCreate = vi.fn();
+    render(
+      <PatternFocusMenu
+        patterns={new Map()}
+        focusedPatternId={null}
+        onFocus={vi.fn()}
+        onManage={vi.fn()}
+        onCreate={onCreate}
+      />,
+    );
+    openMenu();
+    expect(screen.getByText("pattern.empty")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("pattern.newPattern"));
+    expect(onCreate).toHaveBeenCalledOnce();
+    expect(screen.queryByText("pattern.newPattern")).not.toBeInTheDocument();
+  });
+
+  it("leaves out the new-pattern item where patterns cannot be managed", () => {
+    render(<PatternFocusMenu patterns={patterns} focusedPatternId={null} onFocus={vi.fn()} />);
+    openMenu();
+    expect(screen.queryByText("pattern.newPattern")).not.toBeInTheDocument();
+  });
 });

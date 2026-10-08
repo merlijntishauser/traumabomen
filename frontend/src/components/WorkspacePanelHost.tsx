@@ -94,6 +94,7 @@ export function WorkspacePanelHost({
 
       {panels.patternPanelOpen && (
         <PatternPanel
+          key={panels.patternPanelStart.nonce}
           patterns={patterns}
           events={events}
           lifeEvents={lifeEvents}
@@ -107,6 +108,7 @@ export function WorkspacePanelHost({
           onClose={onClosePatternPanel ?? (() => panels.setPatternPanelOpen(false))}
           onHoverPattern={panels.setHoveredPatternId}
           initialExpandedId={initialExpandedPatternId}
+          initialCreating={panels.patternPanelStart.creating}
         />
       )}
 

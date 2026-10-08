@@ -15,6 +15,7 @@ interface WorkspaceRailProps {
   focusedPatternId: string | null;
   onFocusPattern: (id: string | null) => void;
   onManagePatterns: () => void;
+  onCreatePattern: () => void;
   journalPanelOpen: boolean;
   onToggleJournal: () => void;
 }
@@ -35,6 +36,7 @@ export function WorkspaceRail({
   focusedPatternId,
   onFocusPattern,
   onManagePatterns,
+  onCreatePattern,
   journalPanelOpen,
   onToggleJournal,
 }: WorkspaceRailProps) {
@@ -77,6 +79,7 @@ export function WorkspaceRail({
           focusedPatternId={focusedPatternId}
           onFocus={onFocusPattern}
           onManage={onManagePatterns}
+          onCreate={onCreatePattern}
           triggerClassName="workspace-rail__btn"
           iconSize={18}
           placement="side"

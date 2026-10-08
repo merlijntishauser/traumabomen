@@ -7,6 +7,10 @@ export interface WorkspacePanelState {
   setSelectedPersonId: (id: string | null) => void;
   patternPanelOpen: boolean;
   setPatternPanelOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  // How the pattern panel opens: `creating` starts in the new-pattern form, and
+  // each request bumps `nonce` so an already open panel remounts to honour it.
+  patternPanelStart: { creating: boolean; nonce: number };
+  openPatternPanel: (creating: boolean) => void;
   journalPanelOpen: boolean;
   setJournalPanelOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   journalInitialPrompt: string;
@@ -20,11 +24,16 @@ export interface WorkspacePanelState {
 
 export function useWorkspacePanels(options?: {
   initialPatternPanelOpen?: boolean;
+  initialPatternCreating?: boolean;
 }): WorkspacePanelState {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [patternPanelOpen, setPatternPanelOpen] = useState(
-    options?.initialPatternPanelOpen ?? false,
+    (options?.initialPatternPanelOpen || options?.initialPatternCreating) ?? false,
   );
+  const [patternPanelStart, setPatternPanelStart] = useState(() => ({
+    creating: options?.initialPatternCreating ?? false,
+    nonce: 0,
+  }));
   const [journalPanelOpen, setJournalPanelOpen] = useState(false);
   const [journalInitialPrompt, setJournalInitialPrompt] = useState("");
   const [journalInitialLinkedRef, setJournalInitialLinkedRef] = useState<
@@ -39,11 +48,18 @@ export function useWorkspacePanels(options?: {
     setJournalPanelOpen(true);
   }, []);
 
+  const openPatternPanel = useCallback((creating: boolean) => {
+    setPatternPanelStart((prev) => ({ creating, nonce: prev.nonce + 1 }));
+    setPatternPanelOpen(true);
+  }, []);
+
   return {
     selectedPersonId,
     setSelectedPersonId,
     patternPanelOpen,
     setPatternPanelOpen,
+    patternPanelStart,
+    openPatternPanel,
     journalPanelOpen,
     setJournalPanelOpen,
     journalInitialPrompt,

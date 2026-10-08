@@ -62,6 +62,8 @@ function createMockPanels(overrides?: Partial<WorkspacePanelState>): WorkspacePa
     setSelectedPersonId: vi.fn(),
     patternPanelOpen: false,
     setPatternPanelOpen: vi.fn(),
+    patternPanelStart: { creating: false, nonce: 0 },
+    openPatternPanel: vi.fn(),
     journalPanelOpen: false,
     setJournalPanelOpen: vi.fn(),
     journalInitialPrompt: "",

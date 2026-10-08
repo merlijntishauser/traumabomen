@@ -47,6 +47,8 @@ interface PatternPanelProps {
   onClose: () => void;
   onHoverPattern?: (patternId: string | null) => void;
   initialExpandedId?: string | null;
+  // Open straight into the new-pattern form (the "New pattern" entry points).
+  initialCreating?: boolean;
 }
 
 interface EntityInfo {
@@ -70,10 +72,13 @@ export function PatternPanel({
   onClose,
   onHoverPattern,
   initialExpandedId,
+  initialCreating = false,
 }: PatternPanelProps) {
   const { t } = useTranslation();
-  const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId ?? null);
-  const [editingNew, setEditingNew] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(
+    initialCreating ? null : (initialExpandedId ?? null),
+  );
+  const [editingNew, setEditingNew] = useState(initialCreating);
   const { status, report } = useInspectorStatus();
 
   const handleToggleExpand = useCallback((id: string) => {

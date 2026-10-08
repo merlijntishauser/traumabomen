@@ -34,6 +34,16 @@
   background: var(--color-action-hover);
 }
 
+.pattern-view__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+.pattern-view__actions .btn {
+  text-decoration: none;
+}
+
 .pattern-view__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

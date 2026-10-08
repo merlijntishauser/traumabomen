@@ -85,7 +85,9 @@ export function PatternView({
         <div className="pattern-view">
           <div className="pattern-view__empty">
             <p>{t("pattern.empty")}</p>
-            <Link to={`/trees/${compactId}`}>{t("pattern.createFirst")}</Link>
+            <Link to={`/trees/${compactId}`} state={{ newPattern: true }}>
+              {t("pattern.createFirst")}
+            </Link>
           </div>
         </div>
       </div>
@@ -98,6 +100,15 @@ export function PatternView({
     <div className="page-atmosphere bg-gradient">
       <ContourDecoration />
       <div className="pattern-view">
+        <div className="pattern-view__actions">
+          <Link
+            className="btn btn--primary"
+            to={`/trees/${compactId}`}
+            state={{ newPattern: true }}
+          >
+            {t("pattern.newPattern")}
+          </Link>
+        </div>
         <div className="pattern-view__grid">
           {expandedPattern && (
             <PatternDetail

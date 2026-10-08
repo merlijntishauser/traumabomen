@@ -21,6 +21,7 @@ describe("WorkspaceRail", () => {
     focusedPatternId: null,
     onFocusPattern: vi.fn(),
     onManagePatterns: vi.fn(),
+    onCreatePattern: vi.fn(),
     journalPanelOpen: false,
     onToggleJournal: vi.fn(),
   };

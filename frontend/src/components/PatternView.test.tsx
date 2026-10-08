@@ -19,8 +19,17 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("react-router", () => ({
-  Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => (
-    <a href={to} {...rest}>
+  Link: ({
+    to,
+    state,
+    children,
+    ...rest
+  }: {
+    to: string;
+    state?: unknown;
+    children: React.ReactNode;
+  }) => (
+    <a href={to} data-state={state ? JSON.stringify(state) : undefined} {...rest}>
       {children}
     </a>
   ),
@@ -147,6 +156,24 @@ describe("PatternView", () => {
     const link = screen.getByText("pattern.createFirst");
     expect(link).toBeTruthy();
     expect(link.closest("a")?.getAttribute("href")).toBe("/trees/tree-123");
+    // Lands on the canvas with the pattern panel open on the new-pattern form.
+    expect(link.closest("a")?.getAttribute("data-state")).toBe('{"newPattern":true}');
+  });
+
+  it("offers a new pattern beside existing ones", () => {
+    const pattern: DecryptedPattern = {
+      id: "p1",
+      name: "Silence",
+      description: "",
+      color: "#818cf8",
+      person_ids: [],
+      linked_entities: [],
+    };
+    render(<PatternView {...defaultProps()} patterns={new Map([["p1", pattern]])} />);
+
+    const link = screen.getByText("pattern.newPattern").closest("a");
+    expect(link?.getAttribute("href")).toBe("/trees/tree-123");
+    expect(link?.getAttribute("data-state")).toBe('{"newPattern":true}');
   });
 
   it("renders pattern cards with name, color dot, and entity count", () => {
