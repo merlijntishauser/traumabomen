@@ -19,8 +19,11 @@ conclude the app is broken. Both values have to be in the notes.
 
 1. Create an account on https://www.traumatrees.org with an address you
    control, and complete the email verification.
-2. Sign in on the web and add a tree with a few people and a journal entry, so
-   the reviewer sees a working app rather than an empty one.
+2. Sign in on the web and add a tree with a few people, some trauma and life
+   events with dates, and a journal entry, so the reviewer sees a working app
+   rather than an empty one. People without events leave the person page and
+   the Timeline tab nearly blank. The local seed script
+   (`../scripts/seed-demo-account.py`) is a usable template for what to add.
 3. Put that email, password, and encryption passphrase in the block below.
 4. Keep the account alive until the release is approved.
 
@@ -50,7 +53,9 @@ app cannot show any content. This is the app's central privacy guarantee
 rather than an extra hurdle.
 
 After unlocking, the demo account has a family tree and journal entries.
-"Tree" shows the canvas, "Journal" the entries.
+"Journal" holds the entries, "Tree" shows the family on a canvas (tap a
+person to open their life, year by year), and "Timeline" lays every life
+side by side as stripes, one year read at a time.
 
 Account creation is available in the app via "Create an account" on the sign-in
 screen. Because production requires email confirmation, a new account cannot be

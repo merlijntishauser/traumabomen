@@ -30,56 +30,43 @@ A quiet place to see what repeats in a family, and to write about it. Everything
 ## Description (4000 characters max)
 
 ```
-Traumatrees is a quiet place to see what repeats in a family, and to write
-about it.
+Traumatrees is a quiet place to see what repeats in a family, and to write about it.
 
-Some things travel through families without ever being said out loud. A way of
-going silent. A leaving. A pattern that shows up again a generation later,
-wearing different clothes. Traumatrees gives you somewhere to lay that out and
-look at it.
+Some things travel through families without ever being said out loud. A way of going silent. A leaving. A pattern that shows up again a generation later, wearing different clothes. Traumatrees gives you somewhere to lay that out and look at it.
 
 SEE YOUR FAMILY
 
-Your family map lives on the web at traumatrees.org, where you place the
-people and how they are connected: partners, parents, step-parents, siblings,
-the ones who were adopted in and the ones who left. This app is the companion
-to that map. It shows the tree on your phone and lets you record what happened
-to each person, across generations, without flattening the shape of a family.
+Your family map lives on the web at traumatrees.org, where you place the people and how they are connected: partners, parents, step-parents, siblings, the ones who were adopted in and the ones who left. This app is the companion to that map. It shows the tree on your phone and lets you record what happened to each person, across generations, without flattening the shape of a family.
+
+Open a person to see their life on one line, year by year, with the long silences named. The timeline lays every life side by side, so you can read a single year across the whole family: who was a child when the war ended, who was the same age when the same thing happened again.
 
 WRITE, AT YOUR OWN PACE
 
-Keep a private journal of what you notice. Link an entry to a person or a
-moment when it belongs to one. You set the pace: pause or stop whenever you
-want, and pick it up months later if that is when you are ready.
+Keep a private journal of what you notice. Link an entry to a person or a moment when it belongs to one. You set the pace: pause or stop whenever you want, and pick it up months later if that is when you are ready.
 
 ONLY YOU CAN READ IT
 
-Everything is encrypted on this device before it is stored. Your encryption
-passphrase never leaves your phone, and we never receive it. The server holds
-ciphertext and nothing else, so we cannot read your family's story even if we
-wanted to.
+Everything is encrypted on this device before it is stored. Your encryption passphrase never leaves your phone, and we never receive it. The server holds ciphertext and nothing else, so we cannot read your family's story even if we wanted to.
 
-The same guarantee means that if you lose your passphrase, your data is
-unrecoverable. This is by design.
+The same guarantee means that if you lose your passphrase, your data is unrecoverable. This is by design.
 
 A FEW HONEST THINGS
 
-This is a personal reflection tool. It is not therapy, and it is not crisis
-support. If you are in crisis, please contact a local crisis line.
+This is a personal reflection tool. It is not therapy, and it is not crisis support. If you are in crisis, please contact a local crisis line.
 
-There is no feed, no sharing, and no one else to perform for. Nothing you write
-is visible to another person.
+There is no feed, no sharing, and no one else to perform for. Nothing you write is visible to another person.
 
-Building and editing the tree itself happens on the web, at a desk. This app
-is for looking, and for writing.
+Building and editing the tree itself happens on the web, at a desk. This app is for looking, and for writing.
 
 Traumatrees is open source under the AGPL-3.0.
 
 REQUIRES AN ACCOUNT
 
-You can create an account in the app. Sign-ups are sometimes paused while the
-service is small; if that happens you can join the waitlist on traumatrees.org.
+You can create an account in the app. Sign-ups are sometimes paused while the service is small; if that happens you can join the waitlist on traumatrees.org.
 ```
+
+Each paragraph is one line on purpose: App Store Connect keeps line breaks
+as typed, so a hard-wrapped paste breaks sentences on the store page.
 
 ## Keywords (100 characters max, comma-separated, no spaces)
 

@@ -29,57 +29,44 @@ Een rustige plek om te zien wat zich in een familie herhaalt, en om erover te sc
 ## Beschrijving (max 4000 tekens)
 
 ```
-Traumabomen is een rustige plek om te zien wat zich in een familie herhaalt, en
-om erover te schrijven.
+Traumabomen is een rustige plek om te zien wat zich in een familie herhaalt, en om erover te schrijven.
 
-Sommige dingen reizen door families mee zonder ooit hardop gezegd te worden.
-Een manier van stil worden. Een vertrek. Een patroon dat een generatie later
-opnieuw opduikt, in andere kleren. Traumabomen geeft je een plek om dat uit te
-leggen en ernaar te kijken.
+Sommige dingen reizen door families mee zonder ooit hardop gezegd te worden. Een manier van stil worden. Een vertrek. Een patroon dat een generatie later opnieuw opduikt, in andere kleren. Traumabomen geeft je een plek om dat uit te leggen en ernaar te kijken.
 
 ZIE JE FAMILIE
 
-Je familiekaart leeft op het web, op traumabomen.nl. Daar plaats je de mensen
-en hoe ze verbonden zijn: partners, ouders, stiefouders, broers en zussen,
-degenen die erbij kwamen en degenen die weggingen. Deze app hoort bij die
-kaart. Hij toont de boom op je telefoon en laat je vastleggen wat ieder is
-overkomen, over generaties heen, zonder de vorm van een familie plat te slaan.
+Je familiekaart leeft op het web, op traumabomen.nl. Daar plaats je de mensen en hoe ze verbonden zijn: partners, ouders, stiefouders, broers en zussen, degenen die erbij kwamen en degenen die weggingen. Deze app hoort bij die kaart. Hij toont de boom op je telefoon en laat je vastleggen wat ieder is overkomen, over generaties heen, zonder de vorm van een familie plat te slaan.
+
+Open een persoon en je ziet diens leven op één lijn, jaar voor jaar, met de lange stiltes benoemd. De tijdlijn legt alle levens naast elkaar, zodat je één jaar door de hele familie heen leest: wie nog een kind was toen de oorlog eindigde, wie dezelfde leeftijd had toen hetzelfde opnieuw gebeurde.
 
 SCHRIJF, IN JE EIGEN TEMPO
 
-Houd een privédagboek bij van wat je opmerkt. Koppel een item aan een persoon
-of een moment wanneer het daarbij hoort. Jij bepaalt het tempo: pauzeer of stop
-wanneer je wilt, en pak het maanden later weer op als dat het moment is.
+Houd een privédagboek bij van wat je opmerkt. Koppel een item aan een persoon of een moment wanneer het daarbij hoort. Jij bepaalt het tempo: pauzeer of stop wanneer je wilt, en pak het maanden later weer op als dat het moment is.
 
 ALLEEN JIJ KUNT HET LEZEN
 
-Alles wordt op dit apparaat versleuteld voordat het wordt opgeslagen. Je
-encryptiesleutel verlaat je telefoon nooit, en wij ontvangen hem nooit. De
-server bewaart alleen versleutelde tekst, dus wij kunnen het verhaal van je
-familie niet lezen, ook niet als we dat zouden willen.
+Alles wordt op dit apparaat versleuteld voordat het wordt opgeslagen. Je encryptiesleutel verlaat je telefoon nooit, en wij ontvangen hem nooit. De server bewaart alleen versleutelde tekst, dus wij kunnen het verhaal van je familie niet lezen, ook niet als we dat zouden willen.
 
-Dezelfde garantie betekent dat je gegevens onherstelbaar zijn als je je
-encryptiesleutel kwijtraakt. Dat is met opzet zo.
+Dezelfde garantie betekent dat je gegevens onherstelbaar zijn als je je encryptiesleutel kwijtraakt. Dat is met opzet zo.
 
 EEN PAAR EERLIJKE DINGEN
 
-Dit is een persoonlijk reflectie-instrument. Het is geen therapie en geen
-crisishulp. Bel bij crisis 113 (Zelfmoordpreventie) of je huisarts.
+Dit is een persoonlijk reflectie-instrument. Het is geen therapie en geen crisishulp. Bel bij crisis 113 (Zelfmoordpreventie) of je huisarts.
 
-Er is geen tijdlijn, niets om te delen, en niemand voor wie je iets moet
-voorstellen. Niets van wat je schrijft is zichtbaar voor een ander.
+Er is geen tijdlijn, niets om te delen, en niemand voor wie je iets moet voorstellen. Niets van wat je schrijft is zichtbaar voor een ander.
 
-De boom zelf bouw en bewerk je op het web, aan een bureau. Deze app is om te
-kijken, en om te schrijven.
+De boom zelf bouw en bewerk je op het web, aan een bureau. Deze app is om te kijken, en om te schrijven.
 
 Traumabomen is open source onder de AGPL-3.0.
 
 JE HEBT EEN ACCOUNT NODIG
 
-Je kunt in de app een account aanmaken. Aanmelden is soms tijdelijk gesloten
-zolang de dienst klein is; dan kun je je op traumabomen.nl op de wachtlijst
-zetten.
+Je kunt in de app een account aanmaken. Aanmelden is soms tijdelijk gesloten zolang de dienst klein is; dan kun je je op traumabomen.nl op de wachtlijst zetten.
 ```
+
+Elke alinea staat op één regel, met opzet: App Store Connect neemt
+regeleinden letterlijk over, dus een afgebroken tekst breekt zinnen op de
+storepagina.
 
 ## Trefwoorden (max 100 tekens, komma's, geen spaties)
 
