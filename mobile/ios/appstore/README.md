@@ -28,8 +28,9 @@ plus the parts only you can supply.
 4. **Submit a build that has the current screens.** Nothing reaches App
    Store Connect without a `v*` tag; the deploy and Xcode Cloud workflows
    both trigger on it. The screenshots show the 2026-10-07 redesign (person
-   lifeline, Timeline tab, growth rings icon), which is in `v0.2.28` and
-   later. Pick that build or a newer one in App Store Connect, not an older
+   lifeline, Timeline tab, growth rings icon) plus the 2026-10-08 glance fix
+   and Settings crisis line, so cut a tag after `v0.2.28` (`v0.2.29` or
+   later). Pick that build or a newer one in App Store Connect, not an older
    TestFlight build: screenshots that do not match the submitted build are a
    Guideline 2.3.3 rejection.
 
