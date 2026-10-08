@@ -112,7 +112,10 @@ struct PersonSheet: View {
 
     /// "Married to Hendrik. Mother of Pieter and Anna." Each name opens that person.
     private var glance: some View {
-        let groups = Glance.groups(for: current.id, edges: tree?.edges ?? [])
+        let persons = tree?.persons ?? []
+        let groups = Glance.groups(for: current.id, edges: tree?.edges ?? []) { id in
+            persons.first { $0.id == id }?.deathYear
+        }
         return Group {
             if groups.isEmpty {
                 Text(t("Not connected to anyone yet."))

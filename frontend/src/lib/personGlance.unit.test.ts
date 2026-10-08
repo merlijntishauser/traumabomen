@@ -86,6 +86,34 @@ describe("buildGlanceGroups", () => {
     ]);
   });
 
+  it("keeps a partnership that ended in a death, and still names a separation", () => {
+    const died: Record<string, number> = { late: 2005, widower: 1999 };
+    const groups = buildGlanceGroups(
+      "me",
+      [
+        rel("r1", RelationshipType.Partner, "me", "late", [
+          { start_year: 1956, end_year: 2005, status: PartnerStatus.Married },
+        ]),
+        rel("r2", RelationshipType.Partner, "widower", "me", [
+          { start_year: 1990, end_year: 1999, status: PartnerStatus.Together },
+        ]),
+        rel("r3", RelationshipType.Partner, "me", "ex", [
+          { start_year: 1950, end_year: 1954, status: PartnerStatus.Married },
+        ]),
+        rel("r4", RelationshipType.Partner, "me", "late-ex", [
+          { start_year: 1960, end_year: 2001, status: PartnerStatus.Divorced },
+        ]),
+      ],
+      [],
+      (id) => died[id] ?? (id === "ex" ? 2010 : id === "late-ex" ? 2001 : null),
+    );
+    expect(groups).toEqual([
+      { role: "marriedTo", personIds: ["late"] },
+      { role: "partnerOf", personIds: ["widower"] },
+      { role: "formerPartnerOf", personIds: ["ex", "late-ex"] },
+    ]);
+  });
+
   it("merges explicit and inferred siblings without duplicates", () => {
     const inferred: InferredSibling[] = [
       { personAId: "me", personBId: "bro", type: "full_sibling", sharedParentIds: ["mum"] },

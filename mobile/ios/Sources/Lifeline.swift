@@ -141,21 +141,30 @@ enum Glance {
     private static let parentTypes: Set<String> = ["biological_parent", "co_parent", "adoptive_parent"]
     private static let siblingTypes: Set<String> = ["biological_sibling", "step_sibling", "half_sibling"]
 
-    private static func partnerRole(_ edge: TreeEdge) -> GlanceRole {
+    private static func partnerRole(_ edge: TreeEdge, deathYearOf: (String) -> Int?) -> GlanceRole {
         guard let latest = edge.periods.last else { return .partnerOf }
-        if latest.end != nil || latest.status == "separated" || latest.status == "divorced" {
+        if latest.status == "separated" || latest.status == "divorced" { return .formerPartnerOf }
+        if let end = latest.end, !endedByDeath(edge, endYear: end, deathYearOf: deathYearOf) {
             return .formerPartnerOf
         }
         return latest.status == "married" ? .marriedTo : .partnerOf
     }
 
+    /// A period that ended when one of the partners died is not a separation:
+    /// a marriage death ended still reads "married to".
+    private static func endedByDeath(_ edge: TreeEdge, endYear: Int, deathYearOf: (String) -> Int?) -> Bool {
+        [edge.sourceId, edge.targetId].contains { id in
+            deathYearOf(id).map { $0 <= endYear } ?? false
+        }
+    }
+
     /// The role the other person plays, phrased from `personId`'s side.
-    private static func role(_ edge: TreeEdge, for personId: String) -> GlanceRole {
+    private static func role(_ edge: TreeEdge, for personId: String, deathYearOf: (String) -> Int?) -> GlanceRole {
         let isSource = edge.sourceId == personId
         if parentTypes.contains(edge.type) { return isSource ? .parentOf : .childOf }
         switch edge.type {
         case "step_parent": return isSource ? .stepParentOf : .stepChildOf
-        case "partner": return partnerRole(edge)
+        case "partner": return partnerRole(edge, deathYearOf: deathYearOf)
         case "half_sibling": return .halfSiblingOf
         case "step_sibling": return .stepSiblingOf
         case "friend": return .friendOf
@@ -184,13 +193,16 @@ enum Glance {
     }
 
     /// A person's relationships and inferred siblings grouped into glance roles, in reading order.
-    static func groups(for personId: String, edges: [TreeEdge]) -> [GlanceGroup] {
+    /// `deathYearOf` tells a partnership death ended from one the couple ended.
+    static func groups(
+        for personId: String, edges: [TreeEdge], deathYearOf: (String) -> Int? = { _ in nil }
+    ) -> [GlanceGroup] {
         var byRole: [GlanceRole: [String]] = [:]
         func add(_ role: GlanceRole, _ other: String) {
             if !(byRole[role]?.contains(other) ?? false) { byRole[role, default: []].append(other) }
         }
         for edge in edges where edge.sourceId == personId || edge.targetId == personId {
-            add(role(edge, for: personId), edge.sourceId == personId ? edge.targetId : edge.sourceId)
+            add(role(edge, for: personId, deathYearOf: deathYearOf), edge.sourceId == personId ? edge.targetId : edge.sourceId)
         }
         for sibling in inferredSiblings(edges) where sibling.a == personId || sibling.b == personId {
             add(sibling.half ? .halfSiblingOf : .siblingOf, sibling.a == personId ? sibling.b : sibling.a)

@@ -312,7 +312,12 @@ export function PersonDetailPanel({
   const personPrompt = personPromptText(t, promptPick.index, person.name);
 
   const years = yearsLine(person, t);
-  const glance = buildGlanceGroups(person.id, relationships, inferredSiblings);
+  const glance = buildGlanceGroups(
+    person.id,
+    relationships,
+    inferredSiblings,
+    (id) => allPersons.get(id)?.death_year,
+  );
   const personPatterns = patterns.filter((p) => p.person_ids.includes(person.id));
 
   return (
