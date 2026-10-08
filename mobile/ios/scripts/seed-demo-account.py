@@ -1,7 +1,8 @@
 """Seed a local dev account for iOS app development.
 
 Creates (or recreates) an e2e- prefixed account against the compose stack
-with a tree, a wrapped key ring, and a few journal entries encrypted in the
+with a tree, a wrapped key ring, a few journal entries, people, and what
+happened to them (events, turning points, classifications), encrypted in the
 real client format (libsodium Argon2id + AES-256-GCM), so the app has
 something true to log into.
 
@@ -121,10 +122,45 @@ def main():
             "encrypted_data": encrypt_for_api(data, tree_key),
         }, access)
 
+    # What happened to them, so the person page's lifeline and the timeline's
+    # family stripes have something to read. Dates mix plain years with the
+    # free-text forms the date reader understands (decades, ages, stages).
+    stories = [
+        ("events", ["opa", "oma"], {"title": "De oorlog", "description": "Hongerwinter in Amsterdam.",
+                                     "category": "war", "approximate_date": "1944-1945", "severity": 8, "tags": []}),
+        ("events", ["oma"], {"title": "Verlies van haar broer", "description": "Er werd daarna nooit meer over hem gesproken.",
+                             "category": "loss", "approximate_date": "1951", "severity": 7, "tags": []}),
+        ("events", ["opa"], {"title": "Drinken", "description": "Vooral na de sluiting van de werf.",
+                             "category": "addiction", "approximate_date": "de jaren zeventig", "severity": 6, "tags": []}),
+        ("events", ["anna"], {"title": "Vader dronk", "description": None,
+                              "category": "addiction", "approximate_date": "als kind", "severity": 6, "tags": []}),
+        ("life-events", ["opa", "oma"], {"title": "Verhuizing naar Rotterdam", "description": "Voor werk op de werf.",
+                                         "category": "relocation", "approximate_date": "1957", "impact": 5, "tags": []}),
+        ("life-events", ["anna"], {"title": "Verpleegopleiding", "description": None,
+                                   "category": "education", "approximate_date": "1976", "impact": 4, "tags": []}),
+        ("life-events", ["sophie"], {"title": "Naar Utrecht voor studie", "description": None,
+                                     "category": "relocation", "approximate_date": "2003", "impact": 4, "tags": []}),
+        ("turning-points", ["sophie"], {"title": "Begonnen met therapie", "description": "Voor het eerst hardop over thuis.",
+                                        "category": "recovery", "approximate_date": "2019", "significance": 8, "tags": []}),
+        ("turning-points", ["anna"], {"title": "Gestopt met zwijgen", "description": "Vertelde Sophie over haar vader.",
+                                      "category": "cycle_breaking", "approximate_date": "2021", "significance": 7, "tags": []}),
+        ("classifications", ["oma"], {"dsm_category": "trauma_stressor", "dsm_subcategory": "ptsd", "status": "suspected",
+                                      "diagnosis_year": None, "periods": [{"start_year": 1945, "end_year": 1990}],
+                                      "notes": "Nooit gediagnosticeerd; nachtmerries tot op hoge leeftijd."}),
+        ("classifications", ["anna"], {"dsm_category": "depressive", "dsm_subcategory": "major_depression", "status": "diagnosed",
+                                       "diagnosis_year": 1998, "periods": [{"start_year": 1997, "end_year": 2001}],
+                                       "notes": None}),
+    ]
+    for path, owners, data in stories:
+        call("POST", f"/trees/{tree_id}/{path}", {
+            "person_ids": [ids[o] for o in owners],
+            "encrypted_data": encrypt_for_api(data, tree_key),
+        }, access)
+
     # Do not echo the password/passphrase; they are the EMAIL/PASSWORD/PASSPHRASE
     # constants at the top of this script (hint: boomsoort en jaartal).
     print(f"seeded {EMAIL} (credentials: see the constants at the top of this script)")
-    print(f"tree {tree_id}: {len(ENTRIES)} journal entries, {len(persons)} persons, {len(relationships)} relationships")
+    print(f"tree {tree_id}: {len(ENTRIES)} journal entries, {len(persons)} persons, {len(relationships)} relationships, {len(stories)} story items")
 
 
 if __name__ == "__main__":
