@@ -2,8 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import SupportPage from "./SupportPage";
 
+const i18n = { language: "en" };
+
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => key, i18n }),
 }));
 
 vi.mock("react-router", () => ({
@@ -67,11 +69,21 @@ describe("SupportPage", () => {
   });
 
   it("opens the crisis resource in a new tab without leaking the referrer", () => {
+    i18n.language = "en";
     render(<SupportPage />);
 
     const link = screen.getByRole("link", { name: "support.crisis.link" });
     expect(link).toHaveAttribute("href", "https://www.crisistextline.org");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noreferrer");
+  });
+
+  it("links the Dutch crisis line the Dutch copy names", () => {
+    i18n.language = "nl";
+    render(<SupportPage />);
+
+    const link = screen.getByRole("link", { name: "support.crisis.link" });
+    expect(link).toHaveAttribute("href", "https://www.113.nl");
+    i18n.language = "en";
   });
 });

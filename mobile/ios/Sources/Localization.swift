@@ -216,6 +216,10 @@ private let NL: [String: String] = [
         "Voer je wachtwoord in ter bevestiging. Alles wat je hebt geschreven wordt van de server en van dit apparaat verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "Could not delete the account. Check your password.":
         "Kon het account niet verwijderen. Controleer je wachtwoord.",
+    "If you need support now": "Als je nu hulp nodig hebt",
+    "If you are in crisis, please contact a crisis line or your doctor.":
+        "Bel bij crisis 113 (Zelfmoordpreventie) of je huisarts.",
+    "Crisis Text Line": "113 Zelfmoordpreventie",
     "About": "Over",
     "Traumatrees is a personal reflection tool, not therapy and not crisis support.":
         "Traumabomen is een persoonlijk reflectie-instrument, geen therapie en geen crisishulp.",

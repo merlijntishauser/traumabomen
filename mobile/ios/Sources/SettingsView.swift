@@ -171,6 +171,8 @@ struct SettingsView: View {
                     .padding(.top, 4)
                 }
 
+                crisisSection
+
                 Text(t("About"))
                     .font(Theme.body(13, weight: .semibold))
                     .foregroundStyle(Theme.textMuted)
@@ -210,6 +212,25 @@ struct SettingsView: View {
             }
             #endif
         }
+    }
+
+    /// Where to turn when reflection is not enough, matching the web's support
+    /// page: 113 in Dutch, Crisis Text Line otherwise.
+    private var crisisSection: some View {
+        let dutch = Loc.shared.effective == "nl"
+        let url = URL(string: dutch ? "https://www.113.nl" : "https://www.crisistextline.org")!
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(t("If you need support now"))
+                .font(Theme.body(13, weight: .semibold))
+                .foregroundStyle(Theme.textMuted)
+            Text(t("If you are in crisis, please contact a crisis line or your doctor."))
+                .font(Theme.body(13))
+                .foregroundStyle(Theme.textPrimary)
+            Link(t("Crisis Text Line"), destination: url)
+                .font(Theme.body(13, weight: .semibold))
+                .foregroundStyle(Theme.action)
+        }
+        .padding(.top, 8)
     }
 
     private func save() {

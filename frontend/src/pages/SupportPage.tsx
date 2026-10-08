@@ -8,8 +8,18 @@ const SUPPORT_EMAIL = "support@traumatrees.org";
 /** Questions in the order someone stuck is likely to have them. */
 const QUESTIONS = ["login", "passphrase", "waitlist", "delete", "export", "mobile"] as const;
 
+/** The crisis line the copy names: 113 in Dutch, Crisis Text Line otherwise. */
+const CRISIS_URLS: Record<string, string> = {
+  nl: "https://www.113.nl",
+  en: "https://www.crisistextline.org",
+};
+
+function crisisUrl(language: string | undefined): string {
+  return CRISIS_URLS[language?.split("-")[0] ?? "en"] ?? CRISIS_URLS.en;
+}
+
 export default function SupportPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className="support-page">
@@ -50,7 +60,7 @@ export default function SupportPage() {
           <h2>{t("support.crisis.heading")}</h2>
           <p>{t("support.crisis.body")}</p>
           <p>
-            <a href="https://www.crisistextline.org" target="_blank" rel="noreferrer">
+            <a href={crisisUrl(i18n.language)} target="_blank" rel="noreferrer">
               {t("support.crisis.link")}
             </a>
           </p>

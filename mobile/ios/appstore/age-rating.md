@@ -99,9 +99,10 @@ Apple also shows regional ratings derived from these answers (Australia,
 Brazil, France, and others). They are computed, not chosen; nothing to fill
 in.
 
-## Related, and worth doing anyway
+## Related
 
 The app tells the user it is "not therapy and not crisis support" on the
 welcome screen and in Settings, which is the right posture under guideline
-1.4.1. The web footer also links a crisis line; the app does not. Adding
-crisis resources in Settings would strengthen the position and costs little.
+1.4.1. Settings also has an "If you need support now" section linking a
+crisis line: 113 Zelfmoordpreventie in Dutch, Crisis Text Line otherwise,
+the same resources as the web's support page.
