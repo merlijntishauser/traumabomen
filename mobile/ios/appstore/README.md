@@ -14,6 +14,7 @@ plus the parts only you can supply.
 | `age-rating.md`         | The age rating questionnaire                                      |
 | `export-compliance.md`  | The encryption declaration already baked into the build           |
 | `screenshots/6.9-inch/` | Six 1320x2868 screenshots, captured from the running app          |
+| `screenshots/6.3-inch/` | The same six at 1206x2622, for the medium iPhone slot             |
 
 ## What you still have to do yourself
 
@@ -53,6 +54,12 @@ lifeline and the timeline have something to read. The app is iPhone-only
 | `05-timeline.png`    | The family stripes, reading one year                |
 | `06-journal.png`     | Journal entries against a tree                      |
 
+App Store Connect now opens the screenshot box on the **medium** iPhone slot
+(6.1"/6.3", 1206x2622), which rejects the 6.9" files as "File dimensions are
+invalid". Upload `6.3-inch/` there; the 6.9" set goes in the large slot under
+"View All Sizes in Media Manager" if you want it. That set was captured on the
+iPhone 17 Pro simulator on 2026-10-12, same data and settings.
+
 They are unretouched device captures. If you want captions or framed
 marketing shots, these are the raw material rather than the finished set.
 
@@ -70,5 +77,6 @@ xcrun simctl launch <udid> org.traumabomen.companion -AppleLanguages "(en)" \
   -unlockPassphrase <seed passphrase> [-showTree | -showTimeline] [-openPerson Margaret]
 ```
 
-Leave out `-unlockPassphrase` for the unlock screen, and reinstall the app for
-the welcome screen.
+Leave out `-unlockPassphrase` for the unlock screen. For the welcome screen add
+`-welcome.seen NO` (a reinstall does not always reset the flag), and wait for the
+Dynamic Island to settle before capturing, or it lands in the shot.
