@@ -16,6 +16,9 @@
   --color-border-primary: #1f4d35;
   --color-border-secondary: #163027;
   --color-border-focus: #2d8a5e;
+  /* The edge of a field at rest: at least 3:1 against every panel surface
+     (secondary, tertiary, primary), so an empty field still reads as one. */
+  --color-border-input: #557f67;
 
   /* Text */
   --color-text-primary: #e0e8e3;
@@ -251,7 +254,9 @@
 
   --color-border-primary: #d4cec6;
   --color-border-secondary: #d4cfc9;
-  --color-border-focus: #4a9bb5;
+  /* Focus is the action colour; the teal here was a watercolor leftover. */
+  --color-border-focus: #4f46e5;
+  --color-border-input: #8f877c;
 
   --color-text-primary: #2c3340;
   --color-text-secondary: #4e5b6e;
@@ -536,7 +541,7 @@ textarea {
   font-size: var(--text-body-size);
   padding: 8px 12px;
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-primary);
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
@@ -707,6 +712,21 @@ button {
   color: var(--color-text-inverse);
 }
 
+/* Disabled reads as unavailable at a glance, and hover does not pretend
+   otherwise. */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  background: var(--color-bg-secondary);
+}
+
+.btn--primary:disabled:hover {
+  background: var(--color-action);
+}
+
 .btn--danger {
   color: var(--color-danger);
   border-color: var(--color-danger-border);
@@ -723,6 +743,7 @@ button {
 .panel-header .btn,
 .panel-header .panel-close {
   height: 34px;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;

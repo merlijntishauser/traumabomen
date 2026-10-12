@@ -8,6 +8,7 @@ colors:
   midnight-canvas: "#0d1f14"
   midnight-hover: "#1a3d2a"
   midnight-border: "#1f4d35"
+  midnight-border-input: "#557f67"
   midnight-text: "#e0e8e3"
   midnight-text-secondary: "#8faa97"
   midnight-text-muted: "#7a9a84"
@@ -21,6 +22,7 @@ colors:
   linen-canvas: "#f4f1ed"
   linen-hover: "#ebe7e2"
   linen-border: "#d4cec6"
+  linen-border-input: "#8f877c"
   linen-text: "#2c3340"
   linen-text-secondary: "#4e5b6e"
   linen-text-muted: "#5e6b7e"
@@ -292,9 +294,12 @@ Quiet and steady: labels in bold Lato at a small size, corners of 6 to 8px, and 
 - **Internal Padding:** 20 to 24px.
 
 ### Inputs / Fields
-- **Style:** Raised background, one-pixel primary border, 8px radius, 8px by 12px padding, 15px Lato.
-- **Focus:** the border shifts to the action color, plus a 2px action focus ring. No outline.
-- **Labels:** 13px weight 500 in the secondary text color, 4px above the field.
+- **Style:** Raised background, one-pixel input border (`--color-border-input`), 8px radius, 8px by 12px padding, 15px Lato. In side panels (the inspector fields) the field is a recessed well on the floor color instead, so it stands out on Surface and Raised alike.
+- **Edge at rest:** the input border holds at least 3:1 against every panel surface (`#557f67` in dark, `#8f877c` in light). An empty field must read as a field without hover or focus; a borderless "quiet field" vanishes on a surface of its own tone.
+- **Hover:** the border firms to the muted text color.
+- **Focus:** the border shifts to `--color-border-focus` (the action color: green in dark, indigo in light), plus a 2px action focus ring. No outline.
+- **Disabled buttons:** half opacity with a not-allowed cursor, keeping their own color; hover changes nothing.
+- **Labels:** 13px weight 500 in the secondary text color, 4px above the field. Inspector rows put the label beside the field; a create form in a panel (a new pattern) stacks every label above its field, one column, and lands the cursor in the first field.
 
 ### Navigation
 - **Workspace header:** Surface background, bottom border, a soft drop shadow, and a 3px gradient line from accent to transparent along the bottom edge. It holds the tree name in the voice face (weight 300), the view tabs as quiet text tabs (the active one on the raised surface), a muted "Encrypted on this device" note, and the account controls. Header buttons are uniform at 32px. Canvas tools never live here.

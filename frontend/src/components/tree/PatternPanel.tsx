@@ -1,4 +1,4 @@
-import { ChevronRight, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, Link2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -294,6 +294,9 @@ function PatternEditForm({
 
   const personEntityGroups = useMemo(() => buildPersonEntityGroups(entityMaps, t), [entityMaps, t]);
 
+  // Starting a new pattern lands in its name: the one field it cannot do without.
+  const focusName = useCallback((el: HTMLInputElement | null) => el?.focus(), []);
+
   function handleAdd() {
     const data = buildData();
     if (!data) return;
@@ -315,10 +318,11 @@ function PatternEditForm({
 
   return (
     <div className="pattern-panel__edit">
-      <InspectorField label={t("pattern.name")}>
+      <InspectorField label={t("pattern.name")} className="inspector-field--stacked">
         <input
           type="text"
           aria-label={t("pattern.name")}
+          ref={isNew ? focusName : undefined}
           value={draft.name}
           onChange={(e) => update((d) => ({ ...d, name: e.target.value }))}
           onBlur={commit}
@@ -327,7 +331,7 @@ function PatternEditForm({
         />
       </InspectorField>
 
-      <InspectorField label={t("pattern.description")}>
+      <InspectorField label={t("pattern.description")} className="inspector-field--stacked">
         <textarea
           aria-label={t("pattern.description")}
           value={draft.description}
@@ -353,6 +357,7 @@ function PatternEditForm({
               style={{ backgroundColor: getPatternColor(c) }}
               onClick={() => changeAndCommit((d) => ({ ...d, color: c }))}
               aria-label={c}
+              aria-pressed={draft.color === c}
             />
           ))}
         </div>
@@ -392,7 +397,7 @@ function PatternEditForm({
                 }
                 aria-label={t("pattern.unlinkEntity")}
               >
-                x
+                <X size={14} aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -402,7 +407,9 @@ function PatternEditForm({
           type="button"
           className="btn pattern-panel__btn--add"
           onClick={() => setShowLinkPicker((v) => !v)}
+          aria-expanded={showLinkPicker}
         >
+          {!showLinkPicker && <Link2 size={14} aria-hidden="true" />}
           {showLinkPicker ? t("common.close") : t("pattern.linkEntity")}
         </button>
 

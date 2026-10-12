@@ -139,6 +139,20 @@ describe("PatternPanel", () => {
     expect(screen.getByText("common.add")).toBeInTheDocument();
   });
 
+  it("starting a new pattern puts the cursor in its name", () => {
+    renderPanel();
+    fireEvent.click(screen.getByText("pattern.newPattern"));
+    expect(screen.getByTestId("pattern-name-input")).toHaveFocus();
+  });
+
+  it("marks the chosen colour as pressed", () => {
+    renderPanel({ initialCreating: true });
+    const pressed = screen
+      .getAllByRole("button", { pressed: true })
+      .filter((b) => b.classList.contains("pattern-panel__color-swatch"));
+    expect(pressed).toHaveLength(1);
+  });
+
   it("opens straight into the new-pattern form when asked to start creating", () => {
     renderPanel({ initialCreating: true, initialExpandedId: "p1" });
 

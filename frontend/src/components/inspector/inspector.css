@@ -1,7 +1,8 @@
-/* Quiet inspector primitives: fields read as calm text on the panel surface;
-   hover reveals a subtle field background, focus restores the full input
-   look. All colors come from theme tokens, so dark and light are covered
-   by construction. */
+/* Inspector primitives. Every field shows its edge at rest: a recessed well
+   (the page floor) inside a border that holds 3:1 on any panel surface, so
+   an empty field is never mistaken for blank space. Hover firms the edge,
+   focus moves it to the action colour with a ring. All colors come from
+   theme tokens, so dark and light are covered by construction. */
 
 .inspector-field {
   display: grid;
@@ -36,11 +37,11 @@
 .inspector-field select,
 .inspector-field textarea {
   padding: var(--space-1\.5) var(--space-2);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-sm);
   font-size: 0.9375rem;
   font-family: inherit;
-  background: color-mix(in srgb, var(--color-bg-tertiary) 55%, transparent);
+  background: var(--color-bg-primary);
   color: var(--color-text-primary);
   transition: var(--transition-colors);
 }
@@ -67,14 +68,13 @@
 .inspector-field input:hover,
 .inspector-field select:hover,
 .inspector-field textarea:hover {
-  background: var(--color-bg-hover);
+  border-color: var(--color-text-muted);
 }
 
 .inspector-field input:focus,
 .inspector-field select:focus,
 .inspector-field textarea:focus {
   outline: none;
-  background: var(--color-bg-tertiary);
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 2px var(--color-action-focus-ring);
 }

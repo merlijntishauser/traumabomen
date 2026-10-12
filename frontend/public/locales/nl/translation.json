@@ -737,7 +737,7 @@
   "pattern.description": "Beschrijving",
   "pattern.color": "Kleur",
   "pattern.linkedEntities": "Gekoppelde items",
-  "pattern.linkEntity": "Personen koppelen",
+  "pattern.linkEntity": "Items koppelen",
   "pattern.unlinkEntity": "Ontkoppelen",
   "pattern.confirmDelete": "Weet je zeker dat je dit patroon wilt verwijderen?",
   "pattern.editPatterns": "Patronen bewerken",

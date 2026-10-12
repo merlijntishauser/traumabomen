@@ -113,6 +113,11 @@
   border-top: 1px solid var(--color-border-secondary);
 }
 
+/* One column of label-over-field rows, the same rhythm for every row. */
+.pattern-panel__edit .inspector-field {
+  margin-bottom: var(--space-3);
+}
+
 .pattern-panel__field {
   display: flex;
   flex-direction: column;
@@ -126,54 +131,45 @@
   color: var(--color-text-secondary);
 }
 
-.pattern-panel__field input[type="text"],
-.pattern-panel__field textarea {
-  padding: var(--space-1\.5) var(--space-2\.5);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-family: inherit;
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  transition: var(--transition-colors);
-}
-
-.pattern-panel__field input:focus,
-.pattern-panel__field textarea:focus {
-  outline: none;
-  border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px var(--color-action-focus-ring);
-}
-
-.pattern-panel__field textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
 /* Color picker */
 .pattern-panel__colors {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-1);
   flex-wrap: wrap;
 }
 
 .pattern-panel__color-swatch {
   width: 28px;
   height: 28px;
+  padding: 0;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: none;
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    transform 0.1s ease;
+  /* A ring drawn outside the swatch, separated by the form's own surface, so
+     the colour itself stays whole. */
+  box-shadow: 0 0 0 2px var(--color-bg-tertiary);
+  transition: box-shadow 0.15s ease;
 }
 
 .pattern-panel__color-swatch:hover {
-  transform: scale(1.1);
+  box-shadow:
+    0 0 0 2px var(--color-bg-tertiary),
+    0 0 0 4px var(--color-border-input);
 }
 
-.pattern-panel__color-swatch--selected {
-  border-color: var(--color-text-primary);
+.pattern-panel__color-swatch--selected,
+.pattern-panel__color-swatch--selected:hover {
+  box-shadow:
+    0 0 0 2px var(--color-bg-tertiary),
+    0 0 0 4px var(--color-text-primary);
+}
+
+.pattern-panel__color-swatch:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-bg-tertiary),
+    0 0 0 4px var(--color-action);
 }
 
 /* Linked entities */
@@ -248,11 +244,16 @@
 }
 
 .pattern-panel__entity-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   background: none;
   border: none;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  padding: var(--space-0\.5) var(--space-1);
-  font-size: 0.6875rem;
   color: var(--color-text-muted);
   transition: var(--transition-colors);
   flex-shrink: 0;
@@ -291,14 +292,27 @@
   display: flex;
   align-items: center;
   gap: var(--space-1\.5);
-  padding: var(--space-1) var(--space-2\.5) var(--space-1) 18px;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  text-align: left;
+  min-height: 32px;
+  padding: var(--space-1\.5) var(--space-2\.5) var(--space-1\.5) 18px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   transition: var(--transition-colors);
 }
 
-.pattern-panel__link-entity:hover {
+.pattern-panel__link-entity:hover:not(:disabled) {
   background: var(--color-bg-hover);
+}
+
+.pattern-panel__link-entity:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: -2px;
 }
 
 .pattern-panel__link-entity--linked {
@@ -316,7 +330,9 @@
 /* buttons: base uses shared .btn, variants below */
 
 .pattern-panel__btn--add {
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  align-self: flex-start;
   margin-top: 0;
-  padding: var(--space-2) var(--space-3\.5);
 }

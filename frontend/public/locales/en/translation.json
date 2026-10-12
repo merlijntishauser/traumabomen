@@ -737,7 +737,7 @@
   "pattern.description": "Description",
   "pattern.color": "Color",
   "pattern.linkedEntities": "Linked items",
-  "pattern.linkEntity": "Link persons",
+  "pattern.linkEntity": "Link items",
   "pattern.unlinkEntity": "Unlink",
   "pattern.confirmDelete": "Are you sure you want to delete this pattern?",
   "pattern.editPatterns": "Edit patterns",
