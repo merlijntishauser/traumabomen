@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/react";
-import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -11,6 +10,7 @@ import { OnboardingGate } from "./components/OnboardingGate";
 import { EncryptionProvider } from "./contexts/EncryptionContext";
 import { useEncryption } from "./contexts/useEncryption";
 import { useCanvasSettings } from "./hooks/useCanvasSettings";
+import { useFullLock } from "./hooks/useFullLock";
 import { useLockScreen } from "./hooks/useLockScreen";
 import { useLogout } from "./hooks/useLogout";
 import {
@@ -159,7 +159,6 @@ export function OnboardingGuard({
 function AppContent() {
   const {
     masterKey,
-    clearKey,
     verifyPassphrase,
     setMasterKey,
     setPassphraseHash,
@@ -213,14 +212,7 @@ function AppContent() {
     };
   }, [authModalMode]);
 
-  // Full lock: forget the key and every decrypted query, no navigation. The
-  // cache holds plaintext, so keeping it would leave the tree readable in
-  // memory (and on screen) while the app claims to be locked.
-  const queryClient = useQueryClient();
-  const handleFullLock = useCallback(() => {
-    clearKey();
-    queryClient.clear();
-  }, [clearKey, queryClient]);
+  const handleFullLock = useFullLock();
 
   const { settings: canvasSettings } = useCanvasSettings();
   const fullTimeoutMs =
