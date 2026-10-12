@@ -37,7 +37,31 @@ data the server holds.
 Journal entries, people, relationships, and events. Stored as ciphertext the
 server cannot read, but stored, and attached to the account.
 
-### Identifiers, Usage Data, Diagnostics, Location, Contacts, Health
+### Health & Fitness -> Health
+
+- Collected: **Yes**
+- Linked to the user's identity: **Yes**
+- Used for tracking: **No**
+- Purpose: **App Functionality**
+
+Apple's Health type covers "any other user provided health or medical data",
+not only HealthKit. Classifications are exactly that: a DSM-5 category, a
+subcategory, and whether it is suspected or diagnosed, for each person in the
+tree. Encrypted like everything else, but stored and attached to the account.
+(An earlier version of this file said No because the app does not use
+HealthKit; that read the category too narrowly.)
+
+### Sensitive Info
+
+- Collected: **No**
+
+Apple's Sensitive Info means racial or ethnic data, sexual orientation,
+pregnancy or childbirth, disability, religious or philosophical beliefs, trade
+union membership, political opinion, genetic or biometric data. The app has no
+field for any of these. Whatever a user chooses to write about them in free
+text is covered by Other User Content.
+
+### Identifiers, Usage Data, Diagnostics, Location, Contacts
 
 - Collected: **No**
 
