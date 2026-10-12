@@ -10,12 +10,24 @@ describe("workspaceNavOptions", () => {
     });
   });
 
-  it("opens the pattern panel on a pattern", () => {
+  it("spotlights a pattern without opening its edit panel", () => {
     expect(workspaceNavOptions({ openPatternId: "p1" })).toEqual({
+      openPatternId: "p1",
+      initialPatternPanelOpen: false,
+      initialPatternCreating: false,
+    });
+  });
+
+  it("opens the edit panel when asked to edit the pattern", () => {
+    expect(workspaceNavOptions({ openPatternId: "p1", editPattern: true })).toEqual({
       openPatternId: "p1",
       initialPatternPanelOpen: true,
       initialPatternCreating: false,
     });
+  });
+
+  it("does not open the edit panel without a pattern", () => {
+    expect(workspaceNavOptions({ editPattern: true }).initialPatternPanelOpen).toBe(false);
   });
 
   it("asks for the new-pattern form", () => {

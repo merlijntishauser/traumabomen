@@ -750,7 +750,7 @@
   "pattern.focus.people_other": "{{count}} personen in dit patroon",
   "pattern.empty": "Nog geen patronen. Maak er een aan om gebeurtenissen over generaties te verbinden.",
   "pattern.createFirst": "Maak je eerste patroon",
-  "pattern.editOnCanvas": "Bewerken op canvas",
+  "pattern.showInTree": "Toon in de boom",
   "pattern.spansGenerations_one": "Omvat {{count}} generatie",
   "pattern.spansGenerations_other": "Omvat {{count}} generaties",
   "pattern.visible": "Zichtbaar",

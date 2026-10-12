@@ -281,10 +281,17 @@ describe("PatternView", () => {
     const detailEntities = container.querySelectorAll(".pattern-view__detail-entity");
     expect(detailEntities).toHaveLength(5);
 
-    // "Edit on canvas" link is present and points to the tree
-    const editLink = screen.getByText("pattern.editOnCanvas");
-    expect(editLink).toBeTruthy();
-    expect(editLink.closest("a")?.getAttribute("href")).toBe("/trees/tree-123");
+    // "Show in tree" spotlights the pattern on the canvas, nothing more.
+    const showLink = screen.getByText("pattern.showInTree").closest("a");
+    expect(showLink?.getAttribute("href")).toBe("/trees/tree-123");
+    expect(showLink?.getAttribute("data-state")).toBe('{"openPatternId":"pat1"}');
+
+    // "Edit" also opens the pattern's edit panel.
+    const editLink = screen.getByText("common.edit").closest("a");
+    expect(editLink?.getAttribute("href")).toBe("/trees/tree-123");
+    expect(editLink?.getAttribute("data-state")).toBe(
+      '{"openPatternId":"pat1","editPattern":true}',
+    );
   });
 
   it("shows life event entity on card", () => {

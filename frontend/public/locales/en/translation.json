@@ -750,7 +750,7 @@
   "pattern.focus.people_other": "{{count}} people in this pattern",
   "pattern.empty": "No patterns yet. Create one to start connecting events across generations.",
   "pattern.createFirst": "Create your first pattern",
-  "pattern.editOnCanvas": "Edit on canvas",
+  "pattern.showInTree": "Show in tree",
   "pattern.spansGenerations_one": "Spans {{count}} generation",
   "pattern.spansGenerations_other": "Spans {{count}} generations",
   "pattern.visible": "Visible",
