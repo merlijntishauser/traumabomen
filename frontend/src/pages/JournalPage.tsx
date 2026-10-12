@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { JournalEntryForm } from "../components/journal/JournalEntryForm";
 import type { JournalEntityMaps } from "../components/journal/JournalLinkedChips";
 import { JournalMargin } from "../components/journal/JournalMargin";
@@ -14,6 +15,7 @@ import { useTreeMutations } from "../hooks/useTreeMutations";
 import type { JournalEntry } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 import "./JournalPage.css";
+import { uuidToCompact } from "../lib/compactId";
 import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 /** What the writing column shows: a fresh page, an earlier entry, or that entry being edited. */
@@ -29,6 +31,7 @@ interface DeskColumnProps {
   onDelete: (entryId: string) => void;
   onView: (view: DeskView) => void;
   onClearNew: () => void;
+  onLeave: () => void;
 }
 
 /** The writing column: one question and a fresh page, or an earlier entry to reread and edit. */
@@ -42,6 +45,7 @@ function DeskColumn({
   onDelete,
   onView,
   onClearNew,
+  onLeave,
 }: DeskColumnProps) {
   const { t } = useTranslation();
   if (view.kind === "read" && entry) {
@@ -85,7 +89,9 @@ function DeskColumn({
           onCreate(data);
           onClearNew();
         }}
-        onCancel={onClearNew}
+        // Cancelling a new page means not writing now: back to the tree, not a
+        // blank sheet with a different question.
+        onCancel={onLeave}
       />
     </>
   );
@@ -107,6 +113,7 @@ export default function JournalPage() {
     error,
   } = useTreeData(treeId!);
   const mutations = useTreeMutations(treeId!);
+  const navigate = useNavigate();
   const [view, setView] = useState<DeskView>({ kind: "new" });
   // A fresh page after saving or clearing: remounting the form empties it.
   const [newPageKey, setNewPageKey] = useState(0);
@@ -176,6 +183,7 @@ export default function JournalPage() {
                   onDelete={(entryId) => mutations.deleteJournalEntry.mutate(entryId)}
                   onView={setView}
                   onClearNew={() => setNewPageKey((k) => k + 1)}
+                  onLeave={() => navigate(`/trees/${uuidToCompact(treeId!)}`)}
                 />
               </section>
               <JournalMargin

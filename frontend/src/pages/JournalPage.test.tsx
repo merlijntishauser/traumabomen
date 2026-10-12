@@ -25,6 +25,10 @@ vi.mock("../lib/reflectionPrompts", () => ({
 
 vi.mock("../hooks/useTreeId", () => ({ useTreeId: () => "tree-1" }));
 
+const navigate = vi.fn();
+vi.mock("react-router", () => ({ useNavigate: () => navigate }));
+vi.mock("../lib/compactId", () => ({ uuidToCompact: (id: string) => id }));
+
 const mutations = {
   createJournalEntry: { mutate: vi.fn() },
   updateJournalEntry: { mutate: vi.fn() },
@@ -88,11 +92,12 @@ describe("JournalPage", () => {
     expect(screen.getByTestId("journal-textarea")).toHaveValue("");
   });
 
-  it("clears the page on cancel", () => {
+  it("returns to the tree when a new page is cancelled", () => {
     render(<JournalPage />);
     fireEvent.change(screen.getByTestId("journal-textarea"), { target: { value: "Draft" } });
     fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
-    expect(screen.getByTestId("journal-textarea")).toHaveValue("");
+    expect(navigate).toHaveBeenCalledWith("/trees/tree-1");
+    expect(mutations.createJournalEntry.mutate).not.toHaveBeenCalled();
   });
 
   it("opens an earlier entry to reread, edit and save", () => {
