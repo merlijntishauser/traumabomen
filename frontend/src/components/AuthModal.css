@@ -33,7 +33,7 @@
     radial-gradient(ellipse 60% 35% at 50% 0%, rgba(143, 170, 151, 0.08) 0%, transparent 70%),
     /* Subtle ground fog at bottom */
     linear-gradient(to top, rgba(10, 26, 15, 0.4) 0%, transparent 30%),
-    /* Base dark overlay */ rgba(10, 26, 15, 0.82);
+    /* Base dark overlay */ rgb(10, 26, 15);
 }
 
 .auth-modal::backdrop {
@@ -51,7 +51,7 @@
     radial-gradient(3px 2px at 65% 22%, rgba(74, 155, 181, 0.04) 50%, transparent 50%),
     radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 253, 250, 0.2) 0%, transparent 70%),
     radial-gradient(ellipse 40% 50% at 75% 10%, rgba(247, 245, 242, 0.15) 0%, transparent 60%),
-    linear-gradient(to top, rgba(247, 245, 242, 0.2) 0%, transparent 25%), rgba(247, 245, 242, 0.78);
+    linear-gradient(to top, rgba(247, 245, 242, 0.2) 0%, transparent 25%), rgb(247, 245, 242);
 }
 
 .auth-modal__card {

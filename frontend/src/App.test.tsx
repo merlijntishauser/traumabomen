@@ -2,8 +2,9 @@ import type * as Sentry from "@sentry/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it, vi } from "vitest";
-import { ErrorFallback, LazyBoundary, OnboardingGuard } from "./App";
+import { AuthGuard, ErrorFallback, LazyBoundary, OnboardingGuard } from "./App";
 
 vi.mock("@sentry/react", async () => {
   const actual = await vi.importActual<typeof Sentry>("@sentry/react");
@@ -13,6 +14,7 @@ vi.mock("@sentry/react", async () => {
 let mockKey: CryptoKey | null = null;
 let mockAccessToken: string | null = null;
 let mockOnboardingFlag = false;
+let mockWasAuthenticated = false;
 
 vi.mock("./contexts/useEncryption", () => ({
   useEncryption: () => ({ masterKey: mockKey }),
@@ -21,7 +23,7 @@ vi.mock("./contexts/useEncryption", () => ({
 vi.mock("./lib/api", () => ({
   getAccessToken: () => mockAccessToken,
   getOnboardingFlag: () => mockOnboardingFlag,
-  getWasAuthenticated: () => false,
+  getWasAuthenticated: () => mockWasAuthenticated,
   acknowledgeOnboarding: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -227,5 +229,57 @@ describe("LazyBoundary", () => {
     expect(screen.queryByTestId("lazy-child")).not.toBeInTheDocument();
 
     spy.mockRestore();
+  });
+});
+
+describe("AuthGuard", () => {
+  function renderGuarded() {
+    return render(
+      <MemoryRouter initialEntries={["/trees/t1"]}>
+        <Routes>
+          <Route
+            path="/trees/:id"
+            element={
+              <AuthGuard>
+                <div data-testid="tree">Anna Smith</div>
+              </AuthGuard>
+            }
+          />
+          <Route path="/login" element={<div data-testid="login" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it("renders the tree when signed in and unlocked", () => {
+    mockAccessToken = "token";
+    mockKey = {} as CryptoKey;
+    renderGuarded();
+    expect(screen.getByTestId("tree")).toBeInTheDocument();
+  });
+
+  it("renders nothing behind the unlock modal when the key is gone", () => {
+    mockAccessToken = "token";
+    mockKey = null;
+    renderGuarded();
+    expect(screen.queryByTestId("tree")).not.toBeInTheDocument();
+    expect(screen.queryByText("Anna Smith")).not.toBeInTheDocument();
+  });
+
+  it("renders nothing behind the re-auth modal when the session expired", () => {
+    mockAccessToken = null;
+    mockWasAuthenticated = true;
+    mockKey = {} as CryptoKey;
+    renderGuarded();
+    expect(screen.queryByTestId("tree")).not.toBeInTheDocument();
+    mockWasAuthenticated = false;
+  });
+
+  it("sends someone who was never signed in to the login page", () => {
+    mockAccessToken = null;
+    mockWasAuthenticated = false;
+    mockKey = null;
+    renderGuarded();
+    expect(screen.getByTestId("login")).toBeInTheDocument();
   });
 });

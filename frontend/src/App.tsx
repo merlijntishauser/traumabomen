@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -107,10 +108,15 @@ export function LazyBoundary({ children }: { children: React.ReactNode }) {
   return <Sentry.ErrorBoundary fallback={<ErrorFallback />}>{children}</Sentry.ErrorBoundary>;
 }
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  if (!getAccessToken() && !getWasAuthenticated()) {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { masterKey } = useEncryption();
+  const hasAccessToken = !!getAccessToken();
+  if (!hasAccessToken && !getWasAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
+  // Locked or session expired: the auth modal is asking for the passphrase or
+  // credentials. Nothing of the tree may render behind it, not even dimmed.
+  if (!hasAccessToken || !masterKey) return null;
   return <>{children}</>;
 }
 
@@ -207,10 +213,14 @@ function AppContent() {
     };
   }, [authModalMode]);
 
-  // Full lock handler: just clear key, no navigation
+  // Full lock: forget the key and every decrypted query, no navigation. The
+  // cache holds plaintext, so keeping it would leave the tree readable in
+  // memory (and on screen) while the app claims to be locked.
+  const queryClient = useQueryClient();
   const handleFullLock = useCallback(() => {
     clearKey();
-  }, [clearKey]);
+    queryClient.clear();
+  }, [clearKey, queryClient]);
 
   const { settings: canvasSettings } = useCanvasSettings();
   const fullTimeoutMs =
