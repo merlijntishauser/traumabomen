@@ -2,7 +2,7 @@
 export
 
 .PHONY: help up down nuke rebuild update-deps logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be test-be-unit test-be-integration coverage e2e e2e-headed e2e-ui e2e-verify \
-       bump setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity react-doctor perf-check perf-ratchet \
+       bump bump-web setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity react-doctor perf-check perf-ratchet \
        perf-seed perf-load perf-metrics perf-report profile-api
 
 .DEFAULT_GOAL := help
@@ -104,19 +104,11 @@ e2e-verify: ## Run e2e verification test (email flow)
 
 # --- Deployment ---
 
-bump: ## Tag a new version and push
-	@LATEST=$$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"); \
-	MAJOR=$$(echo $$LATEST | sed 's/^v//' | cut -d. -f1); \
-	MINOR=$$(echo $$LATEST | sed 's/^v//' | cut -d. -f2); \
-	PATCH=$$(echo $$LATEST | sed 's/^v//' | cut -d. -f3); \
-	NEXT_PATCH=$$((PATCH + 1)); \
-	SUGGESTED="v$$MAJOR.$$MINOR.$$NEXT_PATCH"; \
-	echo "Current version: $$LATEST"; \
-	read -p "Next version [$$SUGGESTED]: " VERSION; \
-	VERSION=$${VERSION:-$$SUGGESTED}; \
-	echo "Tagging $$VERSION..."; \
-	git tag "$$VERSION" && git push && git push --tags; \
-	echo "Tagged and pushed $$VERSION"
+bump: ## Tag a new version and push (web + API deploy and an iOS build)
+	@scripts/bump.sh
+
+bump-web: ## Tag a web-only version and push (web + API deploy, no iOS build)
+	@scripts/bump.sh web
 
 # --- Database ---
 

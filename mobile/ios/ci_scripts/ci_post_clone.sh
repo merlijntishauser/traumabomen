@@ -89,7 +89,10 @@ if [ -n "${CI_BUILD_NUMBER:-}" ]; then
     echo "CFBundleVersion -> $CI_BUILD_NUMBER"
 fi
 if [ -n "${CI_TAG:-}" ]; then
-    MARKETING="${CI_TAG#v}"
+    # web-v* tags are web-only (make bump-web) and should never start a
+    # build; strip the prefix anyway so a manually started one stays numeric.
+    MARKETING="${CI_TAG#web-}"
+    MARKETING="${MARKETING#v}"
     /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING" "$PLIST"
     echo "CFBundleShortVersionString -> $MARKETING"
 fi
