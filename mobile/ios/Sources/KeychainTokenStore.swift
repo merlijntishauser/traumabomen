@@ -23,11 +23,30 @@ final class KeychainTokenStore: TokenStore {
         }
     }
 
+    /// Drop the session. The account marker stays: an expired session is
+    /// still the same person's phone, and only logout or deletion forgets it.
     static func clear() {
         delete()
     }
 
-    private static func read() -> String? {
+    /// Whose data this phone holds: the normalised email of the account the
+    /// local cache, offline mirror and Face ID key belong to. A password login
+    /// compares against it, so signing in as someone else wipes the previous
+    /// account's state instead of mixing the two.
+    static var account: String? {
+        get { read(service: accountService) }
+        set {
+            if let value = newValue {
+                write(value, service: accountService)
+            } else {
+                delete(service: accountService)
+            }
+        }
+    }
+
+    private static let accountService = "org.traumabomen.companion.account"
+
+    private static func read(service: String = service) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -40,8 +59,8 @@ final class KeychainTokenStore: TokenStore {
         return String(data: data, encoding: .utf8)
     }
 
-    private static func write(_ value: String) {
-        delete()
+    private static func write(_ value: String, service: String = service) {
+        delete(service: service)
         let add: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -51,7 +70,7 @@ final class KeychainTokenStore: TokenStore {
         SecItemAdd(add as CFDictionary, nil)
     }
 
-    private static func delete() {
+    private static func delete(service: String = service) {
         SecItemDelete([
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

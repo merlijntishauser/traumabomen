@@ -205,11 +205,7 @@ final class AppModel: ObservableObject {
         phase = .working(t("Logging in"))
         do {
             let salt = try await api.login(email: email, password: password)
-            // A password login may be a different account from the one cached
-            // on this phone (the previous session expired, nobody logged out).
-            // Login is online by definition, so drop the cached ring and tree
-            // list; the unlock that follows fetches this account's own.
-            cache.clear()
+            forgetPreviousAccount(unless: email)
             saltBase64 = salt.encryptionSalt
             cache.saltBase64 = salt.encryptionSalt
             cache.passphraseHint = salt.passphraseHint
@@ -315,9 +311,35 @@ final class AppModel: ObservableObject {
         phase = .login
     }
 
+    /// A password login may be someone other than the account whose data
+    /// this phone holds (a session that expired without a logout). Then none
+    /// of that account's state may survive: the cached key ring and tree list,
+    /// the offline mirror with its pending writes (which would otherwise be
+    /// pushed under the new account's session), and the Face ID key, which
+    /// would unlock the old account's key. The same account keeps everything,
+    /// so offline writes it has not synced yet are not lost.
+    private func forgetPreviousAccount(unless email: String) {
+        let account = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard KeychainTokenStore.account != account else { return }
+        KeyCustody.purge()
+        cache.clear()
+        sync.wipe()
+        masterKey = nil
+        treeKey = nil
+        treeKeys = [:]
+        ringBase64 = [:]
+        treeData = nil
+        previewTree = nil
+        trees = []
+        linkTargets = []
+        selectedTreeId = nil
+        KeychainTokenStore.account = account
+    }
+
     /// Clear every trace of the session from this device.
     private func wipeLocalState() async {
         KeychainTokenStore.clear()
+        KeychainTokenStore.account = nil
         KeyCustody.purge()
         cache.clear()
         sync.wipe()
