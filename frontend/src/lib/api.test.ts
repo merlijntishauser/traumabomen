@@ -15,6 +15,7 @@ import {
   createTree,
   createTurningPoint,
   deleteAccount,
+  deleteAdminUser,
   deleteClassification,
   deleteEvent,
   deleteFeedback,
@@ -1489,6 +1490,17 @@ describe("feedback functions", () => {
 
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/admin/feedback/f1");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("deleteAdminUser sends DELETE to /admin/users/{id}", async () => {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(mockNoContentResponse());
+
+    await deleteAdminUser("u1");
+
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/admin/users/u1");
     expect(init.method).toBe("DELETE");
   });
 });

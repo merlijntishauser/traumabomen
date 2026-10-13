@@ -600,6 +600,10 @@ export function deleteFeedback(id: string): Promise<void> {
   return apiFetchWithRetry(`/admin/feedback/${id}`, { method: "DELETE" });
 }
 
+export function deleteAdminUser(id: string): Promise<void> {
+  return apiFetchWithRetry(`/admin/users/${id}`, { method: "DELETE" });
+}
+
 // Waitlist
 
 export function joinWaitlist(email: string): Promise<{ message: string }> {

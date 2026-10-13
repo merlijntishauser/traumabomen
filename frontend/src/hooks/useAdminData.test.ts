@@ -24,6 +24,7 @@ vi.mock("../lib/api", async (importOriginal) => {
     deleteWaitlistEntry: vi.fn().mockResolvedValue(undefined),
     markFeedbackRead: vi.fn().mockResolvedValue(undefined),
     deleteFeedback: vi.fn().mockResolvedValue(undefined),
+    deleteAdminUser: vi.fn().mockResolvedValue(undefined),
     updateAdminFeature: vi.fn().mockResolvedValue(undefined),
   };
 });
@@ -88,6 +89,7 @@ describe("useAdminData", () => {
     expect(result.current.deleteMutation).toBeDefined();
     expect(result.current.markReadMutation).toBeDefined();
     expect(result.current.deleteFeedbackMutation).toBeDefined();
+    expect(result.current.deleteUserMutation).toBeDefined();
     expect(result.current.features).toBeDefined();
     expect(result.current.updateFeatureMutation).toBeDefined();
   });

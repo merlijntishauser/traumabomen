@@ -66,7 +66,9 @@ export default function AdminPage() {
           {data.activity.data && <ActivitySection data={data.activity.data} />}
           <RetentionSection data={data.retention.data} />
           {data.usage.data && <UsageSection data={data.usage.data} />}
-          {data.users.data && <UserListSection data={data.users.data} />}
+          {data.users.data && (
+            <UserListSection data={data.users.data} deleteUserMutation={data.deleteUserMutation} />
+          )}
           <WaitlistSection
             data={data.waitlist.data}
             capacityData={data.waitlistCapacity.data}

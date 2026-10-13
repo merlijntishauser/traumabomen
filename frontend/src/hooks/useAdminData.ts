@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   approveWaitlistEntry,
+  deleteAdminUser,
   deleteFeedback,
   deleteWaitlistEntry,
   getAdminActivity,
@@ -77,6 +78,14 @@ export function useAdminData() {
     },
   });
 
+  // An account's removal changes most numbers on the page, not only the list.
+  const deleteUserMutation = useMutation({
+    mutationFn: deleteAdminUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+  });
+
   const features = useQuery({
     queryKey: ["admin", "features"],
     queryFn: getAdminFeatures,
@@ -137,6 +146,7 @@ export function useAdminData() {
     deleteMutation,
     markReadMutation,
     deleteFeedbackMutation,
+    deleteUserMutation,
     features,
     updateFeatureMutation,
     isLoading,

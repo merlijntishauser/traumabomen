@@ -315,6 +315,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET /admin/waitlist/capacity` —active user count and waitlist status
 - `GET /admin/features` —list all feature flags with audience and selected user IDs
 - `PUT /admin/features/{key}` —update a flag's audience and optional selected users
+- `DELETE /admin/users/{id}` —delete an account and everything in it (refuses admin accounts, the acting admin included)
 
 ## Frontend Architecture
 

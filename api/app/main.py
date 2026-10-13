@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings, get_settings
 from app.routers.admin_feedback import router as admin_feedback_router
 from app.routers.admin_stats import router as admin_stats_router
+from app.routers.admin_users import router as admin_users_router
 from app.routers.auth import router as auth_router
 from app.routers.classifications import router as classifications_router
 from app.routers.events import router as events_router
@@ -110,6 +111,7 @@ app.add_middleware(
 app.include_router(admin_features_router)
 app.include_router(admin_feedback_router)
 app.include_router(admin_stats_router)
+app.include_router(admin_users_router)
 app.include_router(auth_router)
 app.include_router(key_ring_router)
 app.include_router(trees_router)

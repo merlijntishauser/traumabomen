@@ -297,6 +297,36 @@
   color: var(--color-text-secondary);
 }
 
+/* The confirm question wraps inside a narrow cell rather than widening the
+   table past its scroll box; the row's own email says whose account it is. */
+.admin-users-table td.admin-users-table__actions {
+  text-align: right;
+  white-space: normal;
+  width: 6.5rem;
+  min-width: 6.5rem;
+}
+
+.admin-users-table__actions .confirm-delete__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-users-table__actions .confirm-delete__btn {
+  padding: var(--space-0\.5) var(--space-2);
+}
+
+/* A small, quiet destructive control: the two-step confirm carries the weight. */
+.admin-users-table__delete {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.6875rem;
+}
+
+.admin-users__error {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--color-danger);
+}
+
 .admin-users-table td.admin-users-table__email {
   color: var(--color-text-primary);
   font-weight: 500;

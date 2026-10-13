@@ -1,9 +1,11 @@
 """Tests for admin stats endpoints and require_admin guard."""
 
 import pytest
+from sqlalchemy import select
 
 from app.models.login_event import LoginEvent
-from tests.integration.conftest import create_user
+from app.models.tree import Tree
+from tests.integration.conftest import auth_headers, create_user
 
 # ---------------------------------------------------------------------------
 # Auth guard
@@ -280,3 +282,59 @@ class TestRetentionPercentages:
 
         result = _retention_percentages([], {}, 3)
         assert result == [0.0, 0.0, 0.0]
+
+
+# ---------------------------------------------------------------------------
+# Account deletion by an admin
+# ---------------------------------------------------------------------------
+
+
+class TestAdminDeleteUser:
+    @pytest.mark.asyncio
+    async def test_deletes_account_and_its_trees(self, client, admin_headers, db_session):
+        target = await create_user(db_session, email="remove-me@example.com")
+        target_headers = auth_headers(target.id)
+        tree = await client.post(
+            "/trees", json={"encrypted_data": "ciphertext"}, headers=target_headers
+        )
+        assert tree.status_code == 201
+
+        resp = await client.delete(f"/admin/users/{target.id}", headers=admin_headers)
+        assert resp.status_code == 204
+
+        login = await client.post(
+            "/auth/login",
+            json={"email": "remove-me@example.com", "password": "TestPassword1"},
+        )
+        assert login.status_code == 401
+        # Trees go with their owner through the foreign key's ON DELETE CASCADE.
+        # Postgres (production, CI) enforces it; the default in-memory SQLite
+        # does not, so the check only means something on Postgres.
+        if db_session.bind.dialect.name == "postgresql":
+            remaining = await db_session.execute(select(Tree).where(Tree.user_id == target.id))
+            assert remaining.scalars().all() == []
+
+    @pytest.mark.asyncio
+    async def test_non_admin_forbidden(self, client, headers, db_session):
+        target = await create_user(db_session, email="not-yours@example.com")
+        resp = await client.delete(f"/admin/users/{target.id}", headers=headers)
+        assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_cannot_delete_self(self, client, admin_user, admin_headers):
+        resp = await client.delete(f"/admin/users/{admin_user.id}", headers=admin_headers)
+        assert resp.status_code == 409
+        assert resp.json()["detail"] == "cannot_delete_admin"
+
+    @pytest.mark.asyncio
+    async def test_cannot_delete_another_admin(self, client, admin_headers, db_session):
+        other = await create_user(db_session, email="admin2@example.com", is_admin=True)
+        resp = await client.delete(f"/admin/users/{other.id}", headers=admin_headers)
+        assert resp.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_unknown_user(self, client, admin_headers):
+        resp = await client.delete(
+            "/admin/users/00000000-0000-0000-0000-000000000000", headers=admin_headers
+        )
+        assert resp.status_code == 404

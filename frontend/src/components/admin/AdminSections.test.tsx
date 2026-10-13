@@ -263,7 +263,7 @@ describe("UserListSection", () => {
         },
       ],
     };
-    render(<UserListSection data={data} />);
+    render(<UserListSection data={data} deleteUserMutation={makeMutation() as never} />);
     expect(screen.getByText("admin.userList")).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     expect(screen.getByText("admin.adminBadge")).toBeInTheDocument();
@@ -287,9 +287,53 @@ describe("UserListSection", () => {
         },
       ],
     };
-    render(<UserListSection data={data} />);
+    render(<UserListSection data={data} deleteUserMutation={makeMutation() as never} />);
     expect(screen.getByText("common.notAvailable")).toBeInTheDocument();
     expect(screen.getByText("admin.no")).toBeInTheDocument();
+  });
+
+  const member = (overrides: Partial<UserListStats["users"][number]> = {}) => ({
+    id: "u3",
+    email: "carol@example.com",
+    created_at: "2026-01-15T10:00:00Z",
+    email_verified: true,
+    is_admin: false,
+    last_active: null,
+    tree_count: 1,
+    person_count: 3,
+    relationship_count: 2,
+    event_count: 1,
+    ...overrides,
+  });
+
+  it("deletes an account only after the confirm step", () => {
+    const mutation = makeMutation();
+    render(<UserListSection data={{ users: [member()] }} deleteUserMutation={mutation as never} />);
+    fireEvent.click(screen.getByRole("button", { name: "admin.deleteUser" }));
+    expect(mutation.mutate).not.toHaveBeenCalled();
+    expect(screen.getByText("admin.deleteUserConfirm")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "admin.deleteUser" }));
+    expect(mutation.mutate).toHaveBeenCalledWith("u3");
+  });
+
+  it("offers no delete on an admin account", () => {
+    render(
+      <UserListSection
+        data={{ users: [member({ is_admin: true })] }}
+        deleteUserMutation={makeMutation() as never}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "admin.deleteUser" })).not.toBeInTheDocument();
+  });
+
+  it("says when a deletion failed", () => {
+    render(
+      <UserListSection
+        data={{ users: [member()] }}
+        deleteUserMutation={{ ...makeMutation(), isError: true } as never}
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("admin.deleteUserFailed");
   });
 });
 
