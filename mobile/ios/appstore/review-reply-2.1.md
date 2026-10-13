@@ -14,8 +14,11 @@ in it.
 Before you start:
 
 - Update the iPhone to the latest iOS.
-- Install build 0.2.34 from TestFlight. If the app is already installed,
-  delete it first, so the recording starts at the welcome screen.
+- Install build 0.2.37 or later from TestFlight, not 0.2.34: before 0.2.37 a
+  new account could not be unlocked on a phone where another account had
+  been used (fixed in `60dd061`). Set the version page to the same number and
+  select that build. If the app is already installed, delete it first, so
+  the recording starts at the welcome screen.
 - Pick a fresh email address you can open on the same phone (a plus address,
   such as `you+review@...`, works), for the account you will create and delete.
 - Settings -> Control Center: make sure Screen Recording is there. Turn on Do
