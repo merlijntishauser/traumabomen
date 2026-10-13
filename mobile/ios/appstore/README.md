@@ -14,6 +14,7 @@ plus the parts only you can supply.
 | `age-rating.md`         | The age rating questionnaire                                      |
 | `export-compliance.md`  | The encryption declaration already baked into the build           |
 | `content-rights.md`     | The Content Rights answer, and where every image and font is from |
+| `review-reply-2.1.md`   | Reply to Apple's 2.1 information request: recording script, text |
 | `screenshots/6.9-inch/` | Six 1320x2868 screenshots, captured from the running app          |
 | `screenshots/6.3-inch/` | The same six at 1206x2622, for the medium iPhone slot             |
 
