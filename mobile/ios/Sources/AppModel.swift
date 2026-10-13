@@ -205,6 +205,11 @@ final class AppModel: ObservableObject {
         phase = .working(t("Logging in"))
         do {
             let salt = try await api.login(email: email, password: password)
+            // A password login may be a different account from the one cached
+            // on this phone (the previous session expired, nobody logged out).
+            // Login is online by definition, so drop the cached ring and tree
+            // list; the unlock that follows fetches this account's own.
+            cache.clear()
             saltBase64 = salt.encryptionSalt
             cache.saltBase64 = salt.encryptionSalt
             cache.passphraseHint = salt.passphraseHint
@@ -363,16 +368,24 @@ final class AppModel: ObservableObject {
             cache.encryptedKeyRing = fetched
             ringBlob = fetched
         } catch {
-            if let cached = cache.encryptedKeyRing {
-                ringBlob = cached
-            } else if Self.apiStatus(of: error) == 404 {
+            if Self.apiStatus(of: error) == 404 {
                 // Only a 404 means the account genuinely has no ring yet, which
                 // is a fresh sign-up. Anything else (offline, 500) must not get
                 // here: PUT /auth/key-ring overwrites unconditionally, so
                 // treating a dropped connection as "no ring" would replace a
                 // real key ring with an empty one and orphan every tree key.
+                //
+                // The 404 is checked before the cache on purpose. The server
+                // has just said this account has no ring, so a cached one
+                // belongs to someone else: an account used earlier on this
+                // phone. Decrypting that with this passphrase fails and read as
+                // "Incorrect passphrase" on every new account's first unlock.
+                cache.encryptedKeyRing = nil
                 try await createEmptyKeyRing(with: master)
                 return
+            } else if let cached = cache.encryptedKeyRing {
+                // Offline: the cached ring opens the app.
+                ringBlob = cached
             } else {
                 throw UnlockError.noKeyRing
             }
