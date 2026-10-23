@@ -9,7 +9,7 @@ import { ShieldGlimpse } from "../components/LandingArt";
 import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
 import { useTheme } from "../hooks/useTheme";
 import { getAccessToken, getFaq } from "../lib/api";
-import { GITHUB_URL } from "../lib/links";
+import { APP_STORE_URL, GITHUB_URL } from "../lib/links";
 import "../styles/landing.css";
 
 // The built-in FAQ, in two groups of three. An admin-managed live FAQ
@@ -24,6 +24,52 @@ const HOW_STEPS = [
   { n: 2, title: "landing.step2Title", body: "landing.step2Body" },
   { n: 3, title: "landing.step3Title", body: "landing.step3Body" },
 ] as const;
+
+interface FaqGroup {
+  key: string;
+  title: string | null;
+  items: { key: string; question: string; answer: string }[];
+}
+
+function LandingFaq({ groups }: { groups: FaqGroup[] }) {
+  const { t } = useTranslation();
+  return (
+    <section className="landing__section">
+      <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
+      <div className="landing__faq">
+        {groups.map((group) => (
+          <div key={group.key} className="landing__faq-group">
+            {group.title && <h3 className="landing__faq-group-title">{t(group.title)}</h3>}
+            <dl className="landing__faq-list">
+              {group.items.map((item) => (
+                <div key={item.key} className="landing__faq-item">
+                  <dt className="landing__faq-q">{item.question}</dt>
+                  <dd className="landing__faq-a">{item.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+      <Link to="/learn" className="landing__link landing__faq-more">
+        {t("landing.learnMore")}
+      </Link>
+    </section>
+  );
+}
+
+function IphoneSection() {
+  const { t } = useTranslation();
+  return (
+    <section className="landing__section">
+      <h2 className="landing__section-title">{t("landing.iosTitle")}</h2>
+      <p className="landing__prose">{t("landing.iosBody")}</p>
+      <a href={APP_STORE_URL} className="landing__link" target="_blank" rel="noopener noreferrer">
+        {t("landing.iosLink")}
+      </a>
+    </section>
+  );
+}
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation();
@@ -77,7 +123,7 @@ export default function LandingPage() {
           "@type": "SoftwareApplication",
           name: t("app.title"),
           applicationCategory: "LifestyleApplication",
-          operatingSystem: "Web",
+          operatingSystem: "Web, iOS",
           description: t("landing.about"),
         },
         {
@@ -281,6 +327,8 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <IphoneSection />
+
         <section className="landing__section landing__founder">
           <h2 className="landing__section-title">{t("landing.founderTitle")}</h2>
           <p className="landing__prose">{t("landing.founderBody1")}</p>
@@ -289,27 +337,7 @@ export default function LandingPage() {
           <p className="landing__founder-signature">{t("landing.founderSignature")}</p>
         </section>
 
-        <section className="landing__section">
-          <h2 className="landing__section-title">{t("landing.faqTitle")}</h2>
-          <div className="landing__faq">
-            {faqGroups.map((group) => (
-              <div key={group.key} className="landing__faq-group">
-                {group.title && <h3 className="landing__faq-group-title">{t(group.title)}</h3>}
-                <dl className="landing__faq-list">
-                  {group.items.map((item) => (
-                    <div key={item.key} className="landing__faq-item">
-                      <dt className="landing__faq-q">{item.question}</dt>
-                      <dd className="landing__faq-a">{item.answer}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ))}
-          </div>
-          <Link to="/learn" className="landing__link landing__faq-more">
-            {t("landing.learnMore")}
-          </Link>
-        </section>
+        <LandingFaq groups={faqGroups} />
 
         <section className="landing__section landing__final">
           <h2 className="landing__section-title">{t("landing.finalCtaTitle")}</h2>

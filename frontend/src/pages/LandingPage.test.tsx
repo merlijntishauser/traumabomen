@@ -146,6 +146,15 @@ describe("LandingPage", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
+  it("links the iPhone app on the App Store", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    expect(screen.getByRole("heading", { name: "landing.iosTitle" })).toBeInTheDocument();
+    const link = screen.getByText("landing.iosLink").closest("a");
+    expect(link).toHaveAttribute("href", expect.stringContaining("apps.apple.com"));
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("groups the built-in FAQ into the tool and your data", () => {
     mockGetAccessToken.mockReturnValue(null);
     renderLanding();
