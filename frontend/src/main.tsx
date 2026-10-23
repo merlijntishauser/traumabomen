@@ -35,7 +35,16 @@ if (sentryDsn) {
     release: import.meta.env.VITE_SENTRY_RELEASE,
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
-    sendDefaultPii: false,
+    // Sentry 11 collects all of these by default; nothing about the user or
+    // their requests may leave the browser (login bodies carry the password).
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      stackFrameVariables: false,
+    },
     ignoreErrors: [
       /message <get-frame-manager-configuration>/,
       /runtime\.sendMessage\(\)\. Tab not found/,
