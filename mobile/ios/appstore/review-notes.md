@@ -31,7 +31,11 @@ conclude the app is broken. Both values have to be in the notes.
    only reaches the reviewer through this block. Search the pasted text for
    `<`: any placeholder left means it is not ready. Missing this got a
    submission rejected on 2026-10-22.
-5. Keep the account alive until the release is approved.
+5. Keep the account alive for as long as you submit updates, not just until
+   the first release is approved: App Review signs in with it on every
+   version. Do not rotate its password or passphrase without updating App
+   Store Connect, and do not remove it with the admin dashboard's account
+   deletion.
 
 ## Sign-in information
 
