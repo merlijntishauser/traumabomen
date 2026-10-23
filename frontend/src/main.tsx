@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router";
 import "./styles/theme.css";
 import "./i18n";
 import App from "./App";
+import { SENTRY_DATA_COLLECTION } from "./lib/sentryDataCollection";
 
 const BOT_UA_PATTERN = /bot|crawler|spider|crawling|iubenda|semrush|ahref|mj12bot|dotbot/i;
 
@@ -35,7 +36,7 @@ if (sentryDsn) {
     release: import.meta.env.VITE_SENTRY_RELEASE,
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1,
-    sendDefaultPii: false,
+    dataCollection: SENTRY_DATA_COLLECTION,
     ignoreErrors: [
       /message <get-frame-manager-configuration>/,
       /runtime\.sendMessage\(\)\. Tab not found/,
