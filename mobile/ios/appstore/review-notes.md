@@ -25,7 +25,13 @@ conclude the app is broken. Both values have to be in the notes.
    the Timeline tab nearly blank. The local seed script
    (`../scripts/seed-demo-account.py`) is a usable template for what to add.
 3. Put that email, password, and encryption passphrase in the block below.
-4. Keep the account alive until the release is approved.
+4. Before pasting the Notes block, replace the
+   `<demo account encryption passphrase>` placeholder inside it. The email
+   and password have their own fields in App Store Connect; the passphrase
+   only reaches the reviewer through this block. Search the pasted text for
+   `<`: any placeholder left means it is not ready. Missing this got a
+   submission rejected on 2026-10-22.
+5. Keep the account alive until the release is approved.
 
 ## Sign-in information
 
