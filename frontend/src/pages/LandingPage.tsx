@@ -58,6 +58,21 @@ function LandingFaq({ groups }: { groups: FaqGroup[] }) {
   );
 }
 
+// Apple's official badge, unaltered and at its minimum on-screen height (40px).
+function AppStoreBadge() {
+  const { t } = useTranslation();
+  return (
+    <a
+      href={APP_STORE_URL}
+      className="landing__store-badge"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img src="/images/app-store-badge.svg" alt={t("landing.appStoreBadgeAlt")} height={40} />
+    </a>
+  );
+}
+
 function IphoneSection() {
   const { t } = useTranslation();
   return (
@@ -244,6 +259,7 @@ export default function LandingPage() {
                 {t("landing.ctaHow")}
               </a>
             </div>
+            <AppStoreBadge />
           </header>
           <div className="landing__hero-art">
             <Glimpse name="tree" alt={t("landing.shotTreeAlt")} />

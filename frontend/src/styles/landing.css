@@ -225,6 +225,25 @@
 }
 
 /* Quiet tertiary action: a plain link beside the CTAs, no button chrome. */
+/* Apple's badge is used unaltered: no recolouring, no hover effects on the artwork. */
+.landing__store-badge {
+  display: inline-block;
+  margin-top: var(--space-4);
+  line-height: 0;
+  border-radius: 8px;
+}
+
+.landing__store-badge:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 3px;
+}
+
+.landing__store-badge img {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
 .landing__cta-quiet {
   display: inline-flex;
   align-items: center;

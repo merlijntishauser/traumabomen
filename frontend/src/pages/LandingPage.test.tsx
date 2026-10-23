@@ -155,6 +155,14 @@ describe("LandingPage", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
+  it("shows the App Store badge in the hero", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    renderLanding();
+    const badge = screen.getByRole("img", { name: "landing.appStoreBadgeAlt" });
+    expect(badge).toHaveAttribute("src", "/images/app-store-badge.svg");
+    expect(badge.closest("a")).toHaveAttribute("href", expect.stringContaining("apps.apple.com"));
+  });
+
   it("groups the built-in FAQ into the tool and your data", () => {
     mockGetAccessToken.mockReturnValue(null);
     renderLanding();
