@@ -41,3 +41,16 @@ class TestInitSentry:
             _init_sentry(settings)
         mock_init.assert_called_once()
         assert mock_init.call_args.kwargs["dsn"] == settings.SENTRY_DSN
+
+    def test_collects_no_user_or_request_data(self):
+        settings = SimpleNamespace(
+            SENTRY_DSN="https://key@o0.ingest.sentry.io/1",
+            SENTRY_ENVIRONMENT="test",
+            SENTRY_RELEASE="rel-1",
+        )
+        with patch("app.main.sentry_sdk.init") as mock_init:
+            _init_sentry(settings)
+        kwargs = mock_init.call_args.kwargs
+        assert kwargs["send_default_pii"] is False
+        assert kwargs["max_request_body_size"] == "never"
+        assert kwargs["include_local_variables"] is False

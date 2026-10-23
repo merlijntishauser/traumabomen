@@ -69,7 +69,12 @@ def _init_sentry(settings: Settings) -> None:
         environment=settings.SENTRY_ENVIRONMENT,
         release=settings.SENTRY_RELEASE,
         traces_sample_rate=0.1,
+        # Collect nothing about the user or the request: the SDK still records
+        # request bodies and local variables without PII on, and in the auth
+        # handlers both hold the password.
         send_default_pii=False,
+        max_request_body_size="never",
+        include_local_variables=False,
         before_send=_strip_encrypted_data,
     )
 
