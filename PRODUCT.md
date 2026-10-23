@@ -19,7 +19,7 @@ Two primary audiences, both first-class:
 
 A personal reflection tool for mapping intergenerational trauma onto a visual family tree, with everything encrypted on the user's device. It exists because genealogy tools assume one shape of family and clinical genogram tools are built for practitioners and store readable data on someone else's server. Success means a person can build a tree that matches their real family, record what happened in those lives, see the patterns across generations, and trust that no one else can read it.
 
-Current phase (as of 2026-10): feature-rich beta with open sign-up (the 100-user waitlist was switched off on 2026-10-13; the waitlist code remains and can be re-enabled with `ENABLE_WAITLIST`), and the iOS companion in its first App Store review. The open question is no longer which feature is missing but what is required to let real people in and keep their data safe: mobile use, passphrase-loss mitigation, in-app onboarding, then read-only sharing.
+Current phase (as of 2026-10): feature-rich beta with open sign-up (the 100-user waitlist was switched off on 2026-10-13; the waitlist code remains and can be re-enabled with `ENABLE_WAITLIST`), and the iOS companion live on the App Store since 2026-10-23 (first release approved after one rejection for a missing demo passphrase). The open question is no longer which feature is missing but what is required to let real people in and keep their data safe: mobile use, passphrase-loss mitigation, in-app onboarding, then read-only sharing.
 
 ## Positioning
 
