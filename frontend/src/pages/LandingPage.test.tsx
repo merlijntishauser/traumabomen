@@ -103,10 +103,19 @@ describe("LandingPage", () => {
     expect(document.querySelector('script[type="application/ld+json"]')).toBeNull();
   });
 
-  it("says plainly that it is a small beta", () => {
+  it("says plainly that it is a beta open to anyone while there is room", () => {
     mockGetAccessToken.mockReturnValue(null);
     renderLanding();
+    expect(screen.getByText("landing.betaNoteOpen")).toBeInTheDocument();
+    expect(screen.queryByText("landing.betaNote")).not.toBeInTheDocument();
+  });
+
+  it("mentions the limited places and the waitlist when the beta is full", () => {
+    mockGetAccessToken.mockReturnValue(null);
+    mockRegistrationOpen = false;
+    renderLanding();
     expect(screen.getByText("landing.betaNote")).toBeInTheDocument();
+    expect(screen.queryByText("landing.betaNoteOpen")).not.toBeInTheDocument();
   });
 
   it("points both calls to action at the waitlist when the beta is full", () => {

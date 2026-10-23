@@ -262,7 +262,9 @@ export default function LandingPage() {
             <h1 className="landing__hero-title">{t("app.title")}</h1>
             <p className="landing__hero-message">{t("landing.heroTagline")}</p>
             <p className="landing__hero-lede">{t("landing.heroIntro")}</p>
-            <p className="landing__hero-beta">{t("landing.betaNote")}</p>
+            <p className="landing__hero-beta">
+              {registrationClosed ? t("landing.betaNote") : t("landing.betaNoteOpen")}
+            </p>
             <div className="landing__cta-row">
               <Link to={primaryCta.to} className="landing__cta landing__cta--primary">
                 {primaryCta.label}
