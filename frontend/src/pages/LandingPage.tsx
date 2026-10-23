@@ -76,12 +76,27 @@ function AppStoreBadge() {
 function IphoneSection() {
   const { t } = useTranslation();
   return (
-    <section className="landing__section">
-      <h2 className="landing__section-title">{t("landing.iosTitle")}</h2>
-      <p className="landing__prose">{t("landing.iosBody")}</p>
-      <a href={APP_STORE_URL} className="landing__link" target="_blank" rel="noopener noreferrer">
-        {t("landing.iosLink")}
-      </a>
+    <section className="landing__section landing__row">
+      <div>
+        <h2 className="landing__section-title">{t("landing.iosTitle")}</h2>
+        <p className="landing__prose">{t("landing.iosBody")}</p>
+        <AppStoreBadge />
+      </div>
+      <figure className="landing__art landing__phone">
+        <picture>
+          <source srcSet="/images/iphone-timeline.webp" type="image/webp" />
+          <img
+            className="landing__phone-screen"
+            src="/images/iphone-timeline.jpg"
+            alt={t("landing.iosShotAlt")}
+            width={560}
+            height={1217}
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+        <figcaption className="landing__shot-caption">{t("landing.iosShotCaption")}</figcaption>
+      </figure>
     </section>
   );
 }

@@ -146,21 +146,26 @@ describe("LandingPage", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("links the iPhone app on the App Store", () => {
+  it("shows the App Store badge in the hero and in the iPhone section", () => {
     mockGetAccessToken.mockReturnValue(null);
     renderLanding();
-    expect(screen.getByRole("heading", { name: "landing.iosTitle" })).toBeInTheDocument();
-    const link = screen.getByText("landing.iosLink").closest("a");
-    expect(link).toHaveAttribute("href", expect.stringContaining("apps.apple.com"));
-    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    const badges = screen.getAllByRole("img", { name: "landing.appStoreBadgeAlt" });
+    expect(badges).toHaveLength(2);
+    for (const badge of badges) {
+      expect(badge).toHaveAttribute("src", "/images/app-store-badge.svg");
+      const link = badge.closest("a");
+      expect(link).toHaveAttribute("href", expect.stringContaining("apps.apple.com"));
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    }
   });
 
-  it("shows the App Store badge in the hero", () => {
+  it("shows the iPhone app's own screen beside its section", () => {
     mockGetAccessToken.mockReturnValue(null);
     renderLanding();
-    const badge = screen.getByRole("img", { name: "landing.appStoreBadgeAlt" });
-    expect(badge).toHaveAttribute("src", "/images/app-store-badge.svg");
-    expect(badge.closest("a")).toHaveAttribute("href", expect.stringContaining("apps.apple.com"));
+    const section = screen.getByRole("heading", { name: "landing.iosTitle" }).closest("section");
+    const shot = screen.getByRole("img", { name: "landing.iosShotAlt" });
+    expect(section).toContainElement(shot);
+    expect(shot).toHaveAttribute("src", "/images/iphone-timeline.jpg");
   });
 
   it("groups the built-in FAQ into the tool and your data", () => {

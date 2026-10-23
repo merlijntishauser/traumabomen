@@ -376,6 +376,22 @@ figure.landing__art {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   text-align: center;
+  text-wrap: balance;
+}
+
+/* The iPhone row: the app's own screen, rounded like the device, no drawn bezel. */
+.landing__phone picture {
+  display: flex;
+  justify-content: center;
+}
+
+.landing__phone-screen {
+  display: block;
+  width: min(260px, 100%);
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 36px;
+  box-shadow: var(--shadow-lg);
 }
 
 /* Flipped row: art on the left, text on the right. */
@@ -612,6 +628,11 @@ figure.landing__art {
   .landing__row--flip {
     grid-template-columns: 1fr;
     gap: var(--space-6);
+  }
+
+  .landing__phone-screen {
+    width: min(220px, 100%);
+    border-radius: 30px;
   }
 
   /* Text first, art after, in both row directions. */
