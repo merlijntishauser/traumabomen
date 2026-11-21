@@ -199,6 +199,10 @@ describe("OnboardingGuard", () => {
   });
 });
 
+function ThrowingComponent(): React.ReactNode {
+  throw new Error("Render crash");
+}
+
 describe("LazyBoundary", () => {
   it("renders children normally when no error occurs", () => {
     render(
@@ -213,10 +217,6 @@ describe("LazyBoundary", () => {
   it("renders ErrorFallback when child throws", () => {
     // Suppress React error boundary console errors in test output
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    function ThrowingComponent(): React.ReactNode {
-      throw new Error("Render crash");
-    }
 
     render(
       <LazyBoundary>

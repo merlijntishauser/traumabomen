@@ -293,7 +293,7 @@ describe("PatternPanel", () => {
     // Click the entity to link it; linking commits immediately
     fireEvent.click(within(linkSection as HTMLElement).getByText("Loss"));
 
-    expect(screen.queryByTestId("pattern-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("pattern-panel")).toBeInTheDocument();
   });
 
   it("resolves life event entity info", () => {
