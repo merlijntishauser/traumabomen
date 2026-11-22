@@ -18,7 +18,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/site-packages
-COPY --from=build /app/.venv/lib/python3.14/site-packages /app/site-packages
+COPY --from=build /app/.venv/lib/python3.15/site-packages /app/site-packages
 COPY --from=build /app .
 
 EXPOSE 8000
