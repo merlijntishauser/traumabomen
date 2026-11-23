@@ -8,6 +8,8 @@ import type {
   ClassificationCreate,
   ClassificationResponse,
   ClassificationUpdate,
+  CompleteShareRequest,
+  CreateShareRequest,
   DeleteAccountRequest,
   EventCreate,
   EventResponse,
@@ -23,6 +25,7 @@ import type {
   JournalEntryCreate,
   JournalEntryResponse,
   JournalEntryUpdate,
+  KeyPairResponse,
   KeyRingResponse,
   LifeEventCreate,
   LifeEventResponse,
@@ -33,9 +36,12 @@ import type {
   PatternCreate,
   PatternResponse,
   PatternUpdate,
+  PendingShareResponse,
   PersonCreate,
   PersonResponse,
   PersonUpdate,
+  ProfileResponse,
+  PublicKeyResponse,
   RefreshResponse,
   RegisterRequest,
   RegisterResponse,
@@ -46,6 +52,8 @@ import type {
   ResetPasswordRequest,
   RetentionStats,
   SaltResponse,
+  SharedKeyResponse,
+  ShareResponse,
   SiblingGroupCreate,
   SiblingGroupResponse,
   SiblingGroupUpdate,
@@ -357,11 +365,68 @@ export function getKeyRing(): Promise<KeyRingResponse> {
   return apiFetchWithRetry("/auth/key-ring");
 }
 
-export function updateKeyRing(encrypted_key_ring: string): Promise<void> {
+export function updateKeyRing(
+  encrypted_key_ring: string,
+  encrypted_private_key?: string,
+): Promise<void> {
   return apiFetchWithRetry("/auth/key-ring", {
     method: "PUT",
-    body: { encrypted_key_ring },
+    body:
+      encrypted_private_key === undefined
+        ? { encrypted_key_ring }
+        : { encrypted_key_ring, encrypted_private_key },
   });
+}
+
+// Sharing
+
+export function getKeyPair(): Promise<KeyPairResponse> {
+  return apiFetchWithRetry("/auth/keys");
+}
+
+export function putKeyPair(data: KeyPairResponse): Promise<void> {
+  return apiFetchWithRetry("/auth/keys", { method: "PUT", body: data });
+}
+
+export function getPublicKey(email: string): Promise<PublicKeyResponse> {
+  return apiFetchWithRetry(`/auth/public-key/${encodeURIComponent(email)}`);
+}
+
+export function getProfile(): Promise<ProfileResponse> {
+  return apiFetchWithRetry("/auth/profile");
+}
+
+export function updateProfile(display_name: string | null): Promise<ProfileResponse> {
+  return apiFetchWithRetry("/auth/profile", { method: "PUT", body: { display_name } });
+}
+
+export function getShares(treeId: string): Promise<ShareResponse[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/shares`);
+}
+
+export function createShare(treeId: string, body: CreateShareRequest): Promise<ShareResponse> {
+  return apiFetchWithRetry(`/trees/${treeId}/shares`, { method: "POST", body });
+}
+
+export function completeShare(
+  treeId: string,
+  shareId: string,
+  encrypted_tree_key: string,
+): Promise<ShareResponse> {
+  const body: CompleteShareRequest = { encrypted_tree_key };
+  return apiFetchWithRetry(`/trees/${treeId}/shares/${shareId}`, { method: "PUT", body });
+}
+
+export function deleteShare(treeId: string, shareId: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/shares/${shareId}`, { method: "DELETE" });
+}
+
+export function getSharedKeys(): Promise<SharedKeyResponse[]> {
+  return apiFetchWithRetry("/auth/shared-keys");
+}
+
+export function getPendingShares(): Promise<PendingShareResponse[]> {
+  return apiFetchWithRetry("/auth/pending-shares");
 }
 
 /**

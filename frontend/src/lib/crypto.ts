@@ -161,6 +161,67 @@ export async function importTreeKey(base64Key: string): Promise<CryptoKey> {
   ]);
 }
 
+const SHARE_KEY_ALGORITHM = {
+  name: "RSA-OAEP",
+  modulusLength: 4096,
+  publicExponent: new Uint8Array([1, 0, 1]),
+  hash: "SHA-256",
+} as const;
+
+const SHARE_IMPORT_ALGORITHM = { name: "RSA-OAEP", hash: "SHA-256" } as const;
+
+/** Generate an RSA-OAEP pair for tree sharing, returned as JWK JSON strings. */
+export async function generateShareKeyPair(): Promise<{ publicJwk: string; privateJwk: string }> {
+  const pair = await crypto.subtle.generateKey(SHARE_KEY_ALGORITHM, true, ["encrypt", "decrypt"]);
+  const [publicJwk, privateJwk] = await Promise.all([
+    crypto.subtle.exportKey("jwk", pair.publicKey),
+    crypto.subtle.exportKey("jwk", pair.privateKey),
+  ]);
+  return { publicJwk: JSON.stringify(publicJwk), privateJwk: JSON.stringify(privateJwk) };
+}
+
+export async function importSharePublicKey(publicJwk: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("jwk", JSON.parse(publicJwk), SHARE_IMPORT_ALGORITHM, false, [
+    "encrypt",
+  ]);
+}
+
+export async function importSharePrivateKey(privateJwk: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("jwk", JSON.parse(privateJwk), SHARE_IMPORT_ALGORITHM, false, [
+    "decrypt",
+  ]);
+}
+
+/** RSA-OAEP encrypt the raw 32 tree key bytes for a recipient; returns base64. */
+export async function wrapTreeKey(
+  treeKeyBase64: string,
+  recipientPublicKey: CryptoKey,
+): Promise<string> {
+  const raw = fromBase64(treeKeyBase64);
+  const wrapped = await crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    recipientPublicKey,
+    raw.buffer as ArrayBuffer,
+  );
+  return toBase64(new Uint8Array(wrapped));
+}
+
+/** Reverse of wrapTreeKey; any RSA failure is reported as a DecryptError. */
+export async function unwrapTreeKey(wrapped: string, privateKey: CryptoKey): Promise<CryptoKey> {
+  let raw: ArrayBuffer;
+  try {
+    const bytes = fromBase64(wrapped);
+    raw = await crypto.subtle.decrypt(
+      { name: "RSA-OAEP" },
+      privateKey,
+      bytes.buffer as ArrayBuffer,
+    );
+  } catch {
+    throw new DecryptError();
+  }
+  return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+
 export async function encryptKeyRing(
   keyRing: Record<string, string>,
   masterKey: CryptoKey,

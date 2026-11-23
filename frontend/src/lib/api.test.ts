@@ -6,12 +6,14 @@ import {
   changePassword,
   clearTokens,
   clearWasAuthenticated,
+  completeShare,
   createClassification,
   createEvent,
   createLifeEvent,
   createPattern,
   createPerson,
   createRelationship,
+  createShare,
   createTree,
   createTurningPoint,
   deleteAccount,
@@ -23,6 +25,7 @@ import {
   deletePattern,
   deletePerson,
   deleteRelationship,
+  deleteShare,
   deleteTree,
   deleteTurningPoint,
   deleteWaitlistEntry,
@@ -45,16 +48,22 @@ import {
   getEvents,
   getFeatureFlags,
   getIsAdmin,
+  getKeyPair,
   getLifeEvent,
   getLifeEvents,
   getOnboardingFlag,
   getPattern,
   getPatterns,
+  getPendingShares,
   getPerson,
   getPersons,
+  getProfile,
+  getPublicKey,
   getRefreshToken,
   getRelationship,
   getRelationships,
+  getSharedKeys,
+  getShares,
   getTree,
   getTrees,
   getTurningPoints,
@@ -63,6 +72,7 @@ import {
   login,
   logout,
   markFeedbackRead,
+  putKeyPair,
   rateLimitDelay,
   register,
   resendVerification,
@@ -73,10 +83,12 @@ import {
   updateAdminFeature,
   updateClassification,
   updateEvent,
+  updateKeyRing,
   updateLifeEvent,
   updatePassphraseHint,
   updatePattern,
   updatePerson,
+  updateProfile,
   updateRelationship,
   updateSalt,
   updateTree,
@@ -1690,5 +1702,88 @@ describe("turning point functions", () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe("/api/trees/tree-1/turning-points/tp1");
     expect(init.method).toBe("DELETE");
+  });
+});
+
+describe("sharing endpoints", () => {
+  async function call(fn: () => Promise<unknown>, res: unknown = {}) {
+    setTokens("tok", "ref");
+    mockFetch.mockResolvedValueOnce(res === null ? mockNoContentResponse() : mockResponse(res));
+    await fn();
+    const [url, init] = mockFetch.mock.calls[0];
+    return { url, init, body: init.body ? JSON.parse(init.body) : undefined };
+  }
+
+  it("getKeyPair GETs /auth/keys", async () => {
+    const r = await call(() => getKeyPair());
+    expect(r.url).toBe("/api/auth/keys");
+    expect(r.init.method).toBe("GET");
+  });
+
+  it("putKeyPair PUTs the pair", async () => {
+    const data = { public_key: "pub", encrypted_private_key: "enc" };
+    const r = await call(() => putKeyPair(data), null);
+    expect(r.url).toBe("/api/auth/keys");
+    expect(r.init.method).toBe("PUT");
+    expect(r.body).toEqual(data);
+  });
+
+  it("getPublicKey URL-encodes the email", async () => {
+    const r = await call(() => getPublicKey("a+b@example.com"));
+    expect(r.url).toBe("/api/auth/public-key/a%2Bb%40example.com");
+    expect(r.init.method).toBe("GET");
+  });
+
+  it("getProfile and updateProfile use /auth/profile", async () => {
+    const g = await call(() => getProfile());
+    expect(g.url).toBe("/api/auth/profile");
+    mockFetch.mockReset();
+    const p = await call(() => updateProfile("Sam"));
+    expect(p.url).toBe("/api/auth/profile");
+    expect(p.init.method).toBe("PUT");
+    expect(p.body).toEqual({ display_name: "Sam" });
+  });
+
+  it("getShares GETs /trees/{id}/shares", async () => {
+    const r = await call(() => getShares("t1"), []);
+    expect(r.url).toBe("/api/trees/t1/shares");
+    expect(r.init.method).toBe("GET");
+  });
+
+  it("createShare POSTs the body including language", async () => {
+    const body = { recipient_email: "x@y.com", encrypted_tree_key: "k", language: "nl" };
+    const r = await call(() => createShare("t1", body));
+    expect(r.url).toBe("/api/trees/t1/shares");
+    expect(r.init.method).toBe("POST");
+    expect(r.body).toEqual(body);
+  });
+
+  it("completeShare PUTs the wrapped key", async () => {
+    const r = await call(() => completeShare("t1", "s1", "wrapped"));
+    expect(r.url).toBe("/api/trees/t1/shares/s1");
+    expect(r.init.method).toBe("PUT");
+    expect(r.body).toEqual({ encrypted_tree_key: "wrapped" });
+  });
+
+  it("deleteShare DELETEs the share", async () => {
+    const r = await call(() => deleteShare("t1", "s1"), null);
+    expect(r.url).toBe("/api/trees/t1/shares/s1");
+    expect(r.init.method).toBe("DELETE");
+  });
+
+  it("getSharedKeys and getPendingShares GET their endpoints", async () => {
+    const a = await call(() => getSharedKeys(), []);
+    expect(a.url).toBe("/api/auth/shared-keys");
+    mockFetch.mockReset();
+    const b = await call(() => getPendingShares(), []);
+    expect(b.url).toBe("/api/auth/pending-shares");
+  });
+
+  it("updateKeyRing omits encrypted_private_key unless given", async () => {
+    const a = await call(() => updateKeyRing("ring"), null);
+    expect(a.body).toEqual({ encrypted_key_ring: "ring" });
+    mockFetch.mockReset();
+    const b = await call(() => updateKeyRing("ring", "priv"), null);
+    expect(b.body).toEqual({ encrypted_key_ring: "ring", encrypted_private_key: "priv" });
   });
 });

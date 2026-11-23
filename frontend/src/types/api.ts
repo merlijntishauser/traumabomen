@@ -72,6 +72,53 @@ export interface KeyRingResponse {
   encrypted_key_ring: string;
 }
 
+export interface KeyPairResponse {
+  public_key: string;
+  encrypted_private_key: string;
+}
+
+export interface PublicKeyResponse {
+  public_key: string;
+}
+
+export interface ProfileResponse {
+  display_name: string | null;
+}
+
+export interface CreateShareRequest {
+  recipient_email: string;
+  encrypted_tree_key?: string | null;
+  language?: string;
+}
+
+export interface CompleteShareRequest {
+  encrypted_tree_key: string;
+}
+
+export interface ShareResponse {
+  id: string;
+  tree_id: string;
+  recipient_email: string;
+  recipient_display_name: string | null;
+  status: "pending" | "active";
+  created_at: string;
+}
+
+export interface SharedKeyResponse {
+  share_id: string;
+  tree_id: string;
+  encrypted_tree_key: string;
+  owner_display_name: string | null;
+  owner_email: string;
+}
+
+export interface PendingShareResponse {
+  share_id: string;
+  tree_id: string;
+  recipient_email: string;
+  recipient_public_key: string;
+}
+
 export interface MigrateKeysEntity {
   id: string;
   encrypted_data: string;
