@@ -53,6 +53,8 @@ async def update_key_ring(
     user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     user.encrypted_key_ring = body.encrypted_key_ring
+    if body.encrypted_private_key is not None:
+        user.encrypted_private_key = body.encrypted_private_key
     await db.commit()
     return {"message": "Key ring updated"}
 

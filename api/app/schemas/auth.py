@@ -83,6 +83,7 @@ class KeyRingResponse(BaseModel):
 
 class KeyRingUpdate(BaseModel):
     encrypted_key_ring: str
+    encrypted_private_key: str | None = Field(default=None, max_length=32768)
 
 
 class MigrateKeysEntity(BaseModel):
