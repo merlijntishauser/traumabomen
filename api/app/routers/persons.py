@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_owned_tree
+from app.dependencies import get_owned_tree, get_readable_tree
 from app.models.person import Person
 from app.models.tree import Tree
 from app.routers.crud_helpers import build_person_response, get_or_404
@@ -29,7 +29,7 @@ async def create_person(
 
 @router.get("", response_model=list[PersonResponse])
 async def list_persons(
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[PersonResponse]:
     result = await db.execute(select(Person).where(Person.tree_id == tree.id))
@@ -40,7 +40,7 @@ async def list_persons(
 @router.get("/{person_id}", response_model=PersonResponse)
 async def get_person(
     person_id: uuid.UUID,
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> PersonResponse:
     person = await get_or_404(

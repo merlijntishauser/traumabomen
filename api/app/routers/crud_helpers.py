@@ -211,7 +211,7 @@ def create_linked_entity_router[TResp: _LinkedEntityResponse](
 ) -> APIRouter:
     """Create an APIRouter with standard CRUD endpoints for a linked entity."""
     from app.database import get_db
-    from app.dependencies import get_owned_tree
+    from app.dependencies import get_owned_tree, get_readable_tree
     from app.models.tree import Tree
 
     router = APIRouter(prefix=f"/trees/{{tree_id}}/{prefix}", tags=[tag])
@@ -226,7 +226,7 @@ def create_linked_entity_router[TResp: _LinkedEntityResponse](
 
     @router.get("", response_model=list[config.response_schema])  # type: ignore[name-defined]
     async def list_all(
-        tree: Tree = Depends(get_owned_tree),
+        tree: Tree = Depends(get_readable_tree),
         db: AsyncSession = Depends(get_db),
     ) -> list[TResp]:
         return await list_entities(config, tree.id, db)
@@ -234,7 +234,7 @@ def create_linked_entity_router[TResp: _LinkedEntityResponse](
     @router.get("/{entity_id}", response_model=config.response_schema)
     async def get_one(
         entity_id: uuid.UUID,
-        tree: Tree = Depends(get_owned_tree),
+        tree: Tree = Depends(get_readable_tree),
         db: AsyncSession = Depends(get_db),
     ) -> TResp:
         return await get_entity(config, entity_id, tree.id, db)

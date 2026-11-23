@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_owned_tree
+from app.dependencies import get_owned_tree, get_readable_tree
 from app.models.relationship import Relationship
 from app.models.tree import Tree
 from app.routers.crud_helpers import get_or_404, validate_persons_in_tree
@@ -47,7 +47,7 @@ async def create_relationship(
 
 @router.get("", response_model=list[RelationshipResponse])
 async def list_relationships(
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[RelationshipResponse]:
     result = await db.execute(select(Relationship).where(Relationship.tree_id == tree.id))
@@ -58,7 +58,7 @@ async def list_relationships(
 @router.get("/{relationship_id}", response_model=RelationshipResponse)
 async def get_relationship(
     relationship_id: uuid.UUID,
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> RelationshipResponse:
     rel = await get_or_404(

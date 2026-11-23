@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_owned_tree
+from app.dependencies import get_owned_tree, get_readable_tree
 from app.models.sibling_group import SiblingGroup, SiblingGroupPerson
 from app.models.tree import Tree
 from app.routers.crud_helpers import (
@@ -88,7 +88,7 @@ async def create_sibling_group(
 
 @router.get("", response_model=list[SiblingGroupResponse])
 async def list_sibling_groups(
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> list[SiblingGroupResponse]:
     return await list_entities(_config, tree.id, db)
@@ -97,7 +97,7 @@ async def list_sibling_groups(
 @router.get("/{entity_id}", response_model=SiblingGroupResponse)
 async def get_sibling_group(
     entity_id: uuid.UUID,
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
     db: AsyncSession = Depends(get_db),
 ) -> SiblingGroupResponse:
     return await get_entity(_config, entity_id, tree.id, db)

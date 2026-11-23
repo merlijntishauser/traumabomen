@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.dependencies import get_owned_tree
+from app.dependencies import get_owned_tree, get_readable_tree
 from app.models.event import TraumaEvent
 from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent
@@ -82,7 +82,7 @@ async def list_trees(
 
 @router.get("/{tree_id}", response_model=TreeResponse)
 async def get_tree(
-    tree: Tree = Depends(get_owned_tree),
+    tree: Tree = Depends(get_readable_tree),
 ) -> TreeResponse:
     return build_tree_response(tree)
 
