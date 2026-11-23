@@ -50,3 +50,6 @@ class Tree(Base):
     sibling_groups: Mapped[list[SiblingGroup]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    shares: Mapped[list[TreeShare]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan"
+    )

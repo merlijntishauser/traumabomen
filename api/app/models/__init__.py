@@ -12,6 +12,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.relationship import Relationship
 from app.models.sibling_group import SiblingGroup, SiblingGroupPerson
 from app.models.tree import Tree
+from app.models.tree_share import TreeShare
 from app.models.turning_point import TurningPoint, TurningPointPerson
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry
@@ -19,6 +20,7 @@ from app.models.waitlist import WaitlistEntry
 __all__ = [
     "User",
     "Tree",
+    "TreeShare",
     "Person",
     "Relationship",
     "EventPerson",

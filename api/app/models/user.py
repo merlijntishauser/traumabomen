@@ -16,6 +16,9 @@ class User(Base):
     encryption_salt: Mapped[str] = mapped_column(String(255))
     passphrase_hint: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
     encrypted_key_ring: Mapped[str | None] = mapped_column(Text, nullable=True)
+    display_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    public_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    encrypted_private_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     onboarding_safety_acknowledged: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false"
