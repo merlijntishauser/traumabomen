@@ -13,6 +13,7 @@ from app.email import (
     send_email_background,
     send_feedback_email,
     send_password_reset_email,
+    send_share_invite_email,
     send_verification_email,
     send_waitlist_approval_email,
 )
@@ -205,6 +206,23 @@ class TestSendVerificationEmail:
 
         sent_msg = mock_server.sendmail.call_args[0][2]
         assert "Verify" in sent_msg
+
+
+class TestSendShareInviteEmail:
+    @patch("app.email.smtplib.SMTP")
+    def test_share_invite_en_nl(self, mock_smtp_cls, smtp_settings):
+        mock_server = MagicMock()
+        mock_smtp_cls.return_value.__enter__.return_value = mock_server
+
+        send_share_invite_email("bob@example.com", smtp_settings)
+        send_share_invite_email("bob@example.com", smtp_settings, "nl")
+
+        en, nl = (c[0][2] for c in mock_server.sendmail.call_args_list)
+        assert mock_server.sendmail.call_args_list[0][0][1] == "bob@example.com"
+        assert "https://app.example.com/register" in en
+        assert "invitation does not expire" in en.replace("=\n", "")
+        assert "https://app.example.com/register" in nl
+        assert "Account aanmaken" in nl
 
 
 class TestSendWaitlistApprovalEmail:

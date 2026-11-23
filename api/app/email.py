@@ -338,6 +338,46 @@ def send_waitlist_approval_email(
 
 
 # ---------------------------------------------------------------------------
+# Share invite email
+# ---------------------------------------------------------------------------
+
+_SHARE_INVITE_STRINGS = {
+    "en": {
+        "heading": "Traumatrees",
+        "subject": "A family tree has been shared with you",
+        "body": "Someone wants to share a family tree with you. Create an account to view it.",
+        "button": "Create account",
+        "copy": "Or copy this link:",
+        "expiry": "This invitation does not expire. If you did not expect this email, you can ignore it.",
+        "text_heading": "Traumatrees",
+        "text_body": "Someone wants to share a family tree with you. Create an account to view it:",
+    },
+    "nl": {
+        "heading": "Traumabomen",
+        "subject": "Er is een stamboom met je gedeeld",
+        "body": "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken.",
+        "button": "Account aanmaken",
+        "copy": "Of kopieer deze link:",
+        "expiry": "Deze uitnodiging verloopt niet. Als je deze e-mail niet verwachtte, kun je hem negeren.",
+        "text_heading": "Traumabomen",
+        "text_body": "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken:",
+    },
+}
+
+
+def send_share_invite_email(to: str, settings: Settings, language: str = "en") -> None:
+    base_url = _get_base_url(settings, language)
+    _send_cta_email(
+        to,
+        f"{base_url}/register",
+        _SHARE_INVITE_STRINGS,
+        settings,
+        language,
+        "share invite email",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Feedback email (internal, plain text only)
 # ---------------------------------------------------------------------------
 

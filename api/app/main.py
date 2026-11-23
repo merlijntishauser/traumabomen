@@ -23,6 +23,8 @@ from app.routers.life_events import router as life_events_router
 from app.routers.patterns import router as patterns_router
 from app.routers.persons import router as persons_router
 from app.routers.relationships import router as relationships_router
+from app.routers.shares import auth_router as shares_auth_router
+from app.routers.shares import router as shares_router
 from app.routers.sharing_keys import router as sharing_keys_router
 from app.routers.sibling_groups import router as sibling_groups_router
 from app.routers.sync import router as sync_router
@@ -121,6 +123,8 @@ app.include_router(admin_users_router)
 app.include_router(auth_router)
 app.include_router(key_ring_router)
 app.include_router(sharing_keys_router)
+app.include_router(shares_auth_router)
+app.include_router(shares_router)
 app.include_router(trees_router)
 app.include_router(persons_router)
 app.include_router(relationships_router)

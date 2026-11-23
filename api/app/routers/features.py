@@ -29,6 +29,21 @@ def _is_flag_enabled(flag: FeatureFlag, user: User, selected_keys: set[str]) -> 
             return False
 
 
+async def user_has_flag(db: AsyncSession, user: User, key: str) -> bool:
+    """Whether the flag exists and is enabled for this user. A missing row is False."""
+    flag = (
+        await db.execute(select(FeatureFlag).where(FeatureFlag.key == key))
+    ).scalar_one_or_none()
+    if flag is None:
+        return False
+    selected = await db.execute(
+        select(FeatureFlagUser.flag_key).where(
+            FeatureFlagUser.user_id == user.id, FeatureFlagUser.flag_key == key
+        )
+    )
+    return _is_flag_enabled(flag, user, set(selected.scalars().all()))
+
+
 @router.get("/features")
 async def get_features(
     user: User = Depends(get_current_user),

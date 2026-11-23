@@ -8,6 +8,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
+SHARE_PENDING = "pending"
+SHARE_ACTIVE = "active"
+
 
 class TreeShare(Base):
     """A read-only grant of one tree to one recipient, identified by email.
@@ -30,7 +33,9 @@ class TreeShare(Base):
         ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True
     )
     encrypted_tree_key: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(String(16), default="pending", server_default="pending")
+    status: Mapped[str] = mapped_column(
+        String(16), default=SHARE_PENDING, server_default=SHARE_PENDING
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     tree: Mapped[Tree] = relationship(back_populates="shares")

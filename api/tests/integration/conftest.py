@@ -294,6 +294,15 @@ async def headers(user):
 
 
 @pytest.fixture
+async def sharing_enabled(db_session):
+    """Enable the tree_sharing feature flag for everyone."""
+    from app.models.feature_flag import FeatureFlag
+
+    db_session.add(FeatureFlag(key="tree_sharing", audience="all"))
+    await db_session.commit()
+
+
+@pytest.fixture
 async def admin_user(db_session):
     """Create and return a verified admin user."""
     return await create_user(db_session, email="admin@example.com", is_admin=True)

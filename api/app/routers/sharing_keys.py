@@ -7,6 +7,7 @@ from app.auth import get_current_user
 from app.database import get_db
 from app.models.user import User
 from app.rate_limiter import check_endpoint_rate_limit, get_client_ip
+from app.routers.features import user_has_flag
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -69,9 +70,12 @@ async def get_public_key(
     email: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> PublicKeyResponse:
+    if not await user_has_flag(db, user, "tree_sharing"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="sharing_not_enabled")
     check_endpoint_rate_limit(get_client_ip(request), "public-key-lookup")
+    check_endpoint_rate_limit(str(user.id), "public-key-lookup-user")
     result = await db.execute(select(User).where(User.email == email.strip().lower()))
     target = result.scalar_one_or_none()
     if target is None or not target.public_key:

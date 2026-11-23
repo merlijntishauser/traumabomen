@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user
 from app.database import get_db
 from app.models.tree import Tree
-from app.models.tree_share import TreeShare
+from app.models.tree_share import SHARE_ACTIVE, TreeShare
 from app.models.user import User
 from app.routers.crud_helpers import get_or_404
 
@@ -39,7 +39,7 @@ async def get_readable_tree(
         .where(
             TreeShare.tree_id == Tree.id,
             TreeShare.recipient_id == user.id,
-            TreeShare.status == "active",
+            TreeShare.status == SHARE_ACTIVE,
         )
         .exists()
     )

@@ -40,7 +40,7 @@ async def test_public_key_requires_auth(client):
 
 @pytest.mark.asyncio
 async def test_public_key_unknown_email_and_keyless_user_same_404(
-    client, db_session, user, headers
+    client, db_session, user, headers, sharing_enabled
 ):
     await create_user(db_session, email="keyless@x.org")
     unknown = await client.get("/auth/public-key/nobody@x.org", headers=headers)
@@ -50,12 +50,33 @@ async def test_public_key_unknown_email_and_keyless_user_same_404(
 
 
 @pytest.mark.asyncio
-async def test_public_key_lookup_normalizes_email(client, db_session, user, headers):
+async def test_public_key_lookup_normalizes_email(
+    client, db_session, user, headers, sharing_enabled
+):
     bob = await create_user(db_session, email="bob@x.org")
     await client.put("/auth/keys", json=PAIR, headers=auth_headers(bob.id))
     resp = await client.get("/auth/public-key/ Bob@X.org", headers=headers)
     assert resp.status_code == 200
     assert resp.json() == {"public_key": "pub-1"}
+
+
+@pytest.mark.asyncio
+async def test_public_key_lookup_requires_flag(client, user, headers):
+    resp = await client.get("/auth/public-key/bob@x.org", headers=headers)
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "sharing_not_enabled"
+
+
+@pytest.mark.asyncio
+async def test_public_key_lookup_rate_limited(client, user, headers, sharing_enabled):
+    from app.rate_limiter import ENDPOINT_RATE_LIMIT
+
+    for _ in range(ENDPOINT_RATE_LIMIT):
+        assert (
+            await client.get("/auth/public-key/nobody@x.org", headers=headers)
+        ).status_code == 404
+    resp = await client.get("/auth/public-key/nobody@x.org", headers=headers)
+    assert resp.status_code == 429
 
 
 @pytest.mark.asyncio
