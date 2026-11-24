@@ -60,6 +60,11 @@ vi.mock("../lib/crypto", () => ({
   hashPassphrase: (...args: unknown[]) => mockHashPassphrase(...args),
 }));
 
+const mockStartLoadingSharing = vi.fn();
+vi.mock("../hooks/useLoadSharing", () => ({
+  useLoadSharing: () => mockStartLoadingSharing,
+}));
+
 const mockLoadOrMigrateKeyRing = vi.fn();
 vi.mock("../lib/keyRingLoader", () => ({
   loadOrMigrateKeyRing: (...args: unknown[]) => mockLoadOrMigrateKeyRing(...args),
@@ -201,6 +206,27 @@ describe("UnlockPage", () => {
       expect(mockSetKeyRingBase64).toHaveBeenCalled();
       expect(mockSetIsMigrated).toHaveBeenCalledWith(true);
       expect(mockNavigate).toHaveBeenCalledWith("/trees", { replace: true });
+    });
+  });
+
+  it("starts loading sharing with the derived key and own key ring", async () => {
+    const derivedKey = { id: "derived" } as unknown as CryptoKey;
+    const base64Map = new Map([["own-tree", "own-b64"]]);
+    mockDeriveKey.mockResolvedValue(derivedKey);
+    mockLoadOrMigrateKeyRing.mockResolvedValue({ keys: new Map(), base64Map });
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("auth.passphrase")).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByLabelText("auth.passphrase"), {
+      target: { value: "my-secret-passphrase" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "auth.unlock" }));
+
+    await waitFor(() => {
+      expect(mockStartLoadingSharing).toHaveBeenCalledWith(derivedKey, base64Map);
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 

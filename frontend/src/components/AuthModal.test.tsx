@@ -32,6 +32,11 @@ vi.mock("../lib/crypto", () => ({
   hashPassphrase: (...args: unknown[]) => mockHashPassphrase(...args),
 }));
 
+const mockStartLoadingSharing = vi.fn();
+vi.mock("../hooks/useLoadSharing", () => ({
+  useLoadSharing: () => mockStartLoadingSharing,
+}));
+
 const mockLoadOrMigrateKeyRing = vi.fn().mockResolvedValue({
   keys: new Map(),
   base64Map: new Map(),
@@ -98,6 +103,7 @@ describe("AuthModal", () => {
       fireEvent.submit(screen.getByLabelText("auth.passphrase").closest("form")!);
       await waitFor(() => {
         expect(props.onUnlockSuccess).toHaveBeenCalled();
+        expect(mockStartLoadingSharing).toHaveBeenCalledOnce();
       });
     });
 
@@ -226,6 +232,7 @@ describe("AuthModal", () => {
 
       await waitFor(() => {
         expect(props.onReauthSuccess).toHaveBeenCalled();
+        expect(mockStartLoadingSharing).toHaveBeenCalledOnce();
       });
       // onUnlockSuccess should NOT be called in reauth mode
       expect(props.onUnlockSuccess).not.toHaveBeenCalled();

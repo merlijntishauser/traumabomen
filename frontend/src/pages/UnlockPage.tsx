@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router";
 import { AuthHero } from "../components/AuthHero";
 import { PassphraseInput } from "../components/PassphraseInput";
 import { useEncryption } from "../contexts/useEncryption";
+import { useLoadSharing } from "../hooks/useLoadSharing";
 import { ApiError, clearTokens, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
@@ -49,6 +50,7 @@ export default function UnlockPage() {
   const location = useLocation();
   const { setMasterKey, setPassphraseHash, setTreeKeys, setKeyRingBase64, setIsMigrated } =
     useEncryption();
+  const startLoadingSharing = useLoadSharing();
   const returnTo = (location.state as { from?: string })?.from || "/trees";
 
   const [salt, setSalt] = useState<string | null>(null);
@@ -94,6 +96,7 @@ export default function UnlockPage() {
       setTreeKeys(keys);
       setKeyRingBase64(base64Map);
       setIsMigrated(true);
+      startLoadingSharing(derivedKey, base64Map);
       dispatch({ type: "SET_MIGRATING", migrating: false });
 
       navigate(returnTo, { replace: true });

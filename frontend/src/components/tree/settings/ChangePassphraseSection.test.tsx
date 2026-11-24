@@ -10,8 +10,23 @@ const mockGetEncryptionSalt = vi.fn();
 const mockGetKeyRing = vi.fn();
 const mockUpdateSalt = vi.fn();
 const mockUpdateKeyRing = vi.fn();
+const mockGetKeyPair = vi.fn();
+
+const { MockApiError } = vi.hoisted(() => ({
+  MockApiError: class MockApiError extends Error {
+    status: number;
+    detail: string;
+    constructor(status: number, detail = "") {
+      super(detail);
+      this.status = status;
+      this.detail = detail;
+    }
+  },
+}));
 
 vi.mock("../../../lib/api", () => ({
+  ApiError: MockApiError,
+  getKeyPair: (...args: unknown[]) => mockGetKeyPair(...args),
   getEncryptionSalt: (...args: unknown[]) => mockGetEncryptionSalt(...args),
   getKeyRing: (...args: unknown[]) => mockGetKeyRing(...args),
   updateSalt: (...args: unknown[]) => mockUpdateSalt(...args),
@@ -33,12 +48,14 @@ const mockDeriveKey = vi.fn();
 const mockDecryptKeyRing = vi.fn();
 const mockEncryptKeyRing = vi.fn();
 const mockGenerateSalt = vi.fn();
+const mockDecryptFromApi = vi.fn();
+const mockEncryptForApi = vi.fn();
 
 vi.mock("../../../lib/crypto", () => ({
-  decryptFromApi: vi.fn(),
+  decryptFromApi: (...args: unknown[]) => mockDecryptFromApi(...args),
   decryptKeyRing: (...args: unknown[]) => mockDecryptKeyRing(...args),
   deriveKey: (...args: unknown[]) => mockDeriveKey(...args),
-  encryptForApi: vi.fn(),
+  encryptForApi: (...args: unknown[]) => mockEncryptForApi(...args),
   encryptKeyRing: (...args: unknown[]) => mockEncryptKeyRing(...args),
   generateSalt: () => mockGenerateSalt(),
   hashPassphrase: () => Promise.resolve("mock-hash"),
@@ -70,6 +87,77 @@ import { ChangePassphraseSection } from "./ChangePassphraseSection";
 describe("ChangePassphraseSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetKeyPair.mockRejectedValue(new MockApiError(404, "no_key_pair"));
+  });
+
+  function mockMigratedChange() {
+    mockGetEncryptionSalt.mockResolvedValue({ encryption_salt: "old-salt" });
+    mockDeriveKey.mockImplementation(async (passphrase: string) =>
+      passphrase === "new-pass" ? "new-key" : "old-key",
+    );
+    mockGetKeyRing.mockResolvedValue({ encrypted_key_ring: "encrypted-ring" });
+    mockDecryptKeyRing.mockResolvedValue({ tree1: "key1" });
+    mockGenerateSalt.mockReturnValue("new-salt");
+    mockEncryptKeyRing.mockResolvedValue("new-encrypted-ring");
+    mockUpdateSalt.mockResolvedValue(undefined);
+    mockUpdateKeyRing.mockResolvedValue(undefined);
+  }
+
+  async function submitChange() {
+    const user = userEvent.setup();
+    render(<ChangePassphraseSection />);
+    await user.type(screen.getByPlaceholderText("account.currentPassphrase"), "old-pass");
+    await user.type(screen.getByPlaceholderText("account.newPassphrase"), "new-pass");
+    await user.type(screen.getByPlaceholderText("account.confirmNewPassphrase"), "new-pass");
+    await user.click(screen.getByText("common.save"));
+  }
+
+  it("passphrase change sends the re-encrypted private key with the key ring", async () => {
+    mockMigratedChange();
+    mockGetKeyPair.mockResolvedValue({
+      public_key: "pub-jwk",
+      encrypted_private_key: "old-encrypted-private",
+    });
+    mockDecryptFromApi.mockResolvedValue("private-jwk");
+    mockEncryptForApi.mockResolvedValue("new-encrypted-private");
+
+    await submitChange();
+
+    await waitFor(() => {
+      expect(screen.getByText("account.passphraseChanged")).toBeInTheDocument();
+    });
+    expect(mockDecryptFromApi).toHaveBeenCalledWith("old-encrypted-private", "old-key");
+    expect(mockEncryptForApi).toHaveBeenCalledWith("private-jwk", "new-key");
+    expect(mockUpdateKeyRing).toHaveBeenCalledOnce();
+    expect(mockUpdateKeyRing).toHaveBeenCalledWith("new-encrypted-ring", "new-encrypted-private");
+  });
+
+  it("passphrase change without a key pair omits the field", async () => {
+    mockMigratedChange();
+
+    await submitChange();
+
+    await waitFor(() => {
+      expect(screen.getByText("account.passphraseChanged")).toBeInTheDocument();
+    });
+    expect(mockUpdateKeyRing).toHaveBeenCalledOnce();
+    expect(mockUpdateKeyRing.mock.calls[0][0]).toBe("new-encrypted-ring");
+    expect(mockUpdateKeyRing.mock.calls[0][1]).toBeUndefined();
+    expect(mockEncryptForApi).not.toHaveBeenCalled();
+  });
+
+  it("keeps the old passphrase when the key pair cannot be read", async () => {
+    mockMigratedChange();
+    mockGetKeyPair.mockRejectedValue(new MockApiError(500, "server_error"));
+
+    await submitChange();
+
+    await waitFor(() => {
+      expect(screen.getByText("account.passphraseError")).toBeInTheDocument();
+    });
+    expect(mockUpdateSalt).not.toHaveBeenCalled();
+    expect(mockUpdateKeyRing).not.toHaveBeenCalled();
+    expect(mockSetMasterKey).not.toHaveBeenCalled();
   });
 
   it("renders section title", () => {

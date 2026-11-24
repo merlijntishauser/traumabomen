@@ -8,6 +8,7 @@ import { PassphraseInput } from "../components/PassphraseInput";
 import { PasswordInput } from "../components/PasswordInput";
 import { PasswordStrengthMeter } from "../components/PasswordStrengthMeter";
 import { useEncryption } from "../contexts/useEncryption";
+import { useLoadSharing } from "../hooks/useLoadSharing";
 import { useRegistrationOpen } from "../hooks/useRegistrationOpen";
 import { ApiError, register } from "../lib/api";
 import { deriveKey, generateSalt, hashPassphrase } from "../lib/crypto";
@@ -357,6 +358,7 @@ export default function RegisterPage() {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
   const registrationOpen = useRegistrationOpen();
+  const startLoadingSharing = useLoadSharing();
 
   const [state, dispatch] = useReducer(registerReducer, registerInitialState);
   const {
@@ -462,6 +464,7 @@ export default function RegisterPage() {
       setTreeKeys(keys);
       setKeyRingBase64(base64Map);
       setIsMigrated(true);
+      startLoadingSharing(derivedKey, base64Map);
       navigate("/trees");
     } catch (err) {
       if (err instanceof ApiError && err.status === 403 && err.detail === "registration_closed") {

@@ -2,10 +2,12 @@ import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { useEncryption } from "../../../contexts/useEncryption";
 import {
+  ApiError,
   getClassifications,
   getEncryptionSalt,
   getEvents,
   getJournalEntries,
+  getKeyPair,
   getKeyRing,
   getLifeEvents,
   getPatterns,
@@ -125,6 +127,27 @@ async function reencryptTree(
   );
 }
 
+/**
+ * Re-encrypt the sharing private key under the new master key, or return
+ * undefined when the user has no key pair yet. Any other failure throws, so
+ * the passphrase change aborts before anything is written: changing the
+ * master key without this would strand the private key under the old one.
+ */
+async function reencryptPrivateKey(
+  oldKey: CryptoKey,
+  newKey: CryptoKey,
+): Promise<string | undefined> {
+  let encryptedPrivateKey: string;
+  try {
+    ({ encrypted_private_key: encryptedPrivateKey } = await getKeyPair());
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return undefined;
+    throw err;
+  }
+  const privateJwk = await decryptFromApi<string>(encryptedPrivateKey, oldKey);
+  return encryptForApi(privateJwk, newKey);
+}
+
 interface PassphraseState {
   current: string;
   newPp: string;
@@ -186,14 +209,18 @@ export function ChangePassphraseSection() {
     // Verify old passphrase by attempting to decrypt key ring
     const keyRingData = await decryptKeyRing(encrypted_key_ring, oldKey);
 
-    // Re-encrypt key ring with new key
-    const newEncryptedRing = await encryptKeyRing(keyRingData, newKey);
+    // Re-encrypt key ring (and the sharing private key, if any) with new key
+    const [newEncryptedRing, newEncryptedPrivateKey] = await Promise.all([
+      encryptKeyRing(keyRingData, newKey),
+      reencryptPrivateKey(oldKey, newKey),
+    ]);
 
     // Persist salt first: if key-ring update fails, old key-ring + old salt
     // still works. Reverse order would leave new key-ring with old salt,
-    // making key derivation impossible.
+    // making key derivation impossible. The private key travels in the same
+    // request as the key ring so the two can never be under different keys.
     await updateSalt({ encryption_salt: newSalt });
-    await updateKeyRing(newEncryptedRing);
+    await updateKeyRing(newEncryptedRing, newEncryptedPrivateKey);
 
     // Update context
     setMasterKey(newKey);

@@ -80,6 +80,11 @@ vi.mock("../lib/crypto", () => ({
   hashPassphrase: (...args: unknown[]) => mockHashPassphrase(...args),
 }));
 
+const mockStartLoadingSharing = vi.fn();
+vi.mock("../hooks/useLoadSharing", () => ({
+  useLoadSharing: () => mockStartLoadingSharing,
+}));
+
 const mockLoadOrMigrateKeyRing = vi.fn();
 vi.mock("../lib/keyRingLoader", () => ({
   loadOrMigrateKeyRing: (...args: unknown[]) => mockLoadOrMigrateKeyRing(...args),
@@ -384,6 +389,7 @@ describe("RegisterPage", () => {
       expect(mockSetTreeKeys).toHaveBeenCalled();
       expect(mockSetKeyRingBase64).toHaveBeenCalled();
       expect(mockSetIsMigrated).toHaveBeenCalledWith(true);
+      expect(mockStartLoadingSharing).toHaveBeenCalledOnce();
       expect(mockNavigate).toHaveBeenCalledWith("/trees");
     });
   });

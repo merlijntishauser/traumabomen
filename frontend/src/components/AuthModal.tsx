@@ -1,6 +1,7 @@
 import { Key, Lock, LogIn, Mail } from "lucide-react";
 import { type FormEvent, useEffect, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useLoadSharing } from "../hooks/useLoadSharing";
 import { ApiError, login as apiLogin, getEncryptionSalt } from "../lib/api";
 import { deriveKey, hashPassphrase } from "../lib/crypto";
 import { loadOrMigrateKeyRing } from "../lib/keyRingLoader";
@@ -79,6 +80,7 @@ function authModalFormReducer(
 
 export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, onLogout }: Props) {
   const { t } = useTranslation();
+  const startLoadingSharing = useLoadSharing();
   const [state, dispatch] = useReducer(authModalFormReducer, {
     credentialsSubmitted: false,
     email: "",
@@ -161,6 +163,7 @@ export function AuthModal({ mode, hint, salt, onUnlockSuccess, onReauthSuccess, 
       } else {
         onUnlockSuccess(result);
       }
+      startLoadingSharing(derivedKey, base64Map);
     } catch {
       dispatch({ type: "SET_MIGRATING", migrating: false });
       dispatch({ type: "SET_ERROR", error: t("auth.passphraseError") });

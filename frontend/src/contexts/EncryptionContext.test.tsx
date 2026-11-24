@@ -54,6 +54,11 @@ describe("EncryptionProvider initial state", () => {
     const { result } = renderEncryption();
     expect(result.current.isMigrated).toBe(false);
   });
+
+  it("starts with no shared trees", () => {
+    const { result } = renderEncryption();
+    expect(result.current.sharedTrees.size).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -136,6 +141,133 @@ describe("removeTreeKey", () => {
     expect(result.current.keyRingBase64.has("tree-1")).toBe(false);
     expect(result.current.treeKeys.has("tree-2")).toBe(true);
     expect(result.current.keyRingBase64.has("tree-2")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// setSharing / isSharedTree
+// ---------------------------------------------------------------------------
+
+const sharedInfo = { shareId: "share-1", treeId: "shared-tree", ownerLabel: "Anna" };
+
+describe("setSharing", () => {
+  it("shared keys are not added to keyRingBase64", async () => {
+    const { result } = renderEncryption();
+    const [master, own, shared] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+
+    act(() => {
+      result.current.setMasterKey(master);
+      result.current.addTreeKey("own-tree", own, "own-b64");
+    });
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([["shared-tree", shared]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+
+    expect(result.current.treeKeys.get("own-tree")).toBe(own);
+    expect(result.current.treeKeys.get("shared-tree")).toBe(shared);
+    expect([...result.current.keyRingBase64.keys()]).toEqual(["own-tree"]);
+    expect(result.current.sharedTrees.get("shared-tree")).toEqual(sharedInfo);
+  });
+
+  it("marks only shared trees as shared", async () => {
+    const { result } = renderEncryption();
+    const [master, own, shared] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+
+    act(() => {
+      result.current.setMasterKey(master);
+      result.current.addTreeKey("own-tree", own, "own-b64");
+    });
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([["shared-tree", shared]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+
+    expect(result.current.isSharedTree("shared-tree")).toBe(true);
+    expect(result.current.isSharedTree("own-tree")).toBe(false);
+    expect(result.current.isSharedTree("unknown")).toBe(false);
+  });
+
+  it("ignores sharing that resolves after the session was cleared", async () => {
+    const { result } = renderEncryption();
+    const [master, shared] = await Promise.all([createMockKey(), createMockKey()]);
+
+    act(() => result.current.setMasterKey(master));
+    act(() => result.current.clearKey());
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([["shared-tree", shared]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+
+    expect(result.current.treeKeys.size).toBe(0);
+    expect(result.current.sharedTrees.size).toBe(0);
+  });
+
+  it("ignores sharing that resolves after another session unlocked", async () => {
+    const { result } = renderEncryption();
+    const [masterA, masterB, sharedA, ownB] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+
+    // Session A unlocks and starts loading sharing with masterA...
+    act(() => result.current.setMasterKey(masterA));
+    // ...then locks, and session B unlocks before A's load resolves.
+    act(() => result.current.clearKey());
+    act(() => {
+      result.current.setMasterKey(masterB);
+      result.current.addTreeKey("own-tree-b", ownB, "own-b64-b");
+    });
+    act(() =>
+      result.current.setSharing(
+        masterA,
+        new Map([["shared-tree", sharedA]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+
+    expect(result.current.treeKeys.has("shared-tree")).toBe(false);
+    expect([...result.current.treeKeys.keys()]).toEqual(["own-tree-b"]);
+    expect(result.current.sharedTrees.size).toBe(0);
+    expect(result.current.isSharedTree("shared-tree")).toBe(false);
+  });
+
+  it("clearKey drops shared trees and their keys", async () => {
+    const { result } = renderEncryption();
+    const [master, shared] = await Promise.all([createMockKey(), createMockKey()]);
+
+    act(() => result.current.setMasterKey(master));
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([["shared-tree", shared]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+    act(() => result.current.clearKey());
+
+    expect(result.current.sharedTrees.size).toBe(0);
+    expect(result.current.treeKeys.size).toBe(0);
+    expect(result.current.isSharedTree("shared-tree")).toBe(false);
   });
 });
 
