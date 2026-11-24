@@ -163,4 +163,42 @@ test.describe("Tree sharing", () => {
     await expect(shared).toBeVisible({ timeout: 15_000 });
     await expect(shared.getByRole("link", { name: /Invited Family/ })).toBeVisible();
   });
+  test("recipient removes a shared tree from their list", async ({ browser, baseURL }) => {
+    const ownerPage = await newPage(browser, baseURL);
+    const viewerPage = await newPage(browser, baseURL);
+    const ownerEmail = uniqueEmail();
+    const viewerEmail = uniqueEmail();
+
+    await register(viewerPage, viewerEmail);
+    await register(ownerPage, ownerEmail);
+    await createTree(ownerPage, "Unwanted Family");
+    await backToTrees(ownerPage);
+
+    const dialog = await openShareDialog(ownerPage, "Unwanted Family");
+    await dialog.getByLabel(/email address/i).fill(viewerEmail);
+    await dialog.getByRole("button", { name: "Share", exact: true }).click();
+    await expect(dialog.getByText("Can view")).toBeVisible({ timeout: 15_000 });
+    await dialog.getByRole("button", { name: "Close" }).click();
+
+    await viewerPage.reload();
+    await unlockIfPrompted(viewerPage);
+    const shared = viewerPage.getByRole("region", { name: "Shared with me" });
+    await expect(shared.getByRole("link", { name: /Unwanted Family/ })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await shared.getByRole("button", { name: "Options for Unwanted Family" }).click();
+    await viewerPage.getByRole("menuitem", { name: "Remove from my list" }).click();
+    await expect(viewerPage.getByText("Remove this tree from your list?")).toBeVisible();
+    await viewerPage.getByRole("button", { name: "Remove", exact: true }).click();
+    await expect(viewerPage.getByRole("region", { name: "Shared with me" })).toHaveCount(0, {
+      timeout: 15_000,
+    });
+
+    // The share is gone for the owner too.
+    const ownerDialog = await openShareDialog(ownerPage, "Unwanted Family");
+    await expect(ownerDialog.getByText("This tree is not shared with anyone.")).toBeVisible({
+      timeout: 15_000,
+    });
+  });
 });
