@@ -99,6 +99,11 @@ architecture from the export milestone.
 - Display name field for user identity in shares
 - Revoke access by deleting the share grant
 
+*Status:* implemented behind the `tree_sharing` feature flag (seeded `disabled`).
+Remaining before the flag goes to `all`: switch the FAQ answer from "planned"
+in a guarded migration, and show shared trees on iOS (the app lists only owned
+trees today).
+
 See [design doc](plans/2026-03-01-read-only-tree-sharing-design.md).
 Prerequisite: user data export (done).
 

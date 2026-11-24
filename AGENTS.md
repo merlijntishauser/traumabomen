@@ -242,6 +242,15 @@ Key moments or transitions in a person's life used as anchors for journal reflec
 
 Personal reflections tied to a tree. Can link to turning points for context.
 
+### TreeShare
+- `tree_id`, `owner_id`: the shared tree and who shares it
+- `recipient_email`: normalized with `.strip().lower()`; unique per tree
+- `recipient_id`: null until the recipient has an account
+- `encrypted_tree_key`: the tree key wrapped with the recipient's RSA-OAEP public key (null while pending)
+- `status`: `pending` | `active`
+
+Revoking deletes the row, so the owner can share again later and the server keeps no record of who once had access. Shared tree keys live in the recipient's `treeKeys` only, never in their key ring. `display_name` on the user is stored in plaintext.
+
 ### FeatureFlag
 - `key`: string (primary key, e.g., `some_feature`)
 - `audience`: `disabled` | `admins` | `selected` | `all`
@@ -281,6 +290,11 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `PUT /auth/salt`
 - `PUT /auth/hint` —update or clear passphrase hint (max 255 chars)
 - `PUT /auth/onboarding` —acknowledge onboarding safety modal
+- `GET/PUT /auth/keys` —read or store the user's RSA public key and the private key encrypted with the master key (sharing)
+- `GET /auth/public-key/{email}` —a registered user's public key, for wrapping a tree key (rate limited, `public-key-lookup`)
+- `GET/PUT /auth/profile` —read or set the plaintext display name shown to the people a tree is shared with (max 100 chars)
+- `GET /auth/shared-keys` —tree keys shared with the current user, wrapped with their public key
+- `GET /auth/pending-shares` —invitations the owner's client still has to complete (owner side)
 - `DELETE /auth/account`
 
 ### Resources (all payloads: `{ id, encrypted_data, metadata }`)
@@ -294,6 +308,13 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/turning-points`
 - `GET/POST/PUT/DELETE /trees/{id}/sibling-groups`
 - `GET/POST/PUT/DELETE /trees/{id}/journal`
+
+### Tree shares (read-only sharing, behind the `tree_sharing` flag)
+- `POST /trees/{id}/shares` —share a tree with an email address; creating is gated by the flag (403 `sharing_not_enabled`) and rate limited (`tree-share`). Unknown emails need an explicit invite and become `pending`; at most 20 pending shares per owner
+- `GET /trees/{id}/shares` —list who has access (owner only)
+- `PUT /trees/{id}/shares/{share_id}` —owner's client completes a pending share by supplying the wrapped tree key once the recipient has a key (409 `recipient_has_no_key` otherwise)
+- `DELETE /trees/{id}/shares/{share_id}` —revoke by deleting the grant
+- A recipient can `GET` a shared tree and its entities but never write; journal entries and turning-point links to the journal stay the owner's. After revoke, `GET /trees/{id}` is a 404
 
 ### Bulk Sync
 - `POST /trees/{id}/sync` —batch of creates, updates, deletes across all entity types in a single transaction
@@ -353,6 +374,8 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `<FeedbackModal>` —User feedback submission modal (category, message, anonymous option).
 - `<ThemeToggle>` —Toolbar button switching between the dark and light themes. Shows the icon of the theme it switches to: Sun while dark, Moon while light.
 - `<JournalPage>` —The journal as a writing desk: the entry form's `sheet` variant (one open question, a roomy page) in the left column, `<JournalMargin>` of earlier entries on the right, and `<JournalReader>` to reread one. Excerpts and dates come from `lib/journalExcerpt.ts`. The workspace's `<JournalPanel>` keeps the compact list and form.
+- `<ShareTreeDialog>` —Opened from the tree list row menu (shown only when the `tree_sharing` flag is on). Share by email; an unknown address asks for explicit confirmation to send an invitation; lists people with access and removes them.
+- Read-only workspace —A tree opened from "Shared with me" shows a "View only" label in the toolbar, hides the add and write tools and the journal tab, and shows "no longer shared" when the owner revokes (`useTreeAccess`).
 - `<InsightsView>` —Personal insights summary page with aggregated tree statistics.
 
 ### Relationship Visual Styles
@@ -467,13 +490,14 @@ Backend tests are split into two directories under `api/tests/`:
 - Two-theme system (dark/light) with synchronized state
 - Sibling groups (compact sibling representation, promotion to full persons)
 - Passphrase hints (optional plaintext reminder, shown on unlock/auth modal, manageable in settings)
+- Read-only tree sharing (RSA-OAEP key exchange, pending invites that complete on the owner's next unlock, "Shared with me" section, read-only workspace), behind the `tree_sharing` feature flag
 
 ### Deferred
 - OAuth/social login
 - GEDCOM import
 - PDF/image export
 - Custom category management
-- Collaborative/shared trees
+- Collaborative trees (edit permissions, share links for people without an account)
 - Offline-first with service worker
 - Additional languages
 
