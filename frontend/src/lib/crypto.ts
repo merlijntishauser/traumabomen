@@ -164,7 +164,7 @@ export async function importTreeKey(base64Key: string): Promise<CryptoKey> {
 const SHARE_KEY_ALGORITHM = {
   name: "RSA-OAEP",
   modulusLength: 4096,
-  publicExponent: new Uint8Array([1, 0, 1]),
+  publicExponent: new Uint8Array([1, 0, 1]), // privacy-ok: RSA exponent 65537, not an IV
   hash: "SHA-256",
 } as const;
 
