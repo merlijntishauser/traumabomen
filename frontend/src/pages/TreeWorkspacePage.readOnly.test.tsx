@@ -171,7 +171,13 @@ vi.mock("../hooks/useCanvasSettings", () => ({
 }));
 
 vi.mock("../hooks/useLogout", () => ({ useLogout: () => vi.fn() }));
-vi.mock("../components/tree/SettingsPanel", () => ({ SettingsPanel: () => null }));
+// The canvas view tab is rendered inline so its export actions can be checked.
+vi.mock("../components/tree/SettingsPanel", () => ({
+  SettingsPanel: ({ viewTab }: { viewTab: { content: ReactNode } }) => (
+    <div data-testid="settings-view-tab">{viewTab.content}</div>
+  ),
+}));
+vi.mock("../components/tree/ThemeLanguageSettings", () => ({ ThemeLanguageSettings: () => null }));
 vi.mock("../components/tree/ContourDecoration", () => ({ ContourDecoration: () => null }));
 vi.mock("../components/tree/ReflectionNudge", () => ({
   ReflectionNudge: () => <div data-testid="reflection-nudge" />,
@@ -273,6 +279,14 @@ describe("TreeWorkspacePage for a shared tree", () => {
     expect(screen.queryByTestId("reflection-nudge")).not.toBeInTheDocument();
   });
 
+  it("offers no export for a shared tree", () => {
+    renderWorkspace(SHARED);
+    const settings = screen.getByTestId("settings-view-tab");
+    expect(within(settings).queryByText("export.title")).not.toBeInTheDocument();
+    expect(within(settings).queryByText("export.downloadBackup")).not.toBeInTheDocument();
+    expect(within(settings).queryByText("export.downloadPlaintext")).not.toBeInTheDocument();
+  });
+
   it("hides add and delete controls in the person page", async () => {
     const user = userEvent.setup();
     renderWorkspace(SHARED);
@@ -316,6 +330,13 @@ describe("TreeWorkspacePage for an own tree", () => {
     // And its writes still go out.
     fireEvent.click(screen.getByTestId("trigger-node-drag"));
     await waitFor(() => expect(api.updatePerson).toHaveBeenCalledTimes(1));
+  });
+
+  it("offers both exports for an own tree", () => {
+    renderWorkspace(new Map());
+    const settings = screen.getByTestId("settings-view-tab");
+    expect(within(settings).getByText("export.downloadBackup")).toBeInTheDocument();
+    expect(within(settings).getByText("export.downloadPlaintext")).toBeInTheDocument();
   });
 
   it("shows the usual load error on 404 for an own tree", () => {

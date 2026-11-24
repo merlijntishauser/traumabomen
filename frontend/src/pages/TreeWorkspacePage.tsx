@@ -1066,12 +1066,12 @@ function TreeWorkspaceInner() {
         <CanvasSettingsContent
           settings={canvasSettings}
           onUpdate={updateCanvasSettings}
-          onExportEncrypted={exportEncrypted}
-          onExportPlaintext={exportPlaintext}
+          onExportEncrypted={readOnly ? undefined : exportEncrypted}
+          onExportPlaintext={readOnly ? undefined : exportPlaintext}
         />
       ),
     }),
-    [t, canvasSettings, updateCanvasSettings, exportEncrypted, exportPlaintext],
+    [t, canvasSettings, updateCanvasSettings, exportEncrypted, exportPlaintext, readOnly],
   );
 
   const layoutSettings = useMemo(
