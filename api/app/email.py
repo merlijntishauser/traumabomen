@@ -345,22 +345,38 @@ _SHARE_INVITE_STRINGS = {
     "en": {
         "heading": "Traumatrees",
         "subject": "A family tree has been shared with you",
-        "body": "Someone wants to share a family tree with you. Create an account to view it.",
+        "body": (
+            "Someone wants to share a family tree with you. Create an account to view it."
+            " If registration is limited at the moment, you can join the waitlist instead,"
+            " and the tree will be waiting for you once your account is set up."
+        ),
         "button": "Create account",
         "copy": "Or copy this link:",
         "expiry": "This invitation does not expire. If you did not expect this email, you can ignore it.",
         "text_heading": "Traumatrees",
-        "text_body": "Someone wants to share a family tree with you. Create an account to view it:",
+        "text_body": (
+            "Someone wants to share a family tree with you. Create an account to view it."
+            " If registration is limited at the moment, you can join the waitlist instead,"
+            " and the tree will be waiting for you once your account is set up:"
+        ),
     },
     "nl": {
         "heading": "Traumabomen",
         "subject": "Er is een stamboom met je gedeeld",
-        "body": "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken.",
+        "body": (
+            "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken."
+            " Is registreren op dit moment beperkt, dan kun je je op de wachtlijst zetten."
+            " De stamboom staat voor je klaar zodra je account is ingesteld."
+        ),
         "button": "Account aanmaken",
         "copy": "Of kopieer deze link:",
         "expiry": "Deze uitnodiging verloopt niet. Als je deze e-mail niet verwachtte, kun je hem negeren.",
         "text_heading": "Traumabomen",
-        "text_body": "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken:",
+        "text_body": (
+            "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken."
+            " Is registreren op dit moment beperkt, dan kun je je op de wachtlijst zetten."
+            " De stamboom staat voor je klaar zodra je account is ingesteld:"
+        ),
     },
 }
 

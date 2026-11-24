@@ -223,6 +223,9 @@ class TestSendShareInviteEmail:
         assert "invitation does not expire" in en.replace("=\n", "")
         assert "https://app.example.com/register" in nl
         assert "Account aanmaken" in nl
+        # Registration may be capacity gated: the invite names the waitlist.
+        assert "join the waitlist" in en.replace("=\n", "")
+        assert "wachtlijst" in nl.replace("=\n", "")
 
 
 class TestSendWaitlistApprovalEmail:
