@@ -99,6 +99,11 @@ vi.mock("../hooks/useFeatureFlags", () => ({
 }));
 let mockSharingFlag = false;
 
+let mockSharedList: { id: string; name: string; ownerLabel: string }[] = [];
+vi.mock("../hooks/useSharedTrees", () => ({
+  useSharedTrees: () => ({ data: mockSharedList }),
+}));
+
 vi.mock("../lib/compactId", () => ({
   uuidToCompact: (id: string) => id.slice(0, 8),
 }));
@@ -488,5 +493,37 @@ describe("TreeListPage sharing", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "share.menu" }));
     expect(screen.getByTestId("share-dialog")).toHaveTextContent("My Tree");
     mockSharingFlag = false;
+  });
+});
+
+describe("TreeListPage shared with me", () => {
+  beforeEach(() => {
+    mockQueryReturn = { data: [], isLoading: false };
+    mockSharedList = [];
+  });
+
+  it("renders the shared section with owner label and no row menu", () => {
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    render(<TreeListPage />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: "treeList.sharedWithMe" }),
+    ).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /Their Tree/ });
+    expect(link).toHaveAttribute("href", "/trees/shared-t");
+    expect(screen.getByText("treeList.sharedBy")).toBeInTheDocument();
+    expect(screen.getByText("treeList.viewOnly")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tree.optionsFor" })).not.toBeInTheDocument();
+  });
+
+  it("hides the section when nothing is shared", () => {
+    render(<TreeListPage />);
+    expect(screen.queryByText("treeList.sharedWithMe")).not.toBeInTheDocument();
+  });
+
+  it("never offers a shared tree to the latest tree band", () => {
+    mockQueryReturn = { data: [], isLoading: false };
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    render(<TreeListPage />);
+    expect(screen.queryByText("treeList.openTree")).not.toBeInTheDocument();
   });
 });

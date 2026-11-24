@@ -96,6 +96,16 @@
   white-space: nowrap;
 }
 
+.tree-list-item__view-only {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-right: 18px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .tree-list-item:hover .tree-list-item__link {
   color: var(--color-action);
 }

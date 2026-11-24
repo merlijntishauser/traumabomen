@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, LogOut, Plus, Upload } from "lucide-react";
+import { AlertTriangle, Eye, LogOut, Plus, Upload } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -15,6 +15,7 @@ import { useEncryption } from "../contexts/useEncryption";
 import { useFeatureFlags } from "../hooks/useFeatureFlags";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
+import { type SharedTreeListItem, useSharedTrees } from "../hooks/useSharedTrees";
 import { useTheme } from "../hooks/useTheme";
 import { useTreeListMutations } from "../hooks/useTreeListMutations";
 import { getIsAdmin, getTrees } from "../lib/api";
@@ -313,6 +314,28 @@ function TreeListItemRow({
   );
 }
 
+/** A tree someone shared with you: read-only, so no rename, share or delete. */
+function SharedTreeRow({ tree }: { tree: SharedTreeListItem }) {
+  const { t } = useTranslation();
+  return (
+    <div className="tree-list-item">
+      <Logomark size={24} className="tree-list-item__mark" />
+      <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+        <span className="tree-list-item__name">{tree.name}</span>
+        <span className="tree-list-item__meta">
+          {tree.unreadable
+            ? t("tree.unreadableHint")
+            : t("treeList.sharedBy", { owner: tree.ownerLabel })}
+        </span>
+      </Link>
+      <span className="tree-list-item__view-only">
+        <Eye size={14} aria-hidden="true" />
+        {t("treeList.viewOnly")}
+      </span>
+    </div>
+  );
+}
+
 function TreeListToolbar({
   importing,
   onImportClick,
@@ -431,6 +454,7 @@ export default function TreeListPage() {
   const queryClient = useQueryClient();
   const { data: flags } = useFeatureFlags();
   const canShare = flags?.tree_sharing === true;
+  const { data: sharedList = [] } = useSharedTrees();
 
   const [state, dispatch] = useReducer(treeListLocalReducer, {
     editingId: null,
@@ -649,6 +673,21 @@ export default function TreeListPage() {
                 {otherTrees.map((tree) => (
                   <li key={tree.id}>
                     <TreeListItemRow {...rowProps(tree)} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {sharedList.length > 0 && (
+            <section className="tree-list-section" aria-labelledby="shared-trees-title">
+              <h2 id="shared-trees-title" className="tree-list-section__title">
+                {t("treeList.sharedWithMe")}
+              </h2>
+              <ul className="tree-list">
+                {sharedList.map((tree) => (
+                  <li key={tree.id}>
+                    <SharedTreeRow tree={tree} />
                   </li>
                 ))}
               </ul>
