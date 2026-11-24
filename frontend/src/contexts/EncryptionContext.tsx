@@ -85,22 +85,36 @@ const initialState: EncryptionState = {
   sharingStatus: "idle",
 };
 
+function withOwnTreeKeys(state: EncryptionState, keys: Map<string, CryptoKey>): EncryptionState {
+  // The caller hands over the user's own keys (an unlock or a reauth).
+  // Shared tree keys are loaded separately, so keep those of the trees
+  // still marked shared: dropping them while sharedTrees stays filled
+  // would leave an open shared tree unable to decrypt.
+  const nextTreeKeys = new Map(keys);
+  for (const treeId of state.sharedTrees.keys()) {
+    const key = state.treeKeys.get(treeId);
+    if (key && !nextTreeKeys.has(treeId)) nextTreeKeys.set(treeId, key);
+  }
+  return { ...state, treeKeys: nextTreeKeys };
+}
+
+function withoutSharedTree(state: EncryptionState, treeId: string): EncryptionState {
+  // Only a tree marked shared is touched, so an own tree's key can never
+  // be dropped here; keyRingBase64 never holds shared keys at all.
+  if (!state.sharedTrees.has(treeId)) return state;
+  const nextSharedTrees = new Map(state.sharedTrees);
+  nextSharedTrees.delete(treeId);
+  const nextTreeKeys = new Map(state.treeKeys);
+  nextTreeKeys.delete(treeId);
+  return { ...state, sharedTrees: nextSharedTrees, treeKeys: nextTreeKeys };
+}
+
 function encryptionReducer(state: EncryptionState, action: EncryptionAction): EncryptionState {
   switch (action.type) {
     case "SET_MASTER_KEY":
       return { ...state, masterKey: action.key };
-    case "SET_TREE_KEYS": {
-      // The caller hands over the user's own keys (an unlock or a reauth).
-      // Shared tree keys are loaded separately, so keep those of the trees
-      // still marked shared: dropping them while sharedTrees stays filled
-      // would leave an open shared tree unable to decrypt.
-      const nextTreeKeys = new Map(action.keys);
-      for (const treeId of state.sharedTrees.keys()) {
-        const key = state.treeKeys.get(treeId);
-        if (key && !nextTreeKeys.has(treeId)) nextTreeKeys.set(treeId, key);
-      }
-      return { ...state, treeKeys: nextTreeKeys };
-    }
+    case "SET_TREE_KEYS":
+      return withOwnTreeKeys(state, action.keys);
     case "SET_KEY_RING_BASE64":
       return { ...state, keyRingBase64: action.map };
     case "SET_PASSPHRASE_HASH":
@@ -141,16 +155,8 @@ function encryptionReducer(state: EncryptionState, action: EncryptionAction): En
         sharingStatus: "loaded",
       };
     }
-    case "DROP_SHARED_TREE": {
-      // Only a tree marked shared is touched, so an own tree's key can never
-      // be dropped here; keyRingBase64 never holds shared keys at all.
-      if (!state.sharedTrees.has(action.treeId)) return state;
-      const nextSharedTrees = new Map(state.sharedTrees);
-      nextSharedTrees.delete(action.treeId);
-      const nextTreeKeys = new Map(state.treeKeys);
-      nextTreeKeys.delete(action.treeId);
-      return { ...state, sharedTrees: nextSharedTrees, treeKeys: nextTreeKeys };
-    }
+    case "DROP_SHARED_TREE":
+      return withoutSharedTree(state, action.treeId);
     case "CLEAR":
       return {
         ...initialState,
