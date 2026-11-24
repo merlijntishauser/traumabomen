@@ -75,7 +75,7 @@ function ShareRow({ share, onRemove }: { share: ShareResponse; onRemove: (id: st
 
 export function ShareTreeDialog({ treeId, treeName, onClose }: Props) {
   const { t } = useTranslation();
-  const { shares, isLoading, share, remove } = useTreeShares(treeId);
+  const { shares, isLoading, isError, share, remove } = useTreeShares(treeId);
   const [state, dispatch] = useReducer(reducer, initialState);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -161,6 +161,7 @@ export function ShareTreeDialog({ treeId, treeName, onClose }: Props) {
         {state.inviteFor && (
           <div className="share-dialog__invite" role="alert">
             <p>{t("share.inviteConfirm", { email: state.inviteFor })}</p>
+            <p className="share-dialog__invite-note">{t("share.inviteWaitlistNote")}</p>
             <div className="share-dialog__invite-actions">
               <button
                 type="button"
@@ -190,6 +191,10 @@ export function ShareTreeDialog({ treeId, treeName, onClose }: Props) {
         <h3 className="share-dialog__subtitle">{t("share.listTitle")}</h3>
         {isLoading ? (
           <p className="share-dialog__empty">{t("common.loading")}</p>
+        ) : isError ? (
+          <p className="share-dialog__error" role="alert">
+            {t("share.listError")}
+          </p>
         ) : shares.length === 0 ? (
           <p className="share-dialog__empty">{t("share.empty")}</p>
         ) : (

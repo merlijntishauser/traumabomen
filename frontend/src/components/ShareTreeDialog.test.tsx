@@ -84,6 +84,8 @@ describe("ShareTreeDialog", () => {
     await submitEmail("new@example.com");
 
     expect(await screen.findByText("share.inviteConfirm:new@example.com")).toBeInTheDocument();
+    // Registration may be capacity gated: the owner is told before inviting.
+    expect(screen.getByText("share.inviteWaitlistNote")).toBeInTheDocument();
     expect(mockCreateShare).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "share.inviteSend" }));
@@ -93,6 +95,13 @@ describe("ShareTreeDialog", () => {
       language: "nl",
     });
     expect(mockWrap).not.toHaveBeenCalled();
+  });
+
+  it("says the list could not load instead of calling the tree unshared", async () => {
+    mockGetShares.mockRejectedValue(new ApiError(500, "boom"));
+    renderDialog();
+    expect(await screen.findByText("share.listError")).toBeInTheDocument();
+    expect(screen.queryByText("share.empty")).not.toBeInTheDocument();
   });
 
   it("shows the self-share message", async () => {
