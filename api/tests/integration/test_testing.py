@@ -2,6 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.feature_flag import FeatureFlag
 from tests.integration.conftest import create_user
 
 
@@ -32,3 +33,26 @@ async def test_reset_preserves_non_e2e_users(client: AsyncClient, user):
         json={"email": "test@example.com", "password": "TestPassword1"},
     )
     assert login_resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_feature_flag_creates_missing_row(client: AsyncClient, db_session: AsyncSession):
+    resp = await client.post("/test/feature-flag", json={"key": "e2e_flag", "audience": "all"})
+    assert resp.status_code == 204
+
+    flag = await db_session.get(FeatureFlag, "e2e_flag")
+    assert flag is not None
+    assert flag.audience == "all"
+
+
+@pytest.mark.asyncio
+async def test_feature_flag_updates_existing_row(client: AsyncClient, db_session: AsyncSession):
+    db_session.add(FeatureFlag(key="e2e_flag", audience="disabled"))
+    await db_session.commit()
+
+    resp = await client.post("/test/feature-flag", json={"key": "e2e_flag", "audience": "all"})
+    assert resp.status_code == 204
+
+    flag = await db_session.get(FeatureFlag, "e2e_flag")
+    assert flag is not None
+    assert flag.audience == "all"
