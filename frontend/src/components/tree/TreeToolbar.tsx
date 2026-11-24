@@ -28,7 +28,7 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
       {readOnly && (
         <span className="tree-toolbar__view-only">
           <Eye size={13} aria-hidden="true" />
-          {t("share.viewOnly", { owner: ownerLabel ?? "" })}
+          {ownerLabel ? t("share.viewOnly", { owner: ownerLabel }) : t("treeList.viewOnly")}
         </span>
       )}
       <ViewTabs treeId={treeId} activeView={activeView} readOnly={readOnly} />

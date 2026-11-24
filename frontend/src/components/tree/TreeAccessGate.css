@@ -1,0 +1,8 @@
+/* Small on purpose: this loads with the app entry, before any tree view. */
+.tree-access-gate {
+  padding: 20px;
+}
+
+.tree-access-gate p {
+  margin: 0 0 var(--space-2);
+}

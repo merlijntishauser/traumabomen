@@ -116,6 +116,17 @@ describe("TreeToolbar", () => {
     }
   });
 
+  it("says view only without a dangling owner when the owner label is empty", () => {
+    mockAccess = { readOnly: true, ownerLabel: "" };
+    try {
+      renderToolbar();
+      expect(screen.getByText("treeList.viewOnly")).toBeInTheDocument();
+      expect(screen.queryByText("share.viewOnly")).not.toBeInTheDocument();
+    } finally {
+      mockAccess = { readOnly: false, ownerLabel: null };
+    }
+  });
+
   it("shows no view-only note for an own tree", () => {
     renderToolbar();
     expect(screen.queryByText("share.viewOnly")).not.toBeInTheDocument();

@@ -2,6 +2,8 @@ import { createContext, type ReactNode, useCallback, useMemo, useReducer } from 
 import { decryptFromApi, encryptForApi, hashPassphrase, timingSafeEqual } from "../lib/crypto";
 import type { SharedTreeInfo } from "../lib/sharingLoader";
 
+export type SharingStatus = "idle" | "loading" | "loaded";
+
 interface EncryptionContextValue {
   masterKey: CryptoKey | null;
   treeKeys: Map<string, CryptoKey>;
@@ -10,12 +12,19 @@ interface EncryptionContextValue {
   isMigrated: boolean;
   /** Trees other users shared with this user, read-only. Their keys live in treeKeys only. */
   sharedTrees: Map<string, SharedTreeInfo>;
+  /**
+   * Where the background sharing load stands for this session. "loaded" also
+   * covers a failed load: loadSharing never rejects, it reports no shares.
+   */
+  sharingStatus: SharingStatus;
   setMasterKey: (key: CryptoKey) => void;
   setTreeKeys: (keys: Map<string, CryptoKey>) => void;
   setKeyRingBase64: (map: Map<string, string>) => void;
   addTreeKey: (treeId: string, key: CryptoKey, base64: string) => void;
   removeTreeKey: (treeId: string) => void;
   setIsMigrated: (value: boolean) => void;
+  /** Marks the sharing load of the session holding masterKey as started. */
+  startSharingLoad: (masterKey: CryptoKey) => void;
   /** masterKey is the key the load started with; a result for any other session is dropped. */
   setSharing: (
     masterKey: CryptoKey,
@@ -43,6 +52,7 @@ interface EncryptionState {
   passphraseHash: string | null;
   isMigrated: boolean;
   sharedTrees: Map<string, SharedTreeInfo>;
+  sharingStatus: SharingStatus;
 }
 
 type EncryptionAction =
@@ -53,6 +63,7 @@ type EncryptionAction =
   | { type: "SET_IS_MIGRATED"; value: boolean }
   | { type: "ADD_TREE_KEY"; treeId: string; key: CryptoKey; base64: string }
   | { type: "REMOVE_TREE_KEY"; treeId: string }
+  | { type: "SHARING_LOADING"; masterKey: CryptoKey }
   | {
       type: "SET_SHARING";
       masterKey: CryptoKey;
@@ -68,6 +79,7 @@ const initialState: EncryptionState = {
   passphraseHash: null,
   isMigrated: false,
   sharedTrees: new Map(),
+  sharingStatus: "idle",
 };
 
 function encryptionReducer(state: EncryptionState, action: EncryptionAction): EncryptionState {
@@ -106,6 +118,9 @@ function encryptionReducer(state: EncryptionState, action: EncryptionAction): En
       nextKeyRing.delete(action.treeId);
       return { ...state, treeKeys: nextTreeKeys, keyRingBase64: nextKeyRing };
     }
+    case "SHARING_LOADING":
+      if (!state.masterKey || state.masterKey !== action.masterKey) return state;
+      return { ...state, sharingStatus: "loading" };
     case "SET_SHARING": {
       // Sharing loads in the background after unlock. If the session that
       // started it was cleared (and possibly replaced by another unlock)
@@ -116,7 +131,12 @@ function encryptionReducer(state: EncryptionState, action: EncryptionAction): En
       const nextTreeKeys = new Map(state.treeKeys);
       for (const treeId of state.sharedTrees.keys()) nextTreeKeys.delete(treeId);
       for (const [treeId, key] of action.keys) nextTreeKeys.set(treeId, key);
-      return { ...state, treeKeys: nextTreeKeys, sharedTrees: action.trees };
+      return {
+        ...state,
+        treeKeys: nextTreeKeys,
+        sharedTrees: action.trees,
+        sharingStatus: "loaded",
+      };
     }
     case "CLEAR":
       return {
@@ -170,6 +190,11 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
 
   const removeTreeKey = useCallback(
     (treeId: string) => dispatch({ type: "REMOVE_TREE_KEY", treeId }),
+    [],
+  );
+
+  const startSharingLoad = useCallback(
+    (masterKey: CryptoKey) => dispatch({ type: "SHARING_LOADING", masterKey }),
     [],
   );
 
@@ -237,12 +262,14 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       passphraseHash: state.passphraseHash,
       isMigrated: state.isMigrated,
       sharedTrees: state.sharedTrees,
+      sharingStatus: state.sharingStatus,
       setMasterKey,
       setTreeKeys,
       setKeyRingBase64,
       addTreeKey,
       removeTreeKey,
       setIsMigrated,
+      startSharingLoad,
       setSharing,
       isSharedTree,
       clearKey,
@@ -260,6 +287,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       state.passphraseHash,
       state.isMigrated,
       state.sharedTrees,
+      state.sharingStatus,
       addTreeKey,
       removeTreeKey,
       clearKey,
@@ -268,6 +296,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       setKeyRingBase64,
       setPassphraseHash,
       setIsMigrated,
+      startSharingLoad,
       setSharing,
       isSharedTree,
       verifyPassphrase,

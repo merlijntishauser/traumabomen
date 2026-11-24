@@ -10,8 +10,9 @@ vi.mock("../lib/sharingLoader", () => ({
 }));
 
 const mockSetSharing = vi.fn();
+const mockStartSharingLoad = vi.fn();
 vi.mock("../contexts/useEncryption", () => ({
-  useEncryption: () => ({ setSharing: mockSetSharing }),
+  useEncryption: () => ({ setSharing: mockSetSharing, startSharingLoad: mockStartSharingLoad }),
 }));
 
 const masterKey = { id: "master" } as unknown as CryptoKey;
@@ -52,6 +53,7 @@ describe("useLoadSharing", () => {
     const { start } = setup();
 
     expect(start(masterKey, new Map())).toBeUndefined();
+    expect(mockStartSharingLoad).toHaveBeenCalledWith(masterKey);
     expect(mockSetSharing).not.toHaveBeenCalled();
   });
 });

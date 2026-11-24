@@ -268,6 +268,7 @@
   "tree.meta.empty": "Not started yet",
   "tree.meta.updated": "updated {{time}}",
   "tree.decryptionError": "Could not decrypt tree data. Please log in again.",
+  "tree.unavailable": "This tree is not available. It may have been deleted, or it is no longer shared with you.",
   "person.details": "Person details",
   "person.tab": "Person",
   "person.newPerson": "New person",

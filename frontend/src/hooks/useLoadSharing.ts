@@ -10,16 +10,17 @@ import { loadSharing } from "../lib/sharingLoader";
  * loadSharing never rejects, so there is nothing to catch.
  */
 export function useLoadSharing(): (masterKey: CryptoKey, ownKeyRing: Map<string, string>) => void {
-  const { setSharing } = useEncryption();
+  const { startSharingLoad, setSharing } = useEncryption();
   const queryClient = useQueryClient();
 
   return useCallback(
     (masterKey: CryptoKey, ownKeyRing: Map<string, string>) => {
+      startSharingLoad(masterKey);
       void loadSharing(masterKey, ownKeyRing).then(({ sharedKeys, sharedTrees }) => {
         setSharing(masterKey, sharedKeys, sharedTrees);
         void queryClient.invalidateQueries({ queryKey: ["shares", "received"] });
       });
     },
-    [setSharing, queryClient],
+    [startSharingLoad, setSharing, queryClient],
   );
 }

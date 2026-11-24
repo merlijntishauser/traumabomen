@@ -7,6 +7,7 @@ import { AuthModal } from "./components/AuthModal";
 import { LockScreen } from "./components/LockScreen";
 import { MobileBanner } from "./components/MobileBanner";
 import { OnboardingGate } from "./components/OnboardingGate";
+import { TreeAccessGate } from "./components/tree/TreeAccessGate";
 import { EncryptionProvider } from "./contexts/EncryptionContext";
 import { useEncryption } from "./contexts/useEncryption";
 import { useCanvasSettings } from "./hooks/useCanvasSettings";
@@ -324,9 +325,11 @@ function AppContent() {
                 path="/trees/:id"
                 element={
                   <AuthGuard>
-                    <LazyBoundary>
-                      <TreeWorkspacePage />
-                    </LazyBoundary>
+                    <TreeAccessGate>
+                      <LazyBoundary>
+                        <TreeWorkspacePage />
+                      </LazyBoundary>
+                    </TreeAccessGate>
                   </AuthGuard>
                 }
               />
@@ -334,9 +337,11 @@ function AppContent() {
                 path="/trees/:id/timeline"
                 element={
                   <AuthGuard>
-                    <LazyBoundary>
-                      <TimelinePage />
-                    </LazyBoundary>
+                    <TreeAccessGate>
+                      <LazyBoundary>
+                        <TimelinePage />
+                      </LazyBoundary>
+                    </TreeAccessGate>
                   </AuthGuard>
                 }
               />
@@ -344,9 +349,11 @@ function AppContent() {
                 path="/trees/:id/patterns"
                 element={
                   <AuthGuard>
-                    <LazyBoundary>
-                      <PatternPage />
-                    </LazyBoundary>
+                    <TreeAccessGate>
+                      <LazyBoundary>
+                        <PatternPage />
+                      </LazyBoundary>
+                    </TreeAccessGate>
                   </AuthGuard>
                 }
               />
@@ -354,9 +361,11 @@ function AppContent() {
                 path="/trees/:id/journal"
                 element={
                   <AuthGuard>
-                    <LazyBoundary>
-                      <JournalPage />
-                    </LazyBoundary>
+                    <TreeAccessGate>
+                      <LazyBoundary>
+                        <JournalPage />
+                      </LazyBoundary>
+                    </TreeAccessGate>
                   </AuthGuard>
                 }
               />
@@ -364,9 +373,11 @@ function AppContent() {
                 path="/trees/:id/insights"
                 element={
                   <AuthGuard>
-                    <LazyBoundary>
-                      <InsightsPage />
-                    </LazyBoundary>
+                    <TreeAccessGate>
+                      <LazyBoundary>
+                        <InsightsPage />
+                      </LazyBoundary>
+                    </TreeAccessGate>
                   </AuthGuard>
                 }
               />

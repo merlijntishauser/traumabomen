@@ -296,6 +296,33 @@ describe("setSharing", () => {
     expect([...result.current.treeKeys.keys()]).toEqual(["own-tree"]);
   });
 
+  it("tracks the sharing load from start to loaded, and resets it on clear", async () => {
+    const { result } = renderEncryption();
+    const master = await createMockKey();
+    expect(result.current.sharingStatus).toBe("idle");
+
+    act(() => result.current.setMasterKey(master));
+    act(() => result.current.startSharingLoad(master));
+    expect(result.current.sharingStatus).toBe("loading");
+
+    act(() => result.current.setSharing(master, new Map(), new Map()));
+    expect(result.current.sharingStatus).toBe("loaded");
+
+    act(() => result.current.clearKey());
+    expect(result.current.sharingStatus).toBe("idle");
+  });
+
+  it("ignores a sharing load started by another session", async () => {
+    const { result } = renderEncryption();
+    const [masterA, masterB] = await Promise.all([createMockKey(), createMockKey()]);
+
+    act(() => result.current.setMasterKey(masterB));
+    act(() => result.current.startSharingLoad(masterA));
+    expect(result.current.sharingStatus).toBe("idle");
+    act(() => result.current.setSharing(masterA, new Map(), new Map()));
+    expect(result.current.sharingStatus).toBe("idle");
+  });
+
   it("clearKey drops shared trees and their keys", async () => {
     const { result } = renderEncryption();
     const [master, shared] = await Promise.all([createMockKey(), createMockKey()]);
