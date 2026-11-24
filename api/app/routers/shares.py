@@ -76,6 +76,64 @@ async def list_shares(
     return [_to_response(share, recipient) for share, recipient in rows.all()]
 
 
+async def _check_can_share(db: AsyncSession, user: User, request: Request) -> None:
+    if not await user_has_flag(db, user, "tree_sharing"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="sharing_not_enabled")
+    check_endpoint_rate_limit(get_client_ip(request), "tree-share")
+    check_endpoint_rate_limit(str(user.id), "tree-share-user")
+
+
+def _recipient_email(body: CreateShareRequest, user: User) -> str:
+    email = body.recipient_email.strip().lower()
+    if email == user.email.strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="cannot_share_with_self"
+        )
+    return email
+
+
+async def _check_not_shared(db: AsyncSession, tree: Tree, email: str) -> None:
+    existing = await db.execute(
+        select(TreeShare.id).where(TreeShare.tree_id == tree.id, TreeShare.recipient_email == email)
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="already_shared")
+
+
+def _active_share(
+    tree: Tree, user: User, email: str, recipient: User, encrypted_tree_key: str | None
+) -> TreeShare:
+    if not encrypted_tree_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="encrypted_tree_key_required",
+        )
+    return TreeShare(
+        tree_id=tree.id,
+        owner_id=user.id,
+        recipient_email=email,
+        recipient_id=recipient.id,
+        encrypted_tree_key=encrypted_tree_key,
+        status=SHARE_ACTIVE,
+    )
+
+
+async def _pending_share(db: AsyncSession, tree: Tree, user: User, email: str) -> TreeShare:
+    pending_count = await db.scalar(
+        select(func.count())
+        .select_from(TreeShare)
+        .where(TreeShare.owner_id == user.id, TreeShare.status == SHARE_PENDING)
+    )
+    if (pending_count or 0) >= MAX_PENDING_SHARES:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="pending_share_limit")
+    return TreeShare(
+        tree_id=tree.id,
+        owner_id=user.id,
+        recipient_email=email,
+        status=SHARE_PENDING,
+    )
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_share(
     body: CreateShareRequest,
@@ -85,52 +143,15 @@ async def create_share(
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> ShareResponse:
-    if not await user_has_flag(db, user, "tree_sharing"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="sharing_not_enabled")
-    check_endpoint_rate_limit(get_client_ip(request), "tree-share")
-    check_endpoint_rate_limit(str(user.id), "tree-share-user")
-
-    email = body.recipient_email.strip().lower()
-    if email == user.email.strip().lower():
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="cannot_share_with_self"
-        )
-
-    existing = await db.execute(
-        select(TreeShare.id).where(TreeShare.tree_id == tree.id, TreeShare.recipient_email == email)
-    )
-    if existing.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="already_shared")
+    await _check_can_share(db, user, request)
+    email = _recipient_email(body, user)
+    await _check_not_shared(db, tree, email)
 
     recipient = await _user_by_email(db, email)
     if recipient is not None and recipient.public_key:
-        if not body.encrypted_tree_key:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail="encrypted_tree_key_required",
-            )
-        share = TreeShare(
-            tree_id=tree.id,
-            owner_id=user.id,
-            recipient_email=email,
-            recipient_id=recipient.id,
-            encrypted_tree_key=body.encrypted_tree_key,
-            status=SHARE_ACTIVE,
-        )
+        share = _active_share(tree, user, email, recipient, body.encrypted_tree_key)
     else:
-        pending_count = await db.scalar(
-            select(func.count())
-            .select_from(TreeShare)
-            .where(TreeShare.owner_id == user.id, TreeShare.status == SHARE_PENDING)
-        )
-        if (pending_count or 0) >= MAX_PENDING_SHARES:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="pending_share_limit")
-        share = TreeShare(
-            tree_id=tree.id,
-            owner_id=user.id,
-            recipient_email=email,
-            status=SHARE_PENDING,
-        )
+        share = await _pending_share(db, tree, user, email)
 
     db.add(share)
     await db.commit()
