@@ -278,3 +278,33 @@ async def test_reshare_after_revoke(client, db_session, user, headers, tree, sha
     await client.delete(f"/trees/{tree['id']}/shares/{created['id']}", headers=headers)
     resp = await _share(client, headers, tree, "bob@x.org", KEY)
     assert resp.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_pending_share_hides_recipient_display_name(
+    client, db_session, user, headers, tree, sharing_enabled
+):
+    keyless = await create_user(db_session, email="keyless@x.org")
+    await client.put(
+        "/auth/profile", json={"display_name": "Kees"}, headers=auth_headers(keyless.id)
+    )
+    resp = await _share(client, headers, tree, "keyless@x.org")
+    assert resp.json()["status"] == "pending"
+    assert resp.json()["recipient_display_name"] is None
+    listed = await client.get(f"/trees/{tree['id']}/shares", headers=headers)
+    assert [(s["status"], s["recipient_display_name"]) for s in listed.json()] == [
+        ("pending", None)
+    ]
+
+
+@pytest.mark.asyncio
+async def test_invite_sent_once_per_address_within_cooldown(
+    client, user, headers, tree, sharing_enabled
+):
+    with patch("app.routers.shares.send_email_background") as send:
+        first = (await _share(client, headers, tree, "new@x.org")).json()
+        await client.delete(f"/trees/{tree['id']}/shares/{first['id']}", headers=headers)
+        again = await _share(client, headers, tree, "NEW@x.org")
+    assert again.status_code == 201
+    assert again.json()["status"] == "pending"
+    send.assert_called_once()

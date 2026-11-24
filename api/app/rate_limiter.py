@@ -212,3 +212,21 @@ def check_endpoint_rate_limit(ip: str, endpoint: str) -> None:
             detail="Too many requests. Try again later.",
             headers={"Retry-After": str(ENDPOINT_WINDOW_MINUTES * 60)},
         )
+
+
+# Cooldowns: an action that may happen once per window for a key, skipped
+# silently (no 429) while the key cools down. Kept apart from the stores above,
+# whose 30-minute expiry is shorter than a cooldown window.
+_cooldowns: dict[str, datetime] = {}
+
+
+def claim_cooldown(key: str, window: timedelta) -> bool:
+    """Return True and start the cooldown if key is not cooling down, else False."""
+    key = _sanitize(key)
+    now = datetime.now(UTC)
+    for expired in [k for k, until in _cooldowns.items() if until <= now]:
+        del _cooldowns[expired]
+    if key in _cooldowns:
+        return False
+    _cooldowns[key] = now + window
+    return True

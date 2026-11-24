@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
@@ -12,7 +13,7 @@ from app.email import send_email_background, send_share_invite_email
 from app.models.tree import Tree
 from app.models.tree_share import SHARE_ACTIVE, SHARE_PENDING, TreeShare
 from app.models.user import User
-from app.rate_limiter import check_endpoint_rate_limit, get_client_ip
+from app.rate_limiter import check_endpoint_rate_limit, claim_cooldown, get_client_ip
 from app.routers.features import user_has_flag
 from app.schemas.shares import (
     CompleteShareRequest,
@@ -23,6 +24,9 @@ from app.schemas.shares import (
 )
 
 MAX_PENDING_SHARES = 20
+# One invitation email per recipient address per window, whoever shares and
+# however often a share is revoked and made again.
+INVITE_COOLDOWN = timedelta(hours=24)
 
 router = APIRouter(prefix="/trees/{tree_id}/shares", tags=["shares"])
 auth_router = APIRouter(prefix="/auth", tags=["shares"])
@@ -33,7 +37,11 @@ def _to_response(share: TreeShare, recipient: User | None) -> ShareResponse:
         id=share.id,
         tree_id=share.tree_id,
         recipient_email=share.recipient_email,
-        recipient_display_name=recipient.display_name if recipient else None,
+        # Only an accepted share reveals the recipient's display name: a
+        # pending invite must not tell the owner who holds that address.
+        recipient_display_name=(
+            recipient.display_name if recipient and share.status == SHARE_ACTIVE else None
+        ),
         status=share.status,
         created_at=share.created_at,
     )
@@ -128,7 +136,7 @@ async def create_share(
     await db.commit()
     await db.refresh(share)
 
-    if recipient is None:
+    if recipient is None and claim_cooldown(f"invite:{email}", INVITE_COOLDOWN):
         send_email_background(send_share_invite_email, email, settings, body.language)
     return _to_response(share, recipient)
 

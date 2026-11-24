@@ -16,6 +16,7 @@ from app.rate_limiter import (
     _redact_ip,
     check_and_tarpit,
     check_endpoint_rate_limit,
+    claim_cooldown,
     clear,
     record_failure,
 )
@@ -240,3 +241,23 @@ class TestCleanup:
 
         # Should not raise; the aged entries get cleaned up first
         await check_and_tarpit("1.2.3.4", "locked@example.com")
+
+
+class TestClaimCooldown:
+    def test_first_claim_wins_and_repeats_are_refused(self):
+        assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is True
+        assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is False
+
+    def test_keys_cool_down_independently(self):
+        assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is True
+        assert claim_cooldown("invite:b@x.org", timedelta(hours=24)) is True
+
+    def test_claim_is_allowed_again_after_the_window(self):
+        start = datetime(2026, 1, 1, tzinfo=UTC)
+        with patch("app.rate_limiter.datetime") as mock_dt:
+            mock_dt.now.return_value = start
+            assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is True
+            mock_dt.now.return_value = start + timedelta(hours=23)
+            assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is False
+            mock_dt.now.return_value = start + timedelta(hours=24, seconds=1)
+            assert claim_cooldown("invite:a@x.org", timedelta(hours=24)) is True
