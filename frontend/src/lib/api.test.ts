@@ -75,6 +75,7 @@ import {
   putKeyPair,
   rateLimitDelay,
   register,
+  removeSharedTree,
   resendVerification,
   setTokens,
   setWasAuthenticated,
@@ -1768,6 +1769,12 @@ describe("sharing endpoints", () => {
   it("deleteShare DELETEs the share", async () => {
     const r = await call(() => deleteShare("t1", "s1"), null);
     expect(r.url).toBe("/api/trees/t1/shares/s1");
+    expect(r.init.method).toBe("DELETE");
+  });
+
+  it("removeSharedTree DELETEs the recipient's shared key", async () => {
+    const r = await call(() => removeSharedTree("s1"), null);
+    expect(r.url).toBe("/api/auth/shared-keys/s1");
     expect(r.init.method).toBe("DELETE");
   });
 

@@ -31,6 +31,8 @@ interface EncryptionContextValue {
     keys: Map<string, CryptoKey>,
     trees: Map<string, SharedTreeInfo>,
   ) => void;
+  /** Forgets one shared tree (its entry and its key); own keys and the key ring stay as they are. */
+  dropSharedTree: (treeId: string) => void;
   isSharedTree: (treeId: string) => boolean;
   clearKey: () => void;
   setPassphraseHash: (hash: string) => void;
@@ -70,6 +72,7 @@ type EncryptionAction =
       keys: Map<string, CryptoKey>;
       trees: Map<string, SharedTreeInfo>;
     }
+  | { type: "DROP_SHARED_TREE"; treeId: string }
   | { type: "CLEAR" };
 
 const initialState: EncryptionState = {
@@ -138,6 +141,16 @@ function encryptionReducer(state: EncryptionState, action: EncryptionAction): En
         sharingStatus: "loaded",
       };
     }
+    case "DROP_SHARED_TREE": {
+      // Only a tree marked shared is touched, so an own tree's key can never
+      // be dropped here; keyRingBase64 never holds shared keys at all.
+      if (!state.sharedTrees.has(action.treeId)) return state;
+      const nextSharedTrees = new Map(state.sharedTrees);
+      nextSharedTrees.delete(action.treeId);
+      const nextTreeKeys = new Map(state.treeKeys);
+      nextTreeKeys.delete(action.treeId);
+      return { ...state, sharedTrees: nextSharedTrees, treeKeys: nextTreeKeys };
+    }
     case "CLEAR":
       return {
         ...initialState,
@@ -201,6 +214,11 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
   const setSharing = useCallback(
     (masterKey: CryptoKey, keys: Map<string, CryptoKey>, trees: Map<string, SharedTreeInfo>) =>
       dispatch({ type: "SET_SHARING", masterKey, keys, trees }),
+    [],
+  );
+
+  const dropSharedTree = useCallback(
+    (treeId: string) => dispatch({ type: "DROP_SHARED_TREE", treeId }),
     [],
   );
 
@@ -271,6 +289,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       setIsMigrated,
       startSharingLoad,
       setSharing,
+      dropSharedTree,
       isSharedTree,
       clearKey,
       setPassphraseHash,
@@ -298,6 +317,7 @@ export function EncryptionProvider({ children }: { children: ReactNode }) {
       setIsMigrated,
       startSharingLoad,
       setSharing,
+      dropSharedTree,
       isSharedTree,
       verifyPassphrase,
       encrypt,

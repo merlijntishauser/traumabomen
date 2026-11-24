@@ -425,6 +425,11 @@ export function getSharedKeys(): Promise<SharedKeyResponse[]> {
   return apiFetchWithRetry("/auth/shared-keys");
 }
 
+/** The recipient drops a tree someone shared with them. */
+export function removeSharedTree(shareId: string): Promise<void> {
+  return apiFetchWithRetry(`/auth/shared-keys/${shareId}`, { method: "DELETE" });
+}
+
 export function getPendingShares(): Promise<PendingShareResponse[]> {
   return apiFetchWithRetry("/auth/pending-shares");
 }

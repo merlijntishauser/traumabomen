@@ -428,6 +428,65 @@ describe("masterDecrypt", () => {
 });
 
 // ---------------------------------------------------------------------------
+// dropSharedTree
+// ---------------------------------------------------------------------------
+
+describe("dropSharedTree", () => {
+  async function withOwnAndTwoShared() {
+    const { result } = renderEncryption();
+    const [master, own, sharedA, sharedB] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+    act(() => {
+      result.current.setMasterKey(master);
+      result.current.addTreeKey("own-tree", own, "own-b64");
+    });
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([
+          ["shared-a", sharedA],
+          ["shared-b", sharedB],
+        ]),
+        new Map([
+          ["shared-a", { shareId: "s-a", treeId: "shared-a", ownerLabel: "Anna" }],
+          ["shared-b", { shareId: "s-b", treeId: "shared-b", ownerLabel: "Ben" }],
+        ]),
+      ),
+    );
+    return { result, own, sharedB };
+  }
+
+  it("drops one shared tree and its key, leaving the rest", async () => {
+    const { result, own, sharedB } = await withOwnAndTwoShared();
+    const ringBefore = result.current.keyRingBase64;
+
+    act(() => result.current.dropSharedTree("shared-a"));
+
+    expect([...result.current.sharedTrees.keys()]).toEqual(["shared-b"]);
+    expect(result.current.treeKeys.has("shared-a")).toBe(false);
+    expect(result.current.treeKeys.get("shared-b")).toBe(sharedB);
+    expect(result.current.treeKeys.get("own-tree")).toBe(own);
+    expect(result.current.keyRingBase64).toBe(ringBefore);
+    expect(result.current.isSharedTree("shared-a")).toBe(false);
+  });
+
+  it("never drops an own tree's key", async () => {
+    const { result, own } = await withOwnAndTwoShared();
+    const before = result.current.treeKeys;
+
+    act(() => result.current.dropSharedTree("own-tree"));
+
+    expect(result.current.treeKeys).toBe(before);
+    expect(result.current.treeKeys.get("own-tree")).toBe(own);
+    expect(result.current.keyRingBase64.get("own-tree")).toBe("own-b64");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // verifyPassphrase
 // ---------------------------------------------------------------------------
 
