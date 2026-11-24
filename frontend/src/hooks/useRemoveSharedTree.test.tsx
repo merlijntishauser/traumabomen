@@ -58,6 +58,24 @@ describe("useRemoveSharedTree", () => {
     expect(result.current.busy).toBe(false);
   });
 
+  it("runs beforeDrop before dropping the tree, and not on failure", async () => {
+    const order: string[] = [];
+    mockDropSharedTree.mockImplementation(() => order.push("drop"));
+    mockRemoveSharedTree.mockResolvedValueOnce(undefined);
+    const { result } = renderHook(() => useRemoveSharedTree(), { wrapper });
+    await act(async () => {
+      await result.current.remove("t1", { beforeDrop: () => order.push("leave") });
+    });
+    expect(order).toEqual(["leave", "drop"]);
+
+    const beforeDrop = vi.fn();
+    mockRemoveSharedTree.mockRejectedValueOnce(new Error("network"));
+    await act(async () => {
+      await result.current.remove("t1", { beforeDrop });
+    });
+    expect(beforeDrop).not.toHaveBeenCalled();
+  });
+
   it("treats an already gone share (404) as removed", async () => {
     mockRemoveSharedTree.mockRejectedValue(new ApiError(404, "Share not found"));
     const { result } = renderHook(() => useRemoveSharedTree(), { wrapper });

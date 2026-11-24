@@ -161,15 +161,18 @@ describe("TreeToolbar", () => {
     });
 
     it("asks before removing, and removes then goes back to the trees", async () => {
-      mockRemove.mockResolvedValue(true);
+      mockRemove.mockImplementation(async (_id: string, opts?: { beforeDrop?: () => void }) => {
+        opts?.beforeDrop?.();
+        return true;
+      });
       renderToolbar();
       fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
       expect(screen.getByText("share.removeFromListTitle")).toBeInTheDocument();
       expect(screen.getByText("share.removeFromListBody")).toBeInTheDocument();
       expect(document.activeElement).toBe(screen.getByRole("button", { name: "common.cancel" }));
       fireEvent.click(screen.getByRole("button", { name: "share.removeFromListConfirm" }));
-      expect(mockRemove).toHaveBeenCalledWith(TREE_ID);
-      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/trees"));
+      expect(mockRemove).toHaveBeenCalledWith(TREE_ID, expect.anything());
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/trees", { replace: true }));
     });
 
     it("stays put when removing fails", async () => {

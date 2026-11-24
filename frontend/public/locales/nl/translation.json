@@ -1151,7 +1151,7 @@
   "share.removeAccess": "Toegang intrekken",
   "share.removeConfirm": "Toegang intrekken?",
   "share.removeFromList": "Uit mijn lijst verwijderen",
-  "share.removeFromListTitle": "Deze boom uit je lijst verwijderen?",
+  "share.removeFromListTitle": "Deze stamboom uit je lijst verwijderen?",
   "share.removeFromListBody": "Je kunt hem dan niet meer bekijken. {{owner}} kan hem opnieuw met je delen.",
   "share.removeFromListConfirm": "Verwijderen",
   "share.depth": "Ze zien alles in deze stamboom, behalve je dagboek. Toegang intrekken stopt nieuwe weergaven; wat ze al hebben geopend blijft op hun apparaat staan.",

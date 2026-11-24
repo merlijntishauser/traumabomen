@@ -19,7 +19,7 @@ function RemoveSharedTreeAction({ treeId, ownerLabel }: { treeId: string; ownerL
   const { remove, reset, busy, error } = useRemoveSharedTree();
 
   async function confirm() {
-    if (await remove(treeId)) navigate("/trees");
+    await remove(treeId, { beforeDrop: () => navigate("/trees", { replace: true }) });
   }
 
   return (

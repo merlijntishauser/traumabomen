@@ -58,6 +58,29 @@ describe("TreeRowMenu for a shared tree", () => {
   });
 });
 
+describe("TreeRowMenu item order", () => {
+  it("arrow keys follow the rendered order with every item present", () => {
+    render(
+      <TreeRowMenu
+        treeName="T"
+        onRename={vi.fn()}
+        onShare={vi.fn()}
+        onRemoveFromList={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor:T" }));
+    const items = screen.getAllByRole("menuitem");
+    const menu = screen.getByRole("menu");
+    const visited = [document.activeElement];
+    for (let i = 1; i < items.length; i++) {
+      fireEvent.keyDown(menu, { key: "ArrowDown" });
+      visited.push(document.activeElement);
+    }
+    expect(visited).toEqual(items);
+  });
+});
+
 describe("TreeRowMenu", () => {
   it("names the tree in the trigger and starts closed", () => {
     const { trigger } = setup();

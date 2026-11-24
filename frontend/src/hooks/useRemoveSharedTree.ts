@@ -29,7 +29,7 @@ export function useRemoveSharedTree() {
   const [state, setState] = useState<RemoveState>({ busy: false, error: null });
 
   const remove = useCallback(
-    async (treeId: string): Promise<boolean> => {
+    async (treeId: string, options: { beforeDrop?: () => void } = {}): Promise<boolean> => {
       const info = sharedTrees.get(treeId);
       if (!info) return false;
       setState({ busy: true, error: null });
@@ -46,6 +46,9 @@ export function useRemoveSharedTree() {
       queryClient.setQueryData<SharedTreeListItem[]>(RECEIVED_KEY, (items) =>
         items?.filter((item) => item.id !== treeId),
       );
+      // Lets a caller leave the tree's view first, in the same update as the
+      // drop, so nothing still showing the tree renders it as unavailable.
+      options.beforeDrop?.();
       dropSharedTree(treeId);
       void queryClient.invalidateQueries({ queryKey: RECEIVED_KEY });
       setState({ busy: false, error: null });

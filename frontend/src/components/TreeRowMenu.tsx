@@ -118,7 +118,7 @@ export function TreeRowMenu({
           {onRemoveFromList && (
             <button
               ref={(el) => {
-                itemRefs.current[3] = el;
+                itemRefs.current[2] = el;
               }}
               type="button"
               role="menuitem"
@@ -131,7 +131,7 @@ export function TreeRowMenu({
           {onDelete && (
             <button
               ref={(el) => {
-                itemRefs.current[2] = el;
+                itemRefs.current[3] = el;
               }}
               type="button"
               role="menuitem"
