@@ -68,6 +68,16 @@ describe("useSharedTrees", () => {
     expect(result.current.data?.[0].id).toBe("t2");
   });
 
+  it("keeps a tree as unreadable when the fetch fails with a non-404 error", async () => {
+    mockGetTree.mockImplementation(async (id: string) => {
+      if (id === "t1") throw new ApiError(500, "boom");
+      return { id, encrypted_data: `enc-${id}` };
+    });
+    const { result } = renderHook(() => useSharedTrees(), { wrapper });
+    await waitFor(() => expect(result.current.data).toHaveLength(2));
+    expect(result.current.data?.[0]).toMatchObject({ id: "t1", unreadable: true });
+  });
+
   it("marks an undecryptable tree as unreadable without failing the list", async () => {
     mockDecrypt.mockImplementation(async (data: string) => {
       if (data === "enc-t1") throw new Error("bad key");

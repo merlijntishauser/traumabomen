@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useEncryption } from "../contexts/useEncryption";
-import { getTree } from "../lib/api";
+import { ApiError, getTree } from "../lib/api";
 
 export interface SharedTreeListItem {
   id: string;
@@ -13,8 +13,8 @@ export interface SharedTreeListItem {
 
 /**
  * The trees other people shared with you, decrypted with the tree keys the
- * context unwrapped on unlock. Revoked or unreachable trees drop out quietly,
- * and one that cannot be decrypted shows as unreadable instead of failing the
+ * context unwrapped on unlock. Revoked trees (404) drop out quietly; one that
+ * cannot be fetched or decrypted shows as unreadable instead of failing the
  * list. The key is invalidated by useLoadSharing when the background load ends.
  */
 export function useSharedTrees() {
@@ -30,10 +30,16 @@ export function useSharedTrees() {
           let response: Awaited<ReturnType<typeof getTree>>;
           try {
             response = await getTree(info.treeId);
-          } catch {
-            // Revoked access (404) is not an error to the viewer; any other
-            // failure drops the one entry rather than the whole section.
-            return null;
+          } catch (err) {
+            // Revoked access (404) is not an error to the viewer. Any other
+            // failure is transient: keep the entry, shown as unavailable.
+            if (err instanceof ApiError && err.status === 404) return null;
+            return {
+              id: info.treeId,
+              name: t("tree.unreadableName"),
+              ownerLabel: info.ownerLabel,
+              unreadable: true,
+            };
           }
           try {
             const data = await decrypt<{ name: string }>(response.encrypted_data, info.treeId);
