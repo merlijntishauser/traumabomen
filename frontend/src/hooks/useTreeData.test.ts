@@ -11,12 +11,19 @@ vi.mock("@sentry/react", () => ({
 }));
 
 const mockDecrypt = vi.fn(async (blob: string, _treeId: string) => JSON.parse(blob));
-const mockTreeKeys = new Map([["tree1", {} as CryptoKey]]);
+const mockTreeKeys = new Map([
+  ["tree1", {} as CryptoKey],
+  ["shared-tree", {} as CryptoKey],
+]);
+const mockSharedTrees = new Map([
+  ["shared-tree", { shareId: "share-1", treeId: "shared-tree", ownerLabel: "Anna" }],
+]);
 vi.mock("../contexts/useEncryption", () => ({
   useEncryption: () => ({
     decrypt: (...args: unknown[]) => mockDecrypt(...args),
     masterKey: {} as CryptoKey,
     treeKeys: mockTreeKeys,
+    sharedTrees: mockSharedTrees,
   }),
 }));
 
@@ -175,6 +182,19 @@ describe("useTreeData", () => {
     expect(api.getJournalEntries).not.toHaveBeenCalled();
     expect(api.getTree).not.toHaveBeenCalled();
     expect(result.current.treeName).toBeNull();
+  });
+
+  it("does not ask for the journal of a tree shared with the user", async () => {
+    // The journal stays the owner's: the server refuses it to recipients, and
+    // that refusal must not read as the tree failing to load.
+    vi.mocked(api.getJournalEntries).mockClear();
+    const { result } = renderHook(() => useTreeData("shared-tree"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(api.getJournalEntries).not.toHaveBeenCalled();
+    expect(result.current.error).toBeNull();
+    expect(result.current.journalEntries.size).toBe(0);
   });
 
   it("decrypts and returns persons after loading", async () => {

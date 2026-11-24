@@ -23,6 +23,11 @@ interface WorkspacePanelHostProps {
   onOpenSiblingGroup?: (groupId: string) => void;
   focusedPatternId?: string | null;
   onFocusPattern?: (patternId: string | null) => void;
+  /**
+   * A tree shared with the user: the person page is read-only, and the
+   * pattern manager and journal, which only change the tree, never open.
+   */
+  readOnly?: boolean;
 }
 
 export function WorkspacePanelHost({
@@ -42,6 +47,7 @@ export function WorkspacePanelHost({
   onOpenSiblingGroup,
   focusedPatternId,
   onFocusPattern,
+  readOnly = false,
 }: WorkspacePanelHostProps) {
   const { persons, events, lifeEvents, turningPoints, classifications, patterns, journalEntries } =
     treeData;
@@ -81,18 +87,19 @@ export function WorkspacePanelHost({
             onDeleteClassification: handlers.classificationHandlers.remove,
           }}
           showReflectionPrompts={showReflectionPrompts}
-          onOpenJournal={panels.openJournal}
+          onOpenJournal={readOnly ? undefined : panels.openJournal}
           siblingGroup={siblingGroup}
-          onCreateSiblingGroup={onCreateSiblingGroup}
+          onCreateSiblingGroup={readOnly ? undefined : onCreateSiblingGroup}
           onOpenSiblingGroup={onOpenSiblingGroup}
           onSelectPerson={panels.setSelectedPersonId}
           patterns={Array.from(patterns.values())}
           focusedPatternId={focusedPatternId}
           onFocusPattern={onFocusPattern}
+          readOnly={readOnly}
         />
       )}
 
-      {panels.patternPanelOpen && (
+      {panels.patternPanelOpen && !readOnly && (
         <PatternPanel
           key={panels.patternPanelStart.nonce}
           patterns={patterns}
@@ -112,7 +119,7 @@ export function WorkspacePanelHost({
         />
       )}
 
-      {panels.journalPanelOpen && (
+      {panels.journalPanelOpen && !readOnly && (
         <JournalPanel
           journalEntries={journalEntries}
           persons={persons}

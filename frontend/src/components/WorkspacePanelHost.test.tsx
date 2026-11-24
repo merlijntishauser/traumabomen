@@ -297,4 +297,20 @@ describe("WorkspacePanelHost", () => {
     fireEvent.click(closeBtn!);
     expect(setJournalPanelOpen).toHaveBeenCalledWith(false);
   });
+
+  it("never opens the pattern manager or the journal for a shared tree", () => {
+    const { container } = render(
+      <WorkspacePanelHost
+        panels={createMockPanels({ patternPanelOpen: true, journalPanelOpen: true })}
+        handlers={createMockHandlers()}
+        entities={createMockEntities()}
+        treeData={createMockTreeData()}
+        visiblePatternIds={new Set()}
+        onTogglePatternVisibility={vi.fn()}
+        showReflectionPrompts={false}
+        readOnly
+      />,
+    );
+    expect(container.innerHTML).toBe("");
+  });
 });

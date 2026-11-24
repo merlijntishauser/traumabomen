@@ -2,15 +2,17 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { PatternView } from "../components/PatternView";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
+import { TreeLoadError } from "../components/tree/TreeLoadError";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { useTreeAccess } from "../hooks/useTreeAccess";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import "../components/tree/TreeCanvas.css";
-import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 export default function PatternPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
+  const { readOnly } = useTreeAccess(treeId!);
   const {
     treeName,
     patterns,
@@ -40,7 +42,7 @@ export default function PatternPage() {
           activeView="patterns"
           viewTab={patternViewTab}
         />
-        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
+        <TreeLoadError error={error} readOnly={readOnly} />
       </div>
     );
   }
@@ -65,6 +67,7 @@ export default function PatternPage() {
           turningPoints={turningPoints}
           classifications={classifications}
           persons={persons}
+          readOnly={readOnly}
         />
       )}
     </div>

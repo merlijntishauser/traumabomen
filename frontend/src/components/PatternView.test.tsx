@@ -160,6 +160,27 @@ describe("PatternView", () => {
     expect(link.closest("a")?.getAttribute("data-state")).toBe('{"newPattern":true}');
   });
 
+  it("offers no way to create or edit patterns for a shared tree", () => {
+    const pattern: DecryptedPattern = {
+      id: "p1",
+      name: "Silence",
+      description: "",
+      color: "#818cf8",
+      person_ids: [],
+      linked_entities: [],
+    };
+    const { unmount } = render(<PatternView {...defaultProps()} readOnly />);
+    expect(screen.getByText("pattern.empty")).toBeInTheDocument();
+    expect(screen.queryByText("pattern.createFirst")).not.toBeInTheDocument();
+    unmount();
+
+    render(<PatternView {...defaultProps()} patterns={new Map([["p1", pattern]])} readOnly />);
+    expect(screen.queryByText("pattern.newPattern")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("pattern-card"));
+    expect(screen.getByText("pattern.showInTree")).toBeInTheDocument();
+    expect(screen.queryByText("common.edit")).not.toBeInTheDocument();
+  });
+
   it("offers a new pattern beside existing ones", () => {
     const pattern: DecryptedPattern = {
       id: "p1",

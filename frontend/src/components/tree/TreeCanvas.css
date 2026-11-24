@@ -158,6 +158,24 @@
   white-space: nowrap;
 }
 
+.tree-toolbar__view-only {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  margin-left: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.tree-load-error {
+  padding: 20px;
+}
+
+.tree-load-error p {
+  margin: 0 0 var(--space-2);
+}
+
 .tree-toolbar__icon-btn {
   position: relative;
   display: inline-flex;

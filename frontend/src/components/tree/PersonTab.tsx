@@ -103,7 +103,8 @@ function AgeHint({ state }: { state: PersonFormState }) {
 interface PersonTabProps {
   person: DecryptedPerson;
   onSavePerson: (data: Person) => Promise<unknown> | undefined;
-  onDeletePerson: (personId: string) => void;
+  /** Omitted where the person cannot be deleted (a tree shared with the user). */
+  onDeletePerson?: (personId: string) => void;
 }
 
 /**
@@ -257,13 +258,15 @@ export function PersonTab({ person, onSavePerson, onDeletePerson }: PersonTabPro
         />
       </InspectorField>
 
-      <div className="inspector-danger">
-        <ConfirmDeleteButton
-          onConfirm={() => onDeletePerson(person.id)}
-          label={t("person.delete")}
-          confirmLabel={t("person.confirmDelete")}
-        />
-      </div>
+      {onDeletePerson && (
+        <div className="inspector-danger">
+          <ConfirmDeleteButton
+            onConfirm={() => onDeletePerson(person.id)}
+            label={t("person.delete")}
+            confirmLabel={t("person.confirmDelete")}
+          />
+        </div>
+      )}
     </>
   );
 }

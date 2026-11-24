@@ -19,6 +19,8 @@ interface RelationshipsTabProps {
   siblingGroup?: DecryptedSiblingGroup | null;
   onCreateSiblingGroup?: () => void;
   onOpenSiblingGroup?: (groupId: string) => void;
+  /** A tree shared with the user: partner periods are shown, never edited. */
+  readOnly?: boolean;
 }
 
 export function RelationshipsTab({
@@ -30,11 +32,12 @@ export function RelationshipsTab({
   siblingGroup,
   onCreateSiblingGroup,
   onOpenSiblingGroup,
+  readOnly = false,
 }: RelationshipsTabProps) {
   const { t } = useTranslation();
   const [editingRelId, setEditingRelId] = useState<string | null>(null);
 
-  const hasSiblingGroupSection = onCreateSiblingGroup || onOpenSiblingGroup;
+  const hasSiblingGroupSection = (siblingGroup && onOpenSiblingGroup) || onCreateSiblingGroup;
   const hasContent =
     relationships.length > 0 || inferredSiblings.length > 0 || hasSiblingGroupSection;
 
@@ -100,14 +103,16 @@ export function RelationshipsTab({
                         ))}
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className="detail-panel__btn--small"
-                      style={{ marginTop: 4 }}
-                      onClick={() => setEditingRelId(rel.id)}
-                    >
-                      {t("common.edit")}
-                    </button>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        className="detail-panel__btn--small"
+                        style={{ marginTop: 4 }}
+                        onClick={() => setEditingRelId(rel.id)}
+                      >
+                        {t("common.edit")}
+                      </button>
+                    )}
                   </>
                 ))}
             </li>

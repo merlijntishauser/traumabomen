@@ -22,10 +22,17 @@ vi.mock("./SettingsPanel", () => ({
 }));
 
 vi.mock("./ViewTabs", () => ({
-  ViewTabs: (props: { activeView: string }) => (
-    <nav data-testid="view-tabs" data-active={props.activeView} />
+  ViewTabs: (props: { activeView: string; readOnly?: boolean }) => (
+    <nav
+      data-testid="view-tabs"
+      data-active={props.activeView}
+      data-read-only={String(Boolean(props.readOnly))}
+    />
   ),
 }));
+
+let mockAccess = { readOnly: false, ownerLabel: null as string | null };
+vi.mock("../../hooks/useTreeAccess", () => ({ useTreeAccess: () => mockAccess }));
 
 const TREE_ID = "03f28958-029f-4663-82e3-4de766986d28";
 const defaultViewTab = {
@@ -96,6 +103,23 @@ describe("TreeToolbar", () => {
       children: <button type="button">Extra</button>,
     });
     expect(container.querySelectorAll(".tree-toolbar__separator")).toHaveLength(1);
+  });
+
+  it("says a shared tree is view only, and who shared it", () => {
+    mockAccess = { readOnly: true, ownerLabel: "Anna" };
+    try {
+      renderToolbar();
+      expect(screen.getByText("share.viewOnly")).toBeInTheDocument();
+      expect(screen.getByTestId("view-tabs").dataset.readOnly).toBe("true");
+    } finally {
+      mockAccess = { readOnly: false, ownerLabel: null };
+    }
+  });
+
+  it("shows no view-only note for an own tree", () => {
+    renderToolbar();
+    expect(screen.queryByText("share.viewOnly")).not.toBeInTheDocument();
+    expect(screen.getByTestId("view-tabs").dataset.readOnly).toBe("false");
   });
 
   it("notes that the tree is encrypted on this device", () => {

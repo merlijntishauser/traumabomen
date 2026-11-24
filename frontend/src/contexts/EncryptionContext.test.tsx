@@ -251,6 +251,51 @@ describe("setSharing", () => {
     expect(result.current.isSharedTree("shared-tree")).toBe(false);
   });
 
+  it("setTreeKeys keeps the keys of shared trees, as after a reauth", async () => {
+    const { result } = renderEncryption();
+    const [master, oldOwn, newOwn, shared] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+
+    act(() => {
+      result.current.setMasterKey(master);
+      result.current.setTreeKeys(new Map([["own-tree", oldOwn]]));
+    });
+    act(() =>
+      result.current.setSharing(
+        master,
+        new Map([["shared-tree", shared]]),
+        new Map([["shared-tree", sharedInfo]]),
+      ),
+    );
+    // The reauth hands over the user's own key ring only.
+    act(() => result.current.setTreeKeys(new Map([["own-tree", newOwn]])));
+
+    expect(result.current.treeKeys.get("own-tree")).toBe(newOwn);
+    expect(result.current.treeKeys.get("shared-tree")).toBe(shared);
+    expect(result.current.isSharedTree("shared-tree")).toBe(true);
+  });
+
+  it("setTreeKeys still replaces the keys of the user's own trees", async () => {
+    const { result } = renderEncryption();
+    const [master, gone, kept] = await Promise.all([
+      createMockKey(),
+      createMockKey(),
+      createMockKey(),
+    ]);
+
+    act(() => {
+      result.current.setMasterKey(master);
+      result.current.setTreeKeys(new Map([["deleted-tree", gone]]));
+    });
+    act(() => result.current.setTreeKeys(new Map([["own-tree", kept]])));
+
+    expect([...result.current.treeKeys.keys()]).toEqual(["own-tree"]);
+  });
+
   it("clearKey drops shared trees and their keys", async () => {
     const { result } = renderEncryption();
     const [master, shared] = await Promise.all([createMockKey(), createMockKey()]);

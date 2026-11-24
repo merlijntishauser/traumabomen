@@ -26,6 +26,7 @@ import {
 } from "../inspector/InspectorStatus";
 import { type LifelineEntityHandlers, PersonLifeline } from "./PersonLifeline";
 import { PersonTab } from "./PersonTab";
+import { ReadOnlyFieldset } from "./ReadOnlyFieldset";
 import { RelationshipsTab } from "./RelationshipsTab";
 import "./PersonDetailPanel.css";
 
@@ -69,6 +70,8 @@ interface PersonDetailPanelProps {
   patterns?: DecryptedPattern[];
   focusedPatternId?: string | null;
   onFocusPattern?: (patternId: string | null) => void;
+  /** A tree shared with the user: the page reads the same, with nothing to change. */
+  readOnly?: boolean;
 }
 
 type FoldSection = "relationships" | "details";
@@ -283,6 +286,7 @@ export function PersonDetailPanel({
   patterns = EMPTY_PATTERNS,
   focusedPatternId = null,
   onFocusPattern,
+  readOnly = false,
 }: PersonDetailPanelProps) {
   const { onSavePerson, onDeletePerson, onSaveRelationship, onClose } = handlers;
   const { t } = useTranslation();
@@ -359,13 +363,14 @@ export function PersonDetailPanel({
             handlers={entityHandlers}
             editing={editing}
             onHover={setHovered}
+            readOnly={readOnly}
             events={events}
             lifeEvents={lifeEvents}
             turningPoints={turningPoints}
             classifications={classifications}
           />
 
-          {showReflectionPrompts && onOpenJournal && (
+          {showReflectionPrompts && onOpenJournal && !readOnly && (
             <ReflectionPrompt
               prompt={personPrompt}
               onWrite={() =>
@@ -387,8 +392,9 @@ export function PersonDetailPanel({
               allPersons={allPersons}
               onSaveRelationship={onSaveRelationship}
               siblingGroup={siblingGroup}
-              onCreateSiblingGroup={onCreateSiblingGroup}
+              onCreateSiblingGroup={readOnly ? undefined : onCreateSiblingGroup}
               onOpenSiblingGroup={onOpenSiblingGroup}
+              readOnly={readOnly}
             />
           </PageFold>
 
@@ -398,12 +404,14 @@ export function PersonDetailPanel({
             openFold={openFold}
             onOpenFoldChange={setOpenFold}
           >
-            <PersonTab
-              key={person.id}
-              person={person}
-              onSavePerson={onSavePerson}
-              onDeletePerson={onDeletePerson}
-            />
+            <ReadOnlyFieldset readOnly={readOnly}>
+              <PersonTab
+                key={person.id}
+                person={person}
+                onSavePerson={onSavePerson}
+                onDeletePerson={readOnly ? undefined : onDeletePerson}
+              />
+            </ReadOnlyFieldset>
           </PageFold>
         </div>
       </aside>

@@ -58,12 +58,20 @@ export function importErrorKey(err: unknown): string {
   return "tree.importError";
 }
 
+/** The message a tree shared with the user shows once the owner removed their access. */
+export const NO_LONGER_SHARED_KEY = "share.noLongerShared";
+
 /**
  * The message for a tree that failed to load. A rate limit (429) is a busy
  * server, not a key problem: telling someone their data cannot be decrypted
- * and to log in again would send them down the wrong path.
+ * and to log in again would send them down the wrong path. A shared tree
+ * that is suddenly not found (404) had its share removed.
  */
-export function treeLoadErrorKey(err: unknown): string {
+export function treeLoadErrorKey(
+  err: unknown,
+  { readOnly = false }: { readOnly?: boolean } = {},
+): string {
   if (err instanceof ApiError && err.status === 429) return "tree.loadBusy";
+  if (readOnly && err instanceof ApiError && err.status === 404) return NO_LONGER_SHARED_KEY;
   return "tree.decryptionError";
 }

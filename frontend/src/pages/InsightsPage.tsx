@@ -3,14 +3,15 @@ import { useTranslation } from "react-i18next";
 import { InsightCard } from "../components/insights/InsightCard";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
+import { TreeLoadError } from "../components/tree/TreeLoadError";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { useTreeAccess } from "../hooks/useTreeAccess";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import { computeInsights, type Insight } from "../lib/computeInsights";
 import { computeGenerations } from "../lib/generations";
 import "../components/tree/TreeCanvas.css";
 import "./InsightsPage.css";
-import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 const SECTION_ORDER: Insight["category"][] = ["generational", "temporal", "summary", "resilience"];
 
@@ -24,6 +25,7 @@ const SECTION_KEYS: Record<Insight["category"], string> = {
 export default function InsightsPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
+  const { readOnly } = useTreeAccess(treeId!);
   const {
     treeName,
     persons,
@@ -76,7 +78,7 @@ export default function InsightsPage() {
     return (
       <div className="tree-workspace">
         <TreeToolbar treeId={treeId!} treeName={treeName} activeView="insights" viewTab={viewTab} />
-        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
+        <TreeLoadError error={error} readOnly={readOnly} />
       </div>
     );
   }

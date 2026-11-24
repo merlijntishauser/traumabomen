@@ -44,6 +44,10 @@ const mockTreeData: {
   error: null,
 };
 
+vi.mock("../hooks/useTreeAccess", () => ({
+  useTreeAccess: () => ({ readOnly: false, ownerLabel: null }),
+}));
+
 vi.mock("../hooks/useTreeData", () => ({
   useTreeData: () => mockTreeData,
 }));

@@ -32,7 +32,12 @@ vi.mock("../hooks/useLinkedEntityPanelHandlers", () => ({
 vi.mock("../hooks/useSelectedPersonEntities", () => ({
   useSelectedPersonEntities: () => ({}),
 }));
-vi.mock("../lib/userFacingErrors", () => ({ treeLoadErrorKey: () => "tree.loadError" }));
+vi.mock("../lib/userFacingErrors", () => ({
+  NO_LONGER_SHARED_KEY: "share.noLongerShared",
+  treeLoadErrorKey: () => "tree.loadError",
+}));
+let mockAccess = { readOnly: false, ownerLabel: null as string | null };
+vi.mock("../hooks/useTreeAccess", () => ({ useTreeAccess: () => mockAccess }));
 
 vi.mock("../components/tree/TreeToolbar", () => ({
   TreeToolbar: ({ children, viewTab }: { children: ReactNode; viewTab: { label: string } }) => (
@@ -44,6 +49,7 @@ vi.mock("../components/tree/TreeToolbar", () => ({
 vi.mock("../components/tree/ThemeLanguageSettings", () => ({ ThemeLanguageSettings: () => null }));
 
 interface HostProps {
+  readOnly?: boolean;
   panels: {
     selectedPersonId: string | null;
     initialSection: string | null;
@@ -83,6 +89,7 @@ vi.mock("../components/familyStripes/FamilyStripesView", () => ({
 beforeEach(() => {
   treeData.isLoading = false;
   treeData.error = null;
+  mockAccess = { readOnly: false, ownerLabel: null };
 });
 
 describe("TimelinePage", () => {
@@ -117,6 +124,13 @@ describe("TimelinePage", () => {
     fireEvent.keyDown(document, { key: "Enter" });
     fireEvent.keyDown(document, { key: "Escape" });
     expect(host.panels.selectedPersonId).toBeNull();
+  });
+
+  it("offers no journal and a read-only person page for a shared tree", () => {
+    mockAccess = { readOnly: true, ownerLabel: "Anna" };
+    render(<TimelinePage />);
+    expect(screen.queryByRole("button", { name: "journal.tab" })).not.toBeInTheDocument();
+    expect(host.readOnly).toBe(true);
   });
 
   it("shows loading text while the tree decrypts", () => {

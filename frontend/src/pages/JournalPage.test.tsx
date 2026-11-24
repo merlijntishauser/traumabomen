@@ -26,7 +26,15 @@ vi.mock("../lib/reflectionPrompts", () => ({
 vi.mock("../hooks/useTreeId", () => ({ useTreeId: () => "tree-1" }));
 
 const navigate = vi.fn();
-vi.mock("react-router", () => ({ useNavigate: () => navigate }));
+vi.mock("react-router", () => ({
+  useNavigate: () => navigate,
+  Navigate: ({ to, replace }: { to: string; replace?: boolean }) => (
+    <div data-testid="navigate" data-to={to} data-replace={String(Boolean(replace))} />
+  ),
+}));
+
+let mockAccess = { readOnly: false, ownerLabel: null as string | null };
+vi.mock("../hooks/useTreeAccess", () => ({ useTreeAccess: () => mockAccess }));
 vi.mock("../lib/compactId", () => ({ uuidToCompact: (id: string) => id }));
 
 const mutations = {
@@ -59,6 +67,7 @@ function entry(id: string, text: string, created_at: string): DecryptedJournalEn
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockAccess = { readOnly: false, ownerLabel: null };
   treeState = { isLoading: false, error: null };
   entries = new Map([
     ["old", entry("old", "Older thoughts", "2026-08-01T10:00:00Z")],
@@ -67,6 +76,16 @@ beforeEach(() => {
 });
 
 describe("JournalPage", () => {
+  it("journal route redirects for a shared tree", () => {
+    mockAccess = { readOnly: true, ownerLabel: "Anna" };
+    render(<JournalPage />);
+    const redirect = screen.getByTestId("navigate");
+    expect(redirect.dataset.to).toBe("/trees/tree-1");
+    expect(redirect.dataset.replace).toBe("true");
+    expect(screen.queryByTestId("journal-textarea")).not.toBeInTheDocument();
+    expect(screen.queryByText("Older thoughts")).not.toBeInTheDocument();
+  });
+
   it("opens on a fresh page with one open question", () => {
     render(<JournalPage />);
     expect(screen.getByText("What was never spoken about?")).toBeInTheDocument();

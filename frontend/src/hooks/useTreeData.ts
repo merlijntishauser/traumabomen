@@ -145,10 +145,13 @@ function useLinkedEntityQuery<
 export type TreeDataScope = "all" | "shape";
 
 export function useTreeData(treeId: string, { scope = "all" }: { scope?: TreeDataScope } = {}) {
-  const { decrypt, masterKey, treeKeys } = useEncryption();
+  const { decrypt, masterKey, treeKeys, sharedTrees } = useEncryption();
   const hasKey = masterKey !== null && treeKeys.has(treeId);
   // Everything beyond the outline loads only for a full view.
   const fullKey = hasKey && scope === "all";
+  // The journal stays the owner's: the server refuses it to the people a
+  // tree is shared with, so asking would only turn into a load error.
+  const journalKey = fullKey && !sharedTrees.has(treeId);
 
   const treeQuery = useQuery({
     queryKey: treeQueryKeys.tree(treeId),
@@ -288,7 +291,7 @@ export function useTreeData(treeId: string, { scope = "all" }: { scope?: TreeDat
       const entries = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
       return new Map(entries);
     },
-    enabled: fullKey,
+    enabled: journalKey,
   });
 
   const allQueries = [

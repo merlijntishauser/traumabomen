@@ -27,6 +27,8 @@ interface PatternViewProps {
   persons: Map<string, DecryptedPerson>;
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
+  /** A tree shared with the user: patterns are read here, never created or edited. */
+  readOnly?: boolean;
 }
 
 interface EntityDisplay {
@@ -71,6 +73,7 @@ export function PatternView({
   persons,
   showReflectionPrompts,
   onOpenJournal,
+  readOnly = false,
 }: PatternViewProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -85,9 +88,11 @@ export function PatternView({
         <div className="pattern-view">
           <div className="pattern-view__empty">
             <p>{t("pattern.empty")}</p>
-            <Link to={`/trees/${compactId}`} state={{ newPattern: true }}>
-              {t("pattern.createFirst")}
-            </Link>
+            {!readOnly && (
+              <Link to={`/trees/${compactId}`} state={{ newPattern: true }}>
+                {t("pattern.createFirst")}
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -100,15 +105,17 @@ export function PatternView({
     <div className="page-atmosphere bg-gradient">
       <ContourDecoration />
       <div className="pattern-view">
-        <div className="pattern-view__actions">
-          <Link
-            className="btn btn--primary"
-            to={`/trees/${compactId}`}
-            state={{ newPattern: true }}
-          >
-            {t("pattern.newPattern")}
-          </Link>
-        </div>
+        {!readOnly && (
+          <div className="pattern-view__actions">
+            <Link
+              className="btn btn--primary"
+              to={`/trees/${compactId}`}
+              state={{ newPattern: true }}
+            >
+              {t("pattern.newPattern")}
+            </Link>
+          </div>
+        )}
         <div className="pattern-view__grid">
           {expandedPattern && (
             <PatternDetail
@@ -118,6 +125,7 @@ export function PatternView({
               onClose={() => setExpandedId(null)}
               showReflectionPrompts={showReflectionPrompts}
               onOpenJournal={onOpenJournal}
+              readOnly={readOnly}
             />
           )}
 
@@ -194,6 +202,7 @@ function PatternDetail({
   onClose,
   showReflectionPrompts,
   onOpenJournal,
+  readOnly,
 }: {
   pattern: DecryptedPattern;
   entityMaps: EntityMaps;
@@ -201,6 +210,7 @@ function PatternDetail({
   onClose: () => void;
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
+  readOnly: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -267,13 +277,15 @@ function PatternDetail({
         >
           {t("pattern.showInTree")}
         </Link>
-        <Link
-          to={`/trees/${uuidToCompact(treeId)}`}
-          state={{ openPatternId: pattern.id, editPattern: true }}
-          className="btn"
-        >
-          {t("common.edit")}
-        </Link>
+        {!readOnly && (
+          <Link
+            to={`/trees/${uuidToCompact(treeId)}`}
+            state={{ openPatternId: pattern.id, editPattern: true }}
+            className="btn"
+          >
+            {t("common.edit")}
+          </Link>
+        )}
       </div>
     </div>
   );

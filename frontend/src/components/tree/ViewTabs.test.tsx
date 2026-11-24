@@ -14,10 +14,11 @@ const TREE_UUID = "03f28958-029f-4663-82e3-4de766986d28";
 
 function renderTabs(
   activeView: "canvas" | "timeline" | "patterns" | "journal" | "insights" = "canvas",
+  readOnly = false,
 ) {
   return render(
     <MemoryRouter>
-      <ViewTabs treeId={TREE_UUID} activeView={activeView} />
+      <ViewTabs treeId={TREE_UUID} activeView={activeView} readOnly={readOnly} />
     </MemoryRouter>,
   );
 }
@@ -81,6 +82,14 @@ describe("ViewTabs", () => {
     const insightsTab = getTab("insights.tab");
     expect(insightsTab.tagName).toBe("SPAN");
     expect(insightsTab.className).toContain("tree-toolbar__tab--active");
+  });
+
+  it("omits the journal tab for a tree shared with the user", () => {
+    renderTabs("canvas", true);
+    expect(screen.queryByText("journal.tab")).not.toBeInTheDocument();
+    expect(screen.getByText("tree.timeline")).toBeInTheDocument();
+    expect(screen.getByText("pattern.patterns")).toBeInTheDocument();
+    expect(screen.getByText("insights.tab")).toBeInTheDocument();
   });
 
   it("uses compact IDs in link hrefs", () => {

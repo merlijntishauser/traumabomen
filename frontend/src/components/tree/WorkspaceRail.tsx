@@ -18,6 +18,8 @@ interface WorkspaceRailProps {
   onCreatePattern: () => void;
   journalPanelOpen: boolean;
   onToggleJournal: () => void;
+  /** A tree shared with the user: only pattern focus, which changes nothing, stays. */
+  readOnly?: boolean;
 }
 
 /**
@@ -39,8 +41,26 @@ export function WorkspaceRail({
   onCreatePattern,
   journalPanelOpen,
   onToggleJournal,
+  readOnly = false,
 }: WorkspaceRailProps) {
   const { t } = useTranslation();
+
+  if (readOnly) {
+    return (
+      <nav className="workspace-rail" aria-label={t("tree.tools")}>
+        <div className="workspace-rail__group">
+          <PatternFocusMenu
+            patterns={patterns}
+            focusedPatternId={focusedPatternId}
+            onFocus={onFocusPattern}
+            triggerClassName="workspace-rail__btn"
+            iconSize={18}
+            placement="side"
+          />
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="workspace-rail" aria-label={t("tree.tools")}>

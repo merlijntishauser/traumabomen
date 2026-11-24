@@ -31,6 +31,7 @@ import { RelationshipPopover } from "../components/tree/RelationshipPopover";
 import { RelationshipPrompt } from "../components/tree/RelationshipPrompt";
 import SiblingGroupNode from "../components/tree/SiblingGroupNode";
 import { SiblingGroupPanel } from "../components/tree/SiblingGroupPanel";
+import { TreeLoadError } from "../components/tree/TreeLoadError";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
 import { WorkspaceRail } from "../components/tree/WorkspaceRail";
 import { WorkspacePanelHost } from "../components/WorkspacePanelHost";
@@ -43,6 +44,7 @@ import type { PositionSnapshot } from "../hooks/usePositionHistory";
 import { usePositionHistory } from "../hooks/usePositionHistory";
 import { usePromoteMember } from "../hooks/usePromoteMember";
 import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
+import { useTreeAccess } from "../hooks/useTreeAccess";
 import type { DecryptedPerson } from "../hooks/useTreeData";
 import { filterByPerson, treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
@@ -63,7 +65,6 @@ import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/s
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
-import { treeLoadErrorKey } from "../lib/userFacingErrors";
 import { workspaceNavOptions } from "../lib/workspaceNavState";
 
 const nodeTypes = { person: PersonNode, siblingGroup: SiblingGroupNode };
@@ -207,8 +208,17 @@ function canvasInteractionReducer(
 
 /* -- Sub-components -------------------------------------------------------- */
 
-function EmptyCanvasState({ onAddPerson }: { onAddPerson: () => void }) {
+/** An empty canvas; for a tree shared with the user, without the invitation to add someone. */
+function EmptyCanvasState({ onAddPerson }: { onAddPerson?: () => void }) {
   const { t } = useTranslation();
+  if (!onAddPerson) {
+    return (
+      <div className="tree-canvas-empty">
+        <TreePine size={32} strokeWidth={1.5} color="var(--color-text-muted)" />
+        <p className="tree-canvas-empty__hint">{t("share.emptyTree")}</p>
+      </div>
+    );
+  }
   return (
     <div className="tree-canvas-empty">
       <TreePine size={32} strokeWidth={1.5} color="var(--color-text-muted)" />
@@ -326,6 +336,7 @@ function useCanvasActions(opts: {
   screenToFlowPosition: ReturnType<typeof useReactFlow>["screenToFlowPosition"];
   pushPositionSnapshot: (snapshot: PositionSnapshot) => void;
   popPositionSnapshot: () => PositionSnapshot | undefined;
+  readOnly: boolean;
 }) {
   const {
     treeId,
@@ -342,6 +353,7 @@ function useCanvasActions(opts: {
     screenToFlowPosition,
     pushPositionSnapshot,
     popPositionSnapshot,
+    readOnly,
   } = opts;
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -553,6 +565,8 @@ function useCanvasActions(opts: {
   handleAddPersonRef.current = handleAddPerson;
 
   useEffect(() => {
+    // Both shortcuts change the tree; a shared tree is read-only.
+    if (readOnly) return;
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
       const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
@@ -571,7 +585,7 @@ function useCanvasActions(opts: {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleUndo]);
+  }, [handleUndo, readOnly]);
 
   const selectedPersonSiblingGroup = useCallback(
     (selectedPersonId: string | null) => {
@@ -673,6 +687,7 @@ function CanvasContent({
   onAddPerson,
   openJournal,
   isLoading,
+  readOnly,
 }: {
   animatingLayout: boolean;
   nodes: AnyNodeType[];
@@ -693,6 +708,8 @@ function CanvasContent({
   onAddPerson: () => void;
   openJournal: (prompt: string) => void;
   isLoading: boolean;
+  /** A tree shared with the user: nothing on the canvas moves, connects or opens a menu. */
+  readOnly: boolean;
 }) {
   const flowClassName =
     [animatingLayout && "layout-animating", focused && "tree-canvas--focused"]
@@ -708,12 +725,14 @@ function CanvasContent({
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
-        onNodeContextMenu={onNodeContextMenu}
-        onNodeDragStart={onNodeDragStart}
-        onNodeDragStop={onNodeDragStop}
+        onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
+        onNodeDragStart={readOnly ? undefined : onNodeDragStart}
+        onNodeDragStop={readOnly ? undefined : onNodeDragStop}
         onPaneClick={onPaneClick}
         onEdgeClick={onEdgeClick}
-        onConnect={onConnect}
+        onConnect={readOnly ? undefined : onConnect}
+        nodesDraggable={!readOnly}
+        nodesConnectable={!readOnly}
         snapToGrid={canvasSettings.snapToGrid}
         snapGrid={[20, 20]}
         nodeDragThreshold={5}
@@ -725,10 +744,12 @@ function CanvasContent({
         {canvasSettings.showMinimap && <MiniMap />}
         <Controls showInteractive={false} />
       </ReactFlow>
-      {showReflectionPrompts && !journalPanelOpen && personsSize > 0 && (
+      {showReflectionPrompts && !readOnly && !journalPanelOpen && personsSize > 0 && (
         <ReflectionNudge onOpenJournal={(prompt) => openJournal(prompt)} />
       )}
-      {!isLoading && personsSize === 0 && <EmptyCanvasState onAddPerson={onAddPerson} />}
+      {!isLoading && personsSize === 0 && (
+        <EmptyCanvasState onAddPerson={readOnly ? undefined : onAddPerson} />
+      )}
     </>
   );
 }
@@ -1009,6 +1030,7 @@ function useCanvasEventHandlers(opts: {
 function TreeWorkspaceInner() {
   const treeId = useTreeId();
   const { t } = useTranslation();
+  const { readOnly } = useTreeAccess(treeId!);
   const { fitView, screenToFlowPosition } = useReactFlow();
   const { openPatternId, ...panelOptions } = workspaceNavOptions(useLocation().state);
   const panels = useWorkspacePanels(panelOptions);
@@ -1119,6 +1141,7 @@ function TreeWorkspaceInner() {
     screenToFlowPosition,
     pushPositionSnapshot,
     popPositionSnapshot,
+    readOnly,
   });
 
   const canvasEvents = useCanvasEventHandlers({
@@ -1154,14 +1177,6 @@ function TreeWorkspaceInner() {
     classifications,
   );
 
-  const selectedRelationship = canvasState.selectedEdgeId
-    ? (relationships.get(canvasState.selectedEdgeId) ?? null)
-    : null;
-
-  const openSiblingGroup = canvasState.openSiblingGroupId
-    ? (siblingGroups.get(canvasState.openSiblingGroupId) ?? null)
-    : null;
-
   const selectedPersonSibGroup = actions.selectedPersonSiblingGroup(selectedPersonId);
 
   if (error) {
@@ -1173,7 +1188,7 @@ function TreeWorkspaceInner() {
           activeView="canvas"
           viewTab={canvasViewTab}
         />
-        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
+        <TreeLoadError error={error} readOnly={readOnly} />
       </div>
     );
   }
@@ -1202,6 +1217,7 @@ function TreeWorkspaceInner() {
           onCreatePattern={() => panels.openPatternPanel(true)}
           journalPanelOpen={panels.journalPanelOpen}
           onToggleJournal={() => panels.setJournalPanelOpen((v) => !v)}
+          readOnly={readOnly}
         />
         <div className="tree-canvas-wrapper bg-gradient">
           {!canvasSettings.showGrid && <ContourDecoration />}
@@ -1228,6 +1244,7 @@ function TreeWorkspaceInner() {
               onAddPerson={actions.handleAddPerson}
               openJournal={(prompt) => panels.openJournal(prompt)}
               isLoading={isLoading}
+              readOnly={readOnly}
             />
           )}
 
@@ -1236,18 +1253,8 @@ function TreeWorkspaceInner() {
               pattern={focusedPattern}
               color={focusColor}
               entityMaps={{ events, lifeEvents, turningPoints, classifications, persons }}
-              onEdit={() => panels.openPatternPanel(false)}
+              onEdit={readOnly ? undefined : () => panels.openPatternPanel(false)}
               onExit={() => setFocusedPatternId(null)}
-            />
-          )}
-
-          {selectedRelationship && (
-            <RelationshipDetailPanel
-              relationship={selectedRelationship}
-              allPersons={persons}
-              onSaveRelationship={actions.handleSaveRelationship}
-              onDeleteRelationship={actions.handleDeleteRelationship}
-              onClose={() => dispatchCanvas({ type: "SELECT_EDGE", id: null })}
             />
           )}
 
@@ -1268,19 +1275,18 @@ function TreeWorkspaceInner() {
             }
             focusedPatternId={focusedPatternId}
             onFocusPattern={setFocusedPatternId}
+            readOnly={readOnly}
           />
 
-          {openSiblingGroup && (
-            <SiblingGroupPanel
-              key={openSiblingGroup.id}
-              group={openSiblingGroup}
-              allPersons={persons}
-              onSave={actions.handleSaveSiblingGroup}
-              onDelete={actions.handleDeleteSiblingGroup}
-              onPromote={actions.handlePromoteMember}
-              onClose={() => dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null })}
-            />
-          )}
+          <CanvasInspectors
+            canvasState={canvasState}
+            persons={persons}
+            relationships={relationships}
+            siblingGroups={siblingGroups}
+            actions={actions}
+            dispatchCanvas={dispatchCanvas}
+            readOnly={readOnly}
+          />
         </div>
       </div>
 
@@ -1299,6 +1305,60 @@ function TreeWorkspaceInner() {
         onDeletePerson={handlers.handleDeletePerson}
       />
     </div>
+  );
+}
+
+/** The panels for what is selected on the canvas itself: a relationship line
+ * or a sibling-group pill. */
+function CanvasInspectors({
+  canvasState,
+  persons,
+  relationships,
+  siblingGroups,
+  actions,
+  dispatchCanvas,
+  readOnly,
+}: {
+  canvasState: CanvasInteractionState;
+  persons: Map<string, DecryptedPerson>;
+  relationships: ReturnType<typeof useTreeData>["relationships"];
+  siblingGroups: ReturnType<typeof useTreeData>["siblingGroups"];
+  actions: ReturnType<typeof useCanvasActions>;
+  dispatchCanvas: React.Dispatch<CanvasInteractionAction>;
+  readOnly: boolean;
+}) {
+  const selectedRelationship = canvasState.selectedEdgeId
+    ? (relationships.get(canvasState.selectedEdgeId) ?? null)
+    : null;
+  const openSiblingGroup = canvasState.openSiblingGroupId
+    ? (siblingGroups.get(canvasState.openSiblingGroupId) ?? null)
+    : null;
+
+  return (
+    <>
+      {selectedRelationship && (
+        <RelationshipDetailPanel
+          relationship={selectedRelationship}
+          allPersons={persons}
+          onSaveRelationship={actions.handleSaveRelationship}
+          onDeleteRelationship={actions.handleDeleteRelationship}
+          onClose={() => dispatchCanvas({ type: "SELECT_EDGE", id: null })}
+          readOnly={readOnly}
+        />
+      )}
+      {openSiblingGroup && (
+        <SiblingGroupPanel
+          key={openSiblingGroup.id}
+          group={openSiblingGroup}
+          allPersons={persons}
+          onSave={actions.handleSaveSiblingGroup}
+          onDelete={actions.handleDeleteSiblingGroup}
+          onPromote={actions.handlePromoteMember}
+          onClose={() => dispatchCanvas({ type: "SET_OPEN_SIBLING_GROUP", id: null })}
+          readOnly={readOnly}
+        />
+      )}
+    </>
   );
 }
 

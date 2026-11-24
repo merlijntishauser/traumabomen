@@ -26,6 +26,7 @@ import { getTurningPointColor } from "../../lib/turningPointColors";
 import type { Classification, LifeEvent, TraumaEvent, TurningPoint } from "../../types/domain";
 import { ClassificationForm } from "./ClassificationForm";
 import { LifeEventForm } from "./LifeEventForm";
+import { ReadOnlyFieldset } from "./ReadOnlyFieldset";
 import { TraumaEventForm } from "./TraumaEventForm";
 import { TurningPointForm } from "./TurningPointForm";
 
@@ -162,6 +163,7 @@ interface EntryFormProps extends LifelineSources {
   allPersons: Map<string, DecryptedPerson>;
   handlers: LifelineEntityHandlers;
   onDone: () => void;
+  readOnly: boolean;
 }
 
 /** The existing autosave form for one entry, or the explicit-Add form for a new one. */
@@ -172,6 +174,7 @@ function LifelineEntryForm({
   allPersons,
   handlers,
   onDone,
+  readOnly,
   events,
   lifeEvents,
   turningPoints,
@@ -183,7 +186,7 @@ function LifelineEntryForm({
     return result;
   }
   function removeThen(remove: (entityId: string) => void) {
-    return id
+    return id && !readOnly
       ? () => {
           remove(id);
           onDone();
@@ -321,17 +324,22 @@ function LifelineMarkRow({ row, birthYear }: MarkRowProps) {
   );
 }
 
-function LifelineGapRow({ years, onAdd }: { years: number; onAdd: () => void }) {
+function LifelineGapRow({ years, onAdd }: { years: number; onAdd?: () => void }) {
   const { t } = useTranslation();
   return (
     <li className="lifeline__row lifeline__row--gap">
       <span className="lifeline__year" />
       <span className="lifeline__spine" />
       <span className="lifeline__plain">
-        {t("personPage.gap", { count: years })}{" "}
-        <button type="button" className="person-page__person-link" onClick={onAdd}>
-          {t("personPage.addSomething")}
-        </button>
+        {t("personPage.gap", { count: years })}
+        {onAdd && (
+          <>
+            {" "}
+            <button type="button" className="person-page__person-link" onClick={onAdd}>
+              {t("personPage.addSomething")}
+            </button>
+          </>
+        )}
       </span>
     </li>
   );
@@ -388,6 +396,8 @@ interface PersonLifelineProps extends LifelineSources {
   handlers: LifelineEntityHandlers;
   editing: LifelineEditingControls;
   onHover: (entry: LifelineEntry | null) => void;
+  /** A tree shared with the user: entries open to be read, with every control disabled. */
+  readOnly?: boolean;
 }
 
 /**
@@ -401,6 +411,7 @@ export function PersonLifeline({
   handlers,
   editing,
   onHover,
+  readOnly = false,
   ...sources
 }: PersonLifelineProps) {
   const { t, i18n } = useTranslation();
@@ -412,7 +423,7 @@ export function PersonLifeline({
 
   const entries = buildLifelineEntries(sources, person.birth_year);
   const { rows, undated } = buildLifelineRows(entries, person.birth_year, person.death_year);
-  const newKind = editing.editing?.id === null ? editing.editing.kind : null;
+  const newKind = editing.editing?.id === null && !readOnly ? editing.editing.kind : null;
   const firstName = person.name.split(" ")[0] || person.name;
 
   const formProps = {
@@ -420,6 +431,7 @@ export function PersonLifeline({
     allPersons,
     handlers,
     onDone: editing.close,
+    readOnly,
     ...sources,
   };
 
@@ -441,7 +453,9 @@ export function PersonLifeline({
     return [
       row,
       <li key={`${entry.id}-editor`} className="lifeline__editor">
-        <LifelineEntryForm kind={entry.kind} id={entry.id} {...formProps} />
+        <ReadOnlyFieldset readOnly={readOnly}>
+          <LifelineEntryForm kind={entry.kind} id={entry.id} {...formProps} />
+        </ReadOnlyFieldset>
       </li>,
     ];
   }
@@ -466,7 +480,7 @@ export function PersonLifeline({
                 <LifelineGapRow
                   key={`gap-${row.fromYear}`}
                   years={row.years}
-                  onAdd={() => setAddMenuOpen(true)}
+                  onAdd={readOnly ? undefined : () => setAddMenuOpen(true)}
                 />,
               ];
             }
@@ -501,12 +515,14 @@ export function PersonLifeline({
         </div>
       )}
 
-      <AddToLifeMenu
-        firstName={firstName}
-        open={addMenuOpen}
-        onOpenChange={setAddMenuOpen}
-        onPick={editing.startNew}
-      />
+      {!readOnly && (
+        <AddToLifeMenu
+          firstName={firstName}
+          open={addMenuOpen}
+          onOpenChange={setAddMenuOpen}
+          onPick={editing.startNew}
+        />
+      )}
     </section>
   );
 }

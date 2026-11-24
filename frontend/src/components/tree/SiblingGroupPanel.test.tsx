@@ -54,6 +54,25 @@ function defaultProps() {
   };
 }
 
+describe("SiblingGroupPanel for a shared tree", () => {
+  it("lists members with every control disabled and nothing to add or remove", () => {
+    const props = defaultProps();
+    render(
+      <SiblingGroupPanel
+        {...props}
+        group={makeGroup({ members: [{ name: "Dora", birth_year: 1990 }] })}
+        readOnly
+      />,
+    );
+    expect(screen.getByDisplayValue("Dora")).toBeDisabled();
+    expect(screen.queryByText("siblingGroup.addMember")).not.toBeInTheDocument();
+    expect(screen.queryByText("siblingGroup.deleteGroup")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("siblingGroup.promote")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("common.remove")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "common.close" })).toBeEnabled();
+  });
+});
+
 describe("SiblingGroupPanel", () => {
   it("renders tree persons as read-only cards", () => {
     render(<SiblingGroupPanel {...defaultProps()} />);

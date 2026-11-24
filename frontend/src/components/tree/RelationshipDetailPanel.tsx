@@ -10,6 +10,7 @@ import {
   useInspectorStatus,
 } from "../inspector/InspectorStatus";
 import { PartnerPeriodsEditor } from "./PartnerPeriodsEditor";
+import { ReadOnlyFieldset } from "./ReadOnlyFieldset";
 import "./PersonDetailPanel.css";
 
 interface RelationshipDetailPanelProps {
@@ -18,6 +19,8 @@ interface RelationshipDetailPanelProps {
   onSaveRelationship: (relationshipId: string, data: RelationshipData) => Promise<unknown>;
   onDeleteRelationship: (relationshipId: string) => void;
   onClose: () => void;
+  /** A tree shared with the user: the relationship is shown with every control disabled. */
+  readOnly?: boolean;
 }
 
 const PARENT_TYPES = new Set([
@@ -33,6 +36,7 @@ export function RelationshipDetailPanel({
   onSaveRelationship,
   onDeleteRelationship,
   onClose,
+  readOnly = false,
 }: RelationshipDetailPanelProps) {
   const { t } = useTranslation();
   const { status, report } = useInspectorStatus();
@@ -77,72 +81,75 @@ export function RelationshipDetailPanel({
         </div>
 
         <div className="detail-panel__content">
-          {/* Persons involved */}
-          <div className="detail-panel__rel-item">
-            {sourceLabel && <span className="detail-panel__rel-type">{sourceLabel}</span>}
-            <span className="detail-panel__rel-name">{sourcePerson?.name ?? "?"}</span>
-          </div>
-          <div className="detail-panel__rel-between">{t("relationship.between")}</div>
-          <div className="detail-panel__rel-item">
-            {targetLabel && <span className="detail-panel__rel-type">{targetLabel}</span>}
-            <span className="detail-panel__rel-name">{targetPerson?.name ?? "?"}</span>
-          </div>
+          <ReadOnlyFieldset readOnly={readOnly}>
+            {/* Persons involved */}
+            <div className="detail-panel__rel-item">
+              {sourceLabel && <span className="detail-panel__rel-type">{sourceLabel}</span>}
+              <span className="detail-panel__rel-name">{sourcePerson?.name ?? "?"}</span>
+            </div>
+            <div className="detail-panel__rel-between">{t("relationship.between")}</div>
+            <div className="detail-panel__rel-item">
+              {targetLabel && <span className="detail-panel__rel-type">{targetLabel}</span>}
+              <span className="detail-panel__rel-name">{targetPerson?.name ?? "?"}</span>
+            </div>
 
-          {/* Type selector */}
-          <div className="inspector-group">
-            <InspectorField label={t("relationship.type")}>
-              <select
-                value={relationship.type}
-                onChange={(e) => handleSaveType(e.target.value as RelationshipType)}
-              >
-                {Object.values(RelationshipType).map((rt) => (
-                  <option key={rt} value={rt}>
-                    {t(`relationship.type.${rt}`)}
-                  </option>
-                ))}
-              </select>
-            </InspectorField>
-          </div>
-
-          {/* Partner period editor */}
-          {relationship.type === RelationshipType.Partner && (
+            {/* Type selector */}
             <div className="inspector-group">
-              <span className="inspector-field__label">
-                {t("relationship.periods")} ({relationship.periods.length})
-              </span>
-              <PartnerPeriodsEditor
-                key={relationship.id}
-                relationship={relationship}
-                sourceDeathYear={sourcePerson?.death_year}
-                targetDeathYear={targetPerson?.death_year}
-                onSave={(data) => onSaveRelationship(relationship.id, data)}
-              />
-            </div>
-          )}
-
-          {/* Non-partner: show existing periods read-only (if any) */}
-          {relationship.type !== RelationshipType.Partner && relationship.periods.length > 0 && (
-            <div className="detail-panel__rel-periods">
-              {relationship.periods.map((p) => (
-                <span
-                  key={`${p.status}-${p.start_year}-${p.end_year}`}
-                  className="detail-panel__period"
+              <InspectorField label={t("relationship.type")}>
+                <select
+                  value={relationship.type}
+                  onChange={(e) => handleSaveType(e.target.value as RelationshipType)}
                 >
-                  {t(`relationship.status.${p.status}`)}: {p.start_year}
-                  {p.end_year ? ` - ${p.end_year}` : " -"}
-                </span>
-              ))}
+                  {Object.values(RelationshipType).map((rt) => (
+                    <option key={rt} value={rt}>
+                      {t(`relationship.type.${rt}`)}
+                    </option>
+                  ))}
+                </select>
+              </InspectorField>
             </div>
-          )}
 
-          {/* Delete */}
-          <div className="inspector-danger">
-            <ConfirmDeleteButton
-              onConfirm={() => onDeleteRelationship(relationship.id)}
-              label={t("common.delete")}
-              confirmLabel={t("relationship.confirmDelete")}
-            />
-          </div>
+            {/* Partner period editor */}
+            {relationship.type === RelationshipType.Partner && (
+              <div className="inspector-group">
+                <span className="inspector-field__label">
+                  {t("relationship.periods")} ({relationship.periods.length})
+                </span>
+                <PartnerPeriodsEditor
+                  key={relationship.id}
+                  relationship={relationship}
+                  sourceDeathYear={sourcePerson?.death_year}
+                  targetDeathYear={targetPerson?.death_year}
+                  onSave={(data) => onSaveRelationship(relationship.id, data)}
+                />
+              </div>
+            )}
+
+            {/* Non-partner: show existing periods read-only (if any) */}
+            {relationship.type !== RelationshipType.Partner && relationship.periods.length > 0 && (
+              <div className="detail-panel__rel-periods">
+                {relationship.periods.map((p) => (
+                  <span
+                    key={`${p.status}-${p.start_year}-${p.end_year}`}
+                    className="detail-panel__period"
+                  >
+                    {t(`relationship.status.${p.status}`)}: {p.start_year}
+                    {p.end_year ? ` - ${p.end_year}` : " -"}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {!readOnly && (
+              <div className="inspector-danger">
+                <ConfirmDeleteButton
+                  onConfirm={() => onDeleteRelationship(relationship.id)}
+                  label={t("common.delete")}
+                  confirmLabel={t("relationship.confirmDelete")}
+                />
+              </div>
+            )}
+          </ReadOnlyFieldset>
         </div>
       </div>
     </InspectorStatusProvider>

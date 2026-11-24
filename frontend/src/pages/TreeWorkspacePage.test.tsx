@@ -95,6 +95,9 @@ vi.mock("@tanstack/react-query", () => ({
 }));
 
 vi.mock("../hooks/useTreeId", () => ({ useTreeId: () => "tree-123" }));
+vi.mock("../hooks/useTreeAccess", () => ({
+  useTreeAccess: () => ({ readOnly: false, ownerLabel: null }),
+}));
 
 // Use stable references to avoid infinite re-render loops
 const EMPTY_PERSONS = new Map<string, DecryptedPerson>();

@@ -74,8 +74,18 @@ function encryptionReducer(state: EncryptionState, action: EncryptionAction): En
   switch (action.type) {
     case "SET_MASTER_KEY":
       return { ...state, masterKey: action.key };
-    case "SET_TREE_KEYS":
-      return { ...state, treeKeys: action.keys };
+    case "SET_TREE_KEYS": {
+      // The caller hands over the user's own keys (an unlock or a reauth).
+      // Shared tree keys are loaded separately, so keep those of the trees
+      // still marked shared: dropping them while sharedTrees stays filled
+      // would leave an open shared tree unable to decrypt.
+      const nextTreeKeys = new Map(action.keys);
+      for (const treeId of state.sharedTrees.keys()) {
+        const key = state.treeKeys.get(treeId);
+        if (key && !nextTreeKeys.has(treeId)) nextTreeKeys.set(treeId, key);
+      }
+      return { ...state, treeKeys: nextTreeKeys };
+    }
     case "SET_KEY_RING_BASE64":
       return { ...state, keyRingBase64: action.map };
     case "SET_PASSPHRASE_HASH":

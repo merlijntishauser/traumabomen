@@ -35,6 +35,19 @@ describe("WorkspaceRail", () => {
     expect(screen.getByRole("button", { name: "journal.tab" })).toBeInTheDocument();
   });
 
+  it("keeps only pattern focus for a tree shared with the user", async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceRail {...defaultProps} readOnly />);
+    expect(screen.queryByRole("button", { name: "tree.addPerson" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tree.autoLayout" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tree.undo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "journal.tab" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "pattern.focus.menu" }));
+    // Focusing changes nothing; managing or creating a pattern would.
+    expect(screen.queryByText("pattern.focus.manage")).not.toBeInTheDocument();
+    expect(screen.queryByText("pattern.newPattern")).not.toBeInTheDocument();
+  });
+
   it("disables add person button when isAddingPerson is true", () => {
     render(<WorkspaceRail {...defaultProps} isAddingPerson={true} />);
     expect(screen.getByRole("button", { name: "tree.addPerson" })).toBeDisabled();

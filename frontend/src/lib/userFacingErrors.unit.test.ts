@@ -72,6 +72,25 @@ describe("treeLoadErrorKey", () => {
     expect(treeLoadErrorKey(new ApiError(429, "Too many requests"))).toBe("tree.loadBusy");
   });
 
+  it("says a shared tree that is gone is no longer shared", () => {
+    expect(treeLoadErrorKey(new ApiError(404, "Tree not found"), { readOnly: true })).toBe(
+      "share.noLongerShared",
+    );
+  });
+
+  it("keeps the usual message for a missing own tree", () => {
+    expect(treeLoadErrorKey(new ApiError(404, "Tree not found"))).toBe("tree.decryptionError");
+    expect(treeLoadErrorKey(new ApiError(404, "Tree not found"), { readOnly: false })).toBe(
+      "tree.decryptionError",
+    );
+  });
+
+  it("keeps the busy message for a shared tree under a rate limit", () => {
+    expect(treeLoadErrorKey(new ApiError(429, "Too many"), { readOnly: true })).toBe(
+      "tree.loadBusy",
+    );
+  });
+
   it("keeps the decryption message for other failures", () => {
     expect(treeLoadErrorKey(new ApiError(500, "Boom"))).toBe("tree.decryptionError");
     expect(treeLoadErrorKey(new Error("bad key"))).toBe("tree.decryptionError");

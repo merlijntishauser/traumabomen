@@ -9,6 +9,8 @@ export type ActiveView = "canvas" | "timeline" | "patterns" | "journal" | "insig
 interface ViewTabsProps {
   treeId: string;
   activeView: ActiveView;
+  /** A tree shared with the user: its journal stays the owner's, so there is no journal tab. */
+  readOnly?: boolean;
 }
 
 const TAB_ICONS: Record<ActiveView, LucideIcon> = {
@@ -19,17 +21,18 @@ const TAB_ICONS: Record<ActiveView, LucideIcon> = {
   insights: Lightbulb,
 };
 
-export function ViewTabs({ treeId, activeView }: ViewTabsProps) {
+export function ViewTabs({ treeId, activeView, readOnly = false }: ViewTabsProps) {
   const { t } = useTranslation();
   const compactId = uuidToCompact(treeId);
 
-  const tabs: { view: ActiveView; label: string; to: string }[] = [
+  const allTabs: { view: ActiveView; label: string; to: string }[] = [
     { view: "canvas", label: t("tree.canvas"), to: `/trees/${compactId}` },
     { view: "timeline", label: t("tree.timeline"), to: `/trees/${compactId}/timeline` },
     { view: "patterns", label: t("pattern.patterns"), to: `/trees/${compactId}/patterns` },
     { view: "journal", label: t("journal.tab"), to: `/trees/${compactId}/journal` },
     { view: "insights", label: t("insights.tab"), to: `/trees/${compactId}/insights` },
   ];
+  const tabs = readOnly ? allTabs.filter((tab) => tab.view !== "journal") : allTabs;
 
   return (
     <nav className="tree-toolbar__tabs">

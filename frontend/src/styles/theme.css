@@ -638,6 +638,17 @@ button {
 }
 
 /* --- Shared panel overlay --- */
+/* Read-only detail panels: a fieldset disables every control inside it
+   natively. It draws no box and takes no part in layout, so a read-only
+   panel lays out exactly like the owner's. */
+.panel-readonly {
+  display: contents;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .panel-overlay {
   position: absolute;
   top: 0;

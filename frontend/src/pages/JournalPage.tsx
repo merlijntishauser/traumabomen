@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { JournalEntryForm } from "../components/journal/JournalEntryForm";
 import type { JournalEntityMaps } from "../components/journal/JournalLinkedChips";
 import { JournalMargin } from "../components/journal/JournalMargin";
 import { JournalReader } from "../components/journal/JournalReader";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
+import { TreeLoadError } from "../components/tree/TreeLoadError";
 import { TreeToolbar } from "../components/tree/TreeToolbar";
+import { useTreeAccess } from "../hooks/useTreeAccess";
 import type { DecryptedJournalEntry } from "../hooks/useTreeData";
 import { useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
@@ -16,7 +18,6 @@ import type { JournalEntry } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
 import "./JournalPage.css";
 import { uuidToCompact } from "../lib/compactId";
-import { treeLoadErrorKey } from "../lib/userFacingErrors";
 
 /** What the writing column shows: a fresh page, an earlier entry, or that entry being edited. */
 type DeskView = { kind: "new" } | { kind: "read"; id: string } | { kind: "edit"; id: string };
@@ -100,6 +101,7 @@ function DeskColumn({
 export default function JournalPage() {
   const treeId = useTreeId();
   const { t } = useTranslation();
+  const { readOnly } = useTreeAccess(treeId!);
   const {
     treeName,
     persons,
@@ -140,6 +142,9 @@ export default function JournalPage() {
   );
   const selectedEntry = view.kind === "new" ? null : (journalEntries.get(view.id) ?? null);
 
+  // The journal stays the owner's: a tree shared with the user has none to show.
+  if (readOnly) return <Navigate to={`/trees/${uuidToCompact(treeId!)}`} replace />;
+
   if (error) {
     return (
       <div className="tree-workspace">
@@ -149,7 +154,7 @@ export default function JournalPage() {
           activeView="journal"
           viewTab={journalViewTab}
         />
-        <div style={{ padding: 20 }}>{t(treeLoadErrorKey(error))}</div>
+        <TreeLoadError error={error} readOnly={false} />
       </div>
     );
   }

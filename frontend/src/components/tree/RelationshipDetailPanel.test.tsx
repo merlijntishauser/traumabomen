@@ -59,6 +59,16 @@ function defaultProps() {
   };
 }
 
+describe("RelationshipDetailPanel for a shared tree", () => {
+  it("shows the relationship with every control disabled and no delete", () => {
+    render(<RelationshipDetailPanel {...defaultProps()} readOnly />);
+    expect(getTypeSelect()).toBeDisabled();
+    expect(getTypeSelect().closest("fieldset.panel-readonly")).toBeDisabled();
+    expect(screen.queryByText("common.delete")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "common.close" })).toBeEnabled();
+  });
+});
+
 function getTypeSelect() {
   return screen.getByRole("combobox", { name: "relationship.type" });
 }

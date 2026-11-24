@@ -1,8 +1,9 @@
-import { House, Lock, LogOut } from "lucide-react";
+import { Eye, House, Lock, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { useLogout } from "../../hooks/useLogout";
+import { useTreeAccess } from "../../hooks/useTreeAccess";
 import type { ViewTab } from "./SettingsPanel";
 import { SettingsPanel } from "./SettingsPanel";
 import type { ActiveView } from "./ViewTabs";
@@ -19,11 +20,18 @@ interface TreeToolbarProps {
 export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }: TreeToolbarProps) {
   const { t } = useTranslation();
   const logout = useLogout();
+  const { readOnly, ownerLabel } = useTreeAccess(treeId);
 
   return (
     <div className="tree-toolbar">
       <span className="tree-toolbar__title">{treeName ?? t("tree.untitled")}</span>
-      <ViewTabs treeId={treeId} activeView={activeView} />
+      {readOnly && (
+        <span className="tree-toolbar__view-only">
+          <Eye size={13} aria-hidden="true" />
+          {t("share.viewOnly", { owner: ownerLabel ?? "" })}
+        </span>
+      )}
+      <ViewTabs treeId={treeId} activeView={activeView} readOnly={readOnly} />
 
       <div className="tree-toolbar__spacer" />
 
