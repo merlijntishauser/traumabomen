@@ -290,6 +290,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `PUT /auth/salt`
 - `PUT /auth/hint` —update or clear passphrase hint (max 255 chars)
 - `PUT /auth/onboarding` —acknowledge onboarding safety modal
+- `DELETE /auth/shared-keys/{share_id}` —recipient removes a tree shared with them (deletes the share; 404 unless the caller is the recipient; not flag-gated)
 - `GET/PUT /auth/keys` —read or store the user's RSA public key and the private key encrypted with the master key (sharing)
 - `GET /auth/public-key/{email}` —a registered user's public key, for wrapping a tree key (rate limited, `public-key-lookup`)
 - `GET/PUT /auth/profile` —read or set the plaintext display name shown to the people a tree is shared with (max 100 chars)

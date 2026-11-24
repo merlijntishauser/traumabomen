@@ -308,3 +308,58 @@ async def test_invite_sent_once_per_address_within_cooldown(
     assert again.status_code == 201
     assert again.json()["status"] == "pending"
     send.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_recipient_removes_shared_tree(
+    client, db_session, user, headers, tree, sharing_enabled
+):
+    bob = await _keyed_user(client, db_session)
+    created = (await _share(client, headers, tree, "bob@x.org", KEY)).json()
+    bob_headers = auth_headers(bob.id)
+    resp = await client.delete(f"/auth/shared-keys/{created['id']}", headers=bob_headers)
+    assert resp.status_code == 204
+    assert (await client.get(f"/trees/{tree['id']}", headers=bob_headers)).status_code == 404
+    assert (await client.get("/auth/shared-keys", headers=bob_headers)).json() == []
+    listed = await client.get(f"/trees/{tree['id']}/shares", headers=headers)
+    assert listed.json() == []
+
+
+@pytest.mark.asyncio
+async def test_remove_shared_tree_404_for_anyone_else(
+    client, db_session, user, headers, tree, sharing_enabled
+):
+    bob = await _keyed_user(client, db_session)
+    created = (await _share(client, headers, tree, "bob@x.org", KEY)).json()
+    mallory = await create_user(db_session, email="mallory@x.org")
+    url = f"/auth/shared-keys/{created['id']}"
+    for h in (headers, auth_headers(mallory.id)):
+        resp = await client.delete(url, headers=h)
+        assert resp.status_code == 404
+        assert resp.json()["detail"] == "Share not found"
+    unknown = await client.delete(f"/auth/shared-keys/{uuid.uuid4()}", headers=auth_headers(bob.id))
+    assert unknown.status_code == 404
+    assert unknown.json()["detail"] == "Share not found"
+    keys = await client.get("/auth/shared-keys", headers=auth_headers(bob.id))
+    assert [k["share_id"] for k in keys.json()] == [created["id"]]
+
+
+@pytest.mark.asyncio
+async def test_remove_shared_tree_not_gated_by_flag(
+    client, db_session, user, headers, tree, sharing_enabled
+):
+    bob = await _keyed_user(client, db_session)
+    created = (await _share(client, headers, tree, "bob@x.org", KEY)).json()
+    from app.models.feature_flag import FeatureFlag
+
+    flag = await db_session.get(FeatureFlag, "tree_sharing")
+    flag.audience = "disabled"
+    await db_session.commit()
+    resp = await client.delete(f"/auth/shared-keys/{created['id']}", headers=auth_headers(bob.id))
+    assert resp.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_remove_shared_tree_requires_auth(client):
+    resp = await client.delete(f"/auth/shared-keys/{uuid.uuid4()}")
+    assert resp.status_code == 401

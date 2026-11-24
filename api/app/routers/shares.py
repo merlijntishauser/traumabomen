@@ -218,6 +218,29 @@ async def list_shared_keys(
     ]
 
 
+@auth_router.delete("/shared-keys/{share_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_shared_tree(
+    share_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """A recipient drops a tree shared with them. Not gated by the sharing flag:
+    leaving a share must always be possible. Unknown ids, someone else's share
+    and the owner's own share all answer the same 404."""
+    check_endpoint_rate_limit(get_client_ip(request), "shared-tree-remove")
+    check_endpoint_rate_limit(str(user.id), "shared-tree-remove-user")
+    result = await db.execute(
+        select(TreeShare).where(TreeShare.id == share_id, TreeShare.recipient_id == user.id)
+    )
+    share = result.scalar_one_or_none()
+    if share is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Share not found")
+    await db.delete(share)
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @auth_router.get("/pending-shares")
 async def list_pending_shares(
     user: User = Depends(get_current_user),
