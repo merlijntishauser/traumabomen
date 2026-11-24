@@ -140,7 +140,7 @@ test.describe("Tree sharing", () => {
     await dialog.getByRole("button", { name: "Share", exact: true }).click();
     await expect(dialog.getByText(/has no account yet/)).toBeVisible({ timeout: 15_000 });
     await dialog.getByRole("button", { name: "Send invitation" }).click();
-    await expect(dialog.getByText("Invited, waiting for them to set up")).toBeVisible({
+    await expect(dialog.getByText("Invited, no account yet")).toBeVisible({
       timeout: 15_000,
     });
     await dialog.getByRole("button", { name: "Close" }).click();

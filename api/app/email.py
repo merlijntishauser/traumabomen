@@ -347,8 +347,8 @@ _SHARE_INVITE_STRINGS = {
         "subject": "A family tree has been shared with you",
         "body": (
             "Someone wants to share a family tree with you. Create an account to view it."
-            " If registration is limited at the moment, you can join the waitlist instead,"
-            " and the tree will be waiting for you once your account is set up."
+            " If registration is limited at the moment, you may need to join the waitlist first."
+            " The tree will be waiting for you once your account is set up."
         ),
         "button": "Create account",
         "copy": "Or copy this link:",
@@ -356,8 +356,8 @@ _SHARE_INVITE_STRINGS = {
         "text_heading": "Traumatrees",
         "text_body": (
             "Someone wants to share a family tree with you. Create an account to view it."
-            " If registration is limited at the moment, you can join the waitlist instead,"
-            " and the tree will be waiting for you once your account is set up:"
+            " If registration is limited at the moment, you may need to join the waitlist first."
+            " The tree will be waiting for you once your account is set up:"
         ),
     },
     "nl": {
@@ -365,7 +365,7 @@ _SHARE_INVITE_STRINGS = {
         "subject": "Er is een stamboom met je gedeeld",
         "body": (
             "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken."
-            " Is registreren op dit moment beperkt, dan kun je je op de wachtlijst zetten."
+            " Is registreren op dit moment beperkt, dan moet je je misschien eerst op de wachtlijst zetten."
             " De stamboom staat voor je klaar zodra je account is ingesteld."
         ),
         "button": "Account aanmaken",
@@ -374,7 +374,7 @@ _SHARE_INVITE_STRINGS = {
         "text_heading": "Traumabomen",
         "text_body": (
             "Iemand wil een stamboom met je delen. Maak een account aan om hem te bekijken."
-            " Is registreren op dit moment beperkt, dan kun je je op de wachtlijst zetten."
+            " Is registreren op dit moment beperkt, dan moet je je misschien eerst op de wachtlijst zetten."
             " De stamboom staat voor je klaar zodra je account is ingesteld:"
         ),
     },
