@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TreeToolbar } from "./TreeToolbar";
 
 vi.mock("react-i18next", () => ({
@@ -29,6 +29,19 @@ vi.mock("./ViewTabs", () => ({
       data-read-only={String(Boolean(props.readOnly))}
     />
   ),
+}));
+
+const mockRemove = vi.fn();
+const mockReset = vi.fn();
+let mockRemoveState = { busy: false, error: null as string | null };
+vi.mock("../../hooks/useRemoveSharedTree", () => ({
+  useRemoveSharedTree: () => ({ remove: mockRemove, reset: mockReset, ...mockRemoveState }),
+}));
+
+const mockNavigate = vi.fn();
+vi.mock("react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react-router")>()),
+  useNavigate: () => mockNavigate,
 }));
 
 let mockAccess = { readOnly: false, ownerLabel: null as string | null };
@@ -125,6 +138,83 @@ describe("TreeToolbar", () => {
     } finally {
       mockAccess = { readOnly: false, ownerLabel: null };
     }
+  });
+
+  it("offers no remove action for an own tree", () => {
+    renderToolbar();
+    expect(screen.queryByRole("button", { name: "share.removeFromList" })).not.toBeInTheDocument();
+  });
+
+  describe("removing a shared tree", () => {
+    beforeEach(() => {
+      mockAccess = { readOnly: true, ownerLabel: "Anna" };
+      mockRemoveState = { busy: false, error: null };
+      mockRemove.mockReset();
+      mockNavigate.mockReset();
+      mockReset.mockReset();
+      HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+        this.open = true;
+      };
+    });
+    afterEach(() => {
+      mockAccess = { readOnly: false, ownerLabel: null };
+    });
+
+    it("asks before removing, and removes then goes back to the trees", async () => {
+      mockRemove.mockResolvedValue(true);
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      expect(screen.getByText("share.removeFromListTitle")).toBeInTheDocument();
+      expect(screen.getByText("share.removeFromListBody")).toBeInTheDocument();
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "common.cancel" }));
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromListConfirm" }));
+      expect(mockRemove).toHaveBeenCalledWith(TREE_ID);
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/trees"));
+    });
+
+    it("stays put when removing fails", async () => {
+      mockRemove.mockResolvedValue(false);
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromListConfirm" }));
+      await waitFor(() => expect(mockRemove).toHaveBeenCalled());
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("shows the error and disables Remove while busy", () => {
+      mockRemoveState = { busy: true, error: "share.errorGeneric" };
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      expect(screen.getByRole("alert")).toHaveTextContent("share.errorGeneric");
+      expect(screen.getByRole("button", { name: "share.removeFromListConfirm" })).toBeDisabled();
+    });
+
+    it("closes on cancel, with the error cleared", () => {
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
+      expect(mockReset).toHaveBeenCalled();
+      expect(screen.queryByText("share.removeFromListTitle")).not.toBeInTheDocument();
+    });
+
+    it("closes on Escape unless busy", () => {
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      const dialog = document.querySelector("dialog");
+      if (!dialog) throw new Error("no dialog");
+      fireEvent(dialog, new Event("cancel", { cancelable: true }));
+      expect(screen.queryByText("share.removeFromListTitle")).not.toBeInTheDocument();
+    });
+
+    it("keeps the dialog on Escape while busy", () => {
+      mockRemoveState = { busy: true, error: null };
+      renderToolbar();
+      fireEvent.click(screen.getByRole("button", { name: "share.removeFromList" }));
+      const dialog = document.querySelector("dialog");
+      if (!dialog) throw new Error("no dialog");
+      fireEvent(dialog, new Event("cancel", { cancelable: true }));
+      expect(screen.getByText("share.removeFromListTitle")).toBeInTheDocument();
+    });
   });
 
   it("shows no view-only note for an own tree", () => {

@@ -1,13 +1,51 @@
 import { Eye, House, Lock, LogOut } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useLogout } from "../../hooks/useLogout";
+import { useRemoveSharedTree } from "../../hooks/useRemoveSharedTree";
 import { useTreeAccess } from "../../hooks/useTreeAccess";
+import { RemoveSharedTreeDialog } from "../RemoveSharedTreeDialog";
 import type { ViewTab } from "./SettingsPanel";
 import { SettingsPanel } from "./SettingsPanel";
 import type { ActiveView } from "./ViewTabs";
 import { ViewTabs } from "./ViewTabs";
+
+/** Beside the view-only label: take this shared tree off your list, then go back to it. */
+function RemoveSharedTreeAction({ treeId, ownerLabel }: { treeId: string; ownerLabel: string }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [confirming, setConfirming] = useState(false);
+  const { remove, reset, busy, error } = useRemoveSharedTree();
+
+  async function confirm() {
+    if (await remove(treeId)) navigate("/trees");
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="tree-toolbar__remove-shared"
+        onClick={() => setConfirming(true)}
+      >
+        {t("share.removeFromList")}
+      </button>
+      {confirming && (
+        <RemoveSharedTreeDialog
+          ownerLabel={ownerLabel}
+          busy={busy}
+          error={error}
+          onConfirm={() => void confirm()}
+          onCancel={() => {
+            reset();
+            setConfirming(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
 
 interface TreeToolbarProps {
   treeId: string;
@@ -31,6 +69,7 @@ export function TreeToolbar({ treeId, treeName, activeView, viewTab, children }:
           {ownerLabel ? t("share.viewOnly", { owner: ownerLabel }) : t("treeList.viewOnly")}
         </span>
       )}
+      {readOnly && ownerLabel && <RemoveSharedTreeAction treeId={treeId} ownerLabel={ownerLabel} />}
       <ViewTabs treeId={treeId} activeView={activeView} readOnly={readOnly} />
 
       <div className="tree-toolbar__spacer" />

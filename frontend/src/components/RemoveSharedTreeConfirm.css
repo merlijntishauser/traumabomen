@@ -1,0 +1,69 @@
+/* Confirming a shared tree leaving the recipient's list: plain, no alarm. */
+.remove-shared__title {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+  margin: 0 0 var(--space-1);
+}
+
+.remove-shared__body {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  max-width: 60ch;
+  margin: 0 0 var(--space-3);
+}
+
+.remove-shared__error {
+  font-size: 0.8125rem;
+  color: var(--color-danger);
+  margin: 0 0 var(--space-3);
+}
+
+.remove-shared__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* In a tree list row, matching the delete confirmation. */
+.remove-shared--row {
+  padding: var(--space-4) 18px;
+  background: var(--color-danger-bg);
+}
+
+/* In the read-only workspace, as a small modal. */
+.remove-shared-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--color-bg-overlay);
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: none;
+  color: inherit;
+}
+
+.remove-shared-dialog:not([open]) {
+  display: none;
+}
+
+.remove-shared-dialog::backdrop {
+  background: transparent;
+}
+
+.remove-shared-dialog__card {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-6);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}

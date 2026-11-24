@@ -8,14 +8,23 @@ interface TreeRowMenuProps {
   onRename?: () => void;
   /** Omitted when sharing is not available to this user. */
   onShare?: () => void;
-  onDelete: () => void;
+  /** Omitted for a tree shared with this user: it is not theirs to delete. */
+  onDelete?: () => void;
+  /** Present only for a tree shared with this user: takes it off their list. */
+  onRemoveFromList?: () => void;
 }
 
 /**
  * Per-row overflow menu for the rare actions on a tree. Opening a tree is
  * the common action and keeps the whole row; rename and delete wait here.
  */
-export function TreeRowMenu({ treeName, onRename, onShare, onDelete }: TreeRowMenuProps) {
+export function TreeRowMenu({
+  treeName,
+  onRename,
+  onShare,
+  onDelete,
+  onRemoveFromList,
+}: TreeRowMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -106,17 +115,32 @@ export function TreeRowMenu({ treeName, onRename, onShare, onDelete }: TreeRowMe
               {t("share.menu")}
             </button>
           )}
-          <button
-            ref={(el) => {
-              itemRefs.current[2] = el;
-            }}
-            type="button"
-            role="menuitem"
-            className="tree-row-menu__item tree-row-menu__item--danger"
-            onClick={() => choose(onDelete)}
-          >
-            {t("tree.deleteTree")}
-          </button>
+          {onRemoveFromList && (
+            <button
+              ref={(el) => {
+                itemRefs.current[3] = el;
+              }}
+              type="button"
+              role="menuitem"
+              className="tree-row-menu__item"
+              onClick={() => choose(onRemoveFromList)}
+            >
+              {t("share.removeFromList")}
+            </button>
+          )}
+          {onDelete && (
+            <button
+              ref={(el) => {
+                itemRefs.current[2] = el;
+              }}
+              type="button"
+              role="menuitem"
+              className="tree-row-menu__item tree-row-menu__item--danger"
+              onClick={() => choose(onDelete)}
+            >
+              {t("tree.deleteTree")}
+            </button>
+          )}
         </div>
       )}
     </div>

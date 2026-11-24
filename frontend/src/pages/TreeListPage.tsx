@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { LatestTreeBand } from "../components/LatestTreeBand";
 import { Logomark } from "../components/Logomark";
+import { RemoveSharedTreeConfirm } from "../components/RemoveSharedTreeConfirm";
 import { ShareTreeDialog } from "../components/ShareTreeDialog";
 import { TreeRowMenu } from "../components/TreeRowMenu";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
@@ -15,6 +16,7 @@ import { useEncryption } from "../contexts/useEncryption";
 import { useFeatureFlags } from "../hooks/useFeatureFlags";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
+import { useRemoveSharedTree } from "../hooks/useRemoveSharedTree";
 import { type SharedTreeListItem, useSharedTrees } from "../hooks/useSharedTrees";
 import { useTheme } from "../hooks/useTheme";
 import { useTreeListMutations } from "../hooks/useTreeListMutations";
@@ -314,13 +316,44 @@ function TreeListItemRow({
   );
 }
 
-/** A tree someone shared with you: read-only, so no rename, share or delete. */
+/**
+ * A tree someone shared with you: read-only, so no rename, share or delete.
+ * It can be taken off your list, which ends the share.
+ */
 function SharedTreeRow({ tree }: { tree: SharedTreeListItem }) {
   const { t } = useTranslation();
+  const [confirming, setConfirming] = useState(false);
+  const { remove, reset, busy, error } = useRemoveSharedTree();
+  const linkRef = useRef<HTMLAnchorElement>(null);
+  const wasConfirmingRef = useRef(false);
+
+  // The confirmation replaces the row; hand focus back to the row's link when it closes.
+  useEffect(() => {
+    if (!confirming && wasConfirmingRef.current) linkRef.current?.focus();
+    wasConfirmingRef.current = confirming;
+  }, [confirming]);
+
+  if (confirming) {
+    return (
+      <RemoveSharedTreeConfirm
+        className="remove-shared--row"
+        titleId={`remove-shared-${tree.id}`}
+        ownerLabel={tree.ownerLabel}
+        busy={busy}
+        error={error}
+        onConfirm={() => void remove(tree.id)}
+        onCancel={() => {
+          reset();
+          setConfirming(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="tree-list-item">
       <Logomark size={24} className="tree-list-item__mark" />
-      <Link className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
+      <Link ref={linkRef} className="tree-list-item__link" to={`/trees/${uuidToCompact(tree.id)}`}>
         <span className="tree-list-item__name">{tree.name}</span>
         <span className="tree-list-item__meta">
           {tree.unreadable
@@ -332,6 +365,7 @@ function SharedTreeRow({ tree }: { tree: SharedTreeListItem }) {
         <Eye size={14} aria-hidden="true" />
         {t("treeList.viewOnly")}
       </span>
+      <TreeRowMenu treeName={tree.name} onRemoveFromList={() => setConfirming(true)} />
     </div>
   );
 }

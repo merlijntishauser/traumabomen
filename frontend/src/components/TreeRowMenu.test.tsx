@@ -42,6 +42,22 @@ describe("TreeRowMenu sharing", () => {
   });
 });
 
+describe("TreeRowMenu for a shared tree", () => {
+  it("offers only removing from the list, and calls it on choose", () => {
+    const onRemoveFromList = vi.fn();
+    render(<TreeRowMenu treeName="Their tree" onRemoveFromList={onRemoveFromList} />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor:Their tree" }));
+    const names = screen.getAllByRole("menuitem").map((el) => el.textContent);
+    expect(names).toEqual(["share.removeFromList"]);
+    expect(document.activeElement).toBe(
+      screen.getByRole("menuitem", { name: "share.removeFromList" }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.removeFromList" }));
+    expect(onRemoveFromList).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+});
+
 describe("TreeRowMenu", () => {
   it("names the tree in the trigger and starts closed", () => {
     const { trigger } = setup();

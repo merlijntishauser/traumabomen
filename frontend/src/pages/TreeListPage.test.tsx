@@ -99,6 +99,18 @@ vi.mock("../hooks/useFeatureFlags", () => ({
 }));
 let mockSharingFlag = false;
 
+const mockRemoveShared = vi.fn();
+const mockResetRemove = vi.fn();
+let mockRemoveError: string | null = null;
+vi.mock("../hooks/useRemoveSharedTree", () => ({
+  useRemoveSharedTree: () => ({
+    remove: mockRemoveShared,
+    reset: mockResetRemove,
+    busy: false,
+    error: mockRemoveError,
+  }),
+}));
+
 let mockSharedList: { id: string; name: string; ownerLabel: string }[] = [];
 vi.mock("../hooks/useSharedTrees", () => ({
   useSharedTrees: () => ({ data: mockSharedList }),
@@ -502,7 +514,7 @@ describe("TreeListPage shared with me", () => {
     mockSharedList = [];
   });
 
-  it("renders the shared section with owner label and no row menu", () => {
+  it("renders the shared section with owner label", () => {
     mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
     render(<TreeListPage />);
     expect(
@@ -512,7 +524,50 @@ describe("TreeListPage shared with me", () => {
     expect(link).toHaveAttribute("href", "/trees/shared-t");
     expect(screen.getByText("treeList.sharedBy")).toBeInTheDocument();
     expect(screen.getByText("treeList.viewOnly")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "tree.optionsFor" })).not.toBeInTheDocument();
+  });
+
+  it("offers only removing from the list in a shared row's menu", () => {
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    const items = screen.getAllByRole("menuitem").map((el) => el.textContent);
+    expect(items).toEqual(["share.removeFromList"]);
+  });
+
+  it("asks before removing a shared tree, then removes it", () => {
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.removeFromList" }));
+    expect(screen.getByText("share.removeFromListTitle")).toBeInTheDocument();
+    expect(screen.getByText("share.removeFromListBody")).toBeInTheDocument();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "common.cancel" }));
+    fireEvent.click(screen.getByRole("button", { name: "share.removeFromListConfirm" }));
+    expect(mockRemoveShared).toHaveBeenCalledWith("shared-tree-1");
+  });
+
+  it("cancelling the removal brings the row back with focus on its link", () => {
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.removeFromList" }));
+    fireEvent.click(screen.getByRole("button", { name: "common.cancel" }));
+    expect(mockResetRemove).toHaveBeenCalled();
+    expect(screen.queryByText("share.removeFromListTitle")).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(screen.getByRole("link", { name: /Their Tree/ }));
+  });
+
+  it("shows the error when removing a shared tree fails", () => {
+    mockSharedList = [{ id: "shared-tree-1", name: "Their Tree", ownerLabel: "Ana" }];
+    mockRemoveError = "share.errorGeneric";
+    try {
+      render(<TreeListPage />);
+      fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: "share.removeFromList" }));
+      expect(screen.getByRole("alert")).toHaveTextContent("share.errorGeneric");
+    } finally {
+      mockRemoveError = null;
+    }
   });
 
   it("hides the section when nothing is shared", () => {

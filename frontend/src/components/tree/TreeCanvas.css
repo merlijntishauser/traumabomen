@@ -168,6 +168,30 @@
   white-space: nowrap;
 }
 
+/* Quiet text action beside the view-only label; the confirmation carries the weight. */
+.tree-toolbar__remove-shared {
+  height: 32px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.tree-toolbar__remove-shared:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.tree-toolbar__remove-shared:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 1px;
+}
+
 .tree-load-error {
   padding: 20px;
 }
