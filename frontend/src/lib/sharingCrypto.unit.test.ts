@@ -31,6 +31,27 @@ describe("sharing crypto", () => {
     );
   }, 60000);
 
+  it("rejects an unwrapped key that is not 32 bytes", async () => {
+    const pair = await generateShareKeyPair();
+    const short = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+    const wrapped = await wrapTreeKey(short, await importSharePublicKey(pair.publicJwk));
+    await expect(
+      unwrapTreeKey(wrapped, await importSharePrivateKey(pair.privateJwk)),
+    ).rejects.toThrow(DecryptError);
+  }, 60000);
+
+  it("reports a wrapped key that is not base64 as DecryptError", async () => {
+    const pair = await generateShareKeyPair();
+    const priv = await importSharePrivateKey(pair.privateJwk);
+    await expect(unwrapTreeKey("not base64!", priv)).rejects.toThrow(DecryptError);
+  }, 60000);
+
+  it("lets a programming error through instead of calling it DecryptError", async () => {
+    const result = unwrapTreeKey(btoa("x".repeat(512)), {} as CryptoKey);
+    await expect(result).rejects.toThrow();
+    await expect(result).rejects.not.toBeInstanceOf(DecryptError);
+  });
+
   it("imported private key is not extractable and public key only encrypts", async () => {
     const pair = await generateShareKeyPair();
     const priv = await importSharePrivateKey(pair.privateJwk);

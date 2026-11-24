@@ -206,7 +206,16 @@ export async function wrapTreeKey(
   return toBase64(new Uint8Array(wrapped));
 }
 
-/** Reverse of wrapTreeKey; any RSA failure is reported as a DecryptError. */
+const TREE_KEY_LENGTH = 32;
+
+/** What a bad or foreign wrapped key makes Web Crypto (or atob) throw. */
+const UNWRAP_FAILURES = new Set(["OperationError", "InvalidCharacterError", "DataError"]);
+
+/**
+ * Reverse of wrapTreeKey. Bad input (not base64, not wrapped for this key, or
+ * not a 32-byte AES-256 key once unwrapped) is a DecryptError; anything else,
+ * such as a wrong argument type, is a programming error and propagates.
+ */
 export async function unwrapTreeKey(wrapped: string, privateKey: CryptoKey): Promise<CryptoKey> {
   let raw: ArrayBuffer;
   try {
@@ -216,8 +225,15 @@ export async function unwrapTreeKey(wrapped: string, privateKey: CryptoKey): Pro
       privateKey,
       bytes.buffer as ArrayBuffer,
     );
-  } catch {
-    throw new DecryptError();
+  } catch (err) {
+    if (err instanceof DOMException && UNWRAP_FAILURES.has(err.name)) throw new DecryptError();
+    throw err;
+  }
+  // AES-GCM would accept a 16-byte key as AES-128: refuse anything but a tree key.
+  if (raw.byteLength !== TREE_KEY_LENGTH) {
+    throw new DecryptError(
+      `Invalid tree key length: expected ${TREE_KEY_LENGTH}, got ${raw.byteLength}`,
+    );
   }
   return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
