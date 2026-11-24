@@ -41,6 +41,12 @@ vi.mock("../components/FeedbackModal", () => ({
   ),
 }));
 
+vi.mock("../components/ShareTreeDialog", () => ({
+  ShareTreeDialog: ({ treeName }: { treeName: string }) => (
+    <div data-testid="share-dialog">{treeName}</div>
+  ),
+}));
+
 vi.mock("../components/tree/SettingsPanel", () => ({
   SettingsPanel: () => <div data-testid="settings-panel" />,
 }));
@@ -87,6 +93,11 @@ vi.mock("../lib/api", () => ({
   updateKeyRing: vi.fn(),
   updateTree: vi.fn(),
 }));
+
+vi.mock("../hooks/useFeatureFlags", () => ({
+  useFeatureFlags: () => ({ data: { tree_sharing: mockSharingFlag } }),
+}));
+let mockSharingFlag = false;
 
 vi.mock("../lib/compactId", () => ({
   uuidToCompact: (id: string) => id.slice(0, 8),
@@ -449,5 +460,33 @@ describe("TreeListPage unreadable trees", () => {
     fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
     expect(screen.queryByRole("menuitem", { name: "tree.rename" })).not.toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "tree.deleteTree" })).toBeInTheDocument();
+  });
+});
+
+describe("TreeListPage sharing", () => {
+  beforeEach(() => {
+    mockQueryReturn = {
+      data: [{ id: "tree-1", name: "My Tree", is_demo: false, updated_at: "2026-01-01T00:00:00Z" }],
+      isLoading: false,
+    };
+  });
+
+  function openMenu() {
+    render(<TreeListPage />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor" }));
+  }
+
+  it("keeps Share out of the menu without the tree_sharing flag", () => {
+    mockSharingFlag = false;
+    openMenu();
+    expect(screen.queryByRole("menuitem", { name: "share.menu" })).not.toBeInTheDocument();
+  });
+
+  it("opens the share dialog for the tree when the flag is on", () => {
+    mockSharingFlag = true;
+    openMenu();
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.menu" }));
+    expect(screen.getByTestId("share-dialog")).toHaveTextContent("My Tree");
+    mockSharingFlag = false;
   });
 });

@@ -16,6 +16,32 @@ function setup() {
   return { onRename, onDelete, trigger };
 }
 
+describe("TreeRowMenu sharing", () => {
+  it("Share is absent from the row menu without the flag", () => {
+    render(<TreeRowMenu treeName="Mother's side" onRename={vi.fn()} onDelete={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor:Mother's side" }));
+    expect(screen.queryByRole("menuitem", { name: "share.menu" })).not.toBeInTheDocument();
+  });
+
+  it("offers Share between rename and delete when allowed, and closes on choose", () => {
+    const onShare = vi.fn();
+    render(
+      <TreeRowMenu
+        treeName="Mother's side"
+        onRename={vi.fn()}
+        onShare={onShare}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "tree.optionsFor:Mother's side" }));
+    const names = screen.getAllByRole("menuitem").map((el) => el.textContent);
+    expect(names).toEqual(["tree.rename", "share.menu", "tree.deleteTree"]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "share.menu" }));
+    expect(onShare).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+});
+
 describe("TreeRowMenu", () => {
   it("names the tree in the trigger and starts closed", () => {
     const { trigger } = setup();

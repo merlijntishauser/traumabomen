@@ -57,6 +57,10 @@ vi.mock("../../lib/api", () => ({
   updateTree: vi.fn(),
 }));
 
+vi.mock("../../hooks/useFeatureFlags", () => ({
+  useFeatureFlags: () => ({ data: {} }),
+}));
+
 const mockDecryptFromApi = vi.fn();
 const mockDecryptKeyRing = vi.fn();
 const mockDeriveKey = vi.fn();

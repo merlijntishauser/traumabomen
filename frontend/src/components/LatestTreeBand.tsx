@@ -105,6 +105,7 @@ interface LatestTreeBandProps {
   metaLine: string;
   prompt: string;
   onRename: () => void;
+  onShare?: () => void;
   onDelete: () => void;
   /** The rename form or delete confirm, shown in place of the name block. */
   children?: ReactNode;
@@ -120,6 +121,7 @@ export function LatestTreeBand({
   metaLine,
   prompt,
   onRename,
+  onShare,
   onDelete,
   children,
 }: LatestTreeBandProps) {
@@ -153,7 +155,12 @@ export function LatestTreeBand({
               <h2 id="tree-band-name" className="tree-band__name">
                 {tree.name}
               </h2>
-              <TreeRowMenu treeName={tree.name} onRename={onRename} onDelete={onDelete} />
+              <TreeRowMenu
+                treeName={tree.name}
+                onRename={onRename}
+                onShare={onShare}
+                onDelete={onDelete}
+              />
             </div>
             {tree.is_demo && <span className="tree-list-item__demo-badge">{t("demo.badge")}</span>}
             <p className="tree-band__meta">{metaLine}</p>

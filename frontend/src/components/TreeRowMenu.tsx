@@ -6,6 +6,8 @@ interface TreeRowMenuProps {
   treeName: string;
   /** Omitted when the tree cannot be renamed (its name could not be decrypted). */
   onRename?: () => void;
+  /** Omitted when sharing is not available to this user. */
+  onShare?: () => void;
   onDelete: () => void;
 }
 
@@ -13,7 +15,7 @@ interface TreeRowMenuProps {
  * Per-row overflow menu for the rare actions on a tree. Opening a tree is
  * the common action and keeps the whole row; rename and delete wait here.
  */
-export function TreeRowMenu({ treeName, onRename, onDelete }: TreeRowMenuProps) {
+export function TreeRowMenu({ treeName, onRename, onShare, onDelete }: TreeRowMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -91,9 +93,22 @@ export function TreeRowMenu({ treeName, onRename, onDelete }: TreeRowMenuProps) 
               {t("tree.rename")}
             </button>
           )}
+          {onShare && (
+            <button
+              ref={(el) => {
+                itemRefs.current[1] = el;
+              }}
+              type="button"
+              role="menuitem"
+              className="tree-row-menu__item"
+              onClick={() => choose(onShare)}
+            >
+              {t("share.menu")}
+            </button>
+          )}
           <button
             ref={(el) => {
-              itemRefs.current[1] = el;
+              itemRefs.current[2] = el;
             }}
             type="button"
             role="menuitem"

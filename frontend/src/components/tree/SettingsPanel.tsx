@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { AutoLockSection } from "./settings/AutoLockSection";
 import { ChangePassphraseSection } from "./settings/ChangePassphraseSection";
 import { ChangePasswordSection } from "./settings/ChangePasswordSection";
 import { DeleteAccountSection } from "./settings/DeleteAccountSection";
+import { DisplayNameSection } from "./settings/DisplayNameSection";
 import { PassphraseHintSection } from "./settings/PassphraseHintSection";
 import "./SettingsPanel.css";
 
@@ -30,6 +32,18 @@ interface SidebarTab {
 }
 
 const T_TITLE = "settings.title";
+
+/** The display name only matters once sharing is on, so it follows the same flag. */
+function SharingDisplayName() {
+  const { data: flags } = useFeatureFlags();
+  if (flags?.tree_sharing !== true) return null;
+  return (
+    <>
+      <DisplayNameSection />
+      <div className="settings-panel__divider" />
+    </>
+  );
+}
 
 export function SettingsPanel({ viewTab, className }: Props) {
   const { t } = useTranslation();
@@ -122,6 +136,7 @@ export function SettingsPanel({ viewTab, className }: Props) {
                   <div className="settings-panel__divider" />
                   <PassphraseHintSection />
                   <div className="settings-panel__divider" />
+                  <SharingDisplayName />
                   <AutoLockSection />
                 </>
               )}

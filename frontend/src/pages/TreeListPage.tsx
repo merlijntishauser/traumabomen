@@ -6,11 +6,13 @@ import { Link, useNavigate } from "react-router";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { LatestTreeBand } from "../components/LatestTreeBand";
 import { Logomark } from "../components/Logomark";
+import { ShareTreeDialog } from "../components/ShareTreeDialog";
 import { TreeRowMenu } from "../components/TreeRowMenu";
 import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
+import { useFeatureFlags } from "../hooks/useFeatureFlags";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
 import { useTheme } from "../hooks/useTheme";
@@ -46,6 +48,7 @@ interface TreeListLocalState {
   editingId: string | null;
   editName: string;
   deletingId: string | null;
+  sharingTree: { id: string; name: string } | null;
   creating: boolean;
   newName: string;
   showFeedback: boolean;
@@ -58,6 +61,7 @@ type TreeListLocalAction =
   | { type: "START_EDITING"; id: string; name: string }
   | { type: "SET_EDIT_NAME"; name: string }
   | { type: "CANCEL_EDIT" }
+  | { type: "SET_SHARING_TREE"; tree: { id: string; name: string } | null }
   | { type: "SET_DELETING"; id: string | null }
   | { type: "START_CREATING" }
   | { type: "STOP_CREATING" }
@@ -79,6 +83,8 @@ function treeListLocalReducer(
       return { ...state, editName: action.name };
     case "CANCEL_EDIT":
       return { ...state, editingId: null };
+    case "SET_SHARING_TREE":
+      return { ...state, sharingTree: action.tree };
     case "SET_DELETING":
       return {
         ...state,
@@ -191,6 +197,8 @@ interface TreeListItemProps {
   onEditNameChange: (name: string) => void;
   onRenameSubmit: (e: FormEvent) => void;
   onStartEditing: (tree: DecryptedTree) => void;
+  /** Present only when the user may share trees. */
+  onShare?: (tree: DecryptedTree) => void;
   onCancelEdit: () => void;
   onConfirmDelete: (id: string) => void;
   onCancelDelete: () => void;
@@ -207,6 +215,7 @@ function TreeListItemRow({
   onEditNameChange,
   onRenameSubmit,
   onStartEditing,
+  onShare,
   onCancelEdit,
   onConfirmDelete,
   onCancelDelete,
@@ -297,6 +306,7 @@ function TreeListItemRow({
       <TreeRowMenu
         treeName={tree.name}
         onRename={tree.unreadable ? undefined : () => onStartEditing(tree)}
+        onShare={onShare && !tree.unreadable ? () => onShare(tree) : undefined}
         onDelete={() => onConfirmDelete(tree.id)}
       />
     </div>
@@ -419,11 +429,14 @@ export default function TreeListPage() {
   const logout = useLogout();
   const { decrypt, masterKey } = useEncryption();
   const queryClient = useQueryClient();
+  const { data: flags } = useFeatureFlags();
+  const canShare = flags?.tree_sharing === true;
 
   const [state, dispatch] = useReducer(treeListLocalReducer, {
     editingId: null,
     editName: "",
     deletingId: null,
+    sharingTree: null,
     creating: false,
     newName: "",
     showFeedback: false,
@@ -536,6 +549,10 @@ export default function TreeListPage() {
       onRenameSubmit: handleRenameSubmit,
       onStartEditing: (row: { id: string; name: string }) =>
         dispatch({ type: "START_EDITING", id: row.id, name: row.name }),
+      onShare: canShare
+        ? (row: { id: string; name: string }) =>
+            dispatch({ type: "SET_SHARING_TREE", tree: { id: row.id, name: row.name } })
+        : undefined,
       onCancelEdit: () => dispatch({ type: "CANCEL_EDIT" }),
       onConfirmDelete: (id: string) => dispatch({ type: "SET_DELETING", id }),
       onCancelDelete: () => dispatch({ type: "SET_DELETING", id: null }),
@@ -605,6 +622,15 @@ export default function TreeListPage() {
               metaLine={buildTreeMetaLine(latest, t, i18n.language)}
               prompt={journalPromptText(t, promptIndex)}
               onRename={() => dispatch({ type: "START_EDITING", id: latest.id, name: latest.name })}
+              onShare={
+                canShare
+                  ? () =>
+                      dispatch({
+                        type: "SET_SHARING_TREE",
+                        tree: { id: latest.id, name: latest.name },
+                      })
+                  : undefined
+              }
               onDelete={() => dispatch({ type: "SET_DELETING", id: latest.id })}
             >
               {(state.editingId === latest.id || state.deletingId === latest.id) && (
@@ -657,6 +683,13 @@ export default function TreeListPage() {
           )}
         </div>
       </div>
+      {state.sharingTree && (
+        <ShareTreeDialog
+          treeId={state.sharingTree.id}
+          treeName={state.sharingTree.name}
+          onClose={() => dispatch({ type: "SET_SHARING_TREE", tree: null })}
+        />
+      )}
       {state.showFeedback && (
         <FeedbackModal onClose={() => dispatch({ type: "SET_SHOW_FEEDBACK", value: false })} />
       )}
