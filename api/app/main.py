@@ -1,10 +1,12 @@
 import logging
 import re
 from collections.abc import Awaitable, Callable, Iterable
+from urllib.parse import urlsplit
 
 import sentry_sdk
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 
 from app.config import Settings, get_settings
 from app.rate_limiter import PROXY_SECRET_HEADER
@@ -65,11 +67,41 @@ def _strip_proxy_secret(event):
             del headers[name]
 
 
+_GUEST_PREFIX = "/guest/"
+
+
+def _is_guest_event(event) -> bool:
+    """True when the event belongs to a request for a /guest/ path."""
+    request = event.get("request")
+    url = request.get("url") if isinstance(request, dict) else None
+    path = urlsplit(url).path if isinstance(url, str) else ""
+    transaction = event.get("transaction")
+    if not path and isinstance(transaction, str):
+        path = transaction
+    return path.startswith(_GUEST_PREFIX)
+
+
+def _scrub_guest_event(event) -> None:
+    """Remove everything that could identify a guest: headers, env, user, client IP."""
+    request = event.get("request")
+    if isinstance(request, dict):
+        request.pop("headers", None)
+        request.pop("env", None)
+        request.pop("cookies", None)
+    event.pop("user", None)
+    event.pop("client_ip", None)
+    contexts = event.get("contexts")
+    if isinstance(contexts, dict):
+        contexts.pop("client", None)
+
+
 def _strip_encrypted_data(event, hint):
-    """Remove encrypted_data and the proxy secret from Sentry event context."""
+    """Remove encrypted_data, the proxy secret and any guest trace from a Sentry event."""
     request_data = event.get("request", {}).get("data")
     _scrub_encrypted_fields(request_data)
     _strip_proxy_secret(event)
+    if _is_guest_event(event):
+        _scrub_guest_event(event)
     return event
 
 
@@ -105,16 +137,20 @@ _init_sentry(_settings)
 
 
 class _HealthCheckLogFilter(logging.Filter):
-    """Drop uvicorn access-log records for the container healthcheck (/health).
+    """Drop uvicorn access-log records the log must not hold.
 
-    The healthcheck polls /health every few seconds, which would otherwise flood
-    the access log. uvicorn.access records carry the request as
+    The container healthcheck polls /health every few seconds, which would
+    otherwise flood the access log; /guest/ requests must leave no trace of the
+    guest's address. uvicorn.access records carry the request as
     args = (client_addr, method, path, http_version, status_code).
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
         args = record.args
-        return not (isinstance(args, tuple) and len(args) >= 3 and args[2] == "/health")
+        if not (isinstance(args, tuple) and len(args) >= 3):
+            return True
+        path = str(args[2])
+        return not (path == "/health" or path.startswith(_GUEST_PREFIX))
 
 
 logging.getLogger("uvicorn.access").addFilter(_HealthCheckLogFilter())
@@ -142,6 +178,17 @@ async def _no_store_guest_responses(
     # Set here rather than per route: FastAPI drops headers set on an injected
     # Response when the route raises HTTPException.
     response = await call_next(request)
+    if _is_no_store_path(request.url.path):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.exception_handler(Exception)
+async def _no_store_server_error(request: Request, exc: Exception) -> Response:
+    """ServerErrorMiddleware sits outside the http middleware above, so an
+    unhandled error on a guest path would miss its no-store header. Starlette
+    still re-raises the error after this handler, so logging is unchanged."""
+    response = PlainTextResponse("Internal Server Error", status_code=500)
     if _is_no_store_path(request.url.path):
         response.headers["Cache-Control"] = "no-store"
     return response

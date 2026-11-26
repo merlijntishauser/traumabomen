@@ -91,4 +91,7 @@ async def open_guest_link(
     await db.commit()
 
     ciphertext = await db.scalar(select(GuestLink.ciphertext).where(GuestLink.id == link.id))
-    return GuestOpenResponse(ciphertext=ciphertext or "")
+    if ciphertext is None:
+        # The link ended between the commit and this read.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not_available")
+    return GuestOpenResponse(ciphertext=ciphertext)

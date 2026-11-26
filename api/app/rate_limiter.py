@@ -244,6 +244,7 @@ async def check_and_tarpit(ip: str, email: str) -> None:
 
 
 ENDPOINT_RATE_LIMIT = 20
+_ADDRESSLESS_ENDPOINT = "guest-open"
 ENDPOINT_WINDOW_MINUTES = 5
 
 
@@ -267,12 +268,16 @@ def check_endpoint_rate_limit(ip: str, endpoint: str) -> None:
     record.last_attempt = now
 
     if record.attempts > ENDPOINT_RATE_LIMIT:
-        logger.warning(
-            "Endpoint rate limit: ip=%s endpoint=%s attempts=%d",
-            _redact_ip(ip),
-            endpoint,
-            record.attempts,
-        )
+        if endpoint == _ADDRESSLESS_ENDPOINT:
+            # No guest address in any app log, redacted or not.
+            logger.warning("Endpoint rate limit: endpoint=%s", endpoint)
+        else:
+            logger.warning(
+                "Endpoint rate limit: ip=%s endpoint=%s attempts=%d",
+                _redact_ip(ip),
+                endpoint,
+                record.attempts,
+            )
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Try again later.",

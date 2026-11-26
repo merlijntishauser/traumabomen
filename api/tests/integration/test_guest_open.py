@@ -350,3 +350,36 @@ async def test_parallel_wrong_guesses_cannot_pass_the_cap(
     assert codes.count(423) == 10
     row = await _row(db_session)
     assert (row.failed_streak, row.failed_total) == (10, 10)
+
+
+@pytest.mark.asyncio
+async def test_link_ending_before_ciphertext_read_is_not_available(
+    client, link, guest_links_enabled
+):
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    original = AsyncSession.scalar
+
+    async def ended(self, statement, *args, **kwargs):
+        result = await original(self, statement, *args, **kwargs)
+        return None if result == "the-ciphertext" else result
+
+    with patch.object(AsyncSession, "scalar", ended):
+        resp = await _open(client)
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "not_available"}
+    assert resp.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.asyncio
+async def test_server_error_on_guest_path_is_no_store(link, guest_links_enabled):
+    from httpx import ASGITransport, AsyncClient
+
+    from app.main import app
+
+    transport = ASGITransport(app=app, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        with patch("app.routers.guest.sweep_expired_guest_links", side_effect=RuntimeError("x")):
+            guest = await _open(c)
+    assert guest.status_code == 500
+    assert guest.headers["cache-control"] == "no-store"

@@ -169,6 +169,20 @@ class TestEndpointRateLimit:
         assert exc_info.value.status_code == 429
         assert exc_info.value.headers["Retry-After"] == str(ENDPOINT_WINDOW_MINUTES * 60)
 
+    def test_guest_open_limit_logs_no_address(self, caplog):
+        with caplog.at_level("WARNING", logger="app.rate_limiter"), pytest.raises(HTTPException):
+            for _ in range(ENDPOINT_RATE_LIMIT + 1):
+                check_endpoint_rate_limit("9.8.7.6", "guest-open")
+        text = " ".join(r.getMessage() for r in caplog.records)
+        assert "guest-open" in text
+        assert "9.8.7" not in text
+
+    def test_other_endpoints_still_log_redacted_address(self, caplog):
+        with caplog.at_level("WARNING", logger="app.rate_limiter"), pytest.raises(HTTPException):
+            for _ in range(ENDPOINT_RATE_LIMIT + 1):
+                check_endpoint_rate_limit("9.8.7.6", "logout")
+        assert "9.8.7.x" in " ".join(r.getMessage() for r in caplog.records)
+
     def test_separate_ips_tracked_independently(self):
         """Different IPs should have independent counters."""
         for _ in range(ENDPOINT_RATE_LIMIT):

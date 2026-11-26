@@ -20,6 +20,14 @@ class TestHealthCheckLogFilter:
         record = _record(("127.0.0.1:1", "GET", "/trees", "1.1", 200))
         assert _HealthCheckLogFilter().filter(record) is True
 
+    def test_drops_guest_records(self):
+        record = _record(("10.0.0.9:1", "POST", "/guest/open", "1.1", 200))
+        assert _HealthCheckLogFilter().filter(record) is False
+
+    def test_keeps_look_alike_paths(self):
+        record = _record(("127.0.0.1:1", "GET", "/guests", "1.1", 200))
+        assert _HealthCheckLogFilter().filter(record) is True
+
     def test_keeps_records_with_short_arg_tuples(self):
         record = _record(("127.0.0.1:1", "GET"))
         assert _HealthCheckLogFilter().filter(record) is True

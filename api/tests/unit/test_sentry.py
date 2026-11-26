@@ -20,6 +20,48 @@ def test_proxy_secret_header_removed(hook, name):
     assert result["request"]["data"]["encrypted_data"] == "[filtered]"
 
 
+def _guest_event(**extra):
+    event = {
+        "request": {
+            "url": "https://api.example.org/guest/open?x=1",
+            "headers": {"X-Real-IP": "1.2.3.4", "User-Agent": "ua"},
+            "env": {"REMOTE_ADDR": "1.2.3.4"},
+            "data": {"encrypted_data": "blob"},
+        },
+        "user": {"ip_address": "1.2.3.4"},
+        "client_ip": "1.2.3.4",
+    }
+    event.update(extra)
+    return event
+
+
+@pytest.mark.parametrize("hook", [_strip_encrypted_data, _strip_transaction])
+def test_guest_events_lose_headers_env_user_and_client_ip(hook):
+    result = hook(_guest_event(), {})
+    assert "headers" not in result["request"]
+    assert "env" not in result["request"]
+    assert "user" not in result
+    assert "client_ip" not in result
+    assert result["request"]["data"]["encrypted_data"] == "[filtered]"
+
+
+@pytest.mark.parametrize("hook", [_strip_encrypted_data, _strip_transaction])
+def test_guest_transaction_name_is_enough_when_url_is_missing(hook):
+    event = {"transaction": "/guest/open", "request": {"headers": {"a": "b"}}, "user": {"id": 1}}
+    result = hook(event, {})
+    assert "headers" not in result["request"]
+    assert "user" not in result
+
+
+@pytest.mark.parametrize("hook", [_strip_encrypted_data, _strip_transaction])
+def test_other_events_keep_headers_and_user(hook):
+    event = _guest_event()
+    event["request"]["url"] = "https://api.example.org/guests"
+    result = hook(event, {})
+    assert result["request"]["headers"]["User-Agent"] == "ua"
+    assert result["user"] == {"ip_address": "1.2.3.4"}
+
+
 def test_events_without_headers_pass_through():
     event = {"request": {"url": "/health"}}
     assert _strip_transaction(event, {}) == {"request": {"url": "/health"}}
