@@ -3,7 +3,7 @@ export
 
 .PHONY: help up down nuke rebuild update-deps logs lint format typecheck ci test test-fe test-fe-unit test-fe-integration test-be test-be-unit test-be-integration coverage e2e e2e-headed e2e-ui e2e-verify \
        bump bump-web setup migrate migrate-up migrate-down privacy-scan quality ratchet complexity react-doctor perf-check perf-ratchet \
-       perf-seed perf-load perf-metrics perf-report profile-api
+       perf-seed perf-load perf-metrics perf-report profile-api test-nginx-guest
 
 .DEFAULT_GOAL := help
 
@@ -120,6 +120,9 @@ migrate-up: ## Run pending migrations
 
 migrate-down: ## Rollback last migration
 	docker compose exec api uv run alembic downgrade -1
+
+test-nginx-guest: ## Check the guest page's nginx locations against the production image
+	@bash scripts/test-nginx-guest.sh
 
 # --- Quality Gates ---
 

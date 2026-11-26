@@ -44,6 +44,8 @@ export default defineConfig({
         "src/types/**",
         "src/i18n.ts",
         "src/main.tsx",
+        "src/guest/main.tsx",
+        "src/guest/i18n.ts",
         "src/App.tsx",
         "src/vite-env.d.ts",
         "src/pages/**",

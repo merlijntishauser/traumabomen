@@ -15,7 +15,9 @@ ARG APP_VERSION=""
 ARG APP_COMMIT=""
 ENV APP_VERSION=${APP_VERSION}
 ENV APP_COMMIT=${APP_COMMIT}
-RUN npm run build
+# The guest bundle check runs here because this is the build the Sentry plugin
+# runs in (with SENTRY_AUTH_TOKEN set on deploy).
+RUN npm run build && node scripts/check-guest-bundle.mjs
 
 FROM nginx:1-alpine AS production
 ENV NGINX_ENVSUBST_FILTER=API_URL|PROXY_SHARED_SECRET

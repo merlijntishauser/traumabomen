@@ -1,3 +1,9 @@
 {
-  "ignore": ["e2e/port-forward.cjs", "public/argon2-bundled.min.js"]
+  "entry": [
+    "scripts/check-guest-bundle.mjs"
+  ],
+  "ignore": [
+    "e2e/port-forward.cjs",
+    "public/argon2-bundled.min.js"
+  ]
 }
