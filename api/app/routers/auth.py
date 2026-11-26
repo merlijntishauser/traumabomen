@@ -19,6 +19,7 @@ from app.capacity import is_registration_open
 from app.config import Settings, get_settings
 from app.database import get_db
 from app.email import send_email_background, send_password_reset_email, send_verification_email
+from app.guest_links import sweep_expired_guest_links
 from app.models.login_event import LoginEvent
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry, WaitlistStatus
@@ -206,6 +207,7 @@ async def login(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified")
 
     db.add(LoginEvent(user_id=user.id))
+    await sweep_expired_guest_links(db)
     await db.commit()
 
     return await _build_token_response(user, settings, db)

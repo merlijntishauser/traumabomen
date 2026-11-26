@@ -1,8 +1,9 @@
 import logging
-from collections.abc import Iterable
+import re
+from collections.abc import Awaitable, Callable, Iterable
 
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings, get_settings
@@ -18,6 +19,7 @@ from app.routers.faq import router as faq_router
 from app.routers.features import admin_router as admin_features_router
 from app.routers.features import router as features_router
 from app.routers.feedback import router as feedback_router
+from app.routers.guest import router as guest_router
 from app.routers.guest_links import router as guest_links_router
 from app.routers.journal import router as journal_router
 from app.routers.key_ring import router as key_ring_router
@@ -125,6 +127,26 @@ app = FastAPI(
     openapi_url="/openapi.json" if _settings.ENABLE_DOCS else None,
 )
 
+_NO_STORE_PATH = re.compile(r"^/guest/|^/trees/[^/]+/guest-links(/|$)")
+
+
+def _is_no_store_path(path: str) -> bool:
+    """Guest and guest-link responses must never be cached, errors included."""
+    return _NO_STORE_PATH.match(path) is not None
+
+
+@app.middleware("http")
+async def _no_store_guest_responses(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    # Set here rather than per route: FastAPI drops headers set on an injected
+    # Response when the route raises HTTPException.
+    response = await call_next(request)
+    if _is_no_store_path(request.url.path):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in _settings.CORS_ORIGINS.split(",") if o.strip()],
@@ -150,6 +172,7 @@ app.include_router(faq_router)
 app.include_router(admin_faq_router)
 app.include_router(features_router)
 app.include_router(feedback_router)
+app.include_router(guest_router)
 app.include_router(guest_links_router)
 app.include_router(journal_router)
 app.include_router(life_events_router)

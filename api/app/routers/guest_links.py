@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,16 +30,7 @@ from app.schemas.guest_links import (
     RepublishRequest,
 )
 
-
-def _no_store(response: Response) -> None:
-    response.headers["Cache-Control"] = "no-store"
-
-
-router = APIRouter(
-    prefix="/trees/{tree_id}/guest-links",
-    tags=["guest-links"],
-    dependencies=[Depends(_no_store)],
-)
+router = APIRouter(prefix="/trees/{tree_id}/guest-links", tags=["guest-links"])
 
 
 async def _require_flag(db: AsyncSession, user: User) -> None:

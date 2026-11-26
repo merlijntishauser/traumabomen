@@ -39,6 +39,15 @@ class ExpiryRequest(BaseModel):
     days: Days
 
 
+class GuestOpenRequest(BaseModel):
+    link_id: LinkId
+    token: Token
+
+
+class GuestOpenResponse(BaseModel):
+    ciphertext: str
+
+
 class GuestLinkOut(BaseModel):
     id: uuid.UUID
     owner_blob: str
