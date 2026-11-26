@@ -14,6 +14,20 @@ async function setGuestLinksFlag(audience: "all" | "disabled"): Promise<void> {
   if (!response.ok) throw new Error(`Setting the flag failed: ${response.status}`);
 }
 
+/** The journey opens a link more often than one rate-limit window allows twice in a row. */
+async function resetGuestOpenLimit(): Promise<void> {
+  const response = await fetch(`${API_URL}/test/guest-open-limit-reset`, { method: "POST" });
+  if (!response.ok) throw new Error(`Resetting the guest-open limit failed: ${response.status}`);
+}
+
+/** No storage at all on the guest origin: a fresh context starts empty, so any entry is new. */
+async function expectNoGuestStorage(guest: Page): Promise<void> {
+  expect(await guest.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  expect(await guest.evaluate(() => Object.keys(sessionStorage))).toEqual([]);
+  expect(await guest.evaluate(async () => indexedDB.databases())).toEqual([]);
+  expect(await guest.context().cookies()).toEqual([]);
+}
+
 function base64urlDecode(value: string): Uint8Array {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
   return Uint8Array.from(Buffer.from(base64, "base64"));
@@ -149,6 +163,10 @@ test.describe("Guest links", () => {
     await setGuestLinksFlag("all");
   });
 
+  test.beforeEach(async () => {
+    await resetGuestOpenLimit();
+  });
+
   test.afterAll(async () => {
     await setGuestLinksFlag("disabled");
   });
@@ -198,10 +216,7 @@ test.describe("Guest links", () => {
     await guest.getByRole("tab", { name: "Patterns" }).click();
     await expect(guest.getByRole("tab", { name: "Patterns" })).toHaveAttribute("aria-selected", "true");
     expect(await guest.evaluate(() => location.hash)).toBe("");
-    // A fresh context starts with empty storage, so any key at all would be new.
-    expect(await guest.evaluate(() => Object.keys(localStorage))).toEqual([]);
-    expect(await guest.evaluate(() => Object.keys(sessionStorage))).toEqual([]);
-    expect(await guest.context().cookies()).toEqual([]);
+    await expectNoGuestStorage(guest);
 
     // The owner renames the person and publishes again.
     await owner.getByRole("link", { name: /^open tree$/i }).click();
@@ -229,6 +244,8 @@ test.describe("Guest links", () => {
     await expect(guest.locator(".react-flow__node").filter({ hasText: "Alicia" })).toBeAttached({
       timeout: 15_000,
     });
+    expect(await guest.evaluate(() => location.hash)).toBe("");
+    await expectNoGuestStorage(guest);
 
     // The owner sees two opens; the dev proxy secret is unset, so networks are unavailable.
     dialog = await openShareDialog(owner);

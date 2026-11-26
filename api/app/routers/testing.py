@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import rate_limiter
 from app.database import get_db
 from app.models.feature_flag import FeatureFlag
 from app.models.guest_link import GuestLink
@@ -68,3 +69,16 @@ async def expire_guest_link(body: GuestLinkExpireBody, db: AsyncSession = Depend
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Guest link not found")
     link.expires_at = datetime.now(UTC) - timedelta(seconds=1)
     await db.commit()
+
+
+@router.post("/test/guest-open-limit-reset", status_code=204)
+async def reset_guest_open_limit() -> None:
+    """Forget the in-memory guest-open rate limit counts, and nothing else.
+
+    A guest-link journey opens a link more often than one window allows twice,
+    so without this a re-run (or a retry) within the window gets 429. Only
+    available when ENABLE_TEST_RESET is true.
+    """
+    suffix = f":{rate_limiter._ADDRESSLESS_ENDPOINT}"
+    for key in [key for key in rate_limiter._by_endpoint if key.endswith(suffix)]:
+        del rate_limiter._by_endpoint[key]

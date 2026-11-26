@@ -97,3 +97,21 @@ async def test_guest_link_expire_moves_expiry_into_the_past(
 async def test_guest_link_expire_unknown_link_is_404(client: AsyncClient):
     resp = await client.post("/test/guest-link-expire", json={"link_id": "U" * 22})
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_guest_open_limit_reset_clears_only_guest_open_counts(client: AsyncClient):
+    import app.rate_limiter as rl
+
+    for _ in range(rl.ENDPOINT_RATE_LIMIT):
+        rl.check_endpoint_rate_limit("203.0.113.9", "guest-open")
+    rl.check_endpoint_rate_limit("203.0.113.9", "tree-share")
+
+    resp = await client.post("/test/guest-open-limit-reset")
+    assert resp.status_code == 204
+
+    assert "203.0.113.9:guest-open" not in rl._by_endpoint
+    assert rl._by_endpoint["203.0.113.9:tree-share"].attempts == 1
+    # A full window's worth of opens is allowed again.
+    for _ in range(rl.ENDPOINT_RATE_LIMIT):
+        rl.check_endpoint_rate_limit("203.0.113.9", "guest-open")
