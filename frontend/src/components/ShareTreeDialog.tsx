@@ -5,11 +5,16 @@ import { useTranslation } from "react-i18next";
 import { useTreeShares } from "../hooks/useTreeShares";
 import type { ShareResponse } from "../types/api";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { GuestLinksSection } from "./GuestLinksSection";
 import "./ShareTreeDialog.css";
 
 interface Props {
   treeId: string;
   treeName: string;
+  /** The tree_sharing flag: share with someone who has an account. */
+  accountSharing: boolean;
+  /** The guest_links flag: share a read-only copy by link. */
+  guestLinks: boolean;
   onClose: () => void;
 }
 
@@ -73,9 +78,11 @@ function ShareRow({ share, onRemove }: { share: ShareResponse; onRemove: (id: st
   );
 }
 
-export function ShareTreeDialog({ treeId, treeName, onClose }: Props) {
+export function ShareTreeDialog({ treeId, treeName, accountSharing, guestLinks, onClose }: Props) {
   const { t } = useTranslation();
-  const { shares, isLoading, isError, share, remove } = useTreeShares(treeId);
+  const { shares, isLoading, isError, share, remove } = useTreeShares(treeId, {
+    enabled: accountSharing,
+  });
   const [state, dispatch] = useReducer(reducer, initialState);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -134,78 +141,84 @@ export function ShareTreeDialog({ treeId, treeName, onClose }: Props) {
         </button>
         <h2 className="share-dialog__title">{t("share.title", { name: treeName })}</h2>
 
-        <form className="share-dialog__form" onSubmit={handleSubmit}>
-          <label className="share-dialog__label" htmlFor="share-email">
-            {t("share.emailLabel")}
-          </label>
-          <div className="share-dialog__field">
-            <input
-              id="share-email"
-              type="email"
-              autoComplete="off"
-              className="share-dialog__input"
-              value={state.email}
-              onChange={(e) => dispatch({ type: "SET_EMAIL", email: e.target.value })}
-              placeholder={t("share.emailPlaceholder")}
-            />
-            <button
-              type="submit"
-              className="btn btn--primary"
-              disabled={!state.email.trim() || state.busy}
-            >
-              {state.busy ? t("share.sharing") : t("share.submit")}
-            </button>
-          </div>
-        </form>
+        {accountSharing && (
+          <>
+            <form className="share-dialog__form" onSubmit={handleSubmit}>
+              <label className="share-dialog__label" htmlFor="share-email">
+                {t("share.emailLabel")}
+              </label>
+              <div className="share-dialog__field">
+                <input
+                  id="share-email"
+                  type="email"
+                  autoComplete="off"
+                  className="share-dialog__input"
+                  value={state.email}
+                  onChange={(e) => dispatch({ type: "SET_EMAIL", email: e.target.value })}
+                  placeholder={t("share.emailPlaceholder")}
+                />
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={!state.email.trim() || state.busy}
+                >
+                  {state.busy ? t("share.sharing") : t("share.submit")}
+                </button>
+              </div>
+            </form>
 
-        {state.inviteFor && (
-          <div className="share-dialog__invite" role="alert">
-            <p>{t("share.inviteConfirm", { email: state.inviteFor })}</p>
-            <p className="share-dialog__invite-note">{t("share.inviteWaitlistNote")}</p>
-            <div className="share-dialog__invite-actions">
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={state.busy}
-                onClick={() => void submit(state.inviteFor ?? "", true)}
-              >
-                {t("share.inviteSend")}
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => dispatch({ type: "CANCEL_INVITE" })}
-              >
-                {t("common.cancel")}
-              </button>
-            </div>
-          </div>
+            {state.inviteFor && (
+              <div className="share-dialog__invite" role="alert">
+                <p>{t("share.inviteConfirm", { email: state.inviteFor })}</p>
+                <p className="share-dialog__invite-note">{t("share.inviteWaitlistNote")}</p>
+                <div className="share-dialog__invite-actions">
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={state.busy}
+                    onClick={() => void submit(state.inviteFor ?? "", true)}
+                  >
+                    {t("share.inviteSend")}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => dispatch({ type: "CANCEL_INVITE" })}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {state.error && (
+              <p className="share-dialog__error" role="alert">
+                {t(state.error)}
+              </p>
+            )}
+
+            <h3 className="share-dialog__subtitle">{t("share.listTitle")}</h3>
+            {isLoading ? (
+              <p className="share-dialog__empty">{t("common.loading")}</p>
+            ) : isError ? (
+              <p className="share-dialog__error" role="alert">
+                {t("share.listError")}
+              </p>
+            ) : shares.length === 0 ? (
+              <p className="share-dialog__empty">{t("share.empty")}</p>
+            ) : (
+              <ul className="share-dialog__list">
+                {shares.map((s) => (
+                  <ShareRow key={s.id} share={s} onRemove={(id) => void handleRemove(id)} />
+                ))}
+              </ul>
+            )}
+
+            <p className="share-dialog__depth">{t("share.depth")}</p>
+          </>
         )}
 
-        {state.error && (
-          <p className="share-dialog__error" role="alert">
-            {t(state.error)}
-          </p>
-        )}
-
-        <h3 className="share-dialog__subtitle">{t("share.listTitle")}</h3>
-        {isLoading ? (
-          <p className="share-dialog__empty">{t("common.loading")}</p>
-        ) : isError ? (
-          <p className="share-dialog__error" role="alert">
-            {t("share.listError")}
-          </p>
-        ) : shares.length === 0 ? (
-          <p className="share-dialog__empty">{t("share.empty")}</p>
-        ) : (
-          <ul className="share-dialog__list">
-            {shares.map((s) => (
-              <ShareRow key={s.id} share={s} onRemove={(id) => void handleRemove(id)} />
-            ))}
-          </ul>
-        )}
-
-        <p className="share-dialog__depth">{t("share.depth")}</p>
+        <GuestLinksSection treeId={treeId} enabled={guestLinks} />
       </div>
     </dialog>,
     document.body,

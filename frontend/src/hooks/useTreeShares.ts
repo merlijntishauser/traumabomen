@@ -27,7 +27,7 @@ function errorKey(err: unknown): string {
   return ERROR_BY_DETAIL[err.detail] ?? GENERIC_ERROR;
 }
 
-export function useTreeShares(treeId: string) {
+export function useTreeShares(treeId: string, { enabled = true }: { enabled?: boolean } = {}) {
   const { i18n } = useTranslation();
   const { keyRingBase64 } = useEncryption();
   const queryClient = useQueryClient();
@@ -35,6 +35,7 @@ export function useTreeShares(treeId: string) {
   const query = useQuery<ShareResponse[]>({
     queryKey: shareQueryKeys.list(treeId),
     queryFn: () => getShares(treeId),
+    enabled,
   });
 
   /** Wrap the owner's own tree key for a registered recipient; null when they have no key pair. */

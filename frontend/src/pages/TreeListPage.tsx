@@ -13,11 +13,11 @@ import { ContourDecoration } from "../components/tree/ContourDecoration";
 import { SettingsPanel, type ViewTab } from "../components/tree/SettingsPanel";
 import { ThemeLanguageSettings } from "../components/tree/ThemeLanguageSettings";
 import { useEncryption } from "../contexts/useEncryption";
-import { useFeatureFlags } from "../hooks/useFeatureFlags";
 import { useImportTree } from "../hooks/useImportTree";
 import { useLogout } from "../hooks/useLogout";
 import { useRemoveSharedTree } from "../hooks/useRemoveSharedTree";
 import { type SharedTreeListItem, useSharedTrees } from "../hooks/useSharedTrees";
+import { useShareOptions } from "../hooks/useShareOptions";
 import { useTheme } from "../hooks/useTheme";
 import { useTreeListMutations } from "../hooks/useTreeListMutations";
 import { getIsAdmin, getTrees } from "../lib/api";
@@ -486,8 +486,6 @@ export default function TreeListPage() {
   const logout = useLogout();
   const { decrypt, masterKey } = useEncryption();
   const queryClient = useQueryClient();
-  const { data: flags } = useFeatureFlags();
-  const canShare = flags?.tree_sharing === true;
   const { data: sharedList = [] } = useSharedTrees();
 
   const [state, dispatch] = useReducer(treeListLocalReducer, {
@@ -547,6 +545,8 @@ export default function TreeListPage() {
   // The threshold: the most recently tended readable tree, drawn large. The
   // rest sit below it as rows.
   const latest = trees.find((tree) => !tree.unreadable) ?? null;
+  const treeIds = useMemo(() => trees.map((tree) => tree.id), [trees]);
+  const { accountSharing, guestLinks, canShareTree } = useShareOptions(treeIds);
   const otherTrees = latest ? trees.filter((tree) => tree.id !== latest.id) : trees;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
@@ -607,7 +607,7 @@ export default function TreeListPage() {
       onRenameSubmit: handleRenameSubmit,
       onStartEditing: (row: { id: string; name: string }) =>
         dispatch({ type: "START_EDITING", id: row.id, name: row.name }),
-      onShare: canShare
+      onShare: canShareTree(tree.id)
         ? (row: { id: string; name: string }) =>
             dispatch({ type: "SET_SHARING_TREE", tree: { id: row.id, name: row.name } })
         : undefined,
@@ -681,7 +681,7 @@ export default function TreeListPage() {
               prompt={journalPromptText(t, promptIndex)}
               onRename={() => dispatch({ type: "START_EDITING", id: latest.id, name: latest.name })}
               onShare={
-                canShare
+                canShareTree(latest.id)
                   ? () =>
                       dispatch({
                         type: "SET_SHARING_TREE",
@@ -760,6 +760,8 @@ export default function TreeListPage() {
         <ShareTreeDialog
           treeId={state.sharingTree.id}
           treeName={state.sharingTree.name}
+          accountSharing={accountSharing}
+          guestLinks={guestLinks}
           onClose={() => dispatch({ type: "SET_SHARING_TREE", tree: null })}
         />
       )}

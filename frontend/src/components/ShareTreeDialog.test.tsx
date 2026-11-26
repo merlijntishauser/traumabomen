@@ -23,6 +23,7 @@ vi.mock("../lib/api", async (importOriginal) => ({
   createShare: (...a: unknown[]) => mockCreateShare(...a),
   deleteShare: (...a: unknown[]) => mockDeleteShare(...a),
   getPublicKey: (...a: unknown[]) => mockGetPublicKey(...a),
+  listGuestLinks: () => Promise.resolve([]),
 }));
 
 const mockImportKey = vi.fn();
@@ -33,7 +34,10 @@ vi.mock("../lib/crypto", () => ({
 }));
 
 vi.mock("../contexts/useEncryption", () => ({
-  useEncryption: () => ({ keyRingBase64: new Map([["tree-1", "own-tree-key"]]) }),
+  useEncryption: () => ({
+    keyRingBase64: new Map([["tree-1", "own-tree-key"]]),
+    treeKeys: new Map(),
+  }),
 }));
 
 function renderDialog() {
@@ -43,7 +47,13 @@ function renderDialog() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <ShareTreeDialog treeId="tree-1" treeName="Mother's side" onClose={vi.fn()} />
+      <ShareTreeDialog
+        treeId="tree-1"
+        treeName="Mother's side"
+        accountSharing
+        guestLinks={false}
+        onClose={vi.fn()}
+      />
     </QueryClientProvider>,
   );
 }
