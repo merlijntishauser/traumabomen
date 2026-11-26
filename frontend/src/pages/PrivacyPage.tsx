@@ -9,6 +9,7 @@ const SECTIONS = [
   "cannotAccess",
   "encryption",
   "hosting",
+  "guestLinks",
   "cookies",
   "retention",
   "rights",

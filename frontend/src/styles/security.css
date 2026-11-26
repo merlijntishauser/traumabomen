@@ -382,3 +382,44 @@
     animation: none;
   }
 }
+
+/* ---- Guest link threat table ---- */
+.security-guest {
+  margin-top: var(--space-5);
+}
+
+.security-guest__intro {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.security-guest__table {
+  width: 100%;
+  margin-bottom: var(--space-4);
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.security-guest__table th,
+.security-guest__table td {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border-primary);
+  text-align: left;
+  vertical-align: top;
+  color: var(--color-text-secondary);
+}
+
+.security-guest__table thead th {
+  border-top: none;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.security-guest__table tbody th {
+  width: 35%;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}

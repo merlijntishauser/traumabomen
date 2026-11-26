@@ -237,7 +237,7 @@ widening the beta and a periodic security re-review.
 - GEDCOM import/export
 - Custom category management
 - Edit permissions for shared trees (extends read-only sharing, #11)
-- Share links for non-registered users (extends read-only sharing, #11)
+- Guest links for non-registered users: built behind the `guest_links` flag (off). Release steps are in the plan's "Release steps (owner)" section, `docs/superpowers/plans/2026-11-26-guest-tree-links.md`: proxy secret, forged header check, Cloud Logging exclusion, then the flag for testers.
 - Out-of-band key fingerprint verification for shared tree key exchange
 - Collaborative real-time editing (extends edit permissions)
 - Offline-first with service worker

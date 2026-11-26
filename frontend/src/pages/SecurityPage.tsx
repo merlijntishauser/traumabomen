@@ -33,6 +33,8 @@ const STEP2: Card[] = [
   { icon: Database, id: "card5" },
 ];
 
+const GUEST_ROWS = ["row1", "row2", "row3", "row4", "row5", "row6"] as const;
+
 export default function SecurityPage() {
   const { t } = useTranslation();
 
@@ -125,6 +127,28 @@ export default function SecurityPage() {
               </ul>
             </section>
           </div>
+
+          <section className="security-panel security-guest">
+            <h2 className="security-panel__title">{t("security.guest.title")}</h2>
+            <p className="security-guest__intro">{t("security.guest.intro")}</p>
+            <table className="security-guest__table">
+              <thead>
+                <tr>
+                  <th scope="col">{t("security.guest.who")}</th>
+                  <th scope="col">{t("security.guest.outcome")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {GUEST_ROWS.map((row) => (
+                  <tr key={row}>
+                    <th scope="row">{t(`security.guest.${row}.who`)}</th>
+                    <td>{t(`security.guest.${row}.outcome`)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="security-guest__intro">{t("security.guest.notProtected")}</p>
+          </section>
 
           <p className="security-footer">
             {t("security.footer")} <Link to="/privacy">{t("security.readPrivacy")}</Link>

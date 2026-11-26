@@ -251,6 +251,17 @@ Personal reflections tied to a tree. Can link to turning points for context.
 
 Revoking deletes the row, so the owner can share again later and the server keeps no record of who once had access. Shared tree keys live in the recipient's `treeKeys` only, never in their key ring. `display_name` on the user is stored in plaintext.
 
+### GuestLink
+- `id`, `tree_id`, `owner_id` (cascade on tree and account delete)
+- `link_id`: unique, unpadded base64url of the 16 byte derived id
+- `token_hash`: SHA-256 of the auth token, compared in constant time
+- `ciphertext`: the AES-256-GCM copy (max 5 MB), only read after a correct token; `owner_blob`: `{ linkSecret, passphrase, label }` encrypted under the tree key
+- `created_at`, `published_at`, `expires_at` (1, 7, 14 or 30 days; each extension at most 30 days ahead)
+- `open_count`, `last_opened_at`, `failed_streak` (locks at 10), `failed_total`
+- `GuestLinkNetwork`: HMAC hash of the visitor's IPv4 address or IPv6 /64 under a server-secret subkey, unique per link, at most 100 per link. Never raw addresses.
+
+Up to 5 live links per tree. Expired rows are deleted by a sweep on guest opens, owner listing and login. The copy never contains journal entries, the tree key or the master key. Behind the `guest_links` flag (seeded `disabled`); the owner needs it for open, create, republish, extend and unlock, while list and end always work.
+
 ### FeatureFlag
 - `key`: string (primary key, e.g., `some_feature`)
 - `audience`: `disabled` | `admins` | `selected` | `all`
@@ -310,6 +321,17 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `GET/POST/PUT/DELETE /trees/{id}/sibling-groups`
 - `GET/POST/PUT/DELETE /trees/{id}/journal`
 
+### Guest links (behind the `guest_links` flag; all responses `Cache-Control: no-store`)
+- `GET /trees/{id}/guest-links` —the owner's links with usage figures (always allowed)
+- `POST /trees/{id}/guest-links` —create a link from a published ciphertext (flag, 403 `guest_links_not_enabled`)
+- `PUT /trees/{id}/guest-links/{id}/copy` —republish the copy (flag)
+- `PUT /trees/{id}/guest-links/{id}/expiry` —extend (flag)
+- `POST /trees/{id}/guest-links/{id}/unlock` —reset the wrong passphrase streak (flag)
+- `DELETE /trees/{id}/guest-links/{id}` —end the link (always allowed)
+- `POST /guest/open` —`{ link_id, token }`; 404 `not_available` (unknown, expired, ended or owner without the flag, identical bodies), 423 `locked`, 401 `wrong_passphrase`, 200 with the ciphertext. The check runs under `SELECT ... FOR UPDATE`. No access log line is kept for `/guest/*`
+- `GET /trees` carries `has_guest_links` per tree
+- Test-only (only routed when `ENABLE_TEST_RESET` is true): `POST /test/guest-link-expire`, `POST /test/guest-open-limit-reset`
+
 ### Tree shares (read-only sharing, behind the `tree_sharing` flag)
 - `POST /trees/{id}/shares` —share a tree with an email address; creating is gated by the flag (403 `sharing_not_enabled`) and rate limited (`tree-share`). Unknown emails need an explicit invite and become `pending`; at most 20 pending shares per owner
 - `GET /trees/{id}/shares` —list who has access (owner only)
@@ -347,6 +369,7 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `/verify-pending`, `/verify` —email verification
 - `/unlock` —encryption passphrase entry
 - `/privacy` —privacy policy
+- `/view` —guest page: a separate Vite build (`frontend/vite.guest.config.ts`, entry `view.html`, assets under `/view-assets/`) with no Sentry, no Google Fonts, no third-party requests and no browser storage; the link secret arrives in the URL fragment
 - `/trees` —tree list
 - `/trees/{id}` —main workspace, tree canvas view
 - `/trees/{id}/timeline` —timeline view
@@ -356,6 +379,8 @@ No domain logic server-side —content is opaque. Server validates auth, ownersh
 - `/admin` —admin dashboard (admin-guarded)
 
 ### Key Components
+- `<GuestLinksSection>` —"Share by link" in the share dialog: create a link with a label and expiry, copy the link and passphrase separately, update what they see, extend, unlock, end. Shows opens, last opened, networks and wrong passphrases.
+- `<GuestApp>` / `<GuestTreeView>` —the guest page: passphrase entry, then a read-only canvas, person pages, timeline and patterns from the decrypted in-memory copy. Secrets and data are dropped on `pagehide` and after 15 idle minutes.
 - `<EncryptionProvider>` —React context holding derived key in memory. Exposes `encrypt()` / `decrypt()`. Wraps authenticated app.
 - `<OnboardingGuard>` —Shows safety acknowledgment modal on first login. Syncs with server-side flag via `PUT /auth/onboarding`.
 - `<TreeWorkspacePage>` —React Flow canvas with person nodes, relationship edges. Dagre auto-layout. Drag-to-create relationships, zoom, pan.
@@ -492,13 +517,14 @@ Backend tests are split into two directories under `api/tests/`:
 - Sibling groups (compact sibling representation, promotion to full persons)
 - Passphrase hints (optional plaintext reminder, shown on unlock/auth modal, manageable in settings)
 - Read-only tree sharing (RSA-OAEP key exchange, pending invites that complete on the owner's next unlock, "Shared with me" section, read-only workspace), behind the `tree_sharing` feature flag
+- Guest links (encrypted read-only copy of one tree for someone without an account, opened at `/view` with a link plus a five word passphrase, usage figures for the owner), behind the `guest_links` feature flag. Release steps (proxy secret, forged header check, Cloud Logging exclusion, flag) are in the plan's "Release steps (owner)" section, `docs/superpowers/plans/2026-11-26-guest-tree-links.md`
 
 ### Deferred
 - OAuth/social login
 - GEDCOM import
 - PDF/image export
 - Custom category management
-- Collaborative trees (edit permissions, share links for people without an account)
+- Collaborative trees (edit permissions)
 - Offline-first with service worker
 - Additional languages
 
