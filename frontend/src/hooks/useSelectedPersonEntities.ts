@@ -7,7 +7,7 @@ import type {
   DecryptedLifeEvent,
   DecryptedRelationship,
   DecryptedTurningPoint,
-} from "./useTreeData";
+} from "../lib/treeEntities";
 import { filterByPerson } from "./useTreeData";
 
 export interface SelectedPersonEntities {

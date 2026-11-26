@@ -1,7 +1,7 @@
 import { Pencil, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { DecryptedPattern } from "../../hooks/useTreeData";
 import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../../lib/patternEntities";
+import type { DecryptedPattern } from "../../lib/treeEntities";
 import "./PatternFocusPanel.css";
 
 interface PatternFocusPanelProps {

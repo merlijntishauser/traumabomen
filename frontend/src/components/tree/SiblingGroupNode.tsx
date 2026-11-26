@@ -1,7 +1,7 @@
 import type { NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
 import { useTranslation } from "react-i18next";
-import type { DecryptedSiblingGroup } from "../../hooks/useTreeData";
+import type { DecryptedSiblingGroup } from "../../lib/treeEntities";
 import "./SiblingGroupNode.css";
 
 export interface SiblingGroupNodeData extends Record<string, unknown> {

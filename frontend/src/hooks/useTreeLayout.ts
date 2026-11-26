@@ -1,5 +1,14 @@
 import { useMemo } from "react";
 import { inferSiblings } from "../lib/inferSiblings";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedSiblingGroup,
+  DecryptedTurningPoint,
+} from "../lib/treeEntities";
 import {
   adjustEdgeOverlaps,
   buildBioParentData,
@@ -16,15 +25,6 @@ import {
 } from "../lib/treeLayoutHelpers";
 import { RelationshipType } from "../types/domain";
 import type { CanvasSettings } from "./useCanvasSettings";
-import type {
-  DecryptedClassification,
-  DecryptedEvent,
-  DecryptedLifeEvent,
-  DecryptedPerson,
-  DecryptedRelationship,
-  DecryptedSiblingGroup,
-  DecryptedTurningPoint,
-} from "./useTreeData";
 
 // Re-export types and constants so existing consumers don't break
 export type {

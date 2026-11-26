@@ -14,6 +14,17 @@ import {
   getTurningPoints,
 } from "../lib/api";
 import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedJournalEntry,
+  DecryptedLifeEvent,
+  DecryptedPattern,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedSiblingGroup,
+  DecryptedTurningPoint,
+} from "../lib/treeEntities";
+import type {
   Classification,
   JournalEntry,
   LifeEvent,
@@ -25,60 +36,18 @@ import type {
   TurningPoint,
 } from "../types/domain";
 
-export interface DecryptedPerson extends Person {
-  id: string;
-}
-
-export interface DecryptedRelationship extends RelationshipData {
-  id: string;
-  source_person_id: string;
-  target_person_id: string;
-}
-
-export interface DecryptedEvent extends TraumaEvent {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedLifeEvent extends LifeEvent {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedTurningPoint extends TurningPoint {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedClassification extends Classification {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedPattern extends Pattern {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedSiblingGroup extends SiblingGroupData {
-  id: string;
-  person_ids: string[];
-}
-
-export interface DecryptedJournalEntry extends JournalEntry {
-  id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-/** Filter a linked-entity map to entries associated with a given person. */
-export function filterByPerson<T extends { person_ids: string[] }>(
-  entities: Map<string, T>,
-  personId: string | null,
-): T[] {
-  if (!personId) return [];
-  return Array.from(entities.values()).filter((e) => e.person_ids.includes(personId));
-}
+export type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedJournalEntry,
+  DecryptedLifeEvent,
+  DecryptedPattern,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedSiblingGroup,
+  DecryptedTurningPoint,
+} from "../lib/treeEntities";
+export { filterByPerson } from "../lib/treeEntities";
 
 export const treeQueryKeys = {
   tree: (treeId: string) => ["trees", treeId] as const,

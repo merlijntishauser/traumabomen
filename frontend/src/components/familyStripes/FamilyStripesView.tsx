@@ -2,14 +2,6 @@ import { CalendarOff } from "lucide-react";
 import { useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useElementWidth } from "../../hooks/useElementWidth";
-import type {
-  DecryptedClassification,
-  DecryptedEvent,
-  DecryptedLifeEvent,
-  DecryptedPerson,
-  DecryptedRelationship,
-  DecryptedTurningPoint,
-} from "../../hooks/useTreeData";
 import {
   ageDomainSpan,
   buildStripeEntries,
@@ -31,6 +23,14 @@ import {
 import { computeGenerations, filterTimelinePersons } from "../../lib/generations";
 import { conjunctionFormatter } from "../../lib/listFormat";
 import { classificationLabel } from "../../lib/patternEntities";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedTurningPoint,
+} from "../../lib/treeEntities";
 import { ReadingPane } from "./ReadingPane";
 import { StripesField } from "./StripesField";
 import { StripesKey } from "./StripesKey";

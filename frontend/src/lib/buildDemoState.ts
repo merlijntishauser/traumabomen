@@ -1,14 +1,4 @@
 import type {
-  DecryptedClassification,
-  DecryptedEvent,
-  DecryptedLifeEvent,
-  DecryptedPattern,
-  DecryptedPerson,
-  DecryptedRelationship,
-  DecryptedSiblingGroup,
-  DecryptedTurningPoint,
-} from "../hooks/useTreeData";
-import type {
   Classification,
   LifeEvent,
   Pattern,
@@ -18,18 +8,19 @@ import type {
   TurningPoint,
 } from "../types/domain";
 import type { DemoFixture } from "./createDemoTree";
+import type {
+  DecryptedClassification,
+  DecryptedEvent,
+  DecryptedLifeEvent,
+  DecryptedPattern,
+  DecryptedPerson,
+  DecryptedRelationship,
+  DecryptedSiblingGroup,
+  DecryptedTurningPoint,
+  TreeEntityMaps,
+} from "./treeEntities";
 
-export interface DemoTreeState {
-  treeName: string;
-  persons: Map<string, DecryptedPerson>;
-  relationships: Map<string, DecryptedRelationship>;
-  events: Map<string, DecryptedEvent>;
-  lifeEvents: Map<string, DecryptedLifeEvent>;
-  turningPoints: Map<string, DecryptedTurningPoint>;
-  classifications: Map<string, DecryptedClassification>;
-  patterns: Map<string, DecryptedPattern>;
-  siblingGroups: Map<string, DecryptedSiblingGroup>;
-}
+export type DemoTreeState = TreeEntityMaps;
 
 /**
  * Turn a plaintext demo fixture into the same in-memory, decrypted entity maps

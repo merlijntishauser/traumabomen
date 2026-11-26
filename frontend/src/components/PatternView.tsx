@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { uuidToCompact } from "../lib/compactId";
+import { getPatternColor } from "../lib/patternColors";
+import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
+import { patternPromptText, pickPatternPromptIndex } from "../lib/reflectionPrompts";
 import type {
   DecryptedClassification,
   DecryptedEvent,
@@ -8,11 +12,7 @@ import type {
   DecryptedPattern,
   DecryptedPerson,
   DecryptedTurningPoint,
-} from "../hooks/useTreeData";
-import { uuidToCompact } from "../lib/compactId";
-import { getPatternColor } from "../lib/patternColors";
-import { countGenerations, type EntityMaps, resolveLinkedEntity } from "../lib/patternEntities";
-import { patternPromptText, pickPatternPromptIndex } from "../lib/reflectionPrompts";
+} from "../lib/treeEntities";
 import type { JournalLinkedRef, LinkedEntity } from "../types/domain";
 import { ContourDecoration } from "./tree/ContourDecoration";
 import "./PatternView.css";
