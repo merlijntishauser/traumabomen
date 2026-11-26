@@ -137,9 +137,31 @@ describe("GuestTreeView", () => {
     expect(screen.getByTestId("flow")).toBeInTheDocument();
   });
 
+  it("opens the person card from the timeline with no link anywhere", () => {
+    const { container } = renderView();
+    fireEvent.click(screen.getByRole("tab", { name: "tree.timeline" }));
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Ada" })[0]);
+    expect(screen.getByLabelText("Ada", { selector: "aside" })).toBeInTheDocument();
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+  });
+
+  it("opens the person card from a timeline entry with no link anywhere", () => {
+    const { container } = renderView();
+    fireEvent.click(screen.getByRole("tab", { name: "tree.timeline" }));
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Loss/ })[0]);
+    expect(screen.getByLabelText("Ada", { selector: "aside" })).toBeInTheDocument();
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(container.querySelectorAll("[href]")).toHaveLength(0);
+  });
+
   it("renders nothing that links into the app", () => {
     const { container } = renderView();
     fireEvent.click(screen.getByTestId("node-p1"));
+    fireEvent.click(screen.getByRole("tab", { name: "tree.timeline" }));
+    expect(container.querySelectorAll("a")).toHaveLength(0);
     fireEvent.click(screen.getByRole("tab", { name: "guest.view.patterns" }));
     fireEvent.click(screen.getByText("Silence at the table"));
     expect(container.querySelectorAll("a")).toHaveLength(0);
