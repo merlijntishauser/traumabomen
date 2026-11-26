@@ -1,8 +1,13 @@
+import uuid
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.feature_flag import FeatureFlag
+from app.models.guest_link import GuestLink
 from tests.integration.conftest import create_user
 
 
@@ -56,3 +61,39 @@ async def test_feature_flag_updates_existing_row(client: AsyncClient, db_session
     flag = await db_session.get(FeatureFlag, "e2e_flag")
     assert flag is not None
     assert flag.audience == "all"
+
+
+@pytest.mark.asyncio
+async def test_guest_link_expire_moves_expiry_into_the_past(
+    client: AsyncClient, db_session: AsyncSession, user, tree
+):
+    db_session.add(
+        GuestLink(
+            tree_id=uuid.UUID(tree["id"]),
+            owner_id=user.id,
+            link_id="L" * 22,
+            token_hash="0" * 64,
+            ciphertext="the-ciphertext",
+            owner_blob="blob",
+            expires_at=datetime.now(UTC) + timedelta(days=7),
+        )
+    )
+    await db_session.commit()
+
+    resp = await client.post("/test/guest-link-expire", json={"link_id": "L" * 22})
+    assert resp.status_code == 204
+
+    db_session.expire_all()
+    link = (
+        await db_session.execute(select(GuestLink).where(GuestLink.link_id == "L" * 22))
+    ).scalar_one()
+    expires_at = link.expires_at
+    if expires_at.tzinfo is None:  # SQLite drops the zone
+        expires_at = expires_at.replace(tzinfo=UTC)
+    assert expires_at <= datetime.now(UTC)
+
+
+@pytest.mark.asyncio
+async def test_guest_link_expire_unknown_link_is_404(client: AsyncClient):
+    resp = await client.post("/test/guest-link-expire", json={"link_id": "U" * 22})
+    assert resp.status_code == 404

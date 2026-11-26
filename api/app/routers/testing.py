@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Depends
+from datetime import UTC, datetime, timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.feature_flag import FeatureFlag
+from app.models.guest_link import GuestLink
 from app.models.user import User
 
 router = APIRouter()
@@ -44,4 +47,24 @@ async def set_feature_flag(body: FeatureFlagBody, db: AsyncSession = Depends(get
         db.add(FeatureFlag(key=body.key, audience=body.audience))
     else:
         flag.audience = body.audience
+    await db.commit()
+
+
+class GuestLinkExpireBody(BaseModel):
+    link_id: str
+
+
+@router.post("/test/guest-link-expire", status_code=204)
+async def expire_guest_link(body: GuestLinkExpireBody, db: AsyncSession = Depends(get_db)) -> None:
+    """Move a guest link's expiry into the past, so e2e journeys can open an expired link.
+
+    link_id is the derived id (unpadded base64url). Only available when
+    ENABLE_TEST_RESET is true.
+    """
+    link = (
+        await db.execute(select(GuestLink).where(GuestLink.link_id == body.link_id))
+    ).scalar_one_or_none()
+    if link is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Guest link not found")
+    link.expires_at = datetime.now(UTC) - timedelta(seconds=1)
     await db.commit()
