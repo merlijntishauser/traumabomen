@@ -54,6 +54,11 @@ async function openShareDialog(page: Page, treeName: string) {
 }
 
 test.describe("Tree sharing", () => {
+  // One worker for the whole group: afterAll runs per worker, so with tests
+  // spread over workers one worker's afterAll switched the flag off while
+  // another worker's test still needed it (the Share item vanished).
+  test.describe.configure({ mode: "default" });
+
   test.beforeAll(async () => {
     await setSharingFlag("all");
   });
