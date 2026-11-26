@@ -1,0 +1,63 @@
+/* The guest page's read-only views: a slim bar over a full-height body. */
+.guest-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.guest-view__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.guest-view__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.guest-view__label {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.guest-view__tabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.guest-view__tab {
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md, 6px);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.guest-view__tab[aria-selected="true"] {
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: var(--color-text-inverse);
+}
+
+.guest-view__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}

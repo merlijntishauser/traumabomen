@@ -1169,5 +1169,9 @@
   "account.displayNameHelp": "Zichtbaar voor mensen met wie je een stamboom deelt, en voor mensen die een stamboom met jou delen. Wordt zonder versleuteling opgeslagen.",
   "account.displayNamePlaceholder": "Optioneel",
   "account.displayNameSaved": "Weergavenaam opgeslagen",
-  "account.displayNameError": "Je weergavenaam kon niet worden opgeslagen. Probeer het opnieuw."
+  "account.displayNameError": "Je weergavenaam kon niet worden opgeslagen. Probeer het opnieuw.",
+  "guest.view.tabsLabel": "Weergaven",
+  "guest.view.tree": "Boom",
+  "guest.view.patterns": "Patronen",
+  "guest.view.viewOnly": "Alleen bekijken, gepubliceerd op {{date}}"
 }

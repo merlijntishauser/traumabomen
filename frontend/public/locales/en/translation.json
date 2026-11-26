@@ -1169,5 +1169,9 @@
   "account.displayNameHelp": "Shown to people you share a tree with, and to people who share a tree with you. Stored without encryption.",
   "account.displayNamePlaceholder": "Optional",
   "account.displayNameSaved": "Display name saved",
-  "account.displayNameError": "Could not save your display name. Try again."
+  "account.displayNameError": "Could not save your display name. Try again.",
+  "guest.view.tabsLabel": "Views",
+  "guest.view.tree": "Tree",
+  "guest.view.patterns": "Patterns",
+  "guest.view.viewOnly": "View only, published {{date}}"
 }

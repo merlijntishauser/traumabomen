@@ -104,6 +104,16 @@ describe("DemoPersonCard", () => {
     expect(screen.getByText("demo.live.cta").closest("a")).toHaveAttribute("href", "/register");
   });
 
+  it("shows no call to action when linksToApp is false", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <DemoPersonCard person={person} state={state} onClose={vi.fn()} linksToApp={false} />
+      </MemoryRouter>,
+    );
+    expect(container.querySelector("a")).toBeNull();
+    expect(screen.queryByText("demo.live.cta")).not.toBeInTheDocument();
+  });
+
   it("calls onClose when the close button is clicked", () => {
     const onClose = renderCard();
     fireEvent.click(screen.getByLabelText("common.close"));

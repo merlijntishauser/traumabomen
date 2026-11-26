@@ -29,6 +29,8 @@ interface PatternViewProps {
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
   /** A tree shared with the user: patterns are read here, never created or edited. */
   readOnly?: boolean;
+  /** False on the guest page: no link leads into the app, so there is no "show in tree" either. */
+  linksToApp?: boolean;
 }
 
 interface EntityDisplay {
@@ -74,6 +76,7 @@ export function PatternView({
   showReflectionPrompts,
   onOpenJournal,
   readOnly = false,
+  linksToApp = true,
 }: PatternViewProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -88,7 +91,7 @@ export function PatternView({
         <div className="pattern-view">
           <div className="pattern-view__empty">
             <p>{t("pattern.empty")}</p>
-            {!readOnly && (
+            {!readOnly && linksToApp && (
               <Link to={`/trees/${compactId}`} state={{ newPattern: true }}>
                 {t("pattern.createFirst")}
               </Link>
@@ -105,7 +108,7 @@ export function PatternView({
     <div className="page-atmosphere bg-gradient">
       <ContourDecoration />
       <div className="pattern-view">
-        {!readOnly && (
+        {!readOnly && linksToApp && (
           <div className="pattern-view__actions">
             <Link
               className="btn btn--primary"
@@ -126,6 +129,7 @@ export function PatternView({
               showReflectionPrompts={showReflectionPrompts}
               onOpenJournal={onOpenJournal}
               readOnly={readOnly}
+              linksToApp={linksToApp}
             />
           )}
 
@@ -203,6 +207,7 @@ function PatternDetail({
   showReflectionPrompts,
   onOpenJournal,
   readOnly,
+  linksToApp,
 }: {
   pattern: DecryptedPattern;
   entityMaps: EntityMaps;
@@ -211,6 +216,7 @@ function PatternDetail({
   showReflectionPrompts?: boolean;
   onOpenJournal?: (prompt: string, linkedRef?: JournalLinkedRef) => void;
   readOnly: boolean;
+  linksToApp: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -269,24 +275,26 @@ function PatternDetail({
         ))}
       </div>
 
-      <div className="pattern-view__detail-actions">
-        <Link
-          to={`/trees/${uuidToCompact(treeId)}`}
-          state={{ openPatternId: pattern.id }}
-          className="btn btn--primary"
-        >
-          {t("pattern.showInTree")}
-        </Link>
-        {!readOnly && (
+      {linksToApp && (
+        <div className="pattern-view__detail-actions">
           <Link
             to={`/trees/${uuidToCompact(treeId)}`}
-            state={{ openPatternId: pattern.id, editPattern: true }}
-            className="btn"
+            state={{ openPatternId: pattern.id }}
+            className="btn btn--primary"
           >
-            {t("common.edit")}
+            {t("pattern.showInTree")}
           </Link>
-        )}
-      </div>
+          {!readOnly && (
+            <Link
+              to={`/trees/${uuidToCompact(treeId)}`}
+              state={{ openPatternId: pattern.id, editPattern: true }}
+              className="btn"
+            >
+              {t("common.edit")}
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }

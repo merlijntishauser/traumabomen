@@ -1,14 +1,15 @@
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import type { DemoTreeState } from "../../lib/buildDemoState";
-import { type DecryptedPerson, filterByPerson } from "../../lib/treeEntities";
+import { type DecryptedPerson, filterByPerson, type TreeEntityMaps } from "../../lib/treeEntities";
 import "./DemoPersonCard.css";
 
 interface DemoPersonCardProps {
   person: DecryptedPerson;
-  state: DemoTreeState;
+  state: TreeEntityMaps;
   onClose: () => void;
+  /** False on the guest page: no sign-up call to action, nothing that leads into the app. */
+  linksToApp?: boolean;
 }
 
 /** Year range in the same grammar the canvas node uses (spaced hyphen). */
@@ -26,7 +27,7 @@ function formatYears(person: DecryptedPerson): string {
  * person's details and their linked events and classifications as static text:
  * no inputs, no save, no delete. Deliberately not the live PersonDetailPanel.
  */
-export function DemoPersonCard({ person, state, onClose }: DemoPersonCardProps) {
+export function DemoPersonCard({ person, state, onClose, linksToApp = true }: DemoPersonCardProps) {
   const { t } = useTranslation();
   const events = filterByPerson(state.events, person.id);
   const lifeEvents = filterByPerson(state.lifeEvents, person.id);
@@ -100,12 +101,14 @@ export function DemoPersonCard({ person, state, onClose }: DemoPersonCardProps) 
         )}
       </div>
 
-      <div className="demo-card__cta">
-        <p className="demo-card__cta-text">{t("demo.live.cardCta")}</p>
-        <Link to="/register" className="btn btn--primary">
-          {t("demo.live.cta")}
-        </Link>
-      </div>
+      {linksToApp && (
+        <div className="demo-card__cta">
+          <p className="demo-card__cta-text">{t("demo.live.cardCta")}</p>
+          <Link to="/register" className="btn btn--primary">
+            {t("demo.live.cta")}
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }
