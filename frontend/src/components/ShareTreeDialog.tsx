@@ -2,6 +2,7 @@ import { Eye, X } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useReducer, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useGuestLinks } from "../hooks/useGuestLinks";
 import { useTreeShares } from "../hooks/useTreeShares";
 import type { ShareResponse } from "../types/api";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
@@ -86,9 +87,13 @@ export function ShareTreeDialog({ treeId, treeName, accountSharing, guestLinks, 
   const [state, dispatch] = useReducer(reducer, initialState);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  const guest = useGuestLinks(treeId);
+  // Publishing runs on in the dialog's hooks: closing midway would drop its outcome.
+  const busy = state.busy || guest.busy;
+
   const handleClose = useCallback(() => {
-    if (!state.busy) onClose();
-  }, [state.busy, onClose]);
+    if (!busy) onClose();
+  }, [busy, onClose]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -218,7 +223,7 @@ export function ShareTreeDialog({ treeId, treeName, accountSharing, guestLinks, 
           </>
         )}
 
-        <GuestLinksSection treeId={treeId} enabled={guestLinks} />
+        <GuestLinksSection treeId={treeId} enabled={guestLinks} guest={guest} />
       </div>
     </dialog>,
     document.body,

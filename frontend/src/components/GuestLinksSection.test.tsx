@@ -103,6 +103,7 @@ async function renderDialog({ guestLinks = true }: { guestLinks?: boolean } = {}
   });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const i18n = await makeI18n();
+  const onClose = vi.fn();
   const ui = () => (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={client}>
@@ -111,13 +112,13 @@ async function renderDialog({ guestLinks = true }: { guestLinks?: boolean } = {}
           treeName="Mother's side"
           accountSharing={false}
           guestLinks={guestLinks}
-          onClose={vi.fn()}
+          onClose={onClose}
         />
       </QueryClientProvider>
     </I18nextProvider>
   );
   const view = render(ui());
-  return { ...view, rerenderDialog: () => view.rerender(ui()) };
+  return { ...view, onClose, rerenderDialog: () => view.rerender(ui()) };
 }
 
 describe("GuestLinksSection", () => {
@@ -313,6 +314,39 @@ describe("GuestLinksSection", () => {
     expect(card.queryByRole("button", { name: "Extend" })).not.toBeInTheDocument();
     expect(card.queryByRole("button", { name: "Unlock" })).not.toBeInTheDocument();
     expect(card.getByRole("button", { name: "End link" })).toBeInTheDocument();
+    // The link no longer opens: nothing to hand out.
+    expect(card.queryByRole("button", { name: /^Copy/ })).not.toBeInTheDocument();
+    expect(card.queryByText(SECRET.passphrase)).not.toBeInTheDocument();
+    expect(card.queryByText(/\/view#/)).not.toBeInTheDocument();
+    expect(card.queryByText("Send these two separately.")).not.toBeInTheDocument();
+    // The listing stays: label, dates and usage.
+    expect(card.getByText("Therapist")).toBeInTheDocument();
+    expect(card.getByText(/^until /)).toBeInTheDocument();
+    expect(card.getByText(/^Published /)).toBeInTheDocument();
+    expect(card.getByText(/^Opened 3 times/)).toBeInTheDocument();
+  });
+
+  it("will not close while a guest link action is in flight", async () => {
+    api.listGuestLinks.mockResolvedValue([fixtureLink()]);
+    let finish: (value: unknown) => void = () => {};
+    mockPublish.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    const view = await renderDialog();
+    await user.click(await screen.findByRole("button", { name: "Update what they see" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(view.onClose).not.toHaveBeenCalled();
+
+    finish({ linkId: "L".repeat(22), token: "T".repeat(43), ciphertext: "cipher" });
+    await waitFor(() => expect(api.republishGuestLink).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Update what they see" })).toBeEnabled(),
+    );
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(view.onClose).toHaveBeenCalled();
   });
 
   it("still offers End for a link whose details cannot be read", async () => {

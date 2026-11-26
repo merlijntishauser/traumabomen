@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type GuestLinkOutcome, type OwnedGuestLink, useGuestLinks } from "../hooks/useGuestLinks";
+import type { GuestLinkOutcome, GuestLinks, OwnedGuestLink } from "../hooks/useGuestLinks";
 import { useTreeData } from "../hooks/useTreeData";
 import { summarizeGuestCopy } from "../lib/guestCopy";
 import { formatLinkDate, guestLinkUrl } from "../lib/guestLinkFormat";
@@ -186,7 +186,8 @@ function GuestLinkCard({
         </span>
       </div>
 
-      {secret ? (
+      {/* With the feature off the link no longer opens: no link or passphrase to hand out. */}
+      {!enabled ? null : secret ? (
         <>
           <CopyRow
             label={t("guestLinks.link")}
@@ -276,13 +277,14 @@ interface Props {
   treeId: string;
   /** The guest_links flag. Off: existing links are listed and can be ended, nothing more. */
   enabled: boolean;
+  /** From useGuestLinks, held by the dialog so it can refuse to close mid-action. */
+  guest: GuestLinks;
 }
 
 /** "Share by link" in the share dialog: read-only copies for someone without an account. */
-export function GuestLinksSection({ treeId, enabled }: Props) {
+export function GuestLinksSection({ treeId, enabled, guest }: Props) {
   const { t } = useTranslation();
   const titleId = useId();
-  const guest = useGuestLinks(treeId);
   const [error, setError] = useState<string | null>(null);
 
   if (!enabled && guest.links.length === 0) return null;

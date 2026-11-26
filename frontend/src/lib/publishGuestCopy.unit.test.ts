@@ -12,6 +12,7 @@ import {
   fetchGuestCopyInput,
   GuestCopyLoadError,
   GuestCopyTooLargeError,
+  minCiphertextChars,
   publishGuestCopy,
 } from "./publishGuestCopy";
 
@@ -154,6 +155,35 @@ describe("publishGuestCopy", () => {
       vi.stubGlobal("self", { argon2: loadArgon2() });
     }
   });
+
+  it("refuses an oversized copy before deriving any key", async () => {
+    const state = demoState();
+    const people = Array.from(state.persons.values());
+    for (let i = 0; i < 400; i++) {
+      const base = people[i % people.length];
+      const id = `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+      state.persons.set(id, { ...base, id, notes: "x".repeat(15_000) });
+    }
+    const argon = vi.fn();
+    vi.stubGlobal("self", { argon2: { ArgonType: { Argon2id: 2 }, hash: argon } });
+    try {
+      await expect(publish(generateLinkSecret(), async () => state)).rejects.toBeInstanceOf(
+        GuestCopyTooLargeError,
+      );
+      expect(argon).not.toHaveBeenCalled();
+    } finally {
+      vi.stubGlobal("self", { argon2: loadArgon2() });
+    }
+  });
+
+  it("keeps the lower bound below the real ciphertext length", async () => {
+    const linkSecret = generateLinkSecret();
+    const out = await publish(linkSecret);
+    const guest = await deriveGuestKeys(linkSecret, PASSPHRASE);
+    const plaintext = await decryptGuestCopy(out.ciphertext, guest.encKey, guest.linkId);
+    expect(minCiphertextChars(plaintext)).toBeLessThanOrEqual(out.ciphertext.length);
+    expect(minCiphertextChars("")).toBe(24);
+  }, 30000);
 
   it("throws the too-large error for a 6 MB copy", async () => {
     const state = demoState();

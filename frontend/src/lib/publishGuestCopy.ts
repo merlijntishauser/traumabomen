@@ -43,6 +43,14 @@ export class GuestCopyLoadError extends Error {
   }
 }
 
+const GCM_TAG_BYTES = 16;
+
+/** A lower bound on the stored copy's length: base64 of the plaintext bytes plus the GCM tag. */
+export function minCiphertextChars(json: string): number {
+  const bytes = new TextEncoder().encode(json).length + GCM_TAG_BYTES;
+  return 4 * Math.ceil(bytes / 3);
+}
+
 export type FetchGuestCopyInput = (treeId: string, treeKey: CryptoKey) => Promise<GuestCopyInput>;
 
 type Linked = { id: string; person_ids: string[]; encrypted_data: string };
@@ -171,6 +179,8 @@ export async function publishGuestCopy({
   const json = JSON.stringify(buildGuestCopy(input, now, language));
   // Exactly what the guest page will do with it after decrypting.
   parseGuestCopy(JSON.parse(json));
+  // Fail before the costly key derivation when the size alone settles it.
+  if (minCiphertextChars(json) > MAX_GUEST_COPY_CHARS) throw new GuestCopyTooLargeError();
   const { linkId, token, encKey } = await deriveGuestKeys(linkSecret, passphrase);
   const ciphertext = await encryptGuestCopy(json, encKey, linkId);
   if (ciphertext.length > MAX_GUEST_COPY_CHARS) throw new GuestCopyTooLargeError();
