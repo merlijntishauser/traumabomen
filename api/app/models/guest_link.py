@@ -50,7 +50,7 @@ class GuestLink(Base):
 
     tree: Mapped[Tree] = relationship(back_populates="guest_links")
     networks: Mapped[list[GuestLinkNetwork]] = relationship(
-        back_populates="guest_link", cascade="all, delete-orphan", passive_deletes=True
+        back_populates="guest_link", cascade="all, delete-orphan"
     )
 
 

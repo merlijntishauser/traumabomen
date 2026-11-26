@@ -18,6 +18,7 @@ from app.routers.faq import router as faq_router
 from app.routers.features import admin_router as admin_features_router
 from app.routers.features import router as features_router
 from app.routers.feedback import router as feedback_router
+from app.routers.guest_links import router as guest_links_router
 from app.routers.journal import router as journal_router
 from app.routers.key_ring import router as key_ring_router
 from app.routers.life_events import router as life_events_router
@@ -149,6 +150,7 @@ app.include_router(faq_router)
 app.include_router(admin_faq_router)
 app.include_router(features_router)
 app.include_router(feedback_router)
+app.include_router(guest_links_router)
 app.include_router(journal_router)
 app.include_router(life_events_router)
 app.include_router(classifications_router)

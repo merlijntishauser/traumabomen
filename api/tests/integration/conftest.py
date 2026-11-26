@@ -303,6 +303,15 @@ async def sharing_enabled(db_session):
 
 
 @pytest.fixture
+async def guest_links_enabled(db_session):
+    """Enable the guest_links feature flag for everyone."""
+    from app.models.feature_flag import FeatureFlag
+
+    db_session.add(FeatureFlag(key="guest_links", audience="all"))
+    await db_session.commit()
+
+
+@pytest.fixture
 async def admin_user(db_session):
     """Create and return a verified admin user."""
     return await create_user(db_session, email="admin@example.com", is_admin=True)

@@ -122,7 +122,7 @@ async def test_viewer_cannot_write_each_endpoint(
 ):
     await shared_with(recipient)
     url = path.replace("{tree_id}", tree["id"])
-    for param in ("entity_id", "person_id", "relationship_id", "entry_id", "share_id"):
+    for param in ("entity_id", "person_id", "relationship_id", "entry_id", "share_id", "link_id"):
         url = url.replace(f"{{{param}}}", str(uuid.uuid4()))
     assert "{" not in url
     resp = await client.request(
