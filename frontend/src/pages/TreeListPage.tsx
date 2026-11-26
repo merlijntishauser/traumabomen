@@ -41,6 +41,7 @@ interface DecryptedTree {
   moment_count: number;
   pattern_count: number;
   updated_at: string;
+  has_guest_links: boolean;
   /** Decryption failed; `name` holds a placeholder, not the tree's name. */
   unreadable?: boolean;
 }
@@ -525,6 +526,7 @@ export default function TreeListPage() {
             moment_count: r.moment_count,
             pattern_count: r.pattern_count,
             updated_at: r.updated_at,
+            has_guest_links: r.has_guest_links ?? false,
           };
           try {
             const data = await decrypt<{ name: string }>(r.encrypted_data, r.id);
@@ -545,8 +547,7 @@ export default function TreeListPage() {
   // The threshold: the most recently tended readable tree, drawn large. The
   // rest sit below it as rows.
   const latest = trees.find((tree) => !tree.unreadable) ?? null;
-  const treeIds = useMemo(() => trees.map((tree) => tree.id), [trees]);
-  const { accountSharing, guestLinks, canShareTree } = useShareOptions(treeIds);
+  const { accountSharing, guestLinks, canShareTree } = useShareOptions();
   const otherTrees = latest ? trees.filter((tree) => tree.id !== latest.id) : trees;
   const [promptIndex] = useState(pickJournalPromptIndex);
 
@@ -607,7 +608,7 @@ export default function TreeListPage() {
       onRenameSubmit: handleRenameSubmit,
       onStartEditing: (row: { id: string; name: string }) =>
         dispatch({ type: "START_EDITING", id: row.id, name: row.name }),
-      onShare: canShareTree(tree.id)
+      onShare: canShareTree(tree)
         ? (row: { id: string; name: string }) =>
             dispatch({ type: "SET_SHARING_TREE", tree: { id: row.id, name: row.name } })
         : undefined,
@@ -681,7 +682,7 @@ export default function TreeListPage() {
               prompt={journalPromptText(t, promptIndex)}
               onRename={() => dispatch({ type: "START_EDITING", id: latest.id, name: latest.name })}
               onShare={
-                canShareTree(latest.id)
+                canShareTree(latest)
                   ? () =>
                       dispatch({
                         type: "SET_SHARING_TREE",

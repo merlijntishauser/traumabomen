@@ -183,6 +183,8 @@ export interface TreeResponse {
   person_count: number;
   moment_count: number;
   pattern_count: number;
+  /** List endpoint only: the owner still has a live guest link on this tree. */
+  has_guest_links?: boolean;
 }
 
 // Persons

@@ -1,11 +1,14 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.database import get_db
 from app.dependencies import get_owned_tree, get_readable_tree
 from app.models.event import TraumaEvent
+from app.models.guest_link import GuestLink
 from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent
 from app.models.pattern import Pattern
@@ -53,6 +56,15 @@ async def _counts_by_tree(
     return {tree_id: count for tree_id, count in result.all()}
 
 
+async def _trees_with_live_guest_links(db: AsyncSession, user_id: object) -> set[object]:
+    """The user's trees with at least one guest link that has not expired yet."""
+    live_link = exists().where(
+        GuestLink.tree_id == Tree.id, GuestLink.expires_at > datetime.now(UTC)
+    )
+    result = await db.execute(select(Tree.id).where(Tree.user_id == user_id, live_link))
+    return set(result.scalars().all())
+
+
 @router.get("", response_model=list[TreeResponse])
 async def list_trees(
     user: User = Depends(get_current_user),
@@ -64,6 +76,7 @@ async def list_trees(
     persons = await _counts_by_tree(db, user.id, Person)
     patterns = await _counts_by_tree(db, user.id, Pattern)
     journals = await _counts_by_tree(db, user.id, JournalEntry)
+    with_guest_links = await _trees_with_live_guest_links(db, user.id)
     moments: dict[object, int] = {}
     for model in (TraumaEvent, LifeEvent, TurningPoint):
         for tree_id, count in (await _counts_by_tree(db, user.id, model)).items():
@@ -76,6 +89,7 @@ async def list_trees(
         response.moment_count = moments.get(t.id, 0)
         response.pattern_count = patterns.get(t.id, 0)
         response.journal_count = journals.get(t.id, 0)
+        response.has_guest_links = t.id in with_guest_links
         responses.append(response)
     return responses
 

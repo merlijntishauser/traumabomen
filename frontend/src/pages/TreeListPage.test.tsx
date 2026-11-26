@@ -102,15 +102,6 @@ vi.mock("../hooks/useFeatureFlags", () => ({
 let mockSharingFlag = false;
 let mockGuestLinksFlag = false;
 
-let mockTreesWithLinks = new Set<string>();
-const mockUseTreesWithGuestLinks = vi.fn();
-vi.mock("../hooks/useGuestLinks", () => ({
-  useTreesWithGuestLinks: (ids: string[], enabled: boolean) => {
-    mockUseTreesWithGuestLinks(ids, enabled);
-    return mockTreesWithLinks;
-  },
-}));
-
 const mockRemoveShared = vi.fn();
 const mockResetRemove = vi.fn();
 let mockRemoveError: string | null = null;
@@ -147,6 +138,7 @@ let mockQueryReturn: {
         moment_count?: number;
         pattern_count?: number;
         updated_at?: string;
+        has_guest_links?: boolean;
       }[]
     | undefined;
   isLoading: boolean;
@@ -508,26 +500,33 @@ describe("TreeListPage sharing", () => {
   afterEach(() => {
     mockSharingFlag = false;
     mockGuestLinksFlag = false;
-    mockTreesWithLinks = new Set();
-    mockUseTreesWithGuestLinks.mockReset();
   });
 
   it("keeps Share out of the menu without a sharing flag or guest links", () => {
     mockSharingFlag = false;
     openMenu();
     expect(screen.queryByRole("menuitem", { name: "share.menu" })).not.toBeInTheDocument();
-    expect(mockUseTreesWithGuestLinks).toHaveBeenLastCalledWith(["tree-1"], true);
   });
 
-  it("offers Share with only the guest_links flag on, without asking for links", () => {
+  it("offers Share with only the guest_links flag on", () => {
     mockGuestLinksFlag = true;
     openMenu();
     expect(screen.getByRole("menuitem", { name: "share.menu" })).toBeInTheDocument();
-    expect(mockUseTreesWithGuestLinks).toHaveBeenLastCalledWith(["tree-1"], false);
   });
 
   it("offers Share for a tree that still has guest links with both flags off", () => {
-    mockTreesWithLinks = new Set(["tree-1"]);
+    mockQueryReturn = {
+      data: [
+        {
+          id: "tree-1",
+          name: "My Tree",
+          is_demo: false,
+          updated_at: "2026-01-01T00:00:00Z",
+          has_guest_links: true,
+        },
+      ],
+      isLoading: false,
+    };
     openMenu();
     expect(screen.getByRole("menuitem", { name: "share.menu" })).toBeInTheDocument();
   });

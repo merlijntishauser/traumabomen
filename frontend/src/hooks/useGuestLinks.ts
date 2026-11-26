@@ -1,4 +1,4 @@
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useEncryption } from "../contexts/useEncryption";
 import {
@@ -24,7 +24,7 @@ import {
 } from "../lib/publishGuestCopy";
 import type { GuestLink } from "../types/api";
 
-export const guestLinkQueryKeys = {
+const guestLinkQueryKeys = {
   list: (treeId: string) => ["guestLinks", treeId] as const,
   secrets: (treeId: string, ids: string[]) => ["guestLinks", treeId, "secrets", ids] as const,
 };
@@ -144,7 +144,12 @@ export function useGuestLinks(treeId: string) {
         expires_in_days: days,
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+    // The tree list's has_guest_links changes with these too.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+        queryClient.invalidateQueries({ queryKey: ["trees"], exact: true }),
+      ]),
   });
 
   const republishMutation = useMutation({
@@ -165,7 +170,12 @@ export function useGuestLinks(treeId: string) {
 
   const extendMutation = useMutation({
     mutationFn: ({ id, days }: { id: string; days: number }) => extendGuestLink(treeId, id, days),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+    // The tree list's has_guest_links changes with these too.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+        queryClient.invalidateQueries({ queryKey: ["trees"], exact: true }),
+      ]),
   });
   const unlockMutation = useMutation({
     mutationFn: (id: string) => unlockGuestLink(treeId, id),
@@ -173,7 +183,12 @@ export function useGuestLinks(treeId: string) {
   });
   const endMutation = useMutation({
     mutationFn: (id: string) => deleteGuestLink(treeId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+    // The tree list's has_guest_links changes with these too.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: guestLinkQueryKeys.list(treeId) }),
+        queryClient.invalidateQueries({ queryKey: ["trees"], exact: true }),
+      ]),
   });
 
   const secrets = secretsQuery.data;
@@ -199,19 +214,4 @@ export function useGuestLinks(treeId: string) {
   };
 }
 
-/**
- * Which of these trees have guest links, for showing Share when neither
- * sharing flag is on: listing and ending links always work, so an owner can
- * still end links after the feature is switched off.
- */
-export function useTreesWithGuestLinks(treeIds: string[], enabled: boolean): ReadonlySet<string> {
-  return useQueries({
-    queries: treeIds.map((id) => ({
-      queryKey: guestLinkQueryKeys.list(id),
-      queryFn: () => listGuestLinks(id),
-      enabled,
-      staleTime: 5 * 60 * 1000,
-    })),
-    combine: (results) => new Set(treeIds.filter((_, i) => (results[i]?.data?.length ?? 0) > 0)),
-  });
-}
+export type GuestLinks = ReturnType<typeof useGuestLinks>;

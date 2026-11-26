@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../lib/api";
 import { GuestCopyError } from "../lib/guestCopy";
 import { GuestCopyLoadError, GuestCopyTooLargeError } from "../lib/publishGuestCopy";
-import { guestLinkErrorKey, useGuestLinks, useTreesWithGuestLinks } from "./useGuestLinks";
+import { guestLinkErrorKey, useGuestLinks } from "./useGuestLinks";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ i18n: { language: "nl-NL" } }),
@@ -184,25 +184,5 @@ describe("guestLinkErrorKey", () => {
     ["anything else", new Error("network"), "guestLinks.errorGeneric"],
   ])("maps %s", (_name, err, key) => {
     expect(guestLinkErrorKey(err)).toBe(key);
-  });
-});
-
-describe("useTreesWithGuestLinks", () => {
-  beforeEach(() => {
-    client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    api.listGuestLinks.mockReset();
-  });
-
-  it("names the trees that have links", async () => {
-    api.listGuestLinks.mockImplementation(async (id: string) => (id === "t2" ? [link("l1")] : []));
-    const { result } = renderHook(() => useTreesWithGuestLinks(["t1", "t2"], true), { wrapper });
-    await waitFor(() => expect(result.current.has("t2")).toBe(true));
-    expect(result.current.has("t1")).toBe(false);
-  });
-
-  it("asks nothing when disabled", () => {
-    const { result } = renderHook(() => useTreesWithGuestLinks(["t1"], false), { wrapper });
-    expect(result.current.size).toBe(0);
-    expect(api.listGuestLinks).not.toHaveBeenCalled();
   });
 });

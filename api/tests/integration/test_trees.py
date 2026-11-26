@@ -1,10 +1,24 @@
 """Tests for tree CRUD endpoints."""
 
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from app.models.guest_link import GuestLink
 from tests.integration.conftest import auth_headers, create_user
+
+
+def _guest_link(tree_id: str, owner_id: uuid.UUID, link_id: str, expires_at: datetime) -> GuestLink:
+    return GuestLink(
+        tree_id=uuid.UUID(tree_id),
+        owner_id=owner_id,
+        link_id=link_id,
+        token_hash="0" * 64,
+        ciphertext="x",
+        owner_blob="y",
+        expires_at=expires_at,
+    )
 
 
 class TestCreateTree:
@@ -87,6 +101,35 @@ class TestListTrees:
         assert entry["moment_count"] == 2
         assert entry["pattern_count"] == 1
         assert entry["journal_count"] == 1
+
+    @pytest.mark.asyncio
+    async def test_list_has_guest_links_only_for_live_links(
+        self, client, headers, user, tree, db_session
+    ):
+        resp = await client.get("/trees", headers=headers)
+        assert resp.json()[0]["has_guest_links"] is False
+
+        now = datetime.now(UTC)
+        expired = _guest_link(tree["id"], user.id, "e" * 22, now - timedelta(minutes=1))
+        db_session.add(expired)
+        await db_session.commit()
+        resp = await client.get("/trees", headers=headers)
+        assert resp.json()[0]["has_guest_links"] is False
+
+        db_session.add(_guest_link(tree["id"], user.id, "l" * 22, now + timedelta(days=1)))
+        await db_session.commit()
+        resp = await client.get("/trees", headers=headers)
+        assert resp.json()[0]["has_guest_links"] is True
+
+    @pytest.mark.asyncio
+    async def test_list_has_guest_links_per_tree(self, client, headers, user, tree, db_session):
+        second = await client.post("/trees", json={"encrypted_data": "blob2"}, headers=headers)
+        now = datetime.now(UTC)
+        db_session.add(_guest_link(tree["id"], user.id, "a" * 22, now + timedelta(days=7)))
+        await db_session.commit()
+        resp = await client.get("/trees", headers=headers)
+        flags = {entry["id"]: entry["has_guest_links"] for entry in resp.json()}
+        assert flags == {tree["id"]: True, second.json()["id"]: False}
 
     @pytest.mark.asyncio
     async def test_list_isolation(self, client, headers, tree, db_session):

@@ -30,6 +30,9 @@ class TreeResponse(BaseModel):
     moment_count: int = 0
     pattern_count: int = 0
     journal_count: int = 0
+    # Whether the owner still has a live guest link (list endpoint only), so the
+    # share dialog stays reachable to end it when the sharing flags are off.
+    has_guest_links: bool = False
 
 
 # --- Person ---
