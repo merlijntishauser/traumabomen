@@ -1,5 +1,10 @@
 export type GuestLanguage = "en" | "nl";
 
+/** The product's name in a language: the page title of /view. */
+export function pageTitleFor(language: string): string {
+  return language.toLowerCase().split("-")[0] === "nl" ? "Traumabomen" : "Traumatrees";
+}
+
 /** The language a host implies. Same rules as the main app's hostname detector (src/i18n.ts). */
 export function languageForHostname(hostname: string): GuestLanguage | undefined {
   if (hostname === "traumabomen.nl" || hostname.endsWith(".traumabomen.nl")) return "nl";

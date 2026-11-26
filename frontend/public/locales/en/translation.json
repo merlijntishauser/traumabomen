@@ -1173,5 +1173,21 @@
   "guest.view.tabsLabel": "Views",
   "guest.view.tree": "Tree",
   "guest.view.patterns": "Patterns",
-  "guest.view.viewOnly": "View only, published {{date}}"
+  "guest.view.viewOnly": "View only, published {{date}}",
+  "guest.open.title": "A family tree shared with you",
+  "guest.open.intro": "The person who shared this made a read-only copy of a family tree for you. The passphrase you were given opens it.",
+  "guest.open.usageNotice": "The person who shared this can see when it was last opened, how often, and from how many networks.",
+  "guest.open.passphrase": "Passphrase",
+  "guest.open.submit": "Open",
+  "guest.open.opening": "Opening…",
+  "guest.state.noLink": "This page opens a shared family tree, but the link has no key in it. Open the full link you were sent.",
+  "guest.state.malformedLink": "This link looks incomplete or changed. Copy the full link you were sent and open it again.",
+  "guest.state.wrongPassphrase": "That passphrase does not open this tree. Check it and try again.",
+  "guest.state.locked": "This link is locked after too many wrong passphrases. The person who shared this can unlock it.",
+  "guest.state.notAvailable": "This tree is not available. The link may have expired or been ended.",
+  "guest.state.rateLimited": "Too many attempts in a short time. Wait a minute and try again.",
+  "guest.state.offline": "The server could not be reached. Check your connection and try again.",
+  "guest.state.undecryptable": "This copy could not be opened. The person who shared this can publish it again.",
+  "guest.state.error": "Something went wrong. Try again.",
+  "guest.state.endedIdle": "This view has closed to keep the tree private. Open the original link again to see it."
 }

@@ -6,7 +6,7 @@ import { initReactI18next } from "react-i18next";
 import en from "../../public/locales/en/translation.json";
 import nl from "../../public/locales/nl/translation.json";
 import { htmlLangFor } from "../lib/documentLanguage";
-import { detectGuestLanguage } from "./guestLanguage";
+import { detectGuestLanguage, pageTitleFor } from "./guestLanguage";
 
 const language = detectGuestLanguage(
   window.location.hostname,
@@ -23,7 +23,10 @@ i18n.use(initReactI18next).init({
   },
 });
 
-document.documentElement.lang = htmlLangFor(language);
-i18n.on("languageChanged", (next) => {
+function applyDocumentLanguage(next: string) {
   document.documentElement.lang = htmlLangFor(next);
-});
+  document.title = pageTitleFor(next);
+}
+
+applyDocumentLanguage(language);
+i18n.on("languageChanged", applyDocumentLanguage);

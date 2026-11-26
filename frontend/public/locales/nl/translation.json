@@ -1173,5 +1173,21 @@
   "guest.view.tabsLabel": "Weergaven",
   "guest.view.tree": "Boom",
   "guest.view.patterns": "Patronen",
-  "guest.view.viewOnly": "Alleen bekijken, gepubliceerd op {{date}}"
+  "guest.view.viewOnly": "Alleen bekijken, gepubliceerd op {{date}}",
+  "guest.open.title": "Een stamboom die met je is gedeeld",
+  "guest.open.intro": "De persoon die dit met je deelde, heeft een alleen-lezen kopie van een stamboom voor je gemaakt. De wachtwoordzin die je hebt gekregen opent hem.",
+  "guest.open.usageNotice": "De persoon die dit met je deelde, kan zien wanneer het voor het laatst is geopend, hoe vaak, en vanaf hoeveel netwerken.",
+  "guest.open.passphrase": "Wachtwoordzin",
+  "guest.open.submit": "Openen",
+  "guest.open.opening": "Openen…",
+  "guest.state.noLink": "Deze pagina opent een gedeelde stamboom, maar er staat geen sleutel in de link. Open de volledige link die je hebt gekregen.",
+  "guest.state.malformedLink": "Deze link lijkt onvolledig of gewijzigd. Kopieer de volledige link die je hebt gekregen en open hem opnieuw.",
+  "guest.state.wrongPassphrase": "Met die wachtwoordzin gaat deze stamboom niet open. Controleer hem en probeer het opnieuw.",
+  "guest.state.locked": "Deze link is vergrendeld na te veel verkeerde wachtwoordzinnen. De persoon die dit met je deelde, kan hem ontgrendelen.",
+  "guest.state.notAvailable": "Deze stamboom is niet beschikbaar. De link is misschien verlopen of beëindigd.",
+  "guest.state.rateLimited": "Te veel pogingen in korte tijd. Wacht een minuut en probeer het opnieuw.",
+  "guest.state.offline": "De server is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",
+  "guest.state.undecryptable": "Deze kopie kan niet worden geopend. De persoon die dit met je deelde, kan hem opnieuw publiceren.",
+  "guest.state.error": "Er ging iets mis. Probeer het opnieuw.",
+  "guest.state.endedIdle": "Deze weergave is gesloten om de stamboom privé te houden. Open de oorspronkelijke link opnieuw om hem te zien."
 }

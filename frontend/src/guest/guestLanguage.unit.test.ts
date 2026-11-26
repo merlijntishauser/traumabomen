@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectGuestLanguage, languageForHostname } from "./guestLanguage";
+import { detectGuestLanguage, languageForHostname, pageTitleFor } from "./guestLanguage";
 
 describe("languageForHostname", () => {
   it.each([
@@ -33,5 +33,14 @@ describe("detectGuestLanguage", () => {
   it("falls back to English", () => {
     expect(detectGuestLanguage("localhost", ["de-DE", "fr"])).toBe("en");
     expect(detectGuestLanguage("localhost", [])).toBe("en");
+  });
+});
+
+describe("pageTitleFor", () => {
+  it("names the product in the page's language", () => {
+    expect(pageTitleFor("nl")).toBe("Traumabomen");
+    expect(pageTitleFor("nl-BE")).toBe("Traumabomen");
+    expect(pageTitleFor("en")).toBe("Traumatrees");
+    expect(pageTitleFor("de")).toBe("Traumatrees");
   });
 });
