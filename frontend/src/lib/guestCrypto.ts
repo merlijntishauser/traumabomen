@@ -35,7 +35,7 @@ const ARGON2_HASH_LENGTH = 32;
 
 const BASE64URL = /^[A-Za-z0-9_-]*$/;
 /** What a mail client or a sentence tends to stick to the end of a link, besides whitespace. */
-const TRAILING_PUNCTUATION = ".,;:)]>'\"";
+const TRAILING_PUNCTUATION = new Set(".,;:)]>'\"");
 /** Whitespace and hyphens, including the dashes keyboards substitute for them. */
 const SEPARATOR_RUNS = /[\s\-\u{2010}-\u{2015}\u{2212}]+/gu;
 
@@ -82,7 +82,7 @@ export function parseLinkSecret(fragment: string): string {
 
 function trimTrailingJunk(text: string): string {
   let end = text.length;
-  while (end > 0 && (TRAILING_PUNCTUATION.includes(text[end - 1]) || /\s/.test(text[end - 1]))) {
+  while (end > 0 && (TRAILING_PUNCTUATION.has(text[end - 1]) || /\s/.test(text[end - 1]))) {
     end--;
   }
   return text.slice(0, end);
