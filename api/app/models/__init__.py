@@ -3,6 +3,7 @@ from app.models.event import EventPerson, TraumaEvent
 from app.models.faq import FAQEntry
 from app.models.feature_flag import FeatureFlag, FeatureFlagUser
 from app.models.feedback import Feedback
+from app.models.guest_link import GuestLink, GuestLinkNetwork
 from app.models.journal_entry import JournalEntry
 from app.models.life_event import LifeEvent, LifeEventPerson
 from app.models.login_event import LoginEvent
@@ -21,6 +22,8 @@ __all__ = [
     "User",
     "Tree",
     "TreeShare",
+    "GuestLink",
+    "GuestLinkNetwork",
     "Person",
     "Relationship",
     "EventPerson",

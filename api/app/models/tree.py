@@ -53,3 +53,6 @@ class Tree(Base):
     shares: Mapped[list[TreeShare]] = relationship(
         back_populates="tree", cascade="all, delete-orphan"
     )
+    guest_links: Mapped[list[GuestLink]] = relationship(
+        back_populates="tree", cascade="all, delete-orphan", passive_deletes=True
+    )
