@@ -30,7 +30,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 
-PROXY_SECRET_HEADER = "x-proxy-secret"
+PROXY_SECRET_HEADER = "x-proxy-secret"  # nosec B105 - a header name, not a secret
 REAL_IP_HEADER = "x-real-ip"
 UNVERIFIED_WARNING_INTERVAL = 60.0  # seconds between warnings, per process
 _last_unverified_warning: float | None = None
