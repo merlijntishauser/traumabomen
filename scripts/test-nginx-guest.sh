@@ -80,13 +80,20 @@ docker run -d --name "$WEB" --network "$NET" -p 127.0.0.1::8080 \
 
 PORT=$(docker port "$WEB" 8080/tcp | head -1 | sed 's/.*://')
 BASE="http://127.0.0.1:$PORT"
+READY=""
 for _ in $(seq 1 30); do
   if curl -sf -o /dev/null "$BASE/healthz" && docker exec "$ECHO" python -c \
       'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/")' 2>/dev/null; then
+    READY=1
     break
   fi
   sleep 1
 done
+if [ -z "$READY" ]; then
+  echo "test-nginx-guest: nginx or the echo server did not come up within 30 s"
+  docker logs "$WEB" 2>&1 | tail -20
+  exit 1
+fi
 
 TMP=$(mktemp -d)
 trap 'cleanup; rm -rf "$TMP"' EXIT
@@ -140,6 +147,10 @@ if grep -q '"x-real-ip": "[0-9a-f.:]*"' "$TMP/open.json" && ! grep -q '203.0.113
 else
   fail "/api/guest/open: X-Real-IP not replaced"
 fi
+CLIENT_IP=$(grep -o '"x-real-ip": "[^"]*"' "$TMP/open.json" | cut -d'"' -f4 || true)
+curl -s -o "$TMP/open-slash.json" -A guest-probe-open-slash -X POST \
+  -H "Content-Type: application/json" -d '{"link_id":"a","token":"b"}' "$BASE/api/guest/open/"
+if grep -q '"path": "/guest/open"' "$TMP/open-slash.json"; then pass "/api/guest/open/: proxied to /guest/open"; else fail "/api/guest/open/: upstream saw $(cat "$TMP/open-slash.json")"; fi
 for header in x-forwarded-for x-forwarded-proto host; do
   if grep -q "\"$header\": " "$TMP/open.json"; then pass "/api/guest/open: sends $header"; else fail "/api/guest/open: no $header upstream"; fi
 done
@@ -161,12 +172,42 @@ fi
 expect_status "guest-links/{id}: 2 MB body proxied" 200 -X PUT --data-binary @"$TMP/big.json" "$BASE/api/trees/abc/guest-links/xyz"
 expect_status "other API paths keep the 1 MB limit" 413 -X POST --data-binary @"$TMP/big.json" "$BASE/api/trees/abc/persons"
 
+echo "error log"
+# Both of these write an error-level line with the client address unless the
+# guest location raises its error_log threshold.
+docker stop "$ECHO" >/dev/null
+# 502 or 504 depending on how the connect fails; either is an upstream error.
+DOWN=$(curl -s -o /dev/null -w '%{http_code}' -A guest-probe-open -X POST -d '{}' "$BASE/api/guest/open")
+case "$DOWN" in
+  502|504) pass "/api/guest/open with the API down: $DOWN" ;;
+  *) fail "/api/guest/open with the API down: got $DOWN, expected 502 or 504" ;;
+esac
+# In parallel: with the API down each request that gets through waits for its
+# connect to fail, so sequential requests would trickle under the limit.
+for i in $(seq 1 10); do
+  curl -s -o /dev/null -w '%{http_code}' -A guest-probe-open -X POST -d '{}' "$BASE/api/guest/open" > "$TMP/burst.$i" &
+done
+wait
+LIMITED=$(cat "$TMP"/burst.* | grep -o 429 | wc -l | tr -d ' ')
+if [ "$LIMITED" -gt 0 ]; then pass "/api/guest/open: limit_req rejected $LIMITED request(s)"; else fail "/api/guest/open: limit_req never rejected"; fi
+sleep 1
+docker logs "$WEB" > "$TMP/nginx-errors.log" 2>&1
+if [ -z "$CLIENT_IP" ]; then
+  fail "client address unknown (upstream did not report X-Real-IP)"
+elif grep -F "$CLIENT_IP" "$TMP/nginx-errors.log" | grep -q 'guest/open\|/view'; then
+  fail "a guest request left a log line with the client address:"
+  grep -F "$CLIENT_IP" "$TMP/nginx-errors.log" | grep 'guest/open\|/view' | head -5 || true
+else
+  pass "rate-limited and failed guest opens left no line with the client address"
+fi
+if grep -q 'guest/open' "$TMP/nginx-errors.log"; then fail "a guest open left a log line"; else pass "no log line names guest/open"; fi
+
 echo "access log"
 curl -s -o /dev/null -A guest-probe-root "$BASE/"
 sleep 1
 docker logs "$WEB" > "$TMP/nginx.log" 2>&1
 if grep -q "guest-probe-root" "$TMP/nginx.log"; then pass "/ is logged"; else fail "/ left no access log line (check is not meaningful)"; fi
-for probe in guest-probe-view guest-probe-assets guest-probe-slash guest-probe-open; do
+for probe in guest-probe-view guest-probe-assets guest-probe-slash guest-probe-open guest-probe-open-slash; do
   if grep -q "$probe" "$TMP/nginx.log"; then fail "$probe left an access log line"; else pass "$probe left no access log line"; fi
 done
 if grep -q "view-assets/x" "$TMP/nginx.log"; then fail "a missing /view-assets/ file was logged"; else pass "a missing /view-assets/ file left no log line"; fi
