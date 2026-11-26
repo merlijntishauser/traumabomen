@@ -9,6 +9,7 @@ import {
   completeShare,
   createClassification,
   createEvent,
+  createGuestLink,
   createLifeEvent,
   createPattern,
   createPerson,
@@ -21,6 +22,7 @@ import {
   deleteClassification,
   deleteEvent,
   deleteFeedback,
+  deleteGuestLink,
   deleteLifeEvent,
   deletePattern,
   deletePerson,
@@ -29,6 +31,7 @@ import {
   deleteTree,
   deleteTurningPoint,
   deleteWaitlistEntry,
+  extendGuestLink,
   getAccessToken,
   getAdminActivity,
   getAdminFeatures,
@@ -68,7 +71,9 @@ import {
   getTrees,
   getTurningPoints,
   getWasAuthenticated,
+  isCopyTooLarge,
   joinWaitlist,
+  listGuestLinks,
   login,
   logout,
   markFeedbackRead,
@@ -76,11 +81,13 @@ import {
   rateLimitDelay,
   register,
   removeSharedTree,
+  republishGuestLink,
   resendVerification,
   setTokens,
   setWasAuthenticated,
   submitFeedback,
   syncTree,
+  unlockGuestLink,
   updateAdminFeature,
   updateClassification,
   updateEvent,
@@ -1784,6 +1791,52 @@ describe("sharing endpoints", () => {
     mockFetch.mockReset();
     const b = await call(() => getPendingShares(), []);
     expect(b.url).toBe("/api/auth/pending-shares");
+  });
+
+  it("guest link clients hit the owner endpoints", async () => {
+    const list = await call(() => listGuestLinks("t1"), []);
+    expect(list.url).toBe("/api/trees/t1/guest-links");
+    expect(list.init.method).toBe("GET");
+    mockFetch.mockReset();
+    const body = {
+      link_id: "i",
+      token: "k",
+      ciphertext: "c",
+      owner_blob: "o",
+      expires_in_days: 7,
+    };
+    const created = await call(() => createGuestLink("t1", body));
+    expect(created.url).toBe("/api/trees/t1/guest-links");
+    expect(created.init.method).toBe("POST");
+    expect(created.body).toEqual(body);
+    mockFetch.mockReset();
+    const copy = await call(() => republishGuestLink("t1", "g1", "ct"));
+    expect(copy.url).toBe("/api/trees/t1/guest-links/g1/copy");
+    expect(copy.init.method).toBe("PUT");
+    expect(copy.body).toEqual({ ciphertext: "ct" });
+    mockFetch.mockReset();
+    const expiry = await call(() => extendGuestLink("t1", "g1", 14));
+    expect(expiry.url).toBe("/api/trees/t1/guest-links/g1/expiry");
+    expect(expiry.init.method).toBe("PUT");
+    expect(expiry.body).toEqual({ days: 14 });
+    mockFetch.mockReset();
+    const unlock = await call(() => unlockGuestLink("t1", "g1"));
+    expect(unlock.url).toBe("/api/trees/t1/guest-links/g1/unlock");
+    expect(unlock.init.method).toBe("POST");
+    mockFetch.mockReset();
+    const del = await call(() => deleteGuestLink("t1", "g1"), null);
+    expect(del.url).toBe("/api/trees/t1/guest-links/g1");
+    expect(del.init.method).toBe("DELETE");
+  });
+
+  it("a 413 on publish is recognisable as too large", async () => {
+    mockFetch.mockResolvedValueOnce(mockResponse({ detail: "copy_too_large" }, 413));
+    const error = await republishGuestLink("t1", "g1", "ct").catch((e) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.detail).toBe("copy_too_large");
+    expect(isCopyTooLarge(error)).toBe(true);
+    expect(isCopyTooLarge(new ApiError(409, "too_many_links"))).toBe(false);
+    expect(isCopyTooLarge(new Error("x"))).toBe(false);
   });
 
   it("updateKeyRing omits encrypted_private_key unless given", async () => {

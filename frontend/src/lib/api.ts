@@ -22,6 +22,8 @@ import type {
   ForgotPasswordRequest,
   FunnelStats,
   GrowthStats,
+  GuestLink,
+  GuestLinkCreate,
   JournalEntryCreate,
   JournalEntryResponse,
   JournalEntryUpdate,
@@ -432,6 +434,47 @@ export function removeSharedTree(shareId: string): Promise<void> {
 
 export function getPendingShares(): Promise<PendingShareResponse[]> {
   return apiFetchWithRetry("/auth/pending-shares");
+}
+
+// Guest links (owner side)
+
+export function listGuestLinks(treeId: string): Promise<GuestLink[]> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links`);
+}
+
+export function createGuestLink(treeId: string, body: GuestLinkCreate): Promise<GuestLink> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links`, { method: "POST", body });
+}
+
+export function republishGuestLink(
+  treeId: string,
+  id: string,
+  ciphertext: string,
+): Promise<GuestLink> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links/${id}/copy`, {
+    method: "PUT",
+    body: { ciphertext },
+  });
+}
+
+export function extendGuestLink(treeId: string, id: string, days: number): Promise<GuestLink> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links/${id}/expiry`, {
+    method: "PUT",
+    body: { days },
+  });
+}
+
+export function unlockGuestLink(treeId: string, id: string): Promise<GuestLink> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links/${id}/unlock`, { method: "POST" });
+}
+
+export function deleteGuestLink(treeId: string, id: string): Promise<void> {
+  return apiFetchWithRetry(`/trees/${treeId}/guest-links/${id}`, { method: "DELETE" });
+}
+
+/** True when the server refused a copy for being over the size cap (413). */
+export function isCopyTooLarge(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 413;
 }
 
 /**

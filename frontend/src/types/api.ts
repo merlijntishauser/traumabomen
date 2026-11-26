@@ -112,6 +112,28 @@ export interface SharedKeyResponse {
   owner_email: string;
 }
 
+export interface GuestLink {
+  id: string;
+  owner_blob: string;
+  created_at: string;
+  published_at: string;
+  expires_at: string;
+  open_count: number;
+  last_opened_at: string | null;
+  /** Null until counted; 100 means "100 or more". */
+  network_count: number | null;
+  failed_total: number;
+  locked: boolean;
+}
+
+export interface GuestLinkCreate {
+  link_id: string;
+  token: string;
+  ciphertext: string;
+  owner_blob: string;
+  expires_in_days: number;
+}
+
 export interface PendingShareResponse {
   share_id: string;
   tree_id: string;
