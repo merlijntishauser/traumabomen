@@ -9,7 +9,7 @@ import { readStoredTheme } from "./guestTheme";
 // The main app's theme setting, read once; the guest page never writes it.
 document.documentElement.setAttribute(
   "data-theme",
-  readStoredTheme(typeof localStorage === "undefined" ? undefined : localStorage),
+  readStoredTheme(() => window.localStorage),
 );
 
 createRoot(document.getElementById("root")!).render(

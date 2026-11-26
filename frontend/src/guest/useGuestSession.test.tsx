@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import demoFixtureEn from "../fixtures/demo-tree-en.json";
+import argon2 from "../lib/argon2";
 import { buildDemoState } from "../lib/buildDemoState";
 import type { DemoFixture } from "../lib/createDemoTree";
 import { buildGuestCopy } from "../lib/guestCopy";
@@ -191,6 +192,19 @@ describe("useGuestSession: opening", () => {
     const { result } = visit(`#${secret}`);
     await act(() => result.current.open(PASSPHRASE));
     expect(result.current.state).toEqual({ kind: "ready", error: true });
+  });
+
+  it("is ready with an error when the key cannot be derived, and makes no request", async () => {
+    // As when the argon2 script has not loaded: lib/argon2 throws, guestCrypto
+    // turns that into a KeyDerivationError.
+    vi.spyOn(argon2, "hash").mockRejectedValueOnce(new Error("argon2-browser not loaded yet"));
+    const { result } = visit(`#${secret}`);
+    await act(() => result.current.open(PASSPHRASE));
+    expect(result.current.state).toEqual({ kind: "ready", error: true });
+    expect(mockOpen).not.toHaveBeenCalled();
+
+    await act(() => result.current.open(PASSPHRASE));
+    expect(result.current.state.kind).toBe("open");
   });
 
   it("drops the link after a final answer", async () => {

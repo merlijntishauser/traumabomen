@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { readStoredTheme, THEME_STORAGE_KEY } from "./guestTheme";
 
-function storageWith(value: string | null): Pick<Storage, "getItem"> {
-  return { getItem: (key: string) => (key === THEME_STORAGE_KEY ? value : null) };
+function storageWith(value: string | null): () => Pick<Storage, "getItem"> {
+  return () => ({ getItem: (key: string) => (key === THEME_STORAGE_KEY ? value : null) });
 }
 
 describe("readStoredTheme", () => {
@@ -16,13 +16,21 @@ describe("readStoredTheme", () => {
     expect(readStoredTheme(storageWith("neon"))).toBe("dark");
   });
 
-  it("falls back to dark when storage is missing or throws", () => {
-    expect(readStoredTheme(undefined)).toBe("dark");
+  it("falls back to dark when storage is missing or getItem throws", () => {
+    expect(readStoredTheme(() => undefined)).toBe("dark");
     const throwing = {
       getItem: () => {
         throw new Error("blocked");
       },
     };
-    expect(readStoredTheme(throwing)).toBe("dark");
+    expect(readStoredTheme(() => throwing)).toBe("dark");
+  });
+
+  it("falls back to dark when reaching storage at all throws (site data blocked)", () => {
+    expect(
+      readStoredTheme(() => {
+        throw new DOMException("The operation is insecure.", "SecurityError");
+      }),
+    ).toBe("dark");
   });
 });
