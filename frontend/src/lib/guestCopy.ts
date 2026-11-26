@@ -194,18 +194,29 @@ const COPY_FIELDS = fieldsOf<GuestCopy>()([
 const OPTIONAL_PERSON_FIELDS = ["position"] as const;
 const OPTIONAL_SIBLING_GROUP_FIELDS = ["position"] as const;
 const OPTIONAL_MEMBER_FIELDS = ["gender", "death_year"] as const;
+/** A member's death_year may be null; gender may only be absent. */
+const NON_NULL_MEMBER_FIELDS = ["gender"] as const;
 
 // ---- Building -----------------------------------------------------------
 
 /**
  * Copy only the listed fields. A missing field becomes null (old records may
- * predate a nullable field), except optional ones, which stay absent.
+ * predate a nullable field), except optional ones, which stay absent. An
+ * optional field the parser never accepts as null (`absentWhenNull`) is left
+ * out when it is null too, so a stored null cannot fail the whole copy.
  */
-function pick<T, K extends keyof T>(src: T, keys: readonly K[], optional: readonly K[] = []): T {
+function pick<T, K extends keyof T>(
+  src: T,
+  keys: readonly K[],
+  optional: readonly K[] = [],
+  absentWhenNull: readonly K[] = optional,
+): T {
   const out: Partial<Record<K, unknown>> = {};
   const mayBeAbsent = new Set<K>(optional);
+  const nullMeansAbsent = new Set<K>(absentWhenNull);
   for (const key of keys) {
     const value = src[key];
+    if (value === null && nullMeansAbsent.has(key)) continue;
     if (value !== undefined) out[key] = value;
     else if (!mayBeAbsent.has(key)) out[key] = null;
   }
@@ -286,7 +297,9 @@ function projectPattern(p: DecryptedPattern): DecryptedPattern {
 
 function projectSiblingGroup(g: DecryptedSiblingGroup): DecryptedSiblingGroup {
   const out = pickPosition(projectLinked(g, SIBLING_GROUP_FIELDS, OPTIONAL_SIBLING_GROUP_FIELDS));
-  out.members = g.members.map((m) => pick(m, MEMBER_FIELDS, OPTIONAL_MEMBER_FIELDS));
+  out.members = g.members.map((m) =>
+    pick(m, MEMBER_FIELDS, OPTIONAL_MEMBER_FIELDS, NON_NULL_MEMBER_FIELDS),
+  );
   return out;
 }
 

@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import type { InferredSibling } from "../lib/inferSiblings";
 import { inferSiblings } from "../lib/inferSiblings";
-import type {
-  DecryptedClassification,
-  DecryptedEvent,
-  DecryptedLifeEvent,
-  DecryptedRelationship,
-  DecryptedTurningPoint,
+import {
+  type DecryptedClassification,
+  type DecryptedEvent,
+  type DecryptedLifeEvent,
+  type DecryptedRelationship,
+  type DecryptedTurningPoint,
+  filterByPerson,
 } from "../lib/treeEntities";
-import { filterByPerson } from "./useTreeData";
 
 export interface SelectedPersonEntities {
   selectedRelationships: DecryptedRelationship[];

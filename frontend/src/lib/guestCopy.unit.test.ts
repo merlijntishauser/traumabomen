@@ -119,6 +119,32 @@ describe("buildGuestCopy", () => {
     for (const pattern of copy.patterns) expect(PATTERN_COLORS).toContain(pattern.color);
   });
 
+  it("leaves out a stored null position, so the copy still parses", () => {
+    const state = demoState();
+    const [first] = state.persons.values();
+    state.persons.set(first.id, { ...first, position: null } as unknown as DecryptedPerson);
+    const [group] = state.siblingGroups.values();
+    state.siblingGroups.set(group.id, { ...group, position: null } as unknown as typeof group);
+
+    const copy = parseGuestCopy(wire(buildGuestCopy(state, NOW, "en")));
+    expect(copy.persons.find((p) => p.id === first.id)).not.toHaveProperty("position");
+    expect(copy.siblingGroups.find((g) => g.id === group.id)).not.toHaveProperty("position");
+  });
+
+  it("leaves out a member's null gender but keeps a null death year", () => {
+    const state = demoState();
+    const [group] = state.siblingGroups.values();
+    state.siblingGroups.set(group.id, {
+      ...group,
+      members: [{ name: "Sam", birth_year: 1960, gender: null, death_year: null }],
+    } as unknown as typeof group);
+
+    const copy = parseGuestCopy(wire(buildGuestCopy(state, NOW, "en")));
+    expect(copy.siblingGroups.find((g) => g.id === group.id)?.members).toEqual([
+      { name: "Sam", birth_year: 1960, death_year: null },
+    ]);
+  });
+
   it("produces a copy that passes parseGuestCopy", () => {
     expect(() => parseGuestCopy(demoCopy())).not.toThrow();
   });

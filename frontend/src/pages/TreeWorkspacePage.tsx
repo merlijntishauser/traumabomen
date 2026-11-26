@@ -46,7 +46,7 @@ import { usePromoteMember } from "../hooks/usePromoteMember";
 import { useSelectedPersonEntities } from "../hooks/useSelectedPersonEntities";
 import { useTreeAccess } from "../hooks/useTreeAccess";
 import type { DecryptedPerson } from "../hooks/useTreeData";
-import { filterByPerson, treeQueryKeys, useTreeData } from "../hooks/useTreeData";
+import { treeQueryKeys, useTreeData } from "../hooks/useTreeData";
 import { useTreeId } from "../hooks/useTreeId";
 import type {
   PersonNodeType,
@@ -62,6 +62,7 @@ import {
 } from "../lib/parentInheritance";
 import { buildRelatedPersonPlan, type RelatedPersonKind } from "../lib/relatedPersonPlan";
 import { expandSiblingGroupConnection, siblingGroupIdFromNodeId } from "../lib/siblingGroupConnect";
+import { filterByPerson } from "../lib/treeEntities";
 import type { Person, RelationshipData, SiblingGroupMember } from "../types/domain";
 import { RelationshipType } from "../types/domain";
 import "../components/tree/TreeCanvas.css";
