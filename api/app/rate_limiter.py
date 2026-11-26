@@ -15,9 +15,13 @@ Entries auto-expire after 30 minutes of no new attempts.
 """
 
 import asyncio
+import hmac
+import ipaddress
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 
 from fastapi import HTTPException, Request
 
@@ -26,7 +30,69 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 
+PROXY_SECRET_HEADER = "x-proxy-secret"
+REAL_IP_HEADER = "x-real-ip"
+UNVERIFIED_WARNING_INTERVAL = 60.0  # seconds between warnings, per process
+_last_unverified_warning: float | None = None
+
+
+class ClientAddress(NamedTuple):
+    ip: str
+    verified: bool
+
+
+def _is_ip(value: str) -> bool:
+    try:
+        ipaddress.ip_address(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _proxy_secret_matches(request: Request) -> bool:
+    presented = request.headers.get(PROXY_SECRET_HEADER, "")
+    if not presented:
+        return False
+    settings = get_settings()
+    matched = False
+    for secret in (settings.PROXY_SHARED_SECRET, settings.PROXY_SHARED_SECRET_PREVIOUS):
+        if secret and hmac.compare_digest(presented.encode(), secret.encode()):
+            matched = True
+    return matched
+
+
+def _warn_unverified() -> None:
+    global _last_unverified_warning
+    now = time.monotonic()
+    if _last_unverified_warning is None or now - _last_unverified_warning >= (
+        UNVERIFIED_WARNING_INTERVAL
+    ):
+        _last_unverified_warning = now
+        logger.warning("Request without a valid proxy secret; client address is unverified")
+
+
+def get_client_address(request: Request) -> ClientAddress:
+    """Client address plus whether the proxy vouched for it.
+
+    nginx sets X-Real-IP from the TCP peer and X-Proxy-Secret from a shared
+    secret. When the secret matches, X-Real-IP is trustworthy (verified=True).
+    Otherwise fall back to get_client_ip's best-effort behaviour (verified=False).
+    The right-most X-Forwarded-For entry is never used.
+    """
+    if _proxy_secret_matches(request):
+        real_ip = request.headers.get(REAL_IP_HEADER, "").strip()
+        if _is_ip(real_ip):
+            return ClientAddress(real_ip, True)
+    if get_settings().TRUST_PROXY_HEADERS:
+        _warn_unverified()
+    return ClientAddress(_best_effort_ip(request), False)
+
+
 def get_client_ip(request: Request) -> str:
+    return get_client_address(request).ip
+
+
+def _best_effort_ip(request: Request) -> str:
     """Best-effort client IP for rate limiting.
 
     Behind a trusted proxy (TRUST_PROXY_HEADERS), the direct TCP peer is the

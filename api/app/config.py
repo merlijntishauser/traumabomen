@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     # When true, derive the client IP from X-Forwarded-For (set behind a
     # trusted proxy such as nginx / Cloud Run). Off in local dev.
     TRUST_PROXY_HEADERS: bool = False
+    # Shared with the frontend nginx, which sends it as X-Proxy-Secret. A request
+    # carrying the current (or previous, during rotation) secret has an X-Real-IP
+    # we can trust. Empty means no request is ever verified.
+    PROXY_SHARED_SECRET: str = ""
+    PROXY_SHARED_SECRET_PREVIOUS: str = ""
     # Disable interactive API docs (/docs, /redoc, /openapi.json) in production.
     ENABLE_DOCS: bool = True
 

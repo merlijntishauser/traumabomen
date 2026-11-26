@@ -18,7 +18,8 @@ ENV APP_COMMIT=${APP_COMMIT}
 RUN npm run build
 
 FROM nginx:1-alpine AS production
-ENV NGINX_ENVSUBST_FILTER=API_URL
+ENV NGINX_ENVSUBST_FILTER=API_URL|PROXY_SHARED_SECRET
+ENV PROXY_SHARED_SECRET=""
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080
