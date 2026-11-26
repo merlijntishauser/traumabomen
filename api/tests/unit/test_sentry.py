@@ -1,6 +1,28 @@
 """Tests for Sentry integration (privacy hook and initialization)."""
 
-from app.main import _strip_encrypted_data
+import pytest
+
+from app.main import _strip_encrypted_data, _strip_transaction
+
+
+@pytest.mark.parametrize("hook", [_strip_encrypted_data, _strip_transaction])
+@pytest.mark.parametrize("name", ["X-Proxy-Secret", "x-proxy-secret", "X-PROXY-SECRET"])
+def test_proxy_secret_header_removed(hook, name):
+    event = {
+        "request": {
+            "headers": {name: "s3cret", "X-Real-IP": "1.2.3.4", "Host": "x"},
+            "data": {"encrypted_data": "blob"},
+        }
+    }
+    result = hook(event, {})
+    assert [k for k in result["request"]["headers"] if k.lower() == "x-proxy-secret"] == []
+    assert result["request"]["headers"]["Host"] == "x"
+    assert result["request"]["data"]["encrypted_data"] == "[filtered]"
+
+
+def test_events_without_headers_pass_through():
+    event = {"request": {"url": "/health"}}
+    assert _strip_transaction(event, {}) == {"request": {"url": "/health"}}
 
 
 class TestStripEncryptedData:

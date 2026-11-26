@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings, get_settings
+from app.rate_limiter import PROXY_SECRET_HEADER
 from app.routers.admin_feedback import router as admin_feedback_router
 from app.routers.admin_stats import router as admin_stats_router
 from app.routers.admin_users import router as admin_users_router
@@ -53,11 +54,25 @@ def _scrub_encrypted_fields(obj) -> None:
         _scrub_encrypted_fields(child)
 
 
+def _strip_proxy_secret(event):
+    """Drop the proxy shared secret header from an event's request headers."""
+    headers = event.get("request", {}).get("headers")
+    if isinstance(headers, dict):
+        for name in [k for k in headers if str(k).lower() == PROXY_SECRET_HEADER]:
+            del headers[name]
+
+
 def _strip_encrypted_data(event, hint):
-    """Remove encrypted_data from Sentry event context."""
+    """Remove encrypted_data and the proxy secret from Sentry event context."""
     request_data = event.get("request", {}).get("data")
     _scrub_encrypted_fields(request_data)
+    _strip_proxy_secret(event)
     return event
+
+
+def _strip_transaction(event, hint):
+    """before_send_transaction: transactions carry request headers too."""
+    return _strip_encrypted_data(event, hint)
 
 
 _settings = get_settings()
@@ -79,6 +94,7 @@ def _init_sentry(settings: Settings) -> None:
         max_request_body_size="never",
         include_local_variables=False,
         before_send=_strip_encrypted_data,
+        before_send_transaction=_strip_transaction,
     )
 
 
