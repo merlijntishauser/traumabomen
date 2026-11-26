@@ -52,6 +52,15 @@ export default tseslint.config(
       "sonarjs/parameterized-tests": "off",
     },
   },
+  {
+    // Runs the committed argon2-browser bundle (public/argon2-bundled.min.js)
+    // in a vm context so the guest key derivation is tested against real
+    // Argon2id. The code is a file from the repo, never input.
+    files: ["src/lib/guestCrypto.unit.test.ts"],
+    rules: {
+      "sonarjs/code-eval": "off",
+    },
+  },
   // Existing complex files -- reduce over time
   {
     files: [
