@@ -135,6 +135,13 @@ expect_status "/view-assets/view.html" 404 "$BASE/view-assets/view.html"
 curl -s -D "$TMP/slash.h" -o /dev/null -A guest-probe-slash "$BASE/view/"
 if head -1 "$TMP/slash.h" | grep -q " 301"; then pass "/view/: 301"; else fail "/view/: $(head -1 "$TMP/slash.h")"; fi
 expect_header "/view/" "$TMP/slash.h" "Location" "/view"
+for spelling in /VIEW /View /vIeW /VIEW/ /View/; do
+  curl -s -D "$TMP/case.h" -o /dev/null -A guest-probe-case "$BASE$spelling"
+  if head -1 "$TMP/case.h" | grep -q " 301"; then pass "$spelling: 301"; else fail "$spelling: $(head -1 "$TMP/case.h")"; fi
+  expect_header "$spelling" "$TMP/case.h" "Location" "/view"
+done
+# Upper case, so the error log check below (which greps for /view) skips it.
+expect_status "/VIEWS (not a spelling of /view)" 200 "$BASE/VIEWS"
 
 echo "/api/guest/open"
 curl -s -o "$TMP/open.json" -A guest-probe-open -X POST \
@@ -215,7 +222,7 @@ curl -s -o /dev/null -A guest-probe-root "$BASE/"
 sleep 1
 docker logs "$WEB" > "$TMP/nginx.log" 2>&1
 if grep -q "guest-probe-root" "$TMP/nginx.log"; then pass "/ is logged"; else fail "/ left no access log line (check is not meaningful)"; fi
-for probe in guest-probe-view guest-probe-assets guest-probe-slash guest-probe-open guest-probe-open-slash; do
+for probe in guest-probe-view guest-probe-assets guest-probe-slash guest-probe-case guest-probe-open guest-probe-open-slash; do
   if grep -q "$probe" "$TMP/nginx.log"; then fail "$probe left an access log line"; else pass "$probe left no access log line"; fi
 done
 if grep -q "view-assets/x" "$TMP/nginx.log"; then fail "a missing /view-assets/ file was logged"; else pass "a missing /view-assets/ file left no log line"; fi
