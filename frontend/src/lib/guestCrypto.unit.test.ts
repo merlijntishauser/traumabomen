@@ -180,6 +180,25 @@ describe("normalizePassphrase", () => {
     expect(normalizePassphrase(input)).toBe(expected);
   });
 
+  it.each([
+    "\u{2010}",
+    "\u{2011}",
+    "\u{2012}",
+    "\u{2013}",
+    "\u{2014}",
+    "\u{2015}",
+    "\u{2212}",
+    "\u{ff0d}",
+  ])("folds the dash %j into a separator, as the spec states", (dash) => {
+    expect(normalizePassphrase(`apple${dash}${dash} banana${dash}cherry`)).toBe(
+      "apple banana cherry",
+    );
+  });
+
+  it("keeps other punctuation as typed", () => {
+    expect(normalizePassphrase("apple_banana cherry.")).toBe("apple_banana cherry.");
+  });
+
   it("derives the same keys for a passphrase typed differently", async () => {
     const typed = await deriveGuestKeys(VECTOR.linkSecret, "Apple  Banana-cherry\n");
     const clean = await deriveGuestKeys(VECTOR.linkSecret, "apple banana cherry");

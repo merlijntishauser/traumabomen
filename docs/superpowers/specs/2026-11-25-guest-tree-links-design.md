@@ -68,8 +68,14 @@ Generated in the owner's browser, per link:
   servers, proxies and link previews see only `/view`.
 - `passphrase`: five words drawn with `crypto.getRandomValues` and rejection
   sampling from a 7776-word list (EN or NL by owner language), about 64 bits.
-  Generated only; the owner cannot choose one. Normalise before use: NFKC,
-  lowercase, hyphens and whitespace runs to one space, trim.
+  Generated only; the owner cannot choose one. Normalise before use, in this
+  order (part of the v1 derivation contract): Unicode NFKC; `toLowerCase()`
+  (locale-independent); every run of separators to one space, where a
+  separator is Unicode whitespace (JavaScript `\s`), the ASCII hyphen-minus
+  U+002D, the dashes U+2010 to U+2015 (hyphen, non-breaking hyphen, figure
+  dash, en dash, em dash, horizontal bar) or the minus sign U+2212; then trim
+  leading and trailing whitespace. Nothing else is changed: other punctuation,
+  such as an underscore, is kept as typed.
 
 Derivation, identical on both sides:
 
