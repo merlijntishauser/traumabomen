@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import secrets
 from datetime import UTC, datetime, timedelta
 
@@ -48,6 +49,8 @@ from app.schemas.auth import (
     UpdateSaltRequest,
     VerifyResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -207,7 +210,13 @@ async def login(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="email_not_verified")
 
     db.add(LoginEvent(user_id=user.id))
-    await sweep_expired_guest_links(db)
+    # Housekeeping only: a failed sweep must not fail the login, so it runs in
+    # a savepoint that rolls back on its own and is retried on the next login.
+    try:
+        async with db.begin_nested():
+            await sweep_expired_guest_links(db)
+    except Exception:
+        logger.warning("Guest link sweep failed during login; skipped")
     await db.commit()
 
     return await _build_token_response(user, settings, db)

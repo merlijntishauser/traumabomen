@@ -319,6 +319,28 @@ class TestLogin:
         assert data["encryption_salt"] == "test-salt-abc"
 
     @pytest.mark.asyncio
+    async def test_login_succeeds_when_guest_link_sweep_fails(self, client, user, db_session):
+        from sqlalchemy import func, text
+
+        from app.models.login_event import LoginEvent
+
+        async def broken_sweep(db):
+            # A failing statement, so the savepoint has a real error to roll back.
+            await db.execute(text("SELECT * FROM no_such_table"))
+
+        with patch("app.routers.auth.sweep_expired_guest_links", side_effect=broken_sweep):
+            resp = await client.post(
+                "/auth/login",
+                json={"email": "test@example.com", "password": "TestPassword1"},
+            )
+        assert resp.status_code == 200
+        assert "access_token" in resp.json()
+        events = await db_session.scalar(
+            select(func.count()).select_from(LoginEvent).where(LoginEvent.user_id == user.id)
+        )
+        assert events == 1
+
+    @pytest.mark.asyncio
     async def test_login_wrong_password(self, client, user):
         resp = await client.post(
             "/auth/login",
