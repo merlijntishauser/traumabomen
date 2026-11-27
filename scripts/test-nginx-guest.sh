@@ -151,6 +151,13 @@ CLIENT_IP=$(grep -o '"x-real-ip": "[^"]*"' "$TMP/open.json" | cut -d'"' -f4 || t
 curl -s -o "$TMP/open-slash.json" -A guest-probe-open-slash -X POST \
   -H "Content-Type: application/json" -d '{"link_id":"a","token":"b"}' "$BASE/api/guest/open/"
 if grep -q '"path": "/guest/open"' "$TMP/open-slash.json"; then pass "/api/guest/open/: proxied to /guest/open"; else fail "/api/guest/open/: upstream saw $(cat "$TMP/open-slash.json")"; fi
+for f in open.json open-slash.json; do
+  if grep -q '"user-agent": ' "$TMP/$f"; then
+    fail "/api/guest/open ($f): User-Agent reached the upstream"
+  else
+    pass "/api/guest/open ($f): no User-Agent upstream"
+  fi
+done
 for header in x-forwarded-for x-forwarded-proto host; do
   if grep -q "\"$header\": " "$TMP/open.json"; then pass "/api/guest/open: sends $header"; else fail "/api/guest/open: no $header upstream"; fi
 done
@@ -169,6 +176,7 @@ if grep -q '"x-proxy-secret": "'"$SECRET"'"' "$TMP/links.json" && ! grep -q '203
 else
   fail "guest-links: forged headers not replaced"
 fi
+if grep -q '"user-agent": ' "$TMP/links.json"; then pass "guest-links: User-Agent passed (the no-User-Agent check is meaningful)"; else fail "guest-links: no User-Agent upstream"; fi
 expect_status "guest-links/{id}: 2 MB body proxied" 200 -X PUT --data-binary @"$TMP/big.json" "$BASE/api/trees/abc/guest-links/xyz"
 expect_status "other API paths keep the 1 MB limit" 413 -X POST --data-binary @"$TMP/big.json" "$BASE/api/trees/abc/persons"
 
