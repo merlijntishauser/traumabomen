@@ -4,6 +4,7 @@ import { buildDemoState } from "./buildDemoState";
 import type { DemoFixture } from "./createDemoTree";
 import {
   buildGuestCopy,
+  clampText,
   GUEST_COPY_VERSION,
   type GuestCopy,
   GuestCopyError,
@@ -145,8 +146,67 @@ describe("buildGuestCopy", () => {
     ]);
   });
 
+  it("publishes legacy owner data: dangling references and over-long text", () => {
+    const state = demoState();
+    const [person] = state.persons.values();
+    state.persons.set(person.id, { ...person, notes: "n".repeat(25_000) });
+    const [event] = state.events.values();
+    state.events.set(event.id, {
+      ...event,
+      title: "t".repeat(600),
+      person_ids: [...event.person_ids, "deleted-person"],
+    });
+    const [pattern] = state.patterns.values();
+    state.patterns.set(pattern.id, {
+      ...pattern,
+      person_ids: [...pattern.person_ids, "deleted-person"],
+      linked_entities: [
+        ...pattern.linked_entities,
+        { entity_type: "trauma_event", entity_id: "deleted-event" },
+      ],
+    });
+    const [rel] = state.relationships.values();
+    state.relationships.set("rel-to-deleted", {
+      ...rel,
+      id: "rel-to-deleted",
+      target_person_id: "deleted-person",
+    });
+
+    const copy = buildGuestCopy(state, NOW, "en");
+    const parsed = parseGuestCopy(wire(copy));
+
+    expect(parsed.persons.find((p) => p.id === person.id)?.notes).toHaveLength(20_000);
+    expect(parsed.events.find((e) => e.id === event.id)?.title).toHaveLength(500);
+    expect(parsed.events.find((e) => e.id === event.id)?.person_ids).toEqual(event.person_ids);
+    const published = parsed.patterns.find((p) => p.id === pattern.id);
+    expect(published?.linked_entities).toEqual(pattern.linked_entities);
+    expect(published?.person_ids).toEqual(pattern.person_ids);
+    expect(parsed.relationships.some((r) => r.id === "rel-to-deleted")).toBe(false);
+    expect(parsed.relationships).toHaveLength(state.relationships.size - 1);
+  });
+
   it("produces a copy that passes parseGuestCopy", () => {
     expect(() => parseGuestCopy(demoCopy())).not.toThrow();
+  });
+});
+
+describe("clampText", () => {
+  it("leaves a string within the limit as it is", () => {
+    expect(clampText("abc", 3)).toBe("abc");
+  });
+
+  it("cuts a longer string to the limit", () => {
+    expect(clampText("abcdef", 4)).toBe("abcd");
+  });
+
+  it("does not split a surrogate pair at the cut", () => {
+    // "a" then U+1F333 (two UTF-16 units): a cut at 2 would leave half of it.
+    expect(clampText("a\u{1F333}b", 2)).toBe("a");
+    expect(clampText("a\u{1F333}b", 3)).toBe("a\u{1F333}");
+  });
+
+  it("returns a non-string as it is", () => {
+    expect(clampText(null, 3)).toBeNull();
   });
 });
 

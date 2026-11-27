@@ -68,6 +68,11 @@ export class GuestCopyError extends Error {
   }
 }
 
+/** Text limits, shared by the builder (which clamps to them) and the parser (which enforces them). */
+const MAX_ID_LENGTH = 64;
+const MAX_TEXT_LENGTH = 20_000;
+const MAX_NAME_LENGTH = 500;
+
 // ---- Field lists --------------------------------------------------------
 
 type MissingKeys<T, K extends readonly (keyof T)[]> = Exclude<keyof T, K[number]>;
@@ -223,13 +228,32 @@ function pick<T, K extends keyof T>(
   return out as T;
 }
 
+/**
+ * Cut a string to at most `max` UTF-16 units without splitting a surrogate
+ * pair. Anything that is not a string is returned as it is.
+ */
+export function clampText<T>(value: T, max: number): T {
+  if (typeof value !== "string" || value.length <= max) return value;
+  let cut = value.slice(0, max);
+  const last = cut.charCodeAt(cut.length - 1);
+  if (last >= 0xd800 && last <= 0xdbff) cut = cut.slice(0, -1);
+  return cut as T;
+}
+
+const clampName = <T>(value: T): T => clampText(value, MAX_NAME_LENGTH);
+const clampLong = <T>(value: T): T => clampText(value, MAX_TEXT_LENGTH);
+
 function pickPosition<T extends { position?: Position }>(projected: T): T {
   if (projected.position) projected.position = pick(projected.position, POSITION_FIELDS);
   return projected;
 }
 
 function projectPerson(p: DecryptedPerson): DecryptedPerson {
-  return pickPosition(pick(p, PERSON_FIELDS, OPTIONAL_PERSON_FIELDS));
+  const out = pickPosition(pick(p, PERSON_FIELDS, OPTIONAL_PERSON_FIELDS));
+  out.name = clampName(out.name);
+  out.cause_of_death = clampLong(out.cause_of_death);
+  out.notes = clampLong(out.notes);
+  return out;
 }
 
 function projectRelationship(r: DecryptedRelationship): DecryptedRelationship {
@@ -246,7 +270,19 @@ function projectLinked<T extends { person_ids: string[]; tags?: string[] }>(
 ): T {
   const out = pick(entity, keys, optional);
   out.person_ids = [...entity.person_ids];
-  if ("tags" in out) out.tags = [...(entity.tags ?? [])];
+  if ("tags" in out) out.tags = (entity.tags ?? []).map(clampName);
+  return out;
+}
+
+/** The text fields events, life events and turning points share, clamped. */
+function projectStory<T extends DecryptedEvent | DecryptedLifeEvent | DecryptedTurningPoint>(
+  entity: T,
+  keys: readonly (keyof T)[],
+): T {
+  const out = projectLinked(entity, keys);
+  out.title = clampName(out.title);
+  out.description = clampLong(out.description);
+  out.approximate_date = clampLong(out.approximate_date);
   return out;
 }
 
@@ -254,6 +290,7 @@ function projectClassification(c: DecryptedClassification): DecryptedClassificat
   const out = projectLinked(c, CLASSIFICATION_FIELDS);
   out.dsm_subcategory = c.dsm_subcategory || null;
   out.periods = (c.periods ?? []).map((period) => pick(period, CLASSIFICATION_PERIOD_FIELDS));
+  out.notes = clampLong(out.notes);
   return out;
 }
 
@@ -290,6 +327,8 @@ export function toPaletteColor(color: string): string {
 
 function projectPattern(p: DecryptedPattern): DecryptedPattern {
   const out = projectLinked(p, PATTERN_FIELDS);
+  out.name = clampName(out.name);
+  out.description = clampLong(out.description);
   out.color = toPaletteColor(p.color);
   out.linked_entities = p.linked_entities.map((le) => pick(le, LINKED_ENTITY_FIELDS));
   return out;
@@ -297,31 +336,87 @@ function projectPattern(p: DecryptedPattern): DecryptedPattern {
 
 function projectSiblingGroup(g: DecryptedSiblingGroup): DecryptedSiblingGroup {
   const out = pickPosition(projectLinked(g, SIBLING_GROUP_FIELDS, OPTIONAL_SIBLING_GROUP_FIELDS));
-  out.members = g.members.map((m) =>
-    pick(m, MEMBER_FIELDS, OPTIONAL_MEMBER_FIELDS, NON_NULL_MEMBER_FIELDS),
-  );
+  out.members = g.members.map((m) => {
+    const member = pick(m, MEMBER_FIELDS, OPTIONAL_MEMBER_FIELDS, NON_NULL_MEMBER_FIELDS);
+    member.name = clampName(member.name);
+    return member;
+  });
   return out;
 }
 
+/** Keep only the person ids that are in the copy. */
+function onlyPersons<T extends { person_ids: string[] }>(ids: ReadonlySet<string>) {
+  return (entity: T): T => {
+    entity.person_ids = entity.person_ids.filter((personId) => ids.has(personId));
+    return entity;
+  };
+}
+
+/**
+ * Build the copy. The app tolerates references to deleted entries (a pattern
+ * linked to a removed event shows a "?"), but the guest parser does not, so a
+ * reference whose target is not in the copy is left out here: person ids that
+ * are not a person, relationships with a missing end, and pattern links to an
+ * entry that is gone. Over-long text is clamped to the parser's limits too.
+ */
 export function buildGuestCopy(
   input: GuestCopyInput,
   now: Date,
   language: GuestCopyLanguage,
 ): GuestCopy {
   const all = <T>(map: Map<string, T>): T[] => Array.from(map.values());
+  const idsOf = (items: { id: string }[]) => new Set(items.map((item) => item.id));
+
+  const persons = all(input.persons).map(projectPerson);
+  const personIds = idsOf(persons);
+  const relationships = all(input.relationships)
+    .filter((r) => personIds.has(r.source_person_id) && personIds.has(r.target_person_id))
+    .map(projectRelationship);
+  const events = all(input.events)
+    .map((e) => projectStory(e, EVENT_FIELDS))
+    .map(onlyPersons(personIds));
+  const lifeEvents = all(input.lifeEvents)
+    .map((e) => projectStory(e, LIFE_EVENT_FIELDS))
+    .map(onlyPersons(personIds));
+  const turningPoints = all(input.turningPoints)
+    .map((e) => projectStory(e, TURNING_POINT_FIELDS))
+    .map(onlyPersons(personIds));
+  const classifications = all(input.classifications)
+    .map(projectClassification)
+    .map(onlyPersons(personIds));
+  const linkable: Record<string, ReadonlySet<string> | undefined> = {
+    trauma_event: idsOf(events),
+    life_event: idsOf(lifeEvents),
+    turning_point: idsOf(turningPoints),
+    classification: idsOf(classifications),
+  };
+  const patterns = all(input.patterns)
+    .map(projectPattern)
+    .map(onlyPersons(personIds))
+    .map((p) => {
+      p.linked_entities = p.linked_entities.filter(
+        (le) =>
+          Object.hasOwn(linkable, le.entity_type) && !!linkable[le.entity_type]?.has(le.entity_id),
+      );
+      return p;
+    });
+  const siblingGroups = all(input.siblingGroups)
+    .map(projectSiblingGroup)
+    .map(onlyPersons(personIds));
+
   return {
     version: GUEST_COPY_VERSION,
     publishedAt: now.toISOString(),
     language,
-    treeName: input.treeName,
-    persons: all(input.persons).map(projectPerson),
-    relationships: all(input.relationships).map(projectRelationship),
-    events: all(input.events).map((e) => projectLinked(e, EVENT_FIELDS)),
-    lifeEvents: all(input.lifeEvents).map((e) => projectLinked(e, LIFE_EVENT_FIELDS)),
-    turningPoints: all(input.turningPoints).map((e) => projectLinked(e, TURNING_POINT_FIELDS)),
-    classifications: all(input.classifications).map(projectClassification),
-    patterns: all(input.patterns).map(projectPattern),
-    siblingGroups: all(input.siblingGroups).map(projectSiblingGroup),
+    treeName: clampName(input.treeName),
+    persons,
+    relationships,
+    events,
+    lifeEvents,
+    turningPoints,
+    classifications,
+    patterns,
+    siblingGroups,
   };
 }
 
@@ -356,9 +451,6 @@ export function guestCopyToState(copy: GuestCopy): GuestTreeState {
 
 // ---- Parsing ------------------------------------------------------------
 
-const MAX_ID_LENGTH = 64;
-const MAX_TEXT_LENGTH = 20_000;
-const MAX_NAME_LENGTH = 500;
 const MAX_ITEMS = 5_000;
 const MAX_YEAR = 3000;
 const MAX_SCALE = 10;
