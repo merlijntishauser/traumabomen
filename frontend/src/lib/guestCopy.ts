@@ -369,40 +369,34 @@ export function buildGuestCopy(
 
   const persons = all(input.persons).map(projectPerson);
   const personIds = idsOf(persons);
-  const relationships = all(input.relationships)
-    .filter((r) => personIds.has(r.source_person_id) && personIds.has(r.target_person_id))
-    .map(projectRelationship);
-  const events = all(input.events)
-    .map((e) => projectStory(e, EVENT_FIELDS))
-    .map(onlyPersons(personIds));
-  const lifeEvents = all(input.lifeEvents)
-    .map((e) => projectStory(e, LIFE_EVENT_FIELDS))
-    .map(onlyPersons(personIds));
-  const turningPoints = all(input.turningPoints)
-    .map((e) => projectStory(e, TURNING_POINT_FIELDS))
-    .map(onlyPersons(personIds));
-  const classifications = all(input.classifications)
-    .map(projectClassification)
-    .map(onlyPersons(personIds));
+  const keep = <T extends { person_ids: string[] }>(entity: T): T =>
+    onlyPersons<T>(personIds)(entity);
+  const relationships: DecryptedRelationship[] = [];
+  for (const r of input.relationships.values()) {
+    if (personIds.has(r.source_person_id) && personIds.has(r.target_person_id)) {
+      relationships.push(projectRelationship(r));
+    }
+  }
+  const events = all(input.events).map((e) => keep(projectStory(e, EVENT_FIELDS)));
+  const lifeEvents = all(input.lifeEvents).map((e) => keep(projectStory(e, LIFE_EVENT_FIELDS)));
+  const turningPoints = all(input.turningPoints).map((e) =>
+    keep(projectStory(e, TURNING_POINT_FIELDS)),
+  );
+  const classifications = all(input.classifications).map((c) => keep(projectClassification(c)));
   const linkable: Record<string, ReadonlySet<string> | undefined> = {
     trauma_event: idsOf(events),
     life_event: idsOf(lifeEvents),
     turning_point: idsOf(turningPoints),
     classification: idsOf(classifications),
   };
-  const patterns = all(input.patterns)
-    .map(projectPattern)
-    .map(onlyPersons(personIds))
-    .map((p) => {
-      p.linked_entities = p.linked_entities.filter(
-        (le) =>
-          Object.hasOwn(linkable, le.entity_type) && !!linkable[le.entity_type]?.has(le.entity_id),
-      );
-      return p;
-    });
-  const siblingGroups = all(input.siblingGroups)
-    .map(projectSiblingGroup)
-    .map(onlyPersons(personIds));
+  const isLinkable = (le: LinkedEntity) =>
+    Object.hasOwn(linkable, le.entity_type) && !!linkable[le.entity_type]?.has(le.entity_id);
+  const patterns = all(input.patterns).map((p) => {
+    const out = keep(projectPattern(p));
+    out.linked_entities = out.linked_entities.filter(isLinkable);
+    return out;
+  });
+  const siblingGroups = all(input.siblingGroups).map((g) => keep(projectSiblingGroup(g)));
 
   return {
     version: GUEST_COPY_VERSION,
