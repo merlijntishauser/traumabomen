@@ -183,7 +183,8 @@ jobs:
               SMTP_PORT=smtp-port:latest,\
               SMTP_USER=smtp-user:latest,\
               SMTP_PASSWORD=smtp-password:latest,\
-              SENTRY_DSN=sentry-dsn:latest" \
+              SENTRY_DSN=sentry-dsn:latest,\
+              PROXY_SHARED_SECRET=proxy-shared-secret:latest" \
             --set-env-vars="^;^\
               CORS_ORIGINS=https://www.traumatrees.org,https://www.traumabomen.nl;\
               JWT_ALGORITHM=HS256;\
@@ -218,6 +219,7 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --set-env-vars="API_URL=${API_URL}" \
+            --set-secrets=PROXY_SHARED_SECRET=proxy-shared-secret:latest \
             --min-instances=1 \
             --max-instances=4 \
             --memory=128Mi \
