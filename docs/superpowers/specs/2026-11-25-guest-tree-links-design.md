@@ -67,7 +67,9 @@ Generated in the owner's browser, per link:
   `{origin}/view#{linkSecret}`. Nothing else identifies the link in the URL, so
   servers, proxies and link previews see only `/view`.
 - `passphrase`: five words drawn with `crypto.getRandomValues` and rejection
-  sampling from a 7776-word list (EN or NL by owner language), about 64 bits.
+  sampling from a 7776-word list, about 64 bits. The list is the English EFF large
+  wordlist for every owner language: no Dutch list with a clear bundling licence was
+  found, and the owner accepted English words for Dutch owners (2026-11-27).
   Generated only; the owner cannot choose one. Normalise before use, in this
   order (part of the v1 derivation contract): Unicode NFKC; `toLowerCase()`
   (locale-independent); every run of separators to one space, where a
