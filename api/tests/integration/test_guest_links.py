@@ -350,3 +350,27 @@ async def test_deleting_tree_removes_links(client, headers, tree, guest_links_en
     assert resp.status_code == 204
     db_session.expire_all()
     assert (await db_session.execute(select(func.count()).select_from(GuestLink))).scalar_one() == 0
+
+
+@pytest.mark.asyncio
+async def test_list_leaves_ciphertext_unloaded(client, headers, tree, guest_links_enabled):
+    """The list query never pulls the (up to 5 MB) ciphertext column."""
+    from unittest.mock import patch
+
+    from sqlalchemy import inspect
+
+    from app.routers import guest_links as router
+
+    await _create(client, headers, tree)
+    seen: list[set[str]] = []
+    original = router._to_out
+
+    async def spy(db, links, settings):
+        seen.extend(set(inspect(link).unloaded) for link in links)
+        return await original(db, links, settings)
+
+    with patch.object(router, "_to_out", spy):
+        resp = await client.get(_url(tree), headers=headers)
+    assert resp.status_code == 200
+    assert len(seen) == 1
+    assert "ciphertext" in seen[0]

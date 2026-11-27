@@ -383,3 +383,25 @@ async def test_server_error_on_guest_path_is_no_store(link, guest_links_enabled)
             guest = await _open(c)
     assert guest.status_code == 500
     assert guest.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.asyncio
+async def test_token_check_leaves_ciphertext_unloaded(client, link, guest_links_enabled):
+    """The locked row read for the token check does not load the ciphertext."""
+    from sqlalchemy import inspect
+
+    from app.routers import guest as router
+
+    seen: list[set[str]] = []
+    original = router._record_network
+
+    async def spy(db, row, address):
+        seen.append(set(inspect(row).unloaded))
+        await original(db, row, address)
+
+    with patch.object(router, "_record_network", spy):
+        resp = await _open(client)
+    assert resp.status_code == 200
+    assert resp.json() == {"ciphertext": "the-ciphertext"}
+    assert len(seen) == 1
+    assert "ciphertext" in seen[0]
